@@ -1,0 +1,239 @@
+{
+  "name": "vscode-mssql",
+  "version": "0.0.3",
+  "displayname": "MSSQL support in VS Code",
+  "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
+  "publisher": "sanagama",
+
+  "author": {
+    "name": "Sanjay Nagamangalam",
+    "email": "sanagama2@gmail.com"
+  },
+
+	"license": "SEE LICENSE IN LICENSE.txt",
+  "icon": "images/sqlserver.png",
+
+  "galleryBanner": {
+    "color": "#CFB69A",
+    "theme": "light"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanagama/vscode-mssql.git"
+  },
+
+  "bugs": {
+        "url": "https://github.com/sanagama/vscode-mssql/issues",
+        "email": "sanagama2@gmail.com"
+    },
+
+  "homepage": "https://github.com/sanagama/vscode-mssql/blob/master/README.md",
+
+  "engines": {
+      "vscode": "^1.0.0"
+  },
+
+  "categories": [
+    "Languages"
+  ],
+
+  "keywords": [
+    "SQL", "SQL Azure", "SQL Server", "Azure SQL Database", "Azure SQL Data Warehouse"
+  ],
+
+  "activationEvents": [ "*" ],
+
+  "main": "./out/src/extension",
+  "extensionDependencies": [
+    "vscode.sql"
+  ],
+
+  "devDependencies": {
+      "typescript": "^1.8.9",
+      "vscode": "^0.11.0"
+   },
+
+  "dependencies": {
+    "async": "^2.0.0-rc.3",
+    "mssql": "^3.2.0",
+    "express": "^4.13.3"
+  },
+
+  "contributes":
+  {
+    "languages": [
+      {
+        "id": "sql",
+        "extensions": [
+          ".sql"
+        ],
+        "aliases": [
+          "SQL"
+        ],
+        "configuration": "./syntaxes/sql.configuration.json"
+      }
+    ],
+
+    "grammars": [
+      {
+        "language": "sql",
+        "scopeName": "source.sql",
+        "path": "./syntaxes/SQL.plist"
+      }
+    ],
+
+    "outputChannels": [
+      "MSSQL"
+    ],
+
+    "snippets": [
+      {
+        "language": "sql",
+        "path": "./snippets/mssql.json"
+      }
+    ],
+
+    "commands": [
+      {
+        "command": "extension.runQuery",
+        "title": "Run T-SQL query",
+        "category": "MSSQL"
+      },
+      {
+        "command": "extension.connect",
+        "title": "Connect to a database",
+        "category": "MSSQL"
+      },
+      {
+        "command": "extension.disconnect",
+        "title": "Disconnect active connection",
+        "category": "MSSQL"
+      }
+    ],
+
+    "keybindings": [
+      {
+        "command": "extension.runQuery",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorTextFocus && editorLangId == 'sql'"
+      },
+      {
+        "command": "extension.connect",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "editorTextFocus && editorLangId == 'sql'"
+      },
+      {
+        "command": "extension.disconnect",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d",
+        "when": "editorTextFocus && editorLangId == 'sql'"
+      }
+    ],
+
+    "configuration": {
+      "type": "object",
+      "title": "MSSQL configuration",
+      "properties":
+      {
+        "vscode-mssql.logDebugInfo":
+        {
+          "type": "boolean",
+          "default": false,
+          "description": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)"
+        },
+
+        "vscode-mssql.connections":
+        {
+          "type": "array",
+          "default":
+          [
+            {
+              "server": "{{put-server-name-here}}",
+              "database": "{{put-database-name-here}}",
+              "user": "{{put-username-here}}",
+              "password": "{{put-password-here}}"
+            }
+          ],
+          "description": "Connections placed here are shown in the connections picklist across VS Code sessions.",
+          "items":
+          {
+            "type": "object",
+            "properties":
+            {
+              "server":
+              {
+                "type": "string",
+                "default": "{{put-server-name-here}}",
+                "description": "[Required] Server to connect to. Use 'hostname\\instance' or '<server>.database.windows.net'."
+              },
+
+              "database":
+              {
+                "type": "string",
+                "default": "{{put-database-name-here}}",
+                "description": "[Optional] Database to connect to. If this is empty, default depends on server configuration, typically 'master'."
+              },
+
+              "user":
+              {
+                "type": "string",
+                "default": "{{put-username-here}}",
+                "description": "[Optional] User name for SQL authentication. If this is empty, you are prompted when you connect."
+              },
+
+              "password":
+              {
+                "type": "string",
+                "default": "{{put-password-here}}",
+                "description": "[Optional] Password for SQL authentication. If this is empty, you are prompted when you connect."
+              },
+
+              "connectionTimeout":
+              {
+                "type": "number",
+                "default": 15000,
+                "description": "[Optional] Connection timeout in milliseconds. Default is 30000 ms for Azure SQL DB and 15000 ms otherwise."
+              },
+
+              "requestTimeout":
+              {
+                "type": "number",
+                "default": 15000,
+                "description": "[Optional] Request timeout in milliseconds. Default is 30000 ms for Azure SQL DB and 15000 ms otherwise."
+              },
+
+              "options":
+              {
+                "type": "object",
+                "properties":
+                {
+                  "encrypt":
+                  {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "[Optional] Specify if the connection will be encrypted. Always set to 'true' for Azure SQL DB and loaded from here otherwise."
+                  },
+
+                  "appName":
+                  {
+                    "type": "string",
+                    "default": "vscode-mssql",
+                    "description": "[Optional] Application name used for SQL server logging (default: 'vscode-mssql')."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "scripts": {
+    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  }
+}

@@ -1,0 +1,252 @@
+{
+	"Get extension help": {
+		"prefix": "sql.extensionhelp",
+		"body": [
+			"/*",
+			"vscode-mssql getting started:",
+			"-----------------------------",
+			"1. Change language mode to SQL: Open a .sql file or press Ctrl+K M (Cmd+K M on Mac) and choose 'SQL'.",
+			"2. Connect to a database: Press F1 to show the command palette, type 'mssql' then click 'Connect to a database'.",
+			"3. Use the T-SQL editor: Type T-SQL statements in the editor. Type 'sql' to see a list of code snippets you can tweak & reuse.",
+			"4. Run T-SQL statements: Press Ctrl+Shift+e (Cmd+Shift+e on Mac) to execute all the T-SQL code in the editor.",
+			"",
+			"Tip #1: Put GO on a line by itself to separate T-SQL batches.",
+			"Tip #2: Select some T-SQL text in the editor and press `Ctrl+Shift+e` (`Cmd+Shift+e` on Mac) to execute the selection",
+			"*/"
+		],
+		"description": "Get extension help"
+	},
+
+	"Create a new Database": {
+		"prefix": "sql.createdatabase",
+		"body": [
+			"-- Create a new database called '${DatabaseName}'",
+			"-- Connect to the 'master' database to run this snippet",
+			"USE master",
+			"GO",
+			"-- Drop the database if it already exists",
+			"IF EXISTS (",
+			"  SELECT name",
+			"   FROM sys.databases",
+			"   WHERE name = N'${DatabaseName}'",
+			")",
+			"DROP DATABASE ${DatabaseName}",
+			"GO",
+			"-- Create the new database",
+			"CREATE DATABASE ${DatabaseName}",
+			"GO"
+		],
+		"description": "Create a new Database"
+	},
+
+	"Drop a Database": {
+		"prefix": "sql.dropdatabase",
+		"body": [
+			"-- Drop the database '${DatabaseName}'",
+			"-- Connect to the 'master' database to run this snippet",
+			"USE master",
+			"GO",
+			"-- Drop the database if it exists",
+			"IF EXISTS (",
+			"  SELECT name",
+			"   FROM sys.databases",
+			"   WHERE name = N'${DatabaseName}'",
+			")",
+			"DROP DATABASE ${DatabaseName}",
+			"GO"
+		],
+		"description": "Drop a Database"
+	},
+
+	"Create a new Table": {
+		"prefix": "sql.createtable",
+		"body": [
+			"-- Create a new table called '${TableName}' in schema '${SchemaName}'",
+			"-- Drop the table if it already exists",
+			"IF OBJECT_ID('${SchemaName}.${TableName}', 'U') IS NOT NULL",
+			"DROP TABLE ${SchemaName}.${TableName}",
+			"GO",
+			"-- Create the table in the specified schema",
+			"CREATE TABLE ${SchemaName}.${TableName}",
+			"(",
+			"	${TableName}Id INT NOT NULL, -- primary key column",
+			"	Column1 [NVARCHAR](50) NOT NULL,",
+			"	Column2 [NVARCHAR](50) NOT NULL",
+			"   -- specify more columns here",
+			"	CONSTRAINT PK_${TableName} PRIMARY KEY (${TableName}Id)",
+			");",
+			"GO"
+		],
+		"description": "Create a new Table"
+	},
+
+	"Drop a Table": {
+		"prefix": "sql.droptable",
+		"body": [
+			"-- Drop the table '${TableName}' in schema '${SchemaName}'",
+			"IF EXISTS (",
+			"  SELECT *",
+			"    FROM sys.tables",
+			"    JOIN sys.schemas",
+			"      ON sys.tables.schema_id = sys.schemas.schema_id",
+			"  WHERE sys.schemas.name = N'${SchemaName}'",
+			"     AND sys.tables.name = N'${TableName}'",
+			")",
+			"  DROP TABLE ${SchemaName}.${TableName}",
+			"GO"
+		],
+		"description": "Drop a Table"
+	},
+
+	"Add a new column to a Table": {
+		"prefix": "sql.addcolumn",
+		"body": [
+			"-- Add a new column '$(NewColumnName)' to table '${TableName}' in schema '${SchemaName}'",
+			"ALTER TABLE ${SchemaName}.${TableName}",
+			"  ADD $(NewColumnName) /*new_column_name*/ int /*new_column_datatype*/ NULL /*new_column_nullability*/",
+			"GO"
+		],
+		"description": "Add a new column to a Table"
+	},
+
+	"Drop a column from a Table": {
+		"prefix": "sql.dropcolumn",
+		"body": [
+			"-- Drop '$(ColumnName)' from table '${TableName}' in schema '${SchemaName}'",
+			"ALTER TABLE ${SchemaName}.${TableName}",
+			"  DROP COLUMN $(ColumnName)",
+			"GO"
+		],
+		"description": "Add a new column to a Table"
+	},
+
+	"Select rows from a Table or a View": {
+		"prefix": "sql.select",
+		"body": [
+			"-- Select rows from a Table or View '${TableOrViewName}' in schema '${SchemaName}'",
+			"SELECT * FROM ${SchemaName}.${TableOrViewName}",
+			"WHERE </* add search conditions here */>",
+			"GO"
+		],
+		"description": "Select rows from a Table or a View"
+	},
+
+	"Insert rows into a Table": {
+		"prefix": "sql.insertrows",
+		"body": [
+			"-- Insert rows into table '${TableName}'",
+			"INSERT INTO ${TableName}",
+			"( -- columns to insert data into",
+			" [Column1], [Column2], [Column3]",
+			")",
+			"VALUES",
+			"( -- first row: values for the columns in the list above",
+			" Column1_Value, Column2_Value, Column2_Value",
+			")",
+			"( -- second row: values for the columns in the list above",
+			" Column1_Value, Column2_Value, Column2_Value",
+			")",
+			"-- add more rows here",
+			"GO"
+		],
+		"description": "Insert rows into a Table"
+	},
+
+	"Delete rows from a Table": {
+		"prefix": "sql.deleterows",
+		"body": [
+			"-- Delete rows from table '${TableName}'",
+			"DELETE FROM ${TableName}",
+			"WHERE </* add search conditions here */>",
+			"GO"
+		],
+		"description": "Delete rows from a Table"
+	},
+
+	"Update rows in a Table": {
+		"prefix": "sql.updaterows",
+		"body": [
+			"-- Update rows in table '${TableName}'",
+			"UPDATE ${TableName}",
+			"SET",
+			" [Colum1] = Colum1_Value,",
+			" [Colum2] = Colum2_Value",
+			"-- add more columns and values here",
+			"WHERE </* add search conditions here */>",
+			"GO"
+		],
+		"description": "Update rows in a Table"
+	},
+
+	"Create a stored procedure": {
+		"prefix": "sql.createstoredproc",
+		"body": [
+			"-- Create a new stored procedure called '${StoredProcedureName}' in schema '$(SchemaName)'",
+			"-- Drop the stored procedure if it already exists",
+			"IF EXISTS (",
+			"SELECT *",
+			"  FROM INFORMATION_SCHEMA.ROUTINES",
+			"WHERE SPECIFIC_SCHEMA = N'${SchemaName}'",
+			"  AND SPECIFIC_NAME = N'${StoredProcedureName}'",
+			")",
+			"DROP PROCEDURE ${SchemaName}.${StoredProcedureName}",
+			"GO",
+			"-- Create the stored procedure in the specified schema",
+			"CREATE PROCEDURE ${SchemaName}.${StoredProcedureName}",
+			"  @param1 /*parameter name*/ int /*datatype_for_param1*/ = 0 /*default_value_for_param1*/",
+			"  @param1 /*parameter name*/ int /*datatype_for_param1*/ = 0 /*default_value_for_param2*/",
+			"-- add more stored procedure parameters here",
+			"AS",
+			"  -- body of the stored procedure",
+			"  SELECT @param1, @param2",
+			"GO",
+			"-- example to execute the stored procedure we just created",
+			"EXECUTE ${SchemaName}.${StoredProcedureName} 1 /*value_for_param1*/, 2 /*value_for_param2*/",
+			"GO"
+		],
+		"description": "Create a stored procedure"
+	},
+
+	"Drop a stored procedure": {
+		"prefix": "sql.dropstoredproc",
+		"body": [
+			"-- Drop the stored procedure called '${StoredProcedureName}' in schema '$(SchemaName)'",
+			"IF EXISTS (",
+			"SELECT *",
+			"  FROM INFORMATION_SCHEMA.ROUTINES",
+			"WHERE SPECIFIC_SCHEMA = N'${SchemaName}'",
+			"  AND SPECIFIC_NAME = N'${StoredProcedureName}'",
+			")",
+			"DROP PROCEDURE ${SchemaName}.${StoredProcedureName}",
+			"GO"
+		],
+		"description": "Drop a stored procedure"
+	},
+
+	"List tables": {
+		"prefix": "sql.listtables",
+		"body": [
+			"-- Get a list of tables and views in the current database",
+			"-- Connect to the 'master' database to run this snippet",
+			"USE master",
+			"GO",
+			"SELECT table_catalog [database], table_schema [schema], table_name name, table_type type",
+			"FROM information_schema.tables",
+			"GO"
+		],
+		"description": "List tables and vies in the current database"
+	},
+
+	"List databases": {
+		"prefix": "sql.listdatabases",
+		"body": [
+			"-- Get a list of databases",
+			"-- Connect to the 'master' database to run this snippet",
+			"USE master",
+			"GO",
+			"SELECT name FROM sys.databases",
+			"GO"
+		],
+		"description": "List databases"
+	}
+}
