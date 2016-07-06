@@ -19,26 +19,25 @@ suite("Extension Tests", () => {
         assert.equal(-1, [1, 2, 3].indexOf(5));
         assert.equal(-1, [1, 2, 3].indexOf(0));
     });
-});
 
-function assertEditor(done) {
-	vscode.workspace.openTextDocument( vscode.Uri.parse("untitled:c:\new.js") ).then( document =>{
-		vscode.window.showTextDocument(document).then(editor => {
-
-			editor.edit(builder => {
-				builder.insert(new vscode.Position(0, 0), "Hello, World!");
-			}).then( () => {
-				try {
-					assert.equal(document.getText(), "this test should fail");
-					done();
-				} catch(e) {
-					done(e);
-				}
+	function assertEditor(done) {
+		vscode.workspace.openTextDocument( vscode.Uri.parse("untitled:c:\new.js") ).then( document =>{
+			vscode.window.showTextDocument(document).then(editor => {
+				editor.edit(builder => {
+					builder.insert(new vscode.Position(0, 0), "Hello, World!");
+				}).then( () => {
+					try {
+						assert.equal(document.getText(), "this test should fail");
+						done();
+					} catch(e) {
+						done(e);
+					}
+				});
 			});
 		});
-	});
-}
+	}
 
-test("Test Editor Async", (done) => {
-	assertEditor(done);
+	test("Test Editor Async", (done) => {
+		assertEditor(done);
+	});
 });
