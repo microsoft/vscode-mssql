@@ -102,7 +102,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     public show()
     {
-        vscode.commands.executeCommand('vscode.previewHtml', SqlOutputContentProvider.providerUri, vscode.ViewColumn.Two);
+        vscode.commands.executeCommand('vscode.previewHtml', SqlOutputContentProvider.providerUri, vscode.ViewColumn.Two, "SQL Query Results");
     }
 
     public updateContent(messages, resultsets)
