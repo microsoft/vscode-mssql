@@ -13,6 +13,7 @@ const gResultsetsMetadataUri = '/resultsetsMeta';
 const gMessagesUrl = '/messages';
 const gMessagesContainerId = 'messagesContainerId';
 const gResultsetContainerId = 'resultsetContainerId';
+const gResultsetUriId = 'uri';
 const gResultsgridRowsPerPage = 50;
 const gPaginatorWindowSize = 15;
 
@@ -20,6 +21,7 @@ var gResultsetsMetadataCollection;
 var gSqlOutputView;
 var gMessagesCollection;
 var gMessagesView;
+var uri;
 
 function logStatus(msg)
 {
@@ -56,13 +58,14 @@ function initializeEvents()
             renderSqlResultset();
         }
     });
+    uri = $('#' + gResultsetUriId).text().trim();
 }
 
 // initialize sql output window and renders 'results' and 'messages' tabs
 function initializeSqlOutput()
 {
     logStatus('initializeSqlOutput called');
-    gResultsetsMetadataCollection = getResultsMetadataCollection(gResultsetsMetadataUri);
+    gResultsetsMetadataCollection = getResultsMetadataCollection(gResultsetsMetadataUri+'?uri='+uri);
     gSqlOutputView = getSqlOutputView(gResultsetsMetadataCollection, gNavTabsId);
     gResultsetsMetadataCollection.fetch({reset: true}).done(function ()
     {
@@ -192,8 +195,8 @@ function renderSqlResultset()
         var rowsUri = resultset.rowsUri;
         logStatus('index = ' + resultsetIndex + ', columnsUri = ' + columnsUri + ', rowsUri = ' + rowsUri);
 
-        var columnsCollection = getColumnsCollection(resultset.columnsUri);
-        var rowsCollection = getRowsCollection(resultset.rowsUri);
+        var columnsCollection = getColumnsCollection(resultset.columnsUri+'&uri='+uri);
+        var rowsCollection = getRowsCollection(resultset.rowsUri+'&uri='+uri);
         createGrid("#" + gResultsetContainerId, columnsCollection, rowsCollection);
         logStatus('grid created!');
     }
@@ -327,7 +330,7 @@ function getMessagesView(messagesCollection, htmlContainerId)
 function renderSqlMessages(messagesUri, htmlContainerId)
 {
     logStatus('renderSqlMessages called');
-    gMessagesCollection = getMessagesCollection(messagesUri);
+    gMessagesCollection = getMessagesCollection(messagesUri+'?uri='+uri);
     gMessagesView = getMessagesView(gMessagesCollection, htmlContainerId);
     gMessagesCollection.fetch({reset: true}).done(function ()
     {
