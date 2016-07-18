@@ -21,7 +21,7 @@ var gResultsetsMetadataCollection;
 var gSqlOutputView;
 var gMessagesCollection;
 var gMessagesView;
-var uri;
+var sqlDocumentResourceUri;
 
 function logStatus(msg)
 {
@@ -58,14 +58,14 @@ function initializeEvents()
             renderSqlResultset();
         }
     });
-    uri = $('#' + gResultsetUriId).text().trim();
+    sqlDocumentResourceUri = $('#' + gResultsetUriId).text().trim();
 }
 
 // initialize sql output window and renders 'results' and 'messages' tabs
 function initializeSqlOutput()
 {
     logStatus('initializeSqlOutput called');
-    gResultsetsMetadataCollection = getResultsMetadataCollection(gResultsetsMetadataUri+'?uri='+uri);
+    gResultsetsMetadataCollection = getResultsMetadataCollection(gResultsetsMetadataUri+'?uri='+sqlDocumentResourceUri);
     gSqlOutputView = getSqlOutputView(gResultsetsMetadataCollection, gNavTabsId);
     gResultsetsMetadataCollection.fetch({reset: true}).done(function ()
     {
@@ -195,8 +195,8 @@ function renderSqlResultset()
         var rowsUri = resultset.rowsUri;
         logStatus('index = ' + resultsetIndex + ', columnsUri = ' + columnsUri + ', rowsUri = ' + rowsUri);
 
-        var columnsCollection = getColumnsCollection(resultset.columnsUri+'&uri='+uri);
-        var rowsCollection = getRowsCollection(resultset.rowsUri+'&uri='+uri);
+        var columnsCollection = getColumnsCollection(resultset.columnsUri+'&uri='+sqlDocumentResourceUri);
+        var rowsCollection = getRowsCollection(resultset.rowsUri+'&uri='+sqlDocumentResourceUri);
         createGrid("#" + gResultsetContainerId, columnsCollection, rowsCollection);
         logStatus('grid created!');
     }
