@@ -14,14 +14,8 @@ import * as myExtension from '../src/extension';
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", () => {
 
-    // Defines a Mocha unit test
-    test("Something 1", () => {
-        assert.equal(-1, [1, 2, 3].indexOf(5));
-        assert.equal(-1, [1, 2, 3].indexOf(0));
-    });
-
 	function assertEditor(done) {
-		vscode.workspace.openTextDocument( vscode.Uri.parse("untitled:c:\new.js") ).then( document =>{
+		vscode.workspace.openTextDocument( vscode.Uri.parse("untitled:c:new.js") ).then( document =>{
 			vscode.window.showTextDocument(document).then(editor => {
 				editor.edit(builder => {
 					builder.insert(new vscode.Position(0, 0), "Hello, World!");
