@@ -3,11 +3,7 @@
   "version": "0.0.3",
   "displayname": "MSSQL support in VS Code",
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
-  "publisher": "sanagama",
-  "author": {
-    "name": "Sanjay Nagamangalam",
-    "email": "sanagama2@gmail.com"
-  },
+  "publisher": "microsoft",
   "license": "SEE LICENSE IN LICENSE.txt",
   "icon": "images/sqlserver.png",
   "galleryBanner": {
@@ -19,8 +15,7 @@
     "url": "https://github.com/Microsoft/vscode-mssql.git"
   },
   "bugs": {
-    "url": "https://github.com/Microsoft/vscode-mssql/issues",
-    "email": "sanagama2@gmail.com"
+    "url": "https://github.com/Microsoft/vscode-mssql/issues"
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
