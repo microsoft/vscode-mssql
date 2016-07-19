@@ -50,7 +50,7 @@ suite("SqlOutputProvider Tests", () => {
     }
 
     setup(() => {
-        path = vscode.extensions.getExtension("sanagama.vscode-mssql").extensionPath;
+        path = vscode.extensions.getExtension("microsoft.vscode-mssql").extensionPath;
         contentProvider = new SqlOutputContentProvider(new TextContext(path));
         port = LocalWebService._servicePort;
         return openSQLFile();
