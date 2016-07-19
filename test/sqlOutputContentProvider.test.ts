@@ -8,8 +8,8 @@ import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider
 import LocalWebService from '../src/controllers/localWebService';
 import Interfaces = require('../src/models/interfaces');
 import Constants = require('../src/models/constants');
-var results = require('./results.json');
-var messages = require('./messages.json');
+var results = require('../../test/results.json');
+var messages = require('../../test/messages.json');
 var metadata = [
     {
         "columnsUri":"/" + Constants.gOutputContentTypeColumns+ "?id=0",
@@ -58,7 +58,7 @@ suite("SqlOutputProvider Tests", () => {
 
     test("Initial Server Responses", () => {
         let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root];
-        var htmlbuf = fs.readFileSync(path +'/src/views/htmlcontent/sqlOutput.html')
+        var htmlbuf = fs.readFileSync(path +'/src/views/htmlcontent/sqlOutput.ejs')
         return request.get(url, function(err, res, body){
             assert.equal(res.statusCode, 200);
             assert.equal(htmlbuf.toString(), body);
