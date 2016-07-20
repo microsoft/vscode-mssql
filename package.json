@@ -58,7 +58,8 @@
   "dependencies": {
     "async": "^2.0.0-rc.3",
     "mssql": "^3.2.0",
-    "express": "^4.13.3"
+    "express": "^4.13.3",
+    "vscode-languageclient": "^1.0.0"
   },
 
   "contributes":
