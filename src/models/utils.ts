@@ -7,7 +7,7 @@ export function isEditingSqlFile(): boolean {
     let sqlFile = false;
     let editor = getActiveTextEditor();
     if (editor) {
-        if (editor.document.languageId === Constants.gLanguageId) {
+        if (editor.document.languageId === Constants.languageId) {
             sqlFile = true;
         }
     }
@@ -25,7 +25,7 @@ export function getActiveTextEditor(): vscode.TextEditor {
 
 // Helper to log messages to "MSSQL" output channel
 export function logToOutputChannel(msg: any): void {
-    let outputChannel = vscode.window.createOutputChannel(Constants.gOutputChannelName);
+    let outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
     outputChannel.show();
     if (msg instanceof Array) {
         msg.forEach(element => {
@@ -38,8 +38,8 @@ export function logToOutputChannel(msg: any): void {
 
 // Helper to log debug messages
 export function logDebug(msg: any): void {
-    let config = vscode.workspace.getConfiguration(Constants.gExtensionName);
-    let logDebugInfo = config[Constants.gConfigLogDebugInfo];
+    let config = vscode.workspace.getConfiguration(Constants.extensionName);
+    let logDebugInfo = config[Constants.configLogDebugInfo];
     if (logDebugInfo === true) {
         let currentTime = new Date().toLocaleTimeString();
         let outputMsg = '[' + currentTime + ']: ' + msg ? msg.toString() : '';
@@ -49,15 +49,15 @@ export function logDebug(msg: any): void {
 
 // Helper to show an info message
 export function showInfoMsg(msg: string): void {
-    vscode.window.showInformationMessage(Constants.gExtensionName + ': ' + msg );
+    vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg );
 }
 
 // Helper to show an warn message
 export function showWarnMsg(msg: string): void {
-    vscode.window.showWarningMessage(Constants.gExtensionName + ': ' + msg );
+    vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
 }
 
 // Helper to show an error message
 export function showErrorMsg(msg: string): void {
-    vscode.window.showErrorMessage(Constants.gExtensionName + ': ' + msg );
+    vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg );
 }

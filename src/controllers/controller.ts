@@ -32,7 +32,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     public deactivate(): void {
-        Utils.logDebug(Constants.gExtensionDeactivated);
+        Utils.logDebug(Constants.extensionDeactivated);
         this.onDisconnect();
         this._statusview.dispose();
     }
@@ -41,12 +41,12 @@ export default class MainController implements vscode.Disposable {
         const self = this;
 
         // register VS Code commands
-        this.registerCommand(Constants.gCmdConnect);
-        this._event.on(Constants.gCmdConnect, () => { self.onNewConnection(); });
-        this.registerCommand(Constants.gCmdDisconnect);
-        this._event.on(Constants.gCmdDisconnect, () => { self.onDisconnect(); });
-        this.registerCommand(Constants.gCmdRunQuery);
-        this._event.on(Constants.gCmdRunQuery, () => { self.onRunQuery(); });
+        this.registerCommand(Constants.cmdConnect);
+        this._event.on(Constants.cmdConnect, () => { self.onNewConnection(); });
+        this.registerCommand(Constants.cmdDisconnect);
+        this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
+        this.registerCommand(Constants.cmdRunQuery);
+        this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
 
         // Init status bar
         this._statusview = new StatusView();
@@ -59,7 +59,7 @@ export default class MainController implements vscode.Disposable {
         let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
         this._context.subscriptions.push(registration);
 
-        Utils.logDebug(Constants.gExtensionActivated);
+        Utils.logDebug(Constants.extensionActivated);
     }
 
     // Close active connection, if any
@@ -75,7 +75,7 @@ export default class MainController implements vscode.Disposable {
     // get the T-SQL query from the editor, run it and show output
     public onRunQuery(): void {
         if (!Utils.isEditingSqlFile()) {
-            Utils.showWarnMsg(Constants.gMsgOpenSqlFile);
+            Utils.showWarnMsg(Constants.msgOpenSqlFile);
         } else {
             const self = this;
             let qr = new QueryRunner(self._connectionMgr, self._statusview, self._outputContentProvider);

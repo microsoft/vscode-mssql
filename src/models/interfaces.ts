@@ -11,8 +11,8 @@ export enum ContentType {
     Rows = 4
 };
 
-export const ContentTypes = [Constants.gOutputContentTypeRoot, Constants.gOutputContentTypeMessages, Constants.gOutputContentTypeResultsetMeta,
-Constants.gOutputContentTypeColumns, Constants.gOutputContentTypeRows];
+export const ContentTypes = [Constants.outputContentTypeRoot, Constants.outputContentTypeMessages, Constants.outputContentTypeResultsetMeta,
+Constants.outputContentTypeColumns, Constants.outputContentTypeRows];
 
 // mssql.config wrapped into an interface for us to use more easily
 // Provided by the user when creating a new database connection

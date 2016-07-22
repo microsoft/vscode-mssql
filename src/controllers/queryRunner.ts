@@ -50,18 +50,18 @@ export default class QueryRunner {
         const self = this;
         if (self.connectionManager.isConnected) {
             // already connected - run query
-            Utils.logDebug(Constants.gMsgRunQueryConnectionActive);
+            Utils.logDebug(Constants.msgRunQueryConnectionActive);
             self.runQuery();
         } else if (self.connectionManager.connectionCredentials) {
             // connected previously but not connected now - reconnect with saved connection info
-            Utils.logDebug(Constants.gMsgRunQueryConnectionDisconnected);
+            Utils.logDebug(Constants.msgRunQueryConnectionDisconnected);
             self.connectionManager.connect(self.connectionManager.connectionCredentials)
             .then(function(): void {
                 self.runQuery();
             });
         } else {
             // not connected - prompt for a new connection
-            Utils.logDebug(Constants.gMsgRunQueryNoConnection);
+            Utils.logDebug(Constants.msgRunQueryNoConnection);
             self.connectionManager.onNewConnection()
             .then(function(): void {
                 self.runQuery();
@@ -81,11 +81,11 @@ export default class QueryRunner {
             // called by async.js when all batches have finished executing
             let done = function(err): void {
                 // all batches executed
-                Utils.logDebug(Constants.gMsgRunQueryAllBatchesExecuted);
+                Utils.logDebug(Constants.msgRunQueryAllBatchesExecuted);
                 self.statusView.executedQuery();
 
                 if (err) {
-                    Utils.logDebug(Constants.gMsgRunQueryError + err.toString());
+                    Utils.logDebug(Constants.msgRunQueryError + err.toString());
                     return;
                 }
 
@@ -96,7 +96,7 @@ export default class QueryRunner {
             let iterator = function(sqlBatch, callback): void {
                 self.executeBatch(sqlBatch, self.connectionManager.connection)
                 .then(function(resolution): void {
-                    Utils.logDebug(Constants.gMsgRunQueryAddBatchResultsets + sqlBatch);
+                    Utils.logDebug(Constants.msgRunQueryAddBatchResultsets + sqlBatch);
                     let recordsets = resolution.recordsets;
                     let requestRowsAffected = resolution.requestRowsAffected;
                     self.addResultsets(recordsets, requestRowsAffected);
@@ -105,7 +105,7 @@ export default class QueryRunner {
                 })
                 .catch(function(err): void {
                     self._errorEncountered = true;
-                    Utils.logDebug(Constants.gMsgRunQueryAddBatchError + sqlBatch);
+                    Utils.logDebug(Constants.msgRunQueryAddBatchError + sqlBatch);
                     self.addError(err);
 
                     callback(); // call 'callback' to indicate this iteration is done and to proceed to the next one
@@ -125,7 +125,7 @@ export default class QueryRunner {
     // Helper to execute T-SQL (selected text or the entire contents of the editor)
     private executeBatch(sqlText, connection): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            Utils.logDebug(Constants.gMsgRunQueryExecutingBatch + sqlText);
+            Utils.logDebug(Constants.msgRunQueryExecutingBatch + sqlText);
             const request = new mssql.Request(connection);
             request.multiple = true;    // enable multiple recordsets
             request.batch(sqlText, function(err, recordsets, rowsAffected): void {
@@ -206,9 +206,9 @@ export default class QueryRunner {
         const self = this;
         if (!recordsets || recordsets.length === 0) {
             if (requestRowsAffected) {
-                self.addMessage( '(' + requestRowsAffected + Constants.gExecuteQueryRowsAffected + ')' );
+                self.addMessage( '(' + requestRowsAffected + Constants.executeQueryRowsAffected + ')' );
             } else {
-                self.addMessage(Constants.gExecuteQueryCommandCompleted);
+                self.addMessage(Constants.executeQueryCommandCompleted);
             }
             return;
         }
@@ -218,7 +218,7 @@ export default class QueryRunner {
             let currentRecordset = recordsets[i];
 
             let rowsAffected = self.getRowsAffected(currentRecordset);
-            self.addMessage( '(' + rowsAffected + Constants.gExecuteQueryRowsAffected + ')' );
+            self.addMessage( '(' + rowsAffected + Constants.executeQueryRowsAffected + ')' );
 
             let columnMetadata = self.getColumnMetadata(currentRecordset);
             let rowsInResultset = self.getRowsInResultset(currentRecordset);

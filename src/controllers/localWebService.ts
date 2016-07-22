@@ -18,11 +18,11 @@ export default class LocalWebService {
         LocalWebService._staticContentPath = path.join(extensionPath, LocalWebService._htmlContentLocation);
         this.app.use(express.static(LocalWebService.staticContentPath));
         this.app.set('view engine', 'ejs');
-        Utils.logDebug(Constants.gMsgLocalWebserviceStaticContent + LocalWebService.staticContentPath);
+        Utils.logDebug(Constants.msgLocalWebserviceStaticContent + LocalWebService.staticContentPath);
     }
 
     static get serviceUrl(): string {
-        return Constants.gOutputServiceLocalhost + LocalWebService._servicePort;
+        return Constants.outputServiceLocalhost + LocalWebService._servicePort;
     }
 
     static get staticContentPath(): string {
@@ -44,7 +44,7 @@ export default class LocalWebService {
 
     start(): void {
         const port = this.app.listen(0).address().port; // 0 = listen on a random port
-        Utils.logDebug(Constants.gMsgLocalWebserviceStarted + port);
+        Utils.logDebug(Constants.msgLocalWebserviceStarted + port);
         LocalWebService._servicePort = port.toString();
     }
 }
