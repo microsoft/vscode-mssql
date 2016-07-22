@@ -1,0 +1,126 @@
+﻿7/28/2016 4:29:01 PM [NORMAL] - Method "Main" at line 24 of F:\xplat\sqltoolsservice\src\ServiceHost\Program.cs
+
+    Starting SQL Tools Service Host
+
+7/28/2016 4:29:01 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+
+    READ MESSAGE:
+    
+    {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "method": "initialize",
+      "params": {
+        "processId": 780380,
+        "capabilities": {}
+      }
+    }
+
+7/28/2016 4:29:01 PM [VERBOSE] - Method "HandleInitializeRequest" at line 89 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+
+    HandleDidChangeTextDocumentNotification
+
+7/28/2016 4:29:01 PM [VERBOSE] - Method "WriteMessage" at line 58 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageWriter.cs
+
+    WRITE MESSAGE:
+    
+    {
+      "jsonrpc": "2.0",
+      "id": "0",
+      "result": {
+        "capabilities": {
+          "textDocumentSync": 2,
+          "hoverProvider": true,
+          "completionProvider": {
+            "resolveProvider": true,
+            "triggerCharacters": [
+              ".",
+              "-",
+              ":",
+              "\\"
+            ]
+          },
+          "signatureHelpProvider": {
+            "triggerCharacters": [
+              " "
+            ]
+          },
+          "definitionProvider": true,
+          "referencesProvider": true,
+          "documentHighlightProvider": true,
+          "documentSymbolProvider": true,
+          "workspaceSymbolProvider": true
+        }
+      }
+    }
+
+7/28/2016 4:29:01 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+
+    READ MESSAGE:
+    
+    {
+      "jsonrpc": "2.0",
+      "method": "workspace/didChangeConfiguration",
+      "params": {
+        "settings": {
+          "sqlTools": {}
+        }
+      }
+    }
+
+7/28/2016 4:29:01 PM [VERBOSE] - Method "HandleDidChangeConfigurationNotification" at line 186 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+
+    HandleDidChangeConfigurationNotification
+
+7/28/2016 4:29:06 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+
+    READ MESSAGE:
+    
+    {
+      "jsonrpc": "2.0",
+      "method": "textDocument/didOpen",
+      "params": {
+        "uri": "file:///c%3A/Users/andresse/Documents/sql.sql",
+        "languageId": "sql",
+        "text": "-- Select rows from a Table or View 'TableOrViewName' in schema 'SchemaName'\r\nGO\r\nSELECT * FROM sys.Objects\r\nGO"
+      }
+    }
+
+7/28/2016 4:29:06 PM [VERBOSE] - Method "HandleDidOpenTextDocumentNotification" at line 165 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+
+    HandleDidOpenTextDocumentNotification
+
+7/28/2016 4:29:09 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+
+    READ MESSAGE:
+    
+    {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "connection/connect",
+      "params": {
+        "userName": "DataToolsUser",
+        "password": "Access.123",
+        "serverName": "y6q8uzka1m.database.windows.net",
+        "databaseName": "keep_test_ssma"
+      }
+    }
+
+7/28/2016 4:29:11 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+
+    READ MESSAGE:
+    
+    {
+      "jsonrpc": "2.0",
+      "method": "textDocument/didOpen",
+      "params": {
+        "uri": "tsqloutput:c%3A%5CUsers%5Candresse%5CDocuments%5Csql.sql",
+        "languageId": "sql",
+        "text": "\n                <html>\n                    <head>\n                        <script type=\"text/javascript\">\n                            window.onload = function(event) {\n                                event.stopPropagation(true);\n                                window.location.href=\"http://localhost:21346/root?uri=tsqloutput:c%3A%5CUsers%5Candresse%5CDocuments%5Csql.sql\";\n                            };\n                        </script>\n                    </head>\n                    <body></body>\n                </html>"
+      }
+    }
+
+7/28/2016 4:29:11 PM [VERBOSE] - Method "HandleDidOpenTextDocumentNotification" at line 165 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+
+    HandleDidOpenTextDocumentNotification
+
