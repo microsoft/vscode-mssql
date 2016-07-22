@@ -16,33 +16,28 @@ export default class MainController implements vscode.Disposable {
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
 
-    constructor(context: vscode.ExtensionContext)
-    {
+    constructor(context: vscode.ExtensionContext) {
         this._context = context;
     }
 
-    private registerCommand(command: string)
-    {
+    private registerCommand(command: string): void {
         const self = this;
         this._context.subscriptions.push(vscode.commands.registerCommand(command, () => {
             self._event.emit(command);
         }));
     }
 
-    dispose()
-    {
+    dispose(): void {
         this.deactivate();
     }
 
-    public deactivate()
-    {
+    public deactivate(): void {
         Utils.logDebug(Constants.gExtensionDeactivated);
         this.onDisconnect();
         this._statusview.dispose();
     }
 
-    public activate()
-    {
+    public activate(): void {
         const self = this;
 
         // register VS Code commands
@@ -68,26 +63,20 @@ export default class MainController implements vscode.Disposable {
     }
 
     // Close active connection, if any
-    private onDisconnect()
-    {
+    private onDisconnect(): Promise<any> {
         return this._connectionMgr.onDisconnect();
     }
 
     // Let users pick from a list of connections
-    public onNewConnection()
-    {
+    public onNewConnection(): Promise<boolean> {
         return this._connectionMgr.onNewConnection();
     }
 
     // get the T-SQL query from the editor, run it and show output
-    public onRunQuery()
-    {
-        if(!Utils.isEditingSqlFile())
-        {
+    public onRunQuery(): void {
+        if (!Utils.isEditingSqlFile()) {
             Utils.showWarnMsg(Constants.gMsgOpenSqlFile);
-        }
-        else
-        {
+        } else {
             const self = this;
             let qr = new QueryRunner(self._connectionMgr, self._statusview, self._outputContentProvider);
             qr.onRunQuery();
