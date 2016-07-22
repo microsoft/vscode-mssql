@@ -53,14 +53,14 @@ export default class StatusView implements vscode.Disposable {
     public connecting(connCreds: Interfaces.IConnectionCredentials): void {
         this.createStatusBar();
         this._statusConnection.command = undefined;
-        this._statusConnection.tooltip = Constants.gConnectingTooltip + ConnInfo.getTooltip(connCreds);
+        this._statusConnection.tooltip = Constants.connectingTooltip + ConnInfo.getTooltip(connCreds);
         this._statusConnection.show();
-        this.showProgress(Constants.gConnectingLabel, this._statusConnection);
+        this.showProgress(Constants.connectingLabel, this._statusConnection);
     }
 
     public connectSuccess(connCreds: Interfaces.IConnectionCredentials): void {
         this.createStatusBar();
-        this._statusConnection.command = Constants.gCmdConnect;
+        this._statusConnection.command = Constants.cmdConnect;
         this._statusConnection.text = connCreds.server;
         this._statusConnection.tooltip = ConnInfo.getTooltip(connCreds);
         this._statusConnection.show();
@@ -68,20 +68,20 @@ export default class StatusView implements vscode.Disposable {
 
     public connectError(connCreds: Interfaces.IConnectionCredentials, error: any): void {
         this.createStatusBar();
-        this._statusConnection.command = Constants.gCmdConnect;
-        this._statusConnection.text = Constants.gConnectErrorLabel;
-        this._statusConnection.tooltip = Constants.gConnectErrorTooltip + connCreds.server + '\n' +
-                                      Constants.gConnectErrorCode + error.code + '\n' +
-                                      Constants.gConnectErrorMessage + error.message;
+        this._statusConnection.command = Constants.cmdConnect;
+        this._statusConnection.text = Constants.connectErrorLabel;
+        this._statusConnection.tooltip = Constants.connectErrorTooltip + connCreds.server + '\n' +
+                                      Constants.connectErrorCode + error.code + '\n' +
+                                      Constants.connectErrorMessage + error.message;
         this._statusConnection.show();
     }
 
     public executingQuery(connCreds: Interfaces.IConnectionCredentials): void {
         this.createStatusBar();
         this._statusQuery.command = undefined;
-        this._statusQuery.tooltip = Constants.gExecuteQueryLabel;
+        this._statusQuery.tooltip = Constants.executeQueryLabel;
         this._statusQuery.show();
-        this.showProgress(Constants.gExecuteQueryLabel, this._statusQuery);
+        this.showProgress(Constants.executeQueryLabel, this._statusQuery);
     }
 
     public executedQuery(): void {

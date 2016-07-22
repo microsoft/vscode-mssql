@@ -21,16 +21,16 @@ export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCred
     }
 
     if (!connCreds.connectionTimeout) {
-        connCreds.connectionTimeout = Constants.gDefaultConnectionTimeout;
+        connCreds.connectionTimeout = Constants.defaultConnectionTimeout;
     }
 
     if (!connCreds.requestTimeout) {
-        connCreds.requestTimeout = Constants.gDefaultRequestTimeout;
+        connCreds.requestTimeout = Constants.defaultRequestTimeout;
     }
 
     // default values for advanced options
     if (!connCreds.options) {
-        connCreds.options = {encrypt: false, appName: Constants.gExtensionName};
+        connCreds.options = {encrypt: false, appName: Constants.extensionName};
     }
 
     // default value for encrypt
@@ -40,7 +40,7 @@ export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCred
 
     // default value for appName
     if (!connCreds.options.appName) {
-        connCreds.options.appName = Constants.gExtensionName;
+        connCreds.options.appName = Constants.extensionName;
     }
 
     if (isAzureDatabase(connCreds.server)) {
@@ -48,13 +48,13 @@ export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCred
         connCreds.options.encrypt = true;
 
         // Ensure minumum connection timeout if connecting to Azure SQL
-        if (connCreds.connectionTimeout < Constants.gAzureSqlDbConnectionTimeout) {
-            connCreds.connectionTimeout = Constants.gAzureSqlDbConnectionTimeout;
+        if (connCreds.connectionTimeout < Constants.azureSqlDbConnectionTimeout) {
+            connCreds.connectionTimeout = Constants.azureSqlDbConnectionTimeout;
         }
 
         // Ensure minumum request timeout if connecting to Azure SQL
-        if (connCreds.requestTimeout < Constants.gAzureSqlDbRequestTimeout) {
-            connCreds.requestTimeout = Constants.gAzureSqlDbRequestTimeout;
+        if (connCreds.requestTimeout < Constants.azureSqlDbRequestTimeout) {
+            connCreds.requestTimeout = Constants.azureSqlDbRequestTimeout;
         }
     }
     return connCreds;
@@ -62,7 +62,7 @@ export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCred
 
 // return true if server name ends with '.database.windows.net'
 function isAzureDatabase(server: string): boolean {
-    return (server ? server.endsWith(Constants.gSqlDbPrefix) : false);
+    return (server ? server.endsWith(Constants.sqlDbPrefix) : false);
 }
 
 export function dump(connCreds: Interfaces.IConnectionCredentials): string {

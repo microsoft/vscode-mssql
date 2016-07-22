@@ -36,16 +36,16 @@ export class ConnectionUI {
     // Helper to prompt user to open VS Code user settings or workspace settings
     private openUserOrWorkspaceSettings(): void {
         let openGlobalSettingsItem: vscode.MessageItem = {
-            'title': Constants.gLabelOpenGlobalSettings
+            'title': Constants.labelOpenGlobalSettings
         };
 
         let openWorkspaceSettingsItem: vscode.MessageItem = {
-            'title': Constants.gLabelOpenWorkspaceSettings
+            'title': Constants.labelOpenWorkspaceSettings
         };
 
-        vscode.window.showWarningMessage(Constants.gExtensionName
+        vscode.window.showWarningMessage(Constants.extensionName
                                          + ': '
-                                         + Constants.gMsgNoConnectionsInSettings, openGlobalSettingsItem, openWorkspaceSettingsItem)
+                                         + Constants.msgNoConnectionsInSettings, openGlobalSettingsItem, openWorkspaceSettingsItem)
         .then((selectedItem: vscode.MessageItem) => {
             if (selectedItem === openGlobalSettingsItem) {
                 vscode.commands.executeCommand('workbench.action.openGlobalSettings');
@@ -62,7 +62,7 @@ export class ConnectionUI {
             // init picklist options
             let opts: vscode.QuickPickOptions = {
                 matchOnDescription: true,
-                placeHolder: Constants.gRecentConnectionsPlaceholder
+                placeHolder: Constants.recentConnectionsPlaceholder
             };
 
             // show picklist
@@ -111,7 +111,7 @@ export class ConnectionUI {
             callback(undefined, self, connectionCreds);
         } else {
             // we don't have a username, prompt the user to enter it
-            let usernameInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.gUsernamePlaceholder, prompt: Constants.gUsernamePrompt};
+            let usernameInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.usernamePlaceholder, prompt: Constants.usernamePrompt};
             self.promptUser(usernameInputOptions)
             .then((input) => {
                 if (input) {
@@ -132,7 +132,7 @@ export class ConnectionUI {
             callback(undefined, self, connectionCreds);
         } else {
             // we don't have a password, prompt the user to enter it
-            let passwordInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.gPasswordPlaceholder, prompt: Constants.gPasswordPrompt, password: true};
+            let passwordInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.passwordPlaceholder, prompt: Constants.passwordPrompt, password: true};
             self.promptUser(passwordInputOptions)
             .then((input) => {
                 if (input) {

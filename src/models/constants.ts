@@ -1,89 +1,89 @@
 // constants
-export const gLanguageId = 'sql';
-export const gExtensionName = 'vscode-mssql';
-export const gOutputChannelName = 'MSSQL';
+export const languageId = 'sql';
+export const extensionName = 'vscode-mssql';
+export const outputChannelName = 'MSSQL';
 
-export const gCmdRunQuery = 'extension.runQuery';
-export const gCmdConnect = 'extension.connect';
-export const gCmdDisconnect = 'extension.disconnect';
+export const cmdRunQuery = 'extension.runQuery';
+export const cmdConnect = 'extension.connect';
+export const cmdDisconnect = 'extension.disconnect';
 
-export const gSqlDbPrefix = '.database.windows.net';
-export const gDefaultConnectionTimeout = 15000;
-export const gDefaultRequestTimeout = 15000;
-export const gAzureSqlDbConnectionTimeout = 30000;
-export const gAzureSqlDbRequestTimeout = 30000;
-export const gAzureDatabase = 'Azure';
+export const sqlDbPrefix = '.database.windows.net';
+export const defaultConnectionTimeout = 15000;
+export const defaultRequestTimeout = 15000;
+export const azureSqlDbConnectionTimeout = 30000;
+export const azureSqlDbRequestTimeout = 30000;
+export const azureDatabase = 'Azure';
 
-export const gOutputContentTypeRoot = 'root';
-export const gOutputContentTypeMessages = 'messages';
-export const gOutputContentTypeResultsetMeta = 'resultsetsMeta';
-export const gOutputContentTypeColumns = 'columns';
-export const gOutputContentTypeRows = 'rows';
-export const gOutputServiceLocalhost = 'http://localhost:';
-export const gMsgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
+export const outputContentTypeRoot = 'root';
+export const outputContentTypeMessages = 'messages';
+export const outputContentTypeResultsetMeta = 'resultsetsMeta';
+export const outputContentTypeColumns = 'columns';
+export const outputContentTypeRows = 'rows';
+export const outputServiceLocalhost = 'http://localhost:';
+export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 
-export const gConfigLogDebugInfo = 'logDebugInfo';
-export const gConfigMyConnections = 'connections';
+export const configLogDebugInfo = 'logDebugInfo';
+export const configMyConnections = 'connections';
 
 // localizable strings
-export const gConfigMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
+export const configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
 
-export const gMsgLocalWebserviceStaticContent = 'LocalWebService: added static html content path: ';
-export const gMsgLocalWebserviceStarted = 'LocalWebService listening on port ';
-export const gMsgRunQueryAllBatchesExecuted = 'runQuery: all batches executed';
-export const gMsgRunQueryError = 'runQuery: error: ';
-export const gMsgRunQueryExecutingBatch = 'runQuery: executeBatch called with SQL: ';
-export const gMsgRunQueryAddBatchResultsets = 'runQuery: adding resultsets for batch: ';
-export const gMsgRunQueryAddBatchError = 'runQuery: adding error message for batch: ';
-export const gMsgRunQueryConnectionActive = 'runQuery: active connection is connected, using it to run query';
-export const gMsgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
-export const gMsgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
+export const msgLocalWebserviceStaticContent = 'LocalWebService: added static html content path: ';
+export const msgLocalWebserviceStarted = 'LocalWebService listening on port ';
+export const msgRunQueryAllBatchesExecuted = 'runQuery: all batches executed';
+export const msgRunQueryError = 'runQuery: error: ';
+export const msgRunQueryExecutingBatch = 'runQuery: executeBatch called with SQL: ';
+export const msgRunQueryAddBatchResultsets = 'runQuery: adding resultsets for batch: ';
+export const msgRunQueryAddBatchError = 'runQuery: adding error message for batch: ';
+export const msgRunQueryConnectionActive = 'runQuery: active connection is connected, using it to run query';
+export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
+export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 
-export const gMsgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
-export const gMsgContentProviderOnRootEndpoint = 'LocalWebService: Root end-point called';
-export const gMsgContentProviderOnResultsEndpoint = 'LocalWebService: ResultsetsMeta endpoint called';
-export const gMsgContentProviderOnMessagesEndpoint = 'LocalWebService: Messages end-point called';
-export const gMsgContentProviderOnColumnsEndpoint = 'LocalWebService:  Columns end-point called for index = ';
-export const gMsgContentProviderOnRowsEndpoint = 'LocalWebService: Rows end-point called for index = ';
-export const gMsgContentProviderOnClear = 'Content provider: clear called';
-export const gMsgContentProviderOnUpdateContent = 'Content provider: updateContent called';
-export const gMsgContentProviderProvideContent = 'Content provider: provideTextDocumentContent called: ';
+export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
+export const msgContentProviderOnRootEndpoint = 'LocalWebService: Root end-point called';
+export const msgContentProviderOnResultsEndpoint = 'LocalWebService: ResultsetsMeta endpoint called';
+export const msgContentProviderOnMessagesEndpoint = 'LocalWebService: Messages end-point called';
+export const msgContentProviderOnColumnsEndpoint = 'LocalWebService:  Columns end-point called for index = ';
+export const msgContentProviderOnRowsEndpoint = 'LocalWebService: Rows end-point called for index = ';
+export const msgContentProviderOnClear = 'Content provider: clear called';
+export const msgContentProviderOnUpdateContent = 'Content provider: updateContent called';
+export const msgContentProviderProvideContent = 'Content provider: provideTextDocumentContent called: ';
 
-export const gExtensionActivated = 'activated.';
-export const gExtensionDeactivated = 'de-activated.';
-export const gMsgOpenSqlFile = `To use this command, Open a .sql file -or-
+export const extensionActivated = 'activated.';
+export const extensionDeactivated = 'de-activated.';
+export const msgOpenSqlFile = `To use this command, Open a .sql file -or-
                                 Change editor language to "SQL" -or-
                                 Select some T-SQL text in the active SQL editor.`;
 
-export const gRecentConnectionsPlaceholder = 'Choose a connection from the list below';
-export const gMsgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
-export const gLabelOpenGlobalSettings = 'Open Global Settings';
-export const gLabelOpenWorkspaceSettings = 'Open Workspace Settings';
+export const recentConnectionsPlaceholder = 'Choose a connection from the list below';
+export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
+export const labelOpenGlobalSettings = 'Open Global Settings';
+export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
 
-export const gServerPrompt = 'Server name';
-export const gServerPlaceholder = 'hostname\\instance or <server>.database.windows.net';
-export const gDatabasePrompt = 'Database name';
-export const gDatabasePlaceholder = 'optional database to connect to (default depends on server configuration, typically "master")';
-export const gUsernamePrompt = 'Username';
-export const gUsernamePlaceholder = 'username (SQL Authentication)';
-export const gPasswordPrompt = 'Password';
-export const gPasswordPlaceholder = 'Password (SQL Authentication)';
+export const serverPrompt = 'Server name';
+export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
+export const databasePrompt = 'Database name';
+export const databasePlaceholder = 'optional database to connect to (default depends on server configuration, typically "master")';
+export const usernamePrompt = 'Username';
+export const usernamePlaceholder = 'username (SQL Authentication)';
+export const passwordPrompt = 'Password';
+export const passwordPlaceholder = 'Password (SQL Authentication)';
 
-export const gMsgIsRequired = ' is required.';
-export const gMsgRetry = 'Retry';
-export const gMsgError = 'Error: ';
+export const msgIsRequired = ' is required.';
+export const msgRetry = 'Retry';
+export const msgError = 'Error: ';
 
-export const gNotConnectedLabel = 'Not connected';
-export const gNotConnectedTooltip = 'Click to connect to a database';
-export const gConnectingLabel = 'Connecting';
-export const gConnectingTooltip = 'Connecting to: ';
-export const gConnectedLabel = 'Connected.';
-export const gConnectErrorLabel = 'Connection error!';
-export const gConnectErrorTooltip = 'Error connecting to: ';
-export const gConnectErrorCode = 'Errorcode: ';
-export const gConnectErrorMessage = 'ErrorMessage: ';
-export const gExecuteQueryLabel = 'Executing query ';
-export const gExecuteQueryErrorLabel = 'Query completed with errors';
-export const gExecuteQuerySuccessLabel = 'Query executed successfully';
-export const gExecuteQueryRowsAffected = ' row(s) affected';
-export const gExecuteQueryCommandCompleted = 'Command(s) completed successfully.';
+export const notConnectedLabel = 'Not connected';
+export const notConnectedTooltip = 'Click to connect to a database';
+export const connectingLabel = 'Connecting';
+export const connectingTooltip = 'Connecting to: ';
+export const connectedLabel = 'Connected.';
+export const connectErrorLabel = 'Connection error!';
+export const connectErrorTooltip = 'Error connecting to: ';
+export const connectErrorCode = 'Errorcode: ';
+export const connectErrorMessage = 'ErrorMessage: ';
+export const executeQueryLabel = 'Executing query ';
+export const executeQueryErrorLabel = 'Query completed with errors';
+export const executeQuerySuccessLabel = 'Query executed successfully';
+export const executeQueryRowsAffected = ' row(s) affected';
+export const executeQueryCommandCompleted = 'Command(s) completed successfully.';

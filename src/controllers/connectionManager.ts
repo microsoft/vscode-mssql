@@ -89,7 +89,7 @@ export default class ConnectionManager {
             })
             .catch(function(err): void {
                 self.statusView.connectError(connectionCreds, err);
-                Utils.showErrorMsg(Constants.gMsgError + err);
+                Utils.showErrorMsg(Constants.msgError + err);
                 reject(err);
             });
         });

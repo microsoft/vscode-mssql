@@ -33,15 +33,15 @@ export class RecentConnections {
             // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
             // Settings defined in workspace scope overwrite the settings defined in user scope
             let connections: Interfaces.IConnectionCredentials[] = [];
-            let config = vscode.workspace.getConfiguration(Constants.gExtensionName);
-            let configValues = config[Constants.gConfigMyConnections];
+            let config = vscode.workspace.getConfiguration(Constants.extensionName);
+            let configValues = config[Constants.configMyConnections];
             for (let index = 0; index < configValues.length; index++) {
                 let element = configValues[index];
                 if (element.server && element.server.trim() && !element.server.trim().startsWith('{{')) {
                     let connection = ConnInfo.fixupConnectionCredentials(element);
                     connections.push(connection);
                 } else {
-                    Utils.logDebug(Constants.gConfigMyConnectionsNoServerName + ' index (' + index + '): ' + element.toString());
+                    Utils.logDebug(Constants.configMyConnectionsNoServerName + ' index (' + index + '): ' + element.toString());
                 }
             }
             resolve(connections);
