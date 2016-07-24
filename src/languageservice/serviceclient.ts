@@ -8,12 +8,16 @@ import * as path from 'path';
 import { workspace, Disposable, ExtensionContext } from 'vscode';
 import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
 
+// The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient
 {
+    // singleton instance
     private static _instance: SqlToolsServiceClient = undefined;
 
+    // VS Code Language Client
     private _client: LanguageClient = undefined;
 
+    // getter method for the Language Client
     public getClient(): LanguageClient
     {
         return this._client;
@@ -29,8 +33,11 @@ export default class SqlToolsServiceClient
         return this._instance;
     }
 
+    // initialize the SQL Tools Service Client instance by launching
+    // out-of-proc server through the LanguageClient
     public initialize(context: ExtensionContext) {
 
+        // run the service host using dotnet.exe from the path
         let serverCommand = 'dotnet.exe';
         let serverArgs = [ context.asAbsolutePath(path.join('tools', 'servicehost.dll')) ];
         let serverOptions: ServerOptions = {  command: serverCommand, args: serverArgs, transport: TransportKind.stdio  };
