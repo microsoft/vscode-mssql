@@ -6,14 +6,23 @@ import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
 
+class QueryResultSet {
+    public messages: string[] = [];
+    public resultsets: Interfaces.ISqlResultset[] = [];
+
+    constructor(messages : string[], resultsets : Interfaces.ISqlResultset[]){
+        this.messages = messages;
+        this.resultsets = resultsets;
+    }
+}
+
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider
 {
+    private _queryResultsMap: Map<string, QueryResultSet> = new Map<string, QueryResultSet>();
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
-    private _messages: string[] = [];
-    private _resultsets: Interfaces.ISqlResultset[] = [];
 
     get onDidChange(): vscode.Event<vscode.Uri> {
         return this._onDidChange.event;
@@ -34,7 +43,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res) {
             Utils.logDebug(Constants.gMsgContentProviderOnRootEndpoint);
-            res.sendFile(path.join(LocalWebService.staticContentPath, Constants.gMsgContentProviderSqlOutputHtml));
+            let uri : string = req.query.uri;
+            res.render(path.join(LocalWebService.staticContentPath, Constants.gMsgContentProviderSqlOutputHtml), {uri:uri});
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
@@ -42,7 +52,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             Utils.logDebug(Constants.gMsgContentProviderOnResultsEndpoint);
             let resultsetsMeta: Interfaces.ISqlResultsetMeta[] = [];
-            for (var index = 0; index < self._resultsets.length; index ++)
+            let uri : string = req.query.uri;
+            for (var index = 0; index < self._queryResultsMap.get(uri).resultsets.length; index ++)
             {
                 resultsetsMeta.push( <Interfaces.ISqlResultsetMeta> {
                     columnsUri: "/" + Constants.gOutputContentTypeColumns + "?id=" + index.toString(),
@@ -57,7 +68,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/messages' - return all messages as a JSON string
         this._service.addHandler(Interfaces.ContentType.Messages, function(req, res) {
             Utils.logDebug(Constants.gMsgContentProviderOnMessagesEndpoint);
-            let json = JSON.stringify(self._messages)
+            let uri : string = req.query.uri;
+            let json = JSON.stringify(self._queryResultsMap.get(uri).messages);
             //Utils.logDebug(json);
             res.send(json);
         });
@@ -66,7 +78,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res) {
             var id = req.query.id;
             Utils.logDebug(Constants.gMsgContentProviderOnColumnsEndpoint + id);
-            let columnMetadata = self._resultsets[id].columns;
+            let uri : string = req.query.uri;
+            let columnMetadata = self._queryResultsMap.get(uri).resultsets[id].columns;
             let json = JSON.stringify(columnMetadata);
             //Utils.logDebug(json);
             res.send(json);
@@ -76,7 +89,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Rows, function(req, res) {
             var id = req.query.id;
             Utils.logDebug(Constants.gMsgContentProviderOnRowsEndpoint + id);
-            let json = JSON.stringify(self._resultsets[id].rows);
+            let uri : string = req.query.uri;
+            let json = JSON.stringify(self._queryResultsMap.get(uri).resultsets[id].rows);
             //Utils.logDebug(json);
             res.send(json);
         });
@@ -93,26 +107,27 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
     }
 
-    private clear()
+    private clear(uri:string)
     {
         Utils.logDebug(Constants.gMsgContentProviderOnClear);
-        this._messages = [];
-        this._resultsets = [];
+        this._queryResultsMap.delete(uri);
     }
 
-    public show()
+    public show(uri : string, title : string)
     {
-        vscode.commands.executeCommand('vscode.previewHtml', SqlOutputContentProvider.providerUri, vscode.ViewColumn.Two, "SQL Query Results");
+        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, "SQL Query Results: " + title);
     }
 
     public updateContent(messages, resultsets)
     {
         Utils.logDebug(Constants.gMsgContentProviderOnUpdateContent);
-        this.clear();
-        this.show();
-        this._messages = messages;
-        this._resultsets = resultsets;
+        let title : string = Utils.getActiveTextEditor().document.fileName;
+        let uri : string = SqlOutputContentProvider.providerUri + title;
+        this.clear(uri);
+        this.show(uri, title);
+        this._queryResultsMap.set(uri, new QueryResultSet(messages, resultsets));
         this.onContentUpdated();
+        return uri;
     }
 
     // Called by VS Code exactly once to load html content in the preview window
@@ -127,7 +142,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         <script type="text/javascript">
                             window.onload = function(event) {
                                 event.stopPropagation(true);
-                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}";
+                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}";
                             };
                         </script>
                     </head>

@@ -14,13 +14,13 @@ export const gAzureSqlDbConnectionTimeout = 30000;
 export const gAzureSqlDbRequestTimeout = 30000;
 export const gAzureDatabase = "Azure";
 
-export const gOutputContentTypeRoot = '/';
+export const gOutputContentTypeRoot = 'root';
 export const gOutputContentTypeMessages = "messages";
 export const gOutputContentTypeResultsetMeta = 'resultsetsMeta';
 export const gOutputContentTypeColumns = 'columns'
 export const gOutputContentTypeRows = 'rows'
 export const gOutputServiceLocalhost = "http://localhost:";
-export const gMsgContentProviderSqlOutputHtml = 'sqlOutput.html';
+export const gMsgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 
 export const gConfigLogDebugInfo = "logDebugInfo";
 export const gConfigMyConnections = "connections";

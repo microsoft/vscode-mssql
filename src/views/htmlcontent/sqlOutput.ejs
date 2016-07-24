@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-        
+
         <link rel="stylesheet" href="/css/bootstrap.css"/>
         <link rel="stylesheet" href="/css/backgrid.css"/>
         <link rel="stylesheet" href="/css/backgrid-filter.css"/>
@@ -22,13 +22,16 @@
         <script src="/scripts/sqlOutput.js"></script>
     </head>
     <body>
+        <div style="display: none;" id="uri">
+            <%=uri%>
+        </div>
         <!-- Lots of great info about bootstrap here: http://www.w3schools.com/bootstrap -->
         <div class="container-fluid">
             <h4>MSSQL Output</h4>
             <ul class="nav nav-tabs" id="sqlOutputTabs" margin: 10px>
                 <!-- tabs for messages & results are dynamically added here -->
             </ul>
-            
+
             <div id="sqlOutputTabContent" class="tab-content">
                 <div id="tabResultset" class="tab-pane fade in active">
                     <div id="resultsetContainerId"></div>
