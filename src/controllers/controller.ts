@@ -8,7 +8,7 @@ import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import QueryRunner from './queryRunner';
-import serverClient from '../langservice/serviceclient'
+import SqlToolsServerClient from '../languageservice/serviceclient'
 
 
 export default class MainController implements vscode.Disposable {
@@ -67,7 +67,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(registration);
 
         // initialize language service client
-        serverClient(this._context);
+        SqlToolsServerClient.getInstance().initialize(this._context);
 
         Utils.logDebug(Constants.gExtensionActivated);
     }

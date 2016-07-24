@@ -6,8 +6,32 @@ import { RecentConnections } from '../models/recentConnections';
 import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI'
 import StatusView from '../views/statusView';
+import SqlToolsServerClient from '../languageservice/serviceclient'
+import { LanguageClient, RequestType, NotificationType } from 'vscode-languageclient';
 
 var mssql = require('mssql');
+
+export namespace ConnectionRequest {
+     export const type: RequestType<ConnectionDetails, any, void> = { get method() { return 'connection/connect'; } };
+}
+
+class ConnectionDetails
+{
+    public serverName: string;
+
+    public databaseName: string;
+
+    public userName: string;
+
+    public password: string;
+}
+
+class ConnectionResult
+{
+    public connectionId: number;
+
+    public messages: string;
+}
 
 export default class ConnectionManager
 {
@@ -90,6 +114,18 @@ export default class ConnectionManager
         const self = this;
         return new Promise<any>((resolve, reject) =>
         {
+            var connectionDetails = new ConnectionDetails();
+            connectionDetails.userName = connectionCreds.user
+            connectionDetails.password = connectionCreds.password;
+            connectionDetails.serverName = connectionCreds.server;
+            connectionDetails.databaseName = connectionCreds.database;
+
+            var client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
+            client.sendRequest(ConnectionRequest.type, connectionDetails).then((result) => {
+
+
+            });
+
             const connection = new mssql.Connection(connectionCreds);
             self.statusView.connecting(connectionCreds);
             connection.connect()
