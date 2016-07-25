@@ -4,13 +4,12 @@
         "module": "commonjs",
         "target": "es5",
         "watch": false,
-        "outDir": "out",
         "noLib": true,
         "sourceMap": true,
-        "rootDir": ".",
-        "experimentalDecorators": true
+        "rootDir": "."
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "src/views/htmlcontent"
     ]
 }

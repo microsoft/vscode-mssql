@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+        <script src="https://code.angularjs.org/2.0.0-beta.8/angular2-polyfills.js"></script>
+        <script src="https://code.angularjs.org/tools/system.js"></script>
+        <script src="https://code.angularjs.org/tools/typescript.js"></script>
+        <script src="config.js"></script>
+        <script src="https://code.angularjs.org/2.0.0-beta.8/Rx.js"></script>
+        <script src="https://code.angularjs.org/2.0.0-beta.8/angular2.min.js"></script>
+        <script>
+            System
+            .import('app')
+            .catch(console.error.bind(console));
+        </script>
+    </head>
+    <body>
+        <div style="display: none;" id="uri">
+            <%=uri%>
+        </div>
+        <!-- Lots of great info about bootstrap here: http://www.w3schools.com/bootstrap -->
+        <my-app>
+            Loading...
+        </my-app>
+    </body>
+</html>

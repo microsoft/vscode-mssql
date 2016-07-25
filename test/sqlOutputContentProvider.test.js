@@ -8,12 +8,12 @@ var sqlOutputContentProvider_1 = require('../src/models/sqlOutputContentProvider
 var localWebService_1 = require('../src/controllers/localWebService');
 var Interfaces = require('../src/models/interfaces');
 var Constants = require('../src/models/constants');
-var results = require('../../test/results.json');
-var messages = require('../../test/messages.json');
+var results = require('resources/results.json');
+var messages = require('resources/messages.json');
 var metadata = [
     {
-        "columnsUri": "/" + Constants.gOutputContentTypeColumns + "?id=0",
-        "rowsUri": "/" + Constants.gOutputContentTypeRows + "?id=0"
+        "columnsUri": "/" + Constants.outputContentTypeColumns + "?id=0",
+        "rowsUri": "/" + Constants.outputContentTypeRows + "?id=0"
     }
 ];
 var fs = require('fs');
@@ -46,6 +46,7 @@ suite("SqlOutputProvider Tests", function () {
     });
     test("Initial Server Responses", function () {
         var url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root];
+        console.log(process.cwd());
         var htmlbuf = fs.readFileSync(path + '/src/views/htmlcontent/sqlOutput.ejs');
         return request.get(url, function (err, res, body) {
             assert.equal(res.statusCode, 200);
