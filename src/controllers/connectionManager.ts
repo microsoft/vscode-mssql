@@ -5,14 +5,14 @@ import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
-import SqlToolsServerClient from '../languageservice/serviceclient'
-import { LanguageClient, RequestType, NotificationType } from 'vscode-languageclient';
+import SqlToolsServerClient from '../languageservice/serviceclient';
+import { LanguageClient, RequestType } from 'vscode-languageclient';
 
 const mssql = require('mssql');
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
-     export const type: RequestType<ConnectionDetails, ConnectionResult, void> = { get method() { return 'connection/connect'; } };
+     export const type: RequestType<ConnectionDetails, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
 }
 
 // Connention request message format
@@ -111,14 +111,14 @@ export default class ConnectionManager {
         const self = this;
         return new Promise<any>((resolve, reject) => {
             // package connection details for request message
-            var connectionDetails = new ConnectionDetails();
-            connectionDetails.userName = connectionCreds.user
+            let connectionDetails = new ConnectionDetails();
+            connectionDetails.userName = connectionCreds.user;
             connectionDetails.password = connectionCreds.password;
             connectionDetails.serverName = connectionCreds.server;
             connectionDetails.databaseName = connectionCreds.database;
 
             // send connection request message to service host
-            var client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
+            let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
             client.sendRequest(ConnectionRequest.type, connectionDetails).then((result) => {
                 // handle connection complete callbak
             });

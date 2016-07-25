@@ -5,12 +5,11 @@
 'use strict';
 
 import * as path from 'path';
-import { workspace, Disposable, ExtensionContext } from 'vscode';
-import { LanguageClient, LanguageClientOptions, SettingMonitor, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { ExtensionContext } from 'vscode';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 
 // The Service Client class handles communication with the VS Code LanguageClient
-export default class SqlToolsServiceClient
-{
+export default class SqlToolsServiceClient {
     // singleton instance
     private static _instance: SqlToolsServiceClient = undefined;
 
@@ -18,16 +17,13 @@ export default class SqlToolsServiceClient
     private _client: LanguageClient = undefined;
 
     // getter method for the Language Client
-    public getClient(): LanguageClient
-    {
+    public getClient(): LanguageClient {
         return this._client;
     }
 
     // gets or creates the singleton SQL Tools service client instance
-    public static getInstance(): SqlToolsServiceClient
-    {
-        if (this._instance == undefined)
-        {
+    public static getInstance(): SqlToolsServiceClient {
+        if (this._instance === undefined) {
             this._instance = new SqlToolsServiceClient();
         }
         return this._instance;
@@ -35,7 +31,7 @@ export default class SqlToolsServiceClient
 
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
-    public initialize(context: ExtensionContext) {
+    public initialize(context: ExtensionContext): void {
 
         // run the service host using dotnet.exe from the path
         let serverCommand = 'dotnet.exe';
@@ -48,7 +44,7 @@ export default class SqlToolsServiceClient
             synchronize: {
                 configurationSection: 'sqlTools'
             }
-        }
+        };
 
         // cache the client instance for later use
         this._client = new LanguageClient('sqlserverclient', serverOptions, clientOptions);

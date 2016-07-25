@@ -8,8 +8,7 @@ import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import QueryRunner from './queryRunner';
-import SqlToolsServerClient from '../languageservice/serviceclient'
-
+import SqlToolsServerClient from '../languageservice/serviceclient';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
