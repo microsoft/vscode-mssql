@@ -5,9 +5,41 @@ import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
+import SqlToolsServerClient from '../languageservice/serviceclient';
+import { LanguageClient, RequestType } from 'vscode-languageclient';
 
 const mssql = require('mssql');
 
+// Connection request message callback declaration
+export namespace ConnectionRequest {
+     export const type: RequestType<ConnectionDetails, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
+}
+
+// Connention request message format
+class ConnectionDetails {
+    // server name
+    public serverName: string;
+
+    // database name
+    public databaseName: string;
+
+    // user name
+    public userName: string;
+
+    // unencrypted password
+    public password: string;
+}
+
+// Connection response format
+class ConnectionResult {
+    // connection id returned from service host
+    public connectionId: number;
+
+    // any diagnostic messages return from the service host
+    public messages: string;
+}
+
+// ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
@@ -78,6 +110,20 @@ export default class ConnectionManager {
     public connect(connectionCreds: Interfaces.IConnectionCredentials): Promise<any> {
         const self = this;
         return new Promise<any>((resolve, reject) => {
+            // package connection details for request message
+            let connectionDetails = new ConnectionDetails();
+            connectionDetails.userName = connectionCreds.user;
+            connectionDetails.password = connectionCreds.password;
+            connectionDetails.serverName = connectionCreds.server;
+            connectionDetails.databaseName = connectionCreds.database;
+
+            // send connection request message to service host
+            let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
+            client.sendRequest(ConnectionRequest.type, connectionDetails).then((result) => {
+                // handle connection complete callbak
+            });
+
+            // legacy tedious connection until we fully move to service host
             const connection = new mssql.Connection(connectionCreds);
             self.statusView.connecting(connectionCreds);
             connection.connect()

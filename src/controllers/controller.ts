@@ -8,6 +8,7 @@ import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import QueryRunner from './queryRunner';
+import SqlToolsServerClient from '../languageservice/serviceclient';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -58,6 +59,9 @@ export default class MainController implements vscode.Disposable {
         this._outputContentProvider = new SqlOutputContentProvider(self._context);
         let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
         this._context.subscriptions.push(registration);
+
+        // initialize language service client
+        SqlToolsServerClient.getInstance().initialize(this._context);
 
         Utils.logDebug(Constants.extensionActivated);
     }
