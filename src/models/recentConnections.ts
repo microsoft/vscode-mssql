@@ -5,16 +5,13 @@ import ConnInfo = require('./connectionInfo');
 import Interfaces = require('./interfaces');
 import Utils = require('../models/utils');
 
-export class RecentConnections
-{
+export class RecentConnections {
     // Load connections from user preferences and return them as a formatted picklist
-    public getPickListItems()
-    {
+    public getPickListItems(): Promise<Interfaces.IConnectionCredentialsQuickPickItem[]> {
         const self = this;
-        return new Promise<Interfaces.IConnectionCredentialsQuickPickItem[]>((resolve, reject) =>
-        {
+        return new Promise<Interfaces.IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
             self.loadConnections()
-            .then(function(connections)
+            .then(function(connections): void
             {
                 const pickListItems = connections.map( (item: Interfaces.IConnectionCredentials) => {
                     return <Interfaces.IConnectionCredentialsQuickPickItem> {
@@ -22,7 +19,7 @@ export class RecentConnections
                         description: ConnInfo.getPicklistDescription(item),
                         detail: ConnInfo.getPicklistDetails(item),
                         connectionCreds: item
-                    }
+                    };
                 });
                 resolve(pickListItems);
             });
@@ -30,28 +27,21 @@ export class RecentConnections
     }
 
     // Load connections from user preferences
-    private loadConnections()
-    {
-        const self = this;
-        return new Promise<Interfaces.IConnectionCredentials[]>((resolve, reject) =>
-        {
+    private loadConnections(): Promise<Interfaces.IConnectionCredentials[]> {
+        return new Promise<Interfaces.IConnectionCredentials[]>((resolve, reject) => {
             // Load connections from user preferences
             // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
             // Settings defined in workspace scope overwrite the settings defined in user scope
             let connections: Interfaces.IConnectionCredentials[] = [];
-            let config = vscode.workspace.getConfiguration(Constants.gExtensionName);
-            let configValues = config[Constants.gConfigMyConnections];
-            for (var index = 0; index < configValues.length; index++)
-            {
+            let config = vscode.workspace.getConfiguration(Constants.extensionName);
+            let configValues = config[Constants.configMyConnections];
+            for (let index = 0; index < configValues.length; index++) {
                 let element = configValues[index];
-                if(element.server && element.server.trim() && !element.server.trim().startsWith("{{"))
-                {
+                if (element.server && element.server.trim() && !element.server.trim().startsWith('{{')) {
                     let connection = ConnInfo.fixupConnectionCredentials(element);
                     connections.push(connection);
-                }
-                else
-                {
-                    Utils.logDebug(Constants.gConfigMyConnectionsNoServerName + " index (" + index + "): " + element.toString());
+                } else {
+                    Utils.logDebug(Constants.configMyConnectionsNoServerName + ' index (' + index + '): ' + element.toString());
                 }
             }
             resolve(connections);

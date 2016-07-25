@@ -12,8 +12,8 @@ var results = require('../../test/results.json');
 var messages = require('../../test/messages.json');
 var metadata = [
     {
-        "columnsUri":"/" + Constants.gOutputContentTypeColumns+ "?id=0",
-        "rowsUri":"/" + Constants.gOutputContentTypeRows + "?id=0"
+        "columnsUri":"/" + Constants.outputContentTypeColumns+ "?id=0",
+        "rowsUri":"/" + Constants.outputContentTypeRows + "?id=0"
     }
 ]
 
