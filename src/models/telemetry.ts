@@ -3,12 +3,12 @@ import vscode = require('vscode');
 import Utils = require('./utils');
 import TelemetryReporter from 'vscode-extension-telemetry';
 
-export module Telemetry {
-    var reporter: TelemetryReporter;
-    var userId: string;
+export namespace Telemetry {
+    let reporter: TelemetryReporter;
+    let userId: string;
 
     // Get the unique ID for the current user of the extension
-    function getUserId() : Promise<string> {
+    function getUserId(): Promise<string> {
         return new Promise<string>(resolve => {
             // Generate the user id if it has not been created already
             if (typeof userId === 'undefined') {
@@ -17,8 +17,7 @@ export module Telemetry {
                     userId = newId;
                     resolve(userId);
                 });
-            }
-            else {
+            } else {
                 resolve(userId);
             }
         });
@@ -33,7 +32,12 @@ export module Telemetry {
     }
 
     // Send a telemetry event using application insights
-    export function sendTelemetryEvent(context: vscode.ExtensionContext, eventName: string, properties?: ITelemetryEventProperties, measures?: ITelemetryEventMeasures): void {
+    export function sendTelemetryEvent(
+        context: vscode.ExtensionContext,
+        eventName: string,
+        properties?: ITelemetryEventProperties,
+        measures?: ITelemetryEventMeasures): void {
+
         if (typeof properties === 'undefined') {
             properties = {};
         }
