@@ -8,11 +8,8 @@ import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import QueryRunner from './queryRunner';
-<<<<<<< 189032e01776d19bdb7d178d87f1986402f679f6
 import SqlToolsServerClient from '../languageservice/serviceclient';
-=======
 import Telemetry from '../models/telemetry';
->>>>>>> Initial commit of telemetry-enabled code
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
