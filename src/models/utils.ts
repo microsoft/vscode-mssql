@@ -151,7 +151,7 @@ export class Timer {
 
     public end(): void {
         if (!this._endTime) {
-            this._endTime = process.hrtime();
+            this._endTime = process.hrtime(this._startTime);
         }
     }
 }
