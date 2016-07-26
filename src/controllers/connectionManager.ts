@@ -120,6 +120,8 @@ export default class ConnectionManager {
             connectionDetails.serverName = connectionCreds.server;
             connectionDetails.databaseName = connectionCreds.database;
 
+            let serviceTimer = new Utils.Timer();
+
             // send connection request message to service host
             let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
             client.sendRequest(ConnectionRequest.type, connectionDetails).then((result) => {
@@ -130,7 +132,6 @@ export default class ConnectionManager {
             const connection = new mssql.Connection(connectionCreds);
             self.statusView.connecting(connectionCreds);
 
-            let serviceTimer = new Utils.Timer();
             connection.connect()
             .then(function(): void {
                 serviceTimer.end();
@@ -142,7 +143,7 @@ export default class ConnectionManager {
                 extensionTimer.end();
 
                 Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {}, {
-                    extensionConnectionTime: extensionTimer.getDuration(),
+                    extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
                     serviceConnectionTime: serviceTimer.getDuration()
                 });
 
