@@ -7,6 +7,7 @@ import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { LanguageClient, RequestType } from 'vscode-languageclient';
+import Telemetry from '../models/telemetry';
 
 const mssql = require('mssql');
 
@@ -110,6 +111,8 @@ export default class ConnectionManager {
     public connect(connectionCreds: Interfaces.IConnectionCredentials): Promise<any> {
         const self = this;
         return new Promise<any>((resolve, reject) => {
+            let extensionTimer = new Utils.Timer();
+
             // package connection details for request message
             let connectionDetails = new ConnectionDetails();
             connectionDetails.userName = connectionCreds.user;
@@ -126,11 +129,23 @@ export default class ConnectionManager {
             // legacy tedious connection until we fully move to service host
             const connection = new mssql.Connection(connectionCreds);
             self.statusView.connecting(connectionCreds);
+
+            let serviceTimer = new Utils.Timer();
             connection.connect()
             .then(function(): void {
+                serviceTimer.end();
+
                 self._connectionCreds = connectionCreds;
                 self._connection = connection;
                 self.statusView.connectSuccess(connectionCreds);
+
+                extensionTimer.end();
+
+                Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {}, {
+                    extensionConnectionTime: extensionTimer.getDuration(),
+                    serviceConnectionTime: serviceTimer.getDuration()
+                });
+
                 resolve();
             })
             .catch(function(err): void {
