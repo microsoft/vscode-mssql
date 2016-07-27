@@ -1,0 +1,18 @@
+{
+  "name": "vscode-mssql",
+  "version": "0.0.3",
+  "dependencies": {
+    "vscode-extension-telemetry": {
+      "version": "0.0.5",
+      "from": "vscode-extension-telemetry@>=0.0.5 <0.0.6",
+      "resolved": "https://registry.npmjs.org/vscode-extension-telemetry/-/vscode-extension-telemetry-0.0.5.tgz",
+      "dependencies": {
+        "applicationinsights": {
+          "version": "0.15.17",
+          "from": "applicationinsights@0.15.17",
+          "resolved": "https://registry.npmjs.org/applicationinsights/-/applicationinsights-0.15.17.tgz"
+        }
+      }
+    }
+  }
+}
