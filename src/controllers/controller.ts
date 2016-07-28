@@ -48,6 +48,10 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
+        this.registerCommand(Constants.cmdRegisterConnection);
+        this._event.on(Constants.cmdRegisterConnection, () => { self.onRegisterConnection(); });
+        this.registerCommand(Constants.cmdUnregisterConnection);
+        this._event.on(Constants.cmdUnregisterConnection, () => { self.onUnregisterConnection(); });
 
         // Init status bar
         this._statusview = new StatusView();
@@ -85,5 +89,15 @@ export default class MainController implements vscode.Disposable {
             let qr = new QueryRunner(self._connectionMgr, self._statusview, self._outputContentProvider);
             qr.onRunQuery();
         }
+    }
+
+    // Prompts to register a new SQL connection for reuse across multiple connection
+    public onRegisterConnection(): Promise<boolean> {
+        return this._connectionMgr.onRegisterConnection();
+    }
+
+    // Prompts to remove a registered SQL connection
+    public onUnregisterConnection(): Promise<boolean> {
+        return this._connectionMgr.onUnregisterConnection();
     }
 }

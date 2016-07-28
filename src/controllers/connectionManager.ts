@@ -120,7 +120,7 @@ export default class ConnectionManager {
             // send connection request message to service host
             let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
             client.sendRequest(ConnectionRequest.type, connectionDetails).then((result) => {
-                // handle connection complete callbak
+                // handle connection complete callback
             });
 
             // legacy tedious connection until we fully move to service host
@@ -138,6 +138,20 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Constants.msgError + err);
                 reject(err);
             });
+        });
+    }
+
+    public onRegisterConnection(): Promise<boolean> {
+        // const self = this;
+        return new Promise<any>((resolve, reject) => {
+            resolve(true);
+        });
+    }
+
+    public onUnregisterConnection(): Promise<boolean> {
+        // const self = this;
+        return new Promise<any>((resolve, reject) => {
+            resolve(true);
         });
     }
 }

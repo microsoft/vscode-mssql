@@ -18,9 +18,17 @@ export class RecentConnections {
                         label: ConnInfo.getPicklistLabel(item),
                         description: ConnInfo.getPicklistDescription(item),
                         detail: ConnInfo.getPicklistDetails(item),
-                        connectionCreds: item
+                        connectionCreds: item,
+                        isNewConnectionQuickPickItem: false
                     };
                 });
+
+                // Always add an "Add New Connection" quickpick item
+                pickListItems.push(<Interfaces.IConnectionCredentialsQuickPickItem> {
+                        label: Constants.RegisterNewConnectionLabel,
+                        connectionCreds: undefined,
+                        isNewConnectionQuickPickItem: true
+                    });
                 resolve(pickListItems);
             });
         });
@@ -34,6 +42,7 @@ export class RecentConnections {
             // Settings defined in workspace scope overwrite the settings defined in user scope
             let connections: Interfaces.IConnectionCredentials[] = [];
             let config = vscode.workspace.getConfiguration(Constants.extensionName);
+
             let configValues = config[Constants.configMyConnections];
             for (let index = 0; index < configValues.length; index++) {
                 let element = configValues[index];

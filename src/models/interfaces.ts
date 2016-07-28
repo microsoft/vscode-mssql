@@ -29,6 +29,7 @@ export interface IConnectionCredentials {
 
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
+    isNewConnectionQuickPickItem: boolean;
 };
 
 // Obtained from an active connection to show in the status bar

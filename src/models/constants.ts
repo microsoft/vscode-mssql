@@ -6,6 +6,8 @@ export const outputChannelName = 'MSSQL';
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';
+export const cmdRegisterConnection = 'extension.registerconnection';
+export const cmdUnregisterConnection = 'extension.unregisterconnection';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15000;
@@ -59,6 +61,7 @@ export const recentConnectionsPlaceholder = 'Choose a connection from the list b
 export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
 export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
+export const RegisterNewConnectionLabel = 'Register New Connection';
 
 export const serverPrompt = 'Server name';
 export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
