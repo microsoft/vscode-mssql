@@ -8,6 +8,8 @@ import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import QueryRunner from './queryRunner';
+import SqlToolsServerClient from '../languageservice/serviceclient';
+import Telemetry from '../models/telemetry';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -16,42 +18,39 @@ export default class MainController implements vscode.Disposable {
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
 
-    constructor(context: vscode.ExtensionContext)
-    {
+    constructor(context: vscode.ExtensionContext) {
         this._context = context;
     }
 
-    private registerCommand(command: string)
-    {
+    private registerCommand(command: string): void {
         const self = this;
         this._context.subscriptions.push(vscode.commands.registerCommand(command, () => {
             self._event.emit(command);
         }));
     }
 
-    dispose()
-    {
+    dispose(): void {
         this.deactivate();
     }
 
-    public deactivate()
-    {
-        Utils.logDebug(Constants.gExtensionDeactivated);
+    public deactivate(): void {
+        Utils.logDebug(Constants.extensionDeactivated);
         this.onDisconnect();
         this._statusview.dispose();
     }
 
-    public activate()
-    {
+    public activate(): void {
         const self = this;
 
+        let activationTimer = new Utils.Timer();
+
         // register VS Code commands
-        this.registerCommand(Constants.gCmdConnect);
-        this._event.on(Constants.gCmdConnect, () => { self.onNewConnection(); });
-        this.registerCommand(Constants.gCmdDisconnect);
-        this._event.on(Constants.gCmdDisconnect, () => { self.onDisconnect(); });
-        this.registerCommand(Constants.gCmdRunQuery);
-        this._event.on(Constants.gCmdRunQuery, () => { self.onRunQuery(); });
+        this.registerCommand(Constants.cmdConnect);
+        this._event.on(Constants.cmdConnect, () => { self.onNewConnection(); });
+        this.registerCommand(Constants.cmdDisconnect);
+        this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
+        this.registerCommand(Constants.cmdRunQuery);
+        this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
 
         // Init status bar
         this._statusview = new StatusView();
@@ -64,30 +63,34 @@ export default class MainController implements vscode.Disposable {
         let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
         this._context.subscriptions.push(registration);
 
-        Utils.logDebug(Constants.gExtensionActivated);
+        // initialize language service client
+        SqlToolsServerClient.getInstance().initialize(this._context);
+
+        activationTimer.end();
+
+        // telemetry for activation
+        Telemetry.sendTelemetryEvent(this._context, 'ExtensionActivated', {},
+            { activationTime: activationTimer.getDuration() }
+        );
+
+        Utils.logDebug(Constants.extensionActivated);
     }
 
     // Close active connection, if any
-    private onDisconnect()
-    {
+    private onDisconnect(): Promise<any> {
         return this._connectionMgr.onDisconnect();
     }
 
     // Let users pick from a list of connections
-    public onNewConnection()
-    {
+    public onNewConnection(): Promise<boolean> {
         return this._connectionMgr.onNewConnection();
     }
 
     // get the T-SQL query from the editor, run it and show output
-    public onRunQuery()
-    {
-        if(!Utils.isEditingSqlFile())
-        {
-            Utils.showWarnMsg(Constants.gMsgOpenSqlFile);
-        }
-        else
-        {
+    public onRunQuery(): void {
+        if (!Utils.isEditingSqlFile()) {
+            Utils.showWarnMsg(Constants.msgOpenSqlFile);
+        } else {
             const self = this;
             let qr = new QueryRunner(self._connectionMgr, self._statusview, self._outputContentProvider);
             qr.onRunQuery();
