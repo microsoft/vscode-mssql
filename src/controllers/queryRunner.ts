@@ -242,18 +242,20 @@ export default class QueryRunner {
     // return column metadata for recordset
     private getColumnMetadata(recordset: any): any[] {
         let columnMetadata = [];
-        for (let i = 0; i < recordset.columns.length; i++) {
-            let columnName = recordset.columns[i].name;
-            if (!columnName) {
-                columnName = '';
-            }
+        for (let key in recordset.columns) {
+            if (recordset.columns.hasOwnProperty(key)) {
+                let columnName = recordset.columns[key].name;
+                if (!columnName) {
+                    columnName = '';
+                }
 
-            let columnMetadataRender = <Interfaces.IBackgridColumnMetadata> {
-                name: columnName,
-                label: columnName,
-                cell: 'string' // format all columns as string for display in backgrid
-            };
-            columnMetadata.push(columnMetadataRender);
+                let columnMetadataRender = <Interfaces.IBackgridColumnMetadata> {
+                    name: columnName,
+                    label: columnName,
+                    cell: 'string' // format all columns as string for display in backgrid
+                };
+                columnMetadata.push(columnMetadataRender);
+            }
         }
         return columnMetadata;
     }

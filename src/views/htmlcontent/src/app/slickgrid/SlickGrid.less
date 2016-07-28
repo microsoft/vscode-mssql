@@ -1,0 +1,127 @@
+@grid-content-letter-spacing: 0.03em;
+
+.grid-cell-padding {
+    padding: 0.5em 0.8em 0.4em;
+}
+
+.grid-cell {
+    border-top-style: none;
+    color: #101010;
+    letter-spacing: @grid-content-letter-spacing;
+    border-color: #EBECEC;
+    font-size: 0.95em;
+    border-bottom-width: 1px;
+    border-left-style: none;
+    border-right-color: #ACACAC;
+    border-right-style: dotted;
+    .grid-cell-padding;
+}
+
+.grid {
+    width: 100%;
+    height: 100%;
+
+    .slick-header-column {
+        .grid-cell;
+        background-color: #F7F7F7;
+        border-bottom-color: #ACACAC;
+    }
+
+    .slick-cell {
+        .grid-cell;
+        background-color: var(--grid-cell-color, #FFFFFF);
+
+        &.selected {
+            background-color: ~"var(--color-grid-selected)";
+            color: black;
+
+            .grid-cell-value-container.missing-value {
+                color: black;
+            }
+        }
+
+        &.editable {
+            padding: 0;
+            input {
+                .grid-cell-padding;
+                height: 100%;
+                padding: 0.4em 0.65em 0.1em;
+                letter-spacing: @grid-content-letter-spacing;
+
+                &:focus {
+                    outline-offset: 0;
+                }
+            }
+        }
+
+        .grid-cell-value-container {
+            display: block;
+            white-space: pre;
+            width: 100%;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+
+            &.override-cell {
+                color: black;
+            }
+
+            &.highlighted {
+                color: black;
+            }
+
+            &.blurred {
+                color: #ABABAB;
+            }
+
+            &.missing-value {
+                color: lightgray;
+            }
+
+            &.context {
+                color: darkblue; // need actual color and sign off on a way we want to distinguish source columns
+                font-style: italic;
+            }
+
+            &.loading-cell {
+                font-style: italic;
+            }
+
+            &.right-justified {
+                text-align: right;
+            }
+
+
+        }
+
+    }
+
+    input.editor-text {
+        width: 100%;
+        color: #000000;
+    }
+}
+
+.contextMenu {
+    position: absolute;
+    background: #007ACC;
+    color: white;
+    border: 1px solid gray;
+    padding: 2px;
+    display: inline-block;
+    min-width: 100px;
+    -moz-box-shadow: 2px 2px 2px silver;
+    -webkit-box-shadow: 2px 2px 2px silver;
+    z-index: 99999;
+
+    li {
+        padding: 4px 4px 4px 14px;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    li:hover {
+        background-color: white;
+        color: #007ACC;
+        text-decoration: underline;
+    }
+}
