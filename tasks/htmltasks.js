@@ -33,8 +33,8 @@ gulp.task('html:compile-css', () => {
 gulp.task('html:compile', gulp.series('html:compile-ts'))
 
 gulp.task('html:copy', () => {
-    return gulp.src(config.paths.html.root + '/src/sqlOutput.ejs')
-            .pipe(gulp.dest(config.paths.html.root + '/out/'))
+    return gulp.src(config.paths.html.root + '/src/**/*')
+            .pipe(gulp.dest('/out/views/htmlcontent/'))
 })
 
 gulp.task('html:build', gulp.series('html:compile'));

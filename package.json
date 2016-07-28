@@ -203,7 +203,6 @@
     }
   },
   "scripts": {
-    "compile": "gulp build-all",
     "postinstall": "node ./node_modules/vscode/bin/install"
   }
 }
