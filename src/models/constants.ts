@@ -67,6 +67,7 @@ export const serverPrompt = 'Server name';
 export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
 export const databasePrompt = 'Database name';
 export const databasePlaceholder = 'optional database to connect to (default depends on server configuration, typically "master")';
+export const databaseDefaultValue = 'master';
 export const usernamePrompt = 'Username';
 export const usernamePlaceholder = 'username (SQL Authentication)';
 export const passwordPrompt = 'Password';

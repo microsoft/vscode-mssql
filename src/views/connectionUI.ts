@@ -3,6 +3,7 @@ import vscode = require('vscode');
 import Constants = require('../models/constants');
 import { RecentConnections } from '../models/recentConnections';
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import { PropertyUpdater } from '../models/propertyUpdater';
 import { IConnectionCredentials, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
 
 let async = require('async');
@@ -73,7 +74,7 @@ export class ConnectionUI {
                     let connectFunc: Promise<IConnectionCredentials>;
                     if (selection.isNewConnectionQuickPickItem) {
                         // call the workflow to create a new connection
-                        connectFunc = self.promptForRegisterConnection();
+                        connectFunc = self.promptForRegisterConnection(true);
                     } else {
                         // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
                         let connectionCreds = selection.connectionCreds;
@@ -92,27 +93,25 @@ export class ConnectionUI {
         });
     }
 
-    private promptForRegisterConnection(): Promise<IConnectionCredentials> {
+    private promptForRegisterConnection(isPasswordRequired: boolean): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
+            let connectionCreds: ConnectionCredentials = new ConnectionCredentials();
             // called by async.js when all functions have finished executing
-            let final = function(err, object, results): boolean {
+            let final = function(err): boolean {
                 if (err) {
                     return false;
                 } else {
-                    resolve(results); // final connectionCreds with all the missing inputs filled in
+                    resolve(connectionCreds); // final connectionCreds with all the missing inputs filled in
                 }
             };
 
-            let connectionCreds: IConnectionCredentials = new ConnectionCredentials();
-
-            // call each of these functions in a waterfall and pass parameters from one to the next
-            // See this for more info: https://github.com/caolan/async#waterfall
-            async.waterfall([
-                async.apply(self.promptForServer, self, connectionCreds),
-                self.promptForUsername,
-                self.promptForPassword
-            ], final);
+            // For each property that needs to be set, prompt for the required value and update the credentials
+            // As this
+            // See this for more info: http://caolan.github.io/async/docs.html#.each
+            async.eachSeries(ConnectionCredentials.getCreateCredentialsSteps(isPasswordRequired), function(propertyUpdater, callback): void {
+                self.promptForValue(self, connectionCreds, propertyUpdater, callback);
+            }, final);
         });
     }
 
@@ -121,72 +120,47 @@ export class ConnectionUI {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             // called by async.js when all functions have finished executing
-            let final = function(err, object, results): boolean {
+            let final = function(err): boolean {
                 if (err) {
                     return false;
                 } else {
-                    resolve(results); // final connectionCreds with all the missing inputs filled in
+                    resolve(connectionCreds); // final connectionCreds with all the missing inputs filled in
                 }
             };
 
-            // call each of these functions in a waterfall and pass parameters from one to the next
-            // See this for more info: https://github.com/caolan/async#waterfall
-            async.waterfall([
-                async.apply(self.promptForUsername, self, connectionCreds),
-                self.promptForPassword
-            ], final);
+            // For each property that needs to be set, prompt for the required value and update the credentials
+            // As this
+            // See this for more info: http://caolan.github.io/async/docs.html#.each
+            async.each(ConnectionCredentials.getUsernameAndPasswordCredentialUpdaters(true), function(propertyUpdater, callback): void {
+                self.promptForValue(self, connectionCreds, propertyUpdater, callback);
+            }, final);
         });
     }
 
-    // Helper to prompt for username
-    private promptForServer(self: ConnectionUI, connectionCreds: IConnectionCredentials, callback): void {
-        let inputOptions: vscode.InputBoxOptions = {placeHolder: Constants.serverPlaceholder, prompt: Constants.serverPrompt};
-        self.promptForValue(self, connectionCreds, inputOptions, (c) => self.isNotEmpty(connectionCreds.server), (c, input) => c.server = input, callback);
-    }
-
-    // Helper to prompt for username
-    private promptForUsername(self: ConnectionUI, connectionCreds: IConnectionCredentials, callback): void {
-        let usernameInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.usernamePlaceholder, prompt: Constants.usernamePrompt};
-        self.promptForValue(self, connectionCreds, usernameInputOptions, (c) => self.isNotEmpty(connectionCreds.user), (c, input) => c.user = input, callback);
-    }
-
-    // Helper to prompt for password
-    private promptForPassword(self: ConnectionUI, connectionCreds: IConnectionCredentials, callback): void {
-        let passwordInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.passwordPlaceholder, prompt: Constants.passwordPrompt, password: true};
-        self.promptForValue(self, connectionCreds, passwordInputOptions,
-            (c) => self.isNotEmpty(connectionCreds.password), (c, input) => c.password = input, callback);
-    }
-
-    private isNotEmpty(str: string): boolean {
-        return (str && 0 !== str.length);
-    }
-
-
     // Helper function that checks for any property on a credential object, and if missing prompts
     // the user to enter it. Handles cancelation by returning true for the err parameter
+    // Note: callback is an error handler that cancels if a non-null or empty value is passed
     private promptForValue(
         self: ConnectionUI,
         connectionCreds: IConnectionCredentials,
-        inputOptions: vscode.InputBoxOptions,
-        valueChecker: (c: IConnectionCredentials) => boolean,
-        valueSetter: (c: IConnectionCredentials, input: any) => void,
+        propertyUpdater: PropertyUpdater<IConnectionCredentials>,
         callback): void {
 
-        if (valueChecker(connectionCreds)) {
-            // we already have the required value - tell async.js to proceed to the next function
-            callback(undefined, self, connectionCreds);
-        } else {
+        if (propertyUpdater.isUpdateRequired(connectionCreds)) {
             // we don't have the value, prompt the user to enter it
-            self.promptUser(inputOptions)
+            self.promptUser(propertyUpdater.options)
             .then((input) => {
                 if (input) {
-                    valueSetter(connectionCreds, input);
-                    callback(undefined, self, connectionCreds); // tell async.js to proceed to the next function
+                    propertyUpdater.updatePropery(connectionCreds, input);
+                    callback(undefined); // tell async.js to proceed to the next function
                 } else {
                     // user cancelled - raise an error and abort the wizard
-                    callback(true, self, connectionCreds);
+                    callback(true);
                 }
             });
+        } else {
+            // we already have the required value - tell async.js to proceed to the next function
+            callback(undefined);
         }
     }
 

@@ -61,3 +61,11 @@ export function showWarnMsg(msg: string): void {
 export function showErrorMsg(msg: string): void {
     vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg );
 }
+
+export function isEmpty(str: string): boolean {
+    return (!str || 0 === str.length);
+}
+
+export function isNotEmpty(str: string): boolean {
+    return (str && 0 !== str.length);
+}
