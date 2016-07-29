@@ -1,8 +1,8 @@
-﻿7/28/2016 4:29:01 PM [NORMAL] - Method "Main" at line 24 of F:\xplat\sqltoolsservice\src\ServiceHost\Program.cs
+﻿7/29/2016 9:42:39 AM [NORMAL] - Method "Main" at line 24 of F:\xplat\sqltoolsservice\src\ServiceHost\Program.cs
 
     Starting SQL Tools Service Host
 
-7/28/2016 4:29:01 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+7/29/2016 9:42:39 AM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
 
     READ MESSAGE:
     
@@ -11,16 +11,16 @@
       "id": 0,
       "method": "initialize",
       "params": {
-        "processId": 780380,
+        "processId": 3340,
         "capabilities": {}
       }
     }
 
-7/28/2016 4:29:01 PM [VERBOSE] - Method "HandleInitializeRequest" at line 89 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+7/29/2016 9:42:39 AM [VERBOSE] - Method "HandleInitializeRequest" at line 89 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
 
     HandleDidChangeTextDocumentNotification
 
-7/28/2016 4:29:01 PM [VERBOSE] - Method "WriteMessage" at line 58 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageWriter.cs
+7/29/2016 9:42:39 AM [VERBOSE] - Method "WriteMessage" at line 58 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageWriter.cs
 
     WRITE MESSAGE:
     
@@ -54,7 +54,7 @@
       }
     }
 
-7/28/2016 4:29:01 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+7/29/2016 9:42:39 AM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
 
     READ MESSAGE:
     
@@ -68,11 +68,11 @@
       }
     }
 
-7/28/2016 4:29:01 PM [VERBOSE] - Method "HandleDidChangeConfigurationNotification" at line 186 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+7/29/2016 9:42:39 AM [VERBOSE] - Method "HandleDidChangeConfigurationNotification" at line 186 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
 
     HandleDidChangeConfigurationNotification
 
-7/28/2016 4:29:06 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+7/29/2016 9:42:52 AM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
 
     READ MESSAGE:
     
@@ -86,11 +86,11 @@
       }
     }
 
-7/28/2016 4:29:06 PM [VERBOSE] - Method "HandleDidOpenTextDocumentNotification" at line 165 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+7/29/2016 9:42:52 AM [VERBOSE] - Method "HandleDidOpenTextDocumentNotification" at line 165 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
 
     HandleDidOpenTextDocumentNotification
 
-7/28/2016 4:29:09 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+7/29/2016 9:42:55 AM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
 
     READ MESSAGE:
     
@@ -106,7 +106,7 @@
       }
     }
 
-7/28/2016 4:29:11 PM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+7/29/2016 9:42:56 AM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
 
     READ MESSAGE:
     
@@ -116,11 +116,28 @@
       "params": {
         "uri": "tsqloutput:c%3A%5CUsers%5Candresse%5CDocuments%5Csql.sql",
         "languageId": "sql",
-        "text": "\n                <html>\n                    <head>\n                        <script type=\"text/javascript\">\n                            window.onload = function(event) {\n                                event.stopPropagation(true);\n                                window.location.href=\"http://localhost:21346/root?uri=tsqloutput:c%3A%5CUsers%5Candresse%5CDocuments%5Csql.sql\";\n                            };\n                        </script>\n                    </head>\n                    <body></body>\n                </html>"
+        "text": "\n                <html>\n                    <head>\n                        <script type=\"text/javascript\">\n                            window.onload = function(event) {\n                                event.stopPropagation(true);\n                                window.location.href=\"http://localhost:1215/root?uri=tsqloutput:c%3A%5CUsers%5Candresse%5CDocuments%5Csql.sql\";\n                            };\n                        </script>\n                    </head>\n                    <body></body>\n                </html>"
       }
     }
 
-7/28/2016 4:29:11 PM [VERBOSE] - Method "HandleDidOpenTextDocumentNotification" at line 165 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+7/29/2016 9:42:56 AM [VERBOSE] - Method "HandleDidOpenTextDocumentNotification" at line 165 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
 
     HandleDidOpenTextDocumentNotification
+
+7/29/2016 9:45:36 AM [VERBOSE] - Method "ReadMessage" at line 111 of F:\xplat\sqltoolsservice\src\ServiceHost\MessageProtocol\MessageReader.cs
+
+    READ MESSAGE:
+    
+    {
+      "jsonrpc": "2.0",
+      "method": "textDocument/didClose",
+      "params": {
+        "uri": "tsqloutput:c%3A%5CUsers%5Candresse%5CDocuments%5Csql.sql",
+        "languageId": "sql"
+      }
+    }
+
+7/29/2016 9:45:36 AM [VERBOSE] - Method "HandleDidCloseTextDocumentNotification" at line 173 of F:\xplat\sqltoolsservice\src\ServiceHost\Server\LanguageServer.cs
+
+    HandleDidCloseTextDocumentNotification
 
