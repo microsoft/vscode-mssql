@@ -72,10 +72,15 @@ export const usernamePrompt = 'Username';
 export const usernamePlaceholder = 'username (SQL Authentication)';
 export const passwordPrompt = 'Password';
 export const passwordPlaceholder = 'Password (SQL Authentication)';
+export const savePasswordPlaceholder = 'Save Password? If \'No\', password will be required each time you connect';
 
+export const msgSelectionIsRequired = 'Selection is required.';
 export const msgIsRequired = ' is required.';
 export const msgRetry = 'Retry';
 export const msgError = 'Error: ';
+
+export const msgYes = 'Yes';
+export const msgNo = 'No';
 
 export const notConnectedLabel = 'Not connected';
 export const notConnectedTooltip = 'Click to connect to a database';

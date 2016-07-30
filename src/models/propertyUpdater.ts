@@ -1,5 +1,5 @@
 'use string';
-import { InputBoxOptions } from 'vscode';
+import { InputBoxOptions, QuickPickOptions } from 'vscode';
 
 // A class that simplifies populating values on an object from the VSCode command palette.
 // Provides a wrapper around the necessary options to display, a callback to see if update
@@ -7,9 +7,33 @@ import { InputBoxOptions } from 'vscode';
 export class PropertyUpdater<T> {
 
     constructor(
-        public options: InputBoxOptions,
+        public inputBoxOptions: InputBoxOptions,
+        public quickPickOptions: QuickPickOptions,
         private propertyChecker: (obj: T) => boolean,
         private propertySetter: (obj: T, input: string) => void) {
+    }
+
+    public static CreateQuickPickUpdater<T>(
+        quickPickOptions: QuickPickOptions,
+        propertyChecker: (obj: T) => boolean,
+        propertySetter: (obj: T, input: string) => void): PropertyUpdater<T> {
+
+        return new PropertyUpdater<T>(undefined, quickPickOptions, propertyChecker, propertySetter);
+    }
+
+    public static CreateInputBoxUpdater<T>(
+        inputBoxOptions: InputBoxOptions,
+        propertyChecker: (obj: T) => boolean,
+        propertySetter: (obj: T, input: string) => void): PropertyUpdater<T> {
+
+        return new PropertyUpdater<T>(inputBoxOptions, undefined, propertyChecker, propertySetter);
+    }
+
+    public isQuickPickUpdater(): boolean {
+        if (this.quickPickOptions) {
+            return true;
+        }
+        return false;
     }
 
     public isUpdateRequired(parentObject: T): boolean {

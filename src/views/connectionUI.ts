@@ -3,8 +3,9 @@ import vscode = require('vscode');
 import Constants = require('../models/constants');
 import { RecentConnections } from '../models/recentConnections';
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionProfile } from '../models/connectionProfile';
 import { PropertyUpdater } from '../models/propertyUpdater';
-import { IConnectionCredentials, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
+import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
 
 let async = require('async');
 
@@ -93,10 +94,10 @@ export class ConnectionUI {
         });
     }
 
-    private promptForRegisterConnection(isPasswordRequired: boolean): Promise<IConnectionCredentials> {
+    private promptForRegisterConnection(isPasswordRequired: boolean): Promise<IConnectionProfile> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let connectionCreds: ConnectionCredentials = new ConnectionCredentials();
+            let connectionCreds: ConnectionProfile = new ConnectionProfile();
             // called by async.js when all functions have finished executing
             let final = function(err): boolean {
                 if (err) {
@@ -109,7 +110,7 @@ export class ConnectionUI {
             // For each property that needs to be set, prompt for the required value and update the credentials
             // As this
             // See this for more info: http://caolan.github.io/async/docs.html#.each
-            async.eachSeries(ConnectionCredentials.getCreateCredentialsSteps(isPasswordRequired), function(propertyUpdater, callback): void {
+            async.eachSeries(ConnectionProfile.getCreateProfileSteps(isPasswordRequired), function(propertyUpdater, callback): void {
                 self.promptForValue(self, connectionCreds, propertyUpdater, callback);
             }, final);
         });
@@ -148,7 +149,7 @@ export class ConnectionUI {
 
         if (propertyUpdater.isUpdateRequired(connectionCreds)) {
             // we don't have the value, prompt the user to enter it
-            self.promptUser(propertyUpdater.options)
+            self.promptForInput(propertyUpdater.inputBoxOptions)
             .then((input) => {
                 if (input) {
                     propertyUpdater.updatePropery(connectionCreds, input);
@@ -166,7 +167,7 @@ export class ConnectionUI {
 
     // Helper to prompt user for input
     // If the input is a mandatory input then keeps prompting the user until cancelled
-    private promptUser(options: vscode.InputBoxOptions, mandatoryInput = true): Promise<string> {
+    private promptForInput(options: vscode.InputBoxOptions, mandatoryInput = true): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             let prompt = () => {
                 vscode.window.showInputBox(options).then((input) => {
@@ -191,4 +192,35 @@ export class ConnectionUI {
             prompt();
         });
     }
+
+    // Helper to prompt user to select a quick pick item
+    // If the selection is mandatory then keeps prompting the user until cancelled
+    // private promptForQuickPick(
+    //     items: vscode.QuickPickItem[],
+    //     options: vscode.QuickPickOptions = undefined,
+    //     mandatoryInput = true): Promise<vscode.QuickPickItem> {
+    //     return new Promise<vscode.QuickPickItem>((resolve, reject) => {
+    //         let prompt = () => {
+    //             vscode.window.showQuickPick(items, options).then((item) => {
+    //                 if (item === undefined) {
+    //                     // The return value is undefined if the message was canceled.
+    //                     // need to separate from empty string (which means it might be required)
+    //                     return false;
+    //                 }
+    //                 if ((!item) && mandatoryInput) {
+    //                     // Prompt user to re-enter if this is a mandatory input
+    //                     vscode.window.showWarningMessage(Constants.msgSelectionIsRequired, Constants.msgRetry).then((choice) => {
+    //                         if (choice === Constants.msgRetry) {
+    //                             prompt();
+    //                         }
+    //                     });
+    //                     return false;
+    //                 } else {
+    //                     resolve(item);
+    //                 }
+    //             });
+    //         };
+    //         prompt();
+    //     });
+    // }
 }
