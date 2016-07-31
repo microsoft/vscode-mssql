@@ -8,9 +8,11 @@ import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuick
 import { IPrompter } from '../prompts/question';
 
 export class ConnectionUI {
+    private _context: vscode.ExtensionContext;
     private _prompter: IPrompter;
 
-    constructor(prompter: IPrompter) {
+    constructor(context: vscode.ExtensionContext, prompter: IPrompter) {
+        this._context = context;
         this._prompter = prompter;
     }
 
@@ -19,7 +21,7 @@ export class ConnectionUI {
     public showConnections(): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let recentConnections = new RecentConnections();
+            let recentConnections = new RecentConnections(self._context);
             recentConnections.getPickListItems()
             .then((picklist: IConnectionCredentialsQuickPickItem[]) => {
                 if (picklist.length === 0) {
@@ -28,7 +30,7 @@ export class ConnectionUI {
                     return false;
                 } else {
                     // We have recent connections - show them in a picklist
-                    self.showConnectionsPickList(picklist)
+                    self.showConnectionsPickList(recentConnections, picklist)
                     .then(selection => {
                         if (!selection) {
                             return false;
@@ -63,7 +65,7 @@ export class ConnectionUI {
     }
 
     // Helper to let user choose a connection from a picklist
-    private showConnectionsPickList(pickList: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionCredentials> {
+    private showConnectionsPickList(recentConnections: RecentConnections, pickList: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             // init picklist options
@@ -90,7 +92,13 @@ export class ConnectionUI {
                         if (!resolvedConnectionCreds) {
                             return false;
                         }
-                        resolve(resolvedConnectionCreds);
+                        if (selection.isNewConnectionQuickPickItem) {
+                            recentConnections.saveConnection(<IConnectionProfile>resolvedConnectionCreds).then(() => {
+                                resolve(resolvedConnectionCreds);
+                            });
+                        } else {
+                            resolve(resolvedConnectionCreds);
+                        }
                     });
 
                 }

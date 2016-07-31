@@ -53,7 +53,7 @@ export default class ConnectionManager {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
-        this._connectionUI = new ConnectionUI(prompter);
+        this._connectionUI = new ConnectionUI(context, prompter);
     }
 
     get connectionCredentials(): Interfaces.IConnectionCredentials {
