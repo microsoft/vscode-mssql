@@ -62,10 +62,10 @@ export function showErrorMsg(msg: string): void {
     vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg );
 }
 
-export function isEmpty(str: string): boolean {
-    return (!str || 0 === str.length);
+export function isEmpty(str: any): boolean {
+    return (!str || '' === str);
 }
 
-export function isNotEmpty(str: string): boolean {
-    return (str && 0 !== str.length);
+export function isNotEmpty(str: any): boolean {
+    return <boolean>(str && '' !== str);
 }

@@ -1,40 +1,52 @@
 'use strict';
 // import vscode = require('vscode');
 import Constants = require('./constants');
-import { PropertyUpdater } from './propertyUpdater';
 import { IConnectionProfile } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
-import { isEmpty } from './utils';
+import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 
 // Concrete implementation of the IConnectionProfile interface
 export class ConnectionProfile extends ConnectionCredentials implements IConnectionProfile {
     public profileName: string;
     public savePassword: boolean;
 
-    // Gets an array of PropertyUpdaters that define the steps to set all needed values for a new Connection
-    public static getCreateProfileSteps(isPasswordRequired: boolean): PropertyUpdater<IConnectionProfile>[]  {
-        let steps: PropertyUpdater<IConnectionProfile>[] = [
-            // server
-            PropertyUpdater.CreateInputBoxUpdater<IConnectionProfile>(
-                ConnectionCredentials.createInputBoxOptions(Constants.serverPlaceholder, Constants.serverPrompt),
-                (c) => isEmpty(c.server),
-                (c, input) => c.server = input),
+    public static createProfile(prompter: IPrompter): Promise<IConnectionProfile> {
+        let profile: ConnectionProfile = new ConnectionProfile();
+        // Ensure all core propertiesare entered
+        let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true, true);
+        // Check if password needs to be saved
+        questions.push(
+            {
+                type: QuestionTypes.confirm,
+                name: Constants.msgSavePassword,
+                message: Constants.msgSavePassword,
+                onAnswered: (value) => profile.savePassword = value
+            },
+            {
+                type: QuestionTypes.input,
+                name: Constants.profileNamePrompt,
+                message: Constants.profileNamePrompt,
+                placeHolder: Constants.profileNamePlaceholder,
+                onAnswered: (value) => {
+                    // Fall back to a default name if none specified
+                    profile.profileName = value ? value : ConnectionProfile.formatProfileName(profile);
+                }
+        });
 
-            // database (defaults to master)
-            PropertyUpdater.CreateInputBoxUpdater<IConnectionProfile>(
-                ConnectionCredentials.createInputBoxOptions(Constants.databasePlaceholder, Constants.databasePrompt, Constants.databaseDefaultValue),
-                (c) => isEmpty(c.database),
-                (c, input) => c.database = input)
-        ];
-        // Add username and password
-        steps = steps.concat(ConnectionCredentials.getUsernameAndPasswordCredentialUpdaters(isPasswordRequired));
+        return new Promise<ConnectionProfile>((resolve, reject) => {
+            // Calls prompter to fill in info, and when complete resolves the profile to the caller
+            prompter.prompt(questions, (answers) => resolve(profile));
+        });
+    }
 
-        // Add prompt to save password
-        steps = steps.concat(PropertyUpdater.CreateQuickPickUpdater<IConnectionProfile>(
-            undefined,
-            (c) => true,
-            (c, input) => c.savePassword = (input === Constants.msgYes)
-        ));
-        return steps;
+    private static formatProfileName(profile: IConnectionProfile ): string {
+        let name = profile.server;
+        if (profile.database) {
+            name = name + '-' + profile.database;
+        }
+        if (profile.user) {
+            name = name + '-' + profile.user;
+        }
+        return name;
     }
 }

@@ -9,6 +9,8 @@ import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import QueryRunner from './queryRunner';
 import SqlToolsServerClient from '../languageservice/serviceclient';
+import { IPrompter } from '../prompts/question';
+import CodeAdapter from '../prompts/adapter';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -16,6 +18,7 @@ export default class MainController implements vscode.Disposable {
     private _outputContentProvider: SqlOutputContentProvider;
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
+    private _prompter: IPrompter;
 
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
@@ -56,8 +59,11 @@ export default class MainController implements vscode.Disposable {
         // Init status bar
         this._statusview = new StatusView();
 
+        // Init CodeAdapter for use when user response to questions is needed
+        this._prompter = new CodeAdapter();
+
         // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(self._context, self._statusview);
+        this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(self._context);

@@ -1,9 +1,8 @@
 'use strict';
-import { InputBoxOptions, QuickPickOptions } from 'vscode';
 import Constants = require('./constants');
-import { PropertyUpdater } from './propertyUpdater';
 import { IConnectionCredentials } from './interfaces';
-import { isEmpty } from './utils';
+import * as utils from './utils';
+import { QuestionTypes, IQuestion, IPrompter, IPromptCallback } from '../prompts/question';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
@@ -15,56 +14,78 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public requestTimeout: number;
     public options: { encrypt: boolean, appName: string };
 
-    // Gets an array of PropertyUpdaters that ensure Username and Password are set on this connection
-    public static getUsernameAndPasswordCredentialUpdaters(isPasswordRequired: boolean): PropertyUpdater<IConnectionCredentials>[]  {
-        let steps: PropertyUpdater<IConnectionCredentials>[] = [
-            // username
-            PropertyUpdater.CreateInputBoxUpdater<IConnectionCredentials>(
-                ConnectionCredentials.createInputBoxOptions(Constants.usernamePlaceholder, Constants.usernamePrompt),
-                (c) => isEmpty(c.user),
-                (c, input) => c.user = input),
+    public static ensureRequiredPropertiesSet(
+        credentials: IConnectionCredentials,
+        isPasswordRequired: boolean,
+        prompter: IPrompter,
+        callback: IPromptCallback): void {
 
-            // password
-            PropertyUpdater.CreateInputBoxUpdater<IConnectionCredentials>(
-                // Use password field
-                ConnectionCredentials.createInputBoxOptions(Constants.passwordPlaceholder, Constants.passwordPrompt, undefined, true, isPasswordRequired),
-                (c) => isEmpty(c.password),
-                (c, input) => c.password = input)
-        ];
-
-        return steps;
+        let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
+        prompter.prompt(questions, callback);
     }
 
-    protected static createInputBoxOptions(
-        placeholder: string, prompt: string, defaultValue: string = '', pwd: boolean = false,
-        checkForEmpty: boolean = true): InputBoxOptions {
+    // gets a set of questions that ensure all required and core values are set
+    protected static getRequiredCredentialValuesQuestions(
+        credentials: IConnectionCredentials,
+        promptForDbName: boolean,
+        isPasswordRequired: boolean): IQuestion[] {
 
-        let validate = function(input: string, propertyName: string): string {
-            if (checkForEmpty && isEmpty(input)) {
-                return propertyName + Constants.msgIsRequired;
+        let questions: IQuestion[] = [
+            // Server must be present
+            {
+                type: QuestionTypes.input,
+                name: Constants.serverPrompt,
+                message: Constants.serverPrompt,
+                placeHolder: Constants.serverPlaceholder,
+                shouldPrompt: (answers) => utils.isEmpty(credentials.server),
+                validate: (value) => ConnectionCredentials.validateRequiredString(Constants.serverPrompt, value),
+                onAnswered: (value) => credentials.server = value
+            },
+            // Database name is not required, prompt is optional
+            {
+                type: QuestionTypes.input,
+                name: Constants.databasePrompt,
+                message: Constants.databasePrompt,
+                placeHolder: Constants.databasePlaceholder,
+                shouldPrompt: (answers) => promptForDbName,
+                onAnswered: (value) => credentials.database = value
+            },
+
+            // Username must be pressent
+            {
+                type: QuestionTypes.input,
+                name: Constants.usernamePrompt,
+                message: Constants.usernamePrompt,
+                placeHolder: Constants.usernamePlaceholder,
+                shouldPrompt: (answers) => utils.isEmpty(credentials.user),
+                validate: (value) => ConnectionCredentials.validateRequiredString(Constants.usernamePrompt, value),
+                onAnswered: (value) => credentials.user = value
+            },
+            // Password may or may not be necessary
+            {
+                type: QuestionTypes.password,
+                name: Constants.passwordPrompt,
+                message: Constants.passwordPrompt,
+                placeHolder: Constants.passwordPlaceholder,
+                shouldPrompt: (answers) => utils.isEmpty(credentials.password),
+                validate: (value) => {
+                    if (isPasswordRequired) {
+                        return ConnectionCredentials.validateRequiredString(Constants.passwordPrompt, value);
+                    }
+                    return undefined;
+                },
+                onAnswered: (value) => credentials.password = value
             }
-            // returning undefined indicates validation passed
-            return undefined;
-        };
-
-        return {
-            placeHolder: placeholder,
-            prompt: prompt,
-            value: defaultValue,
-            password: pwd,
-            validateInput: (i) => validate(i, prompt)
-        };
+        ];
+        return questions;
     }
 
-    protected static createQuickPickOptions(
-        placeholder: string, prompt: string, defaultValue: string = '', pwd: boolean = false,
-        checkForEmpty: boolean = true): QuickPickOptions {
-
-
-        return {
-            placeHolder: placeholder
-        };
+    // Validates a string is not empty, returning undefined if true and an error message if not
+    protected static validateRequiredString(property: string, value: string): string {
+        if (utils.isEmpty(value)) {
+            return property + Constants.msgIsRequired;
+        }
+        return undefined;
     }
-
 }
 

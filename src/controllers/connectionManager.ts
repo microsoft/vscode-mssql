@@ -7,6 +7,7 @@ import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { LanguageClient, RequestType } from 'vscode-languageclient';
+import { IPrompter } from '../prompts/question';
 
 const mssql = require('mssql');
 
@@ -43,14 +44,16 @@ class ConnectionResult {
 export default class ConnectionManager {
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
+    private _prompter: IPrompter;
     private _connection;
     private _connectionCreds: Interfaces.IConnectionCredentials;
     private _connectionUI: ConnectionUI;
 
-    constructor(context: vscode.ExtensionContext, statusView: StatusView) {
+    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter) {
         this._context = context;
         this._statusView = statusView;
-        this._connectionUI = new ConnectionUI();
+        this._prompter = prompter;
+        this._connectionUI = new ConnectionUI(prompter);
     }
 
     get connectionCredentials(): Interfaces.IConnectionCredentials {

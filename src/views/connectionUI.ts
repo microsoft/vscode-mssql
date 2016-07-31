@@ -4,12 +4,16 @@ import Constants = require('../models/constants');
 import { RecentConnections } from '../models/recentConnections';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
-import { PropertyUpdater } from '../models/propertyUpdater';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
-
-let async = require('async');
+import { IPrompter } from '../prompts/question';
 
 export class ConnectionUI {
+    private _prompter: IPrompter;
+
+    constructor(prompter: IPrompter) {
+        this._prompter = prompter;
+    }
+
     // Helper to let user choose a connection from a picklist
     // Return the ConnectionInfo for the user's choice
     public showConnections(): Promise<IConnectionCredentials> {
@@ -95,132 +99,14 @@ export class ConnectionUI {
     }
 
     private promptForRegisterConnection(isPasswordRequired: boolean): Promise<IConnectionProfile> {
-        const self = this;
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let connectionCreds: ConnectionProfile = new ConnectionProfile();
-            // called by async.js when all functions have finished executing
-            let final = function(err): boolean {
-                if (err) {
-                    return false;
-                } else {
-                    resolve(connectionCreds); // final connectionCreds with all the missing inputs filled in
-                }
-            };
-
-            // For each property that needs to be set, prompt for the required value and update the credentials
-            // As this
-            // See this for more info: http://caolan.github.io/async/docs.html#.each
-            async.eachSeries(ConnectionProfile.getCreateProfileSteps(isPasswordRequired), function(propertyUpdater, callback): void {
-                self.promptForValue(self, connectionCreds, propertyUpdater, callback);
-            }, final);
-        });
+        return ConnectionProfile.createProfile(this._prompter);
     }
 
     // Prompt user for missing details in the given IConnectionCredentials
-    private promptForMissingInfo(connectionCreds: IConnectionCredentials): Promise<IConnectionCredentials> {
+    private promptForMissingInfo(credentials: IConnectionCredentials): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            // called by async.js when all functions have finished executing
-            let final = function(err): boolean {
-                if (err) {
-                    return false;
-                } else {
-                    resolve(connectionCreds); // final connectionCreds with all the missing inputs filled in
-                }
-            };
-
-            // For each property that needs to be set, prompt for the required value and update the credentials
-            // As this
-            // See this for more info: http://caolan.github.io/async/docs.html#.each
-            async.each(ConnectionCredentials.getUsernameAndPasswordCredentialUpdaters(true), function(propertyUpdater, callback): void {
-                self.promptForValue(self, connectionCreds, propertyUpdater, callback);
-            }, final);
+            ConnectionCredentials.ensureRequiredPropertiesSet(credentials, false, self._prompter, (answers) => resolve(credentials));
         });
     }
-
-    // Helper function that checks for any property on a credential object, and if missing prompts
-    // the user to enter it. Handles cancelation by returning true for the err parameter
-    // Note: callback is an error handler that cancels if a non-null or empty value is passed
-    private promptForValue(
-        self: ConnectionUI,
-        connectionCreds: IConnectionCredentials,
-        propertyUpdater: PropertyUpdater<IConnectionCredentials>,
-        callback): void {
-
-        if (propertyUpdater.isUpdateRequired(connectionCreds)) {
-            // we don't have the value, prompt the user to enter it
-            self.promptForInput(propertyUpdater.inputBoxOptions)
-            .then((input) => {
-                if (input) {
-                    propertyUpdater.updatePropery(connectionCreds, input);
-                    callback(undefined); // tell async.js to proceed to the next function
-                } else {
-                    // user cancelled - raise an error and abort the wizard
-                    callback(true);
-                }
-            });
-        } else {
-            // we already have the required value - tell async.js to proceed to the next function
-            callback(undefined);
-        }
-    }
-
-    // Helper to prompt user for input
-    // If the input is a mandatory input then keeps prompting the user until cancelled
-    private promptForInput(options: vscode.InputBoxOptions, mandatoryInput = true): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            let prompt = () => {
-                vscode.window.showInputBox(options).then((input) => {
-                    if (input === undefined) {
-                        // The return value is undefined if the message was canceled.
-                        // need to separate from empty string (which means it might be required)
-                        return false;
-                    }
-                    if ((!input || !input.trim()) && mandatoryInput) {
-                        // Prompt user to re-enter if this is a mandatory input
-                        vscode.window.showWarningMessage(options.prompt + Constants.msgIsRequired, Constants.msgRetry).then((choice) => {
-                            if (choice === Constants.msgRetry) {
-                                prompt();
-                            }
-                        });
-                        return false;
-                    } else {
-                        resolve(input);
-                    }
-                });
-            };
-            prompt();
-        });
-    }
-
-    // Helper to prompt user to select a quick pick item
-    // If the selection is mandatory then keeps prompting the user until cancelled
-    // private promptForQuickPick(
-    //     items: vscode.QuickPickItem[],
-    //     options: vscode.QuickPickOptions = undefined,
-    //     mandatoryInput = true): Promise<vscode.QuickPickItem> {
-    //     return new Promise<vscode.QuickPickItem>((resolve, reject) => {
-    //         let prompt = () => {
-    //             vscode.window.showQuickPick(items, options).then((item) => {
-    //                 if (item === undefined) {
-    //                     // The return value is undefined if the message was canceled.
-    //                     // need to separate from empty string (which means it might be required)
-    //                     return false;
-    //                 }
-    //                 if ((!item) && mandatoryInput) {
-    //                     // Prompt user to re-enter if this is a mandatory input
-    //                     vscode.window.showWarningMessage(Constants.msgSelectionIsRequired, Constants.msgRetry).then((choice) => {
-    //                         if (choice === Constants.msgRetry) {
-    //                             prompt();
-    //                         }
-    //                     });
-    //                     return false;
-    //                 } else {
-    //                     resolve(item);
-    //                 }
-    //             });
-    //         };
-    //         prompt();
-    //     });
-    // }
 }
