@@ -1,6 +1,8 @@
 
 'use strict';
 
+import vscode = require('vscode');
+
 export class QuestionTypes {
     public static get input(): string { return 'input'; }
     public static get password(): string { return 'password'; }
@@ -23,14 +25,22 @@ export interface IQuestion {
     placeHolder?: any;
     // Optional default value - this will be used instead of placeHolder
     default?: any;
-    // optional set of choices to be used. Must be a simple type or for objects, have a .name property for display
-    choices?: any[];
+    // optional set of choices to be used. Can be QuickPickItems or a simple name-value pair
+    choices?: Array<vscode.QuickPickItem | INameValueChoice>;
     // Optional validation function that returns an error string if validation fails
     validate?: (value: any) => string;
     // Optional pre-prompt function. Takes in set of answers so far, and returns true if prompt should occur
     shouldPrompt?: (answers: {[id: string]: any}) => boolean;
     // Optional action to take on the question being answered
     onAnswered?: (value: any) => void;
+    // Optional set of options to support matching choices.
+    matchOptions?: vscode.QuickPickOptions;
+}
+
+// Pair used to display simple choices to the user
+export interface INameValueChoice {
+    name: string;
+    value: any;
 }
 
 // Generic object that can be used to define a set of questions and handle the result
@@ -42,7 +52,9 @@ export interface IQuestionHandler {
 }
 
 export interface IPrompter {
-    prompt(questions: IQuestion[], callback: IPromptCallback): void;
+    promptSingle<T>(question: IQuestion): Promise<T>;
+    prompt<T>(questions: IQuestion[]): Promise<{[questionId: string]: T}>;
+    promptCallback(questions: IQuestion[], callback: IPromptCallback): void;
 }
 
 export interface IPromptCallback {

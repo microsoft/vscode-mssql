@@ -33,10 +33,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
         });
 
-        return new Promise<ConnectionProfile>((resolve, reject) => {
-            // Calls prompter to fill in info, and when complete resolves the profile to the caller
-            prompter.prompt(questions, (answers) => resolve(profile));
-        });
+        return prompter.prompt(questions).then(() => profile);
     }
 
     private static formatProfileName(profile: IConnectionProfile ): string {

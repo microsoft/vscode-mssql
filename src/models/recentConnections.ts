@@ -16,22 +16,14 @@ export class RecentConnections {
     public getPickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
         const self = this;
         return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
-            self.loadConnections()
+            self.loadAllConnections()
             .then(function(connections): void
             {
-                const pickListItems = connections.map( (item: IConnectionCredentials) => {
-                    return <IConnectionCredentialsQuickPickItem> {
-                        label: ConnInfo.getPicklistLabel(item),
-                        description: ConnInfo.getPicklistDescription(item),
-                        detail: ConnInfo.getPicklistDetails(item),
-                        connectionCreds: item,
-                        isNewConnectionQuickPickItem: false
-                    };
-                });
+                const pickListItems = self.mapToQuickPickItems(connections);
 
                 // Always add an "Add New Connection" quickpick item
                 pickListItems.push(<IConnectionCredentialsQuickPickItem> {
-                        label: Constants.RegisterNewConnectionLabel,
+                        label: Constants.CreateProfileLabel,
                         connectionCreds: undefined,
                         isNewConnectionQuickPickItem: true
                     });
@@ -40,9 +32,33 @@ export class RecentConnections {
         });
     }
 
-    public saveConnection(profile: IConnectionProfile): Promise<void> {
+    // maps credentials to user-displayable items
+    private mapToQuickPickItems(connections: IConnectionCredentials[]): IConnectionCredentialsQuickPickItem[] {
+        return connections.map( (item: IConnectionCredentials) => {
+            return <IConnectionCredentialsQuickPickItem> {
+                label: ConnInfo.getPicklistLabel(item),
+                description: ConnInfo.getPicklistDescription(item),
+                detail: ConnInfo.getPicklistDetails(item),
+                connectionCreds: item,
+                isNewConnectionQuickPickItem: false
+            };
+        });
+    }
+
+    public getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
         const self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
+            self.loadProfiles()
+            .then(function(connections): void
+            {
+                const pickListItems = self.mapToQuickPickItems(connections);
+                resolve(pickListItems);
+            });
+        });
+    }
+    public saveConnection(profile: IConnectionProfile): Promise<IConnectionProfile> {
+        const self = this;
+        return new Promise<IConnectionProfile>((resolve, reject) => {
             // Get all profiles
             let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
             if (!configValues) {
@@ -50,19 +66,46 @@ export class RecentConnections {
             }
 
             // Remove the profile if already set
-            configValues.filter(value => value.profileName !== profile.profileName);
+            configValues = configValues.filter(value => value.profileName !== profile.profileName);
 
             // Add the profile back
             configValues.push(profile);
 
             // saveConnection
             self._context.globalState.update(Constants.configMyConnections, configValues);
-            resolve();
+            resolve(profile);
+        });
+    }
+
+    public removeProfile(profile: IConnectionProfile): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            // Get all profiles
+            let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
+            if (!configValues) {
+                configValues = [];
+            }
+
+            // Remove the profile if already set
+            let found: boolean = false;
+            configValues = configValues.filter(value => {
+                if (value.profileName === profile.profileName) {
+                    // remove just this profile
+                    found = true;
+                    return false;
+                } else {
+                    return true;
+            }});
+
+
+            // saveConnection
+            self._context.globalState.update(Constants.configMyConnections, configValues);
+            resolve(found);
         });
     }
 
     // Load connections from user preferences
-    private loadConnections(): Promise<IConnectionCredentials[]> {
+    private loadAllConnections(): Promise<IConnectionCredentials[]> {
         let self = this;
         return new Promise<IConnectionCredentials[]>((resolve, reject) => {
             // Load connections from user preferences
@@ -76,9 +119,19 @@ export class RecentConnections {
             self.addConnections(connections, configValues);
 
             // next read from the global state
-            configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
-            self.addConnections(connections, configValues);
+            self.loadProfiles().then(profiles => connections = connections.concat(profiles));
 
+            resolve(connections);
+        });
+    }
+
+    private loadProfiles(): Promise<IConnectionProfile[]> {
+        let self = this;
+        return new Promise<IConnectionCredentials[]>((resolve, reject) => {
+            let connections: IConnectionProfile[] = [];
+            // read from the global state
+            let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
+            self.addConnections(connections, configValues);
             resolve(connections);
         });
     }

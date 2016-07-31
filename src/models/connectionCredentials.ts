@@ -2,7 +2,7 @@
 import Constants = require('./constants');
 import { IConnectionCredentials } from './interfaces';
 import * as utils from './utils';
-import { QuestionTypes, IQuestion, IPrompter, IPromptCallback } from '../prompts/question';
+import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
@@ -17,11 +17,10 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public static ensureRequiredPropertiesSet(
         credentials: IConnectionCredentials,
         isPasswordRequired: boolean,
-        prompter: IPrompter,
-        callback: IPromptCallback): void {
+        prompter: IPrompter): Promise<IConnectionCredentials> {
 
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
-        prompter.prompt(questions, callback);
+        return prompter.prompt(questions).then(() => credentials);
     }
 
     // gets a set of questions that ensure all required and core values are set

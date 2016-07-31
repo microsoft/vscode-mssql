@@ -144,17 +144,20 @@ export default class ConnectionManager {
         });
     }
 
-    public onRegisterConnection(): Promise<boolean> {
-        // const self = this;
+    public onCreateProfile(): Promise<boolean> {
+        let self = this;
         return new Promise<any>((resolve, reject) => {
-            resolve(true);
+            self.connectionUI.createAndSaveProfile()
+            .then(profile => {
+                if (profile) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+            }});
         });
     }
 
-    public onUnregisterConnection(): Promise<boolean> {
-        // const self = this;
-        return new Promise<any>((resolve, reject) => {
-            resolve(true);
-        });
+    public onRemoveProfile(): Promise<boolean> {
+        return this.connectionUI.removeProfile();
     }
 }

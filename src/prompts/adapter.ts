@@ -8,10 +8,10 @@ import * as Constants from '../models/constants';
 import * as nodeUtil from 'util';
 import PromptFactory from './factory';
 import EscapeException from '../utils/EscapeException';
-import { IQuestion, IPromptCallback } from './question';
+import { IQuestion, IPrompter, IPromptCallback } from './question';
 
 // Supports simple pattern for prompting for user input and acting on this
-export default class CodeAdapter {
+export default class CodeAdapter implements IPrompter {
 
     private outChannel: OutputChannel;
     private outBuffer: string = '';
@@ -111,11 +111,20 @@ export default class CodeAdapter {
         }
     }
 
-    public prompt(questions: IQuestion[], callback: IPromptCallback): void {
-        let answers = {};
+    public promptSingle<T>(question: IQuestion): Promise<T> {
+        let questions: IQuestion[] = [question];
+        return this.prompt(questions).then(answers => {
+            if (answers) {
+                return answers[question.name] || false;
+            }
+        });
+    }
+
+    public prompt<T>(questions: IQuestion[]): Promise<{[key: string]: T}> {
+        let answers: {[key: string]: T} = {};
 
         // Collapse multiple questions into a set of prompt steps
-        let promptResult = questions.reduce((promise: Promise<void>, question: IQuestion) => {
+        let promptResult: Promise<{[key: string]: T}> = questions.reduce((promise: Promise<{[key: string]: T}>, question: IQuestion) => {
             this.fixQuestion(question);
 
             return promise.then(() => {
@@ -135,24 +144,29 @@ export default class CodeAdapter {
                         if (question.onAnswered) {
                             question.onAnswered(result);
                         }
+                        return answers;
                     });
                 }
-
+                return answers;
             });
         }, Promise.resolve());
 
-        promptResult
-            .then(() => {
-                if (callback) {
-                    callback(answers);
-                }
-            })
-            .catch(err => {
-                if (err instanceof EscapeException) {
-                    return;
-                }
+        return promptResult.catch(err => {
+            if (err instanceof EscapeException) {
+                return;
+            }
 
-                window.showErrorMessage(err.message);
-            });
+            window.showErrorMessage(err.message);
+        });
+    }
+
+    // Helper to make it possible to prompt using callback pattern. Generally Promise is a preferred flow
+    public promptCallback(questions: IQuestion[], callback: IPromptCallback): void {
+        // Collapse multiple questions into a set of prompt steps
+        this.prompt(questions).then(answers => {
+            if (callback) {
+                callback(answers);
+            }
+        });
     }
 }

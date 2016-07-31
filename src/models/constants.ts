@@ -6,8 +6,8 @@ export const outputChannelName = 'MSSQL';
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';
-export const cmdRegisterConnection = 'extension.registerconnection';
-export const cmdUnregisterConnection = 'extension.unregisterconnection';
+export const cmdCreateProfile = 'extension.createprofile';
+export const cmdRemoveProfile = 'extension.removeprofile';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15000;
@@ -61,7 +61,8 @@ export const recentConnectionsPlaceholder = 'Choose a connection from the list b
 export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
 export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
-export const RegisterNewConnectionLabel = 'Register New Connection';
+export const CreateProfileLabel = 'Create Connection Profile';
+export const RemoveProfileLabel = 'Remove Connection Profile';
 
 export const serverPrompt = 'Server name';
 export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
@@ -75,6 +76,10 @@ export const passwordPlaceholder = 'Password (SQL Authentication)';
 export const msgSavePassword = 'Save Password? If \'No\', password will be required each time you connect';
 export const profileNamePrompt = 'Profile Name';
 export const profileNamePlaceholder = 'optional - enter a name for this profile';
+
+export const msgSelectProfile = 'Select Connection Profile';
+export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
+export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 
 export const msgSelectionIsRequired = 'Selection is required.';
 export const msgIsRequired = ' is required.';

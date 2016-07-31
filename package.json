@@ -99,13 +99,13 @@
         "category": "MSSQL"
       },
       {
-        "command": "extension.registerconnection",
-        "title": "Register SQL Connection",
+        "command": "extension.createprofile",
+        "title": "Create Connection Profile",
         "category": "MSSQL"
       },
       {
-        "command": "extension.unregisterconnection",
-        "title": "Unregister SQL Connection",
+        "command": "extension.removeprofile",
+        "title": "Remove Connection Profile",
         "category": "MSSQL"
       }
     ],
@@ -129,7 +129,7 @@
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
-        "command": "extension.registerconnection",
+        "command": "extension.createprofile",
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r",
         "when": "editorTextFocus && editorLangId == 'sql'"

@@ -51,10 +51,10 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
-        this.registerCommand(Constants.cmdRegisterConnection);
-        this._event.on(Constants.cmdRegisterConnection, () => { self.onRegisterConnection(); });
-        this.registerCommand(Constants.cmdUnregisterConnection);
-        this._event.on(Constants.cmdUnregisterConnection, () => { self.onUnregisterConnection(); });
+        this.registerCommand(Constants.cmdCreateProfile);
+        this._event.on(Constants.cmdCreateProfile, () => { self.onCreateProfile(); });
+        this.registerCommand(Constants.cmdRemoveProfile);
+        this._event.on(Constants.cmdRemoveProfile, () => { self.onRemoveProfile(); });
 
         // Init status bar
         this._statusview = new StatusView();
@@ -97,13 +97,13 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
-    // Prompts to register a new SQL connection for reuse across multiple connection
-    public onRegisterConnection(): Promise<boolean> {
-        return this._connectionMgr.onRegisterConnection();
+    // Prompts to create a new SQL connection profile
+    public onCreateProfile(): Promise<boolean> {
+        return this._connectionMgr.onCreateProfile();
     }
 
-    // Prompts to remove a registered SQL connection
-    public onUnregisterConnection(): Promise<boolean> {
-        return this._connectionMgr.onUnregisterConnection();
+    // Prompts to remove a registered SQL connection profile
+    public onRemoveProfile(): Promise<boolean> {
+        return this._connectionMgr.onRemoveProfile();
     }
 }
