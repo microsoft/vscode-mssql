@@ -27,8 +27,16 @@ export interface IConnectionCredentials {
     options: { encrypt: boolean, appName: string };
 };
 
+// A Connection Profile contains all the properties of connection credentials, with additional
+// optional name and details on whether password should be saved
+export interface IConnectionProfile extends IConnectionCredentials {
+    profileName: string;
+    savePassword: boolean;
+}
+
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
+    isNewConnectionQuickPickItem: boolean;
 };
 
 // Obtained from an active connection to show in the status bar

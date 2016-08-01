@@ -52,7 +52,9 @@
     "mssql": "^3.2.0",
     "request": "^2.73.0",
     "vscode-extension-telemetry": "^0.0.5",
-    "vscode-languageclient": "^1.0.0"
+    "vscode-languageclient": "^1.0.0",
+    "error-ex": "^1.3.0",
+    "figures": "^1.4.0"
   },
   "contributes": {
     "languages": [
@@ -98,6 +100,16 @@
         "command": "extension.disconnect",
         "title": "Disconnect active connection",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.createprofile",
+        "title": "Create Connection Profile",
+        "category": "MSSQL"
+      },
+      {
+        "command": "extension.removeprofile",
+        "title": "Remove Connection Profile",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [
@@ -117,6 +129,12 @@
         "command": "extension.disconnect",
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
+        "when": "editorTextFocus && editorLangId == 'sql'"
+      },
+      {
+        "command": "extension.createprofile",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
         "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],
