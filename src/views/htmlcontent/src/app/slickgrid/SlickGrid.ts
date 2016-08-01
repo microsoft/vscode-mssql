@@ -1,3 +1,9 @@
+/*
+*   SlickGrid Angular2 implementation obtained from Pendelton team
+*   at Microsoft.
+*
+*/
+
 /// <reference path="../../../typings/underscore.d.ts" />
 import {Component, Input, Output, OnChanges, OnInit, OnDestroy, ElementRef, SimpleChange, EventEmitter,
     ViewEncapsulation, Optional, HostListener} from 'angular2/core';

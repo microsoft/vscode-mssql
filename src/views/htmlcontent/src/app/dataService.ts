@@ -2,6 +2,11 @@ import {Injectable} from 'angular2/core';
 import {Http} from 'angular2/http';
 import {Observable} from 'rxjs/Rx';
 
+/*
+*   Service which performs the http requests to get the data resultsets
+*   from the server.
+*/
+
 @Injectable()
 export class DataService {
     uri: string;

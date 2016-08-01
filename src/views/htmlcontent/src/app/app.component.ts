@@ -15,6 +15,9 @@ enum FieldType {
     Unknown = 5,
 }
 
+/*
+*   Top level app component which runs and controls the SlickGrid implementation
+*/
 @Component({
     selector: 'my-app',
     directives: [SlickGrid],
@@ -23,9 +26,9 @@ enum FieldType {
 })
 
 export class AppComponent implements OnInit {
-    columnDefinitions: IColumnDefinition[] = [];
-    dataRows: IObservableCollection<IGridDataRow>;
-    data: IGridDataRow[] = [];
+    private columnDefinitions: IColumnDefinition[] = [];
+    private dataRows: IObservableCollection<IGridDataRow>;
+    private data: IGridDataRow[] = [];
 
     constructor(private dataService: DataService) {}
 

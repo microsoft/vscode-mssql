@@ -1,4 +1,5 @@
 var gulp = require('gulp');
+var install = require('gulp-install');
 var tslint = require('gulp-tslint');
 var ts = require('gulp-typescript');
 var tsProject = ts.createProject('tsconfig.json');
@@ -64,6 +65,11 @@ gulp.task('ext:clean', () => {
 gulp.task('build-extension', gulp.series('ext:tslint', 'ext:clean', 'ext:build'));
 
 gulp.task('build-all', gulp.series('build-html', 'build-extension'));
+
+gulp.task('install', function(){
+    return gulp.src(['./package.json', './src/views/htmlcontent/package.json'])
+                .pipe(install());
+})
 
 gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build-all'))
