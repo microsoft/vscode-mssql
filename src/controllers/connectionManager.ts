@@ -8,6 +8,7 @@ import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { LanguageClient, RequestType } from 'vscode-languageclient';
 import { IPrompter } from '../prompts/question';
+import Telemetry from '../models/telemetry';
 
 const mssql = require('mssql');
 
@@ -113,12 +114,16 @@ export default class ConnectionManager {
     public connect(connectionCreds: Interfaces.IConnectionCredentials): Promise<any> {
         const self = this;
         return new Promise<any>((resolve, reject) => {
+            let extensionTimer = new Utils.Timer();
+
             // package connection details for request message
             let connectionDetails = new ConnectionDetails();
             connectionDetails.userName = connectionCreds.user;
             connectionDetails.password = connectionCreds.password;
             connectionDetails.serverName = connectionCreds.server;
             connectionDetails.databaseName = connectionCreds.database;
+
+            let serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
             let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
@@ -129,11 +134,22 @@ export default class ConnectionManager {
             // legacy tedious connection until we fully move to service host
             const connection = new mssql.Connection(connectionCreds);
             self.statusView.connecting(connectionCreds);
+
             connection.connect()
             .then(function(): void {
+                serviceTimer.end();
+
                 self._connectionCreds = connectionCreds;
                 self._connection = connection;
                 self.statusView.connectSuccess(connectionCreds);
+
+                extensionTimer.end();
+
+                Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {}, {
+                    extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
+                    serviceConnectionTime: serviceTimer.getDuration()
+                });
+
                 resolve();
             })
             .catch(function(err): void {

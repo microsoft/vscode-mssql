@@ -11,6 +11,7 @@ import QueryRunner from './queryRunner';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
+import Telemetry from '../models/telemetry';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -44,6 +45,8 @@ export default class MainController implements vscode.Disposable {
     public activate(): void {
         const self = this;
 
+        let activationTimer = new Utils.Timer();
+
         // register VS Code commands
         this.registerCommand(Constants.cmdConnect);
         this._event.on(Constants.cmdConnect, () => { self.onNewConnection(); });
@@ -72,6 +75,13 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         SqlToolsServerClient.getInstance().initialize(this._context);
+
+        activationTimer.end();
+
+        // telemetry for activation
+        Telemetry.sendTelemetryEvent(this._context, 'ExtensionActivated', {},
+            { activationTime: activationTimer.getDuration() }
+        );
 
         Utils.logDebug(Constants.extensionActivated);
     }
