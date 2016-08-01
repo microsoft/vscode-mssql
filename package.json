@@ -98,6 +98,11 @@
         "command": "extension.disconnect",
         "title": "Disconnect active connection",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.chooseDatabase",
+        "title": "Switch database on current server",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [

@@ -74,6 +74,24 @@ export default class ConnectionManager {
         return this._connection && this._connection.connected;
     }
 
+    // choose database to use on current server
+    public onChooseDatabase(): void {
+        const self = this;
+
+        if (typeof self._connection === 'undefined' || typeof self._connectionCreds === 'undefined') {
+            Utils.showWarnMsg(Constants.msgChooseDatabaseNotConnected);
+            return;
+        }
+
+        self.connectionUI.showDatabasesOnCurrentServer(self._connectionCreds).then( newDatabaseCredentials => {
+            if (typeof newDatabaseCredentials !== 'undefined') {
+                self.onDisconnect().then( () => {
+                    self.connect(newDatabaseCredentials);
+                });
+            }
+        });
+    }
+
     // close active connection, if any
     public onDisconnect(): Promise<any> {
         return new Promise<any>((resolve, reject) => {

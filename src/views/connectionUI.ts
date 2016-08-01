@@ -5,6 +5,7 @@ import { RecentConnections } from '../models/recentConnections';
 import Interfaces = require('../models/interfaces');
 
 let async = require('async');
+const mssql = require('mssql');
 
 export class ConnectionUI {
     // Helper to let user choose a connection from a picklist
@@ -29,6 +30,62 @@ export class ConnectionUI {
                         resolve(selection);
                     });
                 }
+            });
+        });
+    }
+
+    // Helper to let the user choose a database on the current server
+    // TODO: refactor this to use the service layer/SMO once the plumbing/conversion is complete
+    public showDatabasesOnCurrentServer(currentCredentials: Interfaces.IConnectionCredentials): Promise<Interfaces.IConnectionCredentials> {
+        const self = this;
+        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
+            // create a new connection to the master db using the current connection as a base
+            const masterCredentials = <Interfaces.IConnectionCredentials> {
+                connectionTimeout: currentCredentials.connectionTimeout,
+                database: 'master',
+                options: currentCredentials.options,
+                password: currentCredentials.password,
+                requestTimeout: currentCredentials.connectionTimeout,
+                server: currentCredentials.server,
+                user: currentCredentials.user
+            };
+            const masterConnection = new mssql.Connection(masterCredentials);
+
+            masterConnection.connect().then( () => {
+                // query sys.databases for a list of databases on the server
+                new mssql.Request(masterConnection).query('SELECT name FROM sys.databases').then( recordset => {
+                    const pickListItems = recordset.map(record => {
+                        return <Interfaces.IConnectionCredentialsQuickPickItem> {
+                            label: record.name,
+                            description: '',
+                            detail: '',
+                            connectionCreds: <Interfaces.IConnectionCredentials> {
+                                connectionTimeout: currentCredentials.connectionTimeout,
+                                database: record.name,
+                                options: currentCredentials.options,
+                                password: currentCredentials.password,
+                                requestTimeout: currentCredentials.requestTimeout,
+                                server: currentCredentials.server,
+                                user: currentCredentials.user
+                            }
+                        };
+                    });
+
+                    const pickListOptions: vscode.QuickPickOptions = {
+                        placeHolder: Constants.msgChooseDatabasePlaceholder
+                    };
+
+                    // show database picklist, and modify the current connection to switch the active database
+                    vscode.window.showQuickPick<Interfaces.IConnectionCredentialsQuickPickItem>(pickListItems, pickListOptions).then( selection => {
+                        if (typeof selection !== 'undefined') {
+                            resolve(selection.connectionCreds);
+                        } else {
+                            resolve(undefined);
+                        }
+                    });
+                }).catch( err => {
+                    reject(err);
+                });
             });
         });
     }

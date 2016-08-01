@@ -51,6 +51,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
+        this.registerCommand(Constants.cmdChooseDatabase);
+        this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
 
         // Init status bar
         this._statusview = new StatusView();
@@ -74,6 +76,11 @@ export default class MainController implements vscode.Disposable {
         );
 
         Utils.logDebug(Constants.extensionActivated);
+    }
+
+    // Choose a new database from the current server
+    private onChooseDatabase(): void {
+        return this._connectionMgr.onChooseDatabase();
     }
 
     // Close active connection, if any
