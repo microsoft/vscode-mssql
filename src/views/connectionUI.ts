@@ -128,7 +128,12 @@ export class ConnectionUI {
             .then(profiles => self.selectProfileForRemoval(profiles))
             .then(profile => {
                 if (profile) {
-                    return recentConnections.removeProfile(profile);
+                    let result = recentConnections.removeProfile(profile);
+                    if (result) {
+                        // TODO again consider moving information prompts to the prompt package
+                        vscode.window.showInformationMessage(Constants.msgProfileRemoved);
+                    }
+                    return result;
                 }
                 return false;
             });
@@ -149,7 +154,7 @@ export class ConnectionUI {
             {
                 // 1: what profile should we remove?
                 type: QuestionTypes.expand,
-                name: 'ChooseProfile',
+                name: chooseProfile,
                 message: Constants.msgSelectProfile,
                 matchOptions: { matchOnDescription: true },
                 choices: profiles
@@ -157,7 +162,7 @@ export class ConnectionUI {
             {
                 // 2: Confirm removal before proceeding
                 type: QuestionTypes.confirm,
-                name: 'ConfirmRemoval',
+                name: confirm,
                 message: Constants.confirmRemoveProfilePrompt
             }
         ];
