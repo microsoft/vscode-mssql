@@ -34,8 +34,8 @@ export default class SqlToolsServiceClient {
     public initialize(context: ExtensionContext): void {
 
         // run the service host using dotnet.exe from the path
-        let serverCommand = 'dotnet.exe';
-        let serverArgs = [ context.asAbsolutePath(path.join('tools', 'servicehost.dll')) ];
+        let serverCommand = 'dotnet';
+        let serverArgs = [ context.asAbsolutePath(path.join('tools', 'microsoft.sqltools.servicehost.dll')) ];
         let serverOptions: ServerOptions = {  command: serverCommand, args: serverArgs, transport: TransportKind.stdio  };
 
         // Options to control the language client
