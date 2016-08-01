@@ -9,6 +9,8 @@ import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import QueryRunner from './queryRunner';
 import SqlToolsServerClient from '../languageservice/serviceclient';
+import { IPrompter } from '../prompts/question';
+import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 
 export default class MainController implements vscode.Disposable {
@@ -17,6 +19,7 @@ export default class MainController implements vscode.Disposable {
     private _outputContentProvider: SqlOutputContentProvider;
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
+    private _prompter: IPrompter;
 
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
@@ -51,12 +54,19 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
+        this.registerCommand(Constants.cmdCreateProfile);
+        this._event.on(Constants.cmdCreateProfile, () => { self.onCreateProfile(); });
+        this.registerCommand(Constants.cmdRemoveProfile);
+        this._event.on(Constants.cmdRemoveProfile, () => { self.onRemoveProfile(); });
 
         // Init status bar
         this._statusview = new StatusView();
 
+        // Init CodeAdapter for use when user response to questions is needed
+        this._prompter = new CodeAdapter();
+
         // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(self._context, self._statusview);
+        this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(self._context);
@@ -95,5 +105,15 @@ export default class MainController implements vscode.Disposable {
             let qr = new QueryRunner(self._connectionMgr, self._statusview, self._outputContentProvider);
             qr.onRunQuery();
         }
+    }
+
+    // Prompts to create a new SQL connection profile
+    public onCreateProfile(): Promise<boolean> {
+        return this._connectionMgr.onCreateProfile();
+    }
+
+    // Prompts to remove a registered SQL connection profile
+    public onRemoveProfile(): Promise<boolean> {
+        return this._connectionMgr.onRemoveProfile();
     }
 }
