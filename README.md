@@ -28,7 +28,7 @@ Head over to [Github](https://github.com/sanagama/vscode-mssql) for the source c
 ##Usage
 First, download and install Visual Studio Code `1.0` (or later) for your platform from here: [download Visual Studio Code](https://code.visualstudio.com/#alt-downloads)
 
-###Builing the extension
+###Building the extension
 1. Requires NodeJS: <https://nodejs.org/en/>
 2. If you do not already have gulp CLI installed run `npm install -g gulp-cli`
 3. From the root directory run `npm run install-packages`
