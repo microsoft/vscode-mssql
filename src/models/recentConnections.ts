@@ -107,7 +107,7 @@ export class RecentConnections {
     // Load connections from user preferences
     private loadAllConnections(): Promise<IConnectionCredentials[]> {
         let self = this;
-        return new Promise<IConnectionCredentials[]>((resolve, reject) => {
+        return new Promise<IConnectionCredentials[]>(resolve => {
             // Load connections from user preferences
             // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
             // Settings defined in workspace scope overwrite the settings defined in user scope
@@ -117,11 +117,14 @@ export class RecentConnections {
             // first read from the user settings
             let configValues = config[Constants.configMyConnections];
             self.addConnections(connections, configValues);
-
-            // next read from the global state
-            self.loadProfiles().then(profiles => connections = connections.concat(profiles));
-
             resolve(connections);
+        }).then(connections => {
+            // next read from the global state
+            let newConnections = self.loadProfiles().then(profiles => {
+                return connections.concat(profiles);
+            });
+
+            return newConnections;
         });
     }
 
