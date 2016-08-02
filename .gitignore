@@ -1,2 +1,6 @@
 out
 node_modules
+.DS_Store
+*.log
+tools
+examples

@@ -8,8 +8,8 @@ import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider
 import LocalWebService from '../src/controllers/localWebService';
 import Interfaces = require('../src/models/interfaces');
 import Constants = require('../src/models/constants');
-var results = require('../../test/results.json');
-var messages = require('../../test/messages.json');
+var results = require('./resources/results.json');
+var messages = require('./resources/messages.json');
 var metadata = [
     {
         "columnsUri":"/" + Constants.outputContentTypeColumns+ "?id=0",
@@ -40,12 +40,11 @@ suite("SqlOutputProvider Tests", () => {
     var contentProvider: SqlOutputContentProvider;
     var path : string;
     var port: string;
-    var file = "/test/sqlTest.sql"
+    var file = "out/test/resources/sqlTest.sql"
 
     function openSQLFile(){
         return vscode.workspace.openTextDocument(vscode.Uri.parse("file:"+path+file)).then( document => {
-            vscode.window.showTextDocument(document).then(editor => {
-            });
+            vscode.window.showTextDocument(document);
         })
     }
 
@@ -59,7 +58,7 @@ suite("SqlOutputProvider Tests", () => {
     test("Initial Server Responses", () => {
         let uri = contentProvider.updateContent(messages, results);
         let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri;
-        var htmlbuf = fs.readFileSync(path +'/src/views/htmlcontent/sqlOutput.ejs')
+        var htmlbuf = fs.readFileSync(path +'/src/views/htmlcontent/src/sqlOutput.ejs')
         htmlbuf = htmlbuf.toString();
         htmlbuf = htmlbuf.replace('<%=uri%>', uri);
         return request.get(url, function(err, res, body){

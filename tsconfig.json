@@ -4,12 +4,12 @@
         "module": "commonjs",
         "target": "es6",
         "watch": false,
-        "outDir": "out",
         "noLib": true,
         "sourceMap": true,
         "rootDir": "."
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "src/views/htmlcontent"
     ]
 }

@@ -40,6 +40,15 @@
     "vscode.sql"
   ],
   "devDependencies": {
+    "del": "^2.2.1",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-hub": "frankwallis/gulp-hub#registry-init",
+    "gulp-install": "^0.6.0",
+    "gulp-less": "^3.1.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-tslint": "^6.0.2",
+    "gulp-typescript": "^2.13.6",
+    "tslint": "^3.14.0",
     "typescript": "^1.8.9",
     "vscode": "^0.11.0",
     "xunit-file": "^1.0.0"
@@ -218,9 +227,7 @@
     }
   },
   "scripts": {
-    "compile": "npm run lint && node ./node_modules/vscode/bin/compile -p ./",
-    "compile_watch": "node ./node_modules/vscode/bin/compile -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "lint": "tslint src/**/*.ts"
+    "install-packages": "npm install github:gulpjs/gulp#4.0 && npm install gulp-install && gulp --gulpfile install.js install"
   }
 }
