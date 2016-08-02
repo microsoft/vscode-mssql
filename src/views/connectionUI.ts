@@ -40,34 +40,24 @@ export class ConnectionUI {
         const self = this;
         return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
             // create a new connection to the master db using the current connection as a base
-            const masterCredentials = <Interfaces.IConnectionCredentials> {
-                connectionTimeout: currentCredentials.connectionTimeout,
-                database: 'master',
-                options: currentCredentials.options,
-                password: currentCredentials.password,
-                requestTimeout: currentCredentials.connectionTimeout,
-                server: currentCredentials.server,
-                user: currentCredentials.user
-            };
+            let masterCredentials: Interfaces.IConnectionCredentials = <any>{};
+            Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(masterCredentials, currentCredentials);
+            masterCredentials.database = 'master';
             const masterConnection = new mssql.Connection(masterCredentials);
 
             masterConnection.connect().then( () => {
                 // query sys.databases for a list of databases on the server
                 new mssql.Request(masterConnection).query('SELECT name FROM sys.databases').then( recordset => {
                     const pickListItems = recordset.map(record => {
+                        let newCredentials: Interfaces.IConnectionCredentials = <any>{};
+                        Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
+                        newCredentials.database = record.name;
+
                         return <Interfaces.IConnectionCredentialsQuickPickItem> {
                             label: record.name,
                             description: '',
                             detail: '',
-                            connectionCreds: <Interfaces.IConnectionCredentials> {
-                                connectionTimeout: currentCredentials.connectionTimeout,
-                                database: record.name,
-                                options: currentCredentials.options,
-                                password: currentCredentials.password,
-                                requestTimeout: currentCredentials.requestTimeout,
-                                server: currentCredentials.server,
-                                user: currentCredentials.user
-                            }
+                            connectionCreds: newCredentials
                         };
                     });
 
