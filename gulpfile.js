@@ -46,7 +46,7 @@ gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests'));
 
 gulp.task('ext:copy-tests', () => {
     return gulp.src(config.paths.project.root + '/test/resources/**/*')
-            .pipe(gulp.dest(config.paths.project.root + 'out/test/resources/'))
+            .pipe(gulp.dest(config.paths.project.root + '/out/test/resources/'))
 })
 
 gulp.task('ext:copy-html', () => {

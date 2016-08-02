@@ -8,8 +8,8 @@ import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider
 import LocalWebService from '../src/controllers/localWebService';
 import Interfaces = require('../src/models/interfaces');
 import Constants = require('../src/models/constants');
-var results = require('resources/results.json');
-var messages = require('resources/messages.json');
+var results = require('./resources/results.json');
+var messages = require('./resources/messages.json');
 var metadata = [
     {
         "columnsUri":"/" + Constants.outputContentTypeColumns+ "?id=0",
