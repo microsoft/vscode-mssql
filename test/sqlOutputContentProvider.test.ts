@@ -57,9 +57,11 @@ suite("SqlOutputProvider Tests", () => {
     });
 
     test("Initial Server Responses", () => {
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root];
-        console.log(process.cwd());
-        var htmlbuf = fs.readFileSync(path +'/src/views/htmlcontent/sqlOutput.ejs')
+        let uri = contentProvider.updateContent(messages, results);
+        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri;
+        var htmlbuf = fs.readFileSync(path +'/src/views/htmlcontent/src/sqlOutput.ejs')
+        htmlbuf = htmlbuf.toString();
+        htmlbuf = htmlbuf.replace('<%=uri%>', uri);
         return request.get(url, function(err, res, body){
             assert.equal(res.statusCode, 200);
             assert.equal(htmlbuf.toString(), body);
