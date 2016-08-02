@@ -41,7 +41,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
             Utils.logDebug(Constants.msgContentProviderOnRootEndpoint);
-            let uri: string = req.query.uri;
+            let uri: string = decodeURI(req.query.uri);
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
         });
 
@@ -50,7 +50,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             Utils.logDebug(Constants.msgContentProviderOnResultsEndpoint);
             let resultsetsMeta: Interfaces.ISqlResultsetMeta[] = [];
-            let uri: string = req.query.uri;
+            let uri: string = decodeURI(req.query.uri);
             for (let index = 0; index < self._queryResultsMap.get(uri).resultsets.length; index ++) {
                 resultsetsMeta.push( <Interfaces.ISqlResultsetMeta> {
                     columnsUri: '/' + Constants.outputContentTypeColumns + '?id=' + index.toString(),
@@ -65,7 +65,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/messages' - return all messages as a JSON string
         this._service.addHandler(Interfaces.ContentType.Messages, function(req, res): void {
             Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
-            let uri: string = req.query.uri;
+            let uri: string = decodeURI(req.query.uri);
             let json = JSON.stringify(self._queryResultsMap.get(uri).messages);
             // Utils.logDebug(json);
             res.send(json);
@@ -75,7 +75,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
             let id = req.query.id;
             Utils.logDebug(Constants.msgContentProviderOnColumnsEndpoint + id);
-            let uri: string = req.query.uri;
+            let uri: string = decodeURI(req.query.uri);
             let columnMetadata = self._queryResultsMap.get(uri).resultsets[id].columns;
             let json = JSON.stringify(columnMetadata);
             // Utils.logDebug(json);
@@ -86,7 +86,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void {
             let id = req.query.id;
             Utils.logDebug(Constants.msgContentProviderOnRowsEndpoint + id);
-            let uri: string = req.query.uri;
+            let uri: string = decodeURI(req.query.uri);
             let json = JSON.stringify(self._queryResultsMap.get(uri).resultsets[id].rows);
             // Utils.logDebug(json);
             res.send(json);

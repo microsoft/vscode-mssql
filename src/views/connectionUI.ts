@@ -8,7 +8,7 @@ import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuick
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
 
-let async = require('async');
+// let async = require('async');
 const mssql = require('mssql');
 
 export class ConnectionUI {
@@ -63,7 +63,7 @@ export class ConnectionUI {
     // Helper to let the user choose a database on the current server
     // TODO: refactor this to use the service layer/SMO once the plumbing/conversion is complete
     public showDatabasesOnCurrentServer(currentCredentials: Interfaces.IConnectionCredentials): Promise<Interfaces.IConnectionCredentials> {
-        const self = this;
+        // const self = this;
         return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
             // create a new connection to the master db using the current connection as a base
             let masterCredentials: Interfaces.IConnectionCredentials = <any>{};
