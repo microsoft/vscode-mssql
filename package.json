@@ -110,6 +110,11 @@
         "command": "extension.removeprofile",
         "title": "Remove Connection Profile",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.chooseDatabase",
+        "title": "Switch database on current server",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [

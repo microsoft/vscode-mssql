@@ -6,6 +6,10 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
+import Interfaces = require('../models/interfaces');
+
+let async = require('async');
+const mssql = require('mssql');
 
 export class ConnectionUI {
     private _context: vscode.ExtensionContext;
@@ -54,6 +58,53 @@ export class ConnectionUI {
             choices: choices
         };
         return this._prompter.promptSingle(question);
+    }
+
+    // Helper to let the user choose a database on the current server
+    // TODO: refactor this to use the service layer/SMO once the plumbing/conversion is complete
+    public showDatabasesOnCurrentServer(currentCredentials: Interfaces.IConnectionCredentials): Promise<Interfaces.IConnectionCredentials> {
+        const self = this;
+        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
+            // create a new connection to the master db using the current connection as a base
+            let masterCredentials: Interfaces.IConnectionCredentials = <any>{};
+            Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(masterCredentials, currentCredentials);
+            masterCredentials.database = 'master';
+            const masterConnection = new mssql.Connection(masterCredentials);
+
+            masterConnection.connect().then( () => {
+                // query sys.databases for a list of databases on the server
+                new mssql.Request(masterConnection).query('SELECT name FROM sys.databases').then( recordset => {
+                    const pickListItems = recordset.map(record => {
+                        let newCredentials: Interfaces.IConnectionCredentials = <any>{};
+                        Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
+                        newCredentials.database = record.name;
+
+                        return <Interfaces.IConnectionCredentialsQuickPickItem> {
+                            label: record.name,
+                            description: '',
+                            detail: '',
+                            connectionCreds: newCredentials,
+                            isNewConnectionQuickPickItem: false
+                        };
+                    });
+
+                    const pickListOptions: vscode.QuickPickOptions = {
+                        placeHolder: Constants.msgChooseDatabasePlaceholder
+                    };
+
+                    // show database picklist, and modify the current connection to switch the active database
+                    vscode.window.showQuickPick<Interfaces.IConnectionCredentialsQuickPickItem>(pickListItems, pickListOptions).then( selection => {
+                        if (typeof selection !== 'undefined') {
+                            resolve(selection.connectionCreds);
+                        } else {
+                            resolve(undefined);
+                        }
+                    });
+                }).catch( err => {
+                    reject(err);
+                });
+            });
+        });
     }
 
     // Helper to prompt user to open VS Code user settings or workspace settings
