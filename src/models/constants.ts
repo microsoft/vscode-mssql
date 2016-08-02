@@ -8,6 +8,7 @@ export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
+export const cmdChooseDatabase = 'extension.chooseDatabase';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15000;
@@ -50,6 +51,9 @@ export const msgContentProviderOnRowsEndpoint = 'LocalWebService: Rows end-point
 export const msgContentProviderOnClear = 'Content provider: clear called';
 export const msgContentProviderOnUpdateContent = 'Content provider: updateContent called';
 export const msgContentProviderProvideContent = 'Content provider: provideTextDocumentContent called: ';
+
+export const msgChooseDatabaseNotConnected = 'Not connected. Please connect to a server first.';
+export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
