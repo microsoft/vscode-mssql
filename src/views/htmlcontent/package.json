@@ -2,14 +2,6 @@
   "name": "htmlcontent",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "compile": "npm run lint && node ./node_modules/typescript/bin/tsc/",
-    "compile_watch": "node ./node_modules/typescript/bin/tsc -watch",
-    "lint": "tslint scripts/**/*.ts"
-  },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "angular2": "2.0.0-beta.7",
     "es6-shim": "0.33.3",
