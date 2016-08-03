@@ -40,7 +40,7 @@ suite("SqlOutputProvider Tests", () => {
     var contentProvider: SqlOutputContentProvider;
     var path : string;
     var port: string;
-    var file = "out/test/resources/sqlTest.sql"
+    var file = "/out/test/resources/sqlTest.sql"
 
     function openSQLFile(){
         return vscode.workspace.openTextDocument(vscode.Uri.parse("file:"+path+file)).then( document => {
