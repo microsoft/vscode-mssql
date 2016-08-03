@@ -27,7 +27,9 @@ gulp.task('ext:compile-src', () => {
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
-                .pipe(srcmap.write('.'))
+                .pipe(srcmap.write('.', {
+                   sourceRoot: function(file){ return file.cwd + '/src'; }
+                }))
                 .pipe(gulp.dest('out/src/'));
 });
 
@@ -37,7 +39,9 @@ gulp.task('ext:compile-tests', () => {
                 config.paths.project.root + '/typings/**/*.ts'])
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
-                .pipe(srcmap.write('.'))
+                .pipe(srcmap.write('.', {
+                   sourceRoot: function(file){ return file.cwd + '/src'; }
+                }))
                 .pipe(gulp.dest('out/test/'));
 
 })
