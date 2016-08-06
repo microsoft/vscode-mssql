@@ -5,14 +5,11 @@ import Constants = require('./constants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
+import QueryRunner from '../controllers/queryRunner';
 
 class QueryResultSet {
-    public messages: string[] = [];
-    public resultsets: Interfaces.ISqlResultset[] = [];
 
-    constructor(messages: string[], resultsets: Interfaces.ISqlResultset[]) {
-        this.messages = messages;
-        this.resultsets = resultsets;
+    constructor(public queryRunner: QueryRunner) {
     }
 }
 
@@ -40,6 +37,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
+            res.setHeader('content_security_policy', 'script-src "all" "unsafe-inline"');
             Utils.logDebug(Constants.msgContentProviderOnRootEndpoint);
             let uri: string = decodeURI(req.query.uri);
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
@@ -51,10 +49,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             Utils.logDebug(Constants.msgContentProviderOnResultsEndpoint);
             let resultsetsMeta: Interfaces.ISqlResultsetMeta[] = [];
             let uri: string = decodeURI(req.query.uri);
-            for (let index = 0; index < self._queryResultsMap.get(uri).resultsets.length; index ++) {
+            for (let index = 0; index < self._queryResultsMap.get(uri).queryRunner.resultSets.length; index ++) {
                 resultsetsMeta.push( <Interfaces.ISqlResultsetMeta> {
                     columnsUri: '/' + Constants.outputContentTypeColumns + '?id=' + index.toString(),
-                    rowsUri: '/' + Constants.outputContentTypeRows + '?id=' + index.toString()
+                    rowsUri: '/' + Constants.outputContentTypeRows + '?id=' + index.toString(),
+                    totalRows: self._queryResultsMap.get(uri).queryRunner.resultSets[index].rowCount
                 });
             }
             let json = JSON.stringify(resultsetsMeta);
@@ -66,7 +65,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Messages, function(req, res): void {
             Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
             let uri: string = decodeURI(req.query.uri);
-            let json = JSON.stringify(self._queryResultsMap.get(uri).messages);
+            let json = JSON.stringify(self._queryResultsMap.get(uri).queryRunner.messages);
             // Utils.logDebug(json);
             res.send(json);
         });
@@ -76,7 +75,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let id = req.query.id;
             Utils.logDebug(Constants.msgContentProviderOnColumnsEndpoint + id);
             let uri: string = decodeURI(req.query.uri);
-            let columnMetadata = self._queryResultsMap.get(uri).resultsets[id].columns;
+            let columnMetadata = self._queryResultsMap.get(uri).queryRunner.resultSets[id].columnInfo;
             let json = JSON.stringify(columnMetadata);
             // Utils.logDebug(json);
             res.send(json);
@@ -85,11 +84,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/rows' - return rows end-point for a specific resultset
         this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void {
             let id = req.query.id;
+            let rowStart = req.query.rowStart;
+            let numberOfRows = req.query.numberOfRows;
             Utils.logDebug(Constants.msgContentProviderOnRowsEndpoint + id);
             let uri: string = decodeURI(req.query.uri);
-            let json = JSON.stringify(self._queryResultsMap.get(uri).resultsets[id].rows);
+            self._queryResultsMap.get(uri).queryRunner.getRows(id, rowStart, numberOfRows, 0).then(results => {
+                let json = JSON.stringify(results.resultSubset);
+                res.send(json);
+            });
             // Utils.logDebug(json);
-            res.send(json);
         });
 
         // start express server on localhost and listen on a random port
@@ -110,13 +113,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
     }
 
-    public updateContent(messages, resultsets): string {
+    public runQuery(connectionMgr, statusView): void {
+        let queryRunner = new QueryRunner(connectionMgr, statusView, this);
+        queryRunner.runQuery();
+    }
+
+    public updateContent(queryRunner: QueryRunner): string {
         Utils.logDebug(Constants.msgContentProviderOnUpdateContent);
-        let title: string = Utils.getActiveTextEditor().document.fileName;
-        let uri: string = SqlOutputContentProvider.providerUri + title;
+        let title = queryRunner.title;
+        let uri = SqlOutputContentProvider.providerUri + title;
         this.clear(uri);
+        this._queryResultsMap.set(uri, new QueryResultSet(queryRunner));
         this.show(uri, title);
-        this._queryResultsMap.set(uri, new QueryResultSet(messages, resultsets));
         this.onContentUpdated();
         return uri;
     }

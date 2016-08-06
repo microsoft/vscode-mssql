@@ -12,7 +12,8 @@ require('./tasks/htmltasks')
 gulp.task('ext:tslint', () => {
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
-        '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'
+        '!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
+        config.paths.project.root + '/test/**/*.ts'
     ])
     .pipe((tslint({
         formatter: "verbose"

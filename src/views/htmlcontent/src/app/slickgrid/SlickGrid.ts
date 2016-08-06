@@ -470,6 +470,10 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
                 resizable: true
             };
 
+            if (c.asyncPostRender) {
+                column.asyncPostRender = c.asyncPostRender;
+            }
+
             if (this._gridSyncService) {
                 let columnWidth = this._gridSyncService.columnWidthPXs[i];
                 column.width = columnWidth ? columnWidth : undefined;
@@ -553,4 +557,5 @@ interface ISlickGridColumn {
     resizable: boolean;
     minWidth?: number;
     width?: number;
+    asyncPostRender?: (cellRef: string, row: number, dataContext: JSON, colDef: any) => void;
 }

@@ -4,5 +4,6 @@ export interface IGridColumnDefinition {
 }
 
 export interface IGridDataRow {
+    row?: number;
     values: any[];
 }
