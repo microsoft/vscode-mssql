@@ -1,17 +1,12 @@
 'use strict';
 import vscode = require('vscode');
-// import Constants = require('../models/constants');
-// import Utils = require('../models/utils');
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
-// import Interfaces = require('../models/interfaces');
 import ConnectionManager from './connectionManager';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
 import * as Contracts from '../models/contracts';
-
-// const async = require('async');
-// const mssql = require('mssql');
+import * as Utils from '../models/utils';
 
 interface IResultSet {
     columns: string[];
@@ -83,20 +78,20 @@ export default class QueryRunner {
 
         return this._client.getClient().sendRequest(Contracts.QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
-                vscode.window.showErrorMessage('Execution fails: ' + result.messages);
+                Utils.showErrorMsg('Execution failed: ' + result.messages);
             } else {
                 // register with the Notification Handler
                 QueryNotificationHandler.instance.registerRunner(self, queryDetails.ownerUri);
             }
         }, error => {
-            vscode.window.showErrorMessage('Execution failed: ' + error);
+            Utils.showErrorMsg('Execution failed: ' + error);
         });
     }
 
     // handle the result of the notification
     public handleResult(result: Contracts.QueryExecuteCompleteNotificationResult): void {
         if (result.hasError) {
-            vscode.window.showErrorMessage('Something went wrong during the query: ' + result.messages[0]);
+            Utils.showErrorMsg('Something went wrong during the query: ' + result.messages[0]);
         } else {
             this._resultSets = result.resultSetSummaries;
             this._messages = result.messages;
@@ -115,7 +110,7 @@ export default class QueryRunner {
         return new Promise<Contracts.QueryExecuteSubsetResult>((resolve, reject) => {
             self._client.getClient().sendRequest(Contracts.QueryExecuteSubsetRequest.type, queryDetails).then(result => {
                 if (result.message) {
-                    vscode.window.showErrorMessage('Something went wrong getting more rows: ' + result.message);
+                    Utils.showErrorMsg('Something went wrong getting more rows: ' + result.message);
                 } else {
                     resolve(result);
                 }
@@ -130,14 +125,14 @@ export default class QueryRunner {
             disposeDetails.ownerUri = this.uri;
             this.client.getClient().sendRequest(Contracts.QueryDisposeRequest.type, disposeDetails).then(result => {
                 if (result.messages) {
-                    vscode.window.showErrorMessage('Failed disposing query: ' + result.messages);
+                    Utils.showErrorMsg('Failed disposing query: ' + result.messages);
                     resolve(false);
                 } else {
                     resolve(true);
                 }
             }, error => {
-
-            })
-        })
+                Utils.showErrorMsg('Execution failed: ' + error);
+            });
+        });
     }
 }

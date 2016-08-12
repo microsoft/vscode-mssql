@@ -7,7 +7,6 @@ import Utils = require('../models/utils');
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
-// import QueryRunner from './queryRunner';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
