@@ -21,14 +21,17 @@ export class QueryNotificationHandler {
         }
     }
 
+    // register the handler to handle notifications for queries
     private initialize(): void {
         SqlToolsServiceClient.getInstance().getClient().onNotification(QueryExecuteCompleteNotification.type, this.handleNotification());
     }
 
+    // registers queryRunners with their uris to distribute notifications
     public registerRunner(runner: QueryRunner, uri: string): void {
         this._queryRunners.set(uri, runner);
     }
 
+    // handles distributing notifications to appropriate
     private handleNotification(): INotificationHandler<any> {
         const self = this;
         return (event) => {
