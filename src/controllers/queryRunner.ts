@@ -70,24 +70,41 @@ export default class QueryRunner {
         }
 
         return this._client.getClient().sendRequest(Contracts.QueryExecuteRequest.type, queryDetails).then(result => {
-            QueryNotificationHandler.instance.registerRunner(self, queryDetails.ownerUri);
+            if (result.messages) {
+                vscode.window.showErrorMessage('Execution fails: ' + result.messages);
+            } else {
+                QueryNotificationHandler.instance.registerRunner(self, queryDetails.ownerUri);
+            }
         }, error => {
-            console.log('error');
+            vscode.window.showErrorMessage('Execution failed: ' + error);
         });
     }
 
     public handleResult(result: Contracts.QueryExecuteCompleteNotificationResult): void {
-        this._resultSets = result.resultSetSummaries;
-        this._messages = result.messages;
-        this._outputProvider.updateContent(this);
+        if (result.hasError) {
+            vscode.window.showErrorMessage('Something went wrong during the query: ' + result.messages[0]);
+        } else {
+            this._resultSets = result.resultSetSummaries;
+            this._messages = result.messages;
+            this._outputProvider.updateContent(this);
+        }
     }
 
     public getRows(id: number, rowStart: number, numberOfRows: number, resultSetIndex: number): Thenable<Contracts.QueryExecuteSubsetResult> {
+        const self = this;
         let queryDetails = new Contracts.QueryExecuteSubsetParams();
         queryDetails.ownerUri = this._uri;
         queryDetails.resultSetIndex = resultSetIndex;
         queryDetails.rowsCount = numberOfRows;
         queryDetails.rowsStartIndex = rowStart;
-        return this._client.getClient().sendRequest(Contracts.QueryExecuteSubsetRequest.type, queryDetails);
+        return new Promise<Contracts.QueryExecuteSubsetResult>((resolve, reject) => {
+            self._client.getClient().sendRequest(Contracts.QueryExecuteSubsetRequest.type, queryDetails).then(result => {
+                if (result.message) {
+                    vscode.window.showErrorMessage('Something went wrong getting more rows: ' + result.message);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     }
 }

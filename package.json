@@ -49,7 +49,6 @@
     "gulp-tslint": "^6.0.2",
     "gulp-typescript": "^2.13.6",
     "tslint": "^3.14.0",
-    "typemoq": "^0.3.2",
     "typescript": "^1.8.9",
     "vscode": "^0.11.0",
     "xunit-file": "^1.0.0"

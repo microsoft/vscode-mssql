@@ -61,7 +61,7 @@ export class ResultSetSummary {
 export class QueryExecuteCompleteNotificationResult {
     ownerUri: string;
     messages: string[];
-    error: boolean;
+    hasError: boolean;
     resultSetSummaries: ResultSetSummary[];
 }
 
