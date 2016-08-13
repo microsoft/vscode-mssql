@@ -7,7 +7,6 @@ import Utils = require('../models/utils');
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
-import QueryRunner from './queryRunner';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
@@ -108,9 +107,7 @@ export default class MainController implements vscode.Disposable {
         if (!Utils.isEditingSqlFile()) {
             Utils.showWarnMsg(Constants.msgOpenSqlFile);
         } else {
-            const self = this;
-            let qr = new QueryRunner(self._connectionMgr, self._statusview, self._outputContentProvider);
-            qr.onRunQuery();
+            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview);
         }
     }
 

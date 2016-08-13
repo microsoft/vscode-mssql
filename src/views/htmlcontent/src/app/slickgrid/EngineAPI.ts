@@ -11,4 +11,5 @@ enum FieldType {
 export interface IColumnDefinition {
     id: string;
     type: FieldType;
+    asyncPostRender?: (cellRef: string, row: number, dataContext: JSON, colDef: any) => void;
 }

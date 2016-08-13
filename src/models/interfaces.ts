@@ -8,7 +8,8 @@ export enum ContentType {
     Messages = 1,
     ResultsetsMeta = 2,
     Columns = 3,
-    Rows = 4
+    Rows = 4,
+    MoreRows = 5
 };
 
 export const ContentTypes = [Constants.outputContentTypeRoot, Constants.outputContentTypeMessages, Constants.outputContentTypeResultsetMeta,
