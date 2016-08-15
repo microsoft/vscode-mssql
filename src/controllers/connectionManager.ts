@@ -14,10 +14,10 @@ const mssql = require('mssql');
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
-     export const type: RequestType<ConnectionDetails, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
+     export const type: RequestType<ConnectParams, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
 }
 
-// Connention request message format
+// Required parameters to initialize a connection to a database
 class ConnectionDetails {
     // server name
     public serverName: string;
@@ -30,6 +30,15 @@ class ConnectionDetails {
 
     // unencrypted password
     public password: string;
+}
+
+// Connention request message format
+class ConnectParams {
+    // URI identifying the owner of the connection
+    public ownerUri: string;
+
+    // Details for creating the connection
+    public connection: ConnectionDetails;
 }
 
 // Connection response format
@@ -141,12 +150,17 @@ export default class ConnectionManager {
             connectionDetails.serverName = connectionCreds.server;
             connectionDetails.databaseName = connectionCreds.database;
 
+            let connectParams = new ConnectParams();
+            connectParams.ownerUri = 'vscode-mssql'; // TODO: this should vary per-file
+            connectParams.connection = connectionDetails;
+
             let serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
             let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
-            client.sendRequest(ConnectionRequest.type, connectionDetails).then((result) => {
+            client.sendRequest(ConnectionRequest.type, connectParams).then((result) => {
                 // handle connection complete callback
+                console.log(result);
             });
 
             // legacy tedious connection until we fully move to service host

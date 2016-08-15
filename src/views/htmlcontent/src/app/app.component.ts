@@ -1,10 +1,12 @@
 import {Component, OnInit} from 'angular2/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
-import {IObservableCollection, CollectionChange} from './slickgrid/BaseLibrary';
+import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
 import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './dataService';
 import {Observable} from 'rxjs/Rx';
+import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
+import {IDbColumn} from './../../../../models/contracts';
 
 enum FieldType {
     String = 0,
@@ -28,46 +30,47 @@ enum FieldType {
 export class AppComponent implements OnInit {
     private columnDefinitions: IColumnDefinition[] = [];
     private dataRows: IObservableCollection<IGridDataRow>;
-    private data: IGridDataRow[] = [];
+    private totalRows: number;
 
     constructor(private dataService: DataService) {}
 
     ngOnInit(): void {
         const self = this;
         let columns = this.dataService.getColumns();
-        let rows = this.dataService.getRows();
-        Observable.forkJoin([columns, rows]).subscribe( data => {
-            let columnData = data[0];
-            let rowData = data[1];
+        let numberOfRows = this.dataService.getNumberOfRows();
+        Observable.forkJoin([columns, numberOfRows]).subscribe( data => {
+            let columnData: IDbColumn[] = data[0];
+            self.totalRows = data[1];
             let columnDefinitions = [];
             for (let i = 0; i < columnData.length; i++) {
                 columnDefinitions.push({
-                    id: columnData[i].label,
-                    type: self.stringToFieldType(columnData[i].cell)
-                });
-            }
-
-            for (let i = 0; i < rowData.length; i++) {
-                let localdata = self.assignValues(rowData[i], self, columnDefinitions);
-                self.data.push({
-                    values: localdata
+                    id: columnData[i].columnName,
+                    type: self.stringToFieldType('string')
                 });
             }
             self.columnDefinitions = columnDefinitions;
-            self.dataRows = {
-                getLength: (): number => {
-                    return self.data.length;
-                },
-                at: (index: number): IGridDataRow => {
-                    return self.data[index];
-                },
-                getRange: (start: number, end: number): IGridDataRow[] => {
-                    return self.data.slice(start, end);
-                },
-                setCollectionChangedCallback: (callback: (change: CollectionChange, startIndex: number, count: number) => void): void => {
-                    return;
-                }
+
+            let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
+                return new Promise<IGridDataRow[]>((resolve, reject) => {
+                    self.dataService.getRows(offset, count).subscribe(rows => {
+                        let gridData: IGridDataRow[] = [];
+                        for (let i = 0; i < rows.rows.length; i++) {
+                            gridData.push({
+                                values: rows.rows[i]
+                            });
+                        }
+                        resolve(gridData);
+                    });
+                });
             };
+
+            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(200,
+                                                                                self.totalRows,
+                                                                                loadDataFunction,
+                                                                                (index) => {
+                                                                                    return { values: [] };
+                                                                                });
+            self.dataRows = virtualizedCollection;
         });
     }
 
@@ -88,13 +91,5 @@ export class AppComponent implements OnInit {
                 break;
         }
         return fieldtype;
-    }
-
-    private assignValues(json, self, columnDefinitions): any[] {
-        let values: any[] = [];
-        for (let i = 0; i < columnDefinitions.length; i++) {
-            values.push(json[columnDefinitions[i].id]);
-        }
-        return values;
     }
 }
