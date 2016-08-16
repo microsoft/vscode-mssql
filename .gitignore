@@ -1,6 +1,8 @@
 out
 node_modules
+packages
 .DS_Store
+*.exe
 *.log
 tools
 examples
