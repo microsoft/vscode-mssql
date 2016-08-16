@@ -1,4 +1,4 @@
-import {Component, OnInit} from 'angular2/core';
+import {Component, OnInit, Inject, forwardRef} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -6,7 +6,7 @@ import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './dataService';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import {IDbColumn} from './../../../../models/contracts';
+import {IDbColumn} from './../interfaces';
 
 enum FieldType {
     String = 0,
@@ -32,7 +32,7 @@ export class AppComponent implements OnInit {
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
 
-    constructor(private dataService: DataService) {}
+    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
     ngOnInit(): void {
         const self = this;

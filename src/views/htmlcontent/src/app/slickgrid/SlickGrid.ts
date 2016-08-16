@@ -5,8 +5,8 @@
 */
 
 /// <reference path="../../../typings/underscore.d.ts" />
-import {Component, Input, Output, OnChanges, OnInit, OnDestroy, ElementRef, SimpleChange, EventEmitter,
-    ViewEncapsulation, Optional, HostListener} from 'angular2/core';
+import {Component, Input, Output, Inject, forwardRef, OnChanges, OnInit, OnDestroy, ElementRef, SimpleChange, EventEmitter,
+    ViewEncapsulation, Optional, HostListener} from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
 import {IObservableCollection, CollectionChange} from './BaseLibrary';
 import {IGridDataRow} from './SharedControlInterfaces';
@@ -172,9 +172,9 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         return dataWithSchema;
     }
 
-    constructor(private _el: ElementRef,
-                @Optional() private _gridSyncService: GridSyncService,
-                private _localizationService: LocalizationService) {
+    constructor(@Inject(forwardRef(() => ElementRef)) private _el,
+                @Optional() @Inject(forwardRef(() => GridSyncService)) private _gridSyncService,
+                @Inject(forwardRef(() => LocalizationService)) private _localizationService) {
         this._gridData = {
             getLength: (): number => {
                 return this.dataRows && this._gridColumns ? this.dataRows.getLength() : 0;

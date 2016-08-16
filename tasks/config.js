@@ -16,6 +16,19 @@ var config = {
         html: {
             root: htmlcontentRoot
         }
+    },
+    includes: {
+        html: {
+            node_modules : [
+                htmlcontentRoot + '/node_modules/core-js/client/shim.min.js',
+                htmlcontentRoot + '/node_modules/zone.js/dist/zone.js',
+                htmlcontentRoot + '/node_modules/reflect-metadata/Reflect.js',
+                htmlcontentRoot + '/node_modules/systemjs/dist/system.src.js',
+                htmlcontentRoot + '/node_modules/@angular/**/*',
+                htmlcontentRoot + '/node_modules/rxjs/**/*',
+                htmlcontentRoot + '/node_modules/angular2-in-memory-web-api/**/*'
+            ]
+        }
     }
 }
 

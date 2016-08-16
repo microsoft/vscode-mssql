@@ -1,8 +1,7 @@
-import {Injectable} from 'angular2/core';
-import {Http} from 'angular2/http';
+import {Injectable, Inject, forwardRef} from '@angular/core';
+import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
-import {IDbColumn} from './../../../../models/contracts';
-import {ResultSetSubset} from './../../../../models/contracts';
+import {IDbColumn, ResultSetSubset} from './../interfaces';
 
 /*
 *   Service which performs the http requests to get the data resultsets
@@ -15,7 +14,7 @@ export class DataService {
     columnsuri: string;
     rowsuri: string;
     numberOfRows: number;
-    constructor(private http: Http) {
+    constructor(@Inject(forwardRef(() => Http)) private http) {
         this.uri = encodeURI(document.getElementById('uri').innerText.trim());
         console.log(this.uri);
     }

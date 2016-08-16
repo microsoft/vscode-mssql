@@ -79,28 +79,23 @@ gulp.task('ext:copy-tests', () => {
             .pipe(gulp.dest(config.paths.project.root + '/out/test/resources/'))
 });
 
-gulp.task('ext:copy-html', () => {
-    return gulp.src(config.paths.project.root + '/src/views/htmlcontent/src/**/*')
-            .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/'))
-});
-
 gulp.task('ext:copy-packages', () => {
     var serviceHostVersion = "0.0.1";
     return gulp.src(config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*')
             .pipe(gulp.dest(config.paths.project.root + '/out/tools/'))
 });
 
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-html', 'ext:copy-packages'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-packages'));
 
 gulp.task('ext:build', gulp.series('ext:nuget-download', 'ext:nuget-restore', 'ext:compile', 'ext:copy'));
 
-gulp.task('ext:clean', () => {
+gulp.task('clean', () => {
     return del('out')
 });
 
-gulp.task('build-extension', gulp.series('ext:tslint', 'ext:clean', 'ext:build'));
+gulp.task('build-extension', gulp.series('ext:tslint', 'ext:build'));
 
-gulp.task('build-all', gulp.series('build-html', 'build-extension'));
+gulp.task('build-all', gulp.series('clean', 'build-html', 'build-extension'));
 
 gulp.task('install', function(){
     return gulp.src(['./package.json', './src/views/htmlcontent/package.json'])
