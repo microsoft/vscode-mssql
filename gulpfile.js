@@ -1,4 +1,4 @@
-var gulp = require('gulp');
+﻿var gulp = require('gulp');
 var install = require('gulp-install');
 var tslint = require('gulp-tslint');
 var ts = require('gulp-typescript');
@@ -13,6 +13,8 @@ var through = require('through2');
 var cproc = require('child_process');
 var os = require('os');
 
+require('./tasks/htmltasks')
+
 function nugetRestoreArgs(nupkg, options) {
     var args = new Array();
     if (os.platform() != 'win32') {
@@ -22,61 +24,59 @@ function nugetRestoreArgs(nupkg, options) {
     args.push('restore');
     args.push(nupkg);
 
-	var withValues = [
-		'source',
-		'configFile',
-		'packagesDirectory',
-		'solutionDirectory',
-		'msBuildVersion'
-	];
+    var withValues = [
+        'source',
+        'configFile',
+        'packagesDirectory',
+        'solutionDirectory',
+        'msBuildVersion'
+    ];
 
-	var withoutValues = [
-		'noCache',
-		'requireConsent',
-		'disableParallelProcessing'
-	];
+    var withoutValues = [
+        'noCache',
+        'requireConsent',
+        'disableParallelProcessing'
+    ];
 
-	withValues.forEach(function(prop) {
-		var value = options[prop];
-		if(value) {
-			args.push('-' + prop);
-			args.push(value);
-		}
-	});
+    withValues.forEach(function(prop) {
+        var value = options[prop];
+        if(value) {
+            args.push('-' + prop);
+            args.push(value);
+        }
+    });
 
-	withoutValues.forEach(function(prop) {
-		var value = options[prop];
-		if(value) {
-			args.push('-' + prop);
-		}
-	});
+    withoutValues.forEach(function(prop) {
+        var value = options[prop];
+        if(value) {
+            args.push('-' + prop);
+        }
+    });
 
-	args.push('-noninteractive');
+    args.push('-noninteractive');
 
-	return args;
+    return args;
 };
 
 function nugetRestore(options) {
-	options = options || {};
-	options.nuget = options.nuget || './nuget.exe';
+    options = options || {};
+    options.nuget = options.nuget || './nuget.exe';
     if (os.platform() != 'win32') {
         options.nuget = 'mono';
     }
 
-	return through.obj(function(file, encoding, done) {
-		var args = nugetRestoreArgs(file.path, options);
-		cproc.execFile(options.nuget, args, function(err, stdout) {
-			if (err) {
+    return through.obj(function(file, encoding, done) {
+        var args = nugetRestoreArgs(file.path, options);
+        cproc.execFile(options.nuget, args, function(err, stdout) {
+            if (err) {
                 throw new gutil.PluginError('gulp-nuget', err);
             }
 
-			gutil.log(stdout.trim());
-			done(null, file);
-		});
-	});
+            gutil.log(stdout.trim());
+            done(null, file);
+        });
+    });
 };
- 
-require('./tasks/htmltasks')
 
 gulp.task('ext:tslint', () => {
     return gulp.src([
@@ -98,26 +98,26 @@ gulp.task('ext:compile-src', () => {
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
                 .pipe(srcmap.write('.', {
-                   sourceRoot: function(file){ return file.cwd + '/src'; }
-                }))
+                   sourceRoot: function(file){ return file.cwd + '/src'; }
+                }))
                 .pipe(gulp.dest('out/src/'));
 });
 
 gulp.task('ext:nuget-download', function(done) {
-    if(fs.existsSync('nuget.exe')) {
-        return done();
-    }
- 
-    request.get('http://nuget.org/nuget.exe')
-        .pipe(fs.createWriteStream('nuget.exe'))
-        .on('close', done);
+    if(fs.existsSync('nuget.exe')) {
+        return done();
+    }
+ 
+    request.get('http://nuget.org/nuget.exe')
+        .pipe(fs.createWriteStream('nuget.exe'))
+        .on('close', done);
 });
 
 gulp.task('ext:nuget-restore', function() {
-  
+  
     var options = {
-      configFile: './nuget.config',
-      packagesDirectory: './packages'
+      configFile: './nuget.config',
+      packagesDirectory: './packages'
     };
 
     return gulp.src('./packages.config')
@@ -131,8 +131,8 @@ gulp.task('ext:compile-tests', () => {
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
                 .pipe(srcmap.write('.', {
-                   sourceRoot: function(file){ return file.cwd + '/src'; }
-                }))
+                   sourceRoot: function(file){ return file.cwd + '/src'; }
+                }))
                 .pipe(gulp.dest('out/test/'));
 
 });
