@@ -150,7 +150,7 @@ gulp.task('ext:copy-html', () => {
 });
 
 gulp.task('ext:copy-packages', () => {
-    var serviceHostVersion = "0.0.1";
+    var serviceHostVersion = "0.0.2";
     return gulp.src(config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*')
             .pipe(gulp.dest(config.paths.project.root + '/out/tools/'))
 });
