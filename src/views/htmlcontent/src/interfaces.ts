@@ -1,3 +1,10 @@
+/**
+ * Interfaces needed for interacting with the localwebservice
+ * Separate from the contracts defined in the models folder because that version has
+ * a dependency on vscode which will not build on the front end
+ * Must be updated whenever there is a change to these interfaces
+ */
+
 export interface IDbColumn {
     allowDBNull?: boolean;
     baseCatalogName: string;

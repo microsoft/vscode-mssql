@@ -3,10 +3,9 @@ import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
 import {IDbColumn, ResultSetSubset} from './../interfaces';
 
-/*
-*   Service which performs the http requests to get the data resultsets
-*   from the server.
-*/
+/**
+ * Service which performs the http requests to get the data resultsets from the server.
+ */
 
 @Injectable()
 export class DataService {
@@ -19,7 +18,11 @@ export class DataService {
         console.log(this.uri);
     }
 
-    getMetaData(): Promise<boolean> {
+    /**
+     * Gets the meta data for the current results set view
+     */
+
+    private getMetaData(): Promise<boolean> {
         const self = this;
         return new Promise((resolve, reject) => {
             self.http.get('/resultsetsMeta?uri=' + self.uri)
@@ -33,6 +36,9 @@ export class DataService {
         });
     }
 
+    /**
+     * Gets the total number of rows in the results set
+     */
     getNumberOfRows(): Observable<number> {
         const self = this;
         if (!this.numberOfRows) {
@@ -44,6 +50,10 @@ export class DataService {
             });
         }
     }
+
+    /**
+     * Gets the column data for the current results set
+     */
 
     getColumns(): Observable<IDbColumn[]> {
         const self = this;
@@ -67,6 +77,11 @@ export class DataService {
                             });
         }
     }
+
+    /**
+     * Get a specified number of rows starting at a specified row for
+     * the current results set
+     */
 
     getRows(start: number, numberOfRows: number ): Observable<ResultSetSubset> {
         if (!this.rowsuri) {

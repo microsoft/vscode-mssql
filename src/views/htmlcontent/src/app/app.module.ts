@@ -5,6 +5,10 @@ import { AppComponent }  from './app.component';
 import { SlickGrid } from './slickgrid/SlickGrid';
 import { HttpModule, JsonpModule } from '@angular/http';
 
+/**
+ * Top level angular module
+ */
+
 @NgModule({
   imports: [
               BrowserModule,

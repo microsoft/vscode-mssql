@@ -17,9 +17,9 @@ enum FieldType {
     Unknown = 5,
 }
 
-/*
-*   Top level app component which runs and controls the SlickGrid implementation
-*/
+/**
+ * Top level app component which runs and controls the SlickGrid implementation
+ */
 @Component({
     selector: 'my-app',
     directives: [SlickGrid],
