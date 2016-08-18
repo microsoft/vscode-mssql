@@ -12,6 +12,13 @@ export enum ContentType {
     MoreRows = 5
 };
 
+export enum AuthenticationTypes {
+    Integrated,
+    SqlPassword,
+    ActiveDirectoryIntegrated,
+    ActiveDirectoryPassword
+}
+
 export const ContentTypes = [Constants.outputContentTypeRoot, Constants.outputContentTypeMessages, Constants.outputContentTypeResultsetMeta,
 Constants.outputContentTypeColumns, Constants.outputContentTypeRows];
 
@@ -21,6 +28,7 @@ Constants.outputContentTypeColumns, Constants.outputContentTypeRows];
 export interface IConnectionCredentials {
     server: string;
     database: string;
+    authenticationType: string;
     user: string;
     password: string;
     connectionTimeout: number;

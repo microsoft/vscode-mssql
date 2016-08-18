@@ -1,13 +1,14 @@
 'use strict';
 import Constants = require('./constants');
-import { IConnectionCredentials } from './interfaces';
+import { IConnectionCredentials, AuthenticationTypes } from './interfaces';
 import * as utils from './utils';
-import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
+import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
     public server: string;
     public database: string;
+    public authenticationType: string;
     public user: string;
     public password: string;
     public connectionTimeout: number;
@@ -49,7 +50,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 shouldPrompt: (answers) => promptForDbName,
                 onAnswered: (value) => credentials.database = value
             },
-
+            {
+                type: QuestionTypes.expand,
+                name: Constants.authTypePrompt,
+                message: Constants.authTypePrompt,
+                choices: this.getAuthenticationTypesChoice(),
+                shouldPrompt: (answers) => utils.isEmpty(credentials.authenticationType),
+                onAnswered: (value) => credentials.authenticationType = AuthenticationTypes[value]
+            },
             // Username must be pressent
             {
                 type: QuestionTypes.input,
@@ -85,6 +93,15 @@ export class ConnectionCredentials implements IConnectionCredentials {
             return property + Constants.msgIsRequired;
         }
         return undefined;
+    }
+
+    public static getAuthenticationTypesChoice(): INameValueChoice[] {
+        return [
+            { name: Constants.authTypeIntegrated, value: AuthenticationTypes.Integrated },
+            { name: Constants.authTypeSql, value: AuthenticationTypes.SqlPassword },
+            { name: Constants.authTypeAdIntegrated, value: AuthenticationTypes.ActiveDirectoryIntegrated },
+            { name: Constants.authTypeAdPassword, value: AuthenticationTypes.ActiveDirectoryPassword }
+        ];
     }
 }
 
