@@ -17,10 +17,6 @@ require('./tasks/htmltasks')
 
 function nugetRestoreArgs(nupkg, options) {
     var args = new Array();
-    if (os.platform() != 'win32') {
-        args.push('./nuget.exe');
-    }
-
     args.push('restore');
     args.push(nupkg);
 
@@ -62,7 +58,7 @@ function nugetRestore(options) {
     options = options || {};
     options.nuget = options.nuget || './nuget.exe';
     if (os.platform() != 'win32') {
-        options.nuget = 'mono';
+        options.nuget = 'nuget';
     }
 
     return through.obj(function(file, encoding, done) {
