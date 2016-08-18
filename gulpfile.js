@@ -17,10 +17,9 @@ require('./tasks/htmltasks')
 
 function nugetRestoreArgs(nupkg, options) {
     var args = new Array();
-    if (os.platform() != 'win32') {
+    if (os.platform() != 'win32') { 
         args.push('./nuget.exe');
     }
-
     args.push('restore');
     args.push(nupkg);
 
