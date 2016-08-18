@@ -37,7 +37,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
-            res.setHeader('content_security_policy', 'script-src "all" "unsafe-inline"');
             Utils.logDebug(Constants.msgContentProviderOnRootEndpoint);
             let uri: string = decodeURI(req.query.uri);
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
@@ -72,7 +71,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/columns' - return column metadata as a JSON string
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
-            let id = req.query.id;
+            let id = req.query.resultId;
             Utils.logDebug(Constants.msgContentProviderOnColumnsEndpoint + id);
             let uri: string = decodeURI(req.query.uri);
             let columnMetadata = self._queryResultsMap.get(uri).queryRunner.resultSets[id].columnInfo;
@@ -83,12 +82,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/rows' - return rows end-point for a specific resultset
         this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void {
-            let id = req.query.id;
+            let id = req.query.resultId;
             let rowStart = req.query.rowStart;
             let numberOfRows = req.query.numberOfRows;
             Utils.logDebug(Constants.msgContentProviderOnRowsEndpoint + id);
             let uri: string = decodeURI(req.query.uri);
-            self._queryResultsMap.get(uri).queryRunner.getRows(id, rowStart, numberOfRows, 0).then(results => {
+            self._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, id).then(results => {
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
             });
