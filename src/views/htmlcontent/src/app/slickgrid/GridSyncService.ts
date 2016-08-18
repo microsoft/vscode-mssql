@@ -1,4 +1,4 @@
-import {Injectable} from 'angular2/core';
+import {Injectable} from '@angular/core';
 import {Subject, Observable} from 'rxjs/Rx';
 import {SelectionModel, ISlickRange} from './SelectionModel';
 

@@ -1,50 +1,34 @@
-<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-        <style type="text/css">
-            html {
-                height: 100%;
-            }
+  <head>
+    <title>Angular 2 QuickStart</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 1. Load libraries -->
 
-            body {
-                height: 100%;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                background-color: #FCFCFC
-            }
-        </style>
-        <script src="https://code.angularjs.org/2.0.0-beta.8/angular2-polyfills.js"></script>
-        <script src="https://code.angularjs.org/tools/system.js"></script>
-        <script src="https://code.angularjs.org/tools/typescript.js"></script>
-        <script src="app/libs/underscore-min.js"></script>
-        <script src="config.js"></script>
-        <script src="https://code.angularjs.org/2.0.0-beta.8/Rx.js"></script>
-        <script src="https://code.angularjs.org/2.0.0-beta.8/angular2.min.js"></script>
-        <script src="https://code.angularjs.org/2.0.0-beta.8/http.min.js"></script>
-        <script src="app/libs/jquery.js"></script>
-        <script src="app/libs/jquery.event.drag.js"></script>
-        <script src="app/libs/SlickGrid/slick.core.js"></script>
-        <script src="app/libs/SlickGrid/slick.grid.js"></script>
-        <script src="app/libs/SlickGrid/slick.editors.js"></script>
-        <script src="app/libs/SlickGrid/plugins/slick.rowselectionmodel.js"></script>
-        <script>
-            System
-            .import('app')
-            .catch(console.error.bind(console));
-        </script>
-        <link rel="stylesheet" type="text/css" href="color-theme-light.css"/>
-        <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
-    </head>
-    <body>
-        <div style="display: none;" id="uri"><%=uri%></div>
-        <!-- Lots of great info about bootstrap here: http://www.w3schools.com/bootstrap -->
-       <my-app>
-            Loading...
-        </my-app>
-    </body>
+    <script src="app/libs/jquery.js"></script>
+    <script src="app/libs/underscore-min.js"></script>
+    <script src="app/libs/jquery.event.drag.js"></script>
+    <script src="app/libs/SlickGrid/slick.core.js"></script>
+    <script src="app/libs/SlickGrid/slick.grid.js"></script>
+    <script src="app/libs/SlickGrid/slick.editors.js"></script>
+    <script src="app/libs/SlickGrid/plugins/slick.rowselectionmodel.js"></script>
+     <!-- Polyfill(s) for older browsers -->
+    <script src="node_modules/core-js/client/shim.min.js"></script>
+    <script src="node_modules/zone.js/dist/zone.js"></script>
+    <script src="node_modules/reflect-metadata/Reflect.js"></script>
+    <script src="node_modules/systemjs/dist/system.src.js"></script>
+    <!-- 2. Configure SystemJS -->
+    <script src="systemjs.config.js"></script>
+    <script>
+      System.import('app').catch(function(err){ console.error(err); });
+    </script>
+
+    <link rel="stylesheet" type="text/css" href="color-theme-light.css"/>
+    <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
+  </head>
+  <!-- 3. Display the application -->
+  <body>
+    <div style="display: none;" id="uri"><%=uri%></div>
+    <my-app>Loading...</my-app>
+  </body>
 </html>
