@@ -41,7 +41,7 @@ gulp.task('ext:compile-tests', () => {
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
                 .pipe(srcmap.write('.', {
-                   sourceRoot: function(file){ return file.cwd + '/src'; }
+                   sourceRoot: function(file){ return file.cwd + '/test'; }
                 }))
                 .pipe(gulp.dest('out/test/'));
 

@@ -1,20 +1,21 @@
 import * as TypeMoq from 'typemoq';
 import { IConnectionProfile } from '../src/models/interfaces';
 import { ConnectionProfile } from '../src/models/ConnectionProfile';
-import { IQuestion, IPrompter } from '../src/prompts/question';
+import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
 import TestPrompter from './TestPrompter';
 
 import Constants = require('../src/models/constants');
 import assert = require('assert');
+import os = require('os');
 
 suite('Connection Profile tests', () => {
-
+    let authTypeQuestionIndex = 2;
 
     setup(() => {
         // No setup currently needed
     });
 
-    test('CreateProfile asks correct questions', () => {
+    test('CreateProfile should ask questions in correct order', () => {
         // Given
         let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
@@ -54,4 +55,66 @@ suite('Connection Profile tests', () => {
         assert.equal(profileReturned, undefined);
     });
 
+
+    test('CreateProfile - SqlPassword should be default auth type', () => {
+        // Given
+        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let answers: {[key: string]: string} = {};
+        let profileQuestions: IQuestion[];
+        let profileReturned: IConnectionProfile;
+
+        // When createProfile is called
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                .callback(questions => {
+                    // Capture questions for verification
+                    profileQuestions = questions;
+                })
+                .returns(questions => {
+                    //
+                    return Promise.resolve(answers);
+                });
+
+        ConnectionProfile.createProfile(prompter.object)
+            .then(profile => profileReturned = profile);
+
+        // Then expect SqlAuth to be the only default type
+        let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
+        assert.equal(authChoices[0].name, Constants.authTypeSql);
+    });
+
+    test('CreateProfile - Integrated auth support', () => {
+        // Given
+        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let answers: {[key: string]: string} = {};
+        let profileQuestions: IQuestion[];
+        let profileReturned: IConnectionProfile;
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                .callback(questions => {
+                    // Capture questions for verification
+                    profileQuestions = questions;
+                })
+                .returns(questions => {
+                    //
+                    return Promise.resolve(answers);
+                });
+
+        // When createProfile is called on an OS
+        ConnectionProfile.createProfile(prompter.object)
+            .then(profile => profileReturned = profile);
+
+        // Then integrated auth should/should not be supported
+        // TODO if possible the test should mock out the OS dependency but it's not clear
+        // how to do this without implementing a facade and doing full factory/dependency injection
+        // for now, just validates expected behavior on the platform tests are running on
+        let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
+        if ('win32' === os.platform()) {
+            assert.equal(authChoices.length, 2);
+            assert.equal(authChoices[1], Constants.authTypeIntegrated);
+        } else {
+            assert.equal(authChoices.length, 1);
+        }
+    });
+
+
 });
+
