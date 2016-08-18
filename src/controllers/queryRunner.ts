@@ -65,8 +65,7 @@ export default class QueryRunner {
     public runQuery(): Thenable<void> {
         const self = this;
         let editor = vscode.window.activeTextEditor;
-        // this.uri = editor.document.uri.toString();
-        this.uri = 'vscode-mssql';
+        this.uri = editor.document.uri.toString();
         this.title = editor.document.fileName;
         let queryDetails = new Contracts.QueryExecuteParams();
         queryDetails.ownerUri = this.uri;
