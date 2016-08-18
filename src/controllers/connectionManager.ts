@@ -1,53 +1,23 @@
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
+import * as Contracts from '../models/contracts';
 import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { LanguageClient, RequestType } from 'vscode-languageclient';
+import { LanguageClient } from 'vscode-languageclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 
-const mssql = require('mssql');
+// Information for a document's connection
+class ConnectionInfo {
+    // Connection GUID returned from the service host
+    public connectionId: string;
 
-// Connection request message callback declaration
-export namespace ConnectionRequest {
-     export const type: RequestType<ConnectParams, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
-}
-
-// Required parameters to initialize a connection to a database
-class ConnectionDetails {
-    // server name
-    public serverName: string;
-
-    // database name
-    public databaseName: string;
-
-    // user name
-    public userName: string;
-
-    // unencrypted password
-    public password: string;
-}
-
-// Connention request message format
-class ConnectParams {
-    // URI identifying the owner of the connection
-    public ownerUri: string;
-
-    // Details for creating the connection
-    public connection: ConnectionDetails;
-}
-
-// Connection response format
-class ConnectionResult {
-    // connection id returned from service host
-    public connectionId: number;
-
-    // any diagnostic messages return from the service host
-    public messages: string;
+    // Credentials used to connect
+    public credentials: Interfaces.IConnectionCredentials;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -55,8 +25,7 @@ export default class ConnectionManager {
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
-    private _connection;
-    private _connectionCreds: Interfaces.IConnectionCredentials;
+    private _connections: { [fileName: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
 
     constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter) {
@@ -64,14 +33,7 @@ export default class ConnectionManager {
         this._statusView = statusView;
         this._prompter = prompter;
         this._connectionUI = new ConnectionUI(context, prompter);
-    }
-
-    get connectionCredentials(): Interfaces.IConnectionCredentials {
-        return this._connectionCreds;
-    }
-
-    get connection(): any {
-        return this._connection;
+        this._connections = {};
     }
 
     private get connectionUI(): ConnectionUI {
@@ -82,23 +44,24 @@ export default class ConnectionManager {
         return this._statusView;
     }
 
-    get isConnected(): boolean {
-        return this._connection && this._connection.connected;
+    public isConnected(fileName: string): boolean {
+        return (fileName in this._connections);
     }
 
     // choose database to use on current server
     public onChooseDatabase(): void {
         const self = this;
+        const fileName = self._connectionUI.activeFileUri;
 
-        if (typeof self._connection === 'undefined' || typeof self._connectionCreds === 'undefined') {
+        if (!self.isConnected(fileName)) {
             Utils.showWarnMsg(Constants.msgChooseDatabaseNotConnected);
             return;
         }
 
-        self.connectionUI.showDatabasesOnCurrentServer(self._connectionCreds).then( newDatabaseCredentials => {
+        self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileName].credentials).then( newDatabaseCredentials => {
             if (typeof newDatabaseCredentials !== 'undefined') {
-                self.onDisconnect().then( () => {
-                    self.connect(newDatabaseCredentials);
+                self.disconnect(fileName).then( () => {
+                    self.connect(fileName, newDatabaseCredentials);
                 });
             }
         });
@@ -106,14 +69,25 @@ export default class ConnectionManager {
 
     // close active connection, if any
     public onDisconnect(): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            if (this.isConnected) {
-                this._connection.close();
-            }
+        return this.disconnect(this._connectionUI.activeFileUri);
+    }
 
-            this._connection = undefined;
-            this._connectionCreds = undefined;
-            this.statusView.notConnected();
+    public disconnect(fileName: string): Promise<any> {
+        const self = this;
+
+        return new Promise<any>((resolve, reject) => {
+            if (this.isConnected(fileName)) {
+                let disconnectParams = new Contracts.DisconnectParams();
+                disconnectParams.ownerUri = fileName;
+
+                let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
+                client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
+                    this.statusView.notConnected(fileName);
+                    delete self._connections[fileName];
+
+                    resolve(result);
+                });
+            }
             resolve(true);
         });
     }
@@ -121,14 +95,21 @@ export default class ConnectionManager {
     // let users pick from a picklist of connections
     public onNewConnection(): Promise<boolean> {
         const self = this;
+        const fileName = self._connectionUI.activeFileUri;
+
+        if (fileName === '') {
+            // A text document needs to be open before we can connect
+            Utils.showInfoMsg(Constants.msgOpenSqlFile);
+        }
+
         return new Promise<boolean>((resolve, reject) => {
             // show connection picklist
             self.connectionUI.showConnections()
             .then(function(connectionCreds): void {
                 // close active connection
-                self.onDisconnect().then(function(): void {
+                self.disconnect(fileName).then(function(): void {
                     // connect to the server/database
-                    self.connect(connectionCreds)
+                    self.connect(fileName, connectionCreds)
                     .then(function(): void {
                         resolve(true);
                     });
@@ -138,56 +119,56 @@ export default class ConnectionManager {
     }
 
     // create a new connection with the connectionCreds provided
-    public connect(connectionCreds: Interfaces.IConnectionCredentials): Promise<any> {
+    public connect(fileName: string, connectionCreds: Interfaces.IConnectionCredentials): Promise<any> {
         const self = this;
+
         return new Promise<any>((resolve, reject) => {
             let extensionTimer = new Utils.Timer();
 
+            self.statusView.connecting(fileName, connectionCreds);
+
             // package connection details for request message
-            let connectionDetails = new ConnectionDetails();
+            let connectionDetails = new Contracts.ConnectionDetails();
             connectionDetails.userName = connectionCreds.user;
             connectionDetails.password = connectionCreds.password;
             connectionDetails.serverName = connectionCreds.server;
             connectionDetails.databaseName = connectionCreds.database;
 
-            let connectParams = new ConnectParams();
-            connectParams.ownerUri = 'vscode-mssql'; // TODO: this should vary per-file
+            let connectParams = new Contracts.ConnectParams();
+            connectParams.ownerUri = fileName;
             connectParams.connection = connectionDetails;
 
             let serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
             let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
-            client.sendRequest(ConnectionRequest.type, connectParams).then((result) => {
+            client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
                 // handle connection complete callback
-                console.log(result);
-            });
-
-            // legacy tedious connection until we fully move to service host
-            const connection = new mssql.Connection(connectionCreds);
-            self.statusView.connecting(connectionCreds);
-
-            connection.connect()
-            .then(function(): void {
                 serviceTimer.end();
 
-                self._connectionCreds = connectionCreds;
-                self._connection = connection;
-                self.statusView.connectSuccess(connectionCreds);
+                if (result.connectionId && result.connectionId !== '') {
+                    // We have a valid connection
+                    let connection = new ConnectionInfo();
+                    connection.connectionId = result.connectionId;
+                    connection.credentials = connectionCreds;
+                    self._connections[fileName] = connection;
 
-                extensionTimer.end();
+                    self.statusView.connectSuccess(fileName, connectionCreds);
 
-                Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {}, {
-                    extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
-                    serviceConnectionTime: serviceTimer.getDuration()
-                });
+                    extensionTimer.end();
 
-                resolve();
-            })
-            .catch(function(err): void {
-                self.statusView.connectError(connectionCreds, err);
-                Utils.showErrorMsg(Constants.msgError + err);
-                reject(err);
+                    Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {}, {
+                        extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
+                        serviceConnectionTime: serviceTimer.getDuration()
+                    });
+
+                    resolve();
+                } else {
+                    Utils.showErrorMsg(Constants.msgError + result.messages);
+                    self.statusView.connectError(fileName, connectionCreds, result.messages);
+
+                    reject();
+                }
             });
         });
     }
