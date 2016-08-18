@@ -106,13 +106,21 @@ suite('Connection Profile tests', () => {
         // TODO if possible the test should mock out the OS dependency but it's not clear
         // how to do this without implementing a facade and doing full factory/dependency injection
         // for now, just validates expected behavior on the platform tests are running on
-        let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
+        let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
+        let authChoices = <INameValueChoice[]>authQuestion.choices;
         if ('win32' === os.platform()) {
             assert.equal(authChoices.length, 2);
             assert.equal(authChoices[1], Constants.authTypeIntegrated);
+
+            // And on a platform with multiple choices, should prompt for input
+            assert.strictEqual(authQuestion.shouldPrompt(answers), true);
         } else {
             assert.equal(authChoices.length, 1);
+            // And on a platform with only 1 choice, should not prompt for input
+            assert.strictEqual(authQuestion.shouldPrompt(answers), false);
         }
+
+
     });
 
 

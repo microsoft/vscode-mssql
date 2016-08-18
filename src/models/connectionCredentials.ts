@@ -32,6 +32,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
         promptForDbName: boolean,
         isPasswordRequired: boolean): IQuestion[] {
 
+        let authenticationChoices: INameValueChoice[] = this.getAuthenticationTypesChoice();
+
         let questions: IQuestion[] = [
             // Server must be present
             {
@@ -56,8 +58,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 type: QuestionTypes.expand,
                 name: Constants.authTypePrompt,
                 message: Constants.authTypePrompt,
-                choices: this.getAuthenticationTypesChoice(),
-                shouldPrompt: (answers) => utils.isEmpty(credentials.authenticationType),
+                choices: authenticationChoices,
+                shouldPrompt: (answers) => utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
                 onAnswered: (value) => credentials.authenticationType = AuthenticationTypes[value]
             },
             // Username must be pressent
