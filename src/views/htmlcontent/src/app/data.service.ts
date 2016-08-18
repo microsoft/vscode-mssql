@@ -44,6 +44,10 @@ export class DataService {
         });
     }
 
+    /**
+     * Get the number of results in the query
+     */
+
     numberOfResultSets(): Promise<number> {
         const self = this;
         if (!this.columnsuri) {
@@ -58,6 +62,10 @@ export class DataService {
             });
         }
     }
+
+    /**
+     * Get the messages for the query
+     */
 
     getMessages(): Observable<string[]> {
         const self = this;
