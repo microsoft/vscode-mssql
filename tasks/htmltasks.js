@@ -22,6 +22,7 @@ gulp.task('html:compile-ts', () => {
             config.paths.html.root + '/src/**/*.ts',
             config.paths.html.root + '/typings/**/*.d.ts'])
             .pipe(ts(tsProject))
+            .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/'))
 });
 
 gulp.task('html:compile-css', () => {
@@ -32,10 +33,23 @@ gulp.task('html:compile-css', () => {
 
 gulp.task('html:compile', gulp.series('html:compile-ts'))
 
-gulp.task('html:copy', () => {
-    return gulp.src(config.paths.html.root + '/src/**/*')
-            .pipe(gulp.dest('/out/views/htmlcontent/'))
+gulp.task('html:copy_node_modules', () => {
+    return gulp.src(config.includes.html.node_modules, {base: config.paths.html.root + '/node_modules/'})
+               .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/node_modules/'))
 })
+
+gulp.task('html:copy_src', () => {
+    return gulp.src([
+                        config.paths.html.root + '/src/**/*.html',
+                        config.paths.html.root + '/src/**/*.ejs',
+                        config.paths.html.root + '/src/**/*.js',
+                        config.paths.html.root + '/src/**/*.css',
+                        config.paths.html.root + '/src/**/*.svg'
+                    ])
+                .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/'))
+})
+
+gulp.task('html:copy', gulp.series('html:copy_src','html:copy_node_modules'));
 
 gulp.task('html:build', gulp.series('html:compile'));
 
@@ -43,7 +57,7 @@ gulp.task('html:clean', () => {
     return del(config.paths.html.root + '/out');
 });
 
-gulp.task('build-html', gulp.series('html:tslint', 'html:build'));
+gulp.task('build-html', gulp.series('html:tslint', 'html:build', 'html:copy'));
 
 gulp.task('html:watch', function(){
     return gulp.watch(config.paths.html.root + '/src/**/*', gulp.series('html:tslint'))
