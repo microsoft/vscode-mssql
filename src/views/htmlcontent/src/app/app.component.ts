@@ -35,11 +35,15 @@ export class AppComponent implements OnInit {
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
     private resultOptions: number[];
+    private messages: string[];
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
     ngOnInit(): void {
         const self = this;
+        this.dataService.getMessages().subscribe(data => {
+            self.messages = data;
+        });
         this.dataService.numberOfResultSets().then((result: number) => {
             self.resultOptions = [];
             for (let i = 0; i < result; i++) {

@@ -59,6 +59,15 @@ export class DataService {
         }
     }
 
+    getMessages(): Observable<string[]> {
+        const self = this;
+        return this.http.get('/messages?'
+                             + '&uri=' + self.uri)
+                        .map(res => {
+                            return res.json();
+                        });
+    }
+
     /**
      * Gets the total number of rows in the results set
      */

@@ -7,6 +7,8 @@
         </slick-grid>
     </tab>
     <tab tabTitle="Messages">
-        Messages
+        <div *ngFor="let message of messages">
+            {{message}}
+        </div>
     </tab>
 </tabs>

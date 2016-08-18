@@ -17,7 +17,8 @@ import { Tabs } from './tabs';
   imports: [
               BrowserModule,
               HttpModule,
-              JsonpModule
+              JsonpModule,
+              FormsModule
            ],
   declarations: [ AppComponent, SlickGrid, NavigatorComponent, Tab, Tabs ],
   bootstrap:    [ AppComponent ]
