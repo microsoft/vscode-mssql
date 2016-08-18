@@ -10,6 +10,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public profileName: string;
     public savePassword: boolean;
 
+    // Creates a new profile by prompting the user for information.
+    // returns undefined if profile creation was not completed
     public static createProfile(prompter: IPrompter): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
         // Ensure all core propertiesare entered
@@ -33,7 +35,13 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
         });
 
-        return prompter.prompt(questions).then(() => profile);
+        return prompter.prompt(questions).then(() => {
+            if (profile.isValidProfile()) {
+                return profile;
+            }
+            // returning undefined to indicate failure to create the profile
+            return undefined;
+        });
     }
 
     private static formatProfileName(profile: IConnectionProfile ): string {
@@ -45,5 +53,10 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             name = name + '-' + profile.user;
         }
         return name;
+    }
+
+    // Assumption: having server + profile name indicates all requirements were met
+    private isValidProfile(): boolean {
+        return (this.server !== undefined && this.profileName !== undefined);
     }
 }

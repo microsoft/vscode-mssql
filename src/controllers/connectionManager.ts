@@ -125,14 +125,16 @@ export default class ConnectionManager {
             // show connection picklist
             self.connectionUI.showConnections()
             .then(function(connectionCreds): void {
-                // close active connection
-                self.onDisconnect().then(function(): void {
-                    // connect to the server/database
-                    self.connect(connectionCreds)
-                    .then(function(): void {
-                        resolve(true);
+                if (connectionCreds) {
+                    // close active connection
+                    self.onDisconnect().then(function(): void {
+                        // connect to the server/database
+                        self.connect(connectionCreds)
+                        .then(function(): void {
+                            resolve(true);
+                        });
                     });
-                });
+                }
             });
         });
     }
