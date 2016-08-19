@@ -47,6 +47,7 @@ function createTestCredentials(): IConnectionCredentials {
     const creds: IConnectionCredentials = {
         server: 'my-server',
         database: 'my_db',
+        authenticationType: 'SQL Authentication',
         user: 'sa',
         password: '12345678',
         connectionTimeout: 30000,
