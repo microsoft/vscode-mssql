@@ -2,6 +2,7 @@ import vscode = require('vscode');
 import Constants = require('../models/constants');
 import ConnInfo = require('../models/connectionInfo');
 import Interfaces = require('../models/interfaces');
+import * as Utils from '../models/utils';
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -159,11 +160,7 @@ export default class StatusView implements vscode.Disposable {
     }
 
     private showStatusBarItem(fileUri: string, statusBarItem: vscode.StatusBarItem): void {
-        let currentOpenFile = '';
-        if (typeof vscode.window.activeTextEditor !== 'undefined' &&
-            typeof vscode.window.activeTextEditor.document !== 'undefined') {
-            currentOpenFile = vscode.window.activeTextEditor.document.uri.toString();
-        }
+        let currentOpenFile = Utils.getActiveTextEditorUri();
 
         // Only show the status bar if it matches the currently open file
         if (fileUri === currentOpenFile) {
