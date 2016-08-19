@@ -49,11 +49,11 @@
     "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^6.0.2",
     "gulp-typescript": "^2.13.6",
+    "pm-mocha-jenkins-reporter": "^0.2.6",
     "tslint": "^3.14.0",
     "typescript": "^1.8.9",
     "typemoq": "^0.3.2",
-    "vscode": "^0.11.0",
-    "xunit-file": "^1.0.0"
+    "vscode": "^0.11.0"
   },
   "dependencies": {
     "async": "^2.0.0-rc.3",
