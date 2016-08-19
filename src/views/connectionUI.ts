@@ -20,15 +20,6 @@ export class ConnectionUI {
         this._prompter = prompter;
     }
 
-    // Retrieve the URI for the currently open file
-    public get activeFileUri(): string {
-        if (typeof vscode.window.activeTextEditor !== 'undefined' &&
-            typeof vscode.window.activeTextEditor.document !== 'undefined') {
-            return vscode.window.activeTextEditor.document.uri.toString();
-        }
-        return '';
-    }
-
     // Helper to let user choose a connection from a picklist
     // Return the ConnectionInfo for the user's choice
     public showConnections(): Promise<IConnectionCredentials> {
