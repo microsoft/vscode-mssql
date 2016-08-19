@@ -6,6 +6,7 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 export namespace Telemetry {
     let reporter: TelemetryReporter;
     let userId: string;
+    let disabled: boolean;
 
     // Get the unique ID for the current user of the extension
     function getUserId(): Promise<string> {
@@ -31,12 +32,25 @@ export namespace Telemetry {
         [key: string]: number;
     }
 
+    // Disable telemetry reporting
+    export function disable(): void {
+        disabled = true;
+    }
+
     // Send a telemetry event using application insights
     export function sendTelemetryEvent(
         context: vscode.ExtensionContext,
         eventName: string,
         properties?: ITelemetryEventProperties,
         measures?: ITelemetryEventMeasures): void {
+
+        if (typeof disabled === 'undefined') {
+            disabled = false;
+        }
+        if (disabled) {
+            // Don't do anything if telemetry is disabled
+            return;
+        }
 
         if (typeof properties === 'undefined') {
             properties = {};
