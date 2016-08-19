@@ -4,6 +4,7 @@ import Constants = require('./constants');
 import { IConnectionProfile } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
+import * as utils from './utils';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -64,6 +65,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
     // Assumption: having server + profile name indicates all requirements were met
     private isValidProfile(): boolean {
-        return (this.server !== undefined && this.profileName !== undefined);
+        return utils.isNotEmpty(this.server) && utils.isNotEmpty(this.profileName);
     }
 }
