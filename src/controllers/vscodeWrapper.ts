@@ -1,7 +1,7 @@
 import vscode = require('vscode');
 
 export default class VscodeWrapper {
-    public activeTextEditor(): vscode.TextEditor {
+    public get activeTextEditor(): vscode.TextEditor {
         return undefined;
     }
 
@@ -13,15 +13,15 @@ export default class VscodeWrapper {
         return undefined;
     }
 
+    public showErrorMsg(msg: string): Thenable<string> {
+        return undefined;
+    }
+
     public showInformationMessage(msg: string): Thenable<string> {
         return undefined;
     }
 
     public showWarningMessage(msg: string): Thenable<string> {
-        return undefined;
-    }
-
-    public showErrorMsg(msg: string): Thenable<string> {
         return undefined;
     }
 
