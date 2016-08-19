@@ -145,7 +145,7 @@ export class ConnectionUI {
 
                 connectFunc.then((resolvedConnectionCreds) => {
                     if (!resolvedConnectionCreds) {
-                        return false;
+                        resolve(undefined);
                     }
                     resolve(resolvedConnectionCreds);
                 });
@@ -154,10 +154,16 @@ export class ConnectionUI {
     }
 
     // Calls the create profile workflow
+    // Returns undefined if profile creation failed
     public createAndSaveProfile(): Promise<IConnectionProfile> {
         let recentConnections = new RecentConnections(this._context);
         return this.promptForCreateProfile()
-            .then(profile => recentConnections.saveConnection(profile));
+            .then(profile => {
+                if (profile) {
+                    return recentConnections.saveConnection(profile);
+                }
+                return undefined;
+            });
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {

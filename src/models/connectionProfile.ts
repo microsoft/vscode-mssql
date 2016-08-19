@@ -4,12 +4,22 @@ import Constants = require('./constants');
 import { IConnectionProfile } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
+import * as utils from './utils';
 
 // Concrete implementation of the IConnectionProfile interface
+
+/**
+ * A concrete implementation of an IConnectionProfile with support for profile creation and validation
+ */
 export class ConnectionProfile extends ConnectionCredentials implements IConnectionProfile {
     public profileName: string;
     public savePassword: boolean;
 
+    /**
+     * Creates a new profile by prompting the user for information.
+     * @param  {IPrompter} prompter that asks user the questions needed to complete a profile
+     * @returns Promise - resolves to undefined if profile creation was not completed, or IConnectionProfile if completed
+     */
     public static createProfile(prompter: IPrompter): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
         // Ensure all core propertiesare entered
@@ -33,7 +43,13 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
         });
 
-        return prompter.prompt(questions).then(() => profile);
+        return prompter.prompt(questions).then(() => {
+            if (profile.isValidProfile()) {
+                return profile;
+            }
+            // returning undefined to indicate failure to create the profile
+            return undefined;
+        });
     }
 
     private static formatProfileName(profile: IConnectionProfile ): string {
@@ -45,5 +61,10 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             name = name + '-' + profile.user;
         }
         return name;
+    }
+
+    // Assumption: having server + profile name indicates all requirements were met
+    private isValidProfile(): boolean {
+        return utils.isNotEmpty(this.server) && utils.isNotEmpty(this.profileName);
     }
 }

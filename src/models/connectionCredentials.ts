@@ -1,13 +1,16 @@
 'use strict';
 import Constants = require('./constants');
-import { IConnectionCredentials } from './interfaces';
+import { IConnectionCredentials, AuthenticationTypes } from './interfaces';
 import * as utils from './utils';
-import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
+import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
+
+import os = require('os');
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
     public server: string;
     public database: string;
+    public authenticationType: string;
     public user: string;
     public password: string;
     public connectionTimeout: number;
@@ -29,6 +32,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
         promptForDbName: boolean,
         isPasswordRequired: boolean): IQuestion[] {
 
+        let authenticationChoices: INameValueChoice[] = this.getAuthenticationTypesChoice();
+
         let questions: IQuestion[] = [
             // Server must be present
             {
@@ -49,7 +54,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 shouldPrompt: (answers) => promptForDbName,
                 onAnswered: (value) => credentials.database = value
             },
-
+            {
+                type: QuestionTypes.expand,
+                name: Constants.authTypePrompt,
+                message: Constants.authTypePrompt,
+                choices: authenticationChoices,
+                shouldPrompt: (answers) => utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
+                onAnswered: (value) => credentials.authenticationType = AuthenticationTypes[value]
+            },
             // Username must be pressent
             {
                 type: QuestionTypes.input,
@@ -85,6 +97,19 @@ export class ConnectionCredentials implements IConnectionCredentials {
             return property + Constants.msgIsRequired;
         }
         return undefined;
+    }
+
+    public static getAuthenticationTypesChoice(): INameValueChoice[] {
+        let choices: INameValueChoice[] = [
+            { name: Constants.authTypeSql, value: AuthenticationTypes.SqlPassword }
+        ];
+        // In the case of win32 support integrated. For all others only SqlAuth supported
+        if ('win32' === os.platform()) {
+             choices.push({ name: Constants.authTypeIntegrated, value: AuthenticationTypes.Integrated });
+        }
+        // TODO When Azure Active Directory is supported, add this here
+
+        return choices;
     }
 }
 
