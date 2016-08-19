@@ -1,0 +1,5 @@
+<select class="form-control"
+          [ngModel]="selected"
+          (ngModelChange)="selected($event)" name="result">
+    <option *ngFor="let result of results" [value]="result">{{result}}</option>
+</select>
