@@ -13,7 +13,7 @@ export default class VscodeWrapper {
         return undefined;
     }
 
-    public showErrorMsg(msg: string): Thenable<string> {
+    public showErrorMessage(msg: string): Thenable<string> {
         return undefined;
     }
 
