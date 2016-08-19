@@ -88,6 +88,15 @@ export function getActiveTextEditor(): vscode.TextEditor {
     return editor;
 }
 
+// Retrieve the URI for the currently open file if there is one; otherwise return the empty string
+export function getActiveTextEditorUri(): string {
+    if (typeof vscode.window.activeTextEditor !== 'undefined' &&
+        typeof vscode.window.activeTextEditor.document !== 'undefined') {
+        return vscode.window.activeTextEditor.document.uri.toString();
+    }
+    return '';
+}
+
 // Helper to log messages to "MSSQL" output channel
 export function logToOutputChannel(msg: any): void {
     let outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
