@@ -16,7 +16,7 @@ class FileStatusBar {
 }
 
 export default class StatusView implements vscode.Disposable {
-    private _statusBars: { [fileName: string]: FileStatusBar };
+    private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
 
     constructor() {
@@ -37,15 +37,15 @@ export default class StatusView implements vscode.Disposable {
     }
 
     // Create status bar item if needed
-    private createStatusBar(fileName: string): void {
+    private createStatusBar(fileUri: string): void {
         let bar = new FileStatusBar();
         bar.statusConnection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-        this._statusBars[fileName] = bar;
+        this._statusBars[fileUri] = bar;
     }
 
-    private destroyStatusBar(fileName: string): void {
-        let bar = this._statusBars[fileName];
+    private destroyStatusBar(fileUri: string): void {
+        let bar = this._statusBars[fileUri];
         if (bar) {
             if (bar.statusConnection) {
                 bar.statusConnection.dispose();
@@ -57,77 +57,77 @@ export default class StatusView implements vscode.Disposable {
                 clearInterval(bar.progressTimerId);
             }
 
-            delete this._statusBars[fileName];
+            delete this._statusBars[fileUri];
         }
     }
 
-    private getStatusBar(fileName: string): FileStatusBar {
-        if (!(fileName in this._statusBars)) {
+    private getStatusBar(fileUri: string): FileStatusBar {
+        if (!(fileUri in this._statusBars)) {
             // Create it if it does not exist
-            this.createStatusBar(fileName);
+            this.createStatusBar(fileUri);
         }
 
-        let bar = this._statusBars[fileName];
+        let bar = this._statusBars[fileUri];
         if (bar.progressTimerId) {
             clearInterval(bar.progressTimerId);
         }
         return bar;
     }
 
-    public show(fileName: string): void {
-        let bar = this.getStatusBar(fileName);
-        this.showStatusBarItem(fileName, bar.statusConnection);
-        this.showStatusBarItem(fileName, bar.statusQuery);
+    public show(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
+        this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.showStatusBarItem(fileUri, bar.statusQuery);
     }
 
-    public notConnected(fileName: string): void {
-        let bar = this.getStatusBar(fileName);
+    public notConnected(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
         bar.statusConnection.text = Constants.notConnectedLabel;
         bar.statusConnection.tooltip = Constants.notConnectedTooltip;
         bar.statusConnection.command = Constants.cmdConnect;
-        this.showStatusBarItem(fileName, bar.statusConnection);
+        this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public connecting(fileName: string, connCreds: Interfaces.IConnectionCredentials): void {
-        let bar = this.getStatusBar(fileName);
+    public connecting(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
+        let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = undefined;
         bar.statusConnection.tooltip = Constants.connectingTooltip + ConnInfo.getTooltip(connCreds);
-        this.showStatusBarItem(fileName, bar.statusConnection);
-        this.showProgress(fileName, Constants.connectingLabel, bar.statusConnection);
+        this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.showProgress(fileUri, Constants.connectingLabel, bar.statusConnection);
     }
 
-    public connectSuccess(fileName: string, connCreds: Interfaces.IConnectionCredentials): void {
-        let bar = this.getStatusBar(fileName);
+    public connectSuccess(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
+        let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
         if (connCreds.database !== '') {
             bar.statusConnection.text = connCreds.server + ' : ' + connCreds.database + ' : ' + connCreds.user;
         } else {
-            bar.statusConnection.text = connCreds.server + ' : <default> : ' + connCreds.user;
+            bar.statusConnection.text = connCreds.server + ' : ' + Constants.defaultDatabaseLabel + ' : ' + connCreds.user;
         }
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds);
-        this.showStatusBarItem(fileName, bar.statusConnection);
+        this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public connectError(fileName: string, connCreds: Interfaces.IConnectionCredentials, error: any): void {
-        let bar = this.getStatusBar(fileName);
+    public connectError(fileUri: string, connCreds: Interfaces.IConnectionCredentials, error: any): void {
+        let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
         bar.statusConnection.text = Constants.connectErrorLabel;
         bar.statusConnection.tooltip = Constants.connectErrorTooltip + connCreds.server + '\n' +
                                       Constants.connectErrorCode + error.code + '\n' +
                                       Constants.connectErrorMessage + error.message;
-        this.showStatusBarItem(fileName, bar.statusConnection);
+        this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public executingQuery(fileName: string, connCreds: Interfaces.IConnectionCredentials): void {
-        let bar = this.getStatusBar(fileName);
+    public executingQuery(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
+        let bar = this.getStatusBar(fileUri);
         bar.statusQuery.command = undefined;
         bar.statusQuery.tooltip = Constants.executeQueryLabel;
-        this.showStatusBarItem(fileName, bar.statusQuery);
-        this.showProgress(fileName, Constants.executeQueryLabel, bar.statusQuery);
+        this.showStatusBarItem(fileUri, bar.statusQuery);
+        this.showProgress(fileUri, Constants.executeQueryLabel, bar.statusQuery);
     }
 
-    public executedQuery(fileName: string): void {
-        let bar = this.getStatusBar(fileName);
+    public executedQuery(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
         bar.statusQuery.hide();
     }
 
@@ -144,11 +144,11 @@ export default class StatusView implements vscode.Disposable {
 
         // Change the status bar to match the open file
         if (typeof editor !== 'undefined') {
-            const fileName = editor.document.uri.toString();
-            const bar = this._statusBars[fileName];
+            const fileUri = editor.document.uri.toString();
+            const bar = this._statusBars[fileUri];
             if (bar) {
-                this.showStatusBarItem(fileName, bar.statusConnection);
-                this.showStatusBarItem(fileName, bar.statusQuery);
+                this.showStatusBarItem(fileUri, bar.statusConnection);
+                this.showStatusBarItem(fileUri, bar.statusQuery);
             }
         }
     }
@@ -158,7 +158,7 @@ export default class StatusView implements vscode.Disposable {
         this.destroyStatusBar(doc.uri.toString());
     }
 
-    private showStatusBarItem(fileName: string, statusBarItem: vscode.StatusBarItem): void {
+    private showStatusBarItem(fileUri: string, statusBarItem: vscode.StatusBarItem): void {
         let currentOpenFile = '';
         if (typeof vscode.window.activeTextEditor !== 'undefined' &&
             typeof vscode.window.activeTextEditor.document !== 'undefined') {
@@ -166,22 +166,22 @@ export default class StatusView implements vscode.Disposable {
         }
 
         // Only show the status bar if it matches the currently open file
-        if (fileName === currentOpenFile) {
+        if (fileUri === currentOpenFile) {
             statusBarItem.show();
-            if (fileName in this._statusBars) {
-                this._lastShownStatusBar = this._statusBars[fileName];
+            if (fileUri in this._statusBars) {
+                this._lastShownStatusBar = this._statusBars[fileUri];
             }
         } else {
             statusBarItem.hide();
         }
     }
 
-    private showProgress(fileName: string, statusText: string, statusBarItem: vscode.StatusBarItem): void {
+    private showProgress(fileUri: string, statusText: string, statusBarItem: vscode.StatusBarItem): void {
         const self = this;
         let index = 0;
         let progressTicks = [ '|', '/', '-', '\\'];
 
-        let bar = this.getStatusBar(fileName);
+        let bar = this.getStatusBar(fileUri);
         bar.progressTimerId = setInterval(() => {
             index++;
             if (index > 3) {
@@ -190,7 +190,7 @@ export default class StatusView implements vscode.Disposable {
 
             let progressTick = progressTicks[index];
             statusBarItem.text = statusText + ' ' + progressTick;
-            self.showStatusBarItem(fileName, statusBarItem);
+            self.showStatusBarItem(fileUri, statusBarItem);
         }, 200);
     }
 }

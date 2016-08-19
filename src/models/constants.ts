@@ -98,6 +98,7 @@ export const msgError = 'Error: ';
 export const msgYes = 'Yes';
 export const msgNo = 'No';
 
+export const defaultDatabaseLabel = '<default>';
 export const notConnectedLabel = 'Disconnected';
 export const notConnectedTooltip = 'Click to connect to a database';
 export const connectingLabel = 'Connecting';

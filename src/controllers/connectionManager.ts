@@ -25,7 +25,7 @@ export default class ConnectionManager {
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
-    private _connections: { [fileName: string]: ConnectionInfo };
+    private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
 
     constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter) {
@@ -44,46 +44,46 @@ export default class ConnectionManager {
         return this._statusView;
     }
 
-    public isConnected(fileName: string): boolean {
-        return (fileName in this._connections);
+    public isConnected(fileUri: string): boolean {
+        return (fileUri in this._connections);
     }
 
     // choose database to use on current server
     public onChooseDatabase(): void {
         const self = this;
-        const fileName = self._connectionUI.activeFileUri;
+        const fileUri = Utils.getActiveTextEditorUri();
 
-        if (!self.isConnected(fileName)) {
+        if (!self.isConnected(fileUri)) {
             Utils.showWarnMsg(Constants.msgChooseDatabaseNotConnected);
             return;
         }
 
-        self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileName].credentials).then( newDatabaseCredentials => {
+        self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials).then( newDatabaseCredentials => {
             if (typeof newDatabaseCredentials !== 'undefined') {
-                self.disconnect(fileName).then( () => {
-                    self.connect(fileName, newDatabaseCredentials);
+                self.disconnect(fileUri).then( () => {
+                    self.connect(fileUri, newDatabaseCredentials);
                 });
             }
         });
     }
 
     // close active connection, if any
-    public onDisconnect(): Promise<any> {
-        return this.disconnect(this._connectionUI.activeFileUri);
+    public onDisconnect(): Promise<boolean> {
+        return this.disconnect(Utils.getActiveTextEditorUri());
     }
 
-    public disconnect(fileName: string): Promise<any> {
+    public disconnect(fileUri: string): Promise<boolean> {
         const self = this;
 
-        return new Promise<any>((resolve, reject) => {
-            if (this.isConnected(fileName)) {
+        return new Promise<boolean>((resolve, reject) => {
+            if (this.isConnected(fileUri)) {
                 let disconnectParams = new Contracts.DisconnectParams();
-                disconnectParams.ownerUri = fileName;
+                disconnectParams.ownerUri = fileUri;
 
                 let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
                 client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
-                    this.statusView.notConnected(fileName);
-                    delete self._connections[fileName];
+                    this.statusView.notConnected(fileUri);
+                    delete self._connections[fileUri];
 
                     resolve(result);
                 });
@@ -95,9 +95,9 @@ export default class ConnectionManager {
     // let users pick from a picklist of connections
     public onNewConnection(): Promise<boolean> {
         const self = this;
-        const fileName = self._connectionUI.activeFileUri;
+        const fileUri = Utils.getActiveTextEditorUri();
 
-        if (fileName === '') {
+        if (fileUri === '') {
             // A text document needs to be open before we can connect
             Utils.showInfoMsg(Constants.msgOpenSqlFile);
         }
@@ -108,9 +108,9 @@ export default class ConnectionManager {
             .then(function(connectionCreds): void {
                 if (connectionCreds) {
                     // close active connection
-                    self.disconnect(fileName).then(function(): void {
+                    self.disconnect(fileUri).then(function(): void {
                         // connect to the server/database
-                        self.connect(fileName, connectionCreds)
+                        self.connect(fileUri, connectionCreds)
                         .then(function(): void {
                             resolve(true);
                         });
@@ -121,13 +121,13 @@ export default class ConnectionManager {
     }
 
     // create a new connection with the connectionCreds provided
-    public connect(fileName: string, connectionCreds: Interfaces.IConnectionCredentials): Promise<any> {
+    public connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials): Promise<boolean> {
         const self = this;
 
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<boolean>((resolve, reject) => {
             let extensionTimer = new Utils.Timer();
 
-            self.statusView.connecting(fileName, connectionCreds);
+            self.statusView.connecting(fileUri, connectionCreds);
 
             // package connection details for request message
             let connectionDetails = new Contracts.ConnectionDetails();
@@ -137,7 +137,7 @@ export default class ConnectionManager {
             connectionDetails.databaseName = connectionCreds.database;
 
             let connectParams = new Contracts.ConnectParams();
-            connectParams.ownerUri = fileName;
+            connectParams.ownerUri = fileUri;
             connectParams.connection = connectionDetails;
 
             let serviceTimer = new Utils.Timer();
@@ -153,9 +153,9 @@ export default class ConnectionManager {
                     let connection = new ConnectionInfo();
                     connection.connectionId = result.connectionId;
                     connection.credentials = connectionCreds;
-                    self._connections[fileName] = connection;
+                    self._connections[fileUri] = connection;
 
-                    self.statusView.connectSuccess(fileName, connectionCreds);
+                    self.statusView.connectSuccess(fileUri, connectionCreds);
 
                     extensionTimer.end();
 
@@ -164,10 +164,10 @@ export default class ConnectionManager {
                         serviceConnectionTime: serviceTimer.getDuration()
                     });
 
-                    resolve();
+                    resolve(true);
                 } else {
                     Utils.showErrorMsg(Constants.msgError + result.messages);
-                    self.statusView.connectError(fileName, connectionCreds, result.messages);
+                    self.statusView.connectError(fileUri, connectionCreds, result.messages);
 
                     reject();
                 }
