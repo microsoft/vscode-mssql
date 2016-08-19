@@ -22,18 +22,25 @@ class ConnectionInfo {
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
+    private _client: LanguageClient;
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
 
-    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter) {
+    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: LanguageClient) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
         this._connectionUI = new ConnectionUI(context, prompter);
         this._connections = {};
+
+        if (typeof client === 'undefined') {
+            this._client = SqlToolsServerClient.getInstance().getClient();
+        } else {
+            this._client = client;
+        }
     }
 
     private get connectionUI(): ConnectionUI {
@@ -42,6 +49,11 @@ export default class ConnectionManager {
 
     private get statusView(): StatusView {
         return this._statusView;
+    }
+
+    // Exposed for testing purposes
+    public get connectionCount(): number {
+        return Object.keys(this._connections).length;
     }
 
     public isConnected(fileUri: string): boolean {
@@ -76,13 +88,12 @@ export default class ConnectionManager {
         const self = this;
 
         return new Promise<boolean>((resolve, reject) => {
-            if (this.isConnected(fileUri)) {
+            if (self.isConnected(fileUri)) {
                 let disconnectParams = new Contracts.DisconnectParams();
                 disconnectParams.ownerUri = fileUri;
 
-                let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
-                client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
-                    this.statusView.notConnected(fileUri);
+                self._client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
+                    self.statusView.notConnected(fileUri);
                     delete self._connections[fileUri];
 
                     resolve(result);
@@ -143,8 +154,7 @@ export default class ConnectionManager {
             let serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
-            let client: LanguageClient = SqlToolsServerClient.getInstance().getClient();
-            client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
+            self._client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
                 // handle connection complete callback
                 serviceTimer.end();
 
