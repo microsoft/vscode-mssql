@@ -15,11 +15,18 @@ import os = require('os');
 import path = require('path');
 import _ = require('underscore');
 
+
+/**
+ * Utility class to define the format for credentials
+ *
+ * @class CredentialDef
+ */
 class CredentialDef {
     public username: string;
     public password: string;
     public credentialId: string;
 }
+
 /*
     Provides the ICredentialStore API on top of file-based storage.
     Does not support any kind of 'prefix' of the credential (since its
