@@ -15,6 +15,11 @@ import os = require('os');
 import path = require('path');
 import _ = require('underscore');
 
+class CredentialDef {
+    public username: string;
+    public password: string;
+    public credentialId: string;
+}
 /*
     Provides the ICredentialStore API on top of file-based storage.
     Does not support any kind of 'prefix' of the credential (since its
@@ -38,7 +43,7 @@ export class LinuxFileApi implements ICredentialStore {
         return new Promise<Credential>((resolve, reject) => {
             self.loadCredentials().then((entries) => {
                 // Find the entry I want based on service
-                let entryArray: Array<any> = _.where(entries, { credentialId: credentialId });
+                let entryArray: Array<CredentialDef> = _.where(entries, { credentialId: credentialId });
                 if (entryArray !== undefined && entryArray.length > 0) {
                     let credential: Credential = self.createCredential(entryArray[0]);
                     resolve(credential);
@@ -57,11 +62,11 @@ export class LinuxFileApi implements ICredentialStore {
         return new Promise<void>((resolve, reject) => {
             self.loadCredentials().then((entries) => {
                 // Remove any entries that are the same as the one I'm about to add
-                let existingEntries = _.reject(entries, function(elem): boolean {
-                    return elem.username === username && elem.service === credentialId;
+                let existingEntries = _.reject(entries, function(elem: CredentialDef): boolean {
+                    return elem.username === username && elem.credentialId === credentialId;
                 });
 
-                let newEntry = {
+                let newEntry: CredentialDef = {
                     username: username,
                     password: password,
                     credentialId: credentialId
@@ -83,7 +88,7 @@ export class LinuxFileApi implements ICredentialStore {
         return new Promise<Credential>((resolve, reject) => {
             self.loadCredentials().then((entries) => {
                 // Find the entry I want based on service and username
-                let entryArray: Array<any> = _.where(entries, { credentialId: credentialId, username: username });
+                let entryArray: Array<CredentialDef> = _.where(entries, { credentialId: credentialId, username: username });
                 if (entryArray !== undefined && entryArray.length > 0) {
                     let credential: Credential = self.createCredential(entryArray[0]);
                     resolve(credential);
@@ -99,21 +104,21 @@ export class LinuxFileApi implements ICredentialStore {
 
     public removeCredential(credentialId: string): Promise<void> {
         return this.doRemoveCredential((elem) => {
-            return elem.service === credentialId;
+            return elem.credentialId === credentialId;
         });
     }
 
     public removeCredentialByName(credentialId: string, username: string): Promise<void> {
         return this.doRemoveCredential((elem) => {
             if (username === '*') {
-                return elem.service === credentialId;
+                return elem.credentialId === credentialId;
             } else {
-                return elem.username === username && elem.service === credentialId;
+                return elem.username === username && elem.credentialId === credentialId;
             }
         });
     }
 
-    private doRemoveCredential(entryFilter: (a: any) => boolean): Promise<void> {
+    private doRemoveCredential(entryFilter: (a: CredentialDef) => boolean): Promise<void> {
         let self = this;
         return new Promise<void>((resolve, reject) => {
             self.loadCredentials().then((entries) => {
@@ -133,13 +138,13 @@ export class LinuxFileApi implements ICredentialStore {
         });
     }
 
-    private createCredential(cred: any): Credential {
-        return new Credential(cred.service, cred.username, cred.password);
+    private createCredential(cred: CredentialDef): Credential {
+        return new Credential(cred.credentialId, cred.username, cred.password);
     }
 
-    private loadCredentials(): Promise<any> {
+    private loadCredentials(): Promise<CredentialDef[]> {
         let self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<CredentialDef[]>((resolve, reject) => {
             self._fts.loadEntries().then((entries) => {
                 resolve(entries);
             })
