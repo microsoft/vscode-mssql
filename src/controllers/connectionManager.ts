@@ -7,7 +7,7 @@ import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { LanguageClient } from 'vscode-languageclient';
+import { RequestType } from 'vscode-languageclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 
@@ -22,14 +22,14 @@ class ConnectionInfo {
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
-    private _client: LanguageClient;
+    private _client: SqlToolsServerClient;
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
 
-    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: LanguageClient) {
+    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: SqlToolsServerClient) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
@@ -37,10 +37,18 @@ export default class ConnectionManager {
         this._connections = {};
 
         if (typeof client === 'undefined') {
-            this._client = SqlToolsServerClient.getInstance().getClient();
+            this.client = SqlToolsServerClient.instance;
         } else {
-            this._client = client;
+            this.client = client;
         }
+    }
+
+    private get client(): SqlToolsServerClient {
+        return this._client;
+    }
+
+    private set client(client: SqlToolsServerClient) {
+        this._client = client;
     }
 
     private get connectionUI(): ConnectionUI {
@@ -154,7 +162,7 @@ export default class ConnectionManager {
             let serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
-            self._client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
+            self.client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
                 // handle connection complete callback
                 serviceTimer.end();
 

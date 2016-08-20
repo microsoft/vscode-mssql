@@ -75,7 +75,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(registration);
 
         // initialize language service client
-        SqlToolsServerClient.getInstance().initialize(this._context);
+        SqlToolsServerClient.instance.initialize(this._context);
 
         activationTimer.end();
 
@@ -107,7 +107,17 @@ export default class MainController implements vscode.Disposable {
         if (!Utils.isEditingSqlFile()) {
             Utils.showWarnMsg(Constants.msgOpenSqlFile);
         } else {
-            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview);
+            let editor = vscode.window.activeTextEditor;
+            let uri = 'vscode-mssql';
+            let title = editor.document.fileName;
+            let queryText: string;
+
+            if (editor.selection.isEmpty) {
+                queryText = editor.document.getText();
+            } else {
+                queryText = editor.document.getText(new vscode.Range(editor.selection.start, editor.selection.end));
+            }
+            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, queryText, title);
         }
     }
 
