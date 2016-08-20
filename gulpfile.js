@@ -17,7 +17,7 @@ require('./tasks/htmltasks')
 
 function nugetRestoreArgs(nupkg, options) {
     var args = new Array();
-    if (os.platform() != 'win32') { 
+    if (os.platform() != 'win32') {
         args.push('./nuget.exe');
     }
     args.push('restore');
@@ -106,14 +106,14 @@ gulp.task('ext:nuget-download', function(done) {
     if(fs.existsSync('nuget.exe')) {
         return done();
     }
- 
+
     request.get('http://nuget.org/nuget.exe')
         .pipe(fs.createWriteStream('nuget.exe'))
         .on('close', done);
 });
 
 gulp.task('ext:nuget-restore', function() {
-  
+
     var options = {
       configFile: './nuget.config',
       packagesDirectory: './packages'
@@ -130,8 +130,8 @@ gulp.task('ext:compile-tests', () => {
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
                 .pipe(srcmap.write('.', {
-                   sourceRoot: function(file){ return file.cwd + '/src'; }
-                }))
+                   sourceRoot: function(file){ return file.cwd + '/test'; }
+                }))
                 .pipe(gulp.dest('out/test/'));
 
 });

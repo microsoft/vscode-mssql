@@ -1,4 +1,14 @@
-<slick-grid [columnDefinitions]="columnDefinitions"
-            [dataRows]="dataRows"
-            showHeader="true">
-</slick-grid>
+<tabs>
+    <tab tabTitle="Results">
+        <navigator [results]="resultOptions" (selectionChange)="selectionChange($event)"></navigator>
+        <slick-grid [columnDefinitions]="columnDefinitions"
+                    [dataRows]="dataRows"
+                    showHeader="true">
+        </slick-grid>
+    </tab>
+    <tab tabTitle="Messages">
+        <div *ngFor="let message of messages">
+            {{message}}
+        </div>
+    </tab>
+</tabs>

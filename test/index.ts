@@ -16,7 +16,11 @@ let testRunner = require('vscode/lib/testrunner');
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
 testRunner.configure({
     ui: 'tdd', 		        // the TDD UI is being used in extension.test.ts (suite, test, etc.)
-    reporter: 'xunit-file', // output to file in xunit XML format
+    reporter: 'pm-mocha-jenkins-reporter',
+    reporterOptions: {
+        junit_report_name: 'Tests',
+        junit_report_stack: 1
+    },
     useColors: true         // colored output from test results
 });
 
