@@ -83,9 +83,33 @@ suite('Query Runner tests', () => {
         });
     });
 
-    test('Handles result correctly', () => {});
+    test('Handles result correctly', () => {
+        testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()))
+        let queryRunner = new QueryRunner(
+            undefined,
+            undefined,
+            testSqlOutputContentProvider.object,
+            undefined,
+            undefined,
+            testVscodeWrapper.object
+        );
+        queryRunner.handleResult({ownerUri: 'vscode', messages: undefined, hasError: false, resultSetSummaries: []});
+        testSqlOutputContentProvider.verify(x => x.updateContent(TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
 
-    test('Handles result error correctly', () => {});
+    test('Handles result error correctly', () => {
+        testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+        let queryRunner = new QueryRunner(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            testVscodeWrapper.object
+        );
+        queryRunner.handleResult({ownerUri: 'vscode', messages: ['Something went wrong'], hasError: true, resultSetSummaries: []});
+        testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+    });
 
     test('Correctly handles subset', () => {
         let testuri = 'test';
