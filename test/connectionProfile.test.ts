@@ -1,8 +1,10 @@
+'use strict';
+
 import * as TypeMoq from 'typemoq';
 import { IConnectionProfile } from '../src/models/interfaces';
 import { ConnectionProfile } from '../src/models/ConnectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
-import TestPrompter from './TestPrompter';
+import { TestPrompter } from './stubs';
 
 import Constants = require('../src/models/constants');
 import assert = require('assert');

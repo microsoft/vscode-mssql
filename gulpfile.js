@@ -92,6 +92,7 @@ gulp.task('ext:tslint', () => {
 gulp.task('ext:compile-src', () => {
     return gulp.src([
                 config.paths.project.root + '/src/**/*.ts',
+                config.paths.project.root + '/src/**/*.js',
                 config.paths.project.root + '/typings/**/*.ts',
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())

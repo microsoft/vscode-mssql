@@ -4,15 +4,37 @@ import Constants = require('./constants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
+import { ICredentialStore } from '../credentialStore/interfaces/icredentialstore';
+import { CredentialStore } from '../credentialStore/credentialstore';
 
-export class RecentConnections {
+/**
+ * Manages the connections list including saved profiles and the most recently used connections
+ *
+ * @export
+ * @class ConnectionStore
+ */
+export class ConnectionStore {
     private _context: vscode.ExtensionContext;
+    private _credentialStore: ICredentialStore;
 
-    constructor(context: vscode.ExtensionContext) {
+    private _defaultPrefix: string = 'sqlsecret:';
+    private _defaultFilename: string = 'sqlsecrets.json';
+    private _defaultFolder: string = '.sqlsecrets';
+
+    constructor(context: vscode.ExtensionContext, credentialStore?: ICredentialStore) {
         this._context = context;
+        if (credentialStore) {
+            this._credentialStore = credentialStore;
+        } else {
+            this._credentialStore = new CredentialStore(this._defaultPrefix, this._defaultFolder, this._defaultFilename);
+        }
     }
 
-    // Load connections from user preferences and return them as a formatted picklist
+    /**
+     * Load connections from user preferences and return them as a formatted picklist
+     *
+     * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
+     */
     public getPickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
         const self = this;
         return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
@@ -32,19 +54,6 @@ export class RecentConnections {
         });
     }
 
-    // maps credentials to user-displayable items
-    private mapToQuickPickItems(connections: IConnectionCredentials[]): IConnectionCredentialsQuickPickItem[] {
-        return connections.map( (item: IConnectionCredentials) => {
-            return <IConnectionCredentialsQuickPickItem> {
-                label: ConnInfo.getPicklistLabel(item),
-                description: ConnInfo.getPicklistDescription(item),
-                detail: ConnInfo.getPicklistDetails(item),
-                connectionCreds: item,
-                isNewConnectionQuickPickItem: false
-            };
-        });
-    }
-
     public getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
         const self = this;
         return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
@@ -56,6 +65,7 @@ export class RecentConnections {
             });
         });
     }
+
     public saveConnection(profile: IConnectionProfile): Promise<IConnectionProfile> {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
@@ -68,9 +78,11 @@ export class RecentConnections {
             // Remove the profile if already set
             configValues = configValues.filter(value => value.profileName !== profile.profileName);
 
-            // Add the profile back
-            configValues.push(profile);
+            // Add the profile to the saved list, taking care to clear out the password field
+            let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
+            configValues.push(savedProfile);
 
+            // TODO Save password to secure store if user requested this
             // saveConnection
             self._context.globalState.update(Constants.configMyConnections, configValues);
             resolve(profile);
@@ -101,6 +113,19 @@ export class RecentConnections {
             // saveConnection
             self._context.globalState.update(Constants.configMyConnections, configValues);
             resolve(found);
+        });
+    }
+
+    // maps credentials to user-displayable items
+    private mapToQuickPickItems(connections: IConnectionCredentials[]): IConnectionCredentialsQuickPickItem[] {
+        return connections.map( (item: IConnectionCredentials) => {
+            return <IConnectionCredentialsQuickPickItem> {
+                label: ConnInfo.getPicklistLabel(item),
+                description: ConnInfo.getPicklistDescription(item),
+                detail: ConnInfo.getPicklistDetails(item),
+                connectionCreds: item,
+                isNewConnectionQuickPickItem: false
+            };
         });
     }
 

@@ -1,9 +1,9 @@
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
-import {ExtensionContext, Memento} from 'vscode';
+import { ExtensionContext } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 
-import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
+import { IPrompter } from '../src/prompts/question';
 
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentials } from '../src/models/interfaces';
@@ -11,30 +11,7 @@ import * as Contracts from '../src/models/contracts';
 import StatusView from '../src/views/statusView';
 import Telemetry from '../src/models/telemetry';
 import * as Utils from '../src/models/utils';
-
-// Dummy implementation to simplify mocking
-class TestPrompter implements IPrompter {
-    public promptSingle<T>(question: IQuestion): Promise<T> {
-        return Promise.resolve(undefined);
-    }
-    public prompt<T>(questions: IQuestion[]): Promise<{[key: string]: T}> {
-        return Promise.resolve(undefined);
-    }
-    public promptCallback(questions: IQuestion[], callback: IPromptCallback): void {
-        callback({});
-    }
-}
-
-// Bare mock of the extension context for vscode
-class TestExtensionContext implements ExtensionContext {
-        subscriptions: { dispose(): any }[];
-        workspaceState: Memento;
-        globalState: Memento;
-        extensionPath: string;
-        asAbsolutePath(relativePath: string): string {
-            return undefined;
-        }
-}
+import { TestExtensionContext, TestPrompter } from './stubs';
 
 function createTestConnectionResult(): Contracts.ConnectionResult {
     let result = new Contracts.ConnectionResult();

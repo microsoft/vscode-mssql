@@ -1,7 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
-import { RecentConnections } from '../models/recentConnections';
+import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
@@ -25,8 +25,8 @@ export class ConnectionUI {
     public showConnections(): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let recentConnections = new RecentConnections(self._context);
-            recentConnections.getPickListItems()
+            let connectionStore = new ConnectionStore(self._context);
+            connectionStore.getPickListItems()
             .then((picklist: IConnectionCredentialsQuickPickItem[]) => {
                 return new Promise<IConnectionCredentials>(() => {
                     if (picklist.length === 0) {
@@ -40,7 +40,7 @@ export class ConnectionUI {
                             matchOnDescription: true
                         }, picklist)
                             .then(selection => {
-                                resolve(self.handleSelectedConnection(selection, recentConnections));
+                                resolve(self.handleSelectedConnection(selection, connectionStore));
                             });
                     }
                 });
@@ -129,7 +129,7 @@ export class ConnectionUI {
         });
     }
 
-    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem, recentConnections: RecentConnections): Promise<IConnectionCredentials> {
+    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem, connectionStore: ConnectionStore): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             if (selection !== undefined) {
@@ -156,11 +156,11 @@ export class ConnectionUI {
     // Calls the create profile workflow
     // Returns undefined if profile creation failed
     public createAndSaveProfile(): Promise<IConnectionProfile> {
-        let recentConnections = new RecentConnections(this._context);
+        let connectionStore = new ConnectionStore(this._context);
         return this.promptForCreateProfile()
             .then(profile => {
                 if (profile) {
-                    return recentConnections.saveConnection(profile);
+                    return connectionStore.saveConnection(profile);
                 }
                 return undefined;
             });
@@ -178,14 +178,14 @@ export class ConnectionUI {
     // Prompts the user to pick a profile for removal, then removes from the global saved state
     public removeProfile(): Promise<boolean> {
         let self = this;
-        let recentConnections = new RecentConnections(self._context);
+        let connectionStore = new ConnectionStore(self._context);
 
         // Flow: Select profile to remove, confirm removal, remove
-        return recentConnections.getProfilePickListItems()
+        return connectionStore.getProfilePickListItems()
             .then(profiles => self.selectProfileForRemoval(profiles))
             .then(profile => {
                 if (profile) {
-                    let result = recentConnections.removeProfile(profile);
+                    let result = connectionStore.removeProfile(profile);
                     if (result) {
                         // TODO again consider moving information prompts to the prompt package
                         vscode.window.showInformationMessage(Constants.msgProfileRemoved);

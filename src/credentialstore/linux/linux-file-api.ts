@@ -23,7 +23,7 @@ import _ = require('underscore');
  */
 class CredentialDef {
     public username: string;
-    public password: string;
+    public password: any;
     public credentialId: string;
 }
 

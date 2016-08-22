@@ -6,7 +6,8 @@
         "watch": false,
         "noLib": true,
         "sourceMap": true,
-        "rootDir": "."
+        "rootDir": ".",
+        "allowJs": true
     },
     "exclude": [
         "node_modules",
