@@ -62,13 +62,17 @@ export default class SqlToolsServiceClient {
         context.subscriptions.push(disposable);
     }
 
-     public checkServiceCompatibility(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+     public checkServiceCompatibility(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             this._client.sendRequest(VersionRequest.type).then((result) => {
                  Utils.logDebug('sqlserverclient version: ' + result);
+
                  if (!result || !result.startsWith(Constants.serviceCompatibleVersion)) {
-                      Utils.showErrorMsg(Constants.serviceNotCompatibleError);
-                      Utils.logDebug(Constants.serviceNotCompatibleError);
+                     Utils.showErrorMsg(Constants.serviceNotCompatibleError);
+                     Utils.logDebug(Constants.serviceNotCompatibleError);
+                     resolve(false);
+                 } else {
+                     resolve(true);
                  }
             });
         });
