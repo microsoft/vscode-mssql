@@ -3,7 +3,15 @@ import * as Constants from './../models/constants';
 
 export default class VscodeWrapper {
     public get activeTextEditor(): vscode.TextEditor {
-        return undefined;
+        return vscode.window.activeTextEditor;
+    }
+
+    public get activeTextEditorUri(): string {
+        if (typeof vscode.window.activeTextEditor !== 'undefined' &&
+            typeof vscode.window.activeTextEditor.document !== 'undefined') {
+            return vscode.window.activeTextEditor.document.uri.toString();
+        }
+        return '';
     }
 
     public createOutputChannel(channelName: string): vscode.OutputChannel {

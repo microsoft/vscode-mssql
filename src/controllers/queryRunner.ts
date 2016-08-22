@@ -121,11 +121,7 @@ export default class QueryRunner {
     }
 
     // get more data rows from the current resultSets from the service layer
-<<<<<<< a36bf3ebff8f6e58bfd6322cee36cee5eaafe56e
-    public getRows(rowStart: number, numberOfRows: number, resultSetIndex: number): Thenable<Contracts.QueryExecuteSubsetResult> {
-=======
     public getRows(rowStart: number, numberOfRows: number, resultSetIndex: number): Promise<Contracts.QueryExecuteSubsetResult> {
->>>>>>> added tests for query runner
         const self = this;
         let queryDetails = new Contracts.QueryExecuteSubsetParams();
         queryDetails.ownerUri = this.uri;

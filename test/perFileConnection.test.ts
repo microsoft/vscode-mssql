@@ -1,7 +1,7 @@
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import {ExtensionContext, Memento} from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
+import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 
@@ -57,11 +57,11 @@ function createTestCredentials(): IConnectionCredentials {
     return creds;
 }
 
-function createTestConnectionManager(languageClient: LanguageClient): ConnectionManager {
+function createTestConnectionManager(serviceClient: SqlToolsServiceClient): ConnectionManager {
     let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
     let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
     let prompterMock: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-    return new ConnectionManager(contextMock.object, statusViewMock.object, prompterMock.object, languageClient);
+    return new ConnectionManager(contextMock.object, statusViewMock.object, prompterMock.object, serviceClient);
 }
 
 suite('Per File Connection Tests', () => {
@@ -75,11 +75,11 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let languageClientMock: TypeMoq.Mock<LanguageClient> = TypeMoq.Mock.ofType(LanguageClient, TypeMoq.MockBehavior.Strict);
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
 
-        let manager: ConnectionManager = createTestConnectionManager(languageClientMock.object);
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object);
 
         // Create two different connections using the connection manager
         let connectionCreds = createTestCredentials();
@@ -109,13 +109,13 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let languageClientMock: TypeMoq.Mock<LanguageClient> = TypeMoq.Mock.ofType(LanguageClient, TypeMoq.MockBehavior.Strict);
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(true));
 
-        let manager: ConnectionManager = createTestConnectionManager(languageClientMock.object);
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object);
 
         // Create two different connections using the connection manager
         let connectionCreds = createTestCredentials();
@@ -158,13 +158,13 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let languageClientMock: TypeMoq.Mock<LanguageClient> = TypeMoq.Mock.ofType(LanguageClient, TypeMoq.MockBehavior.Strict);
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(true));
 
-        let manager: ConnectionManager = createTestConnectionManager(languageClientMock.object);
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object);
 
         // Create two different connections using the connection manager
         let connectionCreds = createTestCredentials();

@@ -84,7 +84,7 @@ suite('Query Runner tests', () => {
     });
 
     test('Handles result correctly', () => {
-        testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()))
+        testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()));
         let queryRunner = new QueryRunner(
             undefined,
             undefined,

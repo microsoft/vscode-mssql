@@ -7,9 +7,9 @@ import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { RequestType } from 'vscode-languageclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
+import VscodeWrapper from './vscodeWrapper';
 
 // Information for a document's connection
 class ConnectionInfo {
@@ -28,6 +28,7 @@ export default class ConnectionManager {
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
+    private _vscodeWrapper: VscodeWrapper;
 
     constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: SqlToolsServerClient) {
         this._context = context;
@@ -41,6 +42,16 @@ export default class ConnectionManager {
         } else {
             this.client = client;
         }
+
+        this.vscodeWrapper = new VscodeWrapper();
+    }
+
+    private get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
+    private set vscodeWrapper(wrapper: VscodeWrapper) {
+        this._vscodeWrapper = wrapper;
     }
 
     private get client(): SqlToolsServerClient {
@@ -71,10 +82,10 @@ export default class ConnectionManager {
     // choose database to use on current server
     public onChooseDatabase(): void {
         const self = this;
-        const fileUri = Utils.getActiveTextEditorUri();
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
         if (!self.isConnected(fileUri)) {
-            Utils.showWarnMsg(Constants.msgChooseDatabaseNotConnected);
+            this.vscodeWrapper.showWarningMessage(Constants.msgChooseDatabaseNotConnected);
             return;
         }
 
@@ -100,7 +111,7 @@ export default class ConnectionManager {
                 let disconnectParams = new Contracts.DisconnectParams();
                 disconnectParams.ownerUri = fileUri;
 
-                self._client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
+                self.client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
                     self.statusView.notConnected(fileUri);
                     delete self._connections[fileUri];
 
@@ -114,11 +125,11 @@ export default class ConnectionManager {
     // let users pick from a picklist of connections
     public onNewConnection(): Promise<boolean> {
         const self = this;
-        const fileUri = Utils.getActiveTextEditorUri();
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
         if (fileUri === '') {
             // A text document needs to be open before we can connect
-            Utils.showInfoMsg(Constants.msgOpenSqlFile);
+            this.vscodeWrapper.showInformationMessage(Constants.msgOpenSqlFile);
         }
 
         return new Promise<boolean>((resolve, reject) => {

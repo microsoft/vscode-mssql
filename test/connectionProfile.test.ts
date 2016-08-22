@@ -110,7 +110,7 @@ suite('Connection Profile tests', () => {
         let authChoices = <INameValueChoice[]>authQuestion.choices;
         if ('win32' === os.platform()) {
             assert.equal(authChoices.length, 2);
-            assert.equal(authChoices[1], Constants.authTypeIntegrated);
+            assert.equal(authChoices[1].name, Constants.authTypeIntegrated);
 
             // And on a platform with multiple choices, should prompt for input
             assert.strictEqual(authQuestion.shouldPrompt(answers), true);
