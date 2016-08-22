@@ -95,7 +95,7 @@ export default class QueryRunner {
         queryDetails.ownerUri = uri;
         queryDetails.queryText = text;
         this.title = title;
-        this.uri = title;
+        this.uri = uri;
 
         return this.client.sendRequest(Contracts.QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {

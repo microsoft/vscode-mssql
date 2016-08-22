@@ -100,7 +100,7 @@ export default class ConnectionManager {
 
     // close active connection, if any
     public onDisconnect(): Promise<boolean> {
-        return this.disconnect(Utils.getActiveTextEditorUri());
+        return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
     }
 
     public disconnect(fileUri: string): Promise<boolean> {

@@ -11,6 +11,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
+import VscodeWrapper from './vscodeWrapper';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -19,6 +20,7 @@ export default class MainController implements vscode.Disposable {
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
+    private _vscodeWrapper: VscodeWrapper;
 
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
@@ -60,22 +62,24 @@ export default class MainController implements vscode.Disposable {
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
 
+        this._vscodeWrapper = new VscodeWrapper();
+
+        // initialize language service client
+        SqlToolsServerClient.instance.initialize(this._context);
+
         // Init status bar
         this._statusview = new StatusView();
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter();
 
-        // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
-
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(self._context);
         let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
         this._context.subscriptions.push(registration);
 
-        // initialize language service client
-        SqlToolsServerClient.instance.initialize(this._context);
+        // Init connection manager and connection MRU
+        this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
         activationTimer.end();
 
@@ -107,8 +111,8 @@ export default class MainController implements vscode.Disposable {
         if (!Utils.isEditingSqlFile()) {
             Utils.showWarnMsg(Constants.msgOpenSqlFile);
         } else {
-            let editor = vscode.window.activeTextEditor;
-            let uri = 'vscode-mssql';
+            let editor = this._vscodeWrapper.activeTextEditor;
+            let uri = this._vscodeWrapper.activeTextEditorUri;
             let title = editor.document.fileName;
             let queryText: string;
 
