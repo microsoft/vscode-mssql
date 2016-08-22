@@ -113,3 +113,5 @@ export const executeQueryErrorLabel = 'Query completed with errors';
 export const executeQuerySuccessLabel = 'Query executed successfully';
 export const executeQueryRowsAffected = ' row(s) affected';
 export const executeQueryCommandCompleted = 'Command(s) completed successfully.';
+
+export const failedToLoadServiceClient = 'Failed to load the service client';

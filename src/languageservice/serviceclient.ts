@@ -6,6 +6,9 @@
 
 import * as path from 'path';
 import { ExtensionContext } from 'vscode';
+import Utils = require('../models/utils');
+import vscode = require('vscode');
+import Constants = require('../models/constants');
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 
 // The Service Client class handles communication with the VS Code LanguageClient
@@ -48,6 +51,10 @@ export default class SqlToolsServiceClient {
 
         // cache the client instance for later use
         this._client = new LanguageClient('sqlserverclient', serverOptions, clientOptions);
+        this._client.onReady().catch(function (error: any): void {
+              vscode.window.showErrorMessage(Constants.failedToLoadServiceClient);
+              Utils.logDebug(Constants.failedToLoadServiceClient + ' [error: ' + error + ']');
+        });
 
         // Create the language client and start the client.
         let disposable = this._client.start();
