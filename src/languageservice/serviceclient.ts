@@ -100,4 +100,5 @@ export default class SqlToolsServiceClient {
                  }
             });
         });
+    }
 }
