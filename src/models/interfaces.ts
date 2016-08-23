@@ -42,9 +42,15 @@ export interface IConnectionProfile extends IConnectionCredentials {
     savePassword: boolean;
 }
 
+export enum CredentialsQuickPickItemType {
+    Profile,
+    Mru,
+    NewConnection
+}
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
-    isNewConnectionQuickPickItem: boolean;
+    quickPickItemType: CredentialsQuickPickItemType;
+
 };
 
 // Obtained from an active connection to show in the status bar

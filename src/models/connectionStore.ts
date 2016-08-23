@@ -4,7 +4,7 @@ import Constants = require('./constants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
-import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
+import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { ICredentialStore } from '../credentialStore/interfaces/icredentialstore';
 import { CredentialStore } from '../credentialStore/credentialstore';
 
@@ -40,6 +40,13 @@ export class ConnectionStore {
     public static get CRED_PROFILE_USER(): string { return 'profile'; };
     public static get CRED_MRU_USER(): string { return 'mru'; };
 
+    public static formatCredentialIdForCred(creds: IConnectionCredentials): string {
+        if (Utils.isEmpty(creds)) {
+            throw new ValidationException('Missing Connection which is required');
+        }
+        return ConnectionStore.formatCredentialId(creds.server, creds.database, creds.user);
+    }
+
     /**
      * Creates a formatted credential usable for uniquely identifying a SQL Connection.
      * This string can be decoded but is not optimized for this.
@@ -51,7 +58,7 @@ export class ConnectionStore {
      */
     public static formatCredentialId(server: string, database?: string, user?: string): string {
         if (Utils.isEmpty(server)) {
-            throw new ValidationException('Missing Connection or Server Name, which are required');
+            throw new ValidationException('Missing Server Name, which is required');
         }
         let cred: string[] = [ConnectionStore.CRED_PREFIX];
         ConnectionStore.pushIfNonEmpty(server, ConnectionStore.CRED_SERVER_PREFIX, cred);
@@ -84,7 +91,7 @@ export class ConnectionStore {
                 pickListItems.push(<IConnectionCredentialsQuickPickItem> {
                         label: Constants.CreateProfileLabel,
                         connectionCreds: undefined,
-                        isNewConnectionQuickPickItem: true
+                        quickPickItemType: CredentialsQuickPickItemType.NewConnection
                     });
                 resolve(pickListItems);
             });
@@ -109,6 +116,21 @@ export class ConnectionStore {
         });
     }
 
+    public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
+        if (Utils.isEmpty(credentialsItem.connectionCreds.password)) {
+            let name: string = credentialsItem.quickPickItemType === CredentialsQuickPickItemType.Profile ?
+                ConnectionStore.CRED_PROFILE_USER : ConnectionStore.CRED_MRU_USER;
+
+            let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds);
+            return this._credentialStore.getCredentialByName(credentialId, name).then(savedCred => {
+                credentialsItem.connectionCreds.password = savedCred.Password;
+                return credentialsItem;
+            });
+        } else {
+            // Already have a password, no need to look up
+            return Promise.resolve(credentialsItem);
+        }
+    }
 
     /**
      * Saves a connection profile to the user settings.
@@ -185,13 +207,15 @@ export class ConnectionStore {
 
     // maps credentials to user-displayable items
     private mapToQuickPickItems(connections: IConnectionCredentials[]): IConnectionCredentialsQuickPickItem[] {
-        return connections.map( (item: IConnectionCredentials) => {
+        // treat items as any since can't do typeof check on an interface
+        return connections.map( (item: any) => {
+            let itemType = (Utils.isNotEmpty(<IConnectionProfile>item.profileName)) ? CredentialsQuickPickItemType.Profile : CredentialsQuickPickItemType.Mru;
             return <IConnectionCredentialsQuickPickItem> {
                 label: ConnInfo.getPicklistLabel(item),
                 description: ConnInfo.getPicklistDescription(item),
                 detail: ConnInfo.getPicklistDetails(item),
                 connectionCreds: item,
-                isNewConnectionQuickPickItem: false
+                quickPickItemType: itemType
             };
         });
     }

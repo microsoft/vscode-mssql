@@ -2,8 +2,9 @@
 import vscode = require('vscode');
 import Constants = require('../models/constants');
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
-import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
+import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
 
@@ -11,7 +12,7 @@ import Interfaces = require('../models/interfaces');
 const mssql = require('mssql');
 
 export class ConnectionUI {
-    constructor(private _connectionStore, private _prompter: IPrompter) {
+    constructor(private _connectionStore: ConnectionStore, private _prompter: IPrompter) {
     }
 
     // Helper to let user choose a connection from a picklist
@@ -77,7 +78,7 @@ export class ConnectionUI {
                             description: '',
                             detail: '',
                             connectionCreds: newCredentials,
-                            isNewConnectionQuickPickItem: false
+                            quickPickItemType: CredentialsQuickPickItemType.Mru
                         };
                     });
 
@@ -127,13 +128,12 @@ export class ConnectionUI {
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             if (selection !== undefined) {
                 let connectFunc: Promise<IConnectionCredentials>;
-                if (selection.isNewConnectionQuickPickItem) {
+                if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
                     // call the workflow to create a new connection
                     connectFunc = self.createAndSaveProfile();
                 } else {
                     // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-                    let connectionCreds = selection.connectionCreds;
-                    connectFunc = self.promptForMissingInfo(connectionCreds);
+                    connectFunc = self.fillOrPromptForMissingInfo(selection);
                 }
 
                 connectFunc.then((resolvedConnectionCreds) => {
@@ -163,9 +163,10 @@ export class ConnectionUI {
         return ConnectionProfile.createProfile(this._prompter);
     }
 
-    // Prompt user for missing details in the given IConnectionCredentials
-    private promptForMissingInfo(credentials: IConnectionCredentials): Promise<IConnectionCredentials> {
-        return ConnectionCredentials.ensureRequiredPropertiesSet(credentials, false, this._prompter);
+    private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+        return this._connectionStore.addSavedPassword(selection).then(sel => {
+            return ConnectionCredentials.ensureRequiredPropertiesSet(sel.connectionCreds, false, this._prompter);
+        });
     }
 
     // Prompts the user to pick a profile for removal, then removes from the global saved state
@@ -204,7 +205,7 @@ export class ConnectionUI {
                 // 1: what profile should we remove?
                 type: QuestionTypes.expand,
                 name: chooseProfile,
-                message: Constants.msgSelectProfile,
+                message: Constants.msgSelectProfileToRemove,
                 matchOptions: { matchOnDescription: true },
                 choices: profiles
             },
