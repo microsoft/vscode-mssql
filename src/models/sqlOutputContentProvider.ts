@@ -112,9 +112,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
     }
 
-    public runQuery(connectionMgr, statusView): void {
+    public runQuery(connectionMgr, statusView, uri: string, text: string, title: string): void {
         let queryRunner = new QueryRunner(connectionMgr, statusView, this);
-        queryRunner.runQuery();
+        queryRunner.runQuery(uri, text, title);
     }
 
     public updateContent(queryRunner: QueryRunner): string {

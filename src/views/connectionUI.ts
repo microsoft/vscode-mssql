@@ -12,7 +12,17 @@ import Interfaces = require('../models/interfaces');
 const mssql = require('mssql');
 
 export class ConnectionUI {
+    private _errorOutputChannel: vscode.OutputChannel;
+
     constructor(private _connectionStore: ConnectionStore, private _prompter: IPrompter) {
+        this._errorOutputChannel = vscode.window.createOutputChannel(Constants.connectionErrorChannelName);
+    }
+
+    // Show connection errors in an output window
+    public showConnectionErrors(errorMessages: string): void {
+        this._errorOutputChannel.clear();
+        this._errorOutputChannel.append(errorMessages);
+        this._errorOutputChannel.show(true);
     }
 
     // Helper to let user choose a connection from a picklist
