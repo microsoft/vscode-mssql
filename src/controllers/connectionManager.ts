@@ -43,6 +43,11 @@ export default class ConnectionManager {
         }
     }
 
+    // Exposed for testing purposes
+    public get client(): LanguageClient {
+        return this._client;
+    }
+
     private get connectionUI(): ConnectionUI {
         return this._connectionUI;
     }

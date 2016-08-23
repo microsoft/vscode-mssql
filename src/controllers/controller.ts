@@ -120,4 +120,9 @@ export default class MainController implements vscode.Disposable {
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
     }
+
+    // Access the connection manager for testing
+    public get connectionManager(): ConnectionManager {
+        return this._connectionMgr;
+    }
 }
