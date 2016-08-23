@@ -15,10 +15,10 @@ suite('Query Runner tests', () => {
     let testVscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
 
     setup(() => {
-        testSqlOutputContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Loose, {extensionPath: ''});
-        testSqlToolsServerClient = TypeMoq.Mock.ofType(SqlToolsServerClient);
-        testQueryNotificationHandler = TypeMoq.Mock.ofType(QueryNotificationHandler);
-        testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        testSqlOutputContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Strict, {extensionPath: ''});
+        testSqlToolsServerClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Strict);
+        testQueryNotificationHandler = TypeMoq.Mock.ofType(QueryNotificationHandler, TypeMoq.MockBehavior.Strict);
+        testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Strict);
 
     });
 
@@ -27,8 +27,9 @@ suite('Query Runner tests', () => {
         let queryRunner = new QueryRunner(undefined,
                                           undefined,
                                           testSqlOutputContentProvider.object,
-                                          testSqlToolsServerClient.object,
-                                          testQueryNotificationHandler.object);
+                                            testSqlToolsServerClient.object,
+                                            testQueryNotificationHandler.object,
+                                            testVscodeWrapper.object);
         assert.equal(typeof queryRunner !== undefined, true);
     });
 
@@ -51,7 +52,8 @@ suite('Query Runner tests', () => {
             undefined,
             testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
         );
         return queryRunner.runQuery(testuri, testquery, testtitle).then(() => {
             testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
@@ -73,7 +75,7 @@ suite('Query Runner tests', () => {
         let queryRunner = new QueryRunner(
                     undefined,
                     undefined,
-                    undefined,
+                    testSqlOutputContentProvider.object,
                     testSqlToolsServerClient.object,
                     testQueryNotificationHandler.object,
                     testVscodeWrapper.object
@@ -89,8 +91,8 @@ suite('Query Runner tests', () => {
             undefined,
             undefined,
             testSqlOutputContentProvider.object,
-            undefined,
-            undefined,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
         queryRunner.handleResult({ownerUri: 'vscode', messages: undefined, hasError: false, resultSetSummaries: []});
@@ -102,9 +104,9 @@ suite('Query Runner tests', () => {
         let queryRunner = new QueryRunner(
             undefined,
             undefined,
-            undefined,
-            undefined,
-            undefined,
+            testSqlOutputContentProvider.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
         queryRunner.handleResult({ownerUri: 'vscode', messages: ['Something went wrong'], hasError: true, resultSetSummaries: []});
@@ -133,9 +135,10 @@ suite('Query Runner tests', () => {
         let queryRunner = new QueryRunner(
             undefined,
             undefined,
-            undefined,
+            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
         );
         queryRunner.uri = testuri;
         return queryRunner.getRows(0, 5, 0).then(result => {
@@ -156,7 +159,7 @@ suite('Query Runner tests', () => {
         let queryRunner = new QueryRunner(
             undefined,
             undefined,
-            undefined,
+            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
