@@ -4,6 +4,7 @@ import Constants = require('../models/constants');
 import * as Contracts from '../models/contracts';
 import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
+import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -33,7 +34,7 @@ export default class ConnectionManager {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
-        this._connectionUI = new ConnectionUI(context, prompter);
+        this._connectionUI = new ConnectionUI(new ConnectionStore(context), prompter);
         this._connections = {};
 
         if (typeof client === 'undefined') {
