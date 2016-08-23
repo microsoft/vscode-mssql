@@ -60,22 +60,22 @@ export default class MainController implements vscode.Disposable {
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
 
+        // initialize language service client
+        SqlToolsServerClient.getInstance().initialize(this._context);
+
         // Init status bar
         this._statusview = new StatusView();
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter();
 
-        // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
-
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(self._context);
         let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
         this._context.subscriptions.push(registration);
 
-        // initialize language service client
-        SqlToolsServerClient.getInstance().initialize(this._context);
+        // Init connection manager and connection MRU
+        this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
         activationTimer.end();
 
