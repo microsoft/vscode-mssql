@@ -1,7 +1,6 @@
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
-import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
@@ -12,12 +11,7 @@ import Interfaces = require('../models/interfaces');
 const mssql = require('mssql');
 
 export class ConnectionUI {
-    private _context: vscode.ExtensionContext;
-    private _prompter: IPrompter;
-
-    constructor(context: vscode.ExtensionContext, prompter: IPrompter) {
-        this._context = context;
-        this._prompter = prompter;
+    constructor(private _connectionStore, private _prompter: IPrompter) {
     }
 
     // Helper to let user choose a connection from a picklist
@@ -25,8 +19,7 @@ export class ConnectionUI {
     public showConnections(): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let connectionStore = new ConnectionStore(self._context);
-            connectionStore.getPickListItems()
+            self._connectionStore.getPickListItems()
             .then((picklist: IConnectionCredentialsQuickPickItem[]) => {
                 return new Promise<IConnectionCredentials>(() => {
                     if (picklist.length === 0) {
@@ -40,7 +33,7 @@ export class ConnectionUI {
                             matchOnDescription: true
                         }, picklist)
                             .then(selection => {
-                                resolve(self.handleSelectedConnection(selection, connectionStore));
+                                resolve(self.handleSelectedConnection(selection));
                             });
                     }
                 });
@@ -129,7 +122,7 @@ export class ConnectionUI {
         });
     }
 
-    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem, connectionStore: ConnectionStore): Promise<IConnectionCredentials> {
+    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             if (selection !== undefined) {
@@ -156,11 +149,11 @@ export class ConnectionUI {
     // Calls the create profile workflow
     // Returns undefined if profile creation failed
     public createAndSaveProfile(): Promise<IConnectionProfile> {
-        let connectionStore = new ConnectionStore(this._context);
-        return this.promptForCreateProfile()
+        let self = this;
+        return self.promptForCreateProfile()
             .then(profile => {
                 if (profile) {
-                    return connectionStore.saveConnection(profile);
+                    return self._connectionStore.saveProfile(profile);
                 }
                 return undefined;
             });
@@ -178,14 +171,13 @@ export class ConnectionUI {
     // Prompts the user to pick a profile for removal, then removes from the global saved state
     public removeProfile(): Promise<boolean> {
         let self = this;
-        let connectionStore = new ConnectionStore(self._context);
 
         // Flow: Select profile to remove, confirm removal, remove
-        return connectionStore.getProfilePickListItems()
+        return self._connectionStore.getProfilePickListItems()
             .then(profiles => self.selectProfileForRemoval(profiles))
             .then(profile => {
                 if (profile) {
-                    let result = connectionStore.removeProfile(profile);
+                    let result = self._connectionStore.removeProfile(profile);
                     if (result) {
                         // TODO again consider moving information prompts to the prompt package
                         vscode.window.showInformationMessage(Constants.msgProfileRemoved);
