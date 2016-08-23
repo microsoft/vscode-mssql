@@ -9,7 +9,6 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
     QueryDisposeRequest } from '../models/contracts/queryExecute';
-import * as Utils from '../models/utils';
 
 export interface IResultSet {
     columns: string[];
@@ -23,7 +22,6 @@ export default class QueryRunner {
     private _batchSets: BatchSummary[];
     private _uri: string;
     private _title: string;
-    private _messages: string[];
 
     constructor(private _connectionMgr: ConnectionManager,
                 private _statusView: StatusView,

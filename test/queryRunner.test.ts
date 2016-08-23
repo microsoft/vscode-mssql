@@ -4,7 +4,7 @@ import QueryRunner from './../src/controllers/queryRunner';
 import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
 import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
-import { QueryExecuteParams } from './../src/models/contracts';
+import { QueryExecuteParams } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 
 suite('Query Runner tests', () => {
@@ -93,7 +93,12 @@ suite('Query Runner tests', () => {
             undefined,
             testVscodeWrapper.object
         );
-        queryRunner.handleResult({ownerUri: 'vscode', messages: undefined, hasError: false, resultSetSummaries: []});
+        queryRunner.handleResult({ownerUri: 'vscode', batchSummaries: [{
+            hasError: false,
+            id: 0,
+            messages: ['6 affects rows'],
+            resultSetSummaries: []
+        }]});
         testSqlOutputContentProvider.verify(x => x.updateContent(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
@@ -107,7 +112,7 @@ suite('Query Runner tests', () => {
             undefined,
             testVscodeWrapper.object
         );
-        queryRunner.handleResult({ownerUri: 'vscode', messages: ['Something went wrong'], hasError: true, resultSetSummaries: []});
+        queryRunner.handleResult({ownerUri: 'vscode', batchSummaries: []});
         testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
     });
 
@@ -138,7 +143,7 @@ suite('Query Runner tests', () => {
             testQueryNotificationHandler.object
         );
         queryRunner.uri = testuri;
-        return queryRunner.getRows(0, 5, 0).then(result => {
+        return queryRunner.getRows(0, 5, 0, 0).then(result => {
             assert.equal(result, testresult);
         });
     });
@@ -162,7 +167,7 @@ suite('Query Runner tests', () => {
             testVscodeWrapper.object
         );
         queryRunner.uri = testuri;
-        return queryRunner.getRows(0, 5, 0).then(undefined, () => {
+        return queryRunner.getRows(0, 5, 0, 0).then(undefined, () => {
             testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
     });

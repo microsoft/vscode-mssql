@@ -40,18 +40,31 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
 
             Utils.logDebug(Constants.msgContentProviderOnResultsEndpoint);
-            let resultsetsMeta: Interfaces.ISqlResultsetMeta[] = [];
+            let batchSets: Interfaces.ISlickGridBatchMetaData[] = [];
             let uri: string = decodeURI(req.query.uri);
             for (let batchIndex = 0; batchIndex < self._queryResultsMap.get(uri).batchSets.length; batchIndex++) {
+                let batch: Interfaces.ISlickGridBatchMetaData = {resultSets: [], messages: undefined};
                 for (let resultIndex = 0; resultIndex < self._queryResultsMap.get(uri).batchSets[batchIndex].resultSetSummaries.length; resultIndex++) {
-                    resultsetsMeta.push( <Interfaces.ISqlResultsetMeta> {
+                    batch.resultSets.push( <Interfaces.ISlickGridResultSet> {
                         columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex,
                         rowsUri: '/' + Constants.outputContentTypeRows +  '?batchId=' + batchIndex + '&resultId=' + resultIndex,
-                        totalRows: self._queryResultsMap.get(uri).batchSets[batchIndex].resultSetSummaries[resultIndex].rowCount
+                        numberOfRows: self._queryResultsMap.get(uri).batchSets[batchIndex].resultSetSummaries[resultIndex].rowCount
                     });
                 }
+                batch.messages = self._queryResultsMap.get(uri).batchSets[batchIndex].messages;
+                batchSets.push(batch);
             }
-            let json = JSON.stringify(resultsetsMeta);
+            let json = JSON.stringify(batchSets);
+            // Utils.logDebug(json);
+            res.send(json);
+        });
+
+        // add http handler for '/messages' - return all messages as a JSON string
+        this._service.addHandler(Interfaces.ContentType.Messages, function(req, res): void {
+            let batchId = req.query.batchId;
+            Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
+            let uri: string = decodeURI(req.query.uri);
+            let json = JSON.stringify(self._queryResultsMap.get(uri).batchSets[batchId].messages);
             // Utils.logDebug(json);
             res.send(json);
         });

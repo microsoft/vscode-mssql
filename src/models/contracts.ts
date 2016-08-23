@@ -1,4 +1,4 @@
-import {RequestType, NotificationType} from 'vscode-languageclient';
+import {RequestType} from 'vscode-languageclient';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 

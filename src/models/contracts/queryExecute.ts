@@ -58,11 +58,11 @@ export class ResultSetSummary {
     columnInfo: IDbColumn[];
 }
 
-export interface BatchSummary {
-    hasError: boolean,
-    id: number,
-    messages: string[],
-    resultSetSummaries: ResultSetSummary[]
+export class BatchSummary {
+    hasError: boolean;
+    id: number;
+    messages: string[];
+    resultSetSummaries: ResultSetSummary[];
 }
 
 export class QueryExecuteCompleteNotificationResult {
