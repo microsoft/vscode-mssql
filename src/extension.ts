@@ -18,3 +18,8 @@ export function deactivate(): void {
         controller.deactivate();
     }
 }
+
+// Exposed for testing purposes
+export function getController(): MainController {
+    return controller;
+}
