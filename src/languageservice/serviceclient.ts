@@ -8,6 +8,9 @@ import * as path from 'path';
 import { ExtensionContext } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
     TransportKind, RequestType, NotificationType, INotificationHandler } from 'vscode-languageclient';
+import * as Utils from '../models/utils';
+import {VersionRequest} from '../models/contracts';
+import Constants = require('../models/constants');
 
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
@@ -53,7 +56,9 @@ export default class SqlToolsServiceClient {
 
         // cache the client instance for later use
         this.client = new LanguageClient('sqlserverclient', serverOptions, clientOptions);
-
+        this.client.onReady().then( () => {
+            this.checkServiceCompatibility();
+        });
         // Create the language client and start the client.
         let disposable = this.client.start();
 
@@ -80,4 +85,19 @@ export default class SqlToolsServiceClient {
     public onNotification<P>(type: NotificationType<P>, handler: INotificationHandler<P>): void {
         return this.client.onNotification(type, handler);
     }
+
+    public checkServiceCompatibility(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this._client.sendRequest(VersionRequest.type).then((result) => {
+                 Utils.logDebug('sqlserverclient version: ' + result);
+
+                 if (!result || !result.startsWith(Constants.serviceCompatibleVersion)) {
+                     Utils.showErrorMsg(Constants.serviceNotCompatibleError);
+                     Utils.logDebug(Constants.serviceNotCompatibleError);
+                     resolve(false);
+                 } else {
+                     resolve(true);
+                 }
+            });
+        });
 }

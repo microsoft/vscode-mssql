@@ -195,8 +195,9 @@ export default class ConnectionManager {
 
                     resolve(true);
                 } else {
-                    Utils.showErrorMsg(Constants.msgError + result.messages);
+                    Utils.showErrorMsg(Constants.msgError + Constants.msgConnectionError);
                     self.statusView.connectError(fileUri, connectionCreds, result.messages);
+                    self.connectionUI.showConnectionErrors(result.messages);
 
                     reject();
                 }

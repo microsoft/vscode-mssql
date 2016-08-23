@@ -55,6 +55,9 @@ export const msgContentProviderProvideContent = 'Content provider: provideTextDo
 export const msgChooseDatabaseNotConnected = 'Not connected. Please connect to a server first.';
 export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
+export const msgConnectionError = 'Connection failed. See output window for details.';
+export const connectionErrorChannelName = 'Connection Errors';
+
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
 export const msgOpenSqlFile = `To use this command, Open a .sql file -or-
@@ -113,3 +116,7 @@ export const executeQueryErrorLabel = 'Query completed with errors';
 export const executeQuerySuccessLabel = 'Query executed successfully';
 export const executeQueryRowsAffected = ' row(s) affected';
 export const executeQueryCommandCompleted = 'Command(s) completed successfully.';
+
+export const serviceCompatibleVersion = '1.0.0';
+export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
+
