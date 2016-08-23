@@ -7,9 +7,9 @@ import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { LanguageClient } from 'vscode-languageclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
+import VscodeWrapper from './vscodeWrapper';
 
 // Information for a document's connection
 class ConnectionInfo {
@@ -22,14 +22,15 @@ class ConnectionInfo {
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
-    private _client: LanguageClient;
+    private _client: SqlToolsServerClient;
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
+    private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: LanguageClient) {
+    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: SqlToolsServerClient) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
@@ -37,10 +38,28 @@ export default class ConnectionManager {
         this._connections = {};
 
         if (typeof client === 'undefined') {
-            this._client = SqlToolsServerClient.getInstance().getClient();
+            this.client = SqlToolsServerClient.instance;
         } else {
-            this._client = client;
+            this.client = client;
         }
+
+        this.vscodeWrapper = new VscodeWrapper();
+    }
+
+    private get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
+    private set vscodeWrapper(wrapper: VscodeWrapper) {
+        this._vscodeWrapper = wrapper;
+    }
+
+    private get client(): SqlToolsServerClient {
+        return this._client;
+    }
+
+    private set client(client: SqlToolsServerClient) {
+        this._client = client;
     }
 
     private get connectionUI(): ConnectionUI {
@@ -63,10 +82,10 @@ export default class ConnectionManager {
     // choose database to use on current server
     public onChooseDatabase(): void {
         const self = this;
-        const fileUri = Utils.getActiveTextEditorUri();
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
         if (!self.isConnected(fileUri)) {
-            Utils.showWarnMsg(Constants.msgChooseDatabaseNotConnected);
+            this.vscodeWrapper.showWarningMessage(Constants.msgChooseDatabaseNotConnected);
             return;
         }
 
@@ -81,7 +100,7 @@ export default class ConnectionManager {
 
     // close active connection, if any
     public onDisconnect(): Promise<boolean> {
-        return this.disconnect(Utils.getActiveTextEditorUri());
+        return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
     }
 
     public disconnect(fileUri: string): Promise<boolean> {
@@ -92,7 +111,7 @@ export default class ConnectionManager {
                 let disconnectParams = new Contracts.DisconnectParams();
                 disconnectParams.ownerUri = fileUri;
 
-                self._client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
+                self.client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
                     self.statusView.notConnected(fileUri);
                     delete self._connections[fileUri];
 
@@ -106,11 +125,11 @@ export default class ConnectionManager {
     // let users pick from a picklist of connections
     public onNewConnection(): Promise<boolean> {
         const self = this;
-        const fileUri = Utils.getActiveTextEditorUri();
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
         if (fileUri === '') {
             // A text document needs to be open before we can connect
-            Utils.showInfoMsg(Constants.msgOpenSqlFile);
+            this.vscodeWrapper.showInformationMessage(Constants.msgOpenSqlFile);
         }
 
         return new Promise<boolean>((resolve, reject) => {
@@ -154,7 +173,7 @@ export default class ConnectionManager {
             let serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
-            self._client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
+            self.client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
                 // handle connection complete callback
                 serviceTimer.end();
 

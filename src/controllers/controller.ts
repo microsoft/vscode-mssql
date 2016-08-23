@@ -11,6 +11,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
+import VscodeWrapper from './vscodeWrapper';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -19,6 +20,7 @@ export default class MainController implements vscode.Disposable {
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
+    private _vscodeWrapper: VscodeWrapper;
 
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
@@ -60,8 +62,10 @@ export default class MainController implements vscode.Disposable {
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
 
+        this._vscodeWrapper = new VscodeWrapper();
+
         // initialize language service client
-        SqlToolsServerClient.getInstance().initialize(this._context);
+        SqlToolsServerClient.instance.initialize(this._context);
 
         // Init status bar
         this._statusview = new StatusView();
@@ -107,7 +111,17 @@ export default class MainController implements vscode.Disposable {
         if (!Utils.isEditingSqlFile()) {
             Utils.showWarnMsg(Constants.msgOpenSqlFile);
         } else {
-            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview);
+            let editor = this._vscodeWrapper.activeTextEditor;
+            let uri = this._vscodeWrapper.activeTextEditorUri;
+            let title = editor.document.fileName;
+            let queryText: string;
+
+            if (editor.selection.isEmpty) {
+                queryText = editor.document.getText();
+            } else {
+                queryText = editor.document.getText(new vscode.Range(editor.selection.start, editor.selection.end));
+            }
+            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, queryText, title);
         }
     }
 
