@@ -78,11 +78,11 @@ export class DataService {
             if (!self.batchSets) {
                 self.getMetaData().then(() => {
                     resolve(self.batchSets[batchId].messages);
-                })
+                });
             } else {
                 resolve(self.batchSets[batchId].messages);
             }
-        })
+        });
     }
 
     /**
