@@ -5,7 +5,7 @@
 import QueryRunner from './queryRunner';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import {QueryExecuteCompleteNotification} from '../models/contracts';
-import {INotificationHandler} from 'vscode-languageclient';
+import {NotificationHandler} from 'vscode-languageclient';
 
 export class QueryNotificationHandler {
     private static _instance: QueryNotificationHandler;
@@ -32,7 +32,7 @@ export class QueryNotificationHandler {
     }
 
     // handles distributing notifications to appropriate
-    private handleNotification(): INotificationHandler<any> {
+    private handleNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             self._queryRunners.get(event.ownerUri).handleResult(event);
