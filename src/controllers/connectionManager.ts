@@ -54,11 +54,17 @@ export default class ConnectionManager {
         this._vscodeWrapper = wrapper;
     }
 
-    private get client(): SqlToolsServerClient {
+    /**
+     * Exposed for testing purposes
+     */
+    public get client(): SqlToolsServerClient {
         return this._client;
     }
 
-    private set client(client: SqlToolsServerClient) {
+    /**
+     * Exposed for testing purposes
+     */
+    public set client(client: SqlToolsServerClient) {
         this._client = client;
     }
 
