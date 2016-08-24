@@ -60,9 +60,9 @@ export const connectionErrorChannelName = 'Connection Errors';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
-export const msgOpenSqlFile = `To use this command, Open a .sql file -or-
-                                Change editor language to "SQL" -or-
-                                Select some T-SQL text in the active SQL editor.`;
+export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
+                                'Change editor language to "SQL" -or- ' +
+                                'Select some T-SQL text in the active SQL editor.';
 
 export const recentConnectionsPlaceholder = 'Choose a connection from the list below';
 export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';

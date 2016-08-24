@@ -60,6 +60,26 @@ export type DisconnectResult = boolean;
 
 // ------------------------------- </ Disconnect Request > ------------------------------------------
 
+// ------------------------------- < List Databases Request > ---------------------------------------
+
+// List databases request callback declaration
+export namespace ListDatabasesRequest {
+    export const type: RequestType<ListDatabasesParams, ListDatabasesResult, void> = { get method(): string { return 'connection/listdatabases'; } };
+}
+
+// List databases request format
+export class ListDatabasesParams {
+    // Connection information to use for querying master
+    public ownerUri: string;
+}
+
+// List databases response format
+export class ListDatabasesResult {
+    public databaseNames: Array<string>;
+}
+
+// ------------------------------- </ List Databases Request > --------------------------------------
+
 // ------------------------------- < Query Dispose Request > ----------------------------------------
 
 // ------------------------------- < Query Dispose Request > ----------------------------------------

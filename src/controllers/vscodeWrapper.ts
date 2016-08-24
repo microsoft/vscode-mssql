@@ -37,6 +37,20 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Return 'true' if the active editor window has a .sql file, false otherwise
+     */
+    public get isEditingSqlFile(): boolean {
+        let sqlFile = false;
+        let editor = this.activeTextEditor;
+        if (editor) {
+            if (editor.document.languageId === Constants.languageId) {
+                sqlFile = true;
+            }
+        }
+        return sqlFile;
+    }
+
+    /**
      * Create a vscode.Range object
      * @param start The start position for the range
      * @param end The end position for the range
@@ -57,6 +71,17 @@ export default class VscodeWrapper {
      */
     public showInformationMessage(msg: string): Thenable<string> {
         return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg );
+    }
+
+    /**
+     * Shows a selection list.
+     *
+     * @param items An array of items, or a promise that resolves to an array of items.
+     * @param options Configures the behavior of the selection list.
+     * @return A promise that resolves to the selected item or undefined.
+     */
+    public showQuickPick<T extends vscode.QuickPickItem>(items: T[] | Thenable<T[]>, options?: vscode.QuickPickOptions): Thenable<T> {
+        return vscode.window.showQuickPick<T>(items, options);
     }
 
     /**
