@@ -102,20 +102,6 @@ suite('Query Runner tests', () => {
         testSqlOutputContentProvider.verify(x => x.updateContent(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
-    test('Handles result error correctly', () => {
-        testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
-        let queryRunner = new QueryRunner(
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            testVscodeWrapper.object
-        );
-        queryRunner.handleResult({ownerUri: 'vscode', batchSummaries: []});
-        testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-    });
-
     test('Correctly handles subset', () => {
         let testuri = 'test';
         let testresult = {

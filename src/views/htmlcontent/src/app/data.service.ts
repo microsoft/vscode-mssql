@@ -38,14 +38,14 @@ export class DataService {
     numberOfBatchSets(): Promise<number> {
         const self = this;
         return new Promise<number>((resolve, rejct) => {
-            if(!self.batchSets){
+            if (!self.batchSets) {
                 self.getMetaData().then(() => {
                     resolve(self.batchSets.length);
-                })
+                });
             } else {
                 resolve(self.batchSets.length);
             }
-        })
+        });
     }
 
     /**
@@ -58,12 +58,12 @@ export class DataService {
         if (!this.batchSets) {
             return new Promise<number>((resolve, reject) => {
                 self.getMetaData().then(() => {
-                    resolve(this.batchSets[batchId].resultSets.length);
+                    resolve(self.batchSets[batchId].resultSets.length);
                 });
             });
         } else {
             return new Promise<number>((resolve, reject) => {
-                resolve(this.batchSets[batchId].resultSets.length);
+                resolve(self.batchSets[batchId].resultSets.length);
             });
         }
     }
@@ -72,14 +72,17 @@ export class DataService {
      * Get the messages for a batch
      * @param batchId The batchId for which batch to return messages for
      */
-    getMessages(batchId: number): Observable<string[]> {
+    getMessages(batchId: number): Promise<string[]> {
         const self = this;
-        return this.http.get('/messages?'
-                             + '&uri=' + self.uri
-                             + '&batchId=' + batchId)
-                        .map(res => {
-                            return res.json();
-                        });
+        return new Promise<string[]>((resolve, reject) => {
+            if (!self.batchSets) {
+                self.getMetaData().then(() => {
+                    resolve(self.batchSets[batchId].messages);
+                })
+            } else {
+                resolve(self.batchSets[batchId].messages);
+            }
+        })
     }
 
     /**
@@ -115,8 +118,7 @@ export class DataService {
         if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(() => {
-                    self.http.get(self.batchSets[batchId].resultSets[resultId].columnsUri + '&uri=' + self.uri
-                                  + '&resultId=' + resultId)
+                    self.http.get(self.batchSets[batchId].resultSets[resultId].columnsUri)
                             .map(res => {
                                 return res.json();
                             })
@@ -127,8 +129,7 @@ export class DataService {
                 });
             });
         } else {
-            return this.http.get(this.batchSets[batchId].resultSets[resultId].columnsUri + '&uri=' + this.uri
-                                 + '&resultId=' + resultId)
+            return this.http.get(this.batchSets[batchId].resultSets[resultId].columnsUri)
                             .map(res => {
                                 return res.json();
                             });
@@ -148,10 +149,9 @@ export class DataService {
         if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(success => {
-                    self.http.get(self.batchSets[batchId].resultSets[resultId].rowsUri + '&uri=' + self.uri
+                    self.http.get(self.batchSets[batchId].resultSets[resultId].rowsUri
                                   + '&rowStart=' + start
-                                  + '&numberOfRows=' + numberOfRows
-                                  + '&resultId=' + resultId)
+                                  + '&numberOfRows=' + numberOfRows)
                             .map(res => {
                                 return res.json();
                             })
@@ -162,10 +162,9 @@ export class DataService {
                 });
             });
         } else {
-            return this.http.get(this.batchSets[batchId].resultSets[resultId].rowsUri + '&uri=' + this.uri
+            return this.http.get(this.batchSets[batchId].resultSets[resultId].rowsUri
                                   + '&rowStart=' + start
-                                  + '&numberOfRows=' + numberOfRows
-                                  + '&resultId=' + resultId)
+                                  + '&numberOfRows=' + numberOfRows)
                             .map(res => {
                                 return res.json();
                             });

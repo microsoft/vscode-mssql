@@ -43,4 +43,5 @@ export interface ISlickGridResultSet {
 
 export interface ISlickGridBatchMetaData {
     resultSets: ISlickGridResultSet[];
+    messages: string[];
 }

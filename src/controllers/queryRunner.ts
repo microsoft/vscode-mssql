@@ -86,6 +86,10 @@ export default class QueryRunner {
         return this._batchSets;
     }
 
+    set batchSets(batchSets: BatchSummary[]) {
+        this._batchSets = batchSets;
+    }
+
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(uri: string, text: string, title: string): Thenable<void> {
         const self = this;
