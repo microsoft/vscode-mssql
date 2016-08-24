@@ -19,7 +19,9 @@ export function deactivate(): void {
     }
 }
 
-// Exposed for testing purposes
+/**
+ * Exposed for testing purposes
+ */
 export function getController(): MainController {
     return controller;
 }

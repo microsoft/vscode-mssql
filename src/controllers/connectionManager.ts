@@ -62,7 +62,9 @@ export default class ConnectionManager {
         this._client = client;
     }
 
-    // Exposed for testing purposes
+    /**
+     * Exposed for testing purposes
+     */
     public get client(): LanguageClient {
         return this._client;
     }
