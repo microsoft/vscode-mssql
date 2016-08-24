@@ -60,7 +60,6 @@ suite('ConnectionStore tests', () => {
                 return Promise.resolve();
             });
 
-        // credentialStore.setup(x => x.setCredential());
         let connectionStore = new ConnectionStore(context.object, credentialStore.object);
 
         // When SaveProfile is called with savePassword false
