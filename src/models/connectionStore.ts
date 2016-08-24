@@ -123,7 +123,7 @@ export class ConnectionStore {
 
             let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds);
             return this._credentialStore.getCredentialByName(credentialId, name).then(savedCred => {
-                credentialsItem.connectionCreds.password = savedCred.Password;
+                credentialsItem.connectionCreds.password = savedCred.password;
                 return credentialsItem;
             });
         } else {

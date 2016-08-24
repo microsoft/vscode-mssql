@@ -37,19 +37,19 @@ export class OsxKeychainApi implements ICredentialStore {
                 // Spin through the returned credentials to ensure I got the one I want
                 // based on passed in 'service'
                 for (let index = 0; index < credentials.length; index++) {
-                    if (credentials[index].CredentialId === credentialId) {
+                    if (credentials[index].credentialId === credentialId) {
                         credential = credentials[index];
                         break;
                     }
                 }
                 if (credential !== undefined) {
                     // Go get the password
-                    osxkeychain.get(credential.Username, credential.CredentialId, function(err, cred): void {
+                    osxkeychain.get(credential.username, credential.credentialId, function(err, cred): void {
                         if (err) {
                             reject(err);
                         }
                         if (cred !== undefined) {
-                            credential = new Credential(credential.CredentialId, credential.Username, cred);
+                            credential = new Credential(credential.credentialId, credential.username, cred);
                             resolve(credential);
                         }
                     });
@@ -98,19 +98,19 @@ export class OsxKeychainApi implements ICredentialStore {
                 // Spin through the returned credentials to ensure I got the one I want
                 // based on passed in 'credentialId'
                 for (let index = 0; index < credentials.length; index++) {
-                    if (credentials[index].CredentialId === credentialId && credentials[index].Username === username) {
+                    if (credentials[index].credentialId === credentialId && credentials[index].username === username) {
                         credential = credentials[index];
                         break;
                     }
                 }
                 if (credential !== undefined) {
                     // Go get the password
-                    osxkeychain.get(credential.Username, credential.CredentialId, function(err, cred): void {
+                    osxkeychain.get(credential.username, credential.credentialId, function(err, cred): void {
                         if (err) {
                             reject(err);
                         }
                         if (cred !== undefined) {
-                            credential = new Credential(credential.CredentialId, credential.Username, cred);
+                            credential = new Credential(credential.credentialId, credential.username, cred);
                             resolve(credential);
                         }
                     });
@@ -160,7 +160,7 @@ export class OsxKeychainApi implements ICredentialStore {
                     // Remove all of these credentials
                     let promises: Promise<void>[] = [];
                     creds.forEach((cred) => {
-                        promises.push(self.removeCredentialByName(cred.CredentialId, cred.Username));
+                        promises.push(self.removeCredentialByName(cred.credentialId, cred.username));
                     });
 
                     Promise.all(promises).then(() => {

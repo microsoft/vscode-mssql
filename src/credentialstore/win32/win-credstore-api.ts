@@ -36,7 +36,7 @@ export class WindowsCredentialStoreApi implements ICredentialStore {
                 // Spin through the returned credentials to ensure I got the one I want based on passed in 'service'
                 for (let index = 0; index < credentials.length; index++) {
                     credential = self.createCredential(credentials[index]);
-                    if (credential.CredentialId === credentialId) {
+                    if (credential.credentialId === credentialId) {
                         break;
                     } else {
                         // The current credential isn't the one we're looking for
@@ -76,7 +76,7 @@ export class WindowsCredentialStoreApi implements ICredentialStore {
                 // Spin through the returned credentials to ensure I got the one I want based on passed in 'service'
                 for (let index = 0; index < credentials.length; index++) {
                     credential = self.createCredential(credentials[index]);
-                    if (credential.CredentialId === credentialId && credential.Username === username) {
+                    if (credential.credentialId === credentialId && credential.username === username) {
                         break;
                     } else {
                         // The current credential isn't the one we're looking for

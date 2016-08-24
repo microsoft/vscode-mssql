@@ -18,13 +18,13 @@ export class Credential {
         this._password = password;
     }
 
-    public get CredentialId(): string {
+    public get credentialId(): string {
         return this._credentialId;
     }
-    public get Username(): string {
+    public get username(): string {
         return this._username;
     }
-    public get Password(): string {
+    public get password(): string {
         return this._password;
     }
 
