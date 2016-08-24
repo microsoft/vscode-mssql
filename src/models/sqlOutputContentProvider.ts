@@ -6,6 +6,8 @@ import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
 import QueryRunner from '../controllers/queryRunner';
+import StatusView from '../views/statusView';
+import VscodeWrapper from './../controllers/vscodeWrapper';
 
 class QueryResultSet {
 
@@ -19,6 +21,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+    private _vscodeWrapper: VscodeWrapper;
 
     get onDidChange(): vscode.Event<vscode.Uri> {
         return this._onDidChange.event;
@@ -29,8 +32,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._onDidChange.fire(SqlOutputContentProvider.providerUri);
     }
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext,
+                private _statusView: StatusView) {
         const self = this;
+
+        this._vscodeWrapper = new VscodeWrapper();
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
@@ -123,6 +129,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let uri = SqlOutputContentProvider.providerUri + title;
         this.clear(uri);
         this._queryResultsMap.set(uri, new QueryResultSet(queryRunner));
+        if (!this._statusView.associateWithExisting(queryRunner.uri, uri)) {
+            this._vscodeWrapper.showWarningMessage(Constants.msgContentProviderAssociationFailure);
+        }
         this.show(uri, title);
         this.onContentUpdated();
         return uri;
