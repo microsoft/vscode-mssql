@@ -119,7 +119,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public executingQuery(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
+    public executingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusQuery.command = undefined;
         bar.statusQuery.tooltip = Constants.executeQueryLabel;
@@ -130,6 +130,25 @@ export default class StatusView implements vscode.Disposable {
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusQuery.hide();
+    }
+
+    /**
+     * Associate a new uri with an existing Uri's status bar
+     *
+     * @param existingUri The already existing URI's status bar you want to associated
+     * @param newUri The new URI you want to associate with the existing status bar
+     * @return True or False whether the association was able to be made. False indicated the exitingUri specified
+     * did not exist
+     */
+
+    public associateWithExisting(existingUri: string, newUri: string): boolean {
+        let bar = this.getStatusBar(existingUri);
+        if (bar) {
+            this._statusBars[newUri] = bar;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private hideLastShownStatusBar(): void {
@@ -149,7 +168,6 @@ export default class StatusView implements vscode.Disposable {
             const bar = this._statusBars[fileUri];
             if (bar) {
                 this.showStatusBarItem(fileUri, bar.statusConnection);
-                this.showStatusBarItem(fileUri, bar.statusQuery);
             }
         }
     }
