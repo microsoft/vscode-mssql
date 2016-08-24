@@ -74,7 +74,7 @@ export default class MainController implements vscode.Disposable {
         this._prompter = new CodeAdapter();
 
         // Init content provider for results pane
-        this._outputContentProvider = new SqlOutputContentProvider(self._context);
+        this._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview);
         let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
         this._context.subscriptions.push(registration);
 
@@ -133,5 +133,12 @@ export default class MainController implements vscode.Disposable {
     // Prompts to remove a registered SQL connection profile
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
+    }
+
+    /**
+     * Access the connection manager for testing
+     */
+    public get connectionManager(): ConnectionManager {
+        return this._connectionMgr;
     }
 }

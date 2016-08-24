@@ -6,6 +6,8 @@ import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
 import QueryRunner from '../controllers/queryRunner';
+import StatusView from '../views/statusView';
+import VscodeWrapper from './../controllers/vscodeWrapper';
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -13,6 +15,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+    private _vscodeWrapper: VscodeWrapper;
 
     get onDidChange(): vscode.Event<vscode.Uri> {
         return this._onDidChange.event;
@@ -23,8 +26,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._onDidChange.fire(SqlOutputContentProvider.providerUri);
     }
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext,
+                private _statusView: StatusView) {
         const self = this;
+
+        this._vscodeWrapper = new VscodeWrapper();
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);

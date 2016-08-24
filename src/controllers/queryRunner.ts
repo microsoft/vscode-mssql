@@ -58,6 +58,10 @@ export default class QueryRunner {
         this._vscodeWrapper = wrapper;
     }
 
+    private get statusView(): StatusView {
+        return this._statusView;
+    }
+
     get uri(): string {
         return this._uri;
     }
@@ -103,6 +107,7 @@ export default class QueryRunner {
             if (result.messages) {
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
             } else {
+                self.statusView.executingQuery(self.uri);
                 // register with the Notification Handler
                 self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
