@@ -34,3 +34,14 @@ export class ResultSetSubset {
     rowCount: number;
     rows: any[][];
 }
+
+export interface IGridResultSet {
+    columnsUri: string;
+    rowsUri: string;
+    numberOfRows: number;
+}
+
+export interface IGridBatchMetaData {
+    resultSets: IGridResultSet[];
+    messages: string[];
+}

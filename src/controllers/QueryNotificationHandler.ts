@@ -4,7 +4,7 @@
 */
 import QueryRunner from './queryRunner';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
-import {QueryExecuteCompleteNotification} from '../models/contracts';
+import {QueryExecuteCompleteNotification} from '../models/contracts/queryExecute';
 import {NotificationHandler} from 'vscode-languageclient';
 
 export class QueryNotificationHandler {

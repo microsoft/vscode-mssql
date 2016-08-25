@@ -36,20 +36,45 @@ export class AppComponent implements OnInit {
     private totalRows: number;
     private resultOptions: number[];
     private messages: string[];
+    private resultToBatch: number[];
+    private resultToResult: number[];
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
     ngOnInit(): void {
         const self = this;
-        this.dataService.getMessages().subscribe(data => {
-            self.messages = data;
-        });
-        this.dataService.numberOfResultSets().then((result: number) => {
-            self.resultOptions = [];
-            for (let i = 0; i < result; i++) {
-                self.resultOptions.push(i);
+        self.resultOptions = [];
+        self.resultToBatch = [];
+        self.resultToResult = [];
+        self.messages = [];
+        this.dataService.numberOfBatchSets().then((numberOfBatches: number) => {
+            let promises: Promise<void>[] = [];
+            let resultIndex: number = 0;
+            for (let i = 0; i < numberOfBatches; i++) {
+                let messagePromise = new Promise<void>((resolve, reject) => {
+                    self.dataService.getMessages(i).then((messages: string[]) => {
+                        self.messages = self.messages.concat(messages);
+                        resolve();
+                    });
+                });
+                let resultPromise = new Promise<void>((resolve, reject) => {
+                    self.dataService.numberOfResultSets(i).then((numberOfResults: number) => {
+                        for (let j = 0; j < numberOfResults; j++) {
+                            self.resultToBatch.push(i);
+                            self.resultToResult.push(j);
+                            self.resultOptions.push(resultIndex);
+                            resultIndex++;
+                        }
+                        resolve();
+                    });
+                });
+                promises.push(messagePromise, resultPromise);
             }
-            this.renderResults(0);
+            Promise.all(promises).then(() => {
+                if (self.resultOptions) {
+                    self.renderResults(0);
+                }
+            });
         });
     }
 
@@ -76,10 +101,10 @@ export class AppComponent implements OnInit {
         this.renderResults(value);
     }
 
-    renderResults(id: number): void {
+    renderResults(resultId: number): void {
         const self = this;
-        let columns = this.dataService.getColumns(id);
-        let numberOfRows = this.dataService.getNumberOfRows(id);
+        let columns = this.dataService.getColumns(self.resultToBatch[resultId], self.resultToResult[resultId]);
+        let numberOfRows = this.dataService.getNumberOfRows(self.resultToBatch[resultId], self.resultToResult[resultId]);
         Observable.forkJoin([columns, numberOfRows]).subscribe( data => {
             let columnData: IDbColumn[] = data[0];
             self.totalRows = data[1];
@@ -94,7 +119,7 @@ export class AppComponent implements OnInit {
 
             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                 return new Promise<IGridDataRow[]>((resolve, reject) => {
-                    self.dataService.getRows(offset, count, id).subscribe(rows => {
+                    self.dataService.getRows(offset, count, self.resultToBatch[resultId], self.resultToResult[resultId]).subscribe(rows => {
                         let gridData: IGridDataRow[] = [];
                         for (let i = 0; i < rows.rows.length; i++) {
                             gridData.push({
