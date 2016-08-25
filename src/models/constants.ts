@@ -43,6 +43,7 @@ export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
+export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
 export const msgContentProviderOnRootEndpoint = 'LocalWebService: Root end-point called';
 export const msgContentProviderOnResultsEndpoint = 'LocalWebService: ResultsetsMeta endpoint called';
 export const msgContentProviderOnMessagesEndpoint = 'LocalWebService: Messages end-point called';
