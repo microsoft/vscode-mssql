@@ -1,7 +1,7 @@
 import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
-import {IDbColumn, ResultSetSubset} from './../interfaces';
+import { IDbColumn, ResultSetSubset, IGridBatchMetaData } from './../interfaces';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.
@@ -10,87 +10,99 @@ import {IDbColumn, ResultSetSubset} from './../interfaces';
 @Injectable()
 export class DataService {
     uri: string;
-    columnsuri: string[];
-    rowsuri: string[];
-    numberOfRows: number[];
+    private batchSets: IGridBatchMetaData[];
+
     constructor(@Inject(forwardRef(() => Http)) private http) {
+        // grab the uri from the document for requests
         this.uri = encodeURI(document.getElementById('uri').innerText.trim());
-        console.log(this.uri);
     }
 
     /**
      * Gets the meta data for the current results set view
      */
-
     private getMetaData(): Promise<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             self.http.get('/resultsetsMeta?uri=' + self.uri)
                             .map(res => res.json())
-                            .subscribe(data => {
-                                let columnsuri = [];
-                                let rowsuri = [];
-                                let numberOfRows = [];
-                                for (let i = 0; i < data.length; i++) {
-                                    columnsuri[i] = data[i]['columnsUri'];
-                                    rowsuri[i] = data[i]['rowsUri'];
-                                    numberOfRows[i] = data[i]['totalRows'];
-                                }
-                                self.columnsuri = columnsuri;
-                                self.rowsuri = rowsuri;
-                                self.numberOfRows = numberOfRows;
+                            .subscribe((data: IGridBatchMetaData[]) => {
+                                self.batchSets = data;
                                 resolve();
                             });
         });
     }
 
     /**
-     * Get the number of results in the query
+     * Get the number of batches in the query
      */
-
-    numberOfResultSets(): Promise<number> {
+    numberOfBatchSets(): Promise<number> {
         const self = this;
-        if (!this.columnsuri) {
+        return new Promise<number>((resolve, reject) => {
+            if (!self.batchSets) {
+                self.getMetaData().then(() => {
+                    resolve(self.batchSets.length);
+                });
+            } else {
+                resolve(self.batchSets.length);
+            }
+        });
+    }
+
+    /**
+     * Get the number of results in the query
+     * @param batchId The batchid of which batch you want to return the numberOfResults Sets
+     * for
+     */
+    numberOfResultSets(batchId: number): Promise<number> {
+        const self = this;
+        if (!this.batchSets) {
             return new Promise<number>((resolve, reject) => {
                 self.getMetaData().then(() => {
-                    resolve(this.columnsuri.length);
+                    resolve(self.batchSets[batchId].resultSets.length);
                 });
             });
         } else {
             return new Promise<number>((resolve, reject) => {
-                resolve(this.columnsuri.length);
+                resolve(self.batchSets[batchId].resultSets.length);
             });
         }
     }
 
     /**
-     * Get the messages for the query
+     * Get the messages for a batch
+     * @param batchId The batchId for which batch to return messages for
      */
-
-    getMessages(): Observable<string[]> {
+    getMessages(batchId: number): Promise<string[]> {
         const self = this;
-        return this.http.get('/messages?'
-                             + '&uri=' + self.uri)
-                        .map(res => {
-                            return res.json();
-                        });
+        return new Promise<string[]>((resolve, reject) => {
+            if (!self.batchSets) {
+                self.getMetaData().then(() => {
+                    resolve(self.batchSets[batchId].messages);
+                });
+            } else {
+                resolve(self.batchSets[batchId].messages);
+            }
+        });
     }
 
     /**
      * Gets the total number of rows in the results set
+     * @param batchId The id of the batch you want to access result for
+     * @param resultId The id of the result you want to get the number of rows
+     * for
      */
-    getNumberOfRows(resultId: number): Observable<number> {
+    getNumberOfRows(batchId: number, resultId: number): Observable<number> {
         const self = this;
-        if (!this.numberOfRows) {
+        if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(() => {
-                    observer.next(self.numberOfRows[resultId]);
+                    observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
                     observer.complete();
                 });
             });
         } else {
             return Observable.create(observer => {
-                observer.next(self.numberOfRows[resultId]);
+                observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
                 observer.complete();
             });
         }
@@ -98,15 +110,15 @@ export class DataService {
 
     /**
      * Gets the column data for the current results set
+     * @param batchId The id of the batch for which you are querying
+     * @param resultId The id of the result you want to get the columns for
      */
-
-    getColumns(resultId: number): Observable<IDbColumn[]> {
+    getColumns(batchId: number, resultId: number): Observable<IDbColumn[]> {
         const self = this;
-        if (!this.columnsuri) {
+        if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(() => {
-                    self.http.get(self.columnsuri[resultId] + '&uri=' + self.uri
-                                  + '&resultId=' + resultId)
+                    self.http.get(self.batchSets[batchId].resultSets[resultId].columnsUri)
                             .map(res => {
                                 return res.json();
                             })
@@ -117,8 +129,7 @@ export class DataService {
                 });
             });
         } else {
-            return this.http.get(this.columnsuri[resultId] + '&uri=' + this.uri
-                                 + '&resultId=' + resultId)
+            return this.http.get(this.batchSets[batchId].resultSets[resultId].columnsUri)
                             .map(res => {
                                 return res.json();
                             });
@@ -128,31 +139,32 @@ export class DataService {
     /**
      * Get a specified number of rows starting at a specified row for
      * the current results set
+     * @param start The starting row or the requested rows
+     * @param numberOfRows The amount of rows to return
+     * @param batchId The batch id of the batch you are querying
+     * @param resultId The id of the result you want to get the rows for
      */
-
-    getRows(start: number, numberOfRows: number, resultId: number): Observable<ResultSetSubset> {
+    getRows(start: number, numberOfRows: number, batchId: number, resultId: number): Observable<ResultSetSubset> {
         const self = this;
-        if (!this.rowsuri) {
+        if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(success => {
-                    self.http.get(self.rowsuri[resultId] + '&uri=' + self.uri
+                    self.http.get(self.batchSets[batchId].resultSets[resultId].rowsUri
                                   + '&rowStart=' + start
-                                  + '&numberOfRows=' + numberOfRows
-                                  + '&resultId=' + resultId)
+                                  + '&numberOfRows=' + numberOfRows)
                             .map(res => {
                                 return res.json();
                             })
-                            .subscribe(data => {
+                            .subscribe((data: ResultSetSubset) => {
                                 observer.next(data);
                                 observer.complete();
                             });
                 });
             });
         } else {
-            return this.http.get(this.rowsuri[resultId] + '&uri=' + this.uri
+            return this.http.get(this.batchSets[batchId].resultSets[resultId].rowsUri
                                   + '&rowStart=' + start
-                                  + '&numberOfRows=' + numberOfRows
-                                  + '&resultId=' + resultId)
+                                  + '&numberOfRows=' + numberOfRows)
                             .map(res => {
                                 return res.json();
                             });

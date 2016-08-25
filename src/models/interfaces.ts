@@ -54,23 +54,13 @@ export interface IConnectionProperties {
     currentDatabase: string;
 };
 
-export interface IBackgridColumnMetadata {
-    name: string;
-    label: string;
-    cell: string;
-}
-
-export interface ISqlResultsetMeta {
+export interface IGridResultSet {
     columnsUri: string;
     rowsUri: string;
-};
+    numberOfRows: number;
+}
 
-export interface ISqlMessage {
-    messageText: string;
-};
-
-export interface ISqlResultset {
-    columns: any[];
-    rows: any[];
-    executionPlanXml: string;
-};
+export interface IGridBatchMetaData {
+    resultSets: IGridResultSet[];
+    messages: string[];
+}

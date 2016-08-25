@@ -4,8 +4,11 @@ import ConnectionManager from './connectionManager';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
-import * as Contracts from '../models/contracts';
 import VscodeWrapper from './vscodeWrapper';
+import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
+    QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
+    QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
+    QueryDisposeRequest } from '../models/contracts/queryExecute';
 
 export interface IResultSet {
     columns: string[];
@@ -16,10 +19,9 @@ export interface IResultSet {
 * and handles getting more rows from the service layer and disposing when the content is closed.
 */
 export default class QueryRunner {
-    private _resultSets: Contracts.ResultSetSummary[];
+    private _batchSets: BatchSummary[];
     private _uri: string;
     private _title: string;
-    private _messages: string[];
 
     constructor(private _connectionMgr: ConnectionManager,
                 private _statusView: StatusView,
@@ -84,24 +86,24 @@ export default class QueryRunner {
         this._title = title;
     }
 
-    get resultSets(): Contracts.ResultSetSummary[] {
-        return this._resultSets;
+    get batchSets(): BatchSummary[] {
+        return this._batchSets;
     }
 
-    get messages(): string[] {
-        return this._messages;
+    set batchSets(batchSets: BatchSummary[]) {
+        this._batchSets = batchSets;
     }
 
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(uri: string, text: string, title: string): Thenable<void> {
         const self = this;
-        let queryDetails = new Contracts.QueryExecuteParams();
+        let queryDetails = new QueryExecuteParams();
         queryDetails.ownerUri = uri;
         queryDetails.queryText = text;
         this.title = title;
         this.uri = uri;
 
-        return this.client.sendRequest(Contracts.QueryExecuteRequest.type, queryDetails).then(result => {
+        return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
             } else {
@@ -115,27 +117,22 @@ export default class QueryRunner {
     }
 
     // handle the result of the notification
-    public handleResult(result: Contracts.QueryExecuteCompleteNotificationResult): void {
-        this.statusView.executedQuery(this.uri);
-        if (result.hasError) {
-            this.vscodeWrapper.showErrorMessage('Something went wrong during the query: ' + result.messages[0]);
-        } else {
-            this._resultSets = result.resultSetSummaries;
-            this._messages = result.messages;
-            this._outputProvider.updateContent(this);
-        }
+    public handleResult(result: QueryExecuteCompleteNotificationResult): void {
+        this.batchSets = result.batchSummaries;
+        this._outputProvider.updateContent(this);
     }
 
     // get more data rows from the current resultSets from the service layer
-    public getRows(rowStart: number, numberOfRows: number, resultSetIndex: number): Promise<Contracts.QueryExecuteSubsetResult> {
+    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Thenable<QueryExecuteSubsetResult> {
         const self = this;
-        let queryDetails = new Contracts.QueryExecuteSubsetParams();
+        let queryDetails = new QueryExecuteSubsetParams();
         queryDetails.ownerUri = this.uri;
         queryDetails.resultSetIndex = resultSetIndex;
         queryDetails.rowsCount = numberOfRows;
         queryDetails.rowsStartIndex = rowStart;
-        return new Promise<Contracts.QueryExecuteSubsetResult>((resolve, reject) => {
-            self.client.sendRequest(Contracts.QueryExecuteSubsetRequest.type, queryDetails).then(result => {
+        queryDetails.batchIndex = batchIndex;
+        return new Promise<QueryExecuteSubsetResult>((resolve, reject) => {
+            self.client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
                 if (result.message) {
                     self.vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + result.message);
                     reject();
@@ -146,18 +143,21 @@ export default class QueryRunner {
         });
     }
 
-    // dispose the query from front end and and back end
-    public dispose(): Promise<boolean> {
+    /**
+     * Disposes the Query from the service client
+     * @returns A promise that will be rejected if a problem occured
+     */
+    public dispose(): Promise<void> {
         const self = this;
-        return new Promise<boolean>((resolve, reject) => {
-            let disposeDetails = new Contracts.QueryDisposeParams();
-            disposeDetails.ownerUri = this.uri;
-            this.client.sendRequest(Contracts.QueryDisposeRequest.type, disposeDetails).then(result => {
+        return new Promise<void>((resolve, reject) => {
+            let disposeDetails = new QueryDisposeParams();
+            disposeDetails.ownerUri = self.uri;
+            self.client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
                 if (result.messages) {
                     self.vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
-                    resolve(false);
+                    reject();
                 } else {
-                    resolve(true);
+                    resolve();
                 }
             }, error => {
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
