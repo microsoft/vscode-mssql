@@ -35,13 +35,13 @@ export class ResultSetSubset {
     rows: any[][];
 }
 
-export interface ISlickGridResultSet {
+export interface IGridResultSet {
     columnsUri: string;
     rowsUri: string;
     numberOfRows: number;
 }
 
-export interface ISlickGridBatchMetaData {
-    resultSets: ISlickGridResultSet[];
+export interface IGridBatchMetaData {
+    resultSets: IGridResultSet[];
     messages: string[];
 }

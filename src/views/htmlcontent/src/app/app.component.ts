@@ -42,7 +42,6 @@ export class AppComponent implements OnInit {
     ngOnInit(): void {
         const self = this;
         self.resultOptions = [];
-        self.messages = [];
         this.dataService.numberOfBatchSets().then((numberOfBatches: number) => {
             let promises: Promise<void>[] = [];
             for (let i = 0; i < numberOfBatches; i++) {

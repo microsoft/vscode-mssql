@@ -6,7 +6,7 @@ import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvid
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { QueryExecuteParams } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
-import StatusView from './../src/views/statusView'
+import StatusView from './../src/views/statusView';
 
 suite('Query Runner tests', () => {
 
