@@ -56,6 +56,10 @@ export default class QueryRunner {
         this._vscodeWrapper = wrapper;
     }
 
+    private get statusView(): StatusView {
+        return this._statusView;
+    }
+
     get uri(): string {
         return this._uri;
     }
@@ -101,6 +105,7 @@ export default class QueryRunner {
             if (result.messages) {
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
             } else {
+                self.statusView.executingQuery(self.uri);
                 // register with the Notification Handler
                 self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
@@ -111,6 +116,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleResult(result: Contracts.QueryExecuteCompleteNotificationResult): void {
+        this.statusView.executedQuery(this.uri);
         if (result.hasError) {
             this.vscodeWrapper.showErrorMessage('Something went wrong during the query: ' + result.messages[0]);
         } else {

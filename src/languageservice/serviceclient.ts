@@ -7,7 +7,7 @@
 import * as path from 'path';
 import { ExtensionContext } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
-    TransportKind, RequestType, NotificationType, INotificationHandler } from 'vscode-languageclient';
+    TransportKind, RequestType, NotificationType, NotificationHandler } from 'vscode-languageclient';
 import * as Utils from '../models/utils';
 import {VersionRequest} from '../models/contracts';
 import Constants = require('../models/constants');
@@ -82,13 +82,13 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to register the handler for
      * @param handler The handler to register
      */
-    public onNotification<P>(type: NotificationType<P>, handler: INotificationHandler<P>): void {
+    public onNotification<P>(type: NotificationType<P>, handler: NotificationHandler<P>): void {
         return this.client.onNotification(type, handler);
     }
 
     public checkServiceCompatibility(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            this._client.sendRequest(VersionRequest.type).then((result) => {
+            this._client.sendRequest(VersionRequest.type, undefined).then((result) => {
                  Utils.logDebug('sqlserverclient version: ' + result);
 
                  if (!result || !result.startsWith(Constants.serviceCompatibleVersion)) {

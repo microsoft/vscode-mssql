@@ -145,7 +145,7 @@ gulp.task('ext:copy-tests', () => {
 });
 
 gulp.task('ext:copy-packages', () => {
-    var serviceHostVersion = "0.0.3";
+    var serviceHostVersion = "0.0.6";
     var credStoreVersion = "0.0.1";
     return gulp.src([
         config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*',
