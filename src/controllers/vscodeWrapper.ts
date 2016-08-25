@@ -37,7 +37,7 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Return 'true' if the active editor window has a .sql file, false otherwise
+     * @return 'true' if the active editor window has a .sql file, false otherwise
      */
     public get isEditingSqlFile(): boolean {
         let sqlFile = false;

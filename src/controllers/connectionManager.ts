@@ -24,32 +24,30 @@ export class ConnectionInfo {
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
-    private _client: SqlToolsServerClient;
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
-    private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: SqlToolsServerClient, wrapper?: VscodeWrapper) {
+    constructor(context: vscode.ExtensionContext,
+                statusView: StatusView,
+                prompter: IPrompter,
+                private _client?: SqlToolsServerClient,
+                private _vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
         this._connections = {};
 
-        if (client) {
-            this.client = client;
-        } else {
+        if (!this.client) {
             this.client = SqlToolsServerClient.instance;
         }
-        if (wrapper) {
-            this.vscodeWrapper = wrapper;
-        } else {
+        if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
 
-        this._connectionUI = new ConnectionUI(context, prompter, wrapper);
+        this._connectionUI = new ConnectionUI(context, prompter, this.vscodeWrapper);
     }
 
     private get vscodeWrapper(): VscodeWrapper {

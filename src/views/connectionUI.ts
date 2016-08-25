@@ -13,15 +13,12 @@ export class ConnectionUI {
     private _context: vscode.ExtensionContext;
     private _prompter: IPrompter;
     private _errorOutputChannel: vscode.OutputChannel;
-    private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext, prompter: IPrompter, wrapper?: VscodeWrapper) {
+    constructor(context: vscode.ExtensionContext, prompter: IPrompter, private _vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         this._prompter = prompter;
         this._errorOutputChannel = vscode.window.createOutputChannel(Constants.connectionErrorChannelName);
-        if (wrapper) {
-            this.vscodeWrapper = wrapper;
-        } else {
+        if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
     }
