@@ -42,12 +42,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
-            let batchSets: Interfaces.ISlickGridBatchMetaData[] = [];
+            let batchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = decodeURI(req.query.uri);
             for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
-                let tempBatch: Interfaces.ISlickGridBatchMetaData = {resultSets: [], messages: undefined};
+                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: undefined};
                 for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
-                    tempBatch.resultSets.push( <Interfaces.ISlickGridResultSet> {
+                    tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
                         columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
                         rowsUri: '/' + Constants.outputContentTypeRows +  '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
                         numberOfRows: result.rowCount

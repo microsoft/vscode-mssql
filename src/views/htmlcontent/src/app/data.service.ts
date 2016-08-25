@@ -1,7 +1,7 @@
 import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
-import { IDbColumn, ResultSetSubset, ISlickGridBatchMetaData } from './../interfaces';
+import { IDbColumn, ResultSetSubset, IGridBatchMetaData } from './../interfaces';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.
@@ -10,7 +10,7 @@ import { IDbColumn, ResultSetSubset, ISlickGridBatchMetaData } from './../interf
 @Injectable()
 export class DataService {
     uri: string;
-    private batchSets: ISlickGridBatchMetaData[];
+    private batchSets: IGridBatchMetaData[];
 
     constructor(@Inject(forwardRef(() => Http)) private http) {
         // grab the uri from the document for requests
@@ -25,7 +25,7 @@ export class DataService {
         return new Promise<void>((resolve, reject) => {
             self.http.get('/resultsetsMeta?uri=' + self.uri)
                             .map(res => res.json())
-                            .subscribe((data: ISlickGridBatchMetaData[]) => {
+                            .subscribe((data: IGridBatchMetaData[]) => {
                                 self.batchSets = data;
                                 resolve();
                             });
