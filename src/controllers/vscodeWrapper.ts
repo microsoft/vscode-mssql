@@ -37,6 +37,20 @@ export default class VscodeWrapper {
     }
 
     /**
+     * @return 'true' if the active editor window has a .sql file, false otherwise
+     */
+    public get isEditingSqlFile(): boolean {
+        let sqlFile = false;
+        let editor = this.activeTextEditor;
+        if (editor) {
+            if (editor.document.languageId === Constants.languageId) {
+                sqlFile = true;
+            }
+        }
+        return sqlFile;
+    }
+
+    /**
      * Create a vscode.Range object
      * @param start The start position for the range
      * @param end The end position for the range

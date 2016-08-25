@@ -1,3 +1,4 @@
+/* tslint:disable */
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import {ExtensionContext, Memento} from 'vscode';
@@ -8,9 +9,12 @@ import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentials } from '../src/models/interfaces';
 import * as Contracts from '../src/models/contracts';
+import MainController from '../src/controllers/controller';
+import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider';
 import StatusView from '../src/views/statusView';
 import Telemetry from '../src/models/telemetry';
 import * as Utils from '../src/models/utils';
+import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 // Dummy implementation to simplify mocking
 class TestPrompter implements IPrompter {
@@ -212,5 +216,31 @@ suite('Per File Connection Tests', () => {
         }).catch(err => {
             assert.fail(err);
         });
+    });
+
+    test('Prompts for new connection before running query if disconnected', done => {
+        // Setup mocking
+        let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => true);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'file://my/test/file.sql');
+        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
+        connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
+        connectionManagerMock.setup(x => x.onNewConnection())
+            .callback(() => {
+                // Only complete the test if the user was prompted for a new connection
+                done();
+            })
+            .returns(() => Promise.resolve(true));
+
+        let controller: MainController = new MainController(contextMock.object,
+                                                            connectionManagerMock.object,
+                                                            vscodeWrapperMock.object);
+
+        // Attempt to run a query without connecting
+        controller.onRunQuery();
+
+        // The rest of the testing happens in the connectionManagerMock callback for onNewConnection()...
     });
 });

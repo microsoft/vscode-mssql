@@ -22,8 +22,16 @@ export default class MainController implements vscode.Disposable {
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext,
+                connectionManager?: ConnectionManager,
+                vscodeWrapper?: VscodeWrapper) {
         this._context = context;
+        if (connectionManager) {
+            this._connectionMgr = connectionManager;
+        }
+        if (vscodeWrapper) {
+            this._vscodeWrapper = vscodeWrapper;
+        }
     }
 
     private registerCommand(command: string): void {
@@ -108,8 +116,16 @@ export default class MainController implements vscode.Disposable {
 
     // get the T-SQL query from the editor, run it and show output
     public onRunQuery(): void {
-        if (!Utils.isEditingSqlFile()) {
-            Utils.showWarnMsg(Constants.msgOpenSqlFile);
+        const self = this;
+        if (!this._vscodeWrapper.isEditingSqlFile) {
+            this._vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
+        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+            // If we are disconnected, prompt the user to choose a connection before executing
+            this.onNewConnection().then(result => {
+                if (result) {
+                    self.onRunQuery();
+                }
+            });
         } else {
             let editor = this._vscodeWrapper.activeTextEditor;
             let uri = this._vscodeWrapper.activeTextEditorUri;
