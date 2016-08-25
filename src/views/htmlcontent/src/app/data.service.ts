@@ -37,7 +37,7 @@ export class DataService {
      */
     numberOfBatchSets(): Promise<number> {
         const self = this;
-        return new Promise<number>((resolve, rejct) => {
+        return new Promise<number>((resolve, reject) => {
             if (!self.batchSets) {
                 self.getMetaData().then(() => {
                     resolve(self.batchSets.length);
