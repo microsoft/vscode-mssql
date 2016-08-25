@@ -32,22 +32,24 @@ export class ConnectionUI {
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             self._connectionStore.getPickListItems()
             .then((picklist: IConnectionCredentialsQuickPickItem[]) => {
-                return new Promise<IConnectionCredentials>(() => {
-                    if (picklist.length === 0) {
-                        // No recent connections - prompt to open user settings or workspace settings to add a connection
-                        self.openUserOrWorkspaceSettings();
-                        return false;
-                    } else {
-                        // We have recent connections - show them in a picklist
-                        return self.promptItemChoice({
-                            placeHolder: Constants.recentConnectionsPlaceholder,
-                            matchOnDescription: true
-                        }, picklist)
-                            .then(selection => {
-                                resolve(self.handleSelectedConnection(selection));
-                            });
-                    }
-                });
+                if (picklist.length === 0) {
+                    // No recent connections - prompt to open user settings or workspace settings to add a connection
+                    self.openUserOrWorkspaceSettings();
+                    resolve(undefined);
+                } else {
+                    // We have recent connections - show them in a picklist
+                    self.promptItemChoice({
+                        placeHolder: Constants.recentConnectionsPlaceholder,
+                        matchOnDescription: true
+                    }, picklist)
+                    .then(selection => {
+                        if (selection) {
+                            resolve(self.handleSelectedConnection(selection));
+                        } else {
+                            resolve(undefined);
+                        }
+                    });
+                }
             });
         });
     }
@@ -152,6 +154,8 @@ export class ConnectionUI {
                     }
                     resolve(resolvedConnectionCreds);
                 });
+            } else {
+                resolve(undefined);
             }
         });
     }
@@ -174,7 +178,8 @@ export class ConnectionUI {
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
-        return this._connectionStore.addSavedPassword(selection).then(sel => {
+        return this._connectionStore.addSavedPassword(selection)
+        .then(sel => {
             return ConnectionCredentials.ensureRequiredPropertiesSet(sel.connectionCreds, false, this._prompter);
         });
     }
@@ -183,19 +188,20 @@ export class ConnectionUI {
     public removeProfile(): Promise<boolean> {
         let self = this;
 
-        // Flow: Select profile to remove, confirm removal, remove
+        // Flow: Select profile to remove, confirm removal, remove, notify
         return self._connectionStore.getProfilePickListItems()
             .then(profiles => self.selectProfileForRemoval(profiles))
             .then(profile => {
-                if (profile) {
-                    let result = self._connectionStore.removeProfile(profile);
-                    if (result) {
-                        // TODO again consider moving information prompts to the prompt package
-                        vscode.window.showInformationMessage(Constants.msgProfileRemoved);
-                    }
-                    return result;
+                 if (profile) {
+                    return self._connectionStore.removeProfile(profile);
+                 }
+                 return false;
+            }).then(result => {
+                if (result) {
+                    // TODO again consider moving information prompts to the prompt package
+                    vscode.window.showInformationMessage(Constants.msgProfileRemoved);
                 }
-                return false;
+                return result;
             });
     }
 
@@ -229,7 +235,7 @@ export class ConnectionUI {
 
         // Prompt and return the value if the user confirmed
         return self._prompter.prompt(questions).then(answers => {
-            if (answers[confirm]) {
+            if (answers && answers[confirm]) {
                 let profilePickItem = <IConnectionCredentialsQuickPickItem> answers[chooseProfile];
                 return profilePickItem.connectionCreds;
             } else {

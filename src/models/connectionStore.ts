@@ -4,6 +4,7 @@ import Constants = require('./constants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
+import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { ICredentialStore } from '../credentialStore/interfaces/icredentialstore';
 import { CredentialStore } from '../credentialStore/credentialstore';
@@ -106,30 +107,33 @@ export class ConnectionStore {
      */
     public getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
         const self = this;
-        return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
-            self.loadProfiles()
-            .then(function(connections): void
-            {
-                const pickListItems = self.mapToQuickPickItems(connections);
-                resolve(pickListItems);
-            });
+        return self.loadProfiles().then( connections => {
+            return self.mapToQuickPickItems(connections);
         });
     }
 
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
-        if (Utils.isEmpty(credentialsItem.connectionCreds.password)) {
-            let name: string = credentialsItem.quickPickItemType === CredentialsQuickPickItemType.Profile ?
-                ConnectionStore.CRED_PROFILE_USER : ConnectionStore.CRED_MRU_USER;
+        let self = this;
+        return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
+            if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
+                    && Utils.isEmpty(credentialsItem.connectionCreds.password)) {
 
-            let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds);
-            return this._credentialStore.getCredentialByName(credentialId, name).then(savedCred => {
-                credentialsItem.connectionCreds.password = savedCred.password;
-                return credentialsItem;
-            });
-        } else {
-            // Already have a password, no need to look up
-            return Promise.resolve(credentialsItem);
-        }
+                let name: string = credentialsItem.quickPickItemType === CredentialsQuickPickItemType.Profile ?
+                    ConnectionStore.CRED_PROFILE_USER : ConnectionStore.CRED_MRU_USER;
+
+                let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds);
+                self._credentialStore.getCredentialByName(credentialId, name)
+                .then(savedCred => {
+                    if (savedCred) {
+                        credentialsItem.connectionCreds.password = savedCred.password;
+                    }
+                    resolve(credentialsItem);
+                });
+            } else {
+                // Already have a password, no need to look up
+                resolve(credentialsItem);
+            }
+        });
     }
 
     /**
@@ -154,15 +158,35 @@ export class ConnectionStore {
             // Add the profile to the saved list, taking care to clear out the password field
             let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
             configValues.push(savedProfile);
-            self._context.globalState.update(Constants.configMyConnections, configValues);
+            self._context.globalState.update(Constants.configMyConnections, configValues)
+            .then(() => {
+                // Only save if we successfully added the profile
+                return self.savePasswordIfNeeded(profile);
+                // And resolve / reject at the end of the process
+            }).then(resolved => {
+                // Add necessary default properties before returning
+                // this is needed to support immediate connections
+                ConnInfo.fixupConnectionCredentials(profile);
+                resolve(profile);
+            }, rejected => reject(rejected));
+        });
+    }
 
-            // Add the password to the credential store if necessary
+    private savePasswordIfNeeded(profile: IConnectionProfile): Promise<void> {
+        let self = this;
+        return new Promise<void>((resolve, reject) => {
             if (profile.savePassword === true && Utils.isNotEmpty(profile.password)) {
                 let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user);
-                self._credentialStore.setCredential(credentialId, ConnectionStore.CRED_PROFILE_USER, profile.password);
+                self._credentialStore.setCredential(credentialId, ConnectionStore.CRED_PROFILE_USER, profile.password)
+                .then(() => {
+                    resolve(undefined);
+                }).catch(err => {
+                    // Bubble up error if there was a problem executing the set command
+                    reject(err);
+                });
+            } else {
+                resolve(undefined);
             }
-
-            resolve(profile);
         });
     }
 
@@ -194,14 +218,21 @@ export class ConnectionStore {
                 }
             });
 
+            let promises: PromiseLike<void>[] = [];
             if (profile.savePassword === true) {
                 let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user);
-                self._credentialStore.removeCredentialByName(credentialId, ConnectionStore.CRED_PROFILE_USER);
+                promises.push(self._credentialStore.removeCredentialByName(credentialId, ConnectionStore.CRED_PROFILE_USER));
             }
 
             // save all profiles
-            self._context.globalState.update(Constants.configMyConnections, configValues);
-            resolve(found);
+            promises.push(self._context.globalState.update(Constants.configMyConnections, configValues));
+
+            // Wait on all async operations then return
+            Promise.all(promises).then(() => {
+                resolve(found);
+            }, rejected => {
+                reject(rejected);
+            });
         });
     }
 

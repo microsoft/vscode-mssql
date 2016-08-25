@@ -13,9 +13,9 @@ export enum ContentType {
 };
 
 export enum AuthenticationTypes {
-    Integrated,
-    SqlPassword,
-    ActiveDirectoryUniversal
+    Integrated = 1,
+    SqlPassword = 2,
+    ActiveDirectoryUniversal = 3
 }
 
 export const ContentTypes = [Constants.outputContentTypeRoot, Constants.outputContentTypeMessages, Constants.outputContentTypeResultsetMeta,

@@ -30,6 +30,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 type: QuestionTypes.confirm,
                 name: Constants.msgSavePassword,
                 message: Constants.msgSavePassword,
+                shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile),
                 onAnswered: (value) => profile.savePassword = value
             },
             {
@@ -43,8 +44,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
         });
 
-        return prompter.prompt(questions).then(() => {
-            if (profile.isValidProfile()) {
+        return prompter.prompt(questions).then(answers => {
+            if (answers && profile.isValidProfile()) {
                 return profile;
             }
             // returning undefined to indicate failure to create the profile

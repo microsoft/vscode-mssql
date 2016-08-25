@@ -50,15 +50,15 @@ export default class MainController implements vscode.Disposable {
 
         // register VS Code commands
         this.registerCommand(Constants.cmdConnect);
-        this._event.on(Constants.cmdConnect, () => { self.onNewConnection(); });
+        this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection()); });
         this.registerCommand(Constants.cmdDisconnect);
-        this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
+        this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
         this.registerCommand(Constants.cmdCreateProfile);
-        this._event.on(Constants.cmdCreateProfile, () => { self.onCreateProfile(); });
+        this._event.on(Constants.cmdCreateProfile, () => { self.runAndLogErrors(self.onCreateProfile()); });
         this.registerCommand(Constants.cmdRemoveProfile);
-        this._event.on(Constants.cmdRemoveProfile, () => { self.onRemoveProfile(); });
+        this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
 
@@ -133,5 +133,11 @@ export default class MainController implements vscode.Disposable {
     // Prompts to remove a registered SQL connection profile
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
+    }
+
+    private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
+        return promise.catch(err => {
+            Utils.showErrorMsg(Constants.msgError + err);
+        });
     }
 }

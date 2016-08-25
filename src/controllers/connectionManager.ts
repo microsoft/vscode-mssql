@@ -142,10 +142,12 @@ export default class ConnectionManager {
                     self.disconnect(fileUri).then(function(): void {
                         // connect to the server/database
                         self.connect(fileUri, connectionCreds)
-                        .then(function(): void {
-                            resolve(true);
+                        .then(function(isConnected: boolean): void {
+                            resolve(isConnected);
                         });
                     });
+                } else {
+                    resolve(false);
                 }
             });
         });
@@ -200,7 +202,8 @@ export default class ConnectionManager {
                     self.statusView.connectError(fileUri, connectionCreds, result.messages);
                     self.connectionUI.showConnectionErrors(result.messages);
 
-                    reject();
+                    // We've logged the failure so
+                    resolve(false);
                 }
             });
         });

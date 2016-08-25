@@ -19,7 +19,7 @@ var path = require('path');
 
 var parser = require('./win-credstore-parser');
 
-var credExePath = path.join(__dirname, '../bin/win32/creds.exe');
+var credExePath = path.join(__dirname, '../../../tools/creds.exe');
 
 var targetNamePrefix = '';
 
