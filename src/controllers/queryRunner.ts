@@ -151,8 +151,8 @@ export default class QueryRunner {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             let disposeDetails = new QueryDisposeParams();
-            disposeDetails.ownerUri = this.uri;
-            this.client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
+            disposeDetails.ownerUri = self.uri;
+            self.client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
                 if (result.messages) {
                     self.vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
                     reject();
