@@ -158,4 +158,14 @@ export class DataService {
                             });
         }
     }
+
+    sendSaveRequest(resultSetNumber: number): void {
+        const self = this;
+        console.log('attempting http get');
+        self.http.get('/saveResults?'
+                             + '&uri=' + self.uri + '&resultSetNo=' + resultSetNumber)
+                             .map(res => res.json()).subscribe();
+        console.log('/saveResults?' + '&uri=' + self.uri + '&resultSetNo=' + resultSetNumber );
+        console.log('after get request');
+    }
 }

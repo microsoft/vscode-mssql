@@ -1,4 +1,4 @@
-import {Component, OnInit, Inject, forwardRef} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, AfterViewInit, ViewChild} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -10,6 +10,7 @@ import {IDbColumn} from './../interfaces';
 import { NavigatorComponent } from './navigation.component';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
+import { Save } from './saveResults';
 
 enum FieldType {
     String = 0,
@@ -25,17 +26,21 @@ enum FieldType {
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, NavigatorComponent, Tabs, Tab ],
+    directives: [SlickGrid, NavigatorComponent, Tabs, Tab, Save ],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
 
-export class AppComponent implements OnInit {
+
+export class AppComponent implements OnInit, AfterViewInit {
     private columnDefinitions: IColumnDefinition[] = [];
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
     private resultOptions: number[];
     private messages: string[];
+    public selectedResultSet: number;
+    @ViewChild(SlickGrid)
+    private _slickGrid: SlickGrid;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -51,6 +56,22 @@ export class AppComponent implements OnInit {
             }
             this.renderResults(0);
         });
+
+    }
+
+    ngAfterViewInit(): void {
+        const self = this;
+        self._slickGrid.subscribeToContextMenu();
+        $('.contextMenu').click(function (e): void {
+            if (!$(e.target).is('li')) {
+                return;
+            }
+            console.log('clicked on context menu');
+            // get current resultSet number
+            // call express server
+            self.saveResultsAsCsv();
+         });
+
     }
 
     private stringToFieldType(input: string): FieldType {
@@ -74,6 +95,14 @@ export class AppComponent implements OnInit {
 
     selectionChange(value: number): void {
         this.renderResults(value);
+        this.selectedResultSet = value;
+    }
+
+    saveResultsAsCsv(): void {
+        const self = this;
+        // call /saveResults with the current resultSet number
+        self.dataService.sendSaveRequest(this.selectedResultSet);
+
     }
 
     renderResults(id: number): void {

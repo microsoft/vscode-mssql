@@ -6,7 +6,7 @@ import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
 import QueryRunner from '../controllers/queryRunner';
-
+import SaveResults from  '../models/saveResults';
 class QueryResultSet {
 
     constructor(public queryRunner: QueryRunner) {
@@ -19,6 +19,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+    private _saveResults = new SaveResults();
 
     get onDidChange(): vscode.Event<vscode.Uri> {
         return this._onDidChange.event;
@@ -38,6 +39,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
             Utils.logDebug(Constants.msgContentProviderOnRootEndpoint);
+            console.log('shravind' + req.originalUrl);
             let uri: string = decodeURI(req.query.uri);
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
         });
@@ -92,6 +94,20 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 res.send(json);
             });
             // Utils.logDebug(json);
+
+        });
+
+
+        // add http handler for '/saveResults' - return all messages as a JSON string
+        this._service.addHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
+            // Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
+            let uri: string = decodeURI(req.query.uri);
+            let selectedResultSetNo: number = Number(req.query.resultSetNo);
+            console.log('Selected result set ' + selectedResultSetNo);
+            self._saveResults.onSaveResultsAsCsv(uri, selectedResultSetNo);
+            let json = JSON.stringify('success');
+            // Utils.logDebug(json);
+            res.send(json);
         });
 
         // start express server on localhost and listen on a random port

@@ -183,3 +183,31 @@ export class QueryExecuteSubsetResult {
 }
 
 // --------------------------------- </ Query Results Request > ------------------------------------------
+
+// shravind
+// --------------------------------- < Save Results Request > ------------------------------------------
+export namespace SaveResultsRequest {
+    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = {
+                                                                                        get method(): string {
+                                                                                            return 'query/save';
+                                                                                        }
+                                                                                    };
+export class SaveResultsRequestParams {
+    ownerUri: string;
+    filePath: string;
+    fileEncoding: string;
+    formatting: string;
+    ResultSetNo: number;
+    ValueInQuotes: boolean;
+    MissingValueReplacement: boolean;
+
+}
+
+export class SaveResultRequestResult {
+    messages: string;
+}
+
+}
+
+
+// --------------------------------- </ Save Results Request > ------------------------------------------

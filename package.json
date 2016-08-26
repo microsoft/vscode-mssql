@@ -126,6 +126,11 @@
         "command": "extension.chooseDatabase",
         "title": "Switch database on current server",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.saveResultsAsCsv",
+        "title": "Save Results As C",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [

@@ -9,7 +9,8 @@ export enum ContentType {
     ResultsetsMeta = 2,
     Columns = 3,
     Rows = 4,
-    MoreRows = 5
+    // MoreRows = 5,
+    SaveResults = 5
 };
 
 export enum AuthenticationTypes {
@@ -19,7 +20,7 @@ export enum AuthenticationTypes {
 }
 
 export const ContentTypes = [Constants.outputContentTypeRoot, Constants.outputContentTypeMessages, Constants.outputContentTypeResultsetMeta,
-Constants.outputContentTypeColumns, Constants.outputContentTypeRows];
+Constants.outputContentTypeColumns, Constants.outputContentTypeRows, Constants.outputContentTypeSaveResults];
 
 // mssql.config wrapped into an interface for us to use more easily
 // Provided by the user when creating a new database connection

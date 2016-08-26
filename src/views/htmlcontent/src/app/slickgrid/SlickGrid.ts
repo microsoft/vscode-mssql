@@ -13,6 +13,7 @@ import {IGridDataRow} from './SharedControlInterfaces';
 import {IColumnDefinition} from './ModelInterfaces';
 import {LocalizationService} from './LocalizationService';
 import {GridSyncService} from './GridSyncService';
+// import {AppComponent} from '../app.component';
 
 enum FieldType {
     String = 0,
@@ -125,7 +126,7 @@ function getOverridableTextEditorClass(grid: SlickGrid): any {
     selector: 'slick-grid',
     templateUrl: 'app/slickgrid/SlickGrid.html',
     styleUrls: ['app/libs/SlickGrid/slick.grid.css', 'app/slickgrid/SlickGrid.css'],
-    providers: [LocalizationService, GridSyncService],
+    providers: [LocalizationService, GridSyncService ],
     encapsulation: ViewEncapsulation.None
 })
 export class SlickGrid implements OnChanges, OnInit, OnDestroy {
@@ -414,6 +415,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
                 });
         }
         this.onResize();
+        // this.subscribeToContextMenu();
     }
 
     private subscribeToScroll(): void {
@@ -454,6 +456,20 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
             this._gridColumns[i].width = this._gridSyncService.columnWidthPXs[i];
         }
         this._grid.setColumnWidths(this._gridColumns, true);
+    }
+
+    // shravind
+    public subscribeToContextMenu(): void {
+        this._grid.onContextMenu.subscribe(function (e): void {
+            e.preventDefault();
+            $('.contextMenu').css('top', e.pageY).css('left', e.pageX).show();
+            $('tab').one('click', function (): void {
+                $('.contextMenu').hide();
+            });
+        });
+        console.log('subscribing to context menu');
+
+
     }
 
     private updateSchema(): void {

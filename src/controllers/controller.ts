@@ -11,6 +11,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
+import SaveResults from '../models/saveResults';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -19,6 +20,7 @@ export default class MainController implements vscode.Disposable {
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
+    private _saveResults: SaveResults;
 
     constructor(context: vscode.ExtensionContext) {
         this._context = context;
@@ -59,6 +61,9 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdRemoveProfile, () => { self.onRemoveProfile(); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
+        // shravind register save command
+        this.registerCommand(Constants.cmdSaveResultAsCsv);
+        this._event.on(Constants.cmdSaveResultAsCsv, () => { self.onSaveResultAsCsv(); } );
 
         // initialize language service client
         SqlToolsServerClient.getInstance().initialize(this._context);
@@ -85,6 +90,12 @@ export default class MainController implements vscode.Disposable {
         );
 
         Utils.logDebug(Constants.extensionActivated);
+
+        // shravind Init Save Results
+        this._saveResults = new SaveResults();
+
+
+
     }
 
     // Choose a new database from the current server
@@ -119,5 +130,10 @@ export default class MainController implements vscode.Disposable {
     // Prompts to remove a registered SQL connection profile
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
+    }
+
+    // shravind.remove method. prompt for filepath and  save results as csv
+    public onSaveResultAsCsv(): void {
+        this._saveResults.onSaveResultsAsCsv('test', 0);
     }
 }
