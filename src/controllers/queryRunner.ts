@@ -119,6 +119,7 @@ export default class QueryRunner {
     // handle the result of the notification
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
         this.batchSets = result.batchSummaries;
+        this.statusView.executedQuery(this.uri);
         this._outputProvider.updateContent(this);
     }
 
