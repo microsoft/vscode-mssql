@@ -191,9 +191,10 @@
         }
 
         function handleDragStart(e) {
+            var cell = _grid.getCellFromEvent(e);
             e.stopImmediatePropagation();
             _dragging = true;
-            _ranges = [];
+            _ranges = [{fromCell: cell.cell-1, fromRow: cell.row, toCell: cell.cell-1, toRow: cell.row}];
             setSelectedRanges(_ranges);
         }
 
@@ -204,15 +205,13 @@
                 if (!cell || !_grid.canCellBeActive(cell.row, cell.cell))
                     return false;
 
-                var selection = rangesToRows(_ranges);
-
-                var idx = $.inArray(cell.row, selection);
-                if (idx === -1) {
-                    selection.push(cell.row);
-                    _ranges = rowsToRanges(selection);
-                    setSelectedRanges(_ranges);
-                }
-
+                var start = _ranges.pop();
+                var firstRow = Math.min(cell.row, start.fromRow);
+                var lastRow = Math.max(cell.row, start.fromRow);
+                var firstColumn = Math.min(cell.cell-1, start.fromCell);
+                var lastColumn = Math.max(cell.cell-1, start.fromCell);
+                _ranges = [{fromCell: firstColumn, fromRow: firstRow, toCell: lastColumn, toRow: lastRow}];
+                setSelectedRanges(_ranges);
             }
         }
 
