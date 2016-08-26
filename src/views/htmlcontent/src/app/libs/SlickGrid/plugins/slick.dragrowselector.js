@@ -146,7 +146,14 @@
             var idx = $.inArray(cell.row, selection);
 
             if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
-                return false;
+                if(cell.cell !== 0) {
+                    _ranges = [{fromCell: cell.cell-1, fromRow: cell.row, toCell: cell.cell-1, toRow: cell.row}];
+                    setSelectedRanges(_ranges);
+                    e.stopImmediatePropagation();
+                    return true;
+                } else {
+                    return false;
+                }
             }
             else if (_grid.getOptions().multiSelect) {
                 if (idx === -1 && (e.ctrlKey || e.metaKey)) {

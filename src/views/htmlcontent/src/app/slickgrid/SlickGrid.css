@@ -13,10 +13,6 @@
   border-right-style: dotted;
   padding: 0.5em 0.8em 0.4em;
 }
-.grid {
-  width: 100%;
-  height: 100%;
-}
 .grid .slick-header-column {
   border-top-style: none;
   color: #101010;

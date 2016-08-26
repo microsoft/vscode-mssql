@@ -1,14 +1,19 @@
-<navigator [batchs]="resultOptions" (selectionChange)="selectionChange($event)"></navigator>
-<tabs>
-    <tab tabTitle="Results">
-        <slick-grid [columnDefinitions]="columnDefinitions"
-                    [dataRows]="dataRows"
-                    showHeader="true">
-        </slick-grid>
-    </tab>
-    <tab tabTitle="Messages">
-        <div *ngFor="let message of messages">
-            {{message}}
-        </div>
-    </tab>
-</tabs>
+<div class="fullsize box">
+
+    <navigator [batchs]="resultOptions" (selectionChange)="selectionChange($event)" class="boxRow header"></navigator>
+    <tabs class="boxRow content box">
+        <tab tabTitle="Results" class="boxRow content box">
+            <slick-grid [columnDefinitions]="columnDefinitions"
+                        [dataRows]="dataRows"
+                        showDataTypeIcon="false"
+                        showHeader="true"
+                        class="boxRow content box">
+            </slick-grid>
+        </tab>
+        <tab tabTitle="Messages">
+            <div *ngFor="let message of messages">
+                {{message}}
+            </div>
+        </tab>
+    </tabs>
+</div>
