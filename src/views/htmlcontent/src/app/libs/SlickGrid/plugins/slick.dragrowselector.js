@@ -130,8 +130,19 @@
 
         function handleHeaderClick(e, args) {
             var columnIndex = _grid.getColumnIndex(args.column.id);
-            if(e.shiftKey){
+            if(e.ctrlKey){
                 _ranges.push({fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1})
+            } else if(e.shiftKey && _ranges.length) {
+                var last = _ranges.pop().fromCell;
+                var from = Math.min(columnIndex, last);
+                var to = Math.max(columnIndex, last);
+                _ranges = [];
+                for (var i = from; i <= to; i++) {
+                    if (i !== last) {
+                        _ranges.push({fromCell: i, fromRow: 0, toCell: i, toRow: _grid.getDataLength()-1});
+                    }
+                }
+                _ranges.push({fromCell: last, fromRow: 0, toCell: last, toRow: _grid.getDataLength()-1});
             } else {
                 _ranges = [{fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1}];
             }
