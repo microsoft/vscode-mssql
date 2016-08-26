@@ -11,8 +11,10 @@ import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 
-// Information for a document's connection
-class ConnectionInfo {
+/**
+ * Information for a document's connection. Exported for testing purposes.
+ */
+export class ConnectionInfo {
     // Connection GUID returned from the service host
     public connectionId: string;
 
@@ -22,28 +24,30 @@ class ConnectionInfo {
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
-    private _client: SqlToolsServerClient;
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
-    private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: SqlToolsServerClient) {
+    constructor(context: vscode.ExtensionContext,
+                statusView: StatusView,
+                prompter: IPrompter,
+                private _client?: SqlToolsServerClient,
+                private _vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
-        this._connectionUI = new ConnectionUI(context, prompter);
         this._connections = {};
 
-        if (typeof client === 'undefined') {
+        if (!this.client) {
             this.client = SqlToolsServerClient.instance;
-        } else {
-            this.client = client;
+        }
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
         }
 
-        this.vscodeWrapper = new VscodeWrapper();
+        this._connectionUI = new ConnectionUI(context, prompter, this.vscodeWrapper);
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -85,22 +89,46 @@ export default class ConnectionManager {
         return (fileUri in this._connections);
     }
 
+    /**
+     * Exposed for testing purposes.
+     */
+    public getConnectionInfo(fileUri: string): ConnectionInfo {
+        return this._connections[fileUri];
+    }
+
     // choose database to use on current server
-    public onChooseDatabase(): void {
+    public onChooseDatabase(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
-        if (!self.isConnected(fileUri)) {
-            this.vscodeWrapper.showWarningMessage(Constants.msgChooseDatabaseNotConnected);
-            return;
-        }
-
-        self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials).then( newDatabaseCredentials => {
-            if (typeof newDatabaseCredentials !== 'undefined') {
-                self.disconnect(fileUri).then( () => {
-                    self.connect(fileUri, newDatabaseCredentials);
-                });
+        return new Promise<boolean>( (resolve, reject) => {
+            if (!self.isConnected(fileUri)) {
+                self.vscodeWrapper.showWarningMessage(Constants.msgChooseDatabaseNotConnected);
+                resolve(false);
+                return;
             }
+
+            // Get list of databases on current server
+            let listParams = new Contracts.ListDatabasesParams();
+            listParams.ownerUri = fileUri;
+            self.client.sendRequest(Contracts.ListDatabasesRequest.type, listParams).then( result => {
+                // Then let the user select a new database to connect to
+                self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials, result.databaseNames).then( newDatabaseCredentials => {
+                    if (newDatabaseCredentials) {
+                        self.disconnect(fileUri).then( () => {
+                            self.connect(fileUri, newDatabaseCredentials).then( () => {
+                                resolve(true);
+                            }).catch(err => {
+                                reject(err);
+                            });
+                        }).catch(err => {
+                            reject(err);
+                        });
+                    }
+                }).catch(err => {
+                    reject(err);
+                });
+            });
         });
     }
 
@@ -133,12 +161,14 @@ export default class ConnectionManager {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
-        if (fileUri === '') {
-            // A text document needs to be open before we can connect
-            this.vscodeWrapper.showInformationMessage(Constants.msgOpenSqlFile);
-        }
-
         return new Promise<boolean>((resolve, reject) => {
+            if (!fileUri || !self.vscodeWrapper.isEditingSqlFile) {
+                // A text document needs to be open before we can connect
+                this.vscodeWrapper.showInformationMessage(Constants.msgOpenSqlFile);
+                resolve(false);
+                return;
+            }
+
             // show connection picklist
             self.connectionUI.showConnections()
             .then(function(connectionCreds): void {

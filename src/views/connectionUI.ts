@@ -7,19 +7,28 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
-
-// let async = require('async');
-const mssql = require('mssql');
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ConnectionUI {
     private _context: vscode.ExtensionContext;
     private _prompter: IPrompter;
     private _errorOutputChannel: vscode.OutputChannel;
 
-    constructor(context: vscode.ExtensionContext, prompter: IPrompter) {
+    constructor(context: vscode.ExtensionContext, prompter: IPrompter, private _vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         this._prompter = prompter;
         this._errorOutputChannel = vscode.window.createOutputChannel(Constants.connectionErrorChannelName);
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
+    }
+
+    private get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
+    private set vscodeWrapper(wrapper: VscodeWrapper) {
+        this._vscodeWrapper = wrapper;
     }
 
     // Show connection errors in an output window
@@ -70,48 +79,35 @@ export class ConnectionUI {
     }
 
     // Helper to let the user choose a database on the current server
-    // TODO: refactor this to use the service layer/SMO once the plumbing/conversion is complete
-    public showDatabasesOnCurrentServer(currentCredentials: Interfaces.IConnectionCredentials): Promise<Interfaces.IConnectionCredentials> {
-        // const self = this;
+    public showDatabasesOnCurrentServer(currentCredentials: Interfaces.IConnectionCredentials,
+                                        databaseNames: Array<string>): Promise<Interfaces.IConnectionCredentials> {
+        const self = this;
         return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
-            // create a new connection to the master db using the current connection as a base
-            let masterCredentials: Interfaces.IConnectionCredentials = <any>{};
-            Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(masterCredentials, currentCredentials);
-            masterCredentials.database = 'master';
-            const masterConnection = new mssql.Connection(masterCredentials);
+            const pickListItems = databaseNames.map(name => {
+                let newCredentials: Interfaces.IConnectionCredentials = <any>{};
+                Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
+                newCredentials.database = name;
 
-            masterConnection.connect().then( () => {
-                // query sys.databases for a list of databases on the server
-                new mssql.Request(masterConnection).query('SELECT name FROM sys.databases').then( recordset => {
-                    const pickListItems = recordset.map(record => {
-                        let newCredentials: Interfaces.IConnectionCredentials = <any>{};
-                        Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
-                        newCredentials.database = record.name;
+                return <Interfaces.IConnectionCredentialsQuickPickItem> {
+                    label: name,
+                    description: '',
+                    detail: '',
+                    connectionCreds: newCredentials,
+                    isNewConnectionQuickPickItem: false
+                };
+            });
 
-                        return <Interfaces.IConnectionCredentialsQuickPickItem> {
-                            label: record.name,
-                            description: '',
-                            detail: '',
-                            connectionCreds: newCredentials,
-                            isNewConnectionQuickPickItem: false
-                        };
-                    });
+            const pickListOptions: vscode.QuickPickOptions = {
+                placeHolder: Constants.msgChooseDatabasePlaceholder
+            };
 
-                    const pickListOptions: vscode.QuickPickOptions = {
-                        placeHolder: Constants.msgChooseDatabasePlaceholder
-                    };
-
-                    // show database picklist, and modify the current connection to switch the active database
-                    vscode.window.showQuickPick<Interfaces.IConnectionCredentialsQuickPickItem>(pickListItems, pickListOptions).then( selection => {
-                        if (typeof selection !== 'undefined') {
-                            resolve(selection.connectionCreds);
-                        } else {
-                            resolve(undefined);
-                        }
-                    });
-                }).catch( err => {
-                    reject(err);
-                });
+            // show database picklist, and modify the current connection to switch the active database
+            self.vscodeWrapper.showQuickPick<Interfaces.IConnectionCredentialsQuickPickItem>(pickListItems, pickListOptions).then( selection => {
+                if (typeof selection !== 'undefined') {
+                    resolve(selection.connectionCreds);
+                } else {
+                    resolve(undefined);
+                }
             });
         });
     }

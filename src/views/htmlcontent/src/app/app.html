@@ -4,7 +4,9 @@
             <navigator [results]="resultOptions" (selectionChange)="selectionChange($event)" class="boxRow header"></navigator>
             <slick-grid [columnDefinitions]="columnDefinitions"
                         [dataRows]="dataRows"
-                        showHeader="true" class="boxRow content box">
+                        showDataTypeIcon="false"
+                        showHeader="true"
+                        class="boxRow content box">
             </slick-grid>
         </tab>
         <tab tabTitle="Messages">
