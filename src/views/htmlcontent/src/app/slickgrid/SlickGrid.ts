@@ -302,6 +302,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
 
     onResize(): void {
         if (this._grid !== undefined) {
+            let element = this._el.nativeElement.getElementsByClassName('grid')[0];
             // this will make sure the grid header and body to be re-rendered
             this._grid.resizeCanvas();
         }

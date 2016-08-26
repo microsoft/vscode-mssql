@@ -1,0 +1,26 @@
+html,
+body {
+  height: 100%;
+  margin: 0
+}
+
+.fullsize {
+  height: 100%;
+}
+
+.box {
+  display: flex;
+  flex-flow: column;
+}
+.innerbox {
+  display: flex;
+  flex-flow: column;
+}
+
+.box .boxRow.header {
+  flex: 0 0 auto;
+}
+
+.box .boxRow.content {
+  flex: 1 0 1%;
+}
