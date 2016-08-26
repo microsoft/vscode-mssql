@@ -74,6 +74,17 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Shows a selection list.
+     *
+     * @param items An array of items, or a promise that resolves to an array of items.
+     * @param options Configures the behavior of the selection list.
+     * @return A promise that resolves to the selected item or undefined.
+     */
+    public showQuickPick<T extends vscode.QuickPickItem>(items: T[] | Thenable<T[]>, options?: vscode.QuickPickOptions): Thenable<T> {
+        return vscode.window.showQuickPick<T>(items, options);
+    }
+
+    /**
      * Formats and shows a vscode warning message
      */
     public showWarningMessage(msg: string): Thenable<string> {

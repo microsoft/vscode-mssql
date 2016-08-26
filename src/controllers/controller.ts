@@ -100,7 +100,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     // Choose a new database from the current server
-    private onChooseDatabase(): void {
+    private onChooseDatabase(): Promise<boolean> {
         return this._connectionMgr.onChooseDatabase();
     }
 

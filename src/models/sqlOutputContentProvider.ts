@@ -9,14 +9,8 @@ import QueryRunner from '../controllers/queryRunner';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 
-class QueryResultSet {
-
-    constructor(public queryRunner: QueryRunner) {
-    }
-}
-
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
-    private _queryResultsMap: Map<string, QueryResultSet> = new Map<string, QueryResultSet>();
+    private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
@@ -28,7 +22,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     public onContentUpdated(): void {
-        Utils.logDebug(Constants.msgContentProviderOnContentUpdated);
         this._onDidChange.fire(SqlOutputContentProvider.providerUri);
     }
 
@@ -43,61 +36,51 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
-            Utils.logDebug(Constants.msgContentProviderOnRootEndpoint);
             let uri: string = decodeURI(req.query.uri);
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
-
-            Utils.logDebug(Constants.msgContentProviderOnResultsEndpoint);
-            let resultsetsMeta: Interfaces.ISqlResultsetMeta[] = [];
+            let batchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = decodeURI(req.query.uri);
-            for (let index = 0; index < self._queryResultsMap.get(uri).queryRunner.resultSets.length; index ++) {
-                resultsetsMeta.push( <Interfaces.ISqlResultsetMeta> {
-                    columnsUri: '/' + Constants.outputContentTypeColumns + '?id=' + index.toString(),
-                    rowsUri: '/' + Constants.outputContentTypeRows + '?id=' + index.toString(),
-                    totalRows: self._queryResultsMap.get(uri).queryRunner.resultSets[index].rowCount
-                });
+            for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
+                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: undefined};
+                for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
+                    tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
+                        columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
+                        rowsUri: '/' + Constants.outputContentTypeRows +  '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
+                        numberOfRows: result.rowCount
+                    });
+                }
+                tempBatch.messages = batch.messages;
+                batchSets.push(tempBatch);
             }
-            let json = JSON.stringify(resultsetsMeta);
-            // Utils.logDebug(json);
-            res.send(json);
-        });
-
-        // add http handler for '/messages' - return all messages as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Messages, function(req, res): void {
-            Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
-            let uri: string = decodeURI(req.query.uri);
-            let json = JSON.stringify(self._queryResultsMap.get(uri).queryRunner.messages);
-            // Utils.logDebug(json);
+            let json = JSON.stringify(batchSets);
             res.send(json);
         });
 
         // add http handler for '/columns' - return column metadata as a JSON string
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
-            let id = req.query.resultId;
-            Utils.logDebug(Constants.msgContentProviderOnColumnsEndpoint + id);
+            let resultId = req.query.resultId;
+            let batchId = req.query.batchId;
             let uri: string = decodeURI(req.query.uri);
-            let columnMetadata = self._queryResultsMap.get(uri).queryRunner.resultSets[id].columnInfo;
+            let columnMetadata = self._queryResultsMap.get(uri).batchSets[batchId].resultSetSummaries[resultId].columnInfo;
             let json = JSON.stringify(columnMetadata);
-            // Utils.logDebug(json);
             res.send(json);
         });
 
         // add http handler for '/rows' - return rows end-point for a specific resultset
         this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void {
-            let id = req.query.resultId;
+            let resultId = req.query.resultId;
+            let batchId = req.query.batchId;
             let rowStart = req.query.rowStart;
             let numberOfRows = req.query.numberOfRows;
-            Utils.logDebug(Constants.msgContentProviderOnRowsEndpoint + id);
             let uri: string = decodeURI(req.query.uri);
-            self._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, id).then(results => {
+            self._queryResultsMap.get(uri).getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
             });
-            // Utils.logDebug(json);
         });
 
         // start express server on localhost and listen on a random port
@@ -110,7 +93,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     private clear(uri: string): void {
-        Utils.logDebug(Constants.msgContentProviderOnClear);
         this._queryResultsMap.delete(uri);
     }
 
@@ -124,14 +106,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     public updateContent(queryRunner: QueryRunner): string {
-        Utils.logDebug(Constants.msgContentProviderOnUpdateContent);
         let title = queryRunner.title;
         let uri = SqlOutputContentProvider.providerUri + title;
         this.clear(uri);
-        this._queryResultsMap.set(uri, new QueryResultSet(queryRunner));
-        if (!this._statusView.associateWithExisting(queryRunner.uri, uri)) {
-            this._vscodeWrapper.showWarningMessage(Constants.msgContentProviderAssociationFailure);
-        }
+        this._queryResultsMap.set(uri, queryRunner);
         this.show(uri, title);
         this.onContentUpdated();
         return uri;
@@ -139,7 +117,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     // Called by VS Code exactly once to load html content in the preview window
     public provideTextDocumentContent(uri: vscode.Uri): string {
-        Utils.logDebug(Constants.msgContentProviderProvideContent + uri.toString());
 
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `
