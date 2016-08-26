@@ -130,7 +130,11 @@
 
         function handleHeaderClick(e, args) {
             var columnIndex = _grid.getColumnIndex(args.column.id);
-            _ranges = [{fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1}];
+            if(e.shiftKey){
+                _ranges.push({fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1})
+            } else {
+                _ranges = [{fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1}];
+            }
             setSelectedRanges(_ranges);
             e.stopImmediatePropagation();
             return true;
