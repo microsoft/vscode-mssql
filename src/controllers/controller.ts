@@ -125,6 +125,8 @@ export default class MainController implements vscode.Disposable {
                 if (result) {
                     self.onRunQuery();
                 }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
             });
         } else {
             let editor = this._vscodeWrapper.activeTextEditor;

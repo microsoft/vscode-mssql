@@ -284,7 +284,7 @@ suite('Per File Connection Tests', () => {
         });
     });
 
-    test('Prompts for new connection before running query if disconnected', done => {
+    test('Prompts for new connection before running query if disconnected', () => {
         // Setup mocking
         let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
@@ -293,12 +293,7 @@ suite('Per File Connection Tests', () => {
         let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
-        connectionManagerMock.setup(x => x.onNewConnection())
-            .callback(() => {
-                // Only complete the test if the user was prompted for a new connection
-                done();
-            })
-            .returns(() => Promise.resolve(true));
+        connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(false));
 
         let controller: MainController = new MainController(contextMock.object,
                                                             connectionManagerMock.object,
@@ -306,7 +301,6 @@ suite('Per File Connection Tests', () => {
 
         // Attempt to run a query without connecting
         controller.onRunQuery();
-
-        // The rest of the testing happens in the connectionManagerMock callback for onNewConnection()...
+        connectionManagerMock.verify(x => x.onNewConnection(), TypeMoq.Times.once());
     });
 });
