@@ -8,6 +8,7 @@ import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentials } from '../src/models/interfaces';
 import * as Contracts from '../src/models/contracts';
+import MainController from '../src/controllers/controller';
 import * as Interfaces from '../src/models/interfaces';
 import StatusView from '../src/views/statusView';
 import Telemetry from '../src/models/telemetry';
@@ -281,5 +282,25 @@ suite('Per File Connection Tests', () => {
         }).catch(err => {
             done(err);
         });
+    });
+
+    test('Prompts for new connection before running query if disconnected', () => {
+        // Setup mocking
+        let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => true);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'file://my/test/file.sql');
+        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
+        connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
+        connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(false));
+
+        let controller: MainController = new MainController(contextMock.object,
+                                                            connectionManagerMock.object,
+                                                            vscodeWrapperMock.object);
+
+        // Attempt to run a query without connecting
+        controller.onRunQuery();
+        connectionManagerMock.verify(x => x.onNewConnection(), TypeMoq.Times.once());
     });
 });
