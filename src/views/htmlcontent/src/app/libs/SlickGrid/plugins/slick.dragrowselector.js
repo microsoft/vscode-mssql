@@ -211,13 +211,8 @@
             var cell = _grid.getCellFromEvent(e);
             e.stopImmediatePropagation();
             _dragging = true;
-            if(cell.cell === 0){
-                _dragRow = true;
-                _ranges = [];
-            } else {
-                _dragRow = false;
-                _dragStart = cell;
-            }
+            _dragRow = cell.cell === 0 ? true : false;
+            _dragStart = cell;
             _ranges = [];
             setSelectedRanges(_ranges);
         }
@@ -230,23 +225,20 @@
                     return false;
 
                 if(_dragRow){
-                    var selection = rangesToRows(_ranges);
-
-                    var idx = $.inArray(cell.row, selection);
-                    if (idx === -1) {
-                        selection.push(cell.row);
-                        _ranges = rowsToRanges(selection);
-                        setSelectedRanges(_ranges);
-                    }
+                    var lastCell = _grid.getColumns().length - 1;
+                    var start = _dragStart;
+                    var firstRow = Math.min(cell.row, start.row);
+                    var lastRow = Math.max(cell.row, start.row);
+                    _ranges = [new Slick.Range(firstRow, 0, lastRow, lastCell)];
                 } else {
                     var start = _dragStart;
                     var firstRow = Math.min(cell.row, start.row);
                     var lastRow = Math.max(cell.row, start.row);
                     var firstColumn = Math.min(cell.cell-1, start.cell-1);
                     var lastColumn = Math.max(cell.cell-1, start.cell-1);
-                    _ranges = [{fromCell: firstColumn, fromRow: firstRow, toCell: lastColumn, toRow: lastRow}];
-                    setSelectedRanges(_ranges);
+                    _ranges = [new Slick.Range(firstRow, firstColumn, lastRow, lastColumn)];
                 }
+                setSelectedRanges(_ranges);
             }
         }
 
