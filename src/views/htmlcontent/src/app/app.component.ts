@@ -59,7 +59,7 @@ export class AppComponent implements OnInit {
             }
             Promise.all(promises).then(() => {
                 if (self.resultOptions) {
-                    self.renderResults(0, 0);
+                    self.renderResults(/*batch Id*/0, /*result Id*/0);
                 }
             });
         });

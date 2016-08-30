@@ -6,7 +6,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 })
 
 export class NavigatorComponent {
-    @Input() batchs: number[][];
+    @Input() batches: number[][];
     @Output() selectionChange: EventEmitter<{ batch: number; result: number; }> = new EventEmitter<{ batch: number; result: number; }>();
 
     public selected(value: {batch: number; result: number; }): void {

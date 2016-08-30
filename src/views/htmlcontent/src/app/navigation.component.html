@@ -7,7 +7,7 @@
         </template>
     </template>
 </select> -->
-<template ngFor let-batch [ngForOf]="batchs" let-i="index">
+<template ngFor let-batch [ngForOf]="batches" let-i="index">
     <template ngFor let-result [ngForOf]="batch">
         <a href="#" (click)="selected({batch: i, result: result})">B{{i}}.R{{result}}</a>
     </template>
