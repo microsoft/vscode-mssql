@@ -34,45 +34,32 @@ export class AppComponent implements OnInit {
     private columnDefinitions: IColumnDefinition[] = [];
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
-    private resultOptions: number[];
+    private resultOptions: number[][];
     private messages: string[];
-    private resultToBatch: number[];
-    private resultToResult: number[];
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
     ngOnInit(): void {
         const self = this;
         self.resultOptions = [];
-        self.resultToBatch = [];
-        self.resultToResult = [];
-        self.messages = [];
         this.dataService.numberOfBatchSets().then((numberOfBatches: number) => {
             let promises: Promise<void>[] = [];
-            let resultIndex: number = 0;
             for (let i = 0; i < numberOfBatches; i++) {
-                let messagePromise = new Promise<void>((resolve, reject) => {
-                    self.dataService.getMessages(i).then((messages: string[]) => {
-                        self.messages = self.messages.concat(messages);
-                        resolve();
-                    });
-                });
+                let batch: number[] = [];
                 let resultPromise = new Promise<void>((resolve, reject) => {
                     self.dataService.numberOfResultSets(i).then((numberOfResults: number) => {
                         for (let j = 0; j < numberOfResults; j++) {
-                            self.resultToBatch.push(i);
-                            self.resultToResult.push(j);
-                            self.resultOptions.push(resultIndex);
-                            resultIndex++;
+                            batch.push(j);
                         }
                         resolve();
                     });
                 });
-                promises.push(messagePromise, resultPromise);
+                self.resultOptions.push(batch);
+                promises.push(resultPromise);
             }
             Promise.all(promises).then(() => {
                 if (self.resultOptions) {
-                    self.renderResults(0);
+                    self.renderResults(/*batch Id*/0, /*result Id*/0);
                 }
             });
         });
@@ -97,14 +84,17 @@ export class AppComponent implements OnInit {
         return fieldtype;
     }
 
-    selectionChange(value: number): void {
-        this.renderResults(value);
+    selectionChange(selection: {batch: number; result: number; }): void {
+        this.renderResults(selection.batch, selection.result);
     }
 
-    renderResults(resultId: number): void {
+    renderResults(batchId: number, resultId: number): void {
         const self = this;
-        let columns = this.dataService.getColumns(self.resultToBatch[resultId], self.resultToResult[resultId]);
-        let numberOfRows = this.dataService.getNumberOfRows(self.resultToBatch[resultId], self.resultToResult[resultId]);
+        this.dataService.getMessages(batchId).then((result: string[]) => {
+            self.messages = result;
+        });
+        let columns = this.dataService.getColumns(batchId, resultId);
+        let numberOfRows = this.dataService.getNumberOfRows(batchId, resultId);
         Observable.forkJoin([columns, numberOfRows]).subscribe( data => {
             let columnData: IDbColumn[] = data[0];
             self.totalRows = data[1];
@@ -119,7 +109,7 @@ export class AppComponent implements OnInit {
 
             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                 return new Promise<IGridDataRow[]>((resolve, reject) => {
-                    self.dataService.getRows(offset, count, self.resultToBatch[resultId], self.resultToResult[resultId]).subscribe(rows => {
+                    self.dataService.getRows(offset, count, batchId, resultId).subscribe(rows => {
                         let gridData: IGridDataRow[] = [];
                         for (let i = 0; i < rows.rows.length; i++) {
                             gridData.push({
