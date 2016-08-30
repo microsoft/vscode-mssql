@@ -1,7 +1,8 @@
-<div>
-    <tabs class="fullsize box">
+<div class="fullsize box">
+
+    <navigator [batches]="resultOptions" (selectionChange)="selectionChange($event)" class="boxRow header"></navigator>
+    <tabs class="boxRow content box">
         <tab tabTitle="Results" class="boxRow content box">
-            <navigator [results]="resultOptions" (selectionChange)="selectionChange($event)" class="boxRow header"></navigator>
             <slick-grid [columnDefinitions]="columnDefinitions"
                         [dataRows]="dataRows"
                         showDataTypeIcon="false"
