@@ -92,7 +92,7 @@ suite('Query Runner tests', () => {
 
     test('Handles result correctly', () => {
         testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()));
-        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
         let queryRunner = new QueryRunner(
             undefined,
             testStatusView.object,
@@ -101,6 +101,7 @@ suite('Query Runner tests', () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
+        queryRunner.uri = '';
         queryRunner.handleResult({ownerUri: 'vscode', batchSummaries: [{
             hasError: false,
             id: 0,
@@ -108,6 +109,7 @@ suite('Query Runner tests', () => {
             resultSetSummaries: []
         }]});
         testSqlOutputContentProvider.verify(x => x.updateContent(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
     });
 
     test('Correctly handles subset', () => {
@@ -154,7 +156,6 @@ suite('Query Runner tests', () => {
                                                               // testing
                                                           }).returns(() => { return Promise.resolve(testresult); });
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
-        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         let queryRunner = new QueryRunner(
             undefined,
             testStatusView.object,
