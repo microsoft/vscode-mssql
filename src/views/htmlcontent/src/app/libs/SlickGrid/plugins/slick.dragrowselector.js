@@ -10,6 +10,7 @@
 
     function DragRowSelectionModel(options) {
         var _grid;
+        var _dragStart;
         var _ranges = [];
         var _self = this;
         var _options;
@@ -194,6 +195,7 @@
             var cell = _grid.getCellFromEvent(e);
             e.stopImmediatePropagation();
             _dragging = true;
+            _dragStart = cell;
             _ranges = [{fromCell: cell.cell-1, fromRow: cell.row, toCell: cell.cell-1, toRow: cell.row}];
             setSelectedRanges(_ranges);
         }
@@ -205,11 +207,11 @@
                 if (!cell || !_grid.canCellBeActive(cell.row, cell.cell))
                     return false;
 
-                var start = _ranges.pop();
-                var firstRow = Math.min(cell.row, start.fromRow);
-                var lastRow = Math.max(cell.row, start.fromRow);
-                var firstColumn = Math.min(cell.cell-1, start.fromCell);
-                var lastColumn = Math.max(cell.cell-1, start.fromCell);
+                var start = _dragStart;
+                var firstRow = Math.min(cell.row, start.row);
+                var lastRow = Math.max(cell.row, start.row);
+                var firstColumn = Math.min(cell.cell-1, start.cell-1);
+                var lastColumn = Math.max(cell.cell-1, start.cell-1);
                 _ranges = [{fromCell: firstColumn, fromRow: firstRow, toCell: lastColumn, toRow: lastRow}];
                 setSelectedRanges(_ranges);
             }
