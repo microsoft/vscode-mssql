@@ -11,6 +11,7 @@
     function DragRowSelectionModel(options) {
         var _grid;
         var _dragStart;
+        var _dragRow;
         var _ranges = [];
         var _self = this;
         var _options;
@@ -195,8 +196,14 @@
             var cell = _grid.getCellFromEvent(e);
             e.stopImmediatePropagation();
             _dragging = true;
-            _dragStart = cell;
-            _ranges = [{fromCell: cell.cell-1, fromRow: cell.row, toCell: cell.cell-1, toRow: cell.row}];
+            if(cell.cell === 0){
+                _dragRow = true;
+                _ranges = [];
+            } else {
+                _dragRow = false;
+                _dragStart = cell;
+            }
+            _ranges = [];
             setSelectedRanges(_ranges);
         }
 
@@ -207,13 +214,24 @@
                 if (!cell || !_grid.canCellBeActive(cell.row, cell.cell))
                     return false;
 
-                var start = _dragStart;
-                var firstRow = Math.min(cell.row, start.row);
-                var lastRow = Math.max(cell.row, start.row);
-                var firstColumn = Math.min(cell.cell-1, start.cell-1);
-                var lastColumn = Math.max(cell.cell-1, start.cell-1);
-                _ranges = [{fromCell: firstColumn, fromRow: firstRow, toCell: lastColumn, toRow: lastRow}];
-                setSelectedRanges(_ranges);
+                if(_dragRow){
+                    var selection = rangesToRows(_ranges);
+
+                    var idx = $.inArray(cell.row, selection);
+                    if (idx === -1) {
+                        selection.push(cell.row);
+                        _ranges = rowsToRanges(selection);
+                        setSelectedRanges(_ranges);
+                    }
+                } else {
+                    var start = _dragStart;
+                    var firstRow = Math.min(cell.row, start.row);
+                    var lastRow = Math.max(cell.row, start.row);
+                    var firstColumn = Math.min(cell.cell-1, start.cell-1);
+                    var lastColumn = Math.max(cell.cell-1, start.cell-1);
+                    _ranges = [{fromCell: firstColumn, fromRow: firstRow, toCell: lastColumn, toRow: lastRow}];
+                    setSelectedRanges(_ranges);
+                }
             }
         }
 
