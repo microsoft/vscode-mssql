@@ -91,18 +91,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         });
 
-
-        // add http handler for '/saveResults' - return all messages as a JSON string
+        // add http handler for '/saveResults' - return success message as JSON
         this._service.addHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
             // Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
             let uri: string = decodeURI(req.query.uri);
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
-            console.log('Selected result set ' + selectedResultSetNo);
             self._saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
             let json = JSON.stringify('success');
             res.send(json);
-
         });
 
         // start express server on localhost and listen on a random port

@@ -72,7 +72,6 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdRemoveProfile, () => { self.onRemoveProfile(); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
-        // shravind register save command
         this.registerCommand(Constants.cmdSaveResultAsCsv);
         this._event.on(Constants.cmdSaveResultAsCsv, () => { self.onSaveResultAsCsv(); } );
 
@@ -104,11 +103,8 @@ export default class MainController implements vscode.Disposable {
 
         Utils.logDebug(Constants.extensionActivated);
 
-        // shravind Init Save Results
+        // Init Save Results
         this._saveResults = new SaveResults();
-
-
-
     }
 
     // Choose a new database from the current server
@@ -165,7 +161,7 @@ export default class MainController implements vscode.Disposable {
         return this._connectionMgr.onRemoveProfile();
     }
 
-    // Prompts for resultset no. Saves results as csv
+    // Prompts for batch and resultset number and handles Saves results as csv request
     public onSaveResultAsCsv(): void {
         this._saveResults.onSaveResultsAsCsvCommand();
     }

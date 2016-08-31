@@ -13,7 +13,6 @@ import {IGridDataRow} from './SharedControlInterfaces';
 import {IColumnDefinition} from './ModelInterfaces';
 import {LocalizationService} from './LocalizationService';
 import {GridSyncService} from './GridSyncService';
-// import {AppComponent} from '../app.component';
 
 enum FieldType {
     String = 0,
@@ -416,7 +415,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
                 });
         }
         this.onResize();
-        // this.subscribeToContextMenu();
     }
 
     private subscribeToScroll(): void {
@@ -459,6 +457,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         this._grid.setColumnWidths(this._gridColumns, true);
     }
 
+    // add context menu to slickGrid
     public subscribeToContextMenu(): void {
         this._grid.onContextMenu.subscribe(function (event): void {
             event.preventDefault();

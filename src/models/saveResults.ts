@@ -8,6 +8,9 @@ import * as Utils from '../models/utils';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 
+/**
+*  Handles save results request from the context menu of slickGrid
+*/
 export default class SaveResults {
     private _client: SqlToolsServerClient;
     private _fileEncoding: string = 'utf-8';
@@ -38,6 +41,7 @@ export default class SaveResults {
             }];
         return this._prompter.prompt(questions).then(() => { return; });
     }
+
     public promptForResultSetNo(): Promise<number> {
         let resultSetNo: number;
         let questions: IQuestion[] = [
@@ -77,9 +81,6 @@ export default class SaveResults {
 
     public sendRequestToService(uri: string, batchIndex: number, resultSetNo: number): void {
         // set params to values from config and send request to service
-        // let editor = vscode.window.activeTextEditor;
-        // this._uri = editor.document.uri.toString();
-
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
         this._uri =  vscode.Uri.file(sqlUri.fsPath).toString();
@@ -116,11 +117,13 @@ export default class SaveResults {
             });
 
     }
+
     public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number ): void {
         const self = this;
         // prompt for filepath
         self.promptForFilepath().then(function(): void { self.sendRequestToService(uri, batchIndex, resultSetNo); } );
     }
+
     public onSaveResultsAsCsvCommand(): void {
         const self = this;
         // get file uri from editor
