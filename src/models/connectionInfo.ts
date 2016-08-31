@@ -51,47 +51,6 @@ function isAzureDatabase(server: string): boolean {
     return (server ? server.endsWith(Constants.sqlDbPrefix) : false);
 }
 
-// TODO: this doesn't appear to be used anywhere in the project. Do we need it?
-export function dump(connCreds: Interfaces.IConnectionCredentials): string {
-    let contents =  'server=' + (connCreds.server ? connCreds.server : 'null') +
-                    ' | database=' + (connCreds.database ? connCreds.database : 'null') +
-                    ' | username=' + (connCreds.user ? connCreds.user : 'null') +
-                    ' | encrypt=' + connCreds.encrypt +
-                    ' | connectionTimeout=' + connCreds.connectTimeout;
-    return contents;
-}
-
-// compare connections porperties, except for password
-export function equals(connCreds: Interfaces.IConnectionCredentials, theOther: Interfaces.IConnectionCredentials): boolean {
-    let equal = (connCreds.server === theOther.server) &&
-                (connCreds.database === theOther.database) &&
-                (connCreds.user === theOther.user) &&
-                (connCreds.encrypt === theOther.encrypt) &&
-                (connCreds.connectTimeout === theOther.connectTimeout) &&
-                (connCreds.applicationIntent === theOther.applicationIntent) &&
-                (connCreds.applicationName === theOther.applicationName) &&
-                (connCreds.attachDbFilename === theOther.attachDbFilename) &&
-                (connCreds.authenticationType === theOther.authenticationType) &&
-                (connCreds.connectRetryCount === theOther.connectRetryCount) &&
-                (connCreds.connectRetryInterval === theOther.connectRetryInterval) &&
-                (connCreds.currentLanguage === theOther.currentLanguage) &&
-                (connCreds.failoverPartner === theOther.failoverPartner) &&
-                (connCreds.loadBalanceTimeout === theOther.loadBalanceTimeout) &&
-                (connCreds.maxPoolSize === theOther.maxPoolSize) &&
-                (connCreds.minPoolSize === theOther.minPoolSize) &&
-                (connCreds.multipleActiveResultSets === theOther.multipleActiveResultSets) &&
-                (connCreds.multiSubnetFailover === theOther.multiSubnetFailover) &&
-                (connCreds.packetSize === theOther.packetSize) &&
-                (connCreds.persistSecurityInfo === theOther.persistSecurityInfo) &&
-                (connCreds.pooling === theOther.pooling) &&
-                (connCreds.port === theOther.port) &&
-                (connCreds.replication === theOther.replication) &&
-                (connCreds.trustServerCertificate === theOther.trustServerCertificate) &&
-                (connCreds.typeSystemVersion === theOther.typeSystemVersion) &&
-                (connCreds.workstationId === theOther.workstationId);
-    return equal;
-}
-
 export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials): string {
     return connCreds.server;
 }

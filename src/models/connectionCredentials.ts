@@ -13,9 +13,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public database: string;
     public user: string;
     public password: string;
-
     public port: number;
-
     public authenticationType: string;
     public encrypt: boolean;
     public trustServerCertificate: boolean;

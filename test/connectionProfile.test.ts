@@ -1,7 +1,7 @@
 import * as TypeMoq from 'typemoq';
 import { IConnectionCredentials, IConnectionProfile } from '../src/models/interfaces';
-import { ConnectionCredentials } from '../src/models/ConnectionCredentials';
-import { ConnectionProfile } from '../src/models/ConnectionProfile';
+import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionProfile } from '../src/models/connectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
 import TestPrompter from './TestPrompter';
 
