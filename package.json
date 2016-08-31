@@ -129,7 +129,7 @@
       },
       {
         "command": "extension.saveResultsAsCsv",
-        "title": "Save Results As C",
+        "title": "Save Results As CSV",
         "category": "MSSQL"
       }
     ],

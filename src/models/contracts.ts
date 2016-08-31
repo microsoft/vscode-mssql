@@ -196,11 +196,9 @@ export class SaveResultsRequestParams {
     ownerUri: string;
     filePath: string;
     fileEncoding: string;
-    formatting: string;
+    includeHeaders: boolean;
     ResultSetNo: number;
     ValueInQuotes: boolean;
-    MissingValueReplacement: boolean;
-
 }
 
 export class SaveResultRequestResult {

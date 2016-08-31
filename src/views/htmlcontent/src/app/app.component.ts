@@ -10,7 +10,6 @@ import {IDbColumn} from './../interfaces';
 import { NavigatorComponent } from './navigation.component';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
-import { Save } from './saveResults';
 
 enum FieldType {
     String = 0,
@@ -26,7 +25,7 @@ enum FieldType {
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, NavigatorComponent, Tabs, Tab, Save ],
+    directives: [SlickGrid, NavigatorComponent, Tabs, Tab ],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
@@ -62,14 +61,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     ngAfterViewInit(): void {
         const self = this;
         self._slickGrid.subscribeToContextMenu();
-        $('.contextMenu').click(function (e): void {
-            if (!$(e.target).is('li')) {
+        $('.contextMenu').click(function (event): void {
+            if (!$(event.target).is('li')) {
                 return;
             }
-            console.log('clicked on context menu');
-            // get current resultSet number
-            // call express server
-            self.saveResultsAsCsv();
+            if (event.target.id === 'csv') {
+                // call handler to save results as csv
+                self.saveResultsAsCsv();
+            }
          });
 
     }

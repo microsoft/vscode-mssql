@@ -134,6 +134,6 @@ export default class MainController implements vscode.Disposable {
 
     // shravind.remove method. prompt for filepath and  save results as csv
     public onSaveResultAsCsv(): void {
-        this._saveResults.onSaveResultsAsCsv('test', 0);
+        this._saveResults.onSaveResultsAsCsvCommand();
     }
 }

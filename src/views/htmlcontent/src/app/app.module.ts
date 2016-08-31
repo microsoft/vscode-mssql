@@ -8,7 +8,6 @@ import { NavigatorComponent } from './navigation.component';
 import { HttpModule, JsonpModule } from '@angular/http';
 import { Tab } from './tab';
 import { Tabs } from './tabs';
-import { Save } from './saveResults';
 
 /**
  * Top level angular module
@@ -21,7 +20,7 @@ import { Save } from './saveResults';
               JsonpModule,
               FormsModule
            ],
-  declarations: [ AppComponent, SlickGrid, NavigatorComponent, Tab, Tabs, Save ],
+  declarations: [ AppComponent, SlickGrid, NavigatorComponent, Tab, Tabs ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }
