@@ -140,6 +140,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
     @Input() overrideCellFn: (rowNumber, columnId, value?, data?) => string;
     @Input() showHeader: boolean = false;
     @Input() showDataTypeIcon: boolean = true;
+    @Input() enableColumnReorder: boolean = false;
 
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
@@ -383,7 +384,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         // https://github.com/mleibman/SlickGrid/wiki/Grid-Options
         let options = {
             enableCellNavigation: true,
-            enableColumnReorder: false,
+            enableColumnReorder: this.enableColumnReorder,
             renderRowWithRange: true,
             showRowNumber: true,
             showDataTypeIcon: this.showDataTypeIcon,

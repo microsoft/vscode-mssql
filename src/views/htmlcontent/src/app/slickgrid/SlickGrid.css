@@ -44,6 +44,12 @@
   background-color: var(--color-grid-selected);
   color: black;
 }
+.grid .slick-cell.selected.active {
+  background-color: var(--grid-cell-color, #FFFFFF);
+  color: black;
+  border-style: solid;
+  border-color: var(--color-grid-selected);
+}
 .grid .slick-cell.selected .grid-cell-value-container.missing-value {
   color: black;
 }

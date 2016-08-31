@@ -42,7 +42,6 @@
   "devDependencies": {
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#4.0",
-    "gulp-hub": "frankwallis/gulp-hub#registry-init",
     "gulp-install": "^0.6.0",
     "gulp-less": "^3.1.0",
     "gulp-nuget": "1.0.0",
