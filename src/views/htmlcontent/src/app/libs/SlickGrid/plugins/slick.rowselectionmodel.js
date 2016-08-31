@@ -26,6 +26,8 @@
           wrapHandler(handleKeyDown));
       _handler.subscribe(_grid.onClick,
           wrapHandler(handleClick));
+      _handler.subscribe(_grid.onHeaderClick,
+          wrapHandler(handlerHeaderClick));
     }
 
     function destroy() {

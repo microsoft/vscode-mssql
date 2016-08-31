@@ -12,6 +12,8 @@ import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 import SaveResults from '../models/saveResults';
+import VscodeWrapper from './vscodeWrapper';
+
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -21,9 +23,18 @@ export default class MainController implements vscode.Disposable {
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
     private _saveResults: SaveResults;
+    private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext,
+                connectionManager?: ConnectionManager,
+                vscodeWrapper?: VscodeWrapper) {
         this._context = context;
+        if (connectionManager) {
+            this._connectionMgr = connectionManager;
+        }
+        if (vscodeWrapper) {
+            this._vscodeWrapper = vscodeWrapper;
+        }
     }
 
     private registerCommand(command: string): void {
@@ -65,8 +76,10 @@ export default class MainController implements vscode.Disposable {
         this.registerCommand(Constants.cmdSaveResultAsCsv);
         this._event.on(Constants.cmdSaveResultAsCsv, () => { self.onSaveResultAsCsv(); } );
 
+        this._vscodeWrapper = new VscodeWrapper();
+
         // initialize language service client
-        SqlToolsServerClient.getInstance().initialize(this._context);
+        SqlToolsServerClient.instance.initialize(this._context);
 
         // Init status bar
         this._statusview = new StatusView();
@@ -75,7 +88,7 @@ export default class MainController implements vscode.Disposable {
         this._prompter = new CodeAdapter();
 
         // Init content provider for results pane
-        this._outputContentProvider = new SqlOutputContentProvider(self._context);
+        this._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview);
         let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
         this._context.subscriptions.push(registration);
 
@@ -99,7 +112,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     // Choose a new database from the current server
-    private onChooseDatabase(): void {
+    private onChooseDatabase(): Promise<boolean> {
         return this._connectionMgr.onChooseDatabase();
     }
 
@@ -115,10 +128,30 @@ export default class MainController implements vscode.Disposable {
 
     // get the T-SQL query from the editor, run it and show output
     public onRunQuery(): void {
-        if (!Utils.isEditingSqlFile()) {
-            Utils.showWarnMsg(Constants.msgOpenSqlFile);
+        const self = this;
+        if (!this._vscodeWrapper.isEditingSqlFile) {
+            this._vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
+        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+            // If we are disconnected, prompt the user to choose a connection before executing
+            this.onNewConnection().then(result => {
+                if (result) {
+                    self.onRunQuery();
+                }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            });
         } else {
-            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview);
+            let editor = this._vscodeWrapper.activeTextEditor;
+            let uri = this._vscodeWrapper.activeTextEditorUri;
+            let title = editor.document.fileName;
+            let queryText: string;
+
+            if (editor.selection.isEmpty) {
+                queryText = editor.document.getText();
+            } else {
+                queryText = editor.document.getText(new vscode.Range(editor.selection.start, editor.selection.end));
+            }
+            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, queryText, title);
         }
     }
 
@@ -132,8 +165,15 @@ export default class MainController implements vscode.Disposable {
         return this._connectionMgr.onRemoveProfile();
     }
 
-    // shravind.remove method. prompt for filepath and  save results as csv
+    // Prompts for resultset no. Saves results as csv
     public onSaveResultAsCsv(): void {
         this._saveResults.onSaveResultsAsCsvCommand();
+    }
+
+    /**
+     * Access the connection manager for testing
+     */
+    public get connectionManager(): ConnectionManager {
+        return this._connectionMgr;
     }
 }

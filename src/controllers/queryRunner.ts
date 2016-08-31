@@ -1,14 +1,16 @@
 'use strict';
-import vscode = require('vscode');
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import ConnectionManager from './connectionManager';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
-import * as Contracts from '../models/contracts';
-import * as Utils from '../models/utils';
+import VscodeWrapper from './vscodeWrapper';
+import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
+    QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
+    QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
+    QueryDisposeRequest } from '../models/contracts/queryExecute';
 
-interface IResultSet {
+export interface IResultSet {
     columns: string[];
     totalNumberOfRows: number;
 }
@@ -17,23 +19,54 @@ interface IResultSet {
 * and handles getting more rows from the service layer and disposing when the content is closed.
 */
 export default class QueryRunner {
-    private _client: SqlToolsServerClient;
-    private _resultSets: Contracts.ResultSetSummary[];
+    private _batchSets: BatchSummary[];
     private _uri: string;
     private _title: string;
-    private _messages: string[];
 
     constructor(private _connectionMgr: ConnectionManager,
                 private _statusView: StatusView,
-                private _outputProvider: SqlOutputContentProvider) {
-        this.client = SqlToolsServerClient.getInstance();
+                private _outputProvider: SqlOutputContentProvider,
+                private _client?: SqlToolsServerClient,
+                private _notificationHandler?: QueryNotificationHandler,
+                private _vscodeWrapper?: VscodeWrapper) {
+        if (!_client) {
+            this.client = SqlToolsServerClient.instance;
+        }
+
+        if (!_notificationHandler) {
+            this.notificationHandler = QueryNotificationHandler.instance;
+        }
+
+        if (!_vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
     }
 
-    private get uri(): string {
+    private get notificationHandler(): QueryNotificationHandler {
+        return this._notificationHandler;
+    }
+
+    private set notificationHandler(handler: QueryNotificationHandler) {
+        this._notificationHandler = handler;
+    }
+
+    private get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
+    private set vscodeWrapper(wrapper: VscodeWrapper) {
+        this._vscodeWrapper = wrapper;
+    }
+
+    private get statusView(): StatusView {
+        return this._statusView;
+    }
+
+    get uri(): string {
         return this._uri;
     }
 
-    private set uri(uri: string) {
+    set uri(uri: string) {
         this._uri = uri;
     }
 
@@ -53,63 +86,57 @@ export default class QueryRunner {
         this._title = title;
     }
 
-    get resultSets(): Contracts.ResultSetSummary[] {
-        return this._resultSets;
+    get batchSets(): BatchSummary[] {
+        return this._batchSets;
     }
 
-    get messages(): string[] {
-        return this._messages;
+    set batchSets(batchSets: BatchSummary[]) {
+        this._batchSets = batchSets;
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    public runQuery(): Thenable<void> {
+    public runQuery(uri: string, text: string, title: string): Thenable<void> {
         const self = this;
-        let editor = vscode.window.activeTextEditor;
-        this.uri = editor.document.uri.toString();
-        this.title = editor.document.fileName;
-        let queryDetails = new Contracts.QueryExecuteParams();
-        queryDetails.ownerUri = this.uri;
-        if (editor.selection.isEmpty) {
-            queryDetails.queryText = editor.document.getText();
-        } else {
-            queryDetails.queryText = editor.document.getText(new vscode.Range(editor.selection.start, editor.selection.end));
-        }
+        let queryDetails = new QueryExecuteParams();
+        queryDetails.ownerUri = uri;
+        queryDetails.queryText = text;
+        this.title = title;
+        this.uri = uri;
 
-        return this._client.getClient().sendRequest(Contracts.QueryExecuteRequest.type, queryDetails).then(result => {
+        return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
-                Utils.showErrorMsg('Execution failed: ' + result.messages);
+                self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
             } else {
+                self.statusView.executingQuery(self.uri);
                 // register with the Notification Handler
-                QueryNotificationHandler.instance.registerRunner(self, queryDetails.ownerUri);
+                self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
         }, error => {
-            Utils.showErrorMsg('Execution failed: ' + error);
+            self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }
 
     // handle the result of the notification
-    public handleResult(result: Contracts.QueryExecuteCompleteNotificationResult): void {
-        if (result.hasError) {
-            Utils.showErrorMsg('Something went wrong during the query: ' + result.messages[0]);
-        } else {
-            this._resultSets = result.resultSetSummaries;
-            this._messages = result.messages;
-            this._outputProvider.updateContent(this);
-        }
+    public handleResult(result: QueryExecuteCompleteNotificationResult): void {
+        this.batchSets = result.batchSummaries;
+        this.statusView.executedQuery(this.uri);
+        this._outputProvider.updateContent(this);
     }
 
     // get more data rows from the current resultSets from the service layer
-    public getRows(rowStart: number, numberOfRows: number, resultSetIndex: number): Thenable<Contracts.QueryExecuteSubsetResult> {
+    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Thenable<QueryExecuteSubsetResult> {
         const self = this;
-        let queryDetails = new Contracts.QueryExecuteSubsetParams();
+        let queryDetails = new QueryExecuteSubsetParams();
         queryDetails.ownerUri = this.uri;
         queryDetails.resultSetIndex = resultSetIndex;
         queryDetails.rowsCount = numberOfRows;
         queryDetails.rowsStartIndex = rowStart;
-        return new Promise<Contracts.QueryExecuteSubsetResult>((resolve, reject) => {
-            self._client.getClient().sendRequest(Contracts.QueryExecuteSubsetRequest.type, queryDetails).then(result => {
+        queryDetails.batchIndex = batchIndex;
+        return new Promise<QueryExecuteSubsetResult>((resolve, reject) => {
+            self.client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
                 if (result.message) {
-                    Utils.showErrorMsg('Something went wrong getting more rows: ' + result.message);
+                    self.vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + result.message);
+                    reject();
                 } else {
                     resolve(result);
                 }
@@ -117,20 +144,24 @@ export default class QueryRunner {
         });
     }
 
-    // dispose the query from front end and and back end
-    public dispose(): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            let disposeDetails = new Contracts.QueryDisposeParams();
-            disposeDetails.ownerUri = this.uri;
-            this.client.getClient().sendRequest(Contracts.QueryDisposeRequest.type, disposeDetails).then(result => {
+    /**
+     * Disposes the Query from the service client
+     * @returns A promise that will be rejected if a problem occured
+     */
+    public dispose(): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            let disposeDetails = new QueryDisposeParams();
+            disposeDetails.ownerUri = self.uri;
+            self.client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
                 if (result.messages) {
-                    Utils.showErrorMsg('Failed disposing query: ' + result.messages);
-                    resolve(false);
+                    self.vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
+                    reject();
                 } else {
-                    resolve(true);
+                    resolve();
                 }
             }, error => {
-                Utils.showErrorMsg('Execution failed: ' + error);
+                self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
             });
         });
     }

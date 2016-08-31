@@ -18,7 +18,7 @@ export default class SaveResults {
     private _prompter: IPrompter;
 
     constructor() {
-        this._client = SqlToolsServerClient.getInstance();
+        this._client = SqlToolsServerClient.instance;
         this._prompter = new CodeAdapter();
     }
 
@@ -94,7 +94,7 @@ export default class SaveResults {
         saveResultsParams.ResultSetNo = resultSetNo;
 
         // send message to the sqlserverclient for converting resuts to csv and saving to filepath
-        this._client.getClient().sendRequest(Contracts.SaveResultsRequest.type, saveResultsParams).then(result => {
+        this._client.sendRequest(Contracts.SaveResultsRequest.type, saveResultsParams).then(result => {
                 if (result.messages === 'Success') {
                     Utils.showInfoMsg('Results saved to ' + this._filePath);
                 } else {

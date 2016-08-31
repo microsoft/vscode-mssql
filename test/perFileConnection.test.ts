@@ -1,16 +1,19 @@
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import {ExtensionContext, Memento} from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
+import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentials } from '../src/models/interfaces';
 import * as Contracts from '../src/models/contracts';
+import MainController from '../src/controllers/controller';
+import * as Interfaces from '../src/models/interfaces';
 import StatusView from '../src/views/statusView';
 import Telemetry from '../src/models/telemetry';
 import * as Utils from '../src/models/utils';
+import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 // Dummy implementation to simplify mocking
 class TestPrompter implements IPrompter {
@@ -57,11 +60,17 @@ function createTestCredentials(): IConnectionCredentials {
     return creds;
 }
 
-function createTestConnectionManager(languageClient: LanguageClient): ConnectionManager {
+function createTestConnectionManager(serviceClient: SqlToolsServiceClient, wrapper?: VscodeWrapper): ConnectionManager {
     let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
     let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
     let prompterMock: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-    return new ConnectionManager(contextMock.object, statusViewMock.object, prompterMock.object, languageClient);
+    return new ConnectionManager(contextMock.object, statusViewMock.object, prompterMock.object, serviceClient, wrapper);
+}
+
+function createTestListDatabasesResult(): Contracts.ListDatabasesResult {
+    let result = new Contracts.ListDatabasesResult();
+    result.databaseNames = ['master', 'model', 'msdb', 'tempdb', 'mydatabase'];
+    return result;
 }
 
 suite('Per File Connection Tests', () => {
@@ -75,11 +84,11 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let languageClientMock: TypeMoq.Mock<LanguageClient> = TypeMoq.Mock.ofType(LanguageClient, TypeMoq.MockBehavior.Strict);
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
 
-        let manager: ConnectionManager = createTestConnectionManager(languageClientMock.object);
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object);
 
         // Create two different connections using the connection manager
         let connectionCreds = createTestCredentials();
@@ -97,10 +106,10 @@ suite('Per File Connection Tests', () => {
                 assert.equal(manager.isConnected(testFile2), true);
                 done();
             }).catch(err => {
-                assert.fail(err);
+                done(err);
             });
         }).catch(err => {
-            assert.fail(err);
+            done(err);
         });
     });
 
@@ -109,13 +118,13 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let languageClientMock: TypeMoq.Mock<LanguageClient> = TypeMoq.Mock.ofType(LanguageClient, TypeMoq.MockBehavior.Strict);
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(true));
 
-        let manager: ConnectionManager = createTestConnectionManager(languageClientMock.object);
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object);
 
         // Create two different connections using the connection manager
         let connectionCreds = createTestCredentials();
@@ -143,13 +152,13 @@ suite('Per File Connection Tests', () => {
 
                     done();
                 }).catch(err => {
-                    assert.fail(err);
+                    done(err);
                 });
             }).catch(err => {
-                assert.fail(err);
+                done(err);
             });
         }).catch(err => {
-            assert.fail(err);
+            done(err);
         });
     });
 
@@ -158,13 +167,13 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let languageClientMock: TypeMoq.Mock<LanguageClient> = TypeMoq.Mock.ofType(LanguageClient, TypeMoq.MockBehavior.Strict);
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
-        languageClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(true));
 
-        let manager: ConnectionManager = createTestConnectionManager(languageClientMock.object);
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object);
 
         // Create two different connections using the connection manager
         let connectionCreds = createTestCredentials();
@@ -201,16 +210,97 @@ suite('Per File Connection Tests', () => {
 
                         done();
                     }).catch(err => {
-                        assert.fail(err);
+                        done(err);
                     });
                 }).catch(err => {
-                    assert.fail(err);
+                    done(err);
                 });
             }).catch(err => {
-                assert.fail(err);
+                done(err);
             });
         }).catch(err => {
-            assert.fail(err);
+            done(err);
         });
+    });
+
+    test('Can list databases on server used by current connection and switch databases', done => {
+        const testFile = 'file:///my/test/file.sql';
+
+        // Setup mocking
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(createTestConnectionResult()));
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(true));
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ListDatabasesRequest.type), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(createTestListDatabasesResult()));
+
+        let newDatabaseCredentials = createTestCredentials();
+        newDatabaseCredentials.database = 'master';
+
+        const newDatabaseChoice = <Interfaces.IConnectionCredentialsQuickPickItem> {
+            label: 'master',
+            description: '',
+            detail: '',
+            connectionCreds: newDatabaseCredentials,
+            isNewConnectionQuickPickItem: false
+        };
+
+        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Strict);
+        vscodeWrapperMock.setup(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(newDatabaseChoice));
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
+
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object, vscodeWrapperMock.object);
+
+        // Open a connection using the connection manager
+        let connectionCreds = createTestCredentials();
+
+        manager.connect(testFile, connectionCreds).then( result => {
+            assert.equal(result, true);
+
+            // Check that the connection was established
+            assert.equal(manager.isConnected(testFile), true);
+            assert.equal(manager.getConnectionInfo(testFile).credentials.database, connectionCreds.database);
+
+            // Change databases
+            manager.onChooseDatabase().then( result2 => {
+                assert.equal(result2, true);
+
+                // Check that databases on the server were listed
+                serviceClientMock.verify(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ListDatabasesRequest.type), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                vscodeWrapperMock.verify(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+                // Check that the database was changed
+                assert.equal(manager.isConnected(testFile), true);
+                assert.equal(manager.getConnectionInfo(testFile).credentials.database, 'master');
+
+                done();
+            }).catch(err => {
+                done(err);
+            });
+        }).catch(err => {
+            done(err);
+        });
+    });
+
+    test('Prompts for new connection before running query if disconnected', () => {
+        // Setup mocking
+        let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => true);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'file://my/test/file.sql');
+        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
+        connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
+        connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(false));
+
+        let controller: MainController = new MainController(contextMock.object,
+                                                            connectionManagerMock.object,
+                                                            vscodeWrapperMock.object);
+
+        // Attempt to run a query without connecting
+        controller.onRunQuery();
+        connectionManagerMock.verify(x => x.onNewConnection(), TypeMoq.Times.once());
     });
 });

@@ -46,6 +46,7 @@ export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
+export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
 export const msgContentProviderOnRootEndpoint = 'LocalWebService: Root end-point called';
 export const msgContentProviderOnResultsEndpoint = 'LocalWebService: ResultsetsMeta endpoint called';
 export const msgContentProviderOnMessagesEndpoint = 'LocalWebService: Messages end-point called';
@@ -58,11 +59,14 @@ export const msgContentProviderProvideContent = 'Content provider: provideTextDo
 export const msgChooseDatabaseNotConnected = 'Not connected. Please connect to a server first.';
 export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
+export const msgConnectionError = 'Connection failed. See output window for details.';
+export const connectionErrorChannelName = 'Connection Errors';
+
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
-export const msgOpenSqlFile = `To use this command, Open a .sql file -or-
-                                Change editor language to "SQL" -or-
-                                Select some T-SQL text in the active SQL editor.`;
+export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
+                                'Change editor language to "SQL" -or- ' +
+                                'Select some T-SQL text in the active SQL editor.';
 
 export const recentConnectionsPlaceholder = 'Choose a connection from the list below';
 export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
@@ -121,3 +125,7 @@ export const executeQueryErrorLabel = 'Query completed with errors';
 export const executeQuerySuccessLabel = 'Query executed successfully';
 export const executeQueryRowsAffected = ' row(s) affected';
 export const executeQueryCommandCompleted = 'Command(s) completed successfully.';
+
+export const serviceCompatibleVersion = '1.0.0';
+export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
+
