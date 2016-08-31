@@ -2,7 +2,7 @@
 
     <navigator [batches]="resultOptions" (selectionChange)="selectionChange($event)" class="boxRow header"></navigator>
     <tabs class="boxRow content box">
-        <tab tabTitle="Results" class="boxRow content box">
+        <tab tabTitle="Results" *ngIf="showResults" class="boxRow content box" >
             <slick-grid [columnDefinitions]="columnDefinitions"
                         [dataRows]="dataRows"
                         showDataTypeIcon="false"
