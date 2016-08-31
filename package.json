@@ -197,30 +197,129 @@
                 "default": "{{put-password-here}}",
                 "description": "[Optional] Password for SQL authentication. If this is empty, you are prompted when you connect."
               },
-              "connectionTimeout": {
-                "type": "number",
-                "default": 15000,
-                "description": "[Optional] Connection timeout in milliseconds. Default is 30000 ms for Azure SQL DB and 15000 ms otherwise."
+              "authenticationType": {
+                "type": "string",
+                "default": "SqlLogin",
+                "enum": [
+                  "Integrated",
+                  "SqlLogin"
+                ],
+                "description": "[Optional] Specifies the method of authenticating with SQL Server."
               },
-              "requestTimeout": {
+              "port": {
                 "type": "number",
-                "default": 15000,
-                "description": "[Optional] Request timeout in milliseconds. Default is 30000 ms for Azure SQL DB and 15000 ms otherwise."
+                "default": 1433,
+                "description": "[Optional] Specify the port number to connect to."
               },
-              "options": {
-                "type": "object",
-                "properties": {
-                  "encrypt": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "[Optional] Specify if the connection will be encrypted. Always set to 'true' for Azure SQL DB and loaded from here otherwise."
-                  },
-                  "appName": {
-                    "type": "string",
-                    "default": "vscode-mssql",
-                    "description": "[Optional] Application name used for SQL server logging (default: 'vscode-mssql')."
-                  }
-                }
+              "encrypt": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional] Specify if the connection will be encrypted. Always set to 'true' for Azure SQL DB and loaded from here otherwise."
+              },
+              "trustServerCertificate": {
+                "type": "boolean",
+                "description": "[Optional]"
+              },
+              "persistSecurityInfo": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional]"
+              },
+              "connectTimeout": {
+                "type": "number",
+                "default": 15,
+                "description": "[Optional] The length of time in seconds to wait for a connection to the server before terminating the attempt and generating error."
+              },
+              "connectRetryCount": {
+                "type": "number",
+                "default": 1,
+                "description": "[Optional] Number of attempts to restore connection."
+              },
+              "connectRetryInterval": {
+                "type": "number",
+                "default": 10,
+                "description": "[Optional] Delay between attempts to restore connection."
+              },
+              "applicationName": {
+                "type": "string",
+                "default": "vscode-mssql",
+                "description": "[Optional] Application name used for SQL server logging (default: 'vscode-mssql')."
+              },
+              "workstationId": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional] The name of the workstation connecting to SQL Server."
+              },
+              "applicationIntent": {
+                "type": "string",
+                "default": "ReadWrite",
+                "enum": [
+                  "ReadWrite",
+                  "ReadOnly"
+                ],
+                "description": "[Optional]"
+              },
+              "currentLanguage": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional]"
+              },
+              "pooling": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional]"
+              },
+              "maxPoolSize": {
+                "type": "number",
+                "default": 100,
+                "description": "[Optional]"
+              },
+              "minPoolSize": {
+                "type": "number",
+                "default": 0,
+                "description": "[Optional]"
+              },
+              "loadBalanceTimeout": {
+                "type": "number",
+                "default": 0,
+                "description": "[Optional]"
+              },
+              "replication": {
+                "type": "boolean",
+                "default": true,
+                "description": "[Optional]"
+              },
+              "attachDbFilename": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional]"
+              },
+              "failoverPartner": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional]"
+              },
+              "multiSubnetFailover": {
+                "type": "boolean",
+                "default": true,
+                "description": "[Optional]"
+              },
+              "multipleActiveResultSets": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional]"
+              },
+              "packetSize": {
+                "type": "number",
+                "default": 8192,
+                "description": "[Optional]"
+              },
+              "typeSystemVersion": {
+                "type": "string",
+                "enum": [
+                  "Latest"
+                ],
+                "description": "[Optional]"
               }
             }
           }

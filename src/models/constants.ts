@@ -11,11 +11,10 @@ export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 
 export const sqlDbPrefix = '.database.windows.net';
-export const defaultConnectionTimeout = 15000;
-export const defaultRequestTimeout = 15000;
-export const azureSqlDbConnectionTimeout = 30000;
-export const azureSqlDbRequestTimeout = 30000;
+export const defaultConnectionTimeout = 15;
+export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
+export const defaultPortNumber = 1433;
 
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';

@@ -1,5 +1,6 @@
 'use strict';
 import Constants = require('./constants');
+import { ConnectionDetails } from './contracts';
 import { IConnectionCredentials, AuthenticationTypes } from './interfaces';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
@@ -10,12 +11,72 @@ import os = require('os');
 export class ConnectionCredentials implements IConnectionCredentials {
     public server: string;
     public database: string;
-    public authenticationType: string;
     public user: string;
     public password: string;
-    public connectionTimeout: number;
-    public requestTimeout: number;
-    public options: { encrypt: boolean, appName: string };
+
+    public port: number;
+
+    public authenticationType: string;
+    public encrypt: boolean;
+    public trustServerCertificate: boolean;
+    public persistSecurityInfo: boolean;
+    public connectTimeout: number;
+    public connectRetryCount: number;
+    public connectRetryInterval: number;
+    public applicationName: string;
+    public workstationId: string;
+    public applicationIntent: string;
+    public currentLanguage: string;
+    public pooling: boolean;
+    public maxPoolSize: number;
+    public minPoolSize: number;
+    public loadBalanceTimeout: number;
+    public replication: boolean;
+    public attachDbFilename: string;
+    public failoverPartner: string;
+    public multiSubnetFailover: boolean;
+    public multipleActiveResultSets: boolean;
+    public packetSize: number;
+    public typeSystemVersion: string;
+
+    /**
+     * Create a connection details contract from connection credentials.
+     */
+    public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
+        let details: ConnectionDetails = new ConnectionDetails();
+        details.serverName = credentials.server;
+        if (credentials.port && details.serverName.indexOf(',') === -1) {
+            // Port is appended to the server name in a connection string
+            details.serverName += (',' + credentials.port);
+        }
+        details.databaseName = credentials.database;
+        details.userName = credentials.user;
+        details.password = credentials.password;
+        details.authenticationType = credentials.authenticationType;
+        details.encrypt = credentials.encrypt;
+        details.trustServerCertificate = credentials.trustServerCertificate;
+        details.persistSecurityInfo = credentials.persistSecurityInfo;
+        details.connectTimeout = credentials.connectTimeout;
+        details.connectRetryCount = credentials.connectRetryCount;
+        details.connectRetryInterval = credentials.connectRetryInterval;
+        details.applicationName = credentials.applicationName;
+        details.workstationId = credentials.workstationId;
+        details.applicationIntent = credentials.applicationIntent;
+        details.currentLanguage = credentials.currentLanguage;
+        details.pooling = credentials.pooling;
+        details.maxPoolSize = credentials.maxPoolSize;
+        details.minPoolSize = credentials.minPoolSize;
+        details.loadBalanceTimeout = credentials.loadBalanceTimeout;
+        details.replication = credentials.replication;
+        details.attachDbFilename = credentials.attachDbFilename;
+        details.failoverPartner = credentials.failoverPartner;
+        details.multiSubnetFailover = credentials.multiSubnetFailover;
+        details.multipleActiveResultSets = credentials.multipleActiveResultSets;
+        details.packetSize = credentials.packetSize;
+        details.typeSystemVersion = credentials.typeSystemVersion;
+
+        return details;
+    }
 
     public static ensureRequiredPropertiesSet(
         credentials: IConnectionCredentials,

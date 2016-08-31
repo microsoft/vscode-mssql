@@ -47,14 +47,33 @@ function createTestConnectionResult(): Contracts.ConnectionResult {
 
 function createTestCredentials(): IConnectionCredentials {
     const creds: IConnectionCredentials = {
-        server: 'my-server',
-        database: 'my_db',
-        authenticationType: 'SQL Authentication',
-        user: 'sa',
-        password: '12345678',
-        connectionTimeout: 30000,
-        requestTimeout: 30000,
-        options: { encrypt: false, appName: 'vscode-mssql' }
+        server:                         'my-server',
+        database:                       'my_db',
+        user:                           'sa',
+        password:                       '12345678',
+        port:                           1234,
+        authenticationType:             'SQL Authentication',
+        encrypt:                        false,
+        trustServerCertificate:         false,
+        persistSecurityInfo:            false,
+        connectTimeout:                 15,
+        connectRetryCount:              0,
+        connectRetryInterval:           0,
+        applicationName:                'vscode-mssql',
+        workstationId:                  'test',
+        applicationIntent:              '',
+        currentLanguage:                '',
+        pooling:                        true,
+        maxPoolSize:                    15,
+        minPoolSize:                    0,
+        loadBalanceTimeout:             0,
+        replication:                    false,
+        attachDbFilename:               '',
+        failoverPartner:                '',
+        multiSubnetFailover:            false,
+        multipleActiveResultSets:       false,
+        packetSize:                     8192,
+        typeSystemVersion:              'Latest'
     };
     return creds;
 }
