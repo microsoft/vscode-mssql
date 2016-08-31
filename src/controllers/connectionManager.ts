@@ -163,7 +163,7 @@ export default class ConnectionManager {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
         return new Promise<boolean>((resolve, reject) => {
-            if (!fileUri || !self.vscodeWrapper.isEditingSqlFile) {
+            if (!fileUri) {
                 // A text document needs to be open before we can connect
                 this.vscodeWrapper.showInformationMessage(Constants.msgOpenSqlFile);
                 resolve(false);
