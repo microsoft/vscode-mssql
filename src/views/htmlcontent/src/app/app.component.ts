@@ -41,7 +41,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     public selectedBatchIndex: number = 0;
 
     @ViewChild(SlickGrid)
-    private _slickGrid: SlickGrid;
+    showResults: boolean = false;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -127,6 +127,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         Observable.forkJoin([columns, numberOfRows]).subscribe( data => {
             let columnData: IDbColumn[] = data[0];
             self.totalRows = data[1];
+            if (!columnData) {
+                self.showResults = false;
+                return;
+            } else {
+                self.showResults = true;
+            }
             let columnDefinitions = [];
             for (let i = 0; i < columnData.length; i++) {
                 columnDefinitions.push({

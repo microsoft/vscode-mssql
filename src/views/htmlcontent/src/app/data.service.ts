@@ -58,12 +58,20 @@ export class DataService {
         if (!this.batchSets) {
             return new Promise<number>((resolve, reject) => {
                 self.getMetaData().then(() => {
-                    resolve(self.batchSets[batchId].resultSets.length);
+                    if (self.batchSets[batchId].resultSets.length > 0) {
+                        resolve(self.batchSets[batchId].resultSets.length);
+                    } else {
+                        resolve(1);
+                    }
                 });
             });
         } else {
             return new Promise<number>((resolve, reject) => {
-                resolve(self.batchSets[batchId].resultSets.length);
+                if (self.batchSets[batchId].resultSets.length > 0) {
+                    resolve(self.batchSets[batchId].resultSets.length);
+                } else {
+                    resolve(1);
+                }
             });
         }
     }
@@ -96,14 +104,24 @@ export class DataService {
         if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(() => {
-                    observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
-                    observer.complete();
+                    if (self.batchSets[batchId].resultSets.length > 0) {
+                        observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
+                        observer.complete();
+                    } else {
+                        observer.next(undefined);
+                        observer.complete();
+                    }
                 });
             });
         } else {
             return Observable.create(observer => {
-                observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
-                observer.complete();
+                if (self.batchSets[batchId].resultSets.length > 0) {
+                    observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
+                    observer.complete();
+                } else {
+                    observer.next(undefined);
+                    observer.complete();
+                }
             });
         }
     }
@@ -118,7 +136,8 @@ export class DataService {
         if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(() => {
-                    self.http.get(self.batchSets[batchId].resultSets[resultId].columnsUri)
+                    if (self.batchSets[resultId].resultSets.length > 0) {
+                        self.http.get(self.batchSets[batchId].resultSets[resultId].columnsUri)
                             .map(res => {
                                 return res.json();
                             })
@@ -126,13 +145,25 @@ export class DataService {
                                 observer.next(data);
                                 observer.complete();
                             });
+                    } else {
+                        observer.next(undefined);
+                        observer.complete();
+                    }
+
                 });
             });
         } else {
-            return this.http.get(this.batchSets[batchId].resultSets[resultId].columnsUri)
+            if (this.batchSets[batchId].resultSets.length > 0) {
+                return this.http.get(this.batchSets[batchId].resultSets[resultId].columnsUri)
                             .map(res => {
                                 return res.json();
                             });
+            } else {
+                return Observable.create(observer => {
+                    observer.next(undefined);
+                    observer.complete();
+                });
+            }
         }
     }
 
