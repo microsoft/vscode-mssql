@@ -37,7 +37,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     private totalRows: number;
     private resultOptions: number[][];
     private messages: string[];
-    public selectedResultSet: number;
+    public selectedResultSet: number = 0;
+    public selectedBatchIndex: number = 0;
+
     @ViewChild(SlickGrid)
     private _slickGrid: SlickGrid;
 
@@ -107,12 +109,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     saveResultsAsCsv(): void {
         const self = this;
         // call /saveResults with the current resultSet number
-        self.dataService.sendSaveRequest(this.selectedResultSet);
+        self.dataService.sendSaveRequest(this.selectedBatchIndex, this.selectedResultSet);
     }
 
 
     selectionChange(selection: {batch: number; result: number; }): void {
         this.selectedResultSet = selection.result;
+        this.selectedBatchIndex = selection.batch;
         this.renderResults(selection.batch, selection.result);
 
     }

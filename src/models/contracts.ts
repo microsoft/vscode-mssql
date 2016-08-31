@@ -104,7 +104,8 @@ export class SaveResultsRequestParams {
     filePath: string;
     fileEncoding: string;
     includeHeaders: boolean;
-    ResultSetNo: number;
+    BatchIndex: number;
+    ResultSetIndex: number;
     ValueInQuotes: boolean;
 }
 

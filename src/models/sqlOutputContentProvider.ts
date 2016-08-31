@@ -97,10 +97,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
             let uri: string = decodeURI(req.query.uri);
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
+            let batchIndex: number = Number(req.query.batchIndex);
             console.log('Selected result set ' + selectedResultSetNo);
-            self._saveResults.onSaveResultsAsCsv(uri, selectedResultSetNo);
+            self._saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
             let json = JSON.stringify('success');
-            // Utils.logDebug(json);
             res.send(json);
 
         });

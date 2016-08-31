@@ -459,18 +459,14 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         this._grid.setColumnWidths(this._gridColumns, true);
     }
 
-    // shravind
     public subscribeToContextMenu(): void {
-        this._grid.onContextMenu.subscribe(function (e): void {
-            e.preventDefault();
-            $('.contextMenu').css('top', e.pageY).css('left', e.pageX).show();
+        this._grid.onContextMenu.subscribe(function (event): void {
+            event.preventDefault();
+            $('.contextMenu').css('top', event.pageY).css('left', event.pageX).show();
             $('tab').one('click', function (): void {
                 $('.contextMenu').hide();
             });
         });
-        console.log('subscribing to context menu');
-
-
     }
 
     private updateSchema(): void {

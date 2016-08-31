@@ -15,7 +15,10 @@ export default class SaveResults {
     private _valueInquotes: boolean = false;
     private _filePath: string;
     private _uri: string;
+    private _batchIndex: number;
+    private _resultSetNo: number;
     private _prompter: IPrompter;
+
 
     constructor() {
         this._client = SqlToolsServerClient.instance;
@@ -38,13 +41,21 @@ export default class SaveResults {
     public promptForResultSetNo(): Promise<number> {
         let resultSetNo: number;
         let questions: IQuestion[] = [
-            // prompt user to enter file path
+            // prompt user to enter batch number
+            {
+                type: QuestionTypes.input,
+                name: Constants.batchIndexPrompt,
+                message: Constants.batchIndexPrompt,
+                placeHolder: Constants.batchIndexPlaceholder,
+                onAnswered: (value) => this._batchIndex = value
+            },
+            // prompt user to enter resultset number
             {
                 type: QuestionTypes.input,
                 name: Constants.resultSetNoPrompt,
                 message: Constants.resultSetNoPrompt,
                 placeHolder: Constants.resultSetNoPlaceholder,
-                onAnswered: (value) => resultSetNo = value
+                onAnswered: (value) => this._resultSetNo = value
             }];
         return this._prompter.prompt(questions).then(() => { return Number(resultSetNo); });
     }
@@ -64,7 +75,7 @@ export default class SaveResults {
         }
     }
 
-    public sendRequestToService(uri: string, resultSetNo: number): void {
+    public sendRequestToService(uri: string, batchIndex: number, resultSetNo: number): void {
         // set params to values from config and send request to service
         // let editor = vscode.window.activeTextEditor;
         // this._uri = editor.document.uri.toString();
@@ -80,7 +91,6 @@ export default class SaveResults {
             } else {
                 currentDirectory = path.dirname(sqlUri.path);
             }
-            console.log('current directory ' + currentDirectory);
             this._filePath = path.normalize(path.join(currentDirectory, this._filePath));
         }
         // set params for save results as csv
@@ -91,7 +101,8 @@ export default class SaveResults {
         saveResultsParams.includeHeaders = this._includeHeaders;
         saveResultsParams.ValueInQuotes = this._valueInquotes;
         saveResultsParams.ownerUri = this._uri;
-        saveResultsParams.ResultSetNo = resultSetNo;
+        saveResultsParams.ResultSetIndex = resultSetNo;
+        saveResultsParams.BatchIndex = batchIndex;
 
         // send message to the sqlserverclient for converting resuts to csv and saving to filepath
         this._client.sendRequest(Contracts.SaveResultsRequest.type, saveResultsParams).then(result => {
@@ -105,16 +116,18 @@ export default class SaveResults {
             });
 
     }
-    public onSaveResultsAsCsv(uri: string, resultSetNo: number ): void {
+    public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number ): void {
         const self = this;
         // prompt for filepath
-        self.promptForFilepath().then(function(): void { self.sendRequestToService(uri, resultSetNo); } );
+        self.promptForFilepath().then(function(): void { self.sendRequestToService(uri, batchIndex, resultSetNo); } );
     }
     public onSaveResultsAsCsvCommand(): void {
         const self = this;
         // get file uri from editor
         let editor = vscode.window.activeTextEditor;
-        // prompt for resultSetNo
-        self.promptForResultSetNo().then(function(resultSetNo): void { self.onSaveResultsAsCsv(editor.document.uri.toString(), resultSetNo); } );
+        // prompt for resultSetNo. TODO: prompt for batch number
+        self.promptForResultSetNo().then(function(resultSetNo): void {
+            self.onSaveResultsAsCsv(editor.document.uri.toString(), Number(self._batchIndex), Number(self._resultSetNo));
+        });
     }
 }
