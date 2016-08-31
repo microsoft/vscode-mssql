@@ -84,7 +84,6 @@ export class AppComponent implements OnInit, AfterViewInit {
                 self.saveResultsAsCsv();
             }
          });
-
     }
 
     private stringToFieldType(input: string): FieldType {
@@ -112,12 +111,10 @@ export class AppComponent implements OnInit, AfterViewInit {
         self.dataService.sendSaveRequest(this.selectedBatchIndex, this.selectedResultSet);
     }
 
-
     selectionChange(selection: {batch: number; result: number; }): void {
         this.selectedResultSet = selection.result;
         this.selectedBatchIndex = selection.batch;
         this.renderResults(selection.batch, selection.result);
-
     }
 
     renderResults(batchId: number, resultId: number): void {

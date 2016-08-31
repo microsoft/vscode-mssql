@@ -14,7 +14,6 @@ import Telemetry from '../models/telemetry';
 import SaveResults from '../models/saveResults';
 import VscodeWrapper from './vscodeWrapper';
 
-
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
     private _event: events.EventEmitter = new events.EventEmitter();

@@ -125,7 +125,7 @@ function getOverridableTextEditorClass(grid: SlickGrid): any {
     selector: 'slick-grid',
     templateUrl: 'app/slickgrid/SlickGrid.html',
     styleUrls: ['app/libs/SlickGrid/slick.grid.css', 'app/slickgrid/SlickGrid.css'],
-    providers: [LocalizationService, GridSyncService ],
+    providers: [LocalizationService, GridSyncService],
     encapsulation: ViewEncapsulation.None
 })
 export class SlickGrid implements OnChanges, OnInit, OnDestroy {

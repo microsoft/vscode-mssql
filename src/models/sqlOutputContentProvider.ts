@@ -17,11 +17,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
-
     private _saveResults = new SaveResults();
-
     private _vscodeWrapper: VscodeWrapper;
-
 
     get onDidChange(): vscode.Event<vscode.Uri> {
         return this._onDidChange.event;
@@ -42,9 +39,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
-
-        let uri: string = decodeURI(req.query.uri);
-        res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
+            let uri: string = decodeURI(req.query.uri);
+            res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
@@ -88,7 +84,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
             });
-
         });
 
         // add http handler for '/saveResults' - return success message as JSON

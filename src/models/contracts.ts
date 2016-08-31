@@ -93,28 +93,22 @@ export type VersionResult = string;
 // ------------------------------- </ Version Request > --------------------------------------------------
 
 // --------------------------------- < Save Results Request > ------------------------------------------
+// save results as csv format
 export namespace SaveResultsRequest {
-    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/save';
-                                                                                        }
-                                                                                    };
-export class SaveResultsRequestParams {
-    ownerUri: string;
-    filePath: string;
-    fileEncoding: string;
-    includeHeaders: boolean;
-    BatchIndex: number;
-    ResultSetIndex: number;
-    ValueInQuotes: boolean;
+    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/save'; } };
+    export class SaveResultsRequestParams {
+        ownerUri: string;
+        filePath: string;
+        fileEncoding: string;
+        includeHeaders: boolean;
+        BatchIndex: number;
+        ResultSetIndex: number;
+        ValueInQuotes: boolean;
+    }
+
+    export class SaveResultRequestResult {
+        messages: string;
+    }
 }
-
-export class SaveResultRequestResult {
-    messages: string;
-}
-
-}
-
-
 // --------------------------------- </ Save Results Request > ------------------------------------------
 

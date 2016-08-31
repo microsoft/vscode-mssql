@@ -9,8 +9,8 @@ import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 
 /**
-*  Handles save results request from the context menu of slickGrid
-*/
+ *  Handles save results request from the context menu of slickGrid
+ */
 export default class SaveResults {
     private _client: SqlToolsServerClient;
     private _fileEncoding: string = 'utf-8';
@@ -22,12 +22,10 @@ export default class SaveResults {
     private _resultSetNo: number;
     private _prompter: IPrompter;
 
-
     constructor() {
         this._client = SqlToolsServerClient.instance;
         this._prompter = new CodeAdapter();
     }
-
 
     public promptForFilepath(): Promise<void> {
         let questions: IQuestion[] = [
@@ -42,8 +40,7 @@ export default class SaveResults {
         return this._prompter.prompt(questions).then(() => { return; });
     }
 
-    public promptForResultSetNo(): Promise<number> {
-        let resultSetNo: number;
+    public promptForResultSetNo(): Promise<void> {
         let questions: IQuestion[] = [
             // prompt user to enter batch number
             {
@@ -61,7 +58,7 @@ export default class SaveResults {
                 placeHolder: Constants.resultSetNoPlaceholder,
                 onAnswered: (value) => this._resultSetNo = value
             }];
-        return this._prompter.prompt(questions).then(() => { return Number(resultSetNo); });
+        return this._prompter.prompt(questions).then(() => { return ; });
     }
 
     public getConfig(): void {
@@ -115,7 +112,6 @@ export default class SaveResults {
             }, error => {
                 Utils.showErrorMsg('Saving results failed: ' + error);
             });
-
     }
 
     public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number ): void {
@@ -128,8 +124,8 @@ export default class SaveResults {
         const self = this;
         // get file uri from editor
         let editor = vscode.window.activeTextEditor;
-        // prompt for resultSetNo. TODO: prompt for batch number
-        self.promptForResultSetNo().then(function(resultSetNo): void {
+        // prompt for resultSetNo and batch number
+        self.promptForResultSetNo().then(function(): void {
             self.onSaveResultsAsCsv(editor.document.uri.toString(), Number(self._batchIndex), Number(self._resultSetNo));
         });
     }

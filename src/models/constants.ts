@@ -99,7 +99,6 @@ export const batchIndexPlaceholder = 'Enter batch number of the result to save a
 export const resultSetNoPrompt = 'ResultSet Number';
 export const resultSetNoPlaceholder = 'Enter ResultSet number to save as csv';
 
-
 export const msgSelectProfile = 'Select Connection Profile';
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
