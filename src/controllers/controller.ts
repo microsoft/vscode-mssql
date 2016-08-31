@@ -117,9 +117,7 @@ export default class MainController implements vscode.Disposable {
     // get the T-SQL query from the editor, run it and show output
     public onRunQuery(): void {
         const self = this;
-        if (!this._vscodeWrapper.isEditingSqlFile) {
-            this._vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
-        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+        if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
             // If we are disconnected, prompt the user to choose a connection before executing
             this.onNewConnection().then(result => {
                 if (result) {
