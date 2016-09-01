@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, AfterViewInit, ContentChild } from '@angular/core';
+import { SlickGrid } from './slickgrid/SlickGrid';
 
 @Component({
   selector: 'tab',
@@ -8,12 +9,23 @@ import { Component, Input } from '@angular/core';
     }
   `],
   template: `
-    <div [hidden]="!active" class="boxRow content box">
+    <div *ngIf="active" class="boxRow content box">
       <ng-content></ng-content>
     </div>
   `
 })
-export class Tab {
+export class Tab implements OnChanges, AfterViewInit {
   @Input('tabTitle') title: string;
   @Input() active = false;
+  @ContentChild(SlickGrid) slickgrid: SlickGrid;
+
+  ngOnChanges(changes): void {
+    if (this.slickgrid) {
+      this.slickgrid.onResize();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    console.log('view init');
+  }
 }
