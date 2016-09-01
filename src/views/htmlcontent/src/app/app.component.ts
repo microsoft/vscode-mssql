@@ -39,9 +39,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     private messages: string[];
     public selectedResultSet: number = 0;
     public selectedBatchIndex: number = 0;
-
-    @ViewChild(SlickGrid)
     showResults: boolean = false;
+    @ViewChild(SlickGrid) _slickGrid: SlickGrid;
+
+
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
