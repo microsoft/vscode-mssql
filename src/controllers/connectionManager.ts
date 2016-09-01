@@ -1,5 +1,6 @@
 'use strict';
 import vscode = require('vscode');
+import { ConnectionCredentials } from '../models/connectionCredentials';
 import Constants = require('../models/constants');
 import * as Contracts from '../models/contracts';
 import Utils = require('../models/utils');
@@ -196,12 +197,7 @@ export default class ConnectionManager {
             self.statusView.connecting(fileUri, connectionCreds);
 
             // package connection details for request message
-            let connectionDetails = new Contracts.ConnectionDetails();
-            connectionDetails.userName = connectionCreds.user;
-            connectionDetails.password = connectionCreds.password;
-            connectionDetails.serverName = connectionCreds.server;
-            connectionDetails.databaseName = connectionCreds.database;
-
+            const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
             let connectParams = new Contracts.ConnectParams();
             connectParams.ownerUri = fileUri;
             connectParams.connection = connectionDetails;
