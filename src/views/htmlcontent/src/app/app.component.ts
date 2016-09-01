@@ -40,6 +40,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     public selectedResultSet: number = 0;
     public selectedBatchIndex: number = 0;
     showResults: boolean = false;
+
     @ViewChild(SlickGrid) _slickGrid: SlickGrid;
 
 
