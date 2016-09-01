@@ -121,3 +121,5 @@ export const executeQueryCommandCompleted = 'Command(s) completed successfully.'
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
 
+export const untitledScheme = 'untitled';
+export const untitledSaveTimeThreshold = 10.0;

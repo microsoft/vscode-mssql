@@ -51,6 +51,20 @@ export default class VscodeWrapper {
     }
 
     /**
+     * An event that is emitted when a [text document](#TextDocument) is disposed.
+     */
+    public get onDidCloseTextDocument(): vscode.Event<vscode.TextDocument> {
+        return vscode.workspace.onDidCloseTextDocument;
+    }
+
+    /**
+     * An event that is emitted when a [text document](#TextDocument) is saved to disk.
+     */
+    public get onDidSaveTextDocument(): vscode.Event<vscode.TextDocument> {
+        return vscode.workspace.onDidSaveTextDocument;
+    }
+
+    /**
      * Create a vscode.Range object
      * @param start The start position for the range
      * @param end The end position for the range
