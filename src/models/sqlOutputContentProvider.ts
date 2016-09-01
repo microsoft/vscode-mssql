@@ -34,10 +34,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
 
-        // add http handler for '/'
+        // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
             let uri: string = decodeURI(req.query.uri);
-            res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri});
+            let theme: string = req.query.theme;
+            res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri, theme: theme});
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
@@ -122,14 +123,20 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return `
                 <html>
                     <head>
-                        <script type="text/javascript">
-                            window.onload = function(event) {
-                                event.stopPropagation(true);
-                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}";
-                            };
-                        </script>
+                        <script   src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
+
                     </head>
                     <body></body>
+                    <script type="text/javascript">
+                            var markup = document.documentElement.innerHTML;
+                            console.log(markup);
+                            var classList = document.body.className;
+                             window.onload = function(event) {
+                                event.stopPropagation(true);
+                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}&theme="
+                                                                                                     + classList;
+                            };
+                        </script>
                 </html>`;
     }
 }
