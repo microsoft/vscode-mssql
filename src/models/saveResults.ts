@@ -27,7 +27,7 @@ export default class SaveResults {
         this._prompter = new CodeAdapter();
     }
 
-    public promptForFilepath(): Promise<void> {
+    private promptForFilepath(): Promise<void> {
         let questions: IQuestion[] = [
             // prompt user to enter file path
             {
@@ -35,12 +35,14 @@ export default class SaveResults {
                 name: Constants.filepathPrompt,
                 message: Constants.filepathPrompt,
                 placeHolder: Constants.filepathPlaceholder,
+                validate: (value) => this.validateFilePath(Constants.filepathPrompt, value),
                 onAnswered: (value) => this._filePath = value
+
             }];
         return this._prompter.prompt(questions).then(() => { return; });
     }
 
-    public promptForResultSetNo(): Promise<void> {
+    private promptForResultSetNo(): Promise<void> {
         let questions: IQuestion[] = [
             // prompt user to enter batch number
             {
@@ -61,7 +63,7 @@ export default class SaveResults {
         return this._prompter.prompt(questions).then(() => { return ; });
     }
 
-    public getConfig(): void {
+    private getConfig(): void {
         // get save results config from vscode config
         let config = vscode.workspace.getConfiguration(Constants.extensionName);
         let saveConfig = config[Constants.configSaveAsCsv];
@@ -76,7 +78,7 @@ export default class SaveResults {
         }
     }
 
-    public sendRequestToService(uri: string, batchIndex: number, resultSetNo: number): void {
+    private sendRequestToService(uri: string, batchIndex: number, resultSetNo: number): void {
         // set params to values from config and send request to service
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
@@ -128,5 +130,12 @@ export default class SaveResults {
         self.promptForResultSetNo().then(function(): void {
             self.onSaveResultsAsCsv(editor.document.uri.toString(), Number(self._batchIndex), Number(self._resultSetNo));
         });
+    }
+
+    private validateFilePath(property: string, value: string): string {
+        if (Utils.isEmpty(value)) {
+            return property + Constants.msgIsRequired;
+        }
+        return undefined;
     }
 }
