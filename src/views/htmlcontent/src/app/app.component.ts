@@ -1,4 +1,4 @@
-import {Component, OnInit, Inject, forwardRef, AfterViewInit, ViewChild} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -31,7 +31,7 @@ enum FieldType {
 })
 
 
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit {
     private columnDefinitions: IColumnDefinition[] = [];
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
@@ -40,10 +40,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     public selectedResultSet: number = 0;
     public selectedBatchIndex: number = 0;
     showResults: boolean = false;
-
-    @ViewChild(SlickGrid) _slickGrid: SlickGrid;
-
-
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -74,19 +70,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     }
 
-    ngAfterViewInit(): void {
-        const self = this;
-        self._slickGrid.subscribeToContextMenu();
-        $('.contextMenu').click(function (event): void {
-            if (!$(event.target).is('li')) {
-                return;
-            }
-            if (event.target.id === 'csv') {
-                // call handler to save results as csv
-                self.saveResultsAsCsv();
-            }
-         });
-    }
 
     private stringToFieldType(input: string): FieldType {
         let fieldtype: FieldType;

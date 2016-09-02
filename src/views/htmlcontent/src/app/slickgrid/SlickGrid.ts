@@ -290,6 +290,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         // https://github.com/mleibman/SlickGrid/wiki/Grid-Events
         this.subscribeToScroll();
         this.subscribeToCellChanged();
+        this.subscribeToContextMenu();
     }
 
     ngOnDestroy(): void {
