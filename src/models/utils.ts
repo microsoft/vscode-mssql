@@ -155,8 +155,11 @@ export class Timer {
 
     // Get the duration of time elapsed by the timer, in milliseconds
     public getDuration(): number {
-        if (!this._startTime || !this._endTime) {
+        if (!this._startTime) {
             return -1;
+        } else if (!this._endTime) {
+            let endTime = process.hrtime(this._startTime);
+            return  endTime[0] * 1000 + endTime[1] / 1000000;
         } else {
             return this._endTime[0] * 1000 + this._endTime[1] / 1000000;
         }
