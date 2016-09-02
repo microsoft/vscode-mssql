@@ -72,7 +72,10 @@ export default class ConnectionManager {
         this._client = client;
     }
 
-    private get connectionUI(): ConnectionUI {
+    /**
+     * Get the connection view.
+     */
+    public get connectionUI(): ConnectionUI {
         return this._connectionUI;
     }
 
@@ -156,6 +159,28 @@ export default class ConnectionManager {
         });
     }
 
+    /**
+     * Helper to show all connections and perform connect logic.
+     */
+    private showConnectionsAndConnect(resolve: any, reject: any, fileUri: string): void {
+        const self = this;
+
+        // show connection picklist
+        self.connectionUI.showConnections()
+        .then(function(connectionCreds): void {
+            if (connectionCreds) {
+                // close active connection
+                self.disconnect(fileUri).then(function(): void {
+                    // connect to the server/database
+                    self.connect(fileUri, connectionCreds)
+                    .then(function(): void {
+                        resolve(true);
+                    });
+                });
+            }
+        });
+    }
+
     // let users pick from a picklist of connections
     public onNewConnection(): Promise<boolean> {
         const self = this;
@@ -164,25 +189,21 @@ export default class ConnectionManager {
         return new Promise<boolean>((resolve, reject) => {
             if (!fileUri) {
                 // A text document needs to be open before we can connect
-                this.vscodeWrapper.showInformationMessage(Constants.msgOpenSqlFile);
+                self.vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
                 resolve(false);
+                return;
+            } else if (!self.vscodeWrapper.isEditingSqlFile) {
+                self.connectionUI.promptToChangeLanguageMode().then( result => {
+                    if (result) {
+                        self.showConnectionsAndConnect(resolve, reject, fileUri);
+                    } else {
+                        resolve(false);
+                    }
+                });
                 return;
             }
 
-            // show connection picklist
-            self.connectionUI.showConnections()
-            .then(function(connectionCreds): void {
-                if (connectionCreds) {
-                    // close active connection
-                    self.disconnect(fileUri).then(function(): void {
-                        // connect to the server/database
-                        self.connect(fileUri, connectionCreds)
-                        .then(function(): void {
-                            resolve(true);
-                        });
-                    });
-                }
-            });
+            self.showConnectionsAndConnect(resolve, reject, fileUri);
         });
     }
 
