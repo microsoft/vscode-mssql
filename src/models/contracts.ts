@@ -1,4 +1,4 @@
-import {RequestType} from 'vscode-languageclient';
+import {NotificationType, RequestType} from 'vscode-languageclient';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
@@ -164,6 +164,52 @@ export class ConnectionResult {
 }
 
 // ------------------------------- </ Connect Request > ---------------------------------------------
+
+// ------------------------------- < Connection Changed Event > -------------------------------------
+
+/**
+ * Connection changed event callback declaration.
+ */
+export namespace ConnectionChangedNotification {
+    export const type: NotificationType<ConnectionChangedParams> = { get method(): string { return 'connection/connectionchanged'; } };
+}
+
+/**
+ * Summary that identifies a unique database connection.
+ */
+export class ConnectionSummary {
+    /**
+     * server name
+     */
+    public serverName: string;
+
+    /**
+     * database name
+     */
+    public databaseName: string;
+
+    /**
+     * user name
+     */
+    public userName: string;
+}
+
+/**
+ * Parameters for the ConnectionChanged notification.
+ */
+export class ConnectionChangedParams {
+    /**
+     * Owner URI of the connection that changed.
+     */
+    public ownerUri: string;
+
+    /**
+     * Summary of details containing any connection changes.
+     */
+    public connection: ConnectionSummary;
+}
+
+// ------------------------------- </ Connection Changed Event > ------------------------------------
 
 // ------------------------------- < Disconnect Request > -------------------------------------------
 

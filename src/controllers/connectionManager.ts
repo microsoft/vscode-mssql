@@ -11,6 +11,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
+import {NotificationHandler} from 'vscode-languageclient';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -49,6 +50,8 @@ export default class ConnectionManager {
         }
 
         this._connectionUI = new ConnectionUI(context, prompter, this.vscodeWrapper);
+
+        this.client.onNotification(Contracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -95,6 +98,26 @@ export default class ConnectionManager {
      */
     public getConnectionInfo(fileUri: string): ConnectionInfo {
         return this._connections[fileUri];
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public handleConnectionChangedNotification(): NotificationHandler<Contracts.ConnectionChangedParams> {
+        const self = this;
+        return event => {
+            if (self.isConnected(event.ownerUri)) {
+                let connectionInfo: ConnectionInfo = self._connections[event.ownerUri];
+                connectionInfo.credentials.server = event.connection.serverName;
+                connectionInfo.credentials.database = event.connection.databaseName;
+                connectionInfo.credentials.user = event.connection.userName;
+
+                self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials);
+
+                let logMessage = `Changed database context to \"${event.connection.databaseName}\" for document \"${event.ownerUri}\"`;
+                self.vscodeWrapper.logToOutputChannel(logMessage);
+            }
+        };
     }
 
     // choose database to use on current server

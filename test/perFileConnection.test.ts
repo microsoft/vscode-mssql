@@ -103,7 +103,7 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
 
@@ -137,7 +137,7 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
@@ -186,7 +186,7 @@ suite('Per File Connection Tests', () => {
         const testFile2 = 'file:///my/test/file2.sql';
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
@@ -246,7 +246,7 @@ suite('Per File Connection Tests', () => {
         const testFile = 'file:///my/test/file.sql';
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Strict);
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(createTestConnectionResult()));
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.DisconnectRequest.type), TypeMoq.It.isAny()))
@@ -321,5 +321,42 @@ suite('Per File Connection Tests', () => {
         // Attempt to run a query without connecting
         controller.onRunQuery();
         connectionManagerMock.verify(x => x.onNewConnection(), TypeMoq.Times.once());
+    });
+
+    test('Change connection notification changes database context', done => {
+        const testFile = 'file:///my/test/file.sql';
+
+        // Setup mocking
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(Contracts.ConnectionRequest.type), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(createTestConnectionResult()));
+        let connectionManager: ConnectionManager = createTestConnectionManager(serviceClientMock.object);
+
+        // Open a connection using the connection manager
+        let connectionCreds = createTestCredentials();
+
+        connectionManager.connect(testFile, connectionCreds).then( result => {
+            assert.equal(result, true);
+
+            // Check that the connection was established
+            assert.equal(connectionManager.isConnected(testFile), true);
+            assert.equal(connectionManager.getConnectionInfo(testFile).credentials.database, connectionCreds.database);
+
+            // Simulate a connection changed notification
+            let parameters = new Contracts.ConnectionChangedParams();
+            parameters.ownerUri = testFile;
+            parameters.connection = new Contracts.ConnectionSummary();
+            parameters.connection.serverName = connectionCreds.server;
+            parameters.connection.databaseName = 'myOtherDatabase';
+            parameters.connection.userName = connectionCreds.user;
+
+            let notificationObject = connectionManager.handleConnectionChangedNotification();
+            notificationObject.call(connectionManager, parameters);
+
+            // Verify that the connection changed to the other database for the file
+            assert.equal(connectionManager.getConnectionInfo(testFile).credentials.database, 'myOtherDatabase');
+
+            done();
+        });
     });
 });
