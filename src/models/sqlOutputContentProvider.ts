@@ -17,7 +17,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
-    private _saveResults = new SaveResults();
     private _vscodeWrapper: VscodeWrapper;
 
     get onDidChange(): vscode.Event<vscode.Uri> {
@@ -92,7 +91,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let uri: string = decodeURI(req.query.uri);
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
-            self._saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
+            let saveResults = new SaveResults();
+            saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
             let json = JSON.stringify('success');
             res.send(json);
         });
