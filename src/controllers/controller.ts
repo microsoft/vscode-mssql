@@ -118,7 +118,14 @@ export default class MainController implements vscode.Disposable {
     public onRunQuery(): void {
         const self = this;
         if (!this._vscodeWrapper.isEditingSqlFile) {
-            this._vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
+            // Prompt the user to change the language mode to SQL before running a query
+            this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
+                if (result) {
+                    self.onRunQuery();
+                }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            });
         } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
             // If we are disconnected, prompt the user to choose a connection before executing
             this.onNewConnection().then(result => {
