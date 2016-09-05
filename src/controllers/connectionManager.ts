@@ -1,5 +1,6 @@
 'use strict';
 import vscode = require('vscode');
+import { ConnectionCredentials } from '../models/connectionCredentials';
 import Constants = require('../models/constants');
 import * as Contracts from '../models/contracts';
 import Utils = require('../models/utils');
@@ -12,8 +13,10 @@ import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 
-// Information for a document's connection
-class ConnectionInfo {
+/**
+ * Information for a document's connection. Exported for testing purposes.
+ */
+export class ConnectionInfo {
     // Connection GUID returned from the service host
     public connectionId: string;
 
@@ -23,28 +26,30 @@ class ConnectionInfo {
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
-    private _client: SqlToolsServerClient;
     private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
-    private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext, statusView: StatusView, prompter: IPrompter, client?: SqlToolsServerClient) {
+    constructor(context: vscode.ExtensionContext,
+                statusView: StatusView,
+                prompter: IPrompter,
+                private _client?: SqlToolsServerClient,
+                private _vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
-        this._connectionUI = new ConnectionUI(new ConnectionStore(context), prompter);
         this._connections = {};
 
-        if (typeof client === 'undefined') {
+        if (!this.client) {
             this.client = SqlToolsServerClient.instance;
-        } else {
-            this.client = client;
+        }
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
         }
 
-        this.vscodeWrapper = new VscodeWrapper();
+        this._connectionUI = new ConnectionUI(new ConnectionStore(context), prompter, this.vscodeWrapper);
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -69,7 +74,10 @@ export default class ConnectionManager {
         this._client = client;
     }
 
-    private get connectionUI(): ConnectionUI {
+    /**
+     * Get the connection view.
+     */
+    public get connectionUI(): ConnectionUI {
         return this._connectionUI;
     }
 
@@ -86,22 +94,46 @@ export default class ConnectionManager {
         return (fileUri in this._connections);
     }
 
+    /**
+     * Exposed for testing purposes.
+     */
+    public getConnectionInfo(fileUri: string): ConnectionInfo {
+        return this._connections[fileUri];
+    }
+
     // choose database to use on current server
-    public onChooseDatabase(): void {
+    public onChooseDatabase(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
-        if (!self.isConnected(fileUri)) {
-            this.vscodeWrapper.showWarningMessage(Constants.msgChooseDatabaseNotConnected);
-            return;
-        }
-
-        self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials).then( newDatabaseCredentials => {
-            if (typeof newDatabaseCredentials !== 'undefined') {
-                self.disconnect(fileUri).then( () => {
-                    self.connect(fileUri, newDatabaseCredentials);
-                });
+        return new Promise<boolean>( (resolve, reject) => {
+            if (!self.isConnected(fileUri)) {
+                self.vscodeWrapper.showWarningMessage(Constants.msgChooseDatabaseNotConnected);
+                resolve(false);
+                return;
             }
+
+            // Get list of databases on current server
+            let listParams = new Contracts.ListDatabasesParams();
+            listParams.ownerUri = fileUri;
+            self.client.sendRequest(Contracts.ListDatabasesRequest.type, listParams).then( result => {
+                // Then let the user select a new database to connect to
+                self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials, result.databaseNames).then( newDatabaseCredentials => {
+                    if (newDatabaseCredentials) {
+                        self.disconnect(fileUri).then( () => {
+                            self.connect(fileUri, newDatabaseCredentials).then( () => {
+                                resolve(true);
+                            }).catch(err => {
+                                reject(err);
+                            });
+                        }).catch(err => {
+                            reject(err);
+                        });
+                    }
+                }).catch(err => {
+                    reject(err);
+                });
+            });
         });
     }
 
@@ -129,33 +161,53 @@ export default class ConnectionManager {
         });
     }
 
+    /**
+     * Helper to show all connections and perform connect logic.
+     */
+    private showConnectionsAndConnect(resolve: any, reject: any, fileUri: string): void {
+        const self = this;
+
+        // show connection picklist
+        self.connectionUI.showConnections()
+        .then(function(connectionCreds): void {
+            if (connectionCreds) {
+                // close active connection
+                self.disconnect(fileUri).then(function(): void {
+                    // connect to the server/database
+                    self.connect(fileUri, connectionCreds)
+                    .then(function(isConnected: boolean): void {
+                        resolve(isConnected);
+                    });
+                });
+            } else {
+                resolve(false);
+            }
+        });
+    }
+
     // let users pick from a picklist of connections
     public onNewConnection(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
-        if (fileUri === '') {
-            // A text document needs to be open before we can connect
-            this.vscodeWrapper.showInformationMessage(Constants.msgOpenSqlFile);
-        }
-
         return new Promise<boolean>((resolve, reject) => {
-            // show connection picklist
-            self.connectionUI.showConnections()
-            .then(function(connectionCreds): void {
-                if (connectionCreds) {
-                    // close active connection
-                    self.disconnect(fileUri).then(function(): void {
-                        // connect to the server/database
-                        self.connect(fileUri, connectionCreds)
-                        .then(function(isConnected: boolean): void {
-                            resolve(isConnected);
-                        });
-                    });
-                } else {
-                    resolve(false);
-                }
-            });
+            if (!fileUri) {
+                // A text document needs to be open before we can connect
+                self.vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
+                resolve(false);
+                return;
+            } else if (!self.vscodeWrapper.isEditingSqlFile) {
+                self.connectionUI.promptToChangeLanguageMode().then( result => {
+                    if (result) {
+                        self.showConnectionsAndConnect(resolve, reject, fileUri);
+                    } else {
+                        resolve(false);
+                    }
+                });
+                return;
+            }
+
+            self.showConnectionsAndConnect(resolve, reject, fileUri);
         });
     }
 
@@ -169,12 +221,7 @@ export default class ConnectionManager {
             self.statusView.connecting(fileUri, connectionCreds);
 
             // package connection details for request message
-            let connectionDetails = new Contracts.ConnectionDetails();
-            connectionDetails.userName = connectionCreds.user;
-            connectionDetails.password = connectionCreds.password;
-            connectionDetails.serverName = connectionCreds.server;
-            connectionDetails.databaseName = connectionCreds.database;
-
+            const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
             let connectParams = new Contracts.ConnectParams();
             connectParams.ownerUri = fileUri;
             connectParams.connection = connectionDetails;

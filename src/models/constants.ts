@@ -11,11 +11,10 @@ export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 
 export const sqlDbPrefix = '.database.windows.net';
-export const defaultConnectionTimeout = 15000;
-export const defaultRequestTimeout = 15000;
-export const azureSqlDbConnectionTimeout = 30000;
-export const azureSqlDbRequestTimeout = 30000;
+export const defaultConnectionTimeout = 15;
+export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
+export const defaultPortNumber = 1433;
 
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
@@ -61,9 +60,9 @@ export const connectionErrorChannelName = 'Connection Errors';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
-export const msgOpenSqlFile = `To use this command, Open a .sql file -or-
-                                Change editor language to "SQL" -or-
-                                Select some T-SQL text in the active SQL editor.`;
+export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
+                                'Change editor language to "SQL" -or- ' +
+                                'Select some T-SQL text in the active SQL editor.';
 
 export const recentConnectionsPlaceholder = 'Choose a connection from the list below';
 export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
@@ -121,3 +120,5 @@ export const executeQueryCommandCompleted = 'Command(s) completed successfully.'
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
 
+export const msgChangeLanguageMode = 'To use this command, you must set the language to \"SQL\". Change language mode?';
+export const timeToWaitForLanguageModeChange = 10000.0;

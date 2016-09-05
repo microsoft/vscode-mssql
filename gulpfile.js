@@ -145,11 +145,9 @@ gulp.task('ext:copy-tests', () => {
 });
 
 gulp.task('ext:copy-packages', () => {
-    var serviceHostVersion = "0.0.6";
-    return gulp.src([
-        config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*'
-        ])
-        .pipe(gulp.dest(config.paths.project.root + '/out/tools/'))
+    var serviceHostVersion = "0.0.7";
+    return gulp.src(config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*')
+            .pipe(gulp.dest(config.paths.project.root + '/out/tools/'))
 });
 
 gulp.task('ext:copy-js', () => {

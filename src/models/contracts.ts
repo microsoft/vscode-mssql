@@ -1,4 +1,4 @@
-import {RequestType, NotificationType} from 'vscode-languageclient';
+import {RequestType} from 'vscode-languageclient';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
@@ -7,19 +7,142 @@ export namespace ConnectionRequest {
      export const type: RequestType<ConnectParams, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
 }
 
-// Required parameters to initialize a connection to a database
+/**
+ * Parameters to initialize a connection to a database
+ */
 export class ConnectionDetails {
-    // server name
+    /**
+     * server name
+     */
     public serverName: string;
 
-    // database name
+    /**
+     * database name
+     */
     public databaseName: string;
 
-    // user name
+    /**
+     * user name
+     */
     public userName: string;
 
-    // unencrypted password
+    /**
+     * unencrypted password
+     */
     public password: string;
+
+    /**
+     * Gets or sets the authentication to use.
+     */
+    public authenticationType: string;
+
+    /**
+     * Gets or sets a Boolean value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if
+     * the server has a certificate installed.
+     */
+    public encrypt: boolean;
+
+    /**
+     * Gets or sets a value that indicates whether the channel will be encrypted while bypassing walking the certificate chain to validate trust.
+     */
+    public trustServerCertificate: boolean;
+
+    /**
+     * Gets or sets a Boolean value that indicates if security-sensitive information, such as the password, is not returned as part of the
+     * connection if the connection is open or has ever been in an open state.
+     */
+    public persistSecurityInfo: boolean;
+
+    /**
+     * Gets or sets the length of time (in seconds) to wait for a connection to the server before terminating the attempt and generating an error.
+     */
+    public connectTimeout: number;
+
+    /**
+     * The number of reconnections attempted after identifying that there was an idle connection failure.
+     */
+    public connectRetryCount: number;
+
+    /**
+     * Amount of time (in seconds) between each reconnection attempt after identifying that there was an idle connection failure.
+     */
+    public connectRetryInterval: number;
+
+    /**
+     * Gets or sets the name of the application associated with the connection string.
+     */
+    public applicationName: string;
+
+    /**
+     * Gets or sets the name of the workstation connecting to SQL Server.
+     */
+    public workstationId: string;
+
+    /**
+     * Declares the application workload type when connecting to a database in an SQL Server Availability Group.
+     */
+    public applicationIntent: string;
+
+    /**
+     * Gets or sets the SQL Server Language record name.
+     */
+    public currentLanguage: string;
+
+    /**
+     * Gets or sets a Boolean value that indicates whether the connection will be pooled or explicitly opened every time that the connection is requested.
+     */
+    public pooling: boolean;
+
+    /**
+     * Gets or sets the maximum number of connections allowed in the connection pool for this specific connection string.
+     */
+    public maxPoolSize: number;
+
+    /**
+     * Gets or sets the minimum number of connections allowed in the connection pool for this specific connection string.
+     */
+    public minPoolSize: number;
+
+    /**
+     * Gets or sets the minimum time, in seconds, for the connection to live in the connection pool before being destroyed.
+     */
+    public loadBalanceTimeout: number;
+
+    /**
+     * Gets or sets a Boolean value that indicates whether replication is supported using the connection.
+     */
+    public replication: boolean;
+
+    /**
+     * Gets or sets a string that contains the name of the primary data file. This includes the full path name of an attachable database.
+     */
+    public attachDbFilename: string;
+
+    /**
+     * Gets or sets the name or address of the partner server to connect to if the primary server is down.
+     */
+    public failoverPartner: string;
+
+    /**
+     * If your application is connecting to an AlwaysOn availability group (AG) on different subnets, setting MultiSubnetFailover=true provides
+     * faster detection of and connection to the (currently) active server.
+     */
+    public multiSubnetFailover: boolean;
+
+    /**
+     * When true, an application can maintain multiple active result sets (MARS).
+     */
+    public multipleActiveResultSets: boolean;
+
+    /**
+     * Gets or sets the size in bytes of the network packets used to communicate with an instance of SQL Server.
+     */
+    public packetSize: number;
+
+    /**
+     * Gets or sets a string value that indicates the type system the application expects.
+     */
+    public typeSystemVersion: string;
 }
 
 // Connection request message format
@@ -60,129 +183,26 @@ export type DisconnectResult = boolean;
 
 // ------------------------------- </ Disconnect Request > ------------------------------------------
 
-// ------------------------------- < Query Dispose Request > ----------------------------------------
+// ------------------------------- < List Databases Request > ---------------------------------------
 
-// ------------------------------- < Query Dispose Request > ----------------------------------------
-export namespace QueryDisposeRequest {
-    export const type: RequestType<QueryDisposeParams, QueryDisposeResult, void> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/dispose';
-                                                                                        }
-                                                                                   };
+// List databases request callback declaration
+export namespace ListDatabasesRequest {
+    export const type: RequestType<ListDatabasesParams, ListDatabasesResult, void> = { get method(): string { return 'connection/listdatabases'; } };
 }
 
-export class QueryDisposeParams {
-    ownerUri: string;
+// List databases request format
+export class ListDatabasesParams {
+    // Connection information to use for querying master
+    public ownerUri: string;
 }
 
-export class QueryDisposeResult {
-    messages: string;
-}
-// --------------------------------- </ Query Dispose Request > ----------------------------------------
-
-// -------------------------- < Query Execution Complete Notification > -------------------------------
-export namespace QueryExecuteCompleteNotification {
-    export const type: NotificationType<QueryExecuteCompleteNotificationResult> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/complete';
-                                                                                        }
-                                                                                  };
+// List databases response format
+export class ListDatabasesResult {
+    public databaseNames: Array<string>;
 }
 
-export interface IDbColumn {
-    allowDBNull?: boolean;
-    baseCatalogName: string;
-    baseColumnName: string;
-    baseSchemaName: string;
-    baseServerName: string;
-    baseTableName: string;
-    columnName: string;
-    columnOrdinal?: number;
-    columnSize?: number;
-    isAliased?: boolean;
-    isAutoIncrement?: boolean;
-    isExpression?: boolean;
-    isHidden?: boolean;
-    isIdentity?: boolean;
-    isKey?: boolean;
-    isLong?: boolean;
-    isReadOnly?: boolean;
-    isUnique?: boolean;
-    numericPrecision?: number;
-    numericScale?: number;
-    udtAssemblyQualifiedName: string;
-    dataTypeName: string;
-}
+// ------------------------------- </ List Databases Request > --------------------------------------
 
-export class ResultSetSummary {
-    id: number;
-    rowCount: number;
-    columnInfo: IDbColumn[];
-}
-
-export class QueryExecuteCompleteNotificationResult {
-    ownerUri: string;
-    messages: string[];
-    hasError: boolean;
-    resultSetSummaries: ResultSetSummary[];
-}
-
-// -------------------------- </ Query Execution Complete Notification > -------------------------------
-
-// --------------------------------- < Query Execution Request > ---------------------------------------
-export namespace QueryExecuteRequest {
-    export const type: RequestType<QueryExecuteParams, QueryExecuteResult, void> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/execute';
-                                                                                        }
-                                                                                    };
-}
-
-export interface ISelectionData {
-    startRow: number;
-    endRow: number;
-    startColumn: number;
-    endColumn: number;
-}
-
-export class QueryExecuteParams {
-    ownerUri: string;
-    queryText: string;
-}
-
-export class QueryExecuteResult {
-    messages: string;
-}
-
-// --------------------------------- </ Query Execution Request > ---------------------------------------
-
-// --------------------------------- < Query Results Request > ------------------------------------------
-export namespace QueryExecuteSubsetRequest {
-    export const type: RequestType<QueryExecuteSubsetParams, QueryExecuteSubsetResult, void> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/subset';
-                                                                                        }
-                                                                                    };
-}
-
-export class QueryExecuteSubsetParams {
-    ownerUri: string;
-    resultSetIndex: number;
-    rowsStartIndex: number;
-    rowsCount: number;
-}
-
-export class ResultSetSubset {
-    rowCount: number;
-    rows: any[][];
-}
-
-export class QueryExecuteSubsetResult {
-    message: string;
-    resultSubset: ResultSetSubset;
-}
-
-// --------------------------------- </ Query Results Request > ------------------------------------------
 // --------------------------------- < Version Request > -------------------------------------------------
 
 // Version request message callback declaration

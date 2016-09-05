@@ -10,6 +10,8 @@
 
     function DragRowSelectionModel(options) {
         var _grid;
+        var _dragStart;
+        var _dragRow;
         var _ranges = [];
         var _self = this;
         var _options;
@@ -130,7 +132,22 @@
 
         function handleHeaderClick(e, args) {
             var columnIndex = _grid.getColumnIndex(args.column.id);
-            _ranges = [{fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1}];
+            if(e.ctrlKey){
+                _ranges.push({fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1})
+            } else if(e.shiftKey && _ranges.length) {
+                var last = _ranges.pop().fromCell;
+                var from = Math.min(columnIndex, last);
+                var to = Math.max(columnIndex, last);
+                _ranges = [];
+                for (var i = from; i <= to; i++) {
+                    if (i !== last) {
+                        _ranges.push({fromCell: i, fromRow: 0, toCell: i, toRow: _grid.getDataLength()-1});
+                    }
+                }
+                _ranges.push({fromCell: last, fromRow: 0, toCell: last, toRow: _grid.getDataLength()-1});
+            } else {
+                _ranges = [{fromCell: columnIndex, fromRow: 0, toCell: columnIndex, toRow: _grid.getDataLength()-1}];
+            }
             setSelectedRanges(_ranges);
             e.stopImmediatePropagation();
             return true;
@@ -146,7 +163,14 @@
             var idx = $.inArray(cell.row, selection);
 
             if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
-                return false;
+                if(cell.cell !== 0) {
+                    _ranges = [{fromCell: cell.cell-1, fromRow: cell.row, toCell: cell.cell-1, toRow: cell.row}];
+                    setSelectedRanges(_ranges);
+                    e.stopImmediatePropagation();
+                    return true;
+                } else {
+                    return false;
+                }
             }
             else if (_grid.getOptions().multiSelect) {
                 if (idx === -1 && (e.ctrlKey || e.metaKey)) {
@@ -184,8 +208,11 @@
         }
 
         function handleDragStart(e) {
+            var cell = _grid.getCellFromEvent(e);
             e.stopImmediatePropagation();
             _dragging = true;
+            _dragRow = cell.cell === 0 ? true : false;
+            _dragStart = cell;
             _ranges = [];
             setSelectedRanges(_ranges);
         }
@@ -197,15 +224,21 @@
                 if (!cell || !_grid.canCellBeActive(cell.row, cell.cell))
                     return false;
 
-                var selection = rangesToRows(_ranges);
-
-                var idx = $.inArray(cell.row, selection);
-                if (idx === -1) {
-                    selection.push(cell.row);
-                    _ranges = rowsToRanges(selection);
-                    setSelectedRanges(_ranges);
+                if(_dragRow){
+                    var lastCell = _grid.getColumns().length - 1;
+                    var start = _dragStart;
+                    var firstRow = Math.min(cell.row, start.row);
+                    var lastRow = Math.max(cell.row, start.row);
+                    _ranges = [new Slick.Range(firstRow, 0, lastRow, lastCell)];
+                } else {
+                    var start = _dragStart;
+                    var firstRow = Math.min(cell.row, start.row);
+                    var lastRow = Math.max(cell.row, start.row);
+                    var firstColumn = Math.min(cell.cell-1, start.cell-1);
+                    var lastColumn = Math.max(cell.cell-1, start.cell-1);
+                    _ranges = [new Slick.Range(firstRow, firstColumn, lastRow, lastColumn)];
                 }
-
+                setSelectedRanges(_ranges);
             }
         }
 

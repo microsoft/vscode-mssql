@@ -22,8 +22,16 @@ export default class MainController implements vscode.Disposable {
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
 
-    constructor(context: vscode.ExtensionContext) {
+    constructor(context: vscode.ExtensionContext,
+                connectionManager?: ConnectionManager,
+                vscodeWrapper?: VscodeWrapper) {
         this._context = context;
+        if (connectionManager) {
+            this._connectionMgr = connectionManager;
+        }
+        if (vscodeWrapper) {
+            this._vscodeWrapper = vscodeWrapper;
+        }
     }
 
     private registerCommand(command: string): void {
@@ -92,7 +100,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     // Choose a new database from the current server
-    private onChooseDatabase(): void {
+    private onChooseDatabase(): Promise<boolean> {
         return this._connectionMgr.onChooseDatabase();
     }
 
@@ -108,8 +116,25 @@ export default class MainController implements vscode.Disposable {
 
     // get the T-SQL query from the editor, run it and show output
     public onRunQuery(): void {
-        if (!Utils.isEditingSqlFile()) {
-            Utils.showWarnMsg(Constants.msgOpenSqlFile);
+        const self = this;
+        if (!this._vscodeWrapper.isEditingSqlFile) {
+            // Prompt the user to change the language mode to SQL before running a query
+            this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
+                if (result) {
+                    self.onRunQuery();
+                }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            });
+        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+            // If we are disconnected, prompt the user to choose a connection before executing
+            this.onNewConnection().then(result => {
+                if (result) {
+                    self.onRunQuery();
+                }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            });
         } else {
             let editor = this._vscodeWrapper.activeTextEditor;
             let uri = this._vscodeWrapper.activeTextEditorUri;

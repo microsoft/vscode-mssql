@@ -139,6 +139,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
     @Input() columnsLoading: string[] = [];
     @Input() overrideCellFn: (rowNumber, columnId, value?, data?) => string;
     @Input() showHeader: boolean = false;
+    @Input() showDataTypeIcon: boolean = true;
 
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
@@ -385,7 +386,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
             enableColumnReorder: false,
             renderRowWithRange: true,
             showRowNumber: true,
-            showDataTypeIcon: true,
+            showDataTypeIcon: this.showDataTypeIcon,
             showHeader: this.showHeader,
             rowHeight: this._rowHeight,
             defaultColumnWidth: 120,

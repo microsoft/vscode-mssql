@@ -5,5 +5,7 @@ packages
 *.db
 *.exe
 *.log
+*.nupkg
+*.vsix
 tools
 examples
