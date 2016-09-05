@@ -208,7 +208,7 @@ export default class ConnectionManager {
                     self.statusView.connectError(fileUri, connectionCreds, result.messages);
                     self.connectionUI.showConnectionErrors(result.messages);
 
-                    // We've logged the failure so
+                    // We've logged the failure so no need to throw
                     resolve(false);
                 }
             });

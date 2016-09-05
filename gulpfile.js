@@ -146,12 +146,10 @@ gulp.task('ext:copy-tests', () => {
 
 gulp.task('ext:copy-packages', () => {
     var serviceHostVersion = "0.0.6";
-    var credStoreVersion = "0.0.1";
     return gulp.src([
-        config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*',
-        config.paths.project.root + '/packages/Microsoft.SqlTools.CredStore.' + credStoreVersion + '/lib/creds.exe',
+        config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*'
         ])
-            .pipe(gulp.dest(config.paths.project.root + '/out/tools/'))
+        .pipe(gulp.dest(config.paths.project.root + '/out/tools/'))
 });
 
 gulp.task('ext:copy-js', () => {
@@ -161,12 +159,7 @@ gulp.task('ext:copy-js', () => {
         .pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
-gulp.task('ext:copy-bin', () => {
-    return gulp.src([config.paths.project.root + '/src/credentialstore/bin/win32/*'])
-        .pipe(gulp.dest(config.paths.project.root + '/out/src/credentialstore/bin/win32'))
-});
-
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-packages', 'ext:copy-js', 'ext:copy-bin'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-packages', 'ext:copy-js'));
 
 gulp.task('ext:build', gulp.series('ext:nuget-download', 'ext:nuget-restore', 'ext:compile', 'ext:copy'));
 
