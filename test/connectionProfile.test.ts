@@ -1,7 +1,7 @@
 'use strict';
 
 import * as TypeMoq from 'typemoq';
-import { IConnectionCredentials, IConnectionProfile } from '../src/models/interfaces';
+import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
@@ -18,7 +18,7 @@ function createTestCredentials(): IConnectionCredentials {
         user:                           'sa',
         password:                       '12345678',
         port:                           1234,
-        authenticationType:             'SQL Authentication',
+        authenticationType:             AuthenticationTypes[AuthenticationTypes.SqlLogin],
         encrypt:                        false,
         trustServerCertificate:         false,
         persistSecurityInfo:            false,

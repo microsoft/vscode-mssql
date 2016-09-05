@@ -14,7 +14,7 @@ export enum ContentType {
 
 export enum AuthenticationTypes {
     Integrated = 1,
-    SqlPassword = 2,
+    SqlLogin = 2,
     ActiveDirectoryUniversal = 3
 }
 

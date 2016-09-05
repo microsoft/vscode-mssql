@@ -1,7 +1,7 @@
 'use strict';
 import Constants = require('./constants');
 import { ConnectionDetails } from './contracts';
-import { IConnectionCredentials } from './interfaces';
+import { IConnectionCredentials, AuthenticationTypes } from './interfaces';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 
@@ -169,7 +169,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static isPasswordBasedCredential(credentials: IConnectionCredentials): boolean {
         // TODO consider enum based verification and handling of AD auth here in the future
-        return credentials.authenticationType === Constants.authTypeSql;
+        return credentials.authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
     }
 
     // Validates a string is not empty, returning undefined if true and an error message if not
@@ -182,11 +182,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static getAuthenticationTypesChoice(): INameValueChoice[] {
         let choices: INameValueChoice[] = [
-            { name: Constants.authTypeSql, value: Constants.authTypeSql }
+            { name: Constants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) }
         ];
         // In the case of win32 support integrated. For all others only SqlAuth supported
         if ('win32' === os.platform()) {
-             choices.push({ name: Constants.authTypeIntegrated, value: Constants.authTypeIntegrated });
+             choices.push({ name: Constants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) });
         }
         // TODO When Azure Active Directory is supported, add this here
 

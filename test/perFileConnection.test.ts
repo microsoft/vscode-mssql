@@ -6,7 +6,7 @@ import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 import { IPrompter } from '../src/prompts/question';
 
 import ConnectionManager from '../src/controllers/connectionManager';
-import { IConnectionCredentials } from '../src/models/interfaces';
+import { IConnectionCredentials, AuthenticationTypes } from '../src/models/interfaces';
 import * as Contracts from '../src/models/contracts';
 import MainController from '../src/controllers/controller';
 import * as Interfaces from '../src/models/interfaces';
@@ -30,7 +30,7 @@ function createTestCredentials(): IConnectionCredentials {
         user:                           'sa',
         password:                       '12345678',
         port:                           1234,
-        authenticationType:             'SQL Authentication',
+        authenticationType:             AuthenticationTypes[AuthenticationTypes.SqlLogin],
         encrypt:                        false,
         trustServerCertificate:         false,
         persistSecurityInfo:            false,

@@ -175,12 +175,12 @@ export default class ConnectionManager {
                 self.disconnect(fileUri).then(function(): void {
                     // connect to the server/database
                     self.connect(fileUri, connectionCreds)
-                    .then(function(isConnected: boolean): void {
-                        resolve(isConnected);
+                    .then(function(): void {
+                        resolve();
                     });
                 });
             } else {
-                resolve(false);
+                resolve();
             }
         });
     }
