@@ -133,8 +133,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                             var classList = document.body.className;
                              window.onload = function(event) {
                                 event.stopPropagation(true);
-                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}&theme="
-                                                                                                     + classList;
+                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}&theme=" + classList;
                             };
                         </script>
                 </html>`;
