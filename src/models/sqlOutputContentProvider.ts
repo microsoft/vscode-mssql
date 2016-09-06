@@ -128,8 +128,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     </head>
                     <body></body>
                     <script type="text/javascript">
-                            var markup = document.documentElement.innerHTML;
-                            console.log(markup);
                             var classList = document.body.className;
                              window.onload = function(event) {
                                 event.stopPropagation(true);
