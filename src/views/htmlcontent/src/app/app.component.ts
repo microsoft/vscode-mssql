@@ -38,8 +38,7 @@ export class AppComponent implements OnInit {
     private messages: string[];
     private activeMessages: boolean = false;
     private activeResults: boolean = true;
-    showResults: boolean = true;
-    @ViewChild(Tabs) tabs: Tabs;
+    private showResults: boolean = true;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
