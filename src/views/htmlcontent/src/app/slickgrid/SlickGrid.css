@@ -3,9 +3,9 @@
 }
 .grid-cell {
   border-top-style: none;
-  color: #101010;
+  color: var(--color-content);
   letter-spacing: 0.03em;
-  border-color: #EBECEC;
+  border-color: var(--border-color-default);
   font-size: 0.95em;
   border-bottom-width: 1px;
   border-left-style: none;
@@ -15,34 +15,34 @@
 }
 .grid .slick-header-column {
   border-top-style: none;
-  color: #101010;
+  color: var(--color-content);
   letter-spacing: 0.03em;
-  border-color: #EBECEC;
+  border-color: var(--border-color-default);
   font-size: 0.95em;
   border-bottom-width: 1px;
   border-left-style: none;
   border-right-color: #ACACAC;
   border-right-style: dotted;
   padding: 0.5em 0.8em 0.4em;
-  background-color: #F7F7F7;
+  background-color: var(--color-bg-content-dark);
   border-bottom-color: #ACACAC;
 }
 .grid .slick-cell {
   border-top-style: none;
-  color: #101010;
+  color: var(--color-content);
   letter-spacing: 0.03em;
-  border-color: #EBECEC;
+  border-color: var(--border-color-default);
   font-size: 0.95em;
   border-bottom-width: 1px;
   border-left-style: none;
   border-right-color: #ACACAC;
   border-right-style: dotted;
   padding: 0.5em 0.8em 0.4em;
-  background-color: var(--grid-cell-color, #FFFFFF);
+  background-color: var(--grid-cell-color);
 }
 .grid .slick-cell.selected {
   background-color: var(--color-grid-selected);
-  color: black;
+  color: var(--color-content);
 }
 .grid .slick-cell.selected .grid-cell-value-container.missing-value {
   color: black;

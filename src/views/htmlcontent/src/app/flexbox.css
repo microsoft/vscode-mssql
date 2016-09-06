@@ -1,7 +1,7 @@
 html,
 body {
   height: 100%;
-  margin: 0
+  margin: 0;
 }
 
 .fullsize {
@@ -12,6 +12,7 @@ body {
   display: flex;
   flex-flow: column;
 }
+
 .innerbox {
   display: flex;
   flex-flow: column;
