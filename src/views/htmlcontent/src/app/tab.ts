@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, AfterViewInit, ContentChild } from '@angular/core';
+import { Component, Input, OnChanges, ContentChild } from '@angular/core';
 import { SlickGrid } from './slickgrid/SlickGrid';
 
 @Component({
@@ -14,18 +14,36 @@ import { SlickGrid } from './slickgrid/SlickGrid';
     </div>
   `
 })
-export class Tab implements OnChanges, AfterViewInit {
+export class Tab implements OnChanges {
   @Input('tabTitle') title: string;
   @Input() active = false;
   @ContentChild(SlickGrid) slickgrid: SlickGrid;
 
   ngOnChanges(changes): void {
+      console.log('changes');
+  }
+
+  ngOnInit(): void {
+    console.log('init');
+  }
+
+  ngDoCheck(): void {
+    console.log('check');
+  }
+
+  ngAfterContentInit(): void {
+    console.log('content init');
+  }
+
+  ngAfterContentChecked(): void {
     if (this.slickgrid) {
       this.slickgrid.onResize();
     }
   }
 
   ngAfterViewInit(): void {
-    console.log('view init');
+    if (this.slickgrid) {
+      this.slickgrid.onResize();
+    }
   }
 }

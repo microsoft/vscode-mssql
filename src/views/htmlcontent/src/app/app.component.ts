@@ -1,4 +1,4 @@
-import {Component, OnInit, Inject, forwardRef} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -25,7 +25,7 @@ enum FieldType {
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, NavigatorComponent, Tabs, Tab ],
+    directives: [SlickGrid, NavigatorComponent, Tabs, Tab],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
@@ -36,7 +36,10 @@ export class AppComponent implements OnInit {
     private totalRows: number;
     private resultOptions: number[][];
     private messages: string[];
-    showResults: boolean = false;
+    private activeMessages: boolean = false;
+    private activeResults: boolean = true;
+    showResults: boolean = true;
+    @ViewChild(Tabs) tabs: Tabs;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -101,9 +104,13 @@ export class AppComponent implements OnInit {
             self.totalRows = data[1];
             if (!columnData) {
                 self.showResults = false;
+                self.activeMessages = true;
+                self.activeResults = false;
                 return;
             } else {
                 self.showResults = true;
+                self.activeMessages = false;
+                self.activeResults = true;
             }
             let columnDefinitions = [];
             for (let i = 0; i < columnData.length; i++) {
