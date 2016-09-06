@@ -1,4 +1,3 @@
-'use strict';
 import path = require('path');
 import vscode = require('vscode');
 import Constants = require('./constants');
