@@ -6,7 +6,7 @@ import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
-import { ICredentialStore } from '../credentialStore/interfaces/icredentialstore';
+import { ICredentialStore } from '../credentialStore/icredentialstore';
 import { CredentialStore } from '../credentialStore/credentialstore';
 
 /**
@@ -20,32 +20,33 @@ export class ConnectionStore {
     private _context: vscode.ExtensionContext;
     private _credentialStore: ICredentialStore;
 
-    private _defaultPrefix: string = 'sqlsecret:';
-    private _defaultFilename: string = 'sqlsecrets.json';
-    private _defaultFolder: string = '.sqlsecrets';
-
     constructor(context: vscode.ExtensionContext, credentialStore?: ICredentialStore) {
         this._context = context;
         if (credentialStore) {
             this._credentialStore = credentialStore;
         } else {
-            this._credentialStore = new CredentialStore(this._defaultPrefix, this._defaultFolder, this._defaultFilename);
+            this._credentialStore = new CredentialStore();
         }
     }
 
-    public static get CRED_PREFIX(): string { return 'SQLPassword'; }
+    public static get CRED_PREFIX(): string { return 'Microsoft.SqlTools'; }
     public static get CRED_SEPARATOR(): string { return '|'; }
     public static get CRED_SERVER_PREFIX(): string { return 'server:'; }
     public static get CRED_DB_PREFIX(): string { return 'db:'; }
     public static get CRED_USER_PREFIX(): string { return 'user:'; }
+    public static get CRED_ITEMTYPE_PREFIX(): string { return 'itemtype:'; }
     public static get CRED_PROFILE_USER(): string { return 'profile'; };
     public static get CRED_MRU_USER(): string { return 'mru'; };
 
-    public static formatCredentialIdForCred(creds: IConnectionCredentials): string {
+    public static formatCredentialIdForCred(creds: IConnectionCredentials, itemType?: CredentialsQuickPickItemType): string {
         if (Utils.isEmpty(creds)) {
             throw new ValidationException('Missing Connection which is required');
         }
-        return ConnectionStore.formatCredentialId(creds.server, creds.database, creds.user);
+        let itemTypeString: string = ConnectionStore.CRED_PROFILE_USER;
+        if (itemType) {
+            itemTypeString = CredentialsQuickPickItemType[itemType];
+        }
+        return ConnectionStore.formatCredentialId(creds.server, creds.database, creds.user, itemTypeString);
     }
 
     /**
@@ -54,14 +55,20 @@ export class ConnectionStore {
      * @static
      * @param {string} server name of the server - required
      * @param {string} database name of the database - optional
-     * @param {string} user bname of the user - optional
+     * @param {string} user name of the user - optional
+     * @param {string} itemType type of the item (MRU or Profile) - optional
      * @returns {string} formatted string with server, DB and username
      */
-    public static formatCredentialId(server: string, database?: string, user?: string): string {
+    public static formatCredentialId(server: string, database?: string, user?: string, itemType?: string): string {
         if (Utils.isEmpty(server)) {
             throw new ValidationException('Missing Server Name, which is required');
         }
         let cred: string[] = [ConnectionStore.CRED_PREFIX];
+        if (!itemType) {
+            itemType = ConnectionStore.CRED_PROFILE_USER;
+        }
+
+        ConnectionStore.pushIfNonEmpty(itemType, ConnectionStore.CRED_ITEMTYPE_PREFIX, cred);
         ConnectionStore.pushIfNonEmpty(server, ConnectionStore.CRED_SERVER_PREFIX, cred);
         ConnectionStore.pushIfNonEmpty(database, ConnectionStore.CRED_DB_PREFIX, cred);
         ConnectionStore.pushIfNonEmpty(user, ConnectionStore.CRED_USER_PREFIX, cred);
@@ -118,17 +125,15 @@ export class ConnectionStore {
             if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
                     && Utils.isEmpty(credentialsItem.connectionCreds.password)) {
 
-                let name: string = credentialsItem.quickPickItemType === CredentialsQuickPickItemType.Profile ?
-                    ConnectionStore.CRED_PROFILE_USER : ConnectionStore.CRED_MRU_USER;
-
-                let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds);
-                self._credentialStore.getCredentialByName(credentialId, name)
+                let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
+                self._credentialStore.readCredential(credentialId)
                 .then(savedCred => {
                     if (savedCred) {
                         credentialsItem.connectionCreds.password = savedCred.password;
                     }
                     resolve(credentialsItem);
-                });
+                })
+                .catch(err => reject(err));
             } else {
                 // Already have a password, no need to look up
                 resolve(credentialsItem);
@@ -163,29 +168,34 @@ export class ConnectionStore {
                 // Only save if we successfully added the profile
                 return self.savePasswordIfNeeded(profile);
                 // And resolve / reject at the end of the process
+            }, err => {
+                reject(err);
             }).then(resolved => {
                 // Add necessary default properties before returning
                 // this is needed to support immediate connections
                 ConnInfo.fixupConnectionCredentials(profile);
                 resolve(profile);
-            }, rejected => reject(rejected));
+            }, err => {
+                reject(err);
+            });
         });
     }
 
-    private savePasswordIfNeeded(profile: IConnectionProfile): Promise<void> {
+    private savePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
         let self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<boolean>((resolve, reject) => {
             if (profile.savePassword === true && Utils.isNotEmpty(profile.password)) {
-                let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user);
-                self._credentialStore.setCredential(credentialId, ConnectionStore.CRED_PROFILE_USER, profile.password)
-                .then(() => {
-                    resolve(undefined);
+                let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
+                self._credentialStore.saveCredential(credentialId, profile.password)
+                .then((result) => {
+                    resolve(result);
                 }).catch(err => {
                     // Bubble up error if there was a problem executing the set command
                     reject(err);
                 });
             } else {
-                resolve(undefined);
+                // Operation successful as didn't need to save
+                resolve(true);
             }
         });
     }
@@ -218,21 +228,18 @@ export class ConnectionStore {
                 }
             });
 
-            let promises: PromiseLike<void>[] = [];
-            if (profile.savePassword === true) {
-                let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user);
-                promises.push(self._credentialStore.removeCredentialByName(credentialId, ConnectionStore.CRED_PROFILE_USER));
-            }
-
-            // save all profiles
-            promises.push(self._context.globalState.update(Constants.configMyConnections, configValues));
-
-            // Wait on all async operations then return
-            Promise.all(promises).then(() => {
+            self._context.globalState.update(Constants.configMyConnections, configValues).then(() => {
                 resolve(found);
-            }, rejected => {
-                reject(rejected);
-            });
+            }, err => reject(err));
+        }).then(profileFound => {
+            // Now remove password from credential store. Currently do not care about status unless an error occurred
+            if (profile.savePassword === true) {
+                let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
+                self._credentialStore.deleteCredential(credentialId).then(undefined, rejected => {
+                    throw new Error(rejected);
+                });
+            }
+            return profileFound;
         });
     }
 

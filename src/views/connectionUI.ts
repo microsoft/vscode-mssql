@@ -203,7 +203,7 @@ export class ConnectionUI {
                         resolve(undefined);
                     }
                     resolve(resolvedConnectionCreds);
-                });
+                }, err => reject(err));
             } else {
                 resolve(undefined);
             }
@@ -257,7 +257,7 @@ export class ConnectionUI {
 
     private selectProfileForRemoval(profiles: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionProfile> {
         let self = this;
-        if (!profiles) {
+        if (!profiles || profiles.length === 0) {
             // Inform the user we have no profiles available for deletion
             // TODO: consider moving to prompter if we separate all UI logic from workflows in the future
             vscode.window.showErrorMessage(Constants.msgNoProfilesSaved);

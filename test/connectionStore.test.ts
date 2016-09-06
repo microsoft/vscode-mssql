@@ -43,10 +43,13 @@ suite('ConnectionStore tests', () => {
         let serverName = 'myServer';
         let dbName = 'someDB';
         let userName = 'aUser';
+        let profileType = 'profile';
 
-        assert.strictEqual(ConnectionStore.formatCredentialId(serverName), `SQLPassword|server:${serverName}`);
-        assert.strictEqual(ConnectionStore.formatCredentialId(serverName, dbName), `SQLPassword|server:${serverName}|db:${dbName}`);
-        assert.strictEqual(ConnectionStore.formatCredentialId(serverName, dbName, userName), `SQLPassword|server:${serverName}|db:${dbName}|user:${userName}`);
+        assert.strictEqual(ConnectionStore.formatCredentialId(serverName), `Microsoft.SqlTools|itemtype:${profileType}|server:${serverName}`);
+        assert.strictEqual(ConnectionStore.formatCredentialId(serverName, dbName),
+            `Microsoft.SqlTools|itemtype:${profileType}|server:${serverName}|db:${dbName}`);
+        assert.strictEqual(ConnectionStore.formatCredentialId(serverName, dbName, userName),
+            `Microsoft.SqlTools|itemtype:${profileType}|server:${serverName}|db:${dbName}|user:${userName}`);
     });
 
     test('SaveProfile should not save password if SavePassword is false', done => {
@@ -70,7 +73,7 @@ suite('ConnectionStore tests', () => {
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
                 assert.ok(utils.isEmpty(credsToSave[0].password));
 
-                credentialStore.verify(x => x.setCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
+                credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
                 done();
             }).catch(err => done(new Error(err)));
     });
@@ -87,15 +90,14 @@ suite('ConnectionStore tests', () => {
             });
 
         let capturedCreds: any;
-        credentialStore.setup(x => x.setCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback((cred: string, user: string, pass: any) => {
+        credentialStore.setup(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .callback((cred: string, pass: any) => {
                 capturedCreds = {
                     'credentialId': cred,
-                    'userName': user,
                     'password': pass
                 };
             })
-            .returns(() => Promise.resolve());
+            .returns(() => Promise.resolve(true));
 
         let expectedCredFormat: string = ConnectionStore.formatCredentialId(defaultProfile.server, defaultProfile.database, defaultProfile.user);
 
@@ -110,10 +112,9 @@ suite('ConnectionStore tests', () => {
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
                 assert.ok(utils.isEmpty(credsToSave[0].password));
 
-                credentialStore.verify(x => x.setCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
                 assert.strictEqual(capturedCreds.credentialId, expectedCredFormat);
-                assert.strictEqual(capturedCreds.userName, ConnectionStore.CRED_PROFILE_USER);
                 assert.strictEqual(capturedCreds.password, defaultProfile.password);
                 done();
             }).catch(err => done(new Error(err)));
@@ -132,14 +133,13 @@ suite('ConnectionStore tests', () => {
             });
 
         let capturedCreds: any;
-        credentialStore.setup(x => x.removeCredentialByName(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .callback((cred: string, user: string) => {
                 capturedCreds = {
-                    'credentialId': cred,
-                    'userName': user
+                    'credentialId': cred
                 };
             })
-            .returns(() => Promise.resolve());
+            .returns(() => Promise.resolve(true));
 
         let expectedCredFormat: string = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user);
 
@@ -154,10 +154,9 @@ suite('ConnectionStore tests', () => {
                 assert.strictEqual(1, updatedCredentials.length);
                 assert.strictEqual(updatedCredentials[0].server, defaultProfile.server, 'Expect only defaultProfile left');
 
-                credentialStore.verify(x => x.removeCredentialByName(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
 
                 assert.strictEqual(capturedCreds.credentialId, expectedCredFormat, 'Expect profiles password to have been removed');
-                assert.strictEqual(capturedCreds.userName, ConnectionStore.CRED_PROFILE_USER);
                 done();
             }).catch(err => done(new Error(err)));
     });
