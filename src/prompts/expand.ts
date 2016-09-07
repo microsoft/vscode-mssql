@@ -53,7 +53,8 @@ export default class ExpandPrompt extends Prompt {
                     throw new EscapeException();
                 }
 
-                return choices[result] || false;
+                // Note: cannot be used with 0 or false responses
+                return choiceMap[result] || false;
             });
     }
 }

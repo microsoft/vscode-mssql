@@ -3,7 +3,7 @@
 import Constants = require('./constants');
 import { IConnectionProfile } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
-import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
+import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 
 // Concrete implementation of the IConnectionProfile interface
@@ -23,6 +23,12 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public static createProfile(prompter: IPrompter): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
         // Ensure all core propertiesare entered
+        let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
+        if (authOptions.length === 1) {
+            // Set default value as there is only 1 option
+            profile.authenticationType = authOptions[0].value;
+        }
+
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true, true);
         // Check if password needs to be saved
         questions.push(
@@ -30,6 +36,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 type: QuestionTypes.confirm,
                 name: Constants.msgSavePassword,
                 message: Constants.msgSavePassword,
+                shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile),
                 onAnswered: (value) => profile.savePassword = value
             },
             {
@@ -43,8 +50,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
         });
 
-        return prompter.prompt(questions).then(() => {
-            if (profile.isValidProfile()) {
+        return prompter.prompt(questions).then(answers => {
+            if (answers && profile.isValidProfile()) {
                 return profile;
             }
             // returning undefined to indicate failure to create the profile

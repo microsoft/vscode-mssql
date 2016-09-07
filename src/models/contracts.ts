@@ -1,85 +1,5 @@
 import {RequestType} from 'vscode-languageclient';
 
-// ------------------------------- < Connect Request > ----------------------------------------------
-
-// Connection request message callback declaration
-export namespace ConnectionRequest {
-     export const type: RequestType<ConnectParams, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
-}
-
-// Required parameters to initialize a connection to a database
-export class ConnectionDetails {
-    // server name
-    public serverName: string;
-
-    // database name
-    public databaseName: string;
-
-    // user name
-    public userName: string;
-
-    // unencrypted password
-    public password: string;
-}
-
-// Connection request message format
-export class ConnectParams {
-    // URI identifying the owner of the connection
-    public ownerUri: string;
-
-    // Details for creating the connection
-    public connection: ConnectionDetails;
-}
-
-// Connection response format
-export class ConnectionResult {
-    // connection id returned from service host
-    public connectionId: string;
-
-    // any diagnostic messages return from the service host
-    public messages: string;
-}
-
-// ------------------------------- </ Connect Request > ---------------------------------------------
-
-// ------------------------------- < Disconnect Request > -------------------------------------------
-
-// Disconnect request message callback declaration
-export namespace DisconnectRequest {
-    export const type: RequestType<DisconnectParams, DisconnectResult, void> = { get method(): string { return 'connection/disconnect'; } };
-}
-
-// Disconnect request message format
-export class DisconnectParams {
-    // URI identifying the owner of the connection
-    public ownerUri: string;
-}
-
-// Disconnect response format
-export type DisconnectResult = boolean;
-
-// ------------------------------- </ Disconnect Request > ------------------------------------------
-
-// ------------------------------- < List Databases Request > ---------------------------------------
-
-// List databases request callback declaration
-export namespace ListDatabasesRequest {
-    export const type: RequestType<ListDatabasesParams, ListDatabasesResult, void> = { get method(): string { return 'connection/listdatabases'; } };
-}
-
-// List databases request format
-export class ListDatabasesParams {
-    // Connection information to use for querying master
-    public ownerUri: string;
-}
-
-// List databases response format
-export class ListDatabasesResult {
-    public databaseNames: Array<string>;
-}
-
-// ------------------------------- </ List Databases Request > --------------------------------------
-
 // --------------------------------- < Version Request > -------------------------------------------------
 
 // Version request message callback declaration
@@ -91,6 +11,48 @@ export namespace VersionRequest {
 export type VersionResult = string;
 
 // ------------------------------- </ Version Request > --------------------------------------------------
+
+
+// --------------------------------- < Read Credential Request > -------------------------------------------------
+
+// Read Credential request message callback declaration
+export namespace ReadCredentialRequest {
+    export const type: RequestType<Credential, Credential, void> = { get method(): string { return 'credential/read'; } };
+}
+
+/**
+ * Parameters to initialize a connection to a database
+ */
+export class Credential {
+    /**
+     * Unique ID identifying the credential
+     */
+    public credentialId: string;
+
+    /**
+     * password
+     */
+    public password: string;
+}
+
+// --------------------------------- </ Read Credential Request > -------------------------------------------------
+
+// --------------------------------- < Save Credential Request > -------------------------------------------------
+
+// Save Credential request message callback declaration
+export namespace SaveCredentialRequest {
+    export const type: RequestType<Credential, boolean, void> = { get method(): string { return 'credential/save'; } };
+}
+// --------------------------------- </ Save Credential Request > -------------------------------------------------
+
+
+// --------------------------------- < Delete Credential Request > -------------------------------------------------
+
+// Delete Credential request message callback declaration
+export namespace DeleteCredentialRequest {
+    export const type: RequestType<Credential, boolean, void> = { get method(): string { return 'credential/delete'; } };
+}
+// --------------------------------- </ Save Credential Request > -------------------------------------------------
 
 // --------------------------------- < Save Results Request > ------------------------------------------
 // save results as csv format
@@ -111,4 +73,3 @@ export namespace SaveResultsRequest {
     }
 }
 // --------------------------------- </ Save Results Request > ------------------------------------------
-

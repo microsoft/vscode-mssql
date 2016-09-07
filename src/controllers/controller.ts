@@ -60,15 +60,15 @@ export default class MainController implements vscode.Disposable {
 
         // register VS Code commands
         this.registerCommand(Constants.cmdConnect);
-        this._event.on(Constants.cmdConnect, () => { self.onNewConnection(); });
+        this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection()); });
         this.registerCommand(Constants.cmdDisconnect);
-        this._event.on(Constants.cmdDisconnect, () => { self.onDisconnect(); });
+        this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
         this.registerCommand(Constants.cmdCreateProfile);
-        this._event.on(Constants.cmdCreateProfile, () => { self.onCreateProfile(); });
+        this._event.on(Constants.cmdCreateProfile, () => { self.runAndLogErrors(self.onCreateProfile()); });
         this.registerCommand(Constants.cmdRemoveProfile);
-        this._event.on(Constants.cmdRemoveProfile, () => { self.onRemoveProfile(); });
+        this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
         this.registerCommand(Constants.cmdSaveResultAsCsv);
@@ -125,7 +125,14 @@ export default class MainController implements vscode.Disposable {
     public onRunQuery(): void {
         const self = this;
         if (!this._vscodeWrapper.isEditingSqlFile) {
-            this._vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
+            // Prompt the user to change the language mode to SQL before running a query
+            this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
+                if (result) {
+                    self.onRunQuery();
+                }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            });
         } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
             // If we are disconnected, prompt the user to choose a connection before executing
             this.onNewConnection().then(result => {
@@ -163,6 +170,13 @@ export default class MainController implements vscode.Disposable {
     // Prompts for batch and resultset number and handles Saves results as csv request
     public onSaveResultAsCsv(): void {
         this._saveResults.onSaveResultsAsCsvCommand();
+    }
+
+    private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
+        let self = this;
+        return promise.catch(err => {
+            self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+        });
     }
 
     /**

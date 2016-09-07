@@ -12,11 +12,10 @@ export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdSaveResultAsCsv = 'extension.saveResultsAsCsv';
 
 export const sqlDbPrefix = '.database.windows.net';
-export const defaultConnectionTimeout = 15000;
-export const defaultRequestTimeout = 15000;
-export const azureSqlDbConnectionTimeout = 30000;
-export const azureSqlDbRequestTimeout = 30000;
+export const defaultConnectionTimeout = 15;
+export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
+export const defaultPortNumber = 1433;
 
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
@@ -100,6 +99,8 @@ export const resultSetNoPrompt = 'ResultSet Number';
 export const resultSetNoPlaceholder = 'Enter ResultSet number to save as csv';
 
 export const msgSelectProfile = 'Select Connection Profile';
+export const msgSelectProfileToRemove = 'Select profile to remove';
+
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';
@@ -131,3 +132,10 @@ export const executeQueryCommandCompleted = 'Command(s) completed successfully.'
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
 
+export const untitledScheme = 'untitled';
+export const untitledSaveTimeThreshold = 10.0;
+
+export const msgChangeLanguageMode = 'To use this command, you must set the language to \"SQL\". Change language mode?';
+export const timeToWaitForLanguageModeChange = 10000.0;
+
+export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
