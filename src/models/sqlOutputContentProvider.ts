@@ -94,8 +94,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchIndex: number = Number(req.query.batchIndex);
             let saveResults = new SaveResults();
             saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
-            let json = JSON.stringify('success');
-            res.send(json);
+            res.status = 200;
+            res.send();
         });
 
         // start express server on localhost and listen on a random port
