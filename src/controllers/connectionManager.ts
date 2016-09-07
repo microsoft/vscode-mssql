@@ -118,7 +118,7 @@ export default class ConnectionManager {
 
                 self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials);
 
-                let logMessage = `Changed database context to \"${event.connection.databaseName}\" for document \"${event.ownerUri}\"`;
+                let logMessage = Utils.formatString(Constants.msgChangedDatabaseContext, event.connection.databaseName, event.ownerUri);
 
                 self.vscodeWrapper.logToOutputChannel(logMessage);
             }
