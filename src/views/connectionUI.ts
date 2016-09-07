@@ -7,6 +7,7 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
+import { Timer } from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ConnectionUI {
@@ -76,6 +77,59 @@ export class ConnectionUI {
             choices: choices
         };
         return this._prompter.promptSingle(question);
+    }
+
+    /**
+     * Helper for waitForLanguageModeToBeSql() method.
+     */
+    private waitForLanguageModeToBeSqlHelper(resolve: any, timer: Timer): void {
+        if (timer.getDuration() > Constants.timeToWaitForLanguageModeChange) {
+            resolve(false);
+        } else if (this.vscodeWrapper.isEditingSqlFile) {
+            resolve(true);
+        } else {
+            setTimeout(this.waitForLanguageModeToBeSqlHelper.bind(this, resolve, timer), 50);
+        }
+    }
+
+    /**
+     * Wait for up to 10 seconds for the language mode to change to SQL.
+     */
+    private waitForLanguageModeToBeSql(): Promise<boolean> {
+        const self = this;
+        return new Promise((resolve, reject) => {
+            let timer: Timer = new Timer();
+            timer.start();
+            self.waitForLanguageModeToBeSqlHelper(resolve, timer);
+        });
+    }
+
+    /**
+     * Prompt the user to change language mode to SQL.
+     * @returns resolves to true if the user changed the language mode to SQL.
+     */
+    public promptToChangeLanguageMode(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: Constants.msgChangeLanguageMode,
+                message: Constants.msgChangeLanguageMode
+            };
+            self._prompter.promptSingle(question).then( value => {
+                if (value) {
+                    vscode.commands.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
+                        self.waitForLanguageModeToBeSql().then( result => {
+                            resolve(result);
+                        });
+                    });
+                } else {
+                    resolve(false);
+                }
+            }).catch( err => {
+                resolve(false);
+            });
+        });
     }
 
     // Helper to let the user choose a database on the current server

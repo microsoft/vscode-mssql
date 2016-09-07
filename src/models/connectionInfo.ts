@@ -20,41 +20,27 @@ export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCred
         connCreds.password = '';
     }
 
-    if (!connCreds.connectionTimeout) {
-        connCreds.connectionTimeout = Constants.defaultConnectionTimeout;
-    }
-
-    if (!connCreds.requestTimeout) {
-        connCreds.requestTimeout = Constants.defaultRequestTimeout;
-    }
-
-    // default values for advanced options
-    if (!connCreds.options) {
-        connCreds.options = {encrypt: false, appName: Constants.extensionName};
+    if (!connCreds.connectTimeout) {
+        connCreds.connectTimeout = Constants.defaultConnectionTimeout;
     }
 
     // default value for encrypt
-    if (!connCreds.options.encrypt) {
-        connCreds.options.encrypt = false;
+    if (!connCreds.encrypt) {
+        connCreds.encrypt = false;
     }
 
     // default value for appName
-    if (!connCreds.options.appName) {
-        connCreds.options.appName = Constants.extensionName;
+    if (!connCreds.applicationName) {
+        connCreds.applicationName = Constants.extensionName;
     }
 
     if (isAzureDatabase(connCreds.server)) {
         // always encrypt connection if connecting to Azure SQL
-        connCreds.options.encrypt = true;
+        connCreds.encrypt = true;
 
         // Ensure minumum connection timeout if connecting to Azure SQL
-        if (connCreds.connectionTimeout < Constants.azureSqlDbConnectionTimeout) {
-            connCreds.connectionTimeout = Constants.azureSqlDbConnectionTimeout;
-        }
-
-        // Ensure minumum request timeout if connecting to Azure SQL
-        if (connCreds.requestTimeout < Constants.azureSqlDbRequestTimeout) {
-            connCreds.requestTimeout = Constants.azureSqlDbRequestTimeout;
+        if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
+            connCreds.connectTimeout = Constants.azureSqlDbConnectionTimeout;
         }
     }
     return connCreds;
@@ -63,27 +49,6 @@ export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCred
 // return true if server name ends with '.database.windows.net'
 function isAzureDatabase(server: string): boolean {
     return (server ? server.endsWith(Constants.sqlDbPrefix) : false);
-}
-
-export function dump(connCreds: Interfaces.IConnectionCredentials): string {
-    let contents =  'server=' + (connCreds.server ? connCreds.server : 'null') +
-                    ' | database=' + (connCreds.database ? connCreds.database : 'null') +
-                    ' | username=' + (connCreds.user ? connCreds.user : 'null') +
-                    ' | encrypt=' + connCreds.options.encrypt +
-                    ' | connectionTimeout=' + connCreds.connectionTimeout +
-                    ' | connectionTimeout=' + connCreds.requestTimeout;
-    return contents;
-}
-
-// compare connections porperties, except for password
-export function equals(connCreds: Interfaces.IConnectionCredentials, theOther: Interfaces.IConnectionCredentials): boolean {
-    let equal = (connCreds.server === theOther.server) &&
-                (connCreds.database === theOther.database) &&
-                (connCreds.user === theOther.user) &&
-                (connCreds.options.encrypt === theOther.options.encrypt) &&
-                (connCreds.connectionTimeout === theOther.connectionTimeout) &&
-                (connCreds.requestTimeout === theOther.requestTimeout);
-    return equal;
 }
 
 export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials): string {
@@ -99,18 +64,52 @@ export function getPicklistDescription(connCreds: Interfaces.IConnectionCredenti
 
 export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials): string {
     return '[' +
-           'encrypt connection: ' + (connCreds.options.encrypt ? 'true' : 'false') +
-           ', connection timeout: ' + connCreds.connectionTimeout + ' ms' +
-           ', request timeout: ' + connCreds.requestTimeout + ' ms' +
+           'encrypt connection: ' + (connCreds.encrypt ? 'true' : 'false') +
+           ', port: ' + (connCreds.port ? connCreds.port : Constants.defaultPortNumber) +
+           ', connection timeout: ' + connCreds.connectTimeout + ' s' +
            ']';
 }
 
+function addTooltipItem(creds: Interfaces.IConnectionCredentials, property: string): string {
+    let value: any = creds[property];
+    if (typeof value === 'undefined') {
+        return '';
+    } else if (typeof value === 'boolean') {
+        return property + ': ' + (value ? 'true' : 'false') + '\r\n';
+    } else {
+        return property + ': ' + value + '\r\n';
+    }
+}
+
 export function getTooltip(connCreds: Interfaces.IConnectionCredentials): string {
-    return 'server: ' + connCreds.server + '\r\n' +
+    let tooltip: string =
+           'server: ' + connCreds.server + '\r\n' +
            'database: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
            'username: ' + connCreds.user + '\r\n' +
-           'encrypt connection: ' + (connCreds.options.encrypt ? 'true' : 'false') + '\r\n' +
-           'connection timeout: ' + connCreds.connectionTimeout + ' ms\r\n' +
-           'request timeout: ' + connCreds.requestTimeout + ' ms\r\n' +
-           'appName: ' + connCreds.options.appName;
+           'encrypt connection: ' + (connCreds.encrypt ? 'true' : 'false') + '\r\n' +
+           'connection timeout: ' + connCreds.connectTimeout + ' s\r\n';
+
+    tooltip += addTooltipItem(connCreds, 'port');
+    tooltip += addTooltipItem(connCreds, 'applicationName');
+    tooltip += addTooltipItem(connCreds, 'applicationIntent');
+    tooltip += addTooltipItem(connCreds, 'attachDbFilename');
+    tooltip += addTooltipItem(connCreds, 'authenticationType');
+    tooltip += addTooltipItem(connCreds, 'connectRetryCount');
+    tooltip += addTooltipItem(connCreds, 'connectRetryInterval');
+    tooltip += addTooltipItem(connCreds, 'currentLanguage');
+    tooltip += addTooltipItem(connCreds, 'failoverPartner');
+    tooltip += addTooltipItem(connCreds, 'loadBalanceTimeout');
+    tooltip += addTooltipItem(connCreds, 'maxPoolSize');
+    tooltip += addTooltipItem(connCreds, 'minPoolSize');
+    tooltip += addTooltipItem(connCreds, 'multipleActiveResultSets');
+    tooltip += addTooltipItem(connCreds, 'multiSubnetFailover');
+    tooltip += addTooltipItem(connCreds, 'packetSize');
+    tooltip += addTooltipItem(connCreds, 'persistSecurityInfo');
+    tooltip += addTooltipItem(connCreds, 'pooling');
+    tooltip += addTooltipItem(connCreds, 'replication');
+    tooltip += addTooltipItem(connCreds, 'trustServerCertificate');
+    tooltip += addTooltipItem(connCreds, 'typeSystemVersion');
+    tooltip += addTooltipItem(connCreds, 'workstationId');
+
+    return tooltip;
 }

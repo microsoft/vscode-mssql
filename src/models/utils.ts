@@ -144,6 +144,24 @@ export function isNotEmpty(str: any): boolean {
     return <boolean>(str && '' !== str);
 }
 
+/**
+ * Format a string. Behaves like C#'s string.Format() function.
+ */
+export function formatString(str: string, ...args: any[]): string {
+    // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
+    // License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
+    let result: string;
+    if (args.length === 0) {
+        result = str;
+    } else {
+        result = str.replace(/\{(\d+)\}/g, (match, rest) => {
+            let index = rest[0];
+            return typeof args[index] !== 'undefined' ? args[index] : match;
+        });
+    }
+    return result;
+}
+
 // One-time use timer for performance testing
 export class Timer {
     private _startTime: number[];
@@ -155,8 +173,11 @@ export class Timer {
 
     // Get the duration of time elapsed by the timer, in milliseconds
     public getDuration(): number {
-        if (!this._startTime || !this._endTime) {
+        if (!this._startTime) {
             return -1;
+        } else if (!this._endTime) {
+            let endTime = process.hrtime(this._startTime);
+            return  endTime[0] * 1000 + endTime[1] / 1000000;
         } else {
             return this._endTime[0] * 1000 + this._endTime[1] / 1000000;
         }

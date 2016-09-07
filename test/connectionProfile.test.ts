@@ -1,12 +1,46 @@
 import * as TypeMoq from 'typemoq';
-import { IConnectionProfile } from '../src/models/interfaces';
-import { ConnectionProfile } from '../src/models/ConnectionProfile';
+import { IConnectionCredentials, IConnectionProfile } from '../src/models/interfaces';
+import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionProfile } from '../src/models/connectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
 import TestPrompter from './TestPrompter';
 
 import Constants = require('../src/models/constants');
 import assert = require('assert');
 import os = require('os');
+
+function createTestCredentials(): IConnectionCredentials {
+    const creds: IConnectionCredentials = {
+        server:                         'my-server',
+        database:                       'my_db',
+        user:                           'sa',
+        password:                       '12345678',
+        port:                           1234,
+        authenticationType:             'SQL Authentication',
+        encrypt:                        false,
+        trustServerCertificate:         false,
+        persistSecurityInfo:            false,
+        connectTimeout:                 15,
+        connectRetryCount:              0,
+        connectRetryInterval:           0,
+        applicationName:                'vscode-mssql',
+        workstationId:                  'test',
+        applicationIntent:              '',
+        currentLanguage:                '',
+        pooling:                        true,
+        maxPoolSize:                    15,
+        minPoolSize:                    0,
+        loadBalanceTimeout:             0,
+        replication:                    false,
+        attachDbFilename:               '',
+        failoverPartner:                '',
+        multiSubnetFailover:            false,
+        multipleActiveResultSets:       false,
+        packetSize:                     8192,
+        typeSystemVersion:              'Latest'
+    };
+    return creds;
+}
 
 suite('Connection Profile tests', () => {
     let authTypeQuestionIndex = 2;
@@ -123,6 +157,49 @@ suite('Connection Profile tests', () => {
 
     });
 
+    test('Port number is applied to server name when connection credentials are transformed into details', () => {
+        // Given a connection credentials object with server and a port
+        let creds = new ConnectionCredentials();
+        creds.server = 'my-server';
+        creds.port = 1234;
 
+        // When credentials are transformed into a details contract
+        const details = ConnectionCredentials.createConnectionDetails(creds);
+
+        // Server name should be in the format <address>,<port>
+        assert.strictEqual(details.serverName, 'my-server,1234');
+    });
+
+    test('All connection details properties can be set from connection credentials', () => {
+        const creds = createTestCredentials();
+        const details = ConnectionCredentials.createConnectionDetails(creds);
+
+        assert.notStrictEqual(typeof details.applicationIntent, 'undefined');
+        assert.notStrictEqual(typeof details.applicationName, 'undefined');
+        assert.notStrictEqual(typeof details.attachDbFilename, 'undefined');
+        assert.notStrictEqual(typeof details.authenticationType, 'undefined');
+        assert.notStrictEqual(typeof details.connectRetryCount, 'undefined');
+        assert.notStrictEqual(typeof details.connectRetryInterval, 'undefined');
+        assert.notStrictEqual(typeof details.connectTimeout, 'undefined');
+        assert.notStrictEqual(typeof details.currentLanguage, 'undefined');
+        assert.notStrictEqual(typeof details.databaseName, 'undefined');
+        assert.notStrictEqual(typeof details.encrypt, 'undefined');
+        assert.notStrictEqual(typeof details.failoverPartner, 'undefined');
+        assert.notStrictEqual(typeof details.loadBalanceTimeout, 'undefined');
+        assert.notStrictEqual(typeof details.maxPoolSize, 'undefined');
+        assert.notStrictEqual(typeof details.minPoolSize, 'undefined');
+        assert.notStrictEqual(typeof details.multipleActiveResultSets, 'undefined');
+        assert.notStrictEqual(typeof details.multiSubnetFailover, 'undefined');
+        assert.notStrictEqual(typeof details.packetSize, 'undefined');
+        assert.notStrictEqual(typeof details.password, 'undefined');
+        assert.notStrictEqual(typeof details.persistSecurityInfo, 'undefined');
+        assert.notStrictEqual(typeof details.pooling, 'undefined');
+        assert.notStrictEqual(typeof details.replication, 'undefined');
+        assert.notStrictEqual(typeof details.serverName, 'undefined');
+        assert.notStrictEqual(typeof details.trustServerCertificate, 'undefined');
+        assert.notStrictEqual(typeof details.typeSystemVersion, 'undefined');
+        assert.notStrictEqual(typeof details.userName, 'undefined');
+        assert.notStrictEqual(typeof details.workstationId, 'undefined');
+    });
 });
 
