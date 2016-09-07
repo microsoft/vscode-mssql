@@ -186,7 +186,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         ];
         // In the case of win32 support integrated. For all others only SqlAuth supported
         if ('win32' === os.platform()) {
-             choices.push({ name: Constants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) });
+             choices.push({ name: Constants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) });
         }
         // TODO When Azure Active Directory is supported, add this here
 
