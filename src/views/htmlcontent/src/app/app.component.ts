@@ -25,7 +25,7 @@ enum FieldType {
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, NavigatorComponent, Tabs, Tab ],
+    directives: [SlickGrid, NavigatorComponent, Tabs, Tab],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
@@ -36,7 +36,9 @@ export class AppComponent implements OnInit {
     private totalRows: number;
     private resultOptions: number[][];
     private messages: string[];
-    showResults: boolean = false;
+    private activeMessages: boolean = false;
+    private activeResults: boolean = true;
+    private showResults: boolean = true;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -101,9 +103,13 @@ export class AppComponent implements OnInit {
             self.totalRows = data[1];
             if (!columnData) {
                 self.showResults = false;
+                self.activeMessages = true;
+                self.activeResults = false;
                 return;
             } else {
                 self.showResults = true;
+                self.activeMessages = false;
+                self.activeResults = true;
             }
             let columnDefinitions = [];
             for (let i = 0; i < columnData.length; i++) {
