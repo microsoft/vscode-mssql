@@ -88,7 +88,7 @@ export const msgSavePassword = 'Save Password? If \'No\', password will be requi
 export const profileNamePrompt = 'Profile Name';
 export const profileNamePlaceholder = 'optional - enter a name for this profile';
 
-export const msgSelectProfile = 'Select Connection Profile';
+export const msgSelectProfileToRemove = 'Select profile to remove';
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';

@@ -1,43 +1,20 @@
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
-import {ExtensionContext, Memento} from 'vscode';
+import { ExtensionContext } from 'vscode';
 import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 
-import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
+import { IPrompter } from '../src/prompts/question';
 
 import ConnectionManager from '../src/controllers/connectionManager';
-import { IConnectionCredentials } from '../src/models/interfaces';
+import { IConnectionCredentials, AuthenticationTypes } from '../src/models/interfaces';
 import * as ConnectionContracts from '../src/models/contracts/connection';
 import MainController from '../src/controllers/controller';
 import * as Interfaces from '../src/models/interfaces';
 import StatusView from '../src/views/statusView';
 import Telemetry from '../src/models/telemetry';
 import * as Utils from '../src/models/utils';
+import { TestExtensionContext, TestPrompter } from './stubs';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-
-// Dummy implementation to simplify mocking
-class TestPrompter implements IPrompter {
-    public promptSingle<T>(question: IQuestion): Promise<T> {
-        return Promise.resolve(undefined);
-    }
-    public prompt<T>(questions: IQuestion[]): Promise<{[key: string]: T}> {
-        return Promise.resolve(undefined);
-    }
-    public promptCallback(questions: IQuestion[], callback: IPromptCallback): void {
-        callback({});
-    }
-}
-
-// Bare mock of the extension context for vscode
-class TestExtensionContext implements ExtensionContext {
-        subscriptions: { dispose(): any }[];
-        workspaceState: Memento;
-        globalState: Memento;
-        extensionPath: string;
-        asAbsolutePath(relativePath: string): string {
-            return undefined;
-        }
-}
 
 function createTestConnectionResult(): ConnectionContracts.ConnectionResult {
     let result = new ConnectionContracts.ConnectionResult();
@@ -53,7 +30,7 @@ function createTestCredentials(): IConnectionCredentials {
         user:                           'sa',
         password:                       '12345678',
         port:                           1234,
-        authenticationType:             'SQL Authentication',
+        authenticationType:             AuthenticationTypes[AuthenticationTypes.SqlLogin],
         encrypt:                        false,
         trustServerCertificate:         false,
         persistSecurityInfo:            false,
@@ -262,7 +239,7 @@ suite('Per File Connection Tests', () => {
             description: '',
             detail: '',
             connectionCreds: newDatabaseCredentials,
-            isNewConnectionQuickPickItem: false
+            quickPickItemType: Interfaces.CredentialsQuickPickItemType.Mru
         };
 
         let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);

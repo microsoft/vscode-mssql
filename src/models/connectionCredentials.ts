@@ -82,7 +82,13 @@ export class ConnectionCredentials implements IConnectionCredentials {
         prompter: IPrompter): Promise<IConnectionCredentials> {
 
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
-        return prompter.prompt(questions).then(() => credentials);
+        return prompter.prompt(questions).then(answers => {
+            if (answers) {
+                return credentials;
+            } else {
+                return undefined;
+            }
+        });
     }
 
     // gets a set of questions that ensure all required and core values are set
@@ -91,7 +97,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         promptForDbName: boolean,
         isPasswordRequired: boolean): IQuestion[] {
 
-        let authenticationChoices: INameValueChoice[] = this.getAuthenticationTypesChoice();
+        let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
 
         let questions: IQuestion[] = [
             // Server must be present
@@ -113,13 +119,16 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 shouldPrompt: (answers) => promptForDbName,
                 onAnswered: (value) => credentials.database = value
             },
+            // AuthenticationType is required if there is more than 1 option on this platform
             {
                 type: QuestionTypes.expand,
                 name: Constants.authTypePrompt,
                 message: Constants.authTypePrompt,
                 choices: authenticationChoices,
                 shouldPrompt: (answers) => utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
-                onAnswered: (value) => credentials.authenticationType = AuthenticationTypes[value]
+                onAnswered: (value) => {
+                    credentials.authenticationType = value;
+                }
             },
             // Username must be pressent
             {
@@ -127,7 +136,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 name: Constants.usernamePrompt,
                 message: Constants.usernamePrompt,
                 placeHolder: Constants.usernamePlaceholder,
-                shouldPrompt: (answers) => utils.isEmpty(credentials.user),
+                shouldPrompt: (answers) => ConnectionCredentials.shouldPromptForUser(credentials),
                 validate: (value) => ConnectionCredentials.validateRequiredString(Constants.usernamePrompt, value),
                 onAnswered: (value) => credentials.user = value
             },
@@ -137,7 +146,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 name: Constants.passwordPrompt,
                 message: Constants.passwordPrompt,
                 placeHolder: Constants.passwordPlaceholder,
-                shouldPrompt: (answers) => utils.isEmpty(credentials.password),
+                shouldPrompt: (answers) => ConnectionCredentials.shouldPromptForPassword(credentials),
                 validate: (value) => {
                     if (isPasswordRequired) {
                         return ConnectionCredentials.validateRequiredString(Constants.passwordPrompt, value);
@@ -150,6 +159,19 @@ export class ConnectionCredentials implements IConnectionCredentials {
         return questions;
     }
 
+    private static shouldPromptForUser(credentials: IConnectionCredentials): boolean {
+        return utils.isEmpty(credentials.user) && ConnectionCredentials.isPasswordBasedCredential(credentials);
+    }
+
+    private static shouldPromptForPassword(credentials: IConnectionCredentials): boolean {
+        return utils.isEmpty(credentials.password) && ConnectionCredentials.isPasswordBasedCredential(credentials);
+    }
+
+    public static isPasswordBasedCredential(credentials: IConnectionCredentials): boolean {
+        // TODO consider enum based verification and handling of AD auth here in the future
+        return credentials.authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
+    }
+
     // Validates a string is not empty, returning undefined if true and an error message if not
     protected static validateRequiredString(property: string, value: string): string {
         if (utils.isEmpty(value)) {
@@ -160,11 +182,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static getAuthenticationTypesChoice(): INameValueChoice[] {
         let choices: INameValueChoice[] = [
-            { name: Constants.authTypeSql, value: AuthenticationTypes.SqlPassword }
+            { name: Constants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) }
         ];
         // In the case of win32 support integrated. For all others only SqlAuth supported
         if ('win32' === os.platform()) {
-             choices.push({ name: Constants.authTypeIntegrated, value: AuthenticationTypes.Integrated });
+             choices.push({ name: Constants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) });
         }
         // TODO When Azure Active Directory is supported, add this here
 

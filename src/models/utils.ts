@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import * as os from 'os';
 import vscode = require('vscode');
 import Constants = require('./constants');
+import * as interfaces from './interfaces';
 import {ExtensionContext} from 'vscode';
 
 // Interface for package.json information
@@ -142,6 +143,10 @@ export function isEmpty(str: any): boolean {
 
 export function isNotEmpty(str: any): boolean {
     return <boolean>(str && '' !== str);
+}
+
+export function authTypeToString(value: interfaces.AuthenticationTypes): string {
+    return interfaces.AuthenticationTypes[value];
 }
 
 /**

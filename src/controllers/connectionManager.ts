@@ -5,6 +5,7 @@ import Constants = require('../models/constants');
 import * as ConnectionContracts from '../models/contracts/connection';
 import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
+import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -52,7 +53,7 @@ export default class ConnectionManager {
             this.vscodeWrapper = new VscodeWrapper();
         }
 
-        this._connectionUI = new ConnectionUI(context, prompter, this.vscodeWrapper);
+        this._connectionUI = new ConnectionUI(new ConnectionStore(context), prompter, this.vscodeWrapper);
 
         this.vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
         this.vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
@@ -206,9 +207,11 @@ export default class ConnectionManager {
                     // connect to the server/database
                     self.connect(fileUri, connectionCreds)
                     .then(function(): void {
-                        resolve(true);
+                        resolve();
                     });
                 });
+            } else {
+                resolve();
             }
         });
     }
@@ -283,7 +286,8 @@ export default class ConnectionManager {
                     self.statusView.connectError(fileUri, connectionCreds, result.messages);
                     self.connectionUI.showConnectionErrors(result.messages);
 
-                    reject();
+                    // We've logged the failure so no need to throw
+                    resolve(false);
                 }
             });
         });
