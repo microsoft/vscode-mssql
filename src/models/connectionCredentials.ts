@@ -1,6 +1,6 @@
 'use strict';
 import Constants = require('./constants');
-import { ConnectionDetails } from './contracts';
+import { ConnectionDetails } from './contracts/connection';
 import { IConnectionCredentials, AuthenticationTypes } from './interfaces';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';

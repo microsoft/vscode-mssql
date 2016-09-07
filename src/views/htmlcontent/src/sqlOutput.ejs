@@ -22,10 +22,14 @@
     <script>
       System.import('app').catch(function(err){ console.error(err); });
     </script>
-    <link rel="stylesheet" type="text/css" href="app/app.css"/>
-    <link rel="stylesheet" type="text/css" href="color-theme-light.css"/>
+    <link rel="stylesheet" type="text/css" href="app/flexbox.css"/>
     <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
-    <link rel="stylesheet" type="text/css" href="node_modules/ng2-select/components/css/ng2-select.css"/>
+    <link rel="stylesheet" type="text/css" href="app/styles.css"/>
+    <%if (theme === 'vscode-light') { %>
+    <link rel="stylesheet" type="text/css" href="color-theme-light.css"/>
+    <%} else { %>
+    <link rel="stylesheet" type="text/css" href="color-theme-dark.css"/>
+    <% } %>
   </head>
   <!-- 3. Display the application -->
   <body>

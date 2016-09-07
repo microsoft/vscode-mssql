@@ -120,5 +120,10 @@ export const executeQueryCommandCompleted = 'Command(s) completed successfully.'
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
 
+export const untitledScheme = 'untitled';
+export const untitledSaveTimeThreshold = 10.0;
+
 export const msgChangeLanguageMode = 'To use this command, you must set the language to \"SQL\". Change language mode?';
 export const timeToWaitForLanguageModeChange = 10000.0;
+
+export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
