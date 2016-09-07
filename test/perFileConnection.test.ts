@@ -265,7 +265,8 @@ suite('Per File Connection Tests', () => {
             isNewConnectionQuickPickItem: false
         };
 
-        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Strict);
+        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.callBase = true;
         vscodeWrapperMock.setup(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(newDatabaseChoice));
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);

@@ -10,6 +10,7 @@ import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
+import { Timer } from '../models/utils';
 import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 
@@ -31,6 +32,8 @@ export default class ConnectionManager {
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionUI: ConnectionUI;
+    private _lastSavedUri: string;
+    private _lastSavedTimer: Timer;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -50,6 +53,9 @@ export default class ConnectionManager {
         }
 
         this._connectionUI = new ConnectionUI(context, prompter, this.vscodeWrapper);
+
+        this.vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
+        this.vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
 
         this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
     }
@@ -299,4 +305,47 @@ export default class ConnectionManager {
     public onRemoveProfile(): Promise<boolean> {
         return this.connectionUI.removeProfile();
     }
+
+    private onDidCloseTextDocument(doc: vscode.TextDocument): void {
+        const closedDocumentUri: string = doc.uri.toString();
+        const closedDocumentUriScheme: string = doc.uri.scheme;
+
+        if (this._lastSavedTimer &&
+            this._lastSavedUri &&                                   // Did we save a document before this close event?
+            closedDocumentUriScheme === Constants.untitledScheme && // Did we close an untitled document?
+            !this.isConnected(this._lastSavedUri) &&                // Is the new file saved to disk not connected yet?
+            this.isConnected(closedDocumentUri)) {                  // Was the untitled document connected?
+
+            // Check that we saved a document *just* before this close event
+            // If so, then we saved an untitled document and need to update its connection since its URI changed
+            this._lastSavedTimer.end();
+            if (this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
+                const creds: Interfaces.IConnectionCredentials = this._connections[closedDocumentUri].credentials;
+
+                // Connect the file uri saved on disk
+                this.connect(this._lastSavedUri, creds).then( result => {
+                    if (result) {
+                        // And disconnect the untitled uri
+                        this.disconnect(closedDocumentUri);
+                    }
+                });
+            }
+
+            this._lastSavedTimer = undefined;
+            this._lastSavedUri = undefined;
+        } else if (this.isConnected(closedDocumentUri)) {
+            // Disconnect the document's connection when we close it
+            this.disconnect(closedDocumentUri);
+        }
+    }
+
+    private onDidSaveTextDocument(doc: vscode.TextDocument): void {
+        const savedDocumentUri: string = doc.uri.toString();
+
+        // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
+        this._lastSavedTimer = new Timer();
+        this._lastSavedTimer.start();
+        this._lastSavedUri = savedDocumentUri;
+    }
+
 }
