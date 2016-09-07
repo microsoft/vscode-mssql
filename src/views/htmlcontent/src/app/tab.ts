@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, ContentChild, AfterContentChecked, AfterViewInit } from '@angular/core';
+import { Component, Input, ContentChild, AfterContentChecked, AfterViewInit } from '@angular/core';
 import { SlickGrid } from './slickgrid/SlickGrid';
 
 @Component({

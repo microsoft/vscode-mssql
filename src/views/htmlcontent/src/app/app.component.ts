@@ -1,4 +1,4 @@
-import {Component, OnInit, Inject, forwardRef, ViewChild} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
