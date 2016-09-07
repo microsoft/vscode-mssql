@@ -4,6 +4,20 @@ import * as Constants from './../models/constants';
 export default class VscodeWrapper {
 
     /**
+     * Output channel for logging. Shared among all instances.
+     */
+    private static _outputChannel: vscode.OutputChannel;
+
+    /**
+     * Default constructor.
+     */
+    public constructor() {
+        if (typeof VscodeWrapper._outputChannel === 'undefined') {
+            VscodeWrapper._outputChannel = this.createOutputChannel(Constants.outputChannelName);
+        }
+    }
+
+    /**
      * Get the current active text editor
      */
     public get activeTextEditor(): vscode.TextEditor {
@@ -22,10 +36,10 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Create an output channel in vscode; NOT YET IMPLEMENTED
+     * Create an output channel in vscode.
      */
     public createOutputChannel(channelName: string): vscode.OutputChannel {
-        return undefined;
+        return vscode.window.createOutputChannel(channelName);
     }
 
     /**
@@ -48,6 +62,19 @@ export default class VscodeWrapper {
             }
         }
         return sqlFile;
+    }
+
+    /**
+     * Helper to log messages to "MSSQL" output channel.
+     */
+    public logToOutputChannel(msg: any): void {
+        if (msg instanceof Array) {
+            msg.forEach(element => {
+                VscodeWrapper._outputChannel.appendLine(element.toString());
+            });
+        } else {
+            VscodeWrapper._outputChannel.appendLine(msg.toString());
+        }
     }
 
     /**

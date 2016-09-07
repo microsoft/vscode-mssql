@@ -2,7 +2,7 @@
 import vscode = require('vscode');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import Constants = require('../models/constants');
-import * as Contracts from '../models/contracts';
+import * as ConnectionContracts from '../models/contracts/connection';
 import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
 import { ConnectionUI } from '../views/connectionUI';
@@ -11,6 +11,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
+import {NotificationHandler} from 'vscode-languageclient';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -49,6 +50,8 @@ export default class ConnectionManager {
         }
 
         this._connectionUI = new ConnectionUI(context, prompter, this.vscodeWrapper);
+
+        this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -100,6 +103,28 @@ export default class ConnectionManager {
         return this._connections[fileUri];
     }
 
+    /**
+     * Public for testing purposes only.
+     */
+    public handleConnectionChangedNotification(): NotificationHandler<ConnectionContracts.ConnectionChangedParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+        const self = this;
+        return (event: ConnectionContracts.ConnectionChangedParams): void => {
+            if (self.isConnected(event.ownerUri)) {
+                let connectionInfo: ConnectionInfo = self._connections[event.ownerUri];
+                connectionInfo.credentials.server = event.connection.serverName;
+                connectionInfo.credentials.database = event.connection.databaseName;
+                connectionInfo.credentials.user = event.connection.userName;
+
+                self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials);
+
+                let logMessage = Utils.formatString(Constants.msgChangedDatabaseContext, event.connection.databaseName, event.ownerUri);
+
+                self.vscodeWrapper.logToOutputChannel(logMessage);
+            }
+        };
+    }
+
     // choose database to use on current server
     public onChooseDatabase(): Promise<boolean> {
         const self = this;
@@ -113,9 +138,9 @@ export default class ConnectionManager {
             }
 
             // Get list of databases on current server
-            let listParams = new Contracts.ListDatabasesParams();
+            let listParams = new ConnectionContracts.ListDatabasesParams();
             listParams.ownerUri = fileUri;
-            self.client.sendRequest(Contracts.ListDatabasesRequest.type, listParams).then( result => {
+            self.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams).then( result => {
                 // Then let the user select a new database to connect to
                 self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials, result.databaseNames).then( newDatabaseCredentials => {
                     if (newDatabaseCredentials) {
@@ -146,10 +171,10 @@ export default class ConnectionManager {
 
         return new Promise<boolean>((resolve, reject) => {
             if (self.isConnected(fileUri)) {
-                let disconnectParams = new Contracts.DisconnectParams();
+                let disconnectParams = new ConnectionContracts.DisconnectParams();
                 disconnectParams.ownerUri = fileUri;
 
-                self.client.sendRequest(Contracts.DisconnectRequest.type, disconnectParams).then((result) => {
+                self.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams).then((result) => {
                     self.statusView.notConnected(fileUri);
                     delete self._connections[fileUri];
 
@@ -219,14 +244,14 @@ export default class ConnectionManager {
 
             // package connection details for request message
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
-            let connectParams = new Contracts.ConnectParams();
+            let connectParams = new ConnectionContracts.ConnectParams();
             connectParams.ownerUri = fileUri;
             connectParams.connection = connectionDetails;
 
             let serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
-            self.client.sendRequest(Contracts.ConnectionRequest.type, connectParams).then((result) => {
+            self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams).then((result) => {
                 // handle connection complete callback
                 serviceTimer.end();
 
