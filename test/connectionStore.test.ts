@@ -4,6 +4,7 @@ import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
 import * as utils from '../src/models/utils';
+import * as connectionInfo from '../src/models/connectionInfo';
 import { TestExtensionContext, TestMemento } from './stubs';
 import { IConnectionProfile } from '../src/models/interfaces';
 import { CredentialStore } from '../src/credentialStore/credentialstore';
@@ -50,6 +51,22 @@ suite('ConnectionStore tests', () => {
             `Microsoft.SqlTools|itemtype:${profileType}|server:${serverName}|db:${dbName}`);
         assert.strictEqual(ConnectionStore.formatCredentialId(serverName, dbName, userName),
             `Microsoft.SqlTools|itemtype:${profileType}|server:${serverName}|db:${dbName}|user:${userName}`);
+    });
+
+    test('getPickListDetails - details are left empty', () => {
+        assert.strictEqual(connectionInfo.getPicklistDetails(defaultProfile), undefined);
+    });
+
+    test('getPickListLabel lists server name by default', () => {
+        // TODO complete
+    });
+
+    test('getPickListLabel includes profile name if defined', () => {
+        // TODO complete
+    });
+
+    test('getPickListLabel has different symbols for Profiles vs Recently Used', () => {
+        // TODO complete
     });
 
     test('SaveProfile should not save password if SavePassword is false', done => {

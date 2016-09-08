@@ -1,6 +1,8 @@
 'use strict';
 import Constants = require('./constants');
 import Interfaces = require('./interfaces');
+const figures = require('figures');
+import * as symbols from '../utils/symbol';
 
 // Fix up connection settings if we're connecting to Azure SQL
 export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCredentials): Interfaces.IConnectionCredentials {
@@ -52,22 +54,37 @@ function isAzureDatabase(server: string): boolean {
 }
 
 export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials): string {
-    return connCreds.server;
+    let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
+    if (profile.profileName) {
+        return `${symbols.star} ${profile.profileName}`;
+    } else {
+        return `${figures.play} ${connCreds.server}`;
+    }
 }
 
 export function getPicklistDescription(connCreds: Interfaces.IConnectionCredentials): string {
-    return '[' +
-           'database: ' + (connCreds.database ? connCreds.database : '<connection default>') +
-           ', username: ' + (connCreds.user ? connCreds.user : '<prompt>') +
-           ']';
+    let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
+    let desc: string = '[';
+    if (profile.profileName) {
+        // Add server name in this instance as it's needed for clarity
+        desc = desc + 'server: ' + connCreds.server + ', ';
+    }
+    desc = desc + 'database: ' + (connCreds.database ? connCreds.database : '<connection default>');
+    if (connCreds.authenticationType) {
+        if (connCreds.authenticationType !== Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]) {
+            desc = desc + ', username: ' + (connCreds.user ? connCreds.user : '<prompt>');
+        } else if (process.platform === 'win32') {
+            let userName = process.env.USERDOMAIN + '\\' + process.env.USERNAME;
+            desc = desc + ', username: ' + userName;
+        }
+    }
+    desc = desc + ']';
+    return desc;
 }
 
 export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials): string {
-    return '[' +
-           'encrypt connection: ' + (connCreds.encrypt ? 'true' : 'false') +
-           ', port: ' + (connCreds.port ? connCreds.port : Constants.defaultPortNumber) +
-           ', connection timeout: ' + connCreds.connectTimeout + ' s' +
-           ']';
+    // In the current spec this is left empty intentionally. Leaving the method as this may change in the future
+    return undefined;
 }
 
 function addTooltipItem(creds: Interfaces.IConnectionCredentials, property: string): string {

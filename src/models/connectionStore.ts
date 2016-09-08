@@ -93,7 +93,7 @@ export class ConnectionStore {
             self.loadAllConnections()
             .then(function(connections): void
             {
-                const pickListItems = self.mapToQuickPickItems(connections);
+                let pickListItems = self.mapToQuickPickItems(connections);
 
                 // Always add an "Add New Connection" quickpick item
                 pickListItems.push(<IConnectionCredentialsQuickPickItem> {
