@@ -2,7 +2,7 @@
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import ConnectionManager from './connectionManager';
 import StatusView from '../views/statusView';
-import SqlToolsServerClient from '../languageservice/serviceclient';
+import SqlToolsServerClient from '../languageservice/serviceclie';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
 import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
