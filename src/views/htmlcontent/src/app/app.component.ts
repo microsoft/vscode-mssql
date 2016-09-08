@@ -1,4 +1,5 @@
 import {Component, OnInit, Inject, forwardRef} from '@angular/core';
+import {NgClass} from '@angular/common';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -6,7 +7,7 @@ import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import {IDbColumn} from './../interfaces';
+import { IDbColumn } from './../interfaces';
 import { NavigatorComponent } from './navigation.component';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
@@ -20,12 +21,17 @@ enum FieldType {
     Unknown = 5,
 }
 
+enum SelectedTab {
+    Results = 0,
+    Messages = 1,
+}
+
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, NavigatorComponent, Tabs, Tab],
+    directives: [SlickGrid, NavigatorComponent, Tabs, Tab, NgClass],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
@@ -35,10 +41,9 @@ export class AppComponent implements OnInit {
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
     private resultOptions: number[][];
-    private messages: string[];
-    private activeMessages: boolean = false;
-    private activeResults: boolean = true;
-    private showResults: boolean = true;
+    private messages: string[] = [];
+    private selected: SelectedTab;
+    public SelectedTab = SelectedTab;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -91,6 +96,10 @@ export class AppComponent implements OnInit {
         this.renderResults(selection.batch, selection.result);
     }
 
+    tabChange(to: SelectedTab) {
+        this.selected = to;
+    }
+
     renderResults(batchId: number, resultId: number): void {
         const self = this;
         this.dataService.getMessages(batchId).then((result: string[]) => {
@@ -102,14 +111,8 @@ export class AppComponent implements OnInit {
             let columnData: IDbColumn[] = data[0];
             self.totalRows = data[1];
             if (!columnData) {
-                self.showResults = false;
-                self.activeMessages = true;
-                self.activeResults = false;
+                self.selected = SelectedTab.Messages;
                 return;
-            } else {
-                self.showResults = true;
-                self.activeMessages = false;
-                self.activeResults = true;
             }
             let columnDefinitions = [];
             for (let i = 0; i < columnData.length; i++) {
@@ -141,6 +144,7 @@ export class AppComponent implements OnInit {
                                                                                     return { values: [] };
                                                                                 });
             self.dataRows = virtualizedCollection;
+            self.selected = SelectedTab.Results;
         });
     }
 }
