@@ -98,6 +98,7 @@ gulp.task('ext:compile-src', (done) => {
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
                 .on('error', function() {
+                    console.log(process.env.toString());
                     if (process.env.BUILDMACHINE) {
                         done('Extension Tests failed to build. See Above.');
                         process.exit(1);
