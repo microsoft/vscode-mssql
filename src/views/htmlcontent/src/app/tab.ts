@@ -26,11 +26,11 @@ export class Tab implements AfterContentChecked, AfterViewInit {
 
     constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {};
 
-    private updateActive() {
+    private updateActive(): void {
         if (!this._active) {
             this._el.nativeElement.className += ' hidden';
         } else {
-            this._el.nativeElement.className = this._el.nativeElement.className.replace( /(?:^|\s)hidden(?!\S)/g , '' )
+            this._el.nativeElement.className = this._el.nativeElement.className.replace( /(?:^|\s)hidden(?!\S)/g , '' );
         }
     }
 

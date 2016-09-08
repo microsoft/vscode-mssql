@@ -1,5 +1,4 @@
 import {Component, OnInit, Inject, forwardRef} from '@angular/core';
-import {NgClass} from '@angular/common';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -31,7 +30,7 @@ enum SelectedTab {
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, NavigatorComponent, Tabs, Tab, NgClass],
+    directives: [SlickGrid, NavigatorComponent, Tabs, Tab],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
@@ -96,7 +95,7 @@ export class AppComponent implements OnInit {
         this.renderResults(selection.batch, selection.result);
     }
 
-    tabChange(to: SelectedTab) {
+    tabChange(to: SelectedTab): void {
         this.selected = to;
     }
 

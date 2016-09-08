@@ -23,8 +23,8 @@ export class Tabs implements AfterContentInit, OnChanges {
     @Output() tabChange: EventEmitter<SelectedTab> = new EventEmitter<SelectedTab>();
     @ContentChildren(Tab) tabs: QueryList<Tab>;
 
-    ngOnChanges(changes: SimpleChanges) {
-        if(changes['selected'] && this.tabs && this.tabs.length > 0 && typeof this.selected !== 'undefined') {
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['selected'] && this.tabs && this.tabs.length > 0 && typeof this.selected !== 'undefined') {
             let activeTabs = this.tabs.filter((tab) => tab.id === this.selected);
             this.tabs.toArray().forEach(tab => tab.active = false);
             activeTabs[0].active = true;
