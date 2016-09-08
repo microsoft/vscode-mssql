@@ -1,3 +1,7 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 import { Component, Input, ContentChild, AfterContentChecked, AfterViewInit, ElementRef, forwardRef, Inject } from '@angular/core';
 import { SlickGrid } from './slickgrid/SlickGrid';
 
@@ -5,6 +9,11 @@ enum SelectedTab {
     Results = 0,
     Messages = 1,
 }
+
+/**
+ * Defines a Tab component which is the content of a tab on the page (to be used with the Tabs
+ * component)
+ */
 
 @Component({
     selector: 'tab',
@@ -19,10 +28,11 @@ enum SelectedTab {
 })
 export class Tab implements AfterContentChecked, AfterViewInit {
     @Input('tabTitle') title: string;
-    @Input() _active = false;
     @Input() id: SelectedTab;
     @Input() show: boolean;
     @ContentChild(SlickGrid) slickgrid: SlickGrid;
+
+    private _active = false;
 
     constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {};
 
@@ -43,12 +53,18 @@ export class Tab implements AfterContentChecked, AfterViewInit {
         return this._active;
     }
 
+    /**
+     * Called by angular
+     */
     ngAfterContentChecked(): void {
         if (this.slickgrid) {
             this.slickgrid.onResize();
         }
     }
 
+    /**
+     * Called by angular
+     */
     ngAfterViewInit(): void {
         if (this.slickgrid) {
             this.slickgrid.onResize();

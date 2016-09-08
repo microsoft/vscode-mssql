@@ -1,3 +1,7 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 import { Component, ContentChildren, QueryList, AfterContentInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { Tab } from './tab';
 import { TabFilter } from './tab.filter';
@@ -31,7 +35,9 @@ export class Tabs implements AfterContentInit, OnChanges {
         }
     }
 
-    // contentChildren are set
+    /**
+     * Called by Angular
+     */
     ngAfterContentInit(): void {
         // get all active tabs
         let activeTabs = this.tabs.filter((tab) => tab.active);
@@ -42,6 +48,10 @@ export class Tabs implements AfterContentInit, OnChanges {
         }
     }
 
+    /**
+     * Emits a changed tab
+     * @param selectedTab The tab to emit in the event
+     */
     selectTab(selectedTab: Tab): void {
         // deactivate all tabs
         this.tabChange.emit(selectedTab.id);
