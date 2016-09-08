@@ -77,7 +77,7 @@ function nugetRestore(options) {
     });
 };
 
-gulp.task('ext:tslint', () => {
+gulp.task('ext:lint', () => {
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
         '!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
@@ -89,7 +89,7 @@ gulp.task('ext:tslint', () => {
     .pipe(tslint.report());
 });
 
-gulp.task('ext:compile-src', () => {
+gulp.task('ext:compile-src', (done) => {
     return gulp.src([
                 config.paths.project.root + '/src/**/*.ts',
                 config.paths.project.root + '/src/**/*.js',
@@ -97,6 +97,12 @@ gulp.task('ext:compile-src', () => {
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
+                .on('error', function() {
+                    if (process.env.BUILDMACHINE) {
+                        done('Extension Tests failed to build. See Above.');
+                        process.exit(1);
+                    }
+                })
                 .pipe(srcmap.write('.', {
                    sourceRoot: function(file){ return file.cwd + '/src'; }
                 }))
@@ -124,12 +130,18 @@ gulp.task('ext:nuget-restore', function() {
         .pipe(nugetRestore(options));
 });
 
-gulp.task('ext:compile-tests', () => {
+gulp.task('ext:compile-tests', (done) => {
     return gulp.src([
                 config.paths.project.root + '/test/**/*.ts',
                 config.paths.project.root + '/typings/**/*.ts'])
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
+                .on('error', function() {
+                    if (process.env.BUILDMACHINE) {
+                        done('Extension Tests failed to build. See Above.');
+                        process.exit(1);
+                    }
+                })
                 .pipe(srcmap.write('.', {
                    sourceRoot: function(file){ return file.cwd + '/test'; }
                 }))
@@ -161,13 +173,13 @@ gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-packages', 'ext:co
 
 gulp.task('ext:build', gulp.series('ext:nuget-download', 'ext:nuget-restore', 'ext:compile', 'ext:copy'));
 
+gulp.task('ext:build', gulp.series('ext:lint', 'ext:build'));
+
 gulp.task('clean', function (done) {
     return del('out', done);
 });
 
-gulp.task('build-extension', gulp.series('ext:tslint', 'ext:build'));
-
-gulp.task('build-all', gulp.series('clean', 'build-html', 'build-extension'));
+gulp.task('build', gulp.series('clean', 'html:build', 'ext:build'));
 
 gulp.task('install', function(){
     return gulp.src(['./package.json', './src/views/htmlcontent/package.json'])
@@ -175,5 +187,5 @@ gulp.task('install', function(){
 });
 
 gulp.task('watch', function(){
-    return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build-all'))
+    return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
 });

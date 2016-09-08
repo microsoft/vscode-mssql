@@ -7,7 +7,7 @@ var config = require('./config')
 var less = require('gulp-less');
 var tsProject = ts.createProject(config.paths.html.root + '/tsconfig.json');
 
-gulp.task('html:tslint', () => {
+gulp.task('html:lint', () => {
     return gulp.src([
         config.paths.html.root + '/src/**/*.ts'
     ])
@@ -17,11 +17,17 @@ gulp.task('html:tslint', () => {
     .pipe(tslint.report());
 });
 
-gulp.task('html:compile-ts', () => {
+gulp.task('html:compile-src', (done) => {
     return gulp.src([
             config.paths.html.root + '/src/**/*.ts',
             config.paths.html.root + '/typings/**/*.d.ts'])
             .pipe(ts(tsProject))
+            .on('error', function() {
+                    if (process.env.BUILDMACHINE) {
+                        done('Extension Tests failed to build. See Above.');
+                        process.exit(1);
+                    }
+            })
             .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/'))
 });
 
@@ -31,14 +37,14 @@ gulp.task('html:compile-css', () => {
             .pipe(gulp.dest(config.paths.html.root) + '/out/')
 })
 
-gulp.task('html:compile', gulp.series('html:compile-ts'))
+gulp.task('html:compile', gulp.series('html:compile-src'))
 
-gulp.task('html:copy_node_modules', () => {
+gulp.task('html:copy-node-modules', () => {
     return gulp.src(config.includes.html.node_modules, {base: config.paths.html.root + '/node_modules/'})
                .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/node_modules/'))
 })
 
-gulp.task('html:copy_src', () => {
+gulp.task('html:copy-src', () => {
     return gulp.src([
                         config.paths.html.root + '/src/**/*.html',
                         config.paths.html.root + '/src/**/*.ejs',
@@ -49,7 +55,7 @@ gulp.task('html:copy_src', () => {
                 .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/'))
 })
 
-gulp.task('html:copy', gulp.series('html:copy_src','html:copy_node_modules'));
+gulp.task('html:copy', gulp.series('html:copy-src','html:copy-node-modules'));
 
 gulp.task('html:build', gulp.series('html:compile'));
 
@@ -57,8 +63,8 @@ gulp.task('html:clean', () => {
     return del(config.paths.html.root + '/out');
 });
 
-gulp.task('build-html', gulp.series('html:tslint', 'html:build', 'html:copy'));
+gulp.task('html:build', gulp.series('html:lint', 'html:build', 'html:copy'));
 
 gulp.task('html:watch', function(){
-    return gulp.watch(config.paths.html.root + '/src/**/*', gulp.series('html:tslint'))
+    return gulp.watch(config.paths.html.root + '/src/**/*', gulp.series('html:lint'))
 })
