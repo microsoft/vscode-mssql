@@ -1,9 +1,11 @@
+'use strict';
+
 import * as TypeMoq from 'typemoq';
-import { IConnectionCredentials, IConnectionProfile } from '../src/models/interfaces';
+import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
-import TestPrompter from './TestPrompter';
+import { TestPrompter } from './stubs';
 
 import Constants = require('../src/models/constants');
 import assert = require('assert');
@@ -16,7 +18,7 @@ function createTestCredentials(): IConnectionCredentials {
         user:                           'sa',
         password:                       '12345678',
         port:                           1234,
-        authenticationType:             'SQL Authentication',
+        authenticationType:             AuthenticationTypes[AuthenticationTypes.SqlLogin],
         encrypt:                        false,
         trustServerCertificate:         false,
         persistSecurityInfo:            false,
@@ -49,7 +51,7 @@ suite('Connection Profile tests', () => {
         // No setup currently needed
     });
 
-    test('CreateProfile should ask questions in correct order', () => {
+    test('CreateProfile should ask questions in correct order', done => {
         // Given
         let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
@@ -81,16 +83,17 @@ suite('Connection Profile tests', () => {
             Constants.profileNamePrompt // Profile Name
         ];
 
-        assert.equal(profileQuestions.length, questionNames.length, 'unexpected number of questions');
+        assert.strictEqual(profileQuestions.length, questionNames.length, 'unexpected number of questions');
         for (let i = 0; i < profileQuestions.length; i++) {
-            assert.equal(profileQuestions[i].name, questionNames[i], `Missing question for ${questionNames[i]}`);
+            assert.strictEqual(profileQuestions[i].name, questionNames[i], `Missing question for ${questionNames[i]}`);
         }
         // And expect result to be undefined as questions were not answered
-        assert.equal(profileReturned, undefined);
+        assert.strictEqual(profileReturned, undefined);
+        done();
     });
 
 
-    test('CreateProfile - SqlPassword should be default auth type', () => {
+    test('CreateProfile - SqlPassword should be default auth type', done => {
         // Given
         let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
@@ -113,10 +116,11 @@ suite('Connection Profile tests', () => {
 
         // Then expect SqlAuth to be the only default type
         let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
-        assert.equal(authChoices[0].name, Constants.authTypeSql);
+        assert.strictEqual(authChoices[0].name, Constants.authTypeSql);
+        done();
     });
 
-    test('CreateProfile - Integrated auth support', () => {
+    test('CreateProfile - Integrated auth support', done => {
         // Given
         let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
@@ -143,18 +147,18 @@ suite('Connection Profile tests', () => {
         let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
         let authChoices = <INameValueChoice[]>authQuestion.choices;
         if ('win32' === os.platform()) {
-            assert.equal(authChoices.length, 2);
-            assert.equal(authChoices[1].name, Constants.authTypeIntegrated);
+            assert.strictEqual(authChoices.length, 2);
+            assert.strictEqual(authChoices[1].name, Constants.authTypeIntegrated);
+            assert.strictEqual(authChoices[1].value, AuthenticationTypes[AuthenticationTypes.Integrated]);
 
             // And on a platform with multiple choices, should prompt for input
             assert.strictEqual(authQuestion.shouldPrompt(answers), true);
         } else {
-            assert.equal(authChoices.length, 1);
+            assert.strictEqual(authChoices.length, 1);
             // And on a platform with only 1 choice, should not prompt for input
             assert.strictEqual(authQuestion.shouldPrompt(answers), false);
         }
-
-
+        done();
     });
 
     test('Port number is applied to server name when connection credentials are transformed into details', () => {

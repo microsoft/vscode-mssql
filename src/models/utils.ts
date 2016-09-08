@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import * as os from 'os';
 import vscode = require('vscode');
 import Constants = require('./constants');
+import * as interfaces from './interfaces';
 import {ExtensionContext} from 'vscode';
 
 // Interface for package.json information
@@ -142,6 +143,28 @@ export function isEmpty(str: any): boolean {
 
 export function isNotEmpty(str: any): boolean {
     return <boolean>(str && '' !== str);
+}
+
+export function authTypeToString(value: interfaces.AuthenticationTypes): string {
+    return interfaces.AuthenticationTypes[value];
+}
+
+/**
+ * Format a string. Behaves like C#'s string.Format() function.
+ */
+export function formatString(str: string, ...args: any[]): string {
+    // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
+    // License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
+    let result: string;
+    if (args.length === 0) {
+        result = str;
+    } else {
+        result = str.replace(/\{(\d+)\}/g, (match, rest) => {
+            let index = rest[0];
+            return typeof args[index] !== 'undefined' ? args[index] : match;
+        });
+    }
+    return result;
 }
 
 // One-time use timer for performance testing

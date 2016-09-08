@@ -532,11 +532,6 @@
       "from": "etag@>=1.7.0 <1.8.0",
       "resolved": "https://registry.npmjs.org/etag/-/etag-1.7.0.tgz"
     },
-    "event-stream": {
-      "version": "3.1.7",
-      "from": "event-stream@>=3.1.5 <3.2.0",
-      "resolved": "https://registry.npmjs.org/event-stream/-/event-stream-3.1.7.tgz"
-    },
     "expand-brackets": {
       "version": "0.1.5",
       "from": "expand-brackets@>=0.1.4 <0.2.0",
