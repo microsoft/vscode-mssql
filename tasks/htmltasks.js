@@ -57,13 +57,11 @@ gulp.task('html:copy-src', () => {
 
 gulp.task('html:copy', gulp.series('html:copy-src','html:copy-node-modules'));
 
-gulp.task('html:build', gulp.series('html:compile'));
-
 gulp.task('html:clean', () => {
     return del(config.paths.html.root + '/out');
 });
 
-gulp.task('html:build', gulp.series('html:lint', 'html:build', 'html:copy'));
+gulp.task('html:build', gulp.series('html:lint', 'html:compile', 'html:copy'));
 
 gulp.task('html:watch', function(){
     return gulp.watch(config.paths.html.root + '/src/**/*', gulp.series('html:lint'))

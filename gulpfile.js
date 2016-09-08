@@ -98,7 +98,6 @@ gulp.task('ext:compile-src', (done) => {
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))
                 .on('error', function() {
-                    console.log(process.env.toString());
                     if (process.env.BUILDMACHINE) {
                         done('Extension Tests failed to build. See Above.');
                         process.exit(1);
@@ -172,9 +171,7 @@ gulp.task('ext:copy-js', () => {
 
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-packages', 'ext:copy-js'));
 
-gulp.task('ext:build', gulp.series('ext:nuget-download', 'ext:nuget-restore', 'ext:compile', 'ext:copy'));
-
-gulp.task('ext:build', gulp.series('ext:lint', 'ext:build'));
+gulp.task('ext:build', gulp.series('ext:nuget-download', 'ext:nuget-restore', 'ext:lint', 'ext:compile', 'ext:copy'));
 
 gulp.task('clean', function (done) {
     return del('out', done);
