@@ -9,7 +9,7 @@
     ],
     "tasks": [
         {
-            "taskName": "build-all",
+            "taskName": "build",
             "args": [],
             "isBuildCommand": true,
             "isWatching": false,
