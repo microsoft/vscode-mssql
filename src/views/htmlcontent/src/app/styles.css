@@ -2,14 +2,3 @@ body {
   background-color: var(--color-bg-content);
   color: var(--color-content);
 }
-
-::-webkit-scrollbar {
-  width: auto;
-  height: auto;
-}
-::-webkit-scrollbar-thumb {
-  background: #bbb;
-}
-::-webkit-scrollbar-track {
-  background: #333;
-}

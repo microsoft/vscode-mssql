@@ -128,74 +128,10 @@ export class AppComponent implements OnInit {
     }
 
     /**
-     * Renders a new result set based on a selection
-     * @param selection The selection object to render
-     */
-
-    // selectionChange(selection: {batch: number; result: number; }): void {
-    //     this.renderResults(selection.batch, selection.result);
-    // }
-
-    /**
      * Updates the internal state for what tab is selected; propogates down to the tab classes
      * @param to The tab was the selected
      */
-
     tabChange(to: SelectedTab): void {
         this.selected = to;
     }
-
-    /**
-     * Renders a result set to SlickGrid
-     * @param batchId The id of the batch
-     * @param resultId the id of the result to render
-     */
-
-    // renderResults(batchId: number, resultId: number): void {
-    //     const self = this;
-    //     this.dataService.getMessages(batchId).then((result: string[]) => {
-    //         self.messages = result;
-    //     });
-    //     let columns = this.dataService.getColumns(batchId, resultId);
-    //     let numberOfRows = this.dataService.getNumberOfRows(batchId, resultId);
-    //     Observable.forkJoin([columns, numberOfRows]).subscribe( data => {
-    //         let columnData: IDbColumn[] = data[0];
-    //         self.totalRows = data[1];
-    //         if (!columnData) {
-    //             self.selected = SelectedTab.Messages;
-    //             return;
-    //         }
-    //         let columnDefinitions = [];
-    //         for (let i = 0; i < columnData.length; i++) {
-    //             columnDefinitions.push({
-    //                 id: columnData[i].columnName,
-    //                 type: self.stringToFieldType('string')
-    //             });
-    //         }
-    //         self.columnDefinitions = columnDefinitions;
-
-    //         let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
-    //             return new Promise<IGridDataRow[]>((resolve, reject) => {
-    //                 self.dataService.getRows(offset, count, batchId, resultId).subscribe(rows => {
-    //                     let gridData: IGridDataRow[] = [];
-    //                     for (let i = 0; i < rows.rows.length; i++) {
-    //                         gridData.push({
-    //                             values: rows.rows[i]
-    //                         });
-    //                     }
-    //                     resolve(gridData);
-    //                 });
-    //             });
-    //         };
-
-    //         let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(200,
-    //                                                                             self.totalRows,
-    //                                                                             loadDataFunction,
-    //                                                                             (index) => {
-    //                                                                                 return { values: [] };
-    //                                                                             });
-    //         self.dataRows = virtualizedCollection;
-    //         self.selected = SelectedTab.Results;
-    //     });
-    // }
 }
