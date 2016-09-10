@@ -266,12 +266,18 @@ export default class ConnectionManager {
 
                 if (result.connectionId && result.connectionId !== '') {
                     // We have a valid connection
+                    // Copy credentials as the database name will be updated
+                    let newCredentials: Interfaces.IConnectionCredentials = <any>{};
+                    Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, connectionCreds);
+                    if (result.connectionSummary && result.connectionSummary.databaseName) {
+                        newCredentials.database = result.connectionSummary.databaseName;
+                    }
                     let connection = new ConnectionInfo();
                     connection.connectionId = result.connectionId;
-                    connection.credentials = connectionCreds;
+                    connection.credentials = newCredentials;
                     self._connections[fileUri] = connection;
 
-                    self.statusView.connectSuccess(fileUri, connectionCreds);
+                    self.statusView.connectSuccess(fileUri, newCredentials);
 
                     extensionTimer.end();
 

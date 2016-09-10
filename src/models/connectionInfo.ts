@@ -1,6 +1,7 @@
 'use strict';
 import Constants = require('./constants');
 import Interfaces = require('./interfaces');
+import * as Utils from './utils';
 
 // Fix up connection settings if we're connecting to Azure SQL
 export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCredentials): Interfaces.IConnectionCredentials {
@@ -68,6 +69,38 @@ export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials)
            ', port: ' + (connCreds.port ? connCreds.port : Constants.defaultPortNumber) +
            ', connection timeout: ' + connCreds.connectTimeout + ' s' +
            ']';
+}
+
+export function getConnectionDisplayString(creds: Interfaces.IConnectionCredentials): string {
+    // Update the connection text
+    let text: string = creds.server;
+    if (creds.database !== '') {
+        text = appendIfNotEmpty(text, creds.database);
+    } else {
+        text = appendIfNotEmpty(text, Constants.defaultDatabaseLabel);
+    }
+    let user: string = getUserNameOrDomainLogin(creds);
+    text = appendIfNotEmpty(text, user);
+    return text;
+}
+
+function appendIfNotEmpty(connectionText: string, value: string): string {
+    if (Utils.isNotEmpty(value)) {
+        connectionText += ` : ${value}`;
+    }
+    return connectionText;
+}
+
+export function getUserNameOrDomainLogin(creds: Interfaces.IConnectionCredentials, defaultValue?: string): string {
+    if (!defaultValue) {
+        defaultValue = '';
+    }
+
+    if (creds.authenticationType === Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]) {
+        return (process.platform === 'win32') ? process.env.USERDOMAIN + '\\' + process.env.USERNAME : '';
+    } else {
+        return creds.user ? creds.user : defaultValue;
+    }
 }
 
 function addTooltipItem(creds: Interfaces.IConnectionCredentials, property: string): string {
