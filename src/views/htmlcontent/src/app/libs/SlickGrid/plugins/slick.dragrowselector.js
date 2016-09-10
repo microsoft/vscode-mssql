@@ -99,34 +99,70 @@
         }
 
         function handleKeyDown(e) {
-            var activeRow = _grid.getActiveCell();
-            if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which == 38 || e.which == 40)) {
-                var selectedRows = getSelectedRows();
-                selectedRows.sort(function (x, y) { return x - y });
-
-                if (!selectedRows.length) {
-                    selectedRows = [activeRow.row];
+            var activeCell = _grid.getActiveCell();
+            e.stopImmediatePropagation();
+            // do we have a context to navigate on
+            if (activeCell) {
+                // arrow keys with non-selection
+                if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40) {
+                    // left arrow
+                    if (e.which == 37 && activeCell.cell > 1) {
+                        if (e.shiftKey) {
+                            var last = _ranges.pop();
+                            var fromRow = Math.min(activeCell.row, last.fromRow);
+                            var fromCell = Math.min(activeCell.cell - 2, last.fromCell)
+                            var toRow = Math.max(activeCell.row, last.toRow);
+                            var toCell = Math.max(activeCell.cell - 2, last.toCell);
+                            _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
+                        } else {
+                            _ranges = [new Slick.Range(activeCell.row, activeCell.cell - 2, activeCell.row, activeCell.cell - 2)]
+                        }
+                        _grid.setActiveCell(activeCell.row, activeCell.cell - 1);
+                        setSelectedRanges(_ranges);
+                    // up arrow
+                    } else if (e.which == 38 && activeCell.row > 0) {
+                        if (e.shiftKey) {
+                            var last = _ranges.pop();
+                            var fromRow = Math.min(activeCell.row - 1, last.fromRow);
+                            var fromCell = Math.min(activeCell.cell - 1, last.fromCell)
+                            var toRow = Math.max(activeCell.row - 1, last.toRow);
+                            var toCell = Math.max(activeCell.cell - 1, last.toCell);
+                            _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
+                        } else {
+                            _ranges = [new Slick.Range(activeCell.row - 1, activeCell.cell - 1, activeCell.row - 1, activeCell.cell - 1)];
+                        }
+                        _grid.setActiveCell(activeCell.row - 1, activeCell.cell);
+                        setSelectedRanges(_ranges);
+                    // right arrow
+                    } else if (e.which == 39 && activeCell.cell < _grid.getColumns().length) {
+                        if (e.shiftKey) {
+                            var last = _ranges.pop();
+                            var fromRow = Math.min(activeCell.row, last.fromRow);
+                            var fromCell = Math.min(activeCell.cell, last.fromCell)
+                            var toRow = Math.max(activeCell.row, last.toRow);
+                            var toCell = Math.max(activeCell.cell, last.toCell);
+                            _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
+                        } else {
+                            _ranges = [new Slick.Range(activeCell.row, activeCell.cell, activeCell.row, activeCell.cell)]
+                        }
+                        _grid.setActiveCell(activeCell.row, activeCell.cell + 1);
+                        setSelectedRanges(_ranges);
+                    // down arrow
+                    } else if (e.which == 40 && activeCell.row < _grid.getDataLength()) {
+                        if (e.shiftKey) {
+                            var last = _ranges.pop();
+                            var fromRow = Math.min(activeCell.row + 1, last.fromRow);
+                            var fromCell = Math.min(activeCell.cell - 1, last.fromCell)
+                            var toRow = Math.max(activeCell.row + 1, last.toRow);
+                            var toCell = Math.max(activeCell.cell - 1, last.toCell);
+                            _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
+                        } else {
+                        _ranges = [new Slick.Range(activeCell.row + 1, activeCell.cell - 1, activeCell.row + 1, activeCell.cell - 1)];
+                        }
+                        _grid.setActiveCell(activeCell.row + 1, activeCell.cell);
+                        setSelectedRanges(_ranges);
+                    }
                 }
-
-                var top = selectedRows[0];
-                var bottom = selectedRows[selectedRows.length - 1];
-                var active;
-
-                if (e.which == 40) {
-                    active = activeRow.row < bottom || top == bottom ? ++bottom : ++top;
-                }
-                else {
-                    active = activeRow.row < bottom ? --bottom : --top;
-                }
-
-                if (active >= 0 && active < _grid.getDataLength()) {
-                    _grid.scrollRowIntoView(active);
-                    _ranges = rowsToRanges(getRowsRange(top, bottom));
-                    setSelectedRanges(_ranges);
-                }
-
-                e.preventDefault();
-                e.stopPropagation();
             }
         }
 
