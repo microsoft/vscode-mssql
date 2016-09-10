@@ -1,0 +1,8 @@
+{
+    "sqlToolsService": {
+        "downloadUrl": "http://10.128.17.86/sqltoolsservice/sqltoolsservice",
+        "version": "0.0.8",
+        "installDir": "../../tools",
+        "executableFiles": ["Microsoft.SqlTools.ServiceLayer.exe", "Microsoft.SqlTools.ServiceLayer", "Microsoft.SqlTools.ServiceLayer.dll"]
+    }
+}

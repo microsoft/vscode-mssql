@@ -21,6 +21,7 @@ export default class MainController implements vscode.Disposable {
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
+    private _initialized: boolean = false;
 
     constructor(context: vscode.ExtensionContext,
                 connectionManager?: ConnectionManager,
@@ -51,7 +52,7 @@ export default class MainController implements vscode.Disposable {
         this._statusview.dispose();
     }
 
-    public activate(): void {
+    public activate():  Promise<boolean> {
         const self = this;
 
         let activationTimer = new Utils.Timer();
@@ -72,32 +73,45 @@ export default class MainController implements vscode.Disposable {
 
         this._vscodeWrapper = new VscodeWrapper();
 
-        // initialize language service client
-        SqlToolsServerClient.instance.initialize(this._context);
-
-        // Init status bar
-        this._statusview = new StatusView();
-
-        // Init CodeAdapter for use when user response to questions is needed
-        this._prompter = new CodeAdapter();
-
-        // Init content provider for results pane
-        this._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview);
-        let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
-        this._context.subscriptions.push(registration);
-
-        // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
-
-        activationTimer.end();
-
-        // telemetry for activation
-        Telemetry.sendTelemetryEvent(this._context, 'ExtensionActivated', {},
-            { activationTime: activationTimer.getDuration() }
-        );
-
-        Utils.logDebug(Constants.extensionActivated);
+        return this.initialize(activationTimer);
     }
+
+    public isInitialized(): boolean {
+        return this._initialized;
+    }
+
+    public initialize(activationTimer: Utils.Timer): Promise<boolean> {
+        // initialize language service client
+        return new Promise<boolean>( (resolve, reject) => {
+                SqlToolsServerClient.instance.initialize(this._context).then(() => {
+                const self = this;
+                // Init status bar
+                this._statusview = new StatusView();
+
+                // Init CodeAdapter for use when user response to questions is needed
+                this._prompter = new CodeAdapter();
+
+                // Init content provider for results pane
+                this._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview);
+                let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
+                this._context.subscriptions.push(registration);
+
+                // Init connection manager and connection MRU
+                this._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
+
+                activationTimer.end();
+
+                // telemetry for activation
+                Telemetry.sendTelemetryEvent(this._context, 'ExtensionActivated', {},
+                    { activationTime: activationTimer.getDuration() }
+                );
+
+                Utils.logDebug(Constants.extensionActivated);
+                this._initialized = true;
+                resolve(true);
+            });
+        });
+   }
 
     // Choose a new database from the current server
     private onChooseDatabase(): Promise<boolean> {

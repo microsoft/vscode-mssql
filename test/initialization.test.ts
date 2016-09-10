@@ -35,5 +35,6 @@ suite('Initialization Tests', () => {
             assert.notStrictEqual(undefined, connectionManager.client);
             done();
         });
+        done();
     });
 });
