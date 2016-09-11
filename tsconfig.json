@@ -3,9 +3,10 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "es6",
-        "watch": false,
         "noLib": true,
         "sourceMap": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
         "rootDir": "."
     },
     "exclude": [

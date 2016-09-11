@@ -7,7 +7,7 @@ import * as utils from '../src/models/utils';
 import * as connectionInfo from '../src/models/connectionInfo';
 import { TestExtensionContext, TestMemento } from './stubs';
 import { IConnectionProfile } from '../src/models/interfaces';
-import { CredentialStore } from '../src/credentialStore/credentialstore';
+import { CredentialStore } from '../src/credentialstore/credentialstore';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionStore } from '../src/models/connectionStore';
 

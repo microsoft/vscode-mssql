@@ -6,8 +6,8 @@ import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
-import { ICredentialStore } from '../credentialStore/icredentialstore';
-import { CredentialStore } from '../credentialStore/credentialstore';
+import { ICredentialStore } from '../credentialstore/icredentialstore';
+import { CredentialStore } from '../credentialstore/credentialstore';
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections

@@ -25,3 +25,7 @@ body {
 .box .boxRow.content {
   flex: 1 0 1%;
 }
+
+.hidden {
+  display: none;
+}
