@@ -91,10 +91,8 @@ export class ConnectionStore {
         const self = this;
         return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
             self.loadAllConnections()
-            .then(function(connections): void
+            .then(function(pickListItems: IConnectionCredentialsQuickPickItem[]): void
             {
-                let pickListItems = self.mapToQuickPickItems(connections);
-
                 // Always add an "Add New Connection" quickpick item
                 pickListItems.push(<IConnectionCredentialsQuickPickItem> {
                         label: Constants.CreateProfileLabel,
@@ -114,8 +112,9 @@ export class ConnectionStore {
      */
     public getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
         const self = this;
-        return self.loadProfiles().then( connections => {
-            return self.mapToQuickPickItems(connections);
+        return self.loadProfiles().then(items => {
+            // TODO add MRU list here
+            return items;
         });
     }
 
@@ -158,7 +157,7 @@ export class ConnectionStore {
             }
 
             // Remove the profile if already set
-            configValues = configValues.filter(value => value.profileName !== profile.profileName);
+            configValues = configValues.filter(value => !ConnectionStore.isSameProfile(value, profile));
 
             // Add the profile to the saved list, taking care to clear out the password field
             let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
@@ -179,6 +178,33 @@ export class ConnectionStore {
                 reject(err);
             });
         });
+    }
+
+    /**
+     * Compares 2 profiles to see if they match. Logic for matching:
+     * If a profile name is used, can simply match on this.
+     * If not, match on all key properties (server, db, auth type, user) being identical.
+     * Other properties are ignored for this purpose
+     *
+     * @param {IConnectionProfile} currentProfile the profile to check
+     * @param {IConnectionProfile} expectedProfile the profile to try to match
+     * @returns boolean that is true if the profiles match
+     */
+    private static isSameProfile(currentProfile: IConnectionProfile, expectedProfile: IConnectionProfile): boolean {
+        if (currentProfile === undefined) {
+            return false;
+        }
+        if (expectedProfile.profileName) {
+            // Can match on profile name
+            return expectedProfile.profileName === currentProfile.profileName;
+        } else if (currentProfile.profileName) {
+            // This has a profile name but expected does not - can break early
+            return false;
+        }
+        return expectedProfile.server === currentProfile.server
+            && expectedProfile.database === currentProfile.database
+            && expectedProfile.authenticationType === currentProfile.authenticationType
+            && expectedProfile.user === currentProfile.user;
     }
 
     private savePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
@@ -219,7 +245,7 @@ export class ConnectionStore {
             // Remove the profile if already set
             let found: boolean = false;
             configValues = configValues.filter(value => {
-                if (value.profileName === profile.profileName) {
+                if (ConnectionStore.isSameProfile(value, profile)) {
                     // remove just this profile
                     found = true;
                     return false;
@@ -243,25 +269,20 @@ export class ConnectionStore {
         });
     }
 
-    // maps credentials to user-displayable items
-    private mapToQuickPickItems(connections: IConnectionCredentials[]): IConnectionCredentialsQuickPickItem[] {
-        // treat items as any since can't do typeof check on an interface
-        return connections.map( (item: any) => {
-            let itemType = (Utils.isNotEmpty(<IConnectionProfile>item.profileName)) ? CredentialsQuickPickItemType.Profile : CredentialsQuickPickItemType.Mru;
-            return <IConnectionCredentialsQuickPickItem> {
-                label: ConnInfo.getPicklistLabel(item),
-                description: ConnInfo.getPicklistDescription(item),
-                detail: ConnInfo.getPicklistDetails(item),
-                connectionCreds: item,
-                quickPickItemType: itemType
-            };
-        });
+    private createQuickPickItem(item: IConnectionCredentials, itemType: CredentialsQuickPickItemType): IConnectionCredentialsQuickPickItem {
+        return <IConnectionCredentialsQuickPickItem> {
+            label: ConnInfo.getPicklistLabel(item, itemType),
+            description: ConnInfo.getPicklistDescription(item),
+            detail: ConnInfo.getPicklistDetails(item),
+            connectionCreds: item,
+            quickPickItemType: itemType
+        };
     }
 
     // Load connections from user preferences
-    private loadAllConnections(): Promise<IConnectionCredentials[]> {
+    private loadAllConnections(): Promise<IConnectionCredentialsQuickPickItem[]> {
         let self = this;
-        return new Promise<IConnectionCredentials[]>(resolve => {
+        return new Promise<IConnectionCredentialsQuickPickItem[]>(resolve => {
             // Load connections from user preferences
             // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
             // Settings defined in workspace scope overwrite the settings defined in user scope
@@ -271,25 +292,27 @@ export class ConnectionStore {
             // first read from the user settings
             let configValues = config[Constants.configMyConnections];
             self.addConnections(connections, configValues);
-            resolve(connections);
-        }).then(connections => {
+            let quickPickItems = connections.map(c => self.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
+            resolve(quickPickItems);
+        }).then(quickPickItems => {
             // next read from the global state
-            let newConnections = self.loadProfiles().then(profiles => {
-                return connections.concat(profiles);
+            let allQuickPickItems = self.loadProfiles().then(items => {
+                return quickPickItems.concat(items);
             });
 
-            return newConnections;
+            return allQuickPickItems;
         });
     }
 
-    private loadProfiles(): Promise<IConnectionProfile[]> {
+    private loadProfiles(): Promise<IConnectionCredentialsQuickPickItem[]> {
         let self = this;
-        return new Promise<IConnectionCredentials[]>((resolve, reject) => {
+        return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
             let connections: IConnectionProfile[] = [];
             // read from the global state
             let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
             self.addConnections(connections, configValues);
-            resolve(connections);
+            let quickPickItems = connections.map(c => self.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
+            resolve(quickPickItems);
         });
     }
 

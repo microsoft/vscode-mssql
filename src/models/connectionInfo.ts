@@ -54,32 +54,20 @@ function isAzureDatabase(server: string): boolean {
     return (server ? server.endsWith(Constants.sqlDbPrefix) : false);
 }
 
-export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials): string {
+export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials, itemType: Interfaces.CredentialsQuickPickItemType): string {
     let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
+
+    let icon: string = itemType === Interfaces.CredentialsQuickPickItemType.Mru ? figures.play : symbols.star;
+
     if (profile.profileName) {
-        return `${symbols.star} ${profile.profileName}`;
+        return `${icon} ${profile.profileName}`;
     } else {
-        return `${figures.play} ${connCreds.server}`;
+        return `${icon} ${connCreds.server}`;
     }
 }
 
 export function getPicklistDescription(connCreds: Interfaces.IConnectionCredentials): string {
-    let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
-    let desc: string = '[';
-    if (profile.profileName) {
-        // Add server name in this instance as it's needed for clarity
-        desc = desc + 'server: ' + connCreds.server + ', ';
-    }
-    desc = desc + 'database: ' + (connCreds.database ? connCreds.database : '<connection default>');
-    if (connCreds.authenticationType) {
-        if (connCreds.authenticationType !== Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]) {
-            desc = desc + ', username: ' + (connCreds.user ? connCreds.user : '<prompt>');
-        } else if (process.platform === 'win32') {
-            let userName = process.env.USERDOMAIN + '\\' + process.env.USERNAME;
-            desc = desc + ', username: ' + userName;
-        }
-    }
-    desc = desc + ']';
+    let desc: string = `[${getConnectionDisplayString(connCreds)}]`;
     return desc;
 }
 
