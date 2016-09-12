@@ -206,7 +206,7 @@ export class ServerInfo {
     /**
      * The Operating System version string of the machine running the SQL Server instance.
      */
-    public osVersion : string;
+    public osVersion: string;
 }
 
 /**
