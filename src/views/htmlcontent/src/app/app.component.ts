@@ -1,3 +1,7 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 import {Component, OnInit, Inject, forwardRef} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
@@ -6,7 +10,7 @@ import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import {IDbColumn} from './../interfaces';
+import { IDbColumn } from './../interfaces';
 import { NavigatorComponent } from './navigation.component';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
@@ -20,12 +24,17 @@ enum FieldType {
     Unknown = 5,
 }
 
+enum SelectedTab {
+    Results = 0,
+    Messages = 1,
+}
+
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, NavigatorComponent, Tabs, Tab ],
+    directives: [SlickGrid, NavigatorComponent, Tabs, Tab],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
@@ -35,11 +44,15 @@ export class AppComponent implements OnInit {
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
     private resultOptions: number[][];
-    private messages: string[];
-    showResults: boolean = false;
+    private messages: string[] = [];
+    private selected: SelectedTab;
+    public SelectedTab = SelectedTab;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
+    /**
+     * Called by Angular when the object is initialized
+     */
     ngOnInit(): void {
         const self = this;
         self.resultOptions = [];
@@ -66,6 +79,9 @@ export class AppComponent implements OnInit {
         });
     }
 
+    /**
+     * Used to convert the string to a enum compatible with SlickGrid
+     */
     private stringToFieldType(input: string): FieldType {
         let fieldtype: FieldType;
         switch (input) {
@@ -85,9 +101,29 @@ export class AppComponent implements OnInit {
         return fieldtype;
     }
 
+    /**
+     * Renders a new result set based on a selection
+     * @param selection The selection object to render
+     */
+
     selectionChange(selection: {batch: number; result: number; }): void {
         this.renderResults(selection.batch, selection.result);
     }
+
+    /**
+     * Updates the internal state for what tab is selected; propogates down to the tab classes
+     * @param to The tab was the selected
+     */
+
+    tabChange(to: SelectedTab): void {
+        this.selected = to;
+    }
+
+    /**
+     * Renders a result set to SlickGrid
+     * @param batchId The id of the batch
+     * @param resultId the id of the result to render
+     */
 
     renderResults(batchId: number, resultId: number): void {
         const self = this;
@@ -100,10 +136,8 @@ export class AppComponent implements OnInit {
             let columnData: IDbColumn[] = data[0];
             self.totalRows = data[1];
             if (!columnData) {
-                self.showResults = false;
+                self.selected = SelectedTab.Messages;
                 return;
-            } else {
-                self.showResults = true;
             }
             let columnDefinitions = [];
             for (let i = 0; i < columnData.length; i++) {
@@ -135,6 +169,7 @@ export class AppComponent implements OnInit {
                                                                                     return { values: [] };
                                                                                 });
             self.dataRows = virtualizedCollection;
+            self.selected = SelectedTab.Results;
         });
     }
 }

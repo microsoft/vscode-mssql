@@ -1,3 +1,7 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule }   from '@angular/forms';
@@ -10,7 +14,7 @@ import { Tab } from './tab';
 import { Tabs } from './tabs';
 
 /**
- * Top level angular module
+ * Top level angular module, no actual content here
  */
 
 @NgModule({
