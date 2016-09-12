@@ -44,6 +44,8 @@ export class AppComponent implements OnInit {
     private dataRows: IObservableCollection<IGridDataRow>;
     private totalRows: number;
     private resultOptions: number[][];
+    public selectedResultSet: number = 0;
+    public selectedBatchIndex: number = 0;
     private messages: string[] = [];
     private selected: SelectedTab;
     public SelectedTab = SelectedTab;
@@ -101,12 +103,23 @@ export class AppComponent implements OnInit {
         return fieldtype;
     }
 
+
+    /**
+     * Send save result set request to service
+     */
+    saveResultsAsCsv(): void {
+        const self = this;
+        // call /saveResults with the current resultSet number
+        self.dataService.sendSaveRequest(this.selectedBatchIndex, this.selectedResultSet);
+    }
+
     /**
      * Renders a new result set based on a selection
      * @param selection The selection object to render
      */
-
     selectionChange(selection: {batch: number; result: number; }): void {
+        this.selectedResultSet = selection.result;
+        this.selectedBatchIndex = selection.batch;
         this.renderResults(selection.batch, selection.result);
     }
 

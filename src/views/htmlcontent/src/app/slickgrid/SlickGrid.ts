@@ -291,6 +291,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         // https://github.com/mleibman/SlickGrid/wiki/Grid-Events
         this.subscribeToScroll();
         this.subscribeToCellChanged();
+        this.subscribeToContextMenu();
     }
 
     ngOnDestroy(): void {
@@ -456,6 +457,17 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
             this._gridColumns[i].width = this._gridSyncService.columnWidthPXs[i];
         }
         this._grid.setColumnWidths(this._gridColumns, true);
+    }
+
+    // add context menu to slickGrid
+    public subscribeToContextMenu(): void {
+        this._grid.onContextMenu.subscribe(function (event): void {
+            event.preventDefault();
+            $('.contextMenu').css('top', event.pageY).css('left', event.pageX).show();
+            $('tab').one('click', function (): void {
+                $('.contextMenu').hide();
+            });
+        });
     }
 
     private updateSchema(): void {
