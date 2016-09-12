@@ -93,10 +93,6 @@ export const profileNamePlaceholder = 'optional - enter a name for this profile'
 
 export const filepathPrompt = 'File path';
 export const filepathPlaceholder = 'Enter full path or simply file name';
-export const batchIndexPrompt = 'Batch Number';
-export const batchIndexPlaceholder = 'Enter batch number of the result to save as csv';
-export const resultSetNoPrompt = 'ResultSet Number';
-export const resultSetNoPlaceholder = 'Enter ResultSet number to save as csv';
 
 export const msgSelectProfile = 'Select Connection Profile';
 export const msgSelectProfileToRemove = 'Select profile to remove';

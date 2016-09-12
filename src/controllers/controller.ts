@@ -11,7 +11,6 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
-import SaveResults from '../models/saveResults';
 import VscodeWrapper from './vscodeWrapper';
 
 export default class MainController implements vscode.Disposable {
@@ -21,7 +20,6 @@ export default class MainController implements vscode.Disposable {
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
-    private _saveResults: SaveResults;
     private _vscodeWrapper: VscodeWrapper;
 
     constructor(context: vscode.ExtensionContext,
@@ -71,8 +69,6 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
-        this.registerCommand(Constants.cmdSaveResultAsCsv);
-        this._event.on(Constants.cmdSaveResultAsCsv, () => { self.onSaveResultAsCsv(); } );
 
         this._vscodeWrapper = new VscodeWrapper();
 
@@ -101,9 +97,6 @@ export default class MainController implements vscode.Disposable {
         );
 
         Utils.logDebug(Constants.extensionActivated);
-
-        // Init Save Results
-        this._saveResults = new SaveResults();
     }
 
     // Choose a new database from the current server
@@ -165,11 +158,6 @@ export default class MainController implements vscode.Disposable {
     // Prompts to remove a registered SQL connection profile
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
-    }
-
-    // Prompts for batch and resultset number and handles Saves results as csv request
-    public onSaveResultAsCsv(): void {
-        this._saveResults.onSaveResultsAsCsvCommand();
     }
 
     private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {

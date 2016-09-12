@@ -63,9 +63,9 @@ export namespace SaveResultsRequest {
         filePath: string;
         fileEncoding: string;
         includeHeaders: boolean;
-        BatchIndex: number;
-        ResultSetIndex: number;
-        ValueInQuotes: boolean;
+        batchIndex: number;
+        resultSetIndex: number;
+        valueInQuotes: boolean;
     }
 
     export class SaveResultRequestResult {

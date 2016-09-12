@@ -6,27 +6,40 @@ import * as Contracts from '../models/contracts';
 import * as Utils from '../models/utils';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 /**
  *  Handles save results request from the context menu of slickGrid
  */
 export default class SaveResults {
     private _client: SqlToolsServerClient;
-    private _fileEncoding: string = 'utf-8';
-    private _includeHeaders: boolean = true;
-    private _valueInquotes: boolean = false;
-    private _filePath: string;
-    private _uri: string;
-    private _batchIndex: number;
-    private _resultSetNo: number;
     private _prompter: IPrompter;
+    private _vscodeWrapper: VscodeWrapper;
+    public saveResultsParams: Contracts.SaveResultsRequest.SaveResultsRequestParams;
 
-    constructor() {
-        this._client = SqlToolsServerClient.instance;
-        this._prompter = new CodeAdapter();
+    constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
+        if (client) {
+            this._client = client;
+        } else {
+            this._client = SqlToolsServerClient.instance;
+        }
+        if (prompter) {
+            this._prompter = prompter;
+        } else {
+            this._prompter = new CodeAdapter();
+        }
+        if (vscodeWrapper) {
+            this._vscodeWrapper = vscodeWrapper;
+        } else {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
+        this.saveResultsParams = new Contracts.SaveResultsRequest.SaveResultsRequestParams();
+        this.saveResultsParams.valueInQuotes = false;
+        this.saveResultsParams.includeHeaders = true;
+        this.saveResultsParams.fileEncoding = 'utf-8';
     }
 
-    private promptForFilepath(): Promise<void> {
+    private promptForFilepath(): Promise<string> {
         let questions: IQuestion[] = [
             // prompt user to enter file path
             {
@@ -34,32 +47,9 @@ export default class SaveResults {
                 name: Constants.filepathPrompt,
                 message: Constants.filepathPrompt,
                 placeHolder: Constants.filepathPlaceholder,
-                validate: (value) => this.validateFilePath(Constants.filepathPrompt, value),
-                onAnswered: (value) => this._filePath = value
-
+                validate: (value) => this.validateFilePath(Constants.filepathPrompt, value)
             }];
-        return this._prompter.prompt(questions).then(() => { return; });
-    }
-
-    private promptForResultSetNo(): Promise<void> {
-        let questions: IQuestion[] = [
-            // prompt user to enter batch number
-            {
-                type: QuestionTypes.input,
-                name: Constants.batchIndexPrompt,
-                message: Constants.batchIndexPrompt,
-                placeHolder: Constants.batchIndexPlaceholder,
-                onAnswered: (value) => this._batchIndex = value
-            },
-            // prompt user to enter resultset number
-            {
-                type: QuestionTypes.input,
-                name: Constants.resultSetNoPrompt,
-                message: Constants.resultSetNoPrompt,
-                placeHolder: Constants.resultSetNoPlaceholder,
-                onAnswered: (value) => this._resultSetNo = value
-            }];
-        return this._prompter.prompt(questions).then(() => { return ; });
+        return this._prompter.prompt(questions).then(answers => { return answers[Constants.filepathPrompt]; });
     }
 
     private getConfig(): void {
@@ -67,67 +57,55 @@ export default class SaveResults {
         let config = vscode.workspace.getConfiguration(Constants.extensionName);
         let saveConfig = config[Constants.configSaveAsCsv];
         if (saveConfig.encoding) {
-            this._fileEncoding = saveConfig.encoding;
+            this.saveResultsParams.fileEncoding  = saveConfig.encoding;
         }
         if (saveConfig.includeHeaders) {
-            this._includeHeaders = saveConfig.includeHeaders;
+            this.saveResultsParams.includeHeaders = saveConfig.includeHeaders;
         }
         if (saveConfig.valueInQuotes) {
-            this._valueInquotes = saveConfig.valueInQuotes;
+            this.saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
         }
     }
 
-    private sendRequestToService(uri: string, batchIndex: number, resultSetNo: number): void {
+    public sendRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
+        const self = this;
         // set params to values from config and send request to service
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
-        this._uri =  vscode.Uri.file(sqlUri.fsPath).toString();
 
-        if ( !path.isAbsolute(this._filePath)) {
+        if ( !path.isAbsolute(filePath)) {
             // user entered only the file name. Save file in current directory
             if ( sqlUri.scheme === 'file') {
                 currentDirectory = path.dirname(sqlUri.fsPath);
             } else {
                 currentDirectory = path.dirname(sqlUri.path);
             }
-            this._filePath = path.normalize(path.join(currentDirectory, this._filePath));
+            filePath = path.normalize(path.join(currentDirectory, filePath));
         }
         // set params for save results as csv
-        this.getConfig();
-        let saveResultsParams = new Contracts.SaveResultsRequest.SaveResultsRequestParams();
-        saveResultsParams.filePath = this._filePath;
-        saveResultsParams.fileEncoding = this._fileEncoding;
-        saveResultsParams.includeHeaders = this._includeHeaders;
-        saveResultsParams.ValueInQuotes = this._valueInquotes;
-        saveResultsParams.ownerUri = this._uri;
-        saveResultsParams.ResultSetIndex = resultSetNo;
-        saveResultsParams.BatchIndex = batchIndex;
+        self.getConfig();
+        self.saveResultsParams.filePath = filePath;
+        self.saveResultsParams.ownerUri = vscode.Uri.file(sqlUri.fsPath).toString();
+        self.saveResultsParams.resultSetIndex = resultSetNo;
+        self.saveResultsParams.batchIndex = batchIndex;
 
         // send message to the sqlserverclient for converting resuts to csv and saving to filepath
-        this._client.sendRequest(Contracts.SaveResultsRequest.type, saveResultsParams).then(result => {
+        return self._client.sendRequest(Contracts.SaveResultsRequest.type, this.saveResultsParams).then(result => {
                 if (result.messages === 'Success') {
-                    Utils.showInfoMsg('Results saved to ' + this._filePath);
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
                 } else {
-                    Utils.showErrorMsg(result.messages);
+                    self._vscodeWrapper.showErrorMessage(result.messages);
                 }
             }, error => {
-                Utils.showErrorMsg('Saving results failed: ' + error);
+                self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
             });
     }
 
-    public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number ): void {
+    public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number ): Thenable<void> {
         const self = this;
         // prompt for filepath
-        self.promptForFilepath().then(function(): void { self.sendRequestToService(uri, batchIndex, resultSetNo); } );
-    }
-
-    public onSaveResultsAsCsvCommand(): void {
-        const self = this;
-        // get file uri from editor
-        let editor = vscode.window.activeTextEditor;
-        // prompt for resultSetNo and batch number
-        self.promptForResultSetNo().then(function(): void {
-            self.onSaveResultsAsCsv(editor.document.uri.toString(), Number(self._batchIndex), Number(self._resultSetNo));
+        return self.promptForFilepath().then(function(filePath): void {
+            self.sendRequestToService(uri, filePath, batchIndex, resultSetNo);
         });
     }
 

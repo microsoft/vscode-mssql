@@ -211,6 +211,6 @@ export class DataService {
     sendSaveRequest(batchIndex: number, resultSetNumber: number): void {
         const self = this;
         self.http.get('/saveResults?'
-                             + '&uri=' + self.uri + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber);
+                             + '&uri=' + self.uri + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber).subscribe();
     }
 }
