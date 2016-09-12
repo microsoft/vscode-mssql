@@ -24,6 +24,11 @@ export class ConnectionInfo {
 
     // Credentials used to connect
     public credentials: Interfaces.IConnectionCredentials;
+
+    /**
+     * Information about the SQL Server instance.
+     */
+    public server: ConnectionContracts.ServerInfo;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -269,9 +274,14 @@ export default class ConnectionManager {
                     let connection = new ConnectionInfo();
                     connection.connectionId = result.connectionId;
                     connection.credentials = connectionCreds;
+                    connection.server = result.server;
                     self._connections[fileUri] = connection;
 
                     self.statusView.connectSuccess(fileUri, connectionCreds);
+
+                    this._vscodeWrapper.logToOutputChannel(
+                        Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.server))
+                    );
 
                     extensionTimer.end();
 
