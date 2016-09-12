@@ -6,7 +6,7 @@ import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
 import QueryRunner from '../controllers/queryRunner';
-import SaveResults from  '../models/saveResults';
+import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 
@@ -91,7 +91,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let uri: string = decodeURI(req.query.uri);
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
-            let saveResults = new SaveResults();
+            let saveResults = new ResultsSerializer();
             saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
             res.status = 200;
             res.send();

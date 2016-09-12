@@ -1,7 +1,7 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import Constants = require('../src/models/constants');
-import SaveResults  from './../src/models/saveResults';
+import ResultsSerializer  from './../src/models/resultsSerializer';
 import { SaveResultsRequest } from './../src/models/contracts';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { IQuestion, IPrompter } from '../src/prompts/question';
@@ -31,7 +31,7 @@ suite('save results tests', () => {
 
     test('initialise and check defaults for saveResults', () => {
 
-        let saveResults = new SaveResults();
+        let saveResults = new ResultsSerializer();
         assert.equal(typeof saveResults !== undefined, true);
         saveResults.sendRequestToService(testFile, filePath, 0, 0);
         assert.equal(saveResults.saveResultsParams.includeHeaders, true);
@@ -61,7 +61,7 @@ suite('save results tests', () => {
                                             return Promise.resolve({messages: undefined});
                                         });
 
-        let saveResults = new SaveResults(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
         saveResults.onSaveResultsAsCsv(testFile, 0, 0).then( () => {
             assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
         });
@@ -91,7 +91,7 @@ suite('save results tests', () => {
                                     .returns(() => {
                                         return Promise.resolve({messages: undefined});
                                     });
-        let saveResults = new SaveResults(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResultsAsCsv(testFile, 0, 0).then( () => {
                                     // check if filename is resolved to full path
                                     // resolvedpath = current directory + filename
@@ -114,7 +114,7 @@ suite('save results tests', () => {
                                         return Promise.resolve({messages: 'Success'});
                                     });
 
-        let saveResults = new SaveResults(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResultsAsCsv( testFile, 0, 0).then( () => {
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
@@ -135,7 +135,7 @@ suite('save results tests', () => {
                                     return Promise.resolve({messages: 'failure'});
                                 });
 
-        let saveResults = new SaveResults(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResultsAsCsv( testFile, 0, 0).then( () => {
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());

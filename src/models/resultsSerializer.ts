@@ -11,7 +11,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 /**
  *  Handles save results request from the context menu of slickGrid
  */
-export default class SaveResults {
+export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
