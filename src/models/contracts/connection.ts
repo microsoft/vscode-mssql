@@ -227,6 +227,11 @@ export class ConnectionResult {
      * Information about the connected server.
      */
     public server: ServerInfo;
+
+    /**
+     * information about the actual connection established
+     */
+    public connectionSummary: ConnectionSummary;
 }
 
 // ------------------------------- </ Connect Request > ---------------------------------------------
