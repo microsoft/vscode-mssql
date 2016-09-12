@@ -1,7 +1,7 @@
 'use strict';
 // import vscode = require('vscode');
 import Constants = require('./constants');
-import { IConnectionProfile } from './interfaces';
+import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
@@ -46,7 +46,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 placeHolder: Constants.profileNamePlaceholder,
                 onAnswered: (value) => {
                     // Fall back to a default name if none specified
-                    profile.profileName = value ? value : ConnectionProfile.formatProfileName(profile);
+                    profile.profileName = value ? value : undefined;
                 }
         });
 
@@ -59,19 +59,16 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         });
     }
 
-    private static formatProfileName(profile: IConnectionProfile ): string {
-        let name = profile.server;
-        if (profile.database) {
-            name = name + '-' + profile.database;
-        }
-        if (profile.user) {
-            name = name + '-' + profile.user;
-        }
-        return name;
-    }
-
     // Assumption: having server + profile name indicates all requirements were met
     private isValidProfile(): boolean {
-        return utils.isNotEmpty(this.server) && utils.isNotEmpty(this.profileName);
+        if (this.authenticationType) {
+            if (this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated]) {
+                return utils.isNotEmpty(this.server);
+            } else {
+                return utils.isNotEmpty(this.server)
+                    && utils.isNotEmpty(this.user);
+            }
+        }
+        return false;
     }
 }
