@@ -9,7 +9,6 @@ export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
-export const cmdSaveResultAsCsv = 'extension.saveResultsAsCsv';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;

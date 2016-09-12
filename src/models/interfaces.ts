@@ -9,7 +9,6 @@ export enum ContentType {
     ResultsetsMeta = 2,
     Columns = 3,
     Rows = 4,
-    // MoreRows = 5,
     SaveResults = 5
 };
 
@@ -19,8 +18,14 @@ export enum AuthenticationTypes {
     ActiveDirectoryUniversal = 3
 }
 
-export const ContentTypes = [Constants.outputContentTypeRoot, Constants.outputContentTypeMessages, Constants.outputContentTypeResultsetMeta,
-Constants.outputContentTypeColumns, Constants.outputContentTypeRows, Constants.outputContentTypeSaveResults];
+export const ContentTypes = [
+    Constants.outputContentTypeRoot,
+    Constants.outputContentTypeMessages,
+    Constants.outputContentTypeResultsetMeta,
+    Constants.outputContentTypeColumns,
+    Constants.outputContentTypeRows,
+    Constants.outputContentTypeSaveResults
+    ];
 
 /**
  * Interface exposed to the user for creating new database connections.

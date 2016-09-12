@@ -88,7 +88,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/saveResults' - return success message as JSON
         this._service.addHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
-            // Utils.logDebug(Constants.msgContentProviderOnMessagesEndpoint);
             let uri: string = decodeURI(req.query.uri);
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
