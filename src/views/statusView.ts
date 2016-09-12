@@ -100,11 +100,7 @@ export default class StatusView implements vscode.Disposable {
     public connectSuccess(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
-        if (connCreds.database !== '') {
-            bar.statusConnection.text = connCreds.server + ' : ' + connCreds.database + ' : ' + connCreds.user;
-        } else {
-            bar.statusConnection.text = connCreds.server + ' : ' + Constants.defaultDatabaseLabel + ' : ' + connCreds.user;
-        }
+        bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds);
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
