@@ -100,10 +100,11 @@
 
         function handleKeyDown(e) {
             var activeCell = _grid.getActiveCell();
-            e.stopImmediatePropagation();
             if((e.metaKey || e.ctrlKey) && e.which == 65) {
                 _ranges = [new Slick.Range(0, 0, _grid.getDataLength() - 1, _grid.getColumns().length)]
                 setSelectedRanges(_ranges);
+                e.preventDefault();
+-               e.stopPropagation();
             }
             // do we have a context to navigate on
             else if (activeCell) {
@@ -123,6 +124,8 @@
                         }
                         _grid.setActiveCell(activeCell.row, activeCell.cell - 1);
                         setSelectedRanges(_ranges);
+                        e.preventDefault();
+-                       e.stopPropagation();
                     // up arrow
                     } else if (e.which == 38 && activeCell.row > 0) {
                         if (e.shiftKey) {
@@ -137,6 +140,8 @@
                         }
                         _grid.setActiveCell(activeCell.row - 1, activeCell.cell);
                         setSelectedRanges(_ranges);
+                        e.preventDefault();
+-                       e.stopPropagation();
                     // right arrow
                     } else if (e.which == 39 && activeCell.cell < _grid.getColumns().length) {
                         if (e.shiftKey) {
@@ -151,6 +156,8 @@
                         }
                         _grid.setActiveCell(activeCell.row, activeCell.cell + 1);
                         setSelectedRanges(_ranges);
+                        e.preventDefault();
+-                       e.stopPropagation();
                     // down arrow
                     } else if (e.which == 40 && activeCell.row < _grid.getDataLength()) {
                         if (e.shiftKey) {
@@ -165,6 +172,8 @@
                         }
                         _grid.setActiveCell(activeCell.row + 1, activeCell.cell);
                         setSelectedRanges(_ranges);
+                        e.preventDefault();
+-                       e.stopPropagation();
                     }
                 }
             }
