@@ -1,7 +1,7 @@
 {
     "sqlToolsService": {
-        "downloadUrl": "http://10.128.17.86/sqltoolsservice/sqltoolsservice",
-        "version": "0.0.8",
+        "downloadUrl": "http://dtnuget:8080/download/microsoft.sqltools.servicelayer",
+        "version": "0.0.10",
         "installDir": "../../tools",
         "executableFiles": ["Microsoft.SqlTools.ServiceLayer.exe", "Microsoft.SqlTools.ServiceLayer", "Microsoft.SqlTools.ServiceLayer.dll"]
     }

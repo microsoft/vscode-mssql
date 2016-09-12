@@ -158,11 +158,11 @@ gulp.task('ext:copy-tests', () => {
 });
 
 gulp.task('ext:copy-config', () => {
-    let env = process.env.VsMsSqlEnv;
+    var env = process.env.VsMsSqlEnv;
     env = env == undefined ? "dev" : env;
     return gulp.src(config.paths.project.root + '/src/configurations/' + env + '.config.json')
-            .pipe(rename(config.paths.project.root + '/out/src/config.json'))
-            .pipe(gulp.dest(config.paths.project.root + '/out/src/'));
+            .pipe(rename('config.json'))
+            .pipe(gulp.dest(config.paths.project.root + '/out/src'));
 });
 
 gulp.task('ext:copy-js', () => {

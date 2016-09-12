@@ -80,18 +80,18 @@ export default class ServiceDownloadProvider {
 
         let client = url.protocol === 'http:' ? http : https;
         let options: http.RequestOptions = {
-            host: url.host,
+            host: url.hostname,
             path: url.path,
             agent: agent,
-            port: 80
+            port: +url.port
         };
 
         if (url.protocol === 'https:') {
             let httpsOptions: https.RequestOptions = {
-                    host: url.host,
+                    host: url.hostname,
                     path: url.path,
                     agent: agent,
-                    port: 80
+                    port: +url.port
             };
             options = httpsOptions;
         }
