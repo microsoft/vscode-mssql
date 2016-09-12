@@ -291,7 +291,13 @@ export default class ConnectionManager {
 
                     extensionTimer.end();
 
-                    Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {}, {
+                    Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {
+                        connectionType: connection.server.isCloud ? 'Azure' : 'Standalone',
+                        serverVersion: connection.server.serverVersion,
+                        serverOs: connection.server.osVersion
+                    }, {
+                        isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
+                        isWindowsAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
                         extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
                         serviceConnectionTime: serviceTimer.getDuration()
                     });
