@@ -162,7 +162,7 @@ export class AppComponent implements OnInit {
                 });
             };
 
-            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(200,
+            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(50,
                                                                                 self.totalRows,
                                                                                 loadDataFunction,
                                                                                 (index) => {

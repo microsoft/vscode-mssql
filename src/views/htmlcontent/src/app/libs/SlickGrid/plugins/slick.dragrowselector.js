@@ -101,8 +101,12 @@
         function handleKeyDown(e) {
             var activeCell = _grid.getActiveCell();
             e.stopImmediatePropagation();
+            if((e.metaKey || e.ctrlKey) && e.which == 65) {
+                _ranges = [new Slick.Range(0, 0, _grid.getDataLength() - 1, _grid.getColumns().length)]
+                setSelectedRanges(_ranges);
+            }
             // do we have a context to navigate on
-            if (activeCell) {
+            else if (activeCell) {
                 // arrow keys with non-selection
                 if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40) {
                     // left arrow
