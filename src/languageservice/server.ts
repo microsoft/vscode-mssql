@@ -47,7 +47,7 @@ export default class ServerProvider {
                 let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
                 executableFiles.forEach(element => {
                     let executableFile = path.join(filePath, element);
-                    if (fs.existsSync(executableFile)) {
+                    if (candidate === undefined && fs.existsSync(executableFile)) {
                         candidate = executableFile;
                         return candidate;
                     }

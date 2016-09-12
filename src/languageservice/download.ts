@@ -170,6 +170,7 @@ export default class ServiceDownloadProvider {
                 })
                 .catch(err => {
                     Utils.logDebug('[ERROR] ${err}');
+                    reject(err);
                 });
         }).then(res => {
             return res;
