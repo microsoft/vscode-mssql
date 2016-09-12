@@ -56,14 +56,16 @@ export default class SaveResults {
         // get save results config from vscode config
         let config = vscode.workspace.getConfiguration(Constants.extensionName);
         let saveConfig = config[Constants.configSaveAsCsv];
-        if (saveConfig.encoding) {
-            this.saveResultsParams.fileEncoding  = saveConfig.encoding;
-        }
-        if (saveConfig.includeHeaders) {
-            this.saveResultsParams.includeHeaders = saveConfig.includeHeaders;
-        }
-        if (saveConfig.valueInQuotes) {
-            this.saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
+        if ( saveConfig) {
+            if (saveConfig.encoding) {
+                this.saveResultsParams.fileEncoding  = saveConfig.encoding;
+            }
+            if (saveConfig.includeHeaders) {
+                this.saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+            }
+            if (saveConfig.valueInQuotes) {
+                this.saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
+            }
         }
     }
 
