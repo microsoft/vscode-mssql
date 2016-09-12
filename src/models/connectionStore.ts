@@ -91,7 +91,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
             self.loadAllConnections()
-            .then(pickListItems => {
+            .then((pickListItems: IConnectionCredentialsQuickPickItem[]) => {
                 // Always add an "Add New Connection" quickpick item
                 pickListItems.push(<IConnectionCredentialsQuickPickItem> {
                         label: Constants.CreateProfileLabel,
