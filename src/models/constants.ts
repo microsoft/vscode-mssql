@@ -21,11 +21,13 @@ export const outputContentTypeMessages = 'messages';
 export const outputContentTypeResultsetMeta = 'resultsetsMeta';
 export const outputContentTypeColumns = 'columns';
 export const outputContentTypeRows = 'rows';
+export const outputContentTypeSaveResults = 'saveResults';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
+export const configSaveAsCsv = 'saveAsCsv';
 
 // localizable strings
 export const configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
@@ -88,7 +90,12 @@ export const msgSavePassword = 'Save Password? If \'No\', password will be requi
 export const profileNamePrompt = 'Profile Name';
 export const profileNamePlaceholder = 'optional - enter a name for this profile';
 
+export const filepathPrompt = 'File path';
+export const filepathPlaceholder = 'Enter full path or simply file name';
+
+export const msgSelectProfile = 'Select Connection Profile';
 export const msgSelectProfileToRemove = 'Select profile to remove';
+
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';

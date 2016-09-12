@@ -9,6 +9,10 @@
                         showHeader="true"
                         class="boxRow content box">
             </slick-grid>
+            <ul class="contextMenu" style="display:none;position:absolute">
+                <b>Save Results As:</b>
+                <li id="csv" (click)="saveResultsAsCsv()">CSV</li>
+            </ul>
         </tab>
         <tab [id]="SelectedTab.Messages" tabTitle="Messages" [show]="messages.length > 0">
             <div *ngFor="let message of messages">
