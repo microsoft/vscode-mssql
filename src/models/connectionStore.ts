@@ -91,8 +91,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
             self.loadAllConnections()
-            .then(function(pickListItems: IConnectionCredentialsQuickPickItem[]): void
-            {
+            .then(pickListItems => {
                 // Always add an "Add New Connection" quickpick item
                 pickListItems.push(<IConnectionCredentialsQuickPickItem> {
                         label: Constants.CreateProfileLabel,
@@ -157,7 +156,7 @@ export class ConnectionStore {
             }
 
             // Remove the profile if already set
-            configValues = configValues.filter(value => !ConnectionStore.isSameProfile(value, profile));
+            configValues = configValues.filter(value => !Utils.isSameProfile(value, profile));
 
             // Add the profile to the saved list, taking care to clear out the password field
             let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
@@ -178,33 +177,6 @@ export class ConnectionStore {
                 reject(err);
             });
         });
-    }
-
-    /**
-     * Compares 2 profiles to see if they match. Logic for matching:
-     * If a profile name is used, can simply match on this.
-     * If not, match on all key properties (server, db, auth type, user) being identical.
-     * Other properties are ignored for this purpose
-     *
-     * @param {IConnectionProfile} currentProfile the profile to check
-     * @param {IConnectionProfile} expectedProfile the profile to try to match
-     * @returns boolean that is true if the profiles match
-     */
-    private static isSameProfile(currentProfile: IConnectionProfile, expectedProfile: IConnectionProfile): boolean {
-        if (currentProfile === undefined) {
-            return false;
-        }
-        if (expectedProfile.profileName) {
-            // Can match on profile name
-            return expectedProfile.profileName === currentProfile.profileName;
-        } else if (currentProfile.profileName) {
-            // This has a profile name but expected does not - can break early
-            return false;
-        }
-        return expectedProfile.server === currentProfile.server
-            && expectedProfile.database === currentProfile.database
-            && expectedProfile.authenticationType === currentProfile.authenticationType
-            && expectedProfile.user === currentProfile.user;
     }
 
     private savePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
@@ -245,7 +217,7 @@ export class ConnectionStore {
             // Remove the profile if already set
             let found: boolean = false;
             configValues = configValues.filter(value => {
-                if (ConnectionStore.isSameProfile(value, profile)) {
+                if (Utils.isSameProfile(value, profile)) {
                     // remove just this profile
                     found = true;
                     return false;

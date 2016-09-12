@@ -167,6 +167,34 @@ export function formatString(str: string, ...args: any[]): string {
     return result;
 }
 
+
+/**
+ * Compares 2 profiles to see if they match. Logic for matching:
+ * If a profile name is used, can simply match on this.
+ * If not, match on all key properties (server, db, auth type, user) being identical.
+ * Other properties are ignored for this purpose
+ *
+ * @param {IConnectionProfile} currentProfile the profile to check
+ * @param {IConnectionProfile} expectedProfile the profile to try to match
+ * @returns boolean that is true if the profiles match
+ */
+export function isSameProfile(currentProfile: interfaces.IConnectionProfile, expectedProfile: interfaces.IConnectionProfile): boolean {
+    if (currentProfile === undefined) {
+        return false;
+    }
+    if (expectedProfile.profileName) {
+        // Can match on profile name
+        return expectedProfile.profileName === currentProfile.profileName;
+    } else if (currentProfile.profileName) {
+        // This has a profile name but expected does not - can break early
+        return false;
+    }
+    return expectedProfile.server === currentProfile.server
+        && expectedProfile.database === currentProfile.database
+        && expectedProfile.authenticationType === currentProfile.authenticationType
+        && expectedProfile.user === currentProfile.user;
+}
+
 // One-time use timer for performance testing
 export class Timer {
     private _startTime: number[];
