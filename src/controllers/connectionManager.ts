@@ -212,11 +212,11 @@ export default class ConnectionManager {
                     // connect to the server/database
                     self.connect(fileUri, connectionCreds)
                     .then(function(): void {
-                        resolve();
+                        resolve(true);
                     });
                 });
             } else {
-                resolve();
+                resolve(false);
             }
         });
     }
