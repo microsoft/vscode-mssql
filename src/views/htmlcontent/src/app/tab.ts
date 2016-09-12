@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, Input, ContentChild, AfterViewInit, ElementRef, forwardRef, Inject } from '@angular/core';
+import { Component, Input, ContentChild, AfterContentChecked, AfterViewInit, ElementRef, forwardRef, Inject } from '@angular/core';
 import { SlickGrid } from './slickgrid/SlickGrid';
 
 enum SelectedTab {
@@ -14,6 +14,7 @@ enum SelectedTab {
  * Defines a Tab component which is the content of a tab on the page (to be used with the Tabs
  * component)
  */
+
 @Component({
     selector: 'tab',
     styles: [`
@@ -25,7 +26,7 @@ enum SelectedTab {
         <ng-content></ng-content>
         </div>`
 })
-export class Tab implements AfterViewInit {
+export class Tab implements AfterContentChecked, AfterViewInit {
     @Input('tabTitle') title: string;
     @Input() id: SelectedTab;
     @Input() show: boolean;
@@ -50,6 +51,15 @@ export class Tab implements AfterViewInit {
 
     public get active(): boolean {
         return this._active;
+    }
+
+    /**
+     * Called by angular
+     */
+    ngAfterContentChecked(): void {
+        if (this.slickgrid) {
+            this.slickgrid.onResize();
+        }
     }
 
     /**
