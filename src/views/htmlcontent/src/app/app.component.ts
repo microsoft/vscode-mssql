@@ -39,7 +39,6 @@ enum SelectedTab {
     providers: [DataService]
 })
 
-
 export class AppComponent implements OnInit {
     private columnDefinitions: IColumnDefinition[] = [];
     private dataRows: IObservableCollection<IGridDataRow>;
@@ -80,7 +79,6 @@ export class AppComponent implements OnInit {
                 }
             });
         });
-
     }
 
     /**
