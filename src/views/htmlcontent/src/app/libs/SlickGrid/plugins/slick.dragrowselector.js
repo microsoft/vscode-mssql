@@ -9,7 +9,7 @@
     });
 
     function DragRowSelectionModel(options) {
-        const left_arrow = 37, up_arrow = 38, right_arrow = 39, down_arrow = 40, a_key = 65;
+        const left_arrow = 37, up_arrow = 38, right_arrow = 39, down_arrow = 40, a_key = 65, c_key = 67;
         var _grid;
         var _dragStart;
         var _dragRow;
@@ -106,7 +106,24 @@
                 _ranges = [new Slick.Range(0, 0, _grid.getDataLength() - 1, _grid.getColumns().length)]
                 setSelectedRanges(_ranges);
                 e.preventDefault();
--               e.stopPropagation();
+                e.stopPropagation();
+            }
+            // copy paste
+            else if ((e.ctrlKey || e.metaKey) && e.which == c_key) {
+                var selection = getSelectedRanges();
+                var data = _grid.getDataItem(selection[0].fromRow);
+                var copystring = '';
+                for(let i = 0; i < selection.length; i++) {
+                    for(let rowIndex = selection[i].fromRow; rowIndex <= selection[i].toRow; rowIndex++) {
+                        var row = _grid.getDataItem(rowIndex);
+                        for(let key in row) {
+                            if(row.hasOwnProperty(key)) {
+                                copystring += row[key];
+                            }
+                        }
+                    }
+                }
+                copy(copystring);
             }
             // do we have a context to navigate on
             else if (activeCell) {
@@ -127,7 +144,7 @@
                         _grid.setActiveCell(activeCell.row, activeCell.cell - 1);
                         setSelectedRanges(_ranges);
                         e.preventDefault();
--                       e.stopPropagation();
+                        e.stopPropagation();
                     // up arrow
                     } else if (e.which == up_arrow && activeCell.row > 0) {
                         if (e.shiftKey) {
@@ -143,7 +160,7 @@
                         _grid.setActiveCell(activeCell.row - 1, activeCell.cell);
                         setSelectedRanges(_ranges);
                         e.preventDefault();
--                       e.stopPropagation();
+                        e.stopPropagation();
                     // right arrow
                     } else if (e.which == right_arrow && activeCell.cell < _grid.getColumns().length) {
                         if (e.shiftKey) {
@@ -159,7 +176,7 @@
                         _grid.setActiveCell(activeCell.row, activeCell.cell + 1);
                         setSelectedRanges(_ranges);
                         e.preventDefault();
--                       e.stopPropagation();
+                        e.stopPropagation();
                     // down arrow
                     } else if (e.which == down_arrow && activeCell.row < _grid.getDataLength()) {
                         if (e.shiftKey) {
@@ -175,7 +192,7 @@
                         _grid.setActiveCell(activeCell.row + 1, activeCell.cell);
                         setSelectedRanges(_ranges);
                         e.preventDefault();
--                       e.stopPropagation();
+                        e.stopPropagation();
                     }
                 }
             }
