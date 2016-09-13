@@ -73,9 +73,7 @@ export default class SqlToolsServiceClient {
                 this.client = new LanguageClient('sqlserverclient', serverOptions, clientOptions);
                 this.client.onReady().then( () => {
                     this.checkServiceCompatibility();
-                }).catch(err => {
-                        reject(err);
-                    });
+                });
                 // Create the language client and start the client.
                 let disposable = this.client.start();
 
@@ -84,9 +82,7 @@ export default class SqlToolsServiceClient {
                 context.subscriptions.push(disposable);
                 resolve(true);
 
-            }).catch(err => {
-                reject(err);
-              });
+            });
         });
     }
 

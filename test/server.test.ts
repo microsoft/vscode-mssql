@@ -78,7 +78,7 @@ suite('Server tests', () => {
 
     test('getServerPath should download the service if not exist and return the valid service file path', () => {
         let installDir = __dirname;
-        let fileName: string = __filename.replace(installDir + '\\', '');
+        let fileName: string = __filename.replace(installDir, '');
         const platform = getCurrentPlatform();
         let executables: string[]  = ['exeFile1'];
 
@@ -100,7 +100,7 @@ suite('Server tests', () => {
 
     test('getServerPath should not download the service if already exist', () => {
         let installDir = __dirname;
-        let fileName: string = __filename.replace(installDir + '\\', '');
+        let fileName: string = __filename.replace(installDir, '');
         let executables: string[]  = [fileName];
 
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => executables);

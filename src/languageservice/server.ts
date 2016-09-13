@@ -13,7 +13,9 @@ import StatusView from '../views/statusView';
 import Config from  '../configurations/config';
 let fs = require('fs-extra-promise');
 
-
+/*
+* Service Provider class finds the SQL tools service executable file or downloads it if doesn't exist.
+*/
 export default class ServerProvider {
 
     constructor(private _downloadProvider?: ServiceDownloadProvider,

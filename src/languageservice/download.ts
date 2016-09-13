@@ -22,11 +22,17 @@ const decompress = require('decompress');
 
 tmp.setGracefulCleanup();
 
+/*
+* Service Download Provider class which handles downloading the SQL Tools service.
+*/
 export default class ServiceDownloadProvider {
 
     constructor(private _config: Config) {
     }
 
+   /**
+    * Returns the download url for given platfotm
+    */
     public getDownloadFileName(platform: Platform): string {
         let fileName = 'microsoft.sqltools.servicelayer-';
 
@@ -69,7 +75,7 @@ export default class ServiceDownloadProvider {
         return fileName;
     }
 
-    public download(urlString: string, proxy?: string, strictSSL?: boolean): Promise<stream.Readable> {
+    private download(urlString: string, proxy?: string, strictSSL?: boolean): Promise<stream.Readable> {
         process.on('uncaughtException', function (err): void {
             console.log(err);
         });
@@ -110,6 +116,9 @@ export default class ServiceDownloadProvider {
         });
     }
 
+   /**
+    * Returns SQL tools service installed folder.
+    */
     public getInstallDirectory(): string {
         let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
         const basePath = path.join(__dirname, installDirFromConfig);
@@ -119,6 +128,9 @@ export default class ServiceDownloadProvider {
         return basePath;
     }
 
+   /**
+    * Downloads the SQL tools service and decompress it in the install folder.
+    */
     public go(platform: Platform): Promise<boolean> {
         const config = workspace.getConfiguration();
         const proxy = config.get<string>('http.proxy');

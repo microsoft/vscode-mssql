@@ -19,6 +19,9 @@ function getSystemProxyURL(requestURL: Url): string {
     return undefined;
 }
 
+/*
+ * Returns the proxy agent using the proxy url in the parameters or the system proxy. Returns null if no proxy found
+ */
 export function getProxyAgent(requestURL: Url, proxy?: string, strictSSL?: boolean): any {
     const proxyURL = proxy || getSystemProxyURL(requestURL);
 
