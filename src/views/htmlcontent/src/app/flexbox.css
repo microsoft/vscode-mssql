@@ -1,28 +1,34 @@
 html,
 body {
-  height: 100%;
-  margin: 0;
+    height: 100%;
+    margin: 0;
 }
 
 .fullsize {
-  height: 100%;
+    height: 100%;
 }
 
 .box {
-  display: flex;
-  flex-flow: column;
-  min-height: min-content;
+    display: flex;
+    flex-flow: column;
+    min-height: min-content;
 }
 
 .box .boxRow.header {
-  flex: 0 0 auto;
+    flex: 0 0 auto;
 }
 
 .box .boxRow.content {
-  flex: 1 0 1%;
-  overflow: auto;
+    flex: 1 0 1%;
+    overflow: auto;
+}
+
+.box .boxRow.content .slickgrid {
+    flex: 1 0 1%;
+    overflow: auto;
+    min-height: 232
 }
 
 .hidden {
-  display: none;
+    display: none;
 }
