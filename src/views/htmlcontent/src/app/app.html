@@ -1,18 +1,16 @@
 <div class="fullsize box">
-
-    <navigator [batches]="resultOptions" (selectionChange)="selectionChange($event)" class="boxRow header"></navigator>
     <tabs class="boxRow content box" [selected]="selected" (tabChange)="tabChange($event)">
-        <tab [id]="SelectedTab.Results" tabTitle="Results" [show]="columnDefinitions.length > 0" class="boxRow content box">
-            <slick-grid [columnDefinitions]="columnDefinitions"
-                        [dataRows]="dataRows"
+        <tab [id]="SelectedTab.Results" tabTitle="Results" [show]="dataSets.length > 0" class="boxRow content box">
+            <slick-grid *ngFor="let dataSet of dataSets"
+                        [columnDefinitions]="dataSet.columnDefinitions"
+                        [dataRows]="dataSet.dataRows"
+                        (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId)"
                         showDataTypeIcon="false"
                         showHeader="true"
-                        class="boxRow content box">
+                        class="box"
+                        style="height: 30%">
             </slick-grid>
-            <ul class="contextMenu" style="display:none;position:absolute">
-                <b>Save Results As:</b>
-                <li id="csv" (click)="saveResultsAsCsv()">CSV</li>
-            </ul>
+            <context-menu (clickEvent)="handleContextClick($event)"></context-menu>
         </tab>
         <tab [id]="SelectedTab.Messages" tabTitle="Messages" [show]="messages.length > 0">
             <div *ngFor="let message of messages">

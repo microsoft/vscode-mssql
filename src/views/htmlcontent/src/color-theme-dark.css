@@ -48,3 +48,14 @@ a {
 a:hover {
   color: #ff8033;
 }
+
+::-webkit-scrollbar {
+  width: auto;
+  height: auto;
+}
+::-webkit-scrollbar-thumb {
+  background: #bbb;
+}
+::-webkit-scrollbar-track {
+  background: #333;
+}

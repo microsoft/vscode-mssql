@@ -11,11 +11,7 @@ body {
 .box {
   display: flex;
   flex-flow: column;
-}
-
-.innerbox {
-  display: flex;
-  flex-flow: column;
+  min-height: min-content;
 }
 
 .box .boxRow.header {
@@ -24,6 +20,7 @@ body {
 
 .box .boxRow.content {
   flex: 1 0 1%;
+  overflow: auto;
 }
 
 .hidden {

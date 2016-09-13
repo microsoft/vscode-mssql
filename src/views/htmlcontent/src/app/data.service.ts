@@ -64,8 +64,6 @@ export class DataService {
                 self.getMetaData().then(() => {
                     if (self.batchSets[batchId].resultSets.length > 0) {
                         resolve(self.batchSets[batchId].resultSets.length);
-                    } else {
-                        resolve(1);
                     }
                 });
             });
@@ -73,8 +71,6 @@ export class DataService {
             return new Promise<number>((resolve, reject) => {
                 if (self.batchSets[batchId].resultSets.length > 0) {
                     resolve(self.batchSets[batchId].resultSets.length);
-                } else {
-                    resolve(1);
                 }
             });
         }
