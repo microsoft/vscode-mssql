@@ -9,6 +9,7 @@
     });
 
     function DragRowSelectionModel(options) {
+        const left_arrow = 37, up_arrow = 38, right_arrow = 39, down_arrow = 40, a_key = 65;
         var _grid;
         var _dragStart;
         var _dragRow;
@@ -100,7 +101,8 @@
 
         function handleKeyDown(e) {
             var activeCell = _grid.getActiveCell();
-            if((e.metaKey || e.ctrlKey) && e.which == 65) {
+            // ctrl + a
+            if((e.metaKey || e.ctrlKey) && e.which == a_key) {
                 _ranges = [new Slick.Range(0, 0, _grid.getDataLength() - 1, _grid.getColumns().length)]
                 setSelectedRanges(_ranges);
                 e.preventDefault();
@@ -111,7 +113,7 @@
                 // arrow keys with non-selection
                 if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40) {
                     // left arrow
-                    if (e.which == 37 && activeCell.cell > 1) {
+                    if (e.which == left_arrow && activeCell.cell > 1) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
                             var fromRow = Math.min(activeCell.row, last.fromRow);
@@ -127,7 +129,7 @@
                         e.preventDefault();
 -                       e.stopPropagation();
                     // up arrow
-                    } else if (e.which == 38 && activeCell.row > 0) {
+                    } else if (e.which == up_arrow && activeCell.row > 0) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
                             var fromRow = Math.min(activeCell.row - 1, last.fromRow);
@@ -143,7 +145,7 @@
                         e.preventDefault();
 -                       e.stopPropagation();
                     // right arrow
-                    } else if (e.which == 39 && activeCell.cell < _grid.getColumns().length) {
+                    } else if (e.which == right_arrow && activeCell.cell < _grid.getColumns().length) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
                             var fromRow = Math.min(activeCell.row, last.fromRow);
@@ -159,7 +161,7 @@
                         e.preventDefault();
 -                       e.stopPropagation();
                     // down arrow
-                    } else if (e.which == 40 && activeCell.row < _grid.getDataLength()) {
+                    } else if (e.which == down_arrow && activeCell.row < _grid.getDataLength()) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
                             var fromRow = Math.min(activeCell.row + 1, last.fromRow);
