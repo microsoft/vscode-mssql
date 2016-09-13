@@ -5,11 +5,13 @@ import * as TypeMoq from 'typemoq';
 import vscode = require('vscode');
 import * as utils from '../src/models/utils';
 import * as connectionInfo from '../src/models/connectionInfo';
-import { TestExtensionContext, TestMemento } from './stubs';
-import { IConnectionProfile, CredentialsQuickPickItemType, AuthenticationTypes } from '../src/models/interfaces';
+import * as Constants from '../src/models/constants';
+import * as stubs from './stubs';
+import { IConnectionProfile, IConnectionCredentials, CredentialsQuickPickItemType, AuthenticationTypes } from '../src/models/interfaces';
 import { CredentialStore } from '../src/credentialstore/credentialstore';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionStore } from '../src/models/connectionStore';
+import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 import assert = require('assert');
 
@@ -19,6 +21,7 @@ suite('ConnectionStore tests', () => {
     let context: TypeMoq.Mock<vscode.ExtensionContext>;
     let globalstate: TypeMoq.Mock<vscode.Memento>;
     let credentialStore: TypeMoq.Mock<CredentialStore>;
+    let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
 
     setup(() => {
         defaultNamedProfile = Object.assign(new ConnectionProfile(), {
@@ -39,10 +42,22 @@ suite('ConnectionStore tests', () => {
             password: 'asdf!@#$'
         });
 
-        context = TypeMoq.Mock.ofType(TestExtensionContext);
-        globalstate = TypeMoq.Mock.ofType(TestMemento);
+        context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
+        globalstate = TypeMoq.Mock.ofType(stubs.TestMemento);
         context.object.globalState = globalstate.object;
         credentialStore = TypeMoq.Mock.ofType(CredentialStore);
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+
+        // setup default behavior for vscodeWrapper
+        // setup configuration to return maxRecent for the #MRU items
+        let maxRecent = 5;
+        let configResult: {[key: string]: any} = {};
+        configResult[Constants.configMaxRecentConnections] = maxRecent;
+        let config = stubs.createWorkspaceConfiguration(configResult);
+        vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+        .returns(x => {
+            return config;
+        });
     });
 
     test('formatCredentialId should handle server, DB and username correctly', () => {
@@ -140,13 +155,13 @@ suite('ConnectionStore tests', () => {
 
         let capturedCreds: any;
         credentialStore.setup(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback((cred: string, pass: any) => {
-                capturedCreds = {
-                    'credentialId': cred,
-                    'password': pass
-                };
-            })
-            .returns(() => Promise.resolve(true));
+        .callback((cred: string, pass: any) => {
+            capturedCreds = {
+                'credentialId': cred,
+                'password': pass
+            };
+        })
+        .returns(() => Promise.resolve(true));
 
         let expectedCredFormat: string = ConnectionStore.formatCredentialId(defaultNamedProfile.server, defaultNamedProfile.database, defaultNamedProfile.user);
 
@@ -283,5 +298,158 @@ suite('ConnectionStore tests', () => {
                 done();
             }).catch(err => done(new Error(err)));
     });
+
+    test('addRecentlyUsed should limit saves to the MaxRecentConnections amount ', (done) => {
+        // Given 3 is the max # creds
+        let numCreds = 4;
+        let maxRecent = 3;
+
+        // setup configuration to return maxRecent for the #MRU items - must override vscodeWrapper in this test
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        let configResult: {[key: string]: any} = {};
+        configResult[Constants.configMaxRecentConnections] = maxRecent;
+        let config = stubs.createWorkspaceConfiguration(configResult);
+        vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+        .returns(x => {
+            return config;
+        });
+
+        // setup memento for MRU to return a list we have access to
+        let creds: IConnectionCredentials[] = [];
+        globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => creds.slice(0, creds.length));
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
+            .returns((id: string, credsToSave: IConnectionCredentials[]) => {
+                creds = credsToSave;
+                return Promise.resolve();
+            });
+
+        // When saving 4 connections
+        // Then expect the only the 3 most recently saved connections to be returned as size is limited to 3
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+
+        // Note: chaining promises in for loop together so they run serially. Otherwise they'll go in parallel and
+        // cause issues with test execution
+        let promise = Promise.resolve();
+        for (let i = 0; i < numCreds; i++) {
+            let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + i});
+            promise = promise.then(() => {
+                return connectionStore.addRecentlyUsed(cred);
+            }).then(() => {
+                if (i < maxRecent) {
+                    assert.equal(creds.length, i + 1, 'expect all credentials to be saved when limit not reached');
+                } else {
+                    assert.equal(creds.length, maxRecent, `expect only top ${maxRecent} creds to be saved`);
+                }
+                assert.equal(creds[0].server, cred.server, 'Expect most recently saved item to be first in list');
+                assert.ok(utils.isEmpty(creds[0].password));
+            });
+        }
+        promise.then(() => {
+            credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.exactly(numCreds));
+            let recentConnections = connectionStore.getRecentlyUsedConnections();
+            assert.equal(maxRecent, recentConnections.length);
+            done();
+        }, err => {
+            // Must call done here so test indicates it's finished if errors occur
+            done(err);
+        });
+    });
+
+    test('addRecentlyUsed should add same connection exactly once', (done) => {
+        // setup memento for MRU to return a list we have access to
+        let creds: IConnectionCredentials[] = [];
+        globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => creds.slice(0, creds.length));
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
+            .returns((id: string, credsToSave: IConnectionCredentials[]) => {
+                creds = credsToSave;
+                return Promise.resolve();
+            });
+
+        // Given we save the same connection twice
+        // Then expect the only 1 instance of that connection to be listed in the MRU
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+
+        // Note: chaining promises in for loop together so they run serially. Otherwise they'll go in parallel and
+        // cause issues with test execution
+        let promise = Promise.resolve();
+        let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + 1});
+        promise = promise.then(() => {
+            return connectionStore.addRecentlyUsed(defaultNamedProfile);
+        }).then(() => {
+            return connectionStore.addRecentlyUsed(cred);
+        }).then(() => {
+            return connectionStore.addRecentlyUsed(cred);
+        }).then(() => {
+            assert.equal(creds.length, 2, 'expect 2 unique credentials to have been added');
+            assert.equal(creds[0].server, cred.server, 'Expect most recently saved item to be first in list');
+            assert.ok(utils.isEmpty(creds[0].password));
+        }).then(() => done(), err => done(err));
+    });
+
+    test('addRecentlyUsed should save password to credential store', (done) => {
+        // setup memento for MRU to return a list we have access to
+        let creds: IConnectionCredentials[] = [];
+        globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => creds.slice(0, creds.length));
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
+            .returns((id: string, credsToSave: IConnectionCredentials[]) => {
+                creds = credsToSave;
+                return Promise.resolve();
+            });
+
+        // Setup credential store to capture credentials sent to it
+        let capturedCreds: any;
+        credentialStore.setup(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .callback((cred: string, pass: any) => {
+            capturedCreds = {
+                'credentialId': cred,
+                'password': pass
+            };
+        })
+        .returns(() => Promise.resolve(true));
+
+        // Given we save 1 connection with password and multiple other connections without
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+        let integratedCred = Object.assign({}, defaultNamedProfile, {
+            server: defaultNamedProfile.server + 'Integrated',
+            authenticationType: AuthenticationTypes[AuthenticationTypes.Integrated],
+            user: '',
+            password: ''
+        });
+        let noPwdCred = Object.assign({}, defaultNamedProfile, {
+            server: defaultNamedProfile.server + 'NoPwd',
+            password: ''
+        });
+
+        let expectedCredCount = 0;
+        let promise = Promise.resolve();
+        promise = promise.then(() => {
+            expectedCredCount++;
+            return connectionStore.addRecentlyUsed(defaultNamedProfile);
+        }).then(() => {
+            // Then verify that since its password based we save the password
+            credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            assert.strictEqual(capturedCreds.password, defaultNamedProfile.password);
+            let credId: string = capturedCreds.credentialId;
+            assert.ok(credId.includes(ConnectionStore.CRED_MRU_USER), 'Expect credential to be marked as an MRU cred');
+            assert.ok(utils.isEmpty(creds[0].password));
+        }).then(() => {
+            // When add integrated auth connection
+            expectedCredCount++;
+            return connectionStore.addRecentlyUsed(integratedCred);
+        }).then(() => {
+            // then expect no to have credential store called, but MRU count upped to 2
+            credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            assert.equal(creds.length, expectedCredCount, `expect ${expectedCredCount} unique credentials to have been added`);
+        }).then(() => {
+            // When add connection without password
+            expectedCredCount++;
+            return connectionStore.addRecentlyUsed(noPwdCred);
+        }).then(() => {
+            // then expect no to have credential store called, but MRU count upped to 3
+            credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            assert.equal(creds.length, expectedCredCount, `expect ${expectedCredCount} unique credentials to have been added`);
+        }).then(() => done(), err => done(err));
+    });
+
 });
 

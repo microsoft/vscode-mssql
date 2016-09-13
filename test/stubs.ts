@@ -39,4 +39,26 @@ class TestMemento implements vscode.Memento {
     }
 }
 
-export { TestPrompter, TestExtensionContext, TestMemento };
+function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.WorkspaceConfiguration {
+    const result: vscode.WorkspaceConfiguration = {
+        has(key: string): boolean {
+            return items[key] !== 'undefined';
+        },
+        get<T>(key: string, defaultValue?: T): T {
+            let val = items[key];
+            if (typeof val === 'undefined') {
+                val = defaultValue;
+            }
+            return val;
+        }
+    };
+
+    // Copy properties across so that indexer works as expected
+    Object.keys(items).forEach((key) => {
+        result[key] = items[key];
+    });
+
+    return Object.freeze(result);
+}
+
+export { TestPrompter, TestExtensionContext, TestMemento, createWorkspaceConfiguration };

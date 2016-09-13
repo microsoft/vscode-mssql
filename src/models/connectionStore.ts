@@ -4,6 +4,7 @@ import Constants = require('./constants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
@@ -17,15 +18,16 @@ import { CredentialStore } from '../credentialstore/credentialstore';
  */
 export class ConnectionStore {
 
-    private _context: vscode.ExtensionContext;
-    private _credentialStore: ICredentialStore;
+    constructor(
+        private _context: vscode.ExtensionContext,
+        private _credentialStore?: ICredentialStore,
+        private _vscodeWrapper?: VscodeWrapper) {
 
-    constructor(context: vscode.ExtensionContext, credentialStore?: ICredentialStore) {
-        this._context = context;
-        if (credentialStore) {
-            this._credentialStore = credentialStore;
-        } else {
+        if (!this._credentialStore) {
             this._credentialStore = new CredentialStore();
+        }
+        if (!this._vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
         }
     }
 
@@ -164,7 +166,7 @@ export class ConnectionStore {
             self._context.globalState.update(Constants.configMyConnections, configValues)
             .then(() => {
                 // Only save if we successfully added the profile
-                return self.savePasswordIfNeeded(profile);
+                return self.saveProfilePasswordIfNeeded(profile);
                 // And resolve / reject at the end of the process
             }, err => {
                 reject(err);
@@ -179,12 +181,75 @@ export class ConnectionStore {
         });
     }
 
-    private savePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+    /**
+     * Gets the list of recently used connections. These will not include the password - a separate call to
+     * {addSavedPassword} is needed to fill that before connecting
+     *
+     * @returns {IConnectionCredentials[]} the array of connections, empty if none are found
+     */
+    public getRecentlyUsedConnections(): IConnectionCredentials[] {
+        let configValues = this._context.globalState.get<IConnectionCredentials[]>(Constants.configRecentConnections);
+        if (!configValues) {
+            configValues = [];
+        }
+        return configValues;
+    }
+
+    /**
+     * Adds a connection to the recently used list.
+     * Password values are stored to a separate credential store if the "savePassword" option is true
+     *
+     * @param {IConnectionCredentials} conn the connection to add
+     * @returns {Promise<void>} a Promise that returns when the connection was saved
+     */
+    public addRecentlyUsed(conn: IConnectionCredentials): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            // Get all profiles
+            let configValues = self._context.globalState.get<IConnectionCredentials[]>(Constants.configRecentConnections);
+            if (!configValues) {
+                configValues = [];
+            }
+            let maxConnections = self.getMaxRecentConnectionsCount();
+
+            // Remove the connection from the list if it already exists
+            configValues = configValues.filter(value => !Utils.isSameConnection(value, conn));
+
+            // Add the connection to the front of the list, taking care to clear out the password field
+            let savedConn: IConnectionCredentials = Object.assign({}, conn, { password: '' });
+            configValues.unshift(savedConn);
+
+            // Remove last element if needed
+            if (configValues.length > maxConnections) {
+                configValues = configValues.slice(0, maxConnections);
+            }
+
+            self._context.globalState.update(Constants.configRecentConnections, configValues)
+            .then(() => {
+                // Only save if we successfully added the profile
+                self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                // And resolve / reject at the end of the process
+                resolve(undefined);
+            }, err => {
+                reject(err);
+            });
+        });
+    }
+
+    private saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+        if (!profile.savePassword) {
+            return Promise.resolve(true);
+        }
+        return this.doSavePassword(profile, CredentialsQuickPickItemType.Profile);
+    }
+
+    private doSavePassword(conn: IConnectionCredentials, type: CredentialsQuickPickItemType): Promise<boolean> {
         let self = this;
         return new Promise<boolean>((resolve, reject) => {
-            if (profile.savePassword === true && Utils.isNotEmpty(profile.password)) {
-                let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
-                self._credentialStore.saveCredential(credentialId, profile.password)
+            if (Utils.isNotEmpty(conn.password)) {
+                let credType: string = type === CredentialsQuickPickItemType.Mru ? ConnectionStore.CRED_MRU_USER : ConnectionStore.CRED_PROFILE_USER;
+                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType);
+                self._credentialStore.saveCredential(credentialId, conn.password)
                 .then((result) => {
                     resolve(result);
                 }).catch(err => {
@@ -192,7 +257,6 @@ export class ConnectionStore {
                     reject(err);
                 });
             } else {
-                // Operation successful as didn't need to save
                 resolve(true);
             }
         });
@@ -259,7 +323,7 @@ export class ConnectionStore {
             // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
             // Settings defined in workspace scope overwrite the settings defined in user scope
             let connections: IConnectionCredentials[] = [];
-            let config = vscode.workspace.getConfiguration(Constants.extensionName);
+            let config = self._vscodeWrapper.getConfiguration(Constants.extensionName);
 
             // first read from the user settings
             let configValues = config[Constants.configMyConnections];
@@ -300,5 +364,15 @@ export class ConnectionStore {
                 }
             }
         }
+    }
+
+    private getMaxRecentConnectionsCount(): number {
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionName);
+
+        let maxConnections: number = config[Constants.configMaxRecentConnections];
+        if (maxConnections <= 0) {
+            maxConnections = 5;
+        }
+        return maxConnections;
     }
 }
