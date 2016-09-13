@@ -53,3 +53,23 @@ export namespace DeleteCredentialRequest {
     export const type: RequestType<Credential, boolean, void> = { get method(): string { return 'credential/delete'; } };
 }
 // --------------------------------- </ Save Credential Request > -------------------------------------------------
+
+// --------------------------------- < Save Results Request > ------------------------------------------
+// save results as csv format
+export namespace SaveResultsRequest {
+    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/save'; } };
+    export class SaveResultsRequestParams {
+        ownerUri: string;
+        filePath: string;
+        fileEncoding: string;
+        includeHeaders: boolean;
+        batchIndex: number;
+        resultSetIndex: number;
+        valueInQuotes: boolean;
+    }
+
+    export class SaveResultRequestResult {
+        messages: string;
+    }
+}
+// --------------------------------- </ Save Results Request > ------------------------------------------
