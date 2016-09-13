@@ -11,7 +11,7 @@ body {
 .box {
     display: flex;
     flex-flow: column;
-    min-height: min-content;
+    overflow: auto;
 }
 
 .box .boxRow.header {
@@ -19,13 +19,11 @@ body {
 }
 
 .box .boxRow.content {
-    flex: 1 0 1%;
+    flex: 1 1 1%;
     overflow: auto;
 }
 
 .box .boxRow.content .slickgrid {
-    flex: 1 0 1%;
-    overflow: auto;
     min-height: 232
 }
 
