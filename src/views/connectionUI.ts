@@ -40,27 +40,25 @@ export class ConnectionUI {
     public showConnections(): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            self._connectionStore.getPickListItems()
-            .then((picklist: IConnectionCredentialsQuickPickItem[]) => {
-                if (picklist.length === 0) {
-                    // No recent connections - prompt to open user settings or workspace settings to add a connection
-                    self.openUserOrWorkspaceSettings();
-                    resolve(undefined);
-                } else {
-                    // We have recent connections - show them in a picklist
-                    self.promptItemChoice({
-                        placeHolder: Constants.recentConnectionsPlaceholder,
-                        matchOnDescription: true
-                    }, picklist)
-                    .then(selection => {
-                        if (selection) {
-                            resolve(self.handleSelectedConnection(selection));
-                        } else {
-                            resolve(undefined);
-                        }
-                    });
-                }
-            });
+            let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
+            if (picklist.length === 0) {
+                // No recent connections - prompt to open user settings or workspace settings to add a connection
+                self.openUserOrWorkspaceSettings();
+                resolve(undefined);
+            } else {
+                // We have recent connections - show them in a picklist
+                self.promptItemChoice({
+                    placeHolder: Constants.recentConnectionsPlaceholder,
+                    matchOnDescription: true
+                }, picklist)
+                .then(selection => {
+                    if (selection) {
+                        resolve(self.handleSelectedConnection(selection));
+                    } else {
+                        resolve(undefined);
+                    }
+                });
+            }
         });
     }
 
@@ -239,20 +237,20 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        return self._connectionStore.getProfilePickListItems()
-            .then(profiles => self.selectProfileForRemoval(profiles))
-            .then(profile => {
-                 if (profile) {
-                    return self._connectionStore.removeProfile(profile);
-                 }
-                 return false;
-            }).then(result => {
-                if (result) {
-                    // TODO again consider moving information prompts to the prompt package
-                    vscode.window.showInformationMessage(Constants.msgProfileRemoved);
-                }
-                return result;
-            });
+        let profiles = self._connectionStore.getProfilePickListItems();
+        return self.selectProfileForRemoval(profiles)
+        .then(profile => {
+            if (profile) {
+                return self._connectionStore.removeProfile(profile);
+            }
+            return false;
+        }).then(result => {
+            if (result) {
+                // TODO again consider moving information prompts to the prompt package
+                vscode.window.showInformationMessage(Constants.msgProfileRemoved);
+            }
+            return result;
+        });
     }
 
     private selectProfileForRemoval(profiles: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionProfile> {

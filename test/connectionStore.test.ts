@@ -7,7 +7,7 @@ import * as utils from '../src/models/utils';
 import * as connectionInfo from '../src/models/connectionInfo';
 import * as Constants from '../src/models/constants';
 import * as stubs from './stubs';
-import { IConnectionProfile, IConnectionCredentials, CredentialsQuickPickItemType, AuthenticationTypes } from '../src/models/interfaces';
+import * as interfaces from '../src/models/interfaces';
 import { CredentialStore } from '../src/credentialstore/credentialstore';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionStore } from '../src/models/connectionStore';
@@ -16,8 +16,8 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import assert = require('assert');
 
 suite('ConnectionStore tests', () => {
-    let defaultNamedProfile: IConnectionProfile;
-    let defaultUnnamedProfile: IConnectionProfile;
+    let defaultNamedProfile: interfaces.IConnectionProfile;
+    let defaultUnnamedProfile: interfaces.IConnectionProfile;
     let context: TypeMoq.Mock<vscode.ExtensionContext>;
     let globalstate: TypeMoq.Mock<vscode.Memento>;
     let credentialStore: TypeMoq.Mock<CredentialStore>;
@@ -25,19 +25,19 @@ suite('ConnectionStore tests', () => {
 
     setup(() => {
         defaultNamedProfile = Object.assign(new ConnectionProfile(), {
-            profileName: 'abc-bcd-cde',
-            server: 'abc',
+            profileName: 'defaultNamedProfile',
+            server: 'namedServer',
             database: 'bcd',
-            authenticationType: utils.authTypeToString(AuthenticationTypes.SqlLogin),
+            authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'cde',
             password: 'asdf!@#$'
         });
 
         defaultUnnamedProfile = Object.assign(new ConnectionProfile(), {
             profileName: undefined,
-            server: 'namedServer',
+            server: 'unnamedServer',
             database: undefined,
-            authenticationType: utils.authTypeToString(AuthenticationTypes.SqlLogin),
+            authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'aUser',
             password: 'asdf!@#$'
         });
@@ -91,7 +91,7 @@ suite('ConnectionStore tests', () => {
             user: 'cde',
             password: 'asdf!@#$'
         });
-        let label = connectionInfo.getPicklistLabel(unnamedProfile, CredentialsQuickPickItemType.Profile);
+        let label = connectionInfo.getPicklistLabel(unnamedProfile, interfaces.CredentialsQuickPickItemType.Profile);
         assert.ok(label.endsWith(unnamedProfile.server));
     });
 
@@ -103,13 +103,13 @@ suite('ConnectionStore tests', () => {
             user: 'cde',
             password: 'asdf!@#$'
         });
-        let label = connectionInfo.getPicklistLabel(namedProfile, CredentialsQuickPickItemType.Profile);
+        let label = connectionInfo.getPicklistLabel(namedProfile, interfaces.CredentialsQuickPickItemType.Profile);
         assert.ok(label.endsWith(namedProfile.profileName));
     });
 
     test('getPickListLabel has different symbols for Profiles vs Recently Used', () => {
-        let profileLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, CredentialsQuickPickItemType.Profile);
-        let mruLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, CredentialsQuickPickItemType.Mru);
+        let profileLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, interfaces.CredentialsQuickPickItemType.Profile);
+        let mruLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, interfaces.CredentialsQuickPickItemType.Mru);
 
         assert.ok(mruLabel, 'expect value for label');
         assert.ok(profileLabel, 'expect value for label');
@@ -120,9 +120,9 @@ suite('ConnectionStore tests', () => {
         // Given
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
 
-        let credsToSave: IConnectionProfile[];
+        let credsToSave: interfaces.IConnectionProfile[];
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, profiles: IConnectionProfile[]) => {
+            .returns((id: string, profiles: interfaces.IConnectionProfile[]) => {
                 credsToSave = profiles;
                 return Promise.resolve();
             });
@@ -130,7 +130,7 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object);
 
         // When SaveProfile is called with savePassword false
-        let profile: IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: false });
+        let profile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: false });
         return connectionStore.saveProfile(profile)
             .then(savedProfile => {
         // Then expect password not saved in either the context object or the credential store
@@ -146,9 +146,9 @@ suite('ConnectionStore tests', () => {
         // Given
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
 
-        let credsToSave: IConnectionProfile[];
+        let credsToSave: interfaces.IConnectionProfile[];
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, profiles: IConnectionProfile[]) => {
+            .returns((id: string, profiles: interfaces.IConnectionProfile[]) => {
                 credsToSave = profiles;
                 return Promise.resolve();
             });
@@ -168,7 +168,7 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object);
 
         // When SaveProfile is called with savePassword true
-        let profile: IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: true });
+        let profile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: true });
 
         connectionStore.saveProfile(profile)
             .then(savedProfile => {
@@ -193,9 +193,9 @@ suite('ConnectionStore tests', () => {
         });
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => [defaultNamedProfile, profile]);
 
-        let updatedCredentials: IConnectionProfile[];
+        let updatedCredentials: interfaces.IConnectionProfile[];
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, profiles: IConnectionProfile[]) => {
+            .returns((id: string, profiles: interfaces.IConnectionProfile[]) => {
                 updatedCredentials = profiles;
                 return Promise.resolve();
             });
@@ -241,9 +241,9 @@ suite('ConnectionStore tests', () => {
         });
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => [defaultNamedProfile, unnamedProfile, namedProfile]);
 
-        let updatedCredentials: IConnectionProfile[];
+        let updatedCredentials: interfaces.IConnectionProfile[];
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, profiles: IConnectionProfile[]) => {
+            .returns((id: string, profiles: interfaces.IConnectionProfile[]) => {
                 updatedCredentials = profiles;
                 return Promise.resolve();
             });
@@ -276,9 +276,9 @@ suite('ConnectionStore tests', () => {
         });
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => [defaultNamedProfile, unnamedProfile, namedProfile]);
 
-        let updatedCredentials: IConnectionProfile[];
+        let updatedCredentials: interfaces.IConnectionProfile[];
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, profiles: IConnectionProfile[]) => {
+            .returns((id: string, profiles: interfaces.IConnectionProfile[]) => {
                 updatedCredentials = profiles;
                 return Promise.resolve();
             });
@@ -315,10 +315,10 @@ suite('ConnectionStore tests', () => {
         });
 
         // setup memento for MRU to return a list we have access to
-        let creds: IConnectionCredentials[] = [];
+        let creds: interfaces.IConnectionCredentials[] = [];
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => creds.slice(0, creds.length));
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, credsToSave: IConnectionCredentials[]) => {
+            .returns((id: string, credsToSave: interfaces.IConnectionCredentials[]) => {
                 creds = credsToSave;
                 return Promise.resolve();
             });
@@ -327,8 +327,6 @@ suite('ConnectionStore tests', () => {
         // Then expect the only the 3 most recently saved connections to be returned as size is limited to 3
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
 
-        // Note: chaining promises in for loop together so they run serially. Otherwise they'll go in parallel and
-        // cause issues with test execution
         let promise = Promise.resolve();
         for (let i = 0; i < numCreds; i++) {
             let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + i});
@@ -357,10 +355,10 @@ suite('ConnectionStore tests', () => {
 
     test('addRecentlyUsed should add same connection exactly once', (done) => {
         // setup memento for MRU to return a list we have access to
-        let creds: IConnectionCredentials[] = [];
+        let creds: interfaces.IConnectionCredentials[] = [];
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => creds.slice(0, creds.length));
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, credsToSave: IConnectionCredentials[]) => {
+            .returns((id: string, credsToSave: interfaces.IConnectionCredentials[]) => {
                 creds = credsToSave;
                 return Promise.resolve();
             });
@@ -369,8 +367,6 @@ suite('ConnectionStore tests', () => {
         // Then expect the only 1 instance of that connection to be listed in the MRU
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
 
-        // Note: chaining promises in for loop together so they run serially. Otherwise they'll go in parallel and
-        // cause issues with test execution
         let promise = Promise.resolve();
         let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + 1});
         promise = promise.then(() => {
@@ -388,10 +384,10 @@ suite('ConnectionStore tests', () => {
 
     test('addRecentlyUsed should save password to credential store', (done) => {
         // setup memento for MRU to return a list we have access to
-        let creds: IConnectionCredentials[] = [];
+        let creds: interfaces.IConnectionCredentials[] = [];
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => creds.slice(0, creds.length));
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyObject(Array)))
-            .returns((id: string, credsToSave: IConnectionCredentials[]) => {
+            .returns((id: string, credsToSave: interfaces.IConnectionCredentials[]) => {
                 creds = credsToSave;
                 return Promise.resolve();
             });
@@ -411,7 +407,7 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
         let integratedCred = Object.assign({}, defaultNamedProfile, {
             server: defaultNamedProfile.server + 'Integrated',
-            authenticationType: AuthenticationTypes[AuthenticationTypes.Integrated],
+            authenticationType: interfaces.AuthenticationTypes[interfaces.AuthenticationTypes.Integrated],
             user: '',
             password: ''
         });
@@ -449,6 +445,46 @@ suite('ConnectionStore tests', () => {
             credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
             assert.equal(creds.length, expectedCredCount, `expect ${expectedCredCount} unique credentials to have been added`);
         }).then(() => done(), err => done(err));
+    });
+
+    test('getPickListItems should display Recently Used then Profiles then New Connection', (done) => {
+        // Given 3 items in MRU and 2 in Profile list
+        let recentlyUsed: interfaces.IConnectionCredentials[] = [];
+        for (let i = 0; i < 3; i++) {
+            recentlyUsed.push( Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + i}) );
+        }
+        globalstate.setup(x => x.get(Constants.configRecentConnections)).returns(key => recentlyUsed);
+
+        let profiles: interfaces.IConnectionProfile[] = [defaultNamedProfile, defaultUnnamedProfile];
+        globalstate.setup(x => x.get(Constants.configMyConnections)).returns(key => profiles);
+
+        // When we get the list of available connection items
+
+        // Then expect MRU items first, then profile items, then a new connection item
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+
+        let items: interfaces.IConnectionCredentialsQuickPickItem[] = connectionStore.getPickListItems();
+        let expectedCount = recentlyUsed.length + profiles.length + 1;
+        assert.equal(items.length, expectedCount);
+
+        // Then expect recent items first
+        let i = 0;
+        for (let recentItem of recentlyUsed) {
+            assert.equal(items[i].connectionCreds, recentItem);
+            assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Mru);
+            i++;
+        }
+        // Then profile items
+        for (let profile of profiles) {
+            assert.equal(items[i].connectionCreds, profile);
+            assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Profile);
+            i++;
+        }
+        // then new connection
+        assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.NewConnection);
+
+        // Then test is complete
+        done();
     });
 
 });
