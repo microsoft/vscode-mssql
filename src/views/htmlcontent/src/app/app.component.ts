@@ -49,6 +49,7 @@ export class AppComponent implements OnInit {
     private messages: string[] = [];
     private selected: SelectedTab;
     public SelectedTab = SelectedTab;
+    private windowSize = 50;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -175,7 +176,7 @@ export class AppComponent implements OnInit {
                 });
             };
 
-            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(200,
+            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(self.windowSize,
                                                                                 self.totalRows,
                                                                                 loadDataFunction,
                                                                                 (index) => {
