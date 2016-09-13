@@ -127,3 +127,5 @@ export const msgChangeLanguageMode = 'To use this command, you must set the lang
 export const timeToWaitForLanguageModeChange = 10000.0;
 
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
+
+export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the profile information provided. Retry profile creation?';

@@ -18,9 +18,10 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     /**
      * Creates a new profile by prompting the user for information.
      * @param  {IPrompter} prompter that asks user the questions needed to complete a profile
+     * @param  {IConnectionProfile} (optional) default profile values that will be prefilled for questions, if any
      * @returns Promise - resolves to undefined if profile creation was not completed, or IConnectionProfile if completed
      */
-    public static createProfile(prompter: IPrompter): Promise<IConnectionProfile> {
+    public static createProfile(prompter: IPrompter, defaultProfileValues?: IConnectionProfile): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
         // Ensure all core propertiesare entered
         let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
@@ -29,7 +30,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             profile.authenticationType = authOptions[0].value;
         }
 
-        let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true, true);
+        let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true, true, defaultProfileValues);
         // Check if password needs to be saved
         questions.push(
             {
