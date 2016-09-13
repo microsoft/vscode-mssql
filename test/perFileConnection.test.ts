@@ -56,11 +56,17 @@ function createTestCredentials(): IConnectionCredentials {
     return creds;
 }
 
-function createTestConnectionManager(serviceClient: SqlToolsServiceClient, wrapper?: VscodeWrapper): ConnectionManager {
+function createTestConnectionManager(
+    serviceClient: SqlToolsServiceClient,
+    wrapper?: VscodeWrapper,
+    statusView?: StatusView): ConnectionManager {
+
     let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
-    let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
     let prompterMock: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-    return new ConnectionManager(contextMock.object, statusViewMock.object, prompterMock.object, serviceClient, wrapper);
+    if (!statusView) {
+        statusView = TypeMoq.Mock.ofType(StatusView).object;
+    }
+    return new ConnectionManager(contextMock.object, statusView, prompterMock.object, serviceClient, wrapper);
 }
 
 function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResult {
@@ -336,6 +342,49 @@ suite('Per File Connection Tests', () => {
             assert.equal(connectionManager.getConnectionInfo(testFile).credentials.database, 'myOtherDatabase');
 
             done();
+        });
+    });
+
+    test('Should use actual database name instead of <default>', done => {
+        const testFile = 'file:///my/test/file.sql';
+        const expectedDbName = 'master';
+
+        // Given a connection to default database
+        let connectionCreds = createTestCredentials();
+        connectionCreds.database = '';
+
+        // When the result will return 'master' as the database connected to
+        let myResult = new ConnectionContracts.ConnectionResult();
+        myResult.connectionId = Utils.generateGuid();
+        myResult.messages = '';
+        myResult.connectionSummary = {
+            serverName: connectionCreds.server,
+            databaseName: expectedDbName,
+            userName: connectionCreds.user
+        };
+
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(myResult));
+
+        let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
+        let actualDbName = undefined;
+        statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .callback((fileUri, creds: IConnectionCredentials) => {
+            actualDbName = creds.database;
+        });
+
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object, undefined, statusViewMock.object);
+
+        // Then on connecting expect 'master' to be the database used in status view and URI mapping
+        manager.connect(testFile, connectionCreds).then( result => {
+            assert.equal(result, true);
+            assert.equal(manager.getConnectionInfo(testFile).credentials.database, expectedDbName);
+            assert.equal(actualDbName, expectedDbName);
+
+            done();
+        }).catch(err => {
+            done(err);
         });
     });
 });

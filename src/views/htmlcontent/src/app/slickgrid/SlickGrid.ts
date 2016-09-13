@@ -144,6 +144,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
 
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
+    @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
 
     @Input() topRowNumber: number;
     @Output() topRowNumberChange: EventEmitter<number> = new EventEmitter<number>();
@@ -291,6 +292,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         // https://github.com/mleibman/SlickGrid/wiki/Grid-Events
         this.subscribeToScroll();
         this.subscribeToCellChanged();
+        this.subscribeToContextMenu();
     }
 
     ngOnDestroy(): void {
@@ -456,6 +458,15 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
             this._gridColumns[i].width = this._gridSyncService.columnWidthPXs[i];
         }
         this._grid.setColumnWidths(this._gridColumns, true);
+    }
+
+    // add context menu to slickGrid
+    public subscribeToContextMenu(): void {
+        const self = this;
+        this._grid.onContextMenu.subscribe(function (event): void {
+            event.preventDefault();
+            self.contextMenu.emit({x: event.pageX, y: event.pageY});
+        });
     }
 
     private updateSchema(): void {

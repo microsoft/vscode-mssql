@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -12,6 +12,7 @@ import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
+import { ContextMenu } from './contextmenu.component';
 
 enum FieldType {
     String = 0,
@@ -32,16 +33,22 @@ enum SelectedTab {
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, Tabs, Tab],
+    directives: [SlickGrid, Tabs, Tab, ContextMenu],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
 
 export class AppComponent implements OnInit {
-    private dataSets: {dataRows: IObservableCollection<IGridDataRow>, columnDefinitions: IColumnDefinition[], totalRows: number}[] = [];
+    private dataSets: {
+        dataRows: IObservableCollection<IGridDataRow>,
+        columnDefinitions: IColumnDefinition[],
+        totalRows: number,
+        batchId: number,
+        resultId: number}[] = [];
     private messages: string[] = [];
     private selected: SelectedTab;
     public SelectedTab = SelectedTab;
+    @ViewChild(ContextMenu) contextMenu: ContextMenu;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -60,11 +67,18 @@ export class AppComponent implements OnInit {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
                         let columnDefinitionsObs = self.dataService.getColumns(batchId, resultId);
                         Observable.forkJoin([totalRowsObs, columnDefinitionsObs]).subscribe((data: any[]) => {
-                            let dataSet: {dataRows: IObservableCollection<IGridDataRow>, columnDefinitions: IColumnDefinition[], totalRows: number} = {
-                                dataRows: undefined,
-                                columnDefinitions: undefined,
-                                totalRows: undefined
-                            };
+                            let dataSet: {
+                                dataRows: IObservableCollection<IGridDataRow>,
+                                columnDefinitions: IColumnDefinition[],
+                                totalRows: number,
+                                batchId: number,
+                                resultId: number} = {
+                                    dataRows: undefined,
+                                    columnDefinitions: undefined,
+                                    totalRows: undefined,
+                                    batchId: batchId,
+                                    resultId: resultId
+                                };
                             let totalRows = data[0];
                             let columnData = data[1];
                             let columnDefinitions = [];
@@ -125,6 +139,24 @@ export class AppComponent implements OnInit {
                 break;
         }
         return fieldtype;
+    }
+
+
+    /**
+     * Send save result set request to service
+     */
+    handleContextClick(event: {type: string, batchId: number, resultId: number}): void {
+        switch (event.type) {
+            case 'csv':
+                this.dataService.sendSaveRequest(event.batchId, event.resultId);
+                break;
+            default:
+                break;
+        }
+    }
+
+    openContextMenu(event: {x: number, y: number}, batchId, resultId): void {
+        this.contextMenu.show(event.x, event.y, batchId, resultId);
     }
 
     /**

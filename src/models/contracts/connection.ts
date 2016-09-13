@@ -161,6 +161,9 @@ export class ConnectionResult {
 
     // any diagnostic messages return from the service host
     public messages: string;
+
+    // information about the actual connection established
+    public connectionSummary: ConnectionSummary;
 }
 
 // ------------------------------- </ Connect Request > ---------------------------------------------
