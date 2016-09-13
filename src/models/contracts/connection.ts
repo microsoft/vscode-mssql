@@ -226,7 +226,7 @@ export class ConnectionResult {
     /**
      * Information about the connected server.
      */
-    public server: ServerInfo;
+    public serverInfo: ServerInfo;
 
     /**
      * information about the actual connection established

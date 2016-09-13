@@ -28,7 +28,7 @@ export class ConnectionInfo {
     /**
      * Information about the SQL Server instance.
      */
-    public server: ConnectionContracts.ServerInfo;
+    public serverInfo: ConnectionContracts.ServerInfo;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -279,25 +279,25 @@ export default class ConnectionManager {
                     }
                     let connection = new ConnectionInfo();
                     connection.connectionId = result.connectionId;
-                    connection.server = result.server;
+                    connection.serverInfo = result.serverInfo;
                     connection.credentials = newCredentials;
                     self._connections[fileUri] = connection;
 
                     self.statusView.connectSuccess(fileUri, newCredentials);
 
                     this._vscodeWrapper.logToOutputChannel(
-                        Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.server))
+                        Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
                     );
 
                     extensionTimer.end();
 
                     Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {
-                        connectionType: connection.server.isCloud ? 'Azure' : 'Standalone',
-                        serverVersion: connection.server.serverVersion,
-                        serverOs: connection.server.osVersion
+                        connectionType: connection.serverInfo.isCloud ? 'Azure' : 'Standalone',
+                        serverVersion: connection.serverInfo.serverVersion,
+                        serverOs: connection.serverInfo.osVersion
                     }, {
                         isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
-                        isWindowsAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
+                        isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
                         extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
                         serviceConnectionTime: serviceTimer.getDuration()
                     });
