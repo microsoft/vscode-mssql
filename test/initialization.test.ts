@@ -33,7 +33,7 @@ suite('Initialization Tests', () => {
             let controller: MainController = Extension.getController();
             let connectionManager: ConnectionManager = controller.connectionManager;
             assert.notStrictEqual(undefined, connectionManager.client);
-            done();
         });
+        done();
     });
 });

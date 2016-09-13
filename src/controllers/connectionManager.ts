@@ -58,7 +58,9 @@ export default class ConnectionManager {
         this.vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
         this.vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
 
-        this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
+        if (this.client !== undefined) {
+            this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
+        }
     }
 
     private get vscodeWrapper(): VscodeWrapper {

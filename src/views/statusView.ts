@@ -128,6 +128,20 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.hide();
     }
 
+    public installingService(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
+        bar.statusConnection.command = undefined;
+        this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.showProgress(fileUri, Constants.serviceInstalling, bar.statusConnection);
+    }
+
+    public serviceInstalled(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
+        bar.statusConnection.command = undefined;
+        bar.statusConnection.text = Constants.serviceInstalled;
+        this.showStatusBarItem(fileUri, bar.statusConnection);
+    }
+
     /**
      * Associate a new uri with an existing Uri's status bar
      *
