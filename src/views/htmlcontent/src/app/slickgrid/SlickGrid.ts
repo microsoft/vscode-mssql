@@ -165,7 +165,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     private _topRow: number = 0;
     private _leftPx: number = 0;
     private _finishGridEditingFn: (e: any, args: any) => void;
-    private divSize: number= 0;
+    private divSize: number = 0;
 
     private static getDataWithSchema(data: IGridDataRow, columns: ISlickGridColumn[]): any {
         let dataWithSchema = {};
