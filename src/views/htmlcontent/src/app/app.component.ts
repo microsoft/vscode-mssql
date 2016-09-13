@@ -47,6 +47,7 @@ export class AppComponent implements OnInit {
         resultId: number}[] = [];
     private messages: string[] = [];
     private selected: SelectedTab;
+    private windowSize = 50;
     public SelectedTab = SelectedTab;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
 
@@ -102,7 +103,7 @@ export class AppComponent implements OnInit {
                                 });
                             };
 
-                            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(200,
+                            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(self.windowSize,
                                                                                                 totalRows,
                                                                                                 loadDataFunction,
                                                                                                 (index) => {

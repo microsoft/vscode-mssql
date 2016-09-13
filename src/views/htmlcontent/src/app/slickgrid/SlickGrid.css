@@ -46,7 +46,7 @@
 }
 .grid .slick-cell.selected.active {
   background-color: var(--grid-cell-color, #FFFFFF);
-  color: black;
+  color: var(--color-content);
   border-style: solid;
   border-color: var(--color-grid-selected);
 }
