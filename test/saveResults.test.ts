@@ -29,12 +29,6 @@ suite('save results tests', () => {
         }
     });
 
-    test('initialise saveResults', () => {
-
-        let saveResults = new ResultsSerializer();
-        assert.equal(typeof saveResults !== undefined, true);
-        saveResults.sendCsvRequestToService(testFile, filePath, 0, 0);
-    });
 
     test('check if filepath prompt displays and right value is set', () => {
 
