@@ -1,4 +1,5 @@
 ﻿var gulp = require('gulp');
+var rename = require('gulp-rename');
 var install = require('gulp-install');
 var tslint = require('gulp-tslint');
 var ts = require('gulp-typescript');
@@ -156,10 +157,12 @@ gulp.task('ext:copy-tests', () => {
             .pipe(gulp.dest(config.paths.project.root + '/out/test/resources/'))
 });
 
-gulp.task('ext:copy-packages', () => {
-    var serviceHostVersion = "0.0.9";
-    return gulp.src(config.paths.project.root + '/packages/Microsoft.SqlTools.ServiceLayer.' + serviceHostVersion + '/lib/netcoreapp1.0/**/*')
-            .pipe(gulp.dest(config.paths.project.root + '/out/tools/'))
+gulp.task('ext:copy-config', () => {
+    var env = process.env.VsMsSqlEnv;
+    env = env == undefined ? "dev" : env;
+    return gulp.src(config.paths.project.root + '/src/configurations/' + env + '.config.json')
+            .pipe(rename('config.json'))
+            .pipe(gulp.dest(config.paths.project.root + '/out/src'));
 });
 
 gulp.task('ext:copy-js', () => {
@@ -169,7 +172,7 @@ gulp.task('ext:copy-js', () => {
         .pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-packages', 'ext:copy-js'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
 gulp.task('ext:build', gulp.series('ext:nuget-download', 'ext:nuget-restore', 'ext:lint', 'ext:compile', 'ext:copy'));
 

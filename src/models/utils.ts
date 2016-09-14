@@ -195,6 +195,23 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
         && expectedProfile.user === currentProfile.user;
 }
 
+/**
+ * Compares 2 connections to see if they match. Logic for matching:
+ * match on all key properties (server, db, auth type, user) being identical.
+ * Other properties are ignored for this purpose
+ *
+ * @param {IConnectionCredentials} conn the connection to check
+ * @param {IConnectionCredentials} expectedConn the connection to try to match
+ * @returns boolean that is true if the connections match
+ */
+export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
+    return expectedConn.server === conn.server
+        && expectedConn.database === conn.database
+        && expectedConn.authenticationType === conn.authenticationType
+        && expectedConn.user === conn.user;
+}
+
+
 // One-time use timer for performance testing
 export class Timer {
     private _startTime: number[];

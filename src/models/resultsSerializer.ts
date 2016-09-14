@@ -44,7 +44,11 @@ export default class ResultsSerializer {
                 placeHolder: Constants.filepathPlaceholder,
                 validate: (value) => this.validateFilePath(Constants.filepathPrompt, value)
             }];
-        return this._prompter.prompt(questions).then(answers => { return answers[Constants.filepathPrompt]; });
+        return this._prompter.prompt(questions).then(answers => {
+                    if (answers) {
+                        return answers[Constants.filepathPrompt];
+                    }
+                });
     }
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams {
@@ -84,7 +88,7 @@ export default class ResultsSerializer {
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
         // user entered only the file name. Save file in current directory
-        if ( sqlUri.scheme === 'file') {
+        if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
         } else {
             currentDirectory = path.dirname(sqlUri.path);
@@ -99,7 +103,7 @@ export default class ResultsSerializer {
     public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
         let sqlUri = vscode.Uri.parse(uri);
-        if ( !path.isAbsolute(filePath)) {
+        if (!path.isAbsolute(filePath)) {
             filePath = self.resolveFilePath(uri, filePath);
         }
         let saveResultsParams =  self.getConfigForCsv();
@@ -126,7 +130,7 @@ export default class ResultsSerializer {
     public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
         let sqlUri = vscode.Uri.parse(uri);
-        if ( !path.isAbsolute(filePath)) {
+        if (!path.isAbsolute(filePath)) {
             filePath = self.resolveFilePath(uri, filePath);
         }
 
@@ -165,7 +169,7 @@ export default class ResultsSerializer {
     }
 
     private validateFilePath(property: string, value: string): string {
-        if (Utils.isEmpty(value)) {
+        if (Utils.isEmpty(value.trim())) {
             return property + Constants.msgIsRequired;
         }
         return undefined;

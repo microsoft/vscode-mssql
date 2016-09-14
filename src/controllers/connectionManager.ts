@@ -24,6 +24,11 @@ export class ConnectionInfo {
 
     // Credentials used to connect
     public credentials: Interfaces.IConnectionCredentials;
+
+    /**
+     * Information about the SQL Server instance.
+     */
+    public serverInfo: ConnectionContracts.ServerInfo;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -40,7 +45,8 @@ export default class ConnectionManager {
                 statusView: StatusView,
                 prompter: IPrompter,
                 private _client?: SqlToolsServerClient,
-                private _vscodeWrapper?: VscodeWrapper) {
+                private _vscodeWrapper?: VscodeWrapper,
+                private _connectionStore?: ConnectionStore) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
@@ -53,12 +59,18 @@ export default class ConnectionManager {
             this.vscodeWrapper = new VscodeWrapper();
         }
 
-        this._connectionUI = new ConnectionUI(new ConnectionStore(context), prompter, this.vscodeWrapper);
+        if (!this._connectionStore) {
+            this._connectionStore = new ConnectionStore(context);
+        }
+
+        this._connectionUI = new ConnectionUI(this._connectionStore, prompter, this.vscodeWrapper);
 
         this.vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
         this.vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
 
-        this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
+        if (this.client !== undefined) {
+            this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
+        }
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -207,11 +219,11 @@ export default class ConnectionManager {
                     // connect to the server/database
                     self.connect(fileUri, connectionCreds)
                     .then(function(): void {
-                        resolve();
+                        resolve(true);
                     });
                 });
             } else {
-                resolve();
+                resolve(false);
             }
         });
     }
@@ -274,27 +286,50 @@ export default class ConnectionManager {
                     }
                     let connection = new ConnectionInfo();
                     connection.connectionId = result.connectionId;
+                    connection.serverInfo = result.serverInfo;
                     connection.credentials = newCredentials;
                     self._connections[fileUri] = connection;
 
                     self.statusView.connectSuccess(fileUri, newCredentials);
 
+                    this._vscodeWrapper.logToOutputChannel(
+                        Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
+                    );
+
                     extensionTimer.end();
 
-                    Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {}, {
+                    Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {
+                        connectionType: connection.serverInfo.isCloud ? 'Azure' : 'Standalone',
+                        serverVersion: connection.serverInfo.serverVersion,
+                        serverOs: connection.serverInfo.osVersion
+                    }, {
+                        isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
+                        isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
                         extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
                         serviceConnectionTime: serviceTimer.getDuration()
                     });
-
-                    resolve(true);
+                    return newCredentials;
                 } else {
                     Utils.showErrorMsg(Constants.msgError + Constants.msgConnectionError);
                     self.statusView.connectError(fileUri, connectionCreds, result.messages);
                     self.connectionUI.showConnectionErrors(result.messages);
-
-                    // We've logged the failure so no need to throw
+                    return undefined;
+                }
+            }).then( (newConnection: Interfaces.IConnectionCredentials) => {
+                if (newConnection) {
+                    let connectionToSave: Interfaces.IConnectionCredentials = Object.assign({}, newConnection);
+                    self._connectionStore.addRecentlyUsed(connectionToSave)
+                    .then(() => {
+                        resolve(true);
+                    }, err => {
+                        reject(err);
+                    });
+                } else {
                     resolve(false);
                 }
+            }, err => {
+                // Catch unexpected errors and return over the Promise reject callback
+                reject(err);
             });
         });
     }

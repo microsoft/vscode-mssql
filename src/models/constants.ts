@@ -29,6 +29,9 @@ export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
 export const configSaveAsCsv = 'saveAsCsv';
 export const configSaveAsJson = 'saveAsJson';
+export const configRecentConnections = 'recentConnections';
+export const configMaxRecentConnections = 'maxRecentConnections';
+
 
 // localizable strings
 export const configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
@@ -73,6 +76,7 @@ export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
 export const CreateProfileLabel = 'Create Connection Profile';
 export const RemoveProfileLabel = 'Remove Connection Profile';
+export const SampleServerName = '{{put-server-name-here}}';
 
 export const serverPrompt = 'Server name';
 export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
@@ -127,6 +131,8 @@ export const executeQueryCommandCompleted = 'Command(s) completed successfully.'
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
+export const serviceInstalling = 'Installing Sql Tools Service';
+export const serviceInstalled = 'Sql Tools Service installed';
 
 export const untitledScheme = 'untitled';
 export const untitledSaveTimeThreshold = 10.0;
@@ -135,3 +141,4 @@ export const msgChangeLanguageMode = 'To use this command, you must set the lang
 export const timeToWaitForLanguageModeChange = 10000.0;
 
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
+export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';

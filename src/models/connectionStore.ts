@@ -4,6 +4,7 @@ import Constants = require('./constants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
@@ -17,15 +18,16 @@ import { CredentialStore } from '../credentialstore/credentialstore';
  */
 export class ConnectionStore {
 
-    private _context: vscode.ExtensionContext;
-    private _credentialStore: ICredentialStore;
+    constructor(
+        private _context: vscode.ExtensionContext,
+        private _credentialStore?: ICredentialStore,
+        private _vscodeWrapper?: VscodeWrapper) {
 
-    constructor(context: vscode.ExtensionContext, credentialStore?: ICredentialStore) {
-        this._context = context;
-        if (credentialStore) {
-            this._credentialStore = credentialStore;
-        } else {
+        if (!this._credentialStore) {
             this._credentialStore = new CredentialStore();
+        }
+        if (!this._vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
         }
     }
 
@@ -87,34 +89,24 @@ export class ConnectionStore {
      *
      * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
      */
-    public getPickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
-        const self = this;
-        return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
-            self.loadAllConnections()
-            .then((pickListItems: IConnectionCredentialsQuickPickItem[]) => {
-                // Always add an "Add New Connection" quickpick item
-                pickListItems.push(<IConnectionCredentialsQuickPickItem> {
-                        label: Constants.CreateProfileLabel,
-                        connectionCreds: undefined,
-                        quickPickItemType: CredentialsQuickPickItemType.NewConnection
-                    });
-                resolve(pickListItems);
-            });
+    public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
+        let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections();
+        pickListItems.push(<IConnectionCredentialsQuickPickItem> {
+            label: Constants.CreateProfileLabel,
+            connectionCreds: undefined,
+            quickPickItemType: CredentialsQuickPickItemType.NewConnection
         });
+        return pickListItems;
     }
 
     /**
      * Gets all connection profiles stored in the user settings
      * Note: connections will not include password value
      *
-     * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
+     * @returns {IConnectionCredentialsQuickPickItem[]}
      */
-    public getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
-        const self = this;
-        return self.loadProfiles().then(items => {
-            // TODO add MRU list here
-            return items;
-        });
+    public getProfilePickListItems(): IConnectionCredentialsQuickPickItem[] {
+        return this.loadProfiles();
     }
 
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
@@ -164,7 +156,7 @@ export class ConnectionStore {
             self._context.globalState.update(Constants.configMyConnections, configValues)
             .then(() => {
                 // Only save if we successfully added the profile
-                return self.savePasswordIfNeeded(profile);
+                return self.saveProfilePasswordIfNeeded(profile);
                 // And resolve / reject at the end of the process
             }, err => {
                 reject(err);
@@ -179,12 +171,72 @@ export class ConnectionStore {
         });
     }
 
-    private savePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+    /**
+     * Gets the list of recently used connections. These will not include the password - a separate call to
+     * {addSavedPassword} is needed to fill that before connecting
+     *
+     * @returns {IConnectionCredentials[]} the array of connections, empty if none are found
+     */
+    public getRecentlyUsedConnections(): IConnectionCredentials[] {
+        let configValues = this._context.globalState.get<IConnectionCredentials[]>(Constants.configRecentConnections);
+        if (!configValues) {
+            configValues = [];
+        }
+        return configValues;
+    }
+
+    /**
+     * Adds a connection to the recently used list.
+     * Password values are stored to a separate credential store if the "savePassword" option is true
+     *
+     * @param {IConnectionCredentials} conn the connection to add
+     * @returns {Promise<void>} a Promise that returns when the connection was saved
+     */
+    public addRecentlyUsed(conn: IConnectionCredentials): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            // Get all profiles
+            let configValues = self.getRecentlyUsedConnections();
+            let maxConnections = self.getMaxRecentConnectionsCount();
+
+            // Remove the connection from the list if it already exists
+            configValues = configValues.filter(value => !Utils.isSameConnection(value, conn));
+
+            // Add the connection to the front of the list, taking care to clear out the password field
+            let savedConn: IConnectionCredentials = Object.assign({}, conn, { password: '' });
+            configValues.unshift(savedConn);
+
+            // Remove last element if needed
+            if (configValues.length > maxConnections) {
+                configValues = configValues.slice(0, maxConnections);
+            }
+
+            self._context.globalState.update(Constants.configRecentConnections, configValues)
+            .then(() => {
+                // Only save if we successfully added the profile
+                self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                // And resolve / reject at the end of the process
+                resolve(undefined);
+            }, err => {
+                reject(err);
+            });
+        });
+    }
+
+    private saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+        if (!profile.savePassword) {
+            return Promise.resolve(true);
+        }
+        return this.doSavePassword(profile, CredentialsQuickPickItemType.Profile);
+    }
+
+    private doSavePassword(conn: IConnectionCredentials, type: CredentialsQuickPickItemType): Promise<boolean> {
         let self = this;
         return new Promise<boolean>((resolve, reject) => {
-            if (profile.savePassword === true && Utils.isNotEmpty(profile.password)) {
-                let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
-                self._credentialStore.saveCredential(credentialId, profile.password)
+            if (Utils.isNotEmpty(conn.password)) {
+                let credType: string = type === CredentialsQuickPickItemType.Mru ? ConnectionStore.CRED_MRU_USER : ConnectionStore.CRED_PROFILE_USER;
+                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType);
+                self._credentialStore.saveCredential(credentialId, conn.password)
                 .then((result) => {
                     resolve(result);
                 }).catch(err => {
@@ -192,7 +244,6 @@ export class ConnectionStore {
                     reject(err);
                 });
             } else {
-                // Operation successful as didn't need to save
                 resolve(true);
             }
         });
@@ -252,40 +303,60 @@ export class ConnectionStore {
     }
 
     // Load connections from user preferences
-    private loadAllConnections(): Promise<IConnectionCredentialsQuickPickItem[]> {
-        let self = this;
-        return new Promise<IConnectionCredentialsQuickPickItem[]>(resolve => {
-            // Load connections from user preferences
-            // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
-            // Settings defined in workspace scope overwrite the settings defined in user scope
-            let connections: IConnectionCredentials[] = [];
-            let config = vscode.workspace.getConfiguration(Constants.extensionName);
+    private loadAllConnections(): IConnectionCredentialsQuickPickItem[] {
+        let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
 
-            // first read from the user settings
-            let configValues = config[Constants.configMyConnections];
-            self.addConnections(connections, configValues);
-            let quickPickItems = connections.map(c => self.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
-            resolve(quickPickItems);
-        }).then(quickPickItems => {
-            // next read from the global state
-            let allQuickPickItems = self.loadProfiles().then(items => {
-                return quickPickItems.concat(items);
-            });
+        // Read recently used items from a memento
+        let recentConnections = this.getConnectionsFromGlobalState(Constants.configRecentConnections);
+        quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(recentConnections, CredentialsQuickPickItemType.Mru));
 
-            return allQuickPickItems;
-        });
+        // Load connections from user preferences
+        // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
+        // Settings defined in workspace scope overwrite the settings defined in user scope
+        let profilesInConfiguration = this.getConnectionsFromConfig<IConnectionCredentials>(Constants.configMyConnections);
+        quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(profilesInConfiguration, CredentialsQuickPickItemType.Profile));
+
+        // next read from the profiles saved in our own memento
+        // TODO remove once user settings are editable programmatically
+        let profiles = this.loadProfiles();
+        quickPickItems = quickPickItems.concat(profiles);
+
+        // Return all connections
+        return quickPickItems;
     }
 
-    private loadProfiles(): Promise<IConnectionCredentialsQuickPickItem[]> {
-        let self = this;
-        return new Promise<IConnectionCredentialsQuickPickItem[]>((resolve, reject) => {
-            let connections: IConnectionProfile[] = [];
-            // read from the global state
-            let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
-            self.addConnections(connections, configValues);
-            let quickPickItems = connections.map(c => self.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
-            resolve(quickPickItems);
-        });
+    private getConnectionsFromGlobalState<T extends IConnectionCredentials>(configName: string): T[] {
+        let connections: T[] = [];
+        // read from the global state
+        let configValues = this._context.globalState.get<T[]>(configName);
+        this.addConnections(connections, configValues);
+        return connections;
+    }
+
+    private getConnectionsFromConfig<T extends IConnectionCredentials>(configName: string): T[] {
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionName);
+        // we do not want the default value returned since it's used for helping users only
+        let configValues = config.get(configName, undefined);
+        if (configValues) {
+            configValues = configValues.filter(conn => {
+                // filter any connection missing a server name or the sample that's shown by default
+                return !!(conn.server) && conn.server !== Constants.SampleServerName;
+            });
+        } else {
+            configValues = [];
+        }
+        return configValues;
+    }
+
+
+    private mapToQuickPickItems(connections: IConnectionCredentials[], itemType: CredentialsQuickPickItemType): IConnectionCredentialsQuickPickItem[] {
+        return connections.map(c => this.createQuickPickItem(c, itemType));
+    }
+
+    private loadProfiles(): IConnectionCredentialsQuickPickItem[] {
+        let connections: IConnectionProfile[] = this.getConnectionsFromGlobalState<IConnectionProfile>(Constants.configMyConnections);
+        let quickPickItems = connections.map(c => this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
+        return quickPickItems;
     }
 
     private addConnections(connections: IConnectionCredentials[], configValues: IConnectionCredentials[]): void {
@@ -300,5 +371,15 @@ export class ConnectionStore {
                 }
             }
         }
+    }
+
+    private getMaxRecentConnectionsCount(): number {
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionName);
+
+        let maxConnections: number = config[Constants.configMaxRecentConnections];
+        if (typeof(maxConnections) !== 'number' || maxConnections <= 0) {
+            maxConnections = 5;
+        }
+        return maxConnections;
     }
 }
