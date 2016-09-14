@@ -149,7 +149,10 @@ export class AppComponent implements OnInit {
     handleContextClick(event: {type: string, batchId: number, resultId: number}): void {
         switch (event.type) {
             case 'csv':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId);
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv');
+                break;
+            case 'json':
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json');
                 break;
             default:
                 break;

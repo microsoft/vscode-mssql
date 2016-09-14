@@ -28,6 +28,7 @@ export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
 export const configSaveAsCsv = 'saveAsCsv';
+export const configSaveAsJson = 'saveAsJson';
 
 // localizable strings
 export const configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';

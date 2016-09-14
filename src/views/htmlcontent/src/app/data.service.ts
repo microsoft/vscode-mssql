@@ -208,9 +208,9 @@ export class DataService {
      * @param batchId The batch id of the batch with the result to save
      * @param resultId The id of the result to save as csv
      */
-    sendSaveRequest(batchIndex: number, resultSetNumber: number): void {
+    sendSaveRequest(batchIndex: number, resultSetNumber: number, format: string): void {
         const self = this;
         self.http.get('/saveResults?'
-                             + '&uri=' + self.uri + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber).subscribe();
+                             + '&uri=' + self.uri + '&format=' + format + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber).subscribe();
     }
 }

@@ -54,22 +54,39 @@ export namespace DeleteCredentialRequest {
 }
 // --------------------------------- </ Save Credential Request > -------------------------------------------------
 
-// --------------------------------- < Save Results Request > ------------------------------------------
+// --------------------------------- < Save Results as CSV Request > ------------------------------------------
 // save results as csv format
-export namespace SaveResultsRequest {
-    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/save'; } };
+export namespace SaveResultsAsCsvRequest {
+    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveCsv'; } };
     export class SaveResultsRequestParams {
         ownerUri: string;
         filePath: string;
-        fileEncoding: string;
-        includeHeaders: boolean;
         batchIndex: number;
         resultSetIndex: number;
-        valueInQuotes: boolean;
+        fileEncoding: string = 'utf-8';
+        includeHeaders: boolean = true;
+        valueInQuotes: boolean = false;
     }
 
     export class SaveResultRequestResult {
         messages: string;
     }
 }
-// --------------------------------- </ Save Results Request > ------------------------------------------
+// --------------------------------- </ Save Results as CSV Request > ------------------------------------------
+
+// --------------------------------- < Save Results as JSON Request > ------------------------------------------
+// save results as csv format
+export namespace SaveResultsAsJsonRequest {
+    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveJson'; } };
+    export class SaveResultsRequestParams {
+        ownerUri: string;
+        filePath: string;
+        batchIndex: number;
+        resultSetIndex: number;
+    }
+
+    export class SaveResultRequestResult {
+        messages: string;
+    }
+}
+// --------------------------------- </ Save Results as JSON Request > ------------------------------------------

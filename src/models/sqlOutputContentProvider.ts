@@ -91,8 +91,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let uri: string = decodeURI(req.query.uri);
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
+            let format: string = req.query.format;
             let saveResults = new ResultsSerializer();
-            saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
+            if (format === 'csv') {
+                saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
+            } else if (format === 'json') {
+                saveResults.onSaveResultsAsJson(uri, batchIndex, selectedResultSetNo);
+            }
+
             res.status = 200;
             res.send();
         });
