@@ -15,7 +15,6 @@ export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
-    public saveResultsParams: Contracts.SaveResultsRequest.SaveResultsRequestParams;
 
     constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
         if (client) {
@@ -33,10 +32,6 @@ export default class ResultsSerializer {
         } else {
             this._vscodeWrapper = new VscodeWrapper();
         }
-        this.saveResultsParams = new Contracts.SaveResultsRequest.SaveResultsRequestParams();
-        this.saveResultsParams.valueInQuotes = false;
-        this.saveResultsParams.includeHeaders = true;
-        this.saveResultsParams.fileEncoding = 'utf-8';
     }
 
     private promptForFilepath(): Promise<string> {
@@ -56,47 +51,97 @@ export default class ResultsSerializer {
                 });
     }
 
-    private getConfig(): void {
+    private getConfigForCsv(): Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams {
         // get save results config from vscode config
         let config = vscode.workspace.getConfiguration(Constants.extensionName);
         let saveConfig = config[Constants.configSaveAsCsv];
-        if ( saveConfig) {
+        let saveResultsParams = new Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams();
+
+        if (saveConfig) {
             if (saveConfig.encoding) {
-                this.saveResultsParams.fileEncoding  = saveConfig.encoding;
+                saveResultsParams.fileEncoding  = saveConfig.encoding;
             }
             if (saveConfig.includeHeaders) {
-                this.saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+                saveResultsParams.includeHeaders = saveConfig.includeHeaders;
             }
             if (saveConfig.valueInQuotes) {
-                this.saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
+                saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
             }
         }
+        return saveResultsParams;
     }
 
-    public sendRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
-        const self = this;
+    private getConfigForJson(): Contracts.SaveResultsAsJsonRequest.SaveResultsRequestParams {
+        // get save results config from vscode config
+        let config = vscode.workspace.getConfiguration(Constants.extensionName);
+        let saveConfig = config[Constants.configSaveAsJson];
+        let saveResultsParams = new Contracts.SaveResultsAsJsonRequest.SaveResultsRequestParams();
+
+        if (saveConfig) {
+            // TODO: assign config
+        }
+        return saveResultsParams;
+    }
+
+    private resolveFilePath(uri: string, filePath: string): string {
         // set params to values from config and send request to service
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
-
-        if ( !path.isAbsolute(filePath)) {
-            // user entered only the file name. Save file in current directory
-            if ( sqlUri.scheme === 'file') {
-                currentDirectory = path.dirname(sqlUri.fsPath);
-            } else {
-                currentDirectory = path.dirname(sqlUri.path);
-            }
-            filePath = path.normalize(path.join(currentDirectory, filePath));
+        // user entered only the file name. Save file in current directory
+        if (sqlUri.scheme === 'file') {
+            currentDirectory = path.dirname(sqlUri.fsPath);
+        } else {
+            currentDirectory = path.dirname(sqlUri.path);
         }
-        // set params for save results as csv
-        self.getConfig();
-        self.saveResultsParams.filePath = filePath;
-        self.saveResultsParams.ownerUri = vscode.Uri.file(sqlUri.fsPath).toString();
-        self.saveResultsParams.resultSetIndex = resultSetNo;
-        self.saveResultsParams.batchIndex = batchIndex;
+        return path.normalize(path.join(currentDirectory, filePath));
 
-        // send message to the sqlserverclient for converting resuts to csv and saving to filepath
-        return self._client.sendRequest(Contracts.SaveResultsRequest.type, this.saveResultsParams).then(result => {
+    }
+
+    /**
+     * Send request to sql tools service to save a result set in CSV format
+     */
+    public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
+        const self = this;
+        let sqlUri = vscode.Uri.parse(uri);
+        if (!path.isAbsolute(filePath)) {
+            filePath = self.resolveFilePath(uri, filePath);
+        }
+        let saveResultsParams =  self.getConfigForCsv();
+        saveResultsParams.filePath = filePath;
+        saveResultsParams.ownerUri = vscode.Uri.file(sqlUri.fsPath).toString();
+        saveResultsParams.resultSetIndex = resultSetNo;
+        saveResultsParams.batchIndex = batchIndex;
+
+        // send message to the sqlserverclient for converting resuts to CSV and saving to filepath
+        return self._client.sendRequest( Contracts.SaveResultsAsCsvRequest.type, saveResultsParams).then(result => {
+                if (result.messages === 'Success') {
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
+                } else {
+                    self._vscodeWrapper.showErrorMessage(result.messages);
+                }
+            }, error => {
+                self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
+            });
+    }
+
+    /**
+     * Send request to sql tools service to save a result set in JSON format
+     */
+    public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
+        const self = this;
+        let sqlUri = vscode.Uri.parse(uri);
+        if (!path.isAbsolute(filePath)) {
+            filePath = self.resolveFilePath(uri, filePath);
+        }
+
+        let saveResultsParams =  self.getConfigForJson();
+        saveResultsParams.filePath = filePath;
+        saveResultsParams.ownerUri = vscode.Uri.file(sqlUri.fsPath).toString();
+        saveResultsParams.resultSetIndex = resultSetNo;
+        saveResultsParams.batchIndex = batchIndex;
+
+        // send message to the sqlserverclient for converting resuts to JSON and saving to filepath
+        return self._client.sendRequest( Contracts.SaveResultsAsJsonRequest.type, saveResultsParams).then(result => {
                 if (result.messages === 'Success') {
                     self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
                 } else {
@@ -111,7 +156,15 @@ export default class ResultsSerializer {
         const self = this;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendRequestToService(uri, filePath, batchIndex, resultSetNo);
+            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo);
+        });
+    }
+
+    public onSaveResultsAsJson(uri: string, batchIndex: number, resultSetNo: number ): Thenable<void> {
+        const self = this;
+        // prompt for filepath
+        return self.promptForFilepath().then(function(filePath): void {
+            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo);
         });
     }
 
