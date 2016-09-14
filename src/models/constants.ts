@@ -139,3 +139,4 @@ export const msgChangeLanguageMode = 'To use this command, you must set the lang
 export const timeToWaitForLanguageModeChange = 10000.0;
 
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
+export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';
