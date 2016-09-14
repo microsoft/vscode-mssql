@@ -1,6 +1,8 @@
 'use strict';
 import Constants = require('./constants');
 import Interfaces = require('./interfaces');
+const figures = require('figures');
+import * as symbols from '../utils/symbol';
 import * as Utils from './utils';
 
 /**
@@ -64,10 +66,19 @@ function isAzureDatabase(server: string): boolean {
  *
  * @export connectionInfo/getPicklistLabel
  * @param {Interfaces.IConnectionCredentials} connCreds connection to create a label for
+ * @param {Interfaces.CredentialsQuickPickItemType} itemType type of quickpick item to display - this influences the icon shown to the user
  * @returns {string} user readable label
  */
-export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials): string {
-    return connCreds.server;
+export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials, itemType: Interfaces.CredentialsQuickPickItemType): string {
+    let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
+
+    let icon: string = itemType === Interfaces.CredentialsQuickPickItemType.Mru ? figures.play : symbols.star;
+
+    if (profile.profileName) {
+        return `${icon} ${profile.profileName}`;
+    } else {
+        return `${icon} ${connCreds.server}`;
+    }
 }
 
 /**
@@ -78,10 +89,8 @@ export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials): 
  * @returns {string} description
  */
 export function getPicklistDescription(connCreds: Interfaces.IConnectionCredentials): string {
-    return '[' +
-           'database: ' + (connCreds.database ? connCreds.database : '<connection default>') +
-           ', username: ' + (connCreds.user ? connCreds.user : '<prompt>') +
-           ']';
+    let desc: string = `[${getConnectionDisplayString(connCreds)}]`;
+    return desc;
 }
 
 /**
@@ -92,11 +101,8 @@ export function getPicklistDescription(connCreds: Interfaces.IConnectionCredenti
  * @returns {string} details
  */
 export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials): string {
-    return '[' +
-           'encrypt connection: ' + (connCreds.encrypt ? 'true' : 'false') +
-           ', port: ' + (connCreds.port ? connCreds.port : Constants.defaultPortNumber) +
-           ', connection timeout: ' + connCreds.connectTimeout + ' s' +
-           ']';
+    // In the current spec this is left empty intentionally. Leaving the method as this may change in the future
+    return undefined;
 }
 
 /**
@@ -107,15 +113,15 @@ export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials)
  * @param {Interfaces.IConnectionCredentials} conn connection
  * @returns {string} display string that can be used in status view or other locations
  */
-export function getConnectionDisplayString(conn: Interfaces.IConnectionCredentials): string {
+export function getConnectionDisplayString(creds: Interfaces.IConnectionCredentials): string {
     // Update the connection text
-    let text: string = conn.server;
-    if (conn.database !== '') {
-        text = appendIfNotEmpty(text, conn.database);
+    let text: string = creds.server;
+    if (creds.database !== '') {
+        text = appendIfNotEmpty(text, creds.database);
     } else {
         text = appendIfNotEmpty(text, Constants.defaultDatabaseLabel);
     }
-    let user: string = getUserNameOrDomainLogin(conn);
+    let user: string = getUserNameOrDomainLogin(creds);
     text = appendIfNotEmpty(text, user);
     return text;
 }
@@ -135,15 +141,15 @@ function appendIfNotEmpty(connectionText: string, value: string): string {
  * @param {string} [defaultValue] optional default value to use if username is empty and this is not an Integrated auth profile
  * @returns {string}
  */
-export function getUserNameOrDomainLogin(conn: Interfaces.IConnectionCredentials, defaultValue?: string): string {
+export function getUserNameOrDomainLogin(creds: Interfaces.IConnectionCredentials, defaultValue?: string): string {
     if (!defaultValue) {
         defaultValue = '';
     }
 
-    if (conn.authenticationType === Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]) {
+    if (creds.authenticationType === Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]) {
         return (process.platform === 'win32') ? process.env.USERDOMAIN + '\\' + process.env.USERNAME : '';
     } else {
-        return conn.user ? conn.user : defaultValue;
+        return creds.user ? creds.user : defaultValue;
     }
 }
 

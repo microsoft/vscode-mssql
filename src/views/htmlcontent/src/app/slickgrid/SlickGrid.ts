@@ -6,7 +6,7 @@
 
 /// <reference path="../../../typings/underscore.d.ts" />
 import {Component, Input, Output, Inject, forwardRef, OnChanges, OnInit, OnDestroy, ElementRef, SimpleChange, EventEmitter,
-    ViewEncapsulation, Optional, HostListener} from '@angular/core';
+    ViewEncapsulation, Optional, HostListener, DoCheck} from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
 import {IObservableCollection, CollectionChange} from './BaseLibrary';
 import {IGridDataRow} from './SharedControlInterfaces';
@@ -128,7 +128,7 @@ function getOverridableTextEditorClass(grid: SlickGrid): any {
     providers: [LocalizationService, GridSyncService],
     encapsulation: ViewEncapsulation.None
 })
-export class SlickGrid implements OnChanges, OnInit, OnDestroy {
+export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     @Input() columnDefinitions: IColumnDefinition[];
     @Input() dataRows: IObservableCollection<IGridDataRow>;
     @Input() resized: Observable<any>;
@@ -144,6 +144,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
 
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
+    @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
 
     @Input() topRowNumber: number;
     @Output() topRowNumberChange: EventEmitter<number> = new EventEmitter<number>();
@@ -164,6 +165,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
     private _topRow: number = 0;
     private _leftPx: number = 0;
     private _finishGridEditingFn: (e: any, args: any) => void;
+    private divSize: number = 0;
 
     private static getDataWithSchema(data: IGridDataRow, columns: ISlickGridColumn[]): any {
         let dataWithSchema = {};
@@ -291,6 +293,14 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         // https://github.com/mleibman/SlickGrid/wiki/Grid-Events
         this.subscribeToScroll();
         this.subscribeToCellChanged();
+        this.subscribeToContextMenu();
+    }
+
+    ngDoCheck(): void {
+        if (this.divSize !== this._el.nativeElement.offsetHeight) {
+            this.divSize = this._el.nativeElement.offsetHeight;
+            this.onResize();
+        }
     }
 
     ngOnDestroy(): void {
@@ -456,6 +466,15 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
             this._gridColumns[i].width = this._gridSyncService.columnWidthPXs[i];
         }
         this._grid.setColumnWidths(this._gridColumns, true);
+    }
+
+    // add context menu to slickGrid
+    public subscribeToContextMenu(): void {
+        const self = this;
+        this._grid.onContextMenu.subscribe(function (event): void {
+            event.preventDefault();
+            self.contextMenu.emit({x: event.pageX, y: event.pageY});
+        });
     }
 
     private updateSchema(): void {

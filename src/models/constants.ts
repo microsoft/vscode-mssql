@@ -21,11 +21,15 @@ export const outputContentTypeMessages = 'messages';
 export const outputContentTypeResultsetMeta = 'resultsetsMeta';
 export const outputContentTypeColumns = 'columns';
 export const outputContentTypeRows = 'rows';
+export const outputContentTypeSaveResults = 'saveResults';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
+export const configSaveAsCsv = 'saveAsCsv';
+export const configRecentConnections = 'recentConnections';
+export const configMaxRecentConnections = 'maxRecentConnections';
 
 // localizable strings
 export const configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
@@ -70,6 +74,7 @@ export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
 export const CreateProfileLabel = 'Create Connection Profile';
 export const RemoveProfileLabel = 'Remove Connection Profile';
+export const SampleServerName = '{{put-server-name-here}}';
 
 export const serverPrompt = 'Server name';
 export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
@@ -88,7 +93,12 @@ export const msgSavePassword = 'Save Password? If \'No\', password will be requi
 export const profileNamePrompt = 'Profile Name';
 export const profileNamePlaceholder = 'optional - enter a name for this profile';
 
+export const filepathPrompt = 'File path';
+export const filepathPlaceholder = 'Enter full path or simply file name';
+
+export const msgSelectProfile = 'Select Connection Profile';
 export const msgSelectProfileToRemove = 'Select profile to remove';
+
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';
@@ -120,6 +130,8 @@ export const executeQueryCommandCompleted = 'Command(s) completed successfully.'
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
+export const serviceInstalling = 'Installing Sql Tools Service';
+export const serviceInstalled = 'Sql Tools Service installed';
 
 export const untitledScheme = 'untitled';
 export const untitledSaveTimeThreshold = 10.0;
@@ -130,3 +142,5 @@ export const timeToWaitForLanguageModeChange = 10000.0;
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
 
 export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the profile information provided. Retry profile creation?';
+
+export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';

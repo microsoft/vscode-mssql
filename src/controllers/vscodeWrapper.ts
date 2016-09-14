@@ -47,7 +47,7 @@ export default class VscodeWrapper {
      * @param extensionName The string name of the extension to get the configuration for
      */
     public getConfiguration(extensionName: string): vscode.WorkspaceConfiguration {
-        return undefined;
+        return vscode.workspace.getConfiguration(extensionName);
     }
 
     /**

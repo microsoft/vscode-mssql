@@ -6,8 +6,10 @@ import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
 import QueryRunner from '../controllers/queryRunner';
+import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
+
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -82,6 +84,17 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
             });
+        });
+
+        // add http handler for '/saveResults' - return success message as JSON
+        this._service.addHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
+            let uri: string = decodeURI(req.query.uri);
+            let selectedResultSetNo: number = Number(req.query.resultSetNo);
+            let batchIndex: number = Number(req.query.batchIndex);
+            let saveResults = new ResultsSerializer();
+            saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
+            res.status = 200;
+            res.send();
         });
 
         // start express server on localhost and listen on a random port

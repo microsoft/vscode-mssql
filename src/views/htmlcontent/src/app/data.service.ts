@@ -64,8 +64,6 @@ export class DataService {
                 self.getMetaData().then(() => {
                     if (self.batchSets[batchId].resultSets.length > 0) {
                         resolve(self.batchSets[batchId].resultSets.length);
-                    } else {
-                        resolve(1);
                     }
                 });
             });
@@ -73,8 +71,6 @@ export class DataService {
             return new Promise<number>((resolve, reject) => {
                 if (self.batchSets[batchId].resultSets.length > 0) {
                     resolve(self.batchSets[batchId].resultSets.length);
-                } else {
-                    resolve(1);
                 }
             });
         }
@@ -204,5 +200,17 @@ export class DataService {
                                 return res.json();
                             });
         }
+    }
+
+    /**
+     * send request to save the selected result set as csv
+     * @param uri of the calling document
+     * @param batchId The batch id of the batch with the result to save
+     * @param resultId The id of the result to save as csv
+     */
+    sendSaveRequest(batchIndex: number, resultSetNumber: number): void {
+        const self = this;
+        self.http.get('/saveResults?'
+                             + '&uri=' + self.uri + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber).subscribe();
     }
 }

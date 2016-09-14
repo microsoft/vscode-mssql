@@ -10,6 +10,7 @@ import { IConnectionCredentials, AuthenticationTypes } from '../src/models/inter
 import * as ConnectionContracts from '../src/models/contracts/connection';
 import MainController from '../src/controllers/controller';
 import * as Interfaces from '../src/models/interfaces';
+import { ConnectionStore } from '../src/models/connectionStore';
 import StatusView from '../src/views/statusView';
 import Telemetry from '../src/models/telemetry';
 import * as Utils from '../src/models/utils';
@@ -59,14 +60,23 @@ function createTestCredentials(): IConnectionCredentials {
 function createTestConnectionManager(
     serviceClient: SqlToolsServiceClient,
     wrapper?: VscodeWrapper,
-    statusView?: StatusView): ConnectionManager {
+    statusView?: StatusView,
+    connectionStore?: ConnectionStore): ConnectionManager {
 
     let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
     let prompterMock: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
     if (!statusView) {
         statusView = TypeMoq.Mock.ofType(StatusView).object;
     }
-    return new ConnectionManager(contextMock.object, statusView, prompterMock.object, serviceClient, wrapper);
+    if (!connectionStore) {
+        let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+        // disable saving recently used by default
+        connectionStoreMock.setup(x => x.addRecentlyUsed(TypeMoq.It.isAny())).returns(() => {
+            return Promise.resolve();
+        });
+        connectionStore = connectionStoreMock.object;
+    }
+    return new ConnectionManager(contextMock.object, statusView, prompterMock.object, serviceClient, wrapper, connectionStore);
 }
 
 function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResult {
@@ -354,14 +364,7 @@ suite('Per File Connection Tests', () => {
         connectionCreds.database = '';
 
         // When the result will return 'master' as the database connected to
-        let myResult = new ConnectionContracts.ConnectionResult();
-        myResult.connectionId = Utils.generateGuid();
-        myResult.messages = '';
-        myResult.connectionSummary = {
-            serverName: connectionCreds.server,
-            databaseName: expectedDbName,
-            userName: connectionCreds.user
-        };
+        let myResult = createConnectionResultForCreds(connectionCreds, expectedDbName);
 
         let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -381,6 +384,66 @@ suite('Per File Connection Tests', () => {
             assert.equal(result, true);
             assert.equal(manager.getConnectionInfo(testFile).credentials.database, expectedDbName);
             assert.equal(actualDbName, expectedDbName);
+
+            done();
+        }).catch(err => {
+            done(err);
+        });
+    });
+
+    function createConnectionResultForCreds(connectionCreds: IConnectionCredentials, dbName?: string): ConnectionContracts.ConnectionResult {
+        let myResult = new ConnectionContracts.ConnectionResult();
+        if (!dbName) {
+            dbName = connectionCreds.database;
+        }
+        myResult.connectionId = Utils.generateGuid();
+        myResult.messages = '';
+        myResult.connectionSummary = {
+            serverName: connectionCreds.server,
+            databaseName: dbName,
+            userName: connectionCreds.user
+        };
+        return myResult;
+    }
+
+    test('Should save new connections to recently used list', done => {
+        const testFile = 'file:///my/test/file.sql';
+        const expectedDbName = 'master';
+
+        // Given a connection to default database
+        let connectionCreds = createTestCredentials();
+        connectionCreds.database = '';
+
+        // When the result will return 'master' as the database connected to
+        let myResult = createConnectionResultForCreds(connectionCreds, expectedDbName);
+
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(myResult));
+
+        let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
+        let actualDbName = undefined;
+        statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .callback((fileUri, creds: IConnectionCredentials) => {
+            actualDbName = creds.database;
+        });
+
+        // And we store any DBs saved to recent connections
+        let savedConnection: IConnectionCredentials = undefined;
+        let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+        connectionStoreMock.setup(x => x.addRecentlyUsed(TypeMoq.It.isAny())).returns( conn => {
+            savedConnection = conn;
+            return Promise.resolve();
+        });
+
+        let manager: ConnectionManager = createTestConnectionManager(serviceClientMock.object, undefined, statusViewMock.object, connectionStoreMock.object);
+
+        // Then on connecting expect 'master' to be the database used in status view and URI mapping
+        manager.connect(testFile, connectionCreds).then( result => {
+            assert.equal(result, true);
+            connectionStoreMock.verify(x => x.addRecentlyUsed(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            assert.equal(savedConnection.database, expectedDbName, 'Expect actual DB name returned from connection to be saved');
+            assert.equal(savedConnection.password, connectionCreds.password, 'Expect password to be saved');
 
             done();
         }).catch(err => {
