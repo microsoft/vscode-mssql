@@ -196,10 +196,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             // Get all profiles
-            let configValues = self._context.globalState.get<IConnectionCredentials[]>(Constants.configRecentConnections);
-            if (!configValues) {
-                configValues = [];
-            }
+            let configValues = self.getRecentlyUsedConnections();
             let maxConnections = self.getMaxRecentConnectionsCount();
 
             // Remove the connection from the list if it already exists
@@ -380,7 +377,7 @@ export class ConnectionStore {
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionName);
 
         let maxConnections: number = config[Constants.configMaxRecentConnections];
-        if (maxConnections <= 0) {
+        if (typeof(maxConnections) !== 'number' || maxConnections <= 0) {
             maxConnections = 5;
         }
         return maxConnections;
