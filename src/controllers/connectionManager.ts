@@ -287,6 +287,11 @@ export default class ConnectionManager {
                     let connection = new ConnectionInfo();
                     connection.connectionId = result.connectionId;
                     connection.serverInfo = result.serverInfo;
+                    if (!connection.serverInfo) {
+                        // In the event that we can't retrieve server information for some reason,
+                        // set the properties to undefined to prevent exceptions later on
+                        connection.serverInfo = new ConnectionContracts.ServerInfo();
+                    }
                     connection.credentials = newCredentials;
                     self._connections[fileUri] = connection;
 
