@@ -167,6 +167,11 @@
           "default": false,
           "description": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)"
         },
+        "vscode-mssql.maxRecentConnections": {
+          "type": "number",
+          "default": 5,
+          "description": "The maximum number of recently used connections to store in the connection list"
+        },
         "vscode-mssql.connections": {
           "type": "array",
           "default": [

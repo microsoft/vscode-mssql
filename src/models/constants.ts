@@ -28,6 +28,8 @@ export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
 export const configSaveAsCsv = 'saveAsCsv';
+export const configRecentConnections = 'recentConnections';
+export const configMaxRecentConnections = 'maxRecentConnections';
 
 // localizable strings
 export const configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
@@ -72,6 +74,7 @@ export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
 export const CreateProfileLabel = 'Create Connection Profile';
 export const RemoveProfileLabel = 'Remove Connection Profile';
+export const SampleServerName = '{{put-server-name-here}}';
 
 export const serverPrompt = 'Server name';
 export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';

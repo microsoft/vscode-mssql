@@ -40,7 +40,8 @@ export default class ConnectionManager {
                 statusView: StatusView,
                 prompter: IPrompter,
                 private _client?: SqlToolsServerClient,
-                private _vscodeWrapper?: VscodeWrapper) {
+                private _vscodeWrapper?: VscodeWrapper,
+                private _connectionStore?: ConnectionStore) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
@@ -53,7 +54,11 @@ export default class ConnectionManager {
             this.vscodeWrapper = new VscodeWrapper();
         }
 
-        this._connectionUI = new ConnectionUI(new ConnectionStore(context), prompter, this.vscodeWrapper);
+        if (!this._connectionStore) {
+            this._connectionStore = new ConnectionStore(context);
+        }
+
+        this._connectionUI = new ConnectionUI(this._connectionStore, prompter, this.vscodeWrapper);
 
         this.vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
         this.vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
@@ -287,16 +292,28 @@ export default class ConnectionManager {
                         extensionConnectionTime: extensionTimer.getDuration() - serviceTimer.getDuration(),
                         serviceConnectionTime: serviceTimer.getDuration()
                     });
-
-                    resolve(true);
+                    return newCredentials;
                 } else {
                     Utils.showErrorMsg(Constants.msgError + Constants.msgConnectionError);
                     self.statusView.connectError(fileUri, connectionCreds, result.messages);
                     self.connectionUI.showConnectionErrors(result.messages);
-
-                    // We've logged the failure so no need to throw
+                    return undefined;
+                }
+            }).then( (newConnection: Interfaces.IConnectionCredentials) => {
+                if (newConnection) {
+                    let connectionToSave: Interfaces.IConnectionCredentials = Object.assign({}, newConnection);
+                    self._connectionStore.addRecentlyUsed(connectionToSave)
+                    .then(() => {
+                        resolve(true);
+                    }, err => {
+                        reject(err);
+                    });
+                } else {
                     resolve(false);
                 }
+            }, err => {
+                // Catch unexpected errors and return over the Promise reject callback
+                reject(err);
             });
         });
     }
