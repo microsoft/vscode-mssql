@@ -49,7 +49,11 @@ export default class ResultsSerializer {
                 placeHolder: Constants.filepathPlaceholder,
                 validate: (value) => this.validateFilePath(Constants.filepathPrompt, value)
             }];
-        return this._prompter.prompt(questions).then(answers => { return answers[Constants.filepathPrompt]; });
+        return this._prompter.prompt(questions).then(answers => {
+                    if (answers) {
+                        return answers[Constants.filepathPrompt];
+                    }
+                });
     }
 
     private getConfig(): void {
@@ -112,7 +116,7 @@ export default class ResultsSerializer {
     }
 
     private validateFilePath(property: string, value: string): string {
-        if (Utils.isEmpty(value)) {
+        if (Utils.isEmpty(value.trim())) {
             return property + Constants.msgIsRequired;
         }
         return undefined;

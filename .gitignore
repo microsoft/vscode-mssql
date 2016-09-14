@@ -9,3 +9,4 @@ packages
 *.vsix
 tools
 examples
+sqltoolsservice
