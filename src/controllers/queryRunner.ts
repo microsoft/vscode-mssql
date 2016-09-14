@@ -9,6 +9,10 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
     QueryDisposeRequest } from '../models/contracts/queryExecute';
+import { ISlickRange } from '../models/interfaces';
+
+
+const ncp = require('copy-paste');
 
 export interface IResultSet {
     columns: string[];
@@ -162,6 +166,38 @@ export default class QueryRunner {
                 }
             }, error => {
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
+            });
+        });
+    }
+
+    public copyResults(selection: ISlickRange[], batchId: number, resultId: number): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            let copyString = '';
+            // create a mapping of the ranges to get promises
+            let tasks = selection.map((range, i) => {
+                return () => {
+                    return self.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId).then((result) => {
+                        // iterate over the rows to paste into the copy string
+                        for (let row of result.resultSubset.rows) {
+                            // iterate over the cells we want from that row
+                            for (let cell = range.fromCell; cell <= range.toCell; cell++) {
+                                copyString += row[cell] + '\t';
+                            }
+                            copyString += '\r\n';
+                        }
+                    });
+                };
+            });
+
+            let p = tasks[0]();
+            for (let i = 1; 1 < tasks.length; i++) {
+                p = p.then(tasks[i]);
+            }
+            p.then(() => {
+                ncp.copy(copyString, () => {
+                    resolve();
+                });
             });
         });
     }

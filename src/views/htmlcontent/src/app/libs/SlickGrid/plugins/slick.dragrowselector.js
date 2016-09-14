@@ -108,23 +108,6 @@
                 e.preventDefault();
                 e.stopPropagation();
             }
-            // copy paste
-            else if ((e.ctrlKey || e.metaKey) && e.which == c_key) {
-                var selection = getSelectedRanges();
-                var data = _grid.getDataItem(selection[0].fromRow);
-                var copystring = '';
-                for(let i = 0; i < selection.length; i++) {
-                    for(let rowIndex = selection[i].fromRow; rowIndex <= selection[i].toRow; rowIndex++) {
-                        var row = _grid.getDataItem(rowIndex);
-                        for(let key in row) {
-                            if(row.hasOwnProperty(key)) {
-                                copystring += row[key];
-                            }
-                        }
-                    }
-                }
-                copy(copystring);
-            }
             // do we have a context to navigate on
             else if (activeCell) {
                 // arrow keys with non-selection

@@ -59,6 +59,7 @@ export namespace DeleteCredentialRequest {
 export namespace SaveResultsRequest {
     export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/save'; } };
     export class SaveResultsRequestParams {
+        format: string;
         ownerUri: string;
         filePath: string;
         fileEncoding: string;
