@@ -28,6 +28,9 @@ tmp.setGracefulCleanup();
 export default class ServiceDownloadProvider {
 
     constructor(private _config: Config) {
+        if (!this._config) {
+            this._config = new Config();
+        }
     }
 
    /**
@@ -121,7 +124,12 @@ export default class ServiceDownloadProvider {
     */
     public getInstallDirectory(): string {
         let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        const basePath = path.join(__dirname, installDirFromConfig);
+        let versionFromConfig = this._config.getSqlToolsPackageVersion();
+        let basePath = path.join(__dirname, installDirFromConfig);
+        if (!fs.existsSync(basePath)) {
+            fs.mkdirSync(basePath);
+        }
+        basePath = path.join(basePath, versionFromConfig);
         if (!fs.existsSync(basePath)) {
             fs.mkdirSync(basePath);
         }

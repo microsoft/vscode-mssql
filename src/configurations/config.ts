@@ -48,6 +48,16 @@ export default class Config {
         }
     }
 
+    public getSqlToolsPackageVersion(): string[] {
+        try {
+            let json = Config.configJsonContent;
+            return json.sqlToolsService.version;
+        } catch (error) {
+                Utils.showErrorMsg(error);
+                throw(error);
+        }
+    }
+
     static loadConfig(): any {
         let configContent = fs.readFileSync(path.join(__dirname, '../config.json'));
         return JSON.parse(configContent);
