@@ -8,6 +8,7 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CredentialStore } from '../credentialstore/credentialstore';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -20,12 +21,15 @@ export class ConnectionStore {
     private _context: vscode.ExtensionContext;
     private _credentialStore: ICredentialStore;
 
-    constructor(context: vscode.ExtensionContext, credentialStore?: ICredentialStore) {
+    constructor(context: vscode.ExtensionContext, credentialStore?: ICredentialStore, private _vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         if (credentialStore) {
             this._credentialStore = credentialStore;
         } else {
             this._credentialStore = new CredentialStore();
+        }
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
         }
     }
 
@@ -79,6 +83,14 @@ export class ConnectionStore {
         if (Utils.isNotEmpty(value)) {
             arr.push(prefix.concat(value));
         }
+    }
+
+    private get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
+    private set vscodeWrapper(value: VscodeWrapper) {
+        this._vscodeWrapper = value;
     }
 
     /**
@@ -174,6 +186,7 @@ export class ConnectionStore {
                 // Add necessary default properties before returning
                 // this is needed to support immediate connections
                 ConnInfo.fixupConnectionCredentials(profile);
+                self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreated);
                 resolve(profile);
             }, err => {
                 reject(err);

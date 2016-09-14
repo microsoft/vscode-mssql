@@ -45,6 +45,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 name: Constants.profileNamePrompt,
                 message: Constants.profileNamePrompt,
                 placeHolder: Constants.profileNamePlaceholder,
+                default: defaultProfileValues ? defaultProfileValues.profileName : undefined,
                 onAnswered: (value) => {
                     // Fall back to a default name if none specified
                     profile.profileName = value ? value : ConnectionProfile.formatProfileName(profile);
