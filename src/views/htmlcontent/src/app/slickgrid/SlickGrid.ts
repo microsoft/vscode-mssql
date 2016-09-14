@@ -310,6 +310,10 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         }
     }
 
+    public getSelectedRanges(): ISlickRanges[] {
+        return this._gridSyncService.getSelectedRanges();
+    }
+
     /* tslint:disable:member-ordering */
     private getColumnEditor = (column: any): any => {
         let columnId = column.id;
