@@ -213,4 +213,13 @@ export class DataService {
         self.http.get('/saveResults?'
                              + '&uri=' + self.uri + '&format=' + format + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber).subscribe();
     }
+
+    /**
+     * send request to open content in new editor
+     */
+    openLink(content: string): void {
+        const self = this;
+        let headers = { 'Content-Type': 'application/json' };
+        self.http.post('/openLink', JSON.stringify(content), headers).subscribe();
+    }
 }

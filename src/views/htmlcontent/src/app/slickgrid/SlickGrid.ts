@@ -145,6 +145,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
     @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
+    @Output() doubleClick: EventEmitter<{content: string}> = new EventEmitter<{content: string}>();
 
     @Input() topRowNumber: number;
     @Output() topRowNumberChange: EventEmitter<number> = new EventEmitter<number>();
@@ -294,6 +295,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
         this.subscribeToScroll();
         this.subscribeToCellChanged();
         this.subscribeToContextMenu();
+        this.subscribeToClick();
     }
 
     ngDoCheck(): void {
@@ -474,6 +476,16 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
         this._grid.onContextMenu.subscribe(function (event): void {
             event.preventDefault();
             self.contextMenu.emit({x: event.pageX, y: event.pageY});
+        });
+    }
+
+    public subscribeToClick(): void {
+        const self = this;
+        this._grid.onDblClick.subscribe((event, args) => {
+            event.preventDefault();
+            let value = this.dataRows.at(args.row).values[args.cell - 1];
+            console.log('value is ' + value);
+            self.doubleClick.emit({content: value});
         });
     }
 

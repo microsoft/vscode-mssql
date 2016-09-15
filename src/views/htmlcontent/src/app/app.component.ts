@@ -51,6 +51,7 @@ export class AppComponent implements OnInit {
     public SelectedTab = SelectedTab;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
 
+
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
     /**
@@ -169,5 +170,14 @@ export class AppComponent implements OnInit {
      */
     tabChange(to: SelectedTab): void {
         this.selected = to;
+    }
+
+    /**
+     *
+     *
+     */
+    handleDoubleClick(event: {content: string }): void {
+        console.log('handler in app');
+        this.dataService.openLink(event.content);
     }
 }

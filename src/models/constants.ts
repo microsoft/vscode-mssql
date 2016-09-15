@@ -22,6 +22,7 @@ export const outputContentTypeResultsetMeta = 'resultsetsMeta';
 export const outputContentTypeColumns = 'columns';
 export const outputContentTypeRows = 'rows';
 export const outputContentTypeSaveResults = 'saveResults';
+export const outputContentTypeOpenLink = 'openLink';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 

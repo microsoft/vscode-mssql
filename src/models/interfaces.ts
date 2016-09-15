@@ -9,7 +9,8 @@ export enum ContentType {
     ResultsetsMeta = 2,
     Columns = 3,
     Rows = 4,
-    SaveResults = 5
+    SaveResults = 5,
+    openLink = 6
 };
 
 export enum AuthenticationTypes {
@@ -24,7 +25,8 @@ export const ContentTypes = [
     Constants.outputContentTypeResultsetMeta,
     Constants.outputContentTypeColumns,
     Constants.outputContentTypeRows,
-    Constants.outputContentTypeSaveResults
+    Constants.outputContentTypeSaveResults,
+    Constants.outputContentTypeOpenLink
     ];
 
 /**

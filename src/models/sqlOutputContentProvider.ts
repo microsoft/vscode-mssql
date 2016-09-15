@@ -103,6 +103,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             res.send();
         });
 
+        // add http handler for '/openLink' - return success message as JSON
+        this._service.addHandler(Interfaces.ContentType.openLink, function(req, res): void {
+
+            res.status = 200;
+            res.send();
+        });
+
         // start express server on localhost and listen on a random port
         try {
             this._service.start();
