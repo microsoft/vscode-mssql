@@ -104,10 +104,21 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/openLink' - return success message as JSON
-        this._service.addHandler(Interfaces.ContentType.openLink, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
 
             res.status = 200;
             res.send();
+        });
+
+        this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
+            let uri = decodeURI(req.query.uri);
+            let resultId = req.query.resultId;
+            let batchId = req.query.batchId;
+            let selection: Interfaces.ISlickRange[] = req.body;
+            self._queryResultsMap.get(uri).copyResults(selection, batchId, resultId).then(() => {
+                res.status = 200;
+                res.send();
+            });
         });
 
         // start express server on localhost and listen on a random port

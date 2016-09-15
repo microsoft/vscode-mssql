@@ -7,6 +7,9 @@ import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { QueryExecuteParams } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
+import { ISlickRange } from './../src/models/interfaces';
+
+const ncp = require('copy-paste');
 
 suite('Query Runner tests', () => {
 
@@ -167,6 +170,49 @@ suite('Query Runner tests', () => {
         queryRunner.uri = testuri;
         return queryRunner.getRows(0, 5, 0, 0).then(undefined, () => {
             testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
+    });
+
+    test('Correctly copy pastes a selection', () => {
+        const TAB = '\t';
+        const CLRF = '\r\n';
+        const finalString = '1' + TAB + '2' + TAB + CLRF +
+                            '3' + TAB + '4' + TAB + CLRF +
+                            '5' + TAB + '6' + TAB + CLRF +
+                            '7' + TAB + '8' + TAB + CLRF +
+                            '9' + TAB + '10' + TAB + CLRF;
+        let testuri = 'test';
+        let testresult = {
+            message: '',
+            resultSubset: {
+                rowCount: 5,
+                rows: [
+                    ['1', '2'],
+                    ['3', '4'],
+                    ['5', '6'],
+                    ['7', '8'],
+                    ['9', '10']
+                ]
+            }
+        };
+        let testRange: ISlickRange[] = [{fromCell: 0, fromRow: 0, toCell: 1, toRow: 4}];
+        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
+                                                          TypeMoq.It.isAny())).callback(() => {
+                                                              // testing
+                                                          }).returns(() => { return Promise.resolve(testresult); });
+        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+        let queryRunner = new QueryRunner(
+            undefined,
+            testStatusView.object,
+            testSqlOutputContentProvider.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
+        );
+        queryRunner.uri = testuri;
+        return queryRunner.copyResults(testRange, 0, 0).then(() => {
+            let pasteContents = ncp.paste();
+            assert.equal(pasteContents, finalString);
         });
     });
 });
