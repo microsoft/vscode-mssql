@@ -242,7 +242,11 @@ export class ConnectionUI {
             } else {
                 // Error! let the user try again, prefilling values that they already entered
                 return self.promptForRetryCreateProfile(profile).then(updatedProfile => {
-                    return self.validateAndSaveProfile(updatedProfile);
+                    if (updatedProfile) {
+                        return self.validateAndSaveProfile(updatedProfile);
+                    } else {
+                        return undefined;
+                    }
                 });
             }
         });
