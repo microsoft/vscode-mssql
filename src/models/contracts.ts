@@ -59,7 +59,6 @@ export namespace DeleteCredentialRequest {
 export namespace SaveResultsAsCsvRequest {
     export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveCsv'; } };
     export class SaveResultsRequestParams {
-        format: string;
         ownerUri: string;
         filePath: string;
         batchIndex: number;
