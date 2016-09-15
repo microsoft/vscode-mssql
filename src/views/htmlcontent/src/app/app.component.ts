@@ -179,7 +179,6 @@ export class AppComponent implements OnInit {
     onKey(e: any, batchId: number, resultId: number, index: number): void {
         if ((e.ctrlKey || e.metaKey) && e.which === this.c_key) {
             let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-            console.log(selection);
             this.dataService.copyResults(selection, batchId, resultId);
         }
     }
