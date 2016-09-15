@@ -172,14 +172,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         <body></body>
         <script type="text/javascript">
             var doc = document.documentElement;
-            console.log(doc.innerHTML);
             var styles = window.getComputedStyle(doc);
             var backgroundcolor = styles.getPropertyValue('--background-color');
             var color = styles.getPropertyValue('--color');
             var fontfamily = styles.getPropertyValue('--font-family');
             var fontweight = styles.getPropertyValue('--font-weight');
             var fontsize = styles.getPropertyValue('--font-size');
-            console.log(backgroundcolor + color + fontfamily + fontweight + fontsize);
             var theme = document.body.className;
             window.onload = function(event) {
                 event.stopPropagation(true);
@@ -190,7 +188,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                                                                                                         "&fontfamily=" + fontfamily +
                                                                                                         "&fontweight=" + fontweight +
                                                                                                         "&fontsize=" + fontsize;
-                console.log(url);
                 window.location.href = url
             };
         </script>
