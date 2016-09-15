@@ -341,7 +341,7 @@ export default class ConnectionManager {
 
     public onCreateProfile(): Promise<boolean> {
         let self = this;
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<boolean>((resolve, reject) => {
             // Ensure we are in SQL mode before creating a profile and connecting
             if (!self.vscodeWrapper.isEditingSqlFile) {
                 self.connectionUI.promptToChangeLanguageMode()
