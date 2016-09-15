@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <title>Angular 2 QuickStart</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 1. Load libraries -->
+    <script src="app/libs/SlickGrid/lib/jquery-1.7.min.js"></script>
+    <script src="app/libs/SlickGrid/lib/jquery.event.drag-2.2.js"></script>
+    <script src="app/libs/SlickGrid/lib/jquery-ui-1.8.16.custom.min.js"></script>
+    <script src="app/libs/underscore-min.js"></script>
+    <script src="app/libs/SlickGrid/slick.core.js"></script>
+    <script src="app/libs/SlickGrid/slick.grid.js"></script>
+    <script src="app/libs/SlickGrid/slick.editors.js"></script>
+    <script src="app/libs/SlickGrid/plugins/slick.rowselectionmodel.js"></script>
+    <script src="app/libs/SlickGrid/plugins/slick.dragrowselector.js"></script>
+     <!-- Polyfill(s) for older browsers -->
+    <script src="node_modules/core-js/client/shim.min.js"></script>
+    <script src="node_modules/zone.js/dist/zone.js"></script>
+    <script src="node_modules/reflect-metadata/Reflect.js"></script>
+    <script src="node_modules/systemjs/dist/system.src.js"></script>
+    <!-- 2. Configure SystemJS -->
+    <script src="systemjs.config.js"></script>
+    <script>
+      System.import('app').catch(function(err){ console.error(err); });
+    </script>
+    <link rel="stylesheet" type="text/css" href="app/flexbox.css"/>
+    <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
+    <link rel="stylesheet" type="text/css" href="app/styles.css"/>
+    <%if (theme === 'vscode-light') { %>
+    <link rel="stylesheet" type="text/css" href="color-theme-light.css"/>
+    <%} else { %>
+    <link rel="stylesheet" type="text/css" href="color-theme-dark.css"/>
+    <% } %>
+  </head>
+  <!-- 3. Display the application -->
+  <body>
+    <div style="display: none;" id="uri"><%=uri%></div>
+    <my-app>Loading...</my-app>
+  </body>
+</html>

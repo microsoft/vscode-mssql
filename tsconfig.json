@@ -2,14 +2,15 @@
     "compileOnSave": true,
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es5",
-        "watch": false,
-        "outDir": "out",
+        "target": "es6",
         "noLib": true,
         "sourceMap": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
         "rootDir": "."
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "src/views/htmlcontent"
     ]
 }

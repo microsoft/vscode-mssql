@@ -5,148 +5,152 @@ import Constants = require('./constants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
+import QueryRunner from '../controllers/queryRunner';
+import ResultsSerializer from  '../models/resultsSerializer';
+import StatusView from '../views/statusView';
+import VscodeWrapper from './../controllers/vscodeWrapper';
 
-class QueryResultSet {
-    public messages: string[] = [];
-    public resultsets: Interfaces.ISqlResultset[] = [];
 
-    constructor(messages : string[], resultsets : Interfaces.ISqlResultset[]){
-        this.messages = messages;
-        this.resultsets = resultsets;
-    }
-}
-
-export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider
-{
-    private _queryResultsMap: Map<string, QueryResultSet> = new Map<string, QueryResultSet>();
+export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
+    private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+    private _vscodeWrapper: VscodeWrapper;
 
     get onDidChange(): vscode.Event<vscode.Uri> {
         return this._onDidChange.event;
     }
 
-    public onContentUpdated() {
-        Utils.logDebug(Constants.gMsgContentProviderOnContentUpdated);
+    public onContentUpdated(): void {
         this._onDidChange.fire(SqlOutputContentProvider.providerUri);
     }
 
-    constructor(context: vscode.ExtensionContext)
-    {
+    constructor(context: vscode.ExtensionContext,
+                private _statusView: StatusView) {
         const self = this;
+
+        this._vscodeWrapper = new VscodeWrapper();
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
 
-        // add http handler for '/'
-        this._service.addHandler(Interfaces.ContentType.Root, function(req, res) {
-            Utils.logDebug(Constants.gMsgContentProviderOnRootEndpoint);
-            let uri : string = req.query.uri;
-            res.render(path.join(LocalWebService.staticContentPath, Constants.gMsgContentProviderSqlOutputHtml), {uri:uri});
+        // add http handler for '/root'
+        this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
+            let uri: string = decodeURI(req.query.uri);
+            let theme: string = req.query.theme;
+            res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri, theme: theme});
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
-        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res) {
-
-            Utils.logDebug(Constants.gMsgContentProviderOnResultsEndpoint);
-            let resultsetsMeta: Interfaces.ISqlResultsetMeta[] = [];
-            let uri : string = req.query.uri;
-            for (var index = 0; index < self._queryResultsMap.get(uri).resultsets.length; index ++)
-            {
-                resultsetsMeta.push( <Interfaces.ISqlResultsetMeta> {
-                    columnsUri: "/" + Constants.gOutputContentTypeColumns + "?id=" + index.toString(),
-                    rowsUri: "/" + Constants.gOutputContentTypeRows + "?id=" + index.toString()
-                });
+        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
+            let batchSets: Interfaces.IGridBatchMetaData[] = [];
+            let uri: string = decodeURI(req.query.uri);
+            for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
+                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: undefined};
+                for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
+                    tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
+                        columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
+                        rowsUri: '/' + Constants.outputContentTypeRows +  '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
+                        numberOfRows: result.rowCount
+                    });
+                }
+                tempBatch.messages = batch.messages;
+                batchSets.push(tempBatch);
             }
-            let json = JSON.stringify(resultsetsMeta);
-            //Utils.logDebug(json);
-            res.send(json);
-        });
-
-        // add http handler for '/messages' - return all messages as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Messages, function(req, res) {
-            Utils.logDebug(Constants.gMsgContentProviderOnMessagesEndpoint);
-            let uri : string = req.query.uri;
-            let json = JSON.stringify(self._queryResultsMap.get(uri).messages);
-            //Utils.logDebug(json);
+            let json = JSON.stringify(batchSets);
             res.send(json);
         });
 
         // add http handler for '/columns' - return column metadata as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Columns, function(req, res) {
-            var id = req.query.id;
-            Utils.logDebug(Constants.gMsgContentProviderOnColumnsEndpoint + id);
-            let uri : string = req.query.uri;
-            let columnMetadata = self._queryResultsMap.get(uri).resultsets[id].columns;
+        this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
+            let resultId = req.query.resultId;
+            let batchId = req.query.batchId;
+            let uri: string = decodeURI(req.query.uri);
+            let columnMetadata = self._queryResultsMap.get(uri).batchSets[batchId].resultSetSummaries[resultId].columnInfo;
             let json = JSON.stringify(columnMetadata);
-            //Utils.logDebug(json);
             res.send(json);
         });
 
         // add http handler for '/rows' - return rows end-point for a specific resultset
-        this._service.addHandler(Interfaces.ContentType.Rows, function(req, res) {
-            var id = req.query.id;
-            Utils.logDebug(Constants.gMsgContentProviderOnRowsEndpoint + id);
-            let uri : string = req.query.uri;
-            let json = JSON.stringify(self._queryResultsMap.get(uri).resultsets[id].rows);
-            //Utils.logDebug(json);
-            res.send(json);
+        this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void {
+            let resultId = req.query.resultId;
+            let batchId = req.query.batchId;
+            let rowStart = req.query.rowStart;
+            let numberOfRows = req.query.numberOfRows;
+            let uri: string = decodeURI(req.query.uri);
+            self._queryResultsMap.get(uri).getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
+                let json = JSON.stringify(results.resultSubset);
+                res.send(json);
+            });
+        });
+
+        // add http handler for '/saveResults' - return success message as JSON
+        this._service.addHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
+            let uri: string = decodeURI(req.query.uri);
+            let selectedResultSetNo: number = Number(req.query.resultSetNo);
+            let batchIndex: number = Number(req.query.batchIndex);
+            let format: string = req.query.format;
+            let saveResults = new ResultsSerializer();
+            if (format === 'csv') {
+                saveResults.onSaveResultsAsCsv(uri, batchIndex, selectedResultSetNo);
+            } else if (format === 'json') {
+                saveResults.onSaveResultsAsJson(uri, batchIndex, selectedResultSetNo);
+            }
+
+            res.status = 200;
+            res.send();
         });
 
         // start express server on localhost and listen on a random port
-        try
-        {
+        try {
             this._service.start();
-        }
-        catch (error)
-        {
+        } catch (error) {
             Utils.showErrorMsg(error);
             throw(error);
         }
     }
 
-    private clear(uri:string)
-    {
-        Utils.logDebug(Constants.gMsgContentProviderOnClear);
+    private clear(uri: string): void {
         this._queryResultsMap.delete(uri);
     }
 
-    public show(uri : string, title : string)
-    {
-        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, "SQL Query Results: " + title);
+    public show(uri: string, title: string): void {
+        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
     }
 
-    public updateContent(messages, resultsets)
-    {
-        Utils.logDebug(Constants.gMsgContentProviderOnUpdateContent);
-        let title : string = Utils.getActiveTextEditor().document.fileName;
-        let uri : string = SqlOutputContentProvider.providerUri + title;
+    public runQuery(connectionMgr, statusView, uri: string, text: string, title: string): void {
+        let queryRunner = new QueryRunner(connectionMgr, statusView, this);
+        queryRunner.runQuery(uri, text, title);
+    }
+
+    public updateContent(queryRunner: QueryRunner): string {
+        let title = queryRunner.title;
+        let uri = SqlOutputContentProvider.providerUri + title;
         this.clear(uri);
+        this._queryResultsMap.set(uri, queryRunner);
         this.show(uri, title);
-        this._queryResultsMap.set(uri, new QueryResultSet(messages, resultsets));
         this.onContentUpdated();
         return uri;
     }
 
     // Called by VS Code exactly once to load html content in the preview window
-    public provideTextDocumentContent(uri: vscode.Uri): string
-    {
-        Utils.logDebug(Constants.gMsgContentProviderProvideContent + uri.toString());
+    public provideTextDocumentContent(uri: vscode.Uri): string {
 
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `
                 <html>
                     <head>
-                        <script type="text/javascript">
-                            window.onload = function(event) {
-                                event.stopPropagation(true);
-                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}";
-                            };
-                        </script>
                     </head>
                     <body></body>
+                    <script type="text/javascript">
+                            var classList = document.body.className;
+                             window.onload = function(event) {
+                                event.stopPropagation(true);
+                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}&theme=" + classList;
+                            };
+                        </script>
                 </html>`;
     }
 }

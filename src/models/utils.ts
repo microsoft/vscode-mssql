@@ -1,16 +1,79 @@
 'use strict';
+import * as getmac from 'getmac';
+import * as crypto from 'crypto';
+import * as os from 'os';
 import vscode = require('vscode');
 import Constants = require('./constants');
+import * as interfaces from './interfaces';
+import {ExtensionContext} from 'vscode';
+
+// Interface for package.json information
+export interface IPackageInfo {
+    name: string;
+    version: string;
+    aiKey: string;
+}
+
+// Get information from the extension's package.json file
+export function getPackageInfo(context: ExtensionContext): IPackageInfo {
+    let extensionPackage = require(context.asAbsolutePath('./package.json'));
+    if (extensionPackage) {
+        return {
+            name: extensionPackage.name,
+            version: extensionPackage.version,
+            aiKey: extensionPackage.aiKey
+        };
+    }
+}
+
+// Generate a new GUID
+export function generateGuid(): string {
+    let hexValues: string[] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+    // c.f. rfc4122 (UUID version 4 = xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx)
+    let oct: string = '';
+    let tmp: number;
+    /* tslint:disable:no-bitwise */
+    for (let a: number = 0; a < 4; a++) {
+        tmp = (4294967296 * Math.random()) | 0;
+        oct +=  hexValues[tmp & 0xF] +
+                hexValues[tmp >> 4 & 0xF] +
+                hexValues[tmp >> 8 & 0xF] +
+                hexValues[tmp >> 12 & 0xF] +
+                hexValues[tmp >> 16 & 0xF] +
+                hexValues[tmp >> 20 & 0xF] +
+                hexValues[tmp >> 24 & 0xF] +
+                hexValues[tmp >> 28 & 0xF];
+    }
+
+    // 'Set the two most significant bits (bits 6 and 7) of the clock_seq_hi_and_reserved to zero and one, respectively'
+    let clockSequenceHi: string = hexValues[8 + (Math.random() * 4) | 0];
+    return oct.substr(0, 8) + '-' + oct.substr(9, 4) + '-4' + oct.substr(13, 3) + '-' + clockSequenceHi + oct.substr(16, 3) + '-' + oct.substr(19, 12);
+    /* tslint:enable:no-bitwise */
+}
+
+// Generate a unique, deterministic ID for the current user of the extension
+export function generateUserId(): Promise<string> {
+    return new Promise<string>(resolve => {
+        try {
+            getmac.getMac((error, macAddress) => {
+                if (!error) {
+                    resolve(crypto.createHash('sha256').update(macAddress + os.homedir(), 'utf8').digest('hex'));
+                } else {
+                    resolve(generateGuid()); // fallback
+                }
+            });
+        } catch (err) {
+            resolve(generateGuid()); // fallback
+        }
+    });
+}
 
 // Return 'true' if the active editor window has a .sql file, false otherwise
-export function isEditingSqlFile()
-{
+export function isEditingSqlFile(): boolean {
     let sqlFile = false;
     let editor = getActiveTextEditor();
-    if(editor)
-    {
-        if (editor.document.languageId == Constants.gLanguageId)
-        {
+    if (editor) {
+        if (editor.document.languageId === Constants.languageId) {
             sqlFile = true;
         }
     }
@@ -18,60 +81,165 @@ export function isEditingSqlFile()
 }
 
 // Return the active text editor if there's one
-export function getActiveTextEditor()
-{
+export function getActiveTextEditor(): vscode.TextEditor {
     let editor = undefined;
-    if(vscode.window && vscode.window.activeTextEditor)
-    {
+    if (vscode.window && vscode.window.activeTextEditor) {
         editor = vscode.window.activeTextEditor;
     }
     return editor;
 }
 
+// Retrieve the URI for the currently open file if there is one; otherwise return the empty string
+export function getActiveTextEditorUri(): string {
+    if (typeof vscode.window.activeTextEditor !== 'undefined' &&
+        typeof vscode.window.activeTextEditor.document !== 'undefined') {
+        return vscode.window.activeTextEditor.document.uri.toString();
+    }
+    return '';
+}
+
 // Helper to log messages to "MSSQL" output channel
-export function logToOutputChannel(msg: any)
-{
-    let outputChannel = vscode.window.createOutputChannel(Constants.gOutputChannelName);
+export function logToOutputChannel(msg: any): void {
+    let outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
     outputChannel.show();
-    if(msg instanceof Array)
-    {
+    if (msg instanceof Array) {
         msg.forEach(element => {
             outputChannel.appendLine(element.toString());
         });
-    }
-    else
-    {
+    } else {
         outputChannel.appendLine(msg.toString());
     }
 }
 
 // Helper to log debug messages
-export function logDebug(msg: any)
-{
-    let config = vscode.workspace.getConfiguration(Constants.gExtensionName);
-    let logDebugInfo = config[Constants.gConfigLogDebugInfo];
-    if(logDebugInfo == true)
-    {
+export function logDebug(msg: any): void {
+    let config = vscode.workspace.getConfiguration(Constants.extensionName);
+    let logDebugInfo = config[Constants.configLogDebugInfo];
+    if (logDebugInfo === true) {
         let currentTime = new Date().toLocaleTimeString();
-        let outputMsg = "[" + currentTime + "]: " + msg ? msg.toString() : "";
+        let outputMsg = '[' + currentTime + ']: ' + msg ? msg.toString() : '';
         console.log(outputMsg);
     }
 }
 
 // Helper to show an info message
-export function showInfoMsg(msg: string)
-{
-    vscode.window.showInformationMessage(Constants.gExtensionName + ": " + msg );
+export function showInfoMsg(msg: string): void {
+    vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg );
 }
 
 // Helper to show an warn message
-export function showWarnMsg(msg: string)
-{
-    vscode.window.showWarningMessage(Constants.gExtensionName + ": " + msg );
+export function showWarnMsg(msg: string): void {
+    vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
 }
 
 // Helper to show an error message
-export function showErrorMsg(msg: string)
-{
-    vscode.window.showErrorMessage(Constants.gExtensionName + ": " + msg );
+export function showErrorMsg(msg: string): void {
+    vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg );
+}
+
+export function isEmpty(str: any): boolean {
+    return (!str || '' === str);
+}
+
+export function isNotEmpty(str: any): boolean {
+    return <boolean>(str && '' !== str);
+}
+
+export function authTypeToString(value: interfaces.AuthenticationTypes): string {
+    return interfaces.AuthenticationTypes[value];
+}
+
+/**
+ * Format a string. Behaves like C#'s string.Format() function.
+ */
+export function formatString(str: string, ...args: any[]): string {
+    // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
+    // License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
+    let result: string;
+    if (args.length === 0) {
+        result = str;
+    } else {
+        result = str.replace(/\{(\d+)\}/g, (match, rest) => {
+            let index = rest[0];
+            return typeof args[index] !== 'undefined' ? args[index] : match;
+        });
+    }
+    return result;
+}
+
+
+/**
+ * Compares 2 profiles to see if they match. Logic for matching:
+ * If a profile name is used, can simply match on this.
+ * If not, match on all key properties (server, db, auth type, user) being identical.
+ * Other properties are ignored for this purpose
+ *
+ * @param {IConnectionProfile} currentProfile the profile to check
+ * @param {IConnectionProfile} expectedProfile the profile to try to match
+ * @returns boolean that is true if the profiles match
+ */
+export function isSameProfile(currentProfile: interfaces.IConnectionProfile, expectedProfile: interfaces.IConnectionProfile): boolean {
+    if (currentProfile === undefined) {
+        return false;
+    }
+    if (expectedProfile.profileName) {
+        // Can match on profile name
+        return expectedProfile.profileName === currentProfile.profileName;
+    } else if (currentProfile.profileName) {
+        // This has a profile name but expected does not - can break early
+        return false;
+    }
+    return expectedProfile.server === currentProfile.server
+        && expectedProfile.database === currentProfile.database
+        && expectedProfile.authenticationType === currentProfile.authenticationType
+        && expectedProfile.user === currentProfile.user;
+}
+
+/**
+ * Compares 2 connections to see if they match. Logic for matching:
+ * match on all key properties (server, db, auth type, user) being identical.
+ * Other properties are ignored for this purpose
+ *
+ * @param {IConnectionCredentials} conn the connection to check
+ * @param {IConnectionCredentials} expectedConn the connection to try to match
+ * @returns boolean that is true if the connections match
+ */
+export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
+    return expectedConn.server === conn.server
+        && expectedConn.database === conn.database
+        && expectedConn.authenticationType === conn.authenticationType
+        && expectedConn.user === conn.user;
+}
+
+
+// One-time use timer for performance testing
+export class Timer {
+    private _startTime: number[];
+    private _endTime: number[];
+
+    constructor() {
+        this.start();
+    }
+
+    // Get the duration of time elapsed by the timer, in milliseconds
+    public getDuration(): number {
+        if (!this._startTime) {
+            return -1;
+        } else if (!this._endTime) {
+            let endTime = process.hrtime(this._startTime);
+            return  endTime[0] * 1000 + endTime[1] / 1000000;
+        } else {
+            return this._endTime[0] * 1000 + this._endTime[1] / 1000000;
+        }
+    }
+
+    public start(): void {
+        this._startTime = process.hrtime();
+    }
+
+    public end(): void {
+        if (!this._endTime) {
+            this._endTime = process.hrtime(this._startTime);
+        }
+    }
 }

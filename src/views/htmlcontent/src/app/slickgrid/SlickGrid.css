@@ -1,0 +1,122 @@
+.grid-cell-padding {
+  padding: 0.5em 0.8em 0.4em;
+}
+.grid-cell {
+  border-top-style: none;
+  color: var(--color-content);
+  letter-spacing: 0.03em;
+  border-color: var(--border-color-default);
+  font-size: 0.95em;
+  border-bottom-width: 1px;
+  border-left-style: none;
+  border-right-color: #ACACAC;
+  border-right-style: dotted;
+  padding: 0.5em 0.8em 0.4em;
+}
+.grid .slick-header-column {
+  border-top-style: none;
+  color: var(--color-content);
+  letter-spacing: 0.03em;
+  border-color: var(--border-color-default);
+  font-size: 0.95em;
+  border-bottom-width: 1px;
+  border-left-style: none;
+  border-right-color: #ACACAC;
+  border-right-style: dotted;
+  padding: 0.5em 0.8em 0.4em;
+  background-color: var(--color-bg-content-dark);
+  border-bottom-color: #ACACAC;
+}
+.grid .slick-cell {
+  border-top-style: none;
+  color: var(--color-content);
+  letter-spacing: 0.03em;
+  border-color: var(--border-color-default);
+  font-size: 0.95em;
+  border-bottom-width: 1px;
+  border-left-style: none;
+  border-right-color: #ACACAC;
+  border-right-style: dotted;
+  padding: 0.5em 0.8em 0.4em;
+  background-color: var(--grid-cell-color);
+}
+.grid .slick-cell.selected {
+  background-color: var(--color-grid-selected);
+  color: var(--color-content);
+}
+.grid .slick-cell.selected.active {
+  background-color: var(--grid-cell-color, #FFFFFF);
+  color: var(--color-content);
+  border-style: solid;
+  border-color: var(--color-grid-selected);
+}
+.grid .slick-cell.selected .grid-cell-value-container.missing-value {
+  color: black;
+}
+.grid .slick-cell.editable {
+  padding: 0;
+}
+.grid .slick-cell.editable input {
+  padding: 0.5em 0.8em 0.4em;
+  height: 100%;
+  padding: 0.4em 0.65em 0.1em;
+  letter-spacing: 0.03em;
+}
+.grid .slick-cell.editable input:focus {
+  outline-offset: 0;
+}
+.grid .slick-cell .grid-cell-value-container {
+  display: block;
+  white-space: pre;
+  width: 100%;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+}
+.grid .slick-cell .grid-cell-value-container.override-cell {
+  color: black;
+}
+.grid .slick-cell .grid-cell-value-container.highlighted {
+  color: black;
+}
+.grid .slick-cell .grid-cell-value-container.blurred {
+  color: #ABABAB;
+}
+.grid .slick-cell .grid-cell-value-container.missing-value {
+  color: lightgray;
+}
+.grid .slick-cell .grid-cell-value-container.context {
+  color: darkblue;
+  font-style: italic;
+}
+.grid .slick-cell .grid-cell-value-container.loading-cell {
+  font-style: italic;
+}
+.grid .slick-cell .grid-cell-value-container.right-justified {
+  text-align: right;
+}
+.grid input.editor-text {
+  width: 100%;
+  color: #000000;
+}
+.contextMenu {
+  position: absolute;
+  background: #007ACC;
+  color: white;
+  border: 1px solid gray;
+  padding: 2px;
+  display: inline-block;
+  min-width: 100px;
+  -moz-box-shadow: 2px 2px 2px silver;
+  -webkit-box-shadow: 2px 2px 2px silver;
+  z-index: 99999;
+}
+.contextMenu li {
+  padding: 4px 4px 4px 14px;
+  list-style: none;
+  cursor: pointer;
+}
+.contextMenu li:hover {
+  background-color: white;
+  color: #007ACC;
+  text-decoration: underline;
+}

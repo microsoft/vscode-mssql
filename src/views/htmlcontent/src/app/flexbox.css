@@ -1,0 +1,32 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+.fullsize {
+    height: 100%;
+}
+
+.box {
+    display: flex;
+    flex-flow: column;
+    overflow: auto;
+}
+
+.box .boxRow.header {
+    flex: 0 0 auto;
+}
+
+.box .boxRow.content {
+    flex: 1 1 1%;
+    overflow: auto;
+}
+
+.box .boxRow.content .slickgrid {
+    min-height: 232
+}
+
+.hidden {
+    display: none;
+}

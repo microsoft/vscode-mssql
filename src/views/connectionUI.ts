@@ -1,217 +1,294 @@
 'use strict';
 import vscode = require('vscode');
-import ConnInfo = require('../models/connectionInfo');
 import Constants = require('../models/constants');
-import Utils = require('../models/utils');
-import { RecentConnections } from '../models/recentConnections';
+import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionStore } from '../models/connectionStore';
+import { ConnectionProfile } from '../models/connectionProfile';
+import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
+import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
+import { Timer } from '../models/utils';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
-var async = require("async");
+export class ConnectionUI {
+    private _errorOutputChannel: vscode.OutputChannel;
 
-export class ConnectionUI
-{
+    constructor(private _connectionStore: ConnectionStore, private _prompter: IPrompter, private _vscodeWrapper?: VscodeWrapper) {
+        this._errorOutputChannel = vscode.window.createOutputChannel(Constants.connectionErrorChannelName);
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
+    }
+
+    private get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
+    private set vscodeWrapper(wrapper: VscodeWrapper) {
+        this._vscodeWrapper = wrapper;
+    }
+
+    // Show connection errors in an output window
+    public showConnectionErrors(errorMessages: string): void {
+        this._errorOutputChannel.clear();
+        this._errorOutputChannel.append(errorMessages);
+        this._errorOutputChannel.show(true);
+    }
+
     // Helper to let user choose a connection from a picklist
     // Return the ConnectionInfo for the user's choice
-    public showConnections()
-    {
+    public showConnections(): Promise<IConnectionCredentials> {
         const self = this;
-        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) =>
-        {
-            let recentConnections = new RecentConnections();
-            recentConnections.getPickListItems()
-            .then((picklist: Interfaces.IConnectionCredentialsQuickPickItem[]) =>
-            {
-                if(picklist.length == 0)
-                {
-                    // No recent connections - prompt to open user settings or workspace settings to add a connection
-                    self.openUserOrWorkspaceSettings();
-                    return false;
-                }
-                else
-                {
-                    // We have recent connections - show them in a picklist
-                    self.showConnectionsPickList(picklist)
-                    .then(selection =>
-                    {
-                        if(!selection) {
-                            return false;
-                        }
-                        resolve(selection);
+        return new Promise<IConnectionCredentials>((resolve, reject) => {
+            let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
+            if (picklist.length === 0) {
+                // No recent connections - prompt to open user settings or workspace settings to add a connection
+                self.openUserOrWorkspaceSettings();
+                resolve(undefined);
+            } else {
+                // We have recent connections - show them in a picklist
+                self.promptItemChoice({
+                    placeHolder: Constants.recentConnectionsPlaceholder,
+                    matchOnDescription: true
+                }, picklist)
+                .then(selection => {
+                    if (selection) {
+                        resolve(self.handleSelectedConnection(selection));
+                    } else {
+                        resolve(undefined);
+                    }
+                });
+            }
+        });
+    }
+
+    // requests the user to choose an item from the list
+    private promptItemChoice<T extends vscode.QuickPickItem>(options: vscode.QuickPickOptions, choices: T[]): Promise<T> {
+        let question: IQuestion = {
+            type: QuestionTypes.expand,
+            name: 'question',
+            message: options.placeHolder,
+            matchOptions: options,
+            choices: choices
+        };
+        return this._prompter.promptSingle(question);
+    }
+
+    /**
+     * Helper for waitForLanguageModeToBeSql() method.
+     */
+    private waitForLanguageModeToBeSqlHelper(resolve: any, timer: Timer): void {
+        if (timer.getDuration() > Constants.timeToWaitForLanguageModeChange) {
+            resolve(false);
+        } else if (this.vscodeWrapper.isEditingSqlFile) {
+            resolve(true);
+        } else {
+            setTimeout(this.waitForLanguageModeToBeSqlHelper.bind(this, resolve, timer), 50);
+        }
+    }
+
+    /**
+     * Wait for up to 10 seconds for the language mode to change to SQL.
+     */
+    private waitForLanguageModeToBeSql(): Promise<boolean> {
+        const self = this;
+        return new Promise((resolve, reject) => {
+            let timer: Timer = new Timer();
+            timer.start();
+            self.waitForLanguageModeToBeSqlHelper(resolve, timer);
+        });
+    }
+
+    /**
+     * Prompt the user to change language mode to SQL.
+     * @returns resolves to true if the user changed the language mode to SQL.
+     */
+    public promptToChangeLanguageMode(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: Constants.msgChangeLanguageMode,
+                message: Constants.msgChangeLanguageMode
+            };
+            self._prompter.promptSingle(question).then( value => {
+                if (value) {
+                    vscode.commands.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
+                        self.waitForLanguageModeToBeSql().then( result => {
+                            resolve(result);
+                        });
                     });
+                } else {
+                    resolve(false);
+                }
+            }).catch( err => {
+                resolve(false);
+            });
+        });
+    }
+
+    // Helper to let the user choose a database on the current server
+    public showDatabasesOnCurrentServer(currentCredentials: Interfaces.IConnectionCredentials,
+                                        databaseNames: Array<string>): Promise<Interfaces.IConnectionCredentials> {
+        const self = this;
+        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
+            const pickListItems = databaseNames.map(name => {
+                let newCredentials: Interfaces.IConnectionCredentials = <any>{};
+                Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
+                newCredentials.database = name;
+
+                return <Interfaces.IConnectionCredentialsQuickPickItem> {
+                    label: name,
+                    description: '',
+                    detail: '',
+                    connectionCreds: newCredentials,
+                    quickPickItemType: CredentialsQuickPickItemType.Mru
+                };
+            });
+
+            const pickListOptions: vscode.QuickPickOptions = {
+                placeHolder: Constants.msgChooseDatabasePlaceholder
+            };
+
+            // show database picklist, and modify the current connection to switch the active database
+            self.vscodeWrapper.showQuickPick<Interfaces.IConnectionCredentialsQuickPickItem>(pickListItems, pickListOptions).then( selection => {
+                if (typeof selection !== 'undefined') {
+                    resolve(selection.connectionCreds);
+                } else {
+                    resolve(undefined);
                 }
             });
         });
     }
 
     // Helper to prompt user to open VS Code user settings or workspace settings
-    private openUserOrWorkspaceSettings()
-    {
+    private openUserOrWorkspaceSettings(): void {
         let openGlobalSettingsItem: vscode.MessageItem = {
-            "title": Constants.gLabelOpenGlobalSettings
+            'title': Constants.labelOpenGlobalSettings
         };
 
         let openWorkspaceSettingsItem: vscode.MessageItem = {
-            "title": Constants.gLabelOpenWorkspaceSettings
+            'title': Constants.labelOpenWorkspaceSettings
         };
 
-        vscode.window.showWarningMessage(Constants.gExtensionName + ": " + Constants.gMsgNoConnectionsInSettings, openGlobalSettingsItem, openWorkspaceSettingsItem)
-        .then((selectedItem: vscode.MessageItem) =>
-        {
-            if (selectedItem === openGlobalSettingsItem)
-            {
-                vscode.commands.executeCommand("workbench.action.openGlobalSettings");
-            }
-            else if (selectedItem === openWorkspaceSettingsItem)
-            {
-                vscode.commands.executeCommand("workbench.action.openWorkspaceSettings");
+        vscode.window.showWarningMessage(Constants.extensionName
+                                         + ': '
+                                         + Constants.msgNoConnectionsInSettings, openGlobalSettingsItem, openWorkspaceSettingsItem)
+        .then((selectedItem: vscode.MessageItem) => {
+            if (selectedItem === openGlobalSettingsItem) {
+                vscode.commands.executeCommand('workbench.action.openGlobalSettings');
+            } else if (selectedItem === openWorkspaceSettingsItem) {
+                vscode.commands.executeCommand('workbench.action.openWorkspaceSettings');
             }
         });
     }
 
-    // Helper to let user choose a connection from a picklist
-    private showConnectionsPickList(pickList: Interfaces.IConnectionCredentialsQuickPickItem[])
-    {
+    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
         const self = this;
-        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) =>
-        {
-            // init picklist options
-            let opts: vscode.QuickPickOptions = {
-                matchOnDescription: true,
-                placeHolder: Constants.gRecentConnectionsPlaceholder
-            };
-
-            // show picklist
-            vscode.window.showQuickPick(pickList, opts)
-            .then(selection =>
-            {
-                if(selection != null)
-                {
+        return new Promise<IConnectionCredentials>((resolve, reject) => {
+            if (selection !== undefined) {
+                let connectFunc: Promise<IConnectionCredentials>;
+                if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
+                    // call the workflow to create a new connection
+                    connectFunc = self.createAndSaveProfile();
+                } else {
                     // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-                    let connectionCreds = selection.connectionCreds;
-                    self.promptForMissingInfo(connectionCreds).then((resolvedConnectionCreds) =>
-                    {
-                        if(!resolvedConnectionCreds) {
-                            return false;
-                        }
-                        resolve(resolvedConnectionCreds);
-                    });
+                    connectFunc = self.fillOrPromptForMissingInfo(selection);
                 }
-            });
+
+                connectFunc.then((resolvedConnectionCreds) => {
+                    if (!resolvedConnectionCreds) {
+                        resolve(undefined);
+                    }
+                    resolve(resolvedConnectionCreds);
+                }, err => reject(err));
+            } else {
+                resolve(undefined);
+            }
         });
     }
 
-    // Prompt user for missing details in the given IConnectionCredentials
-    private promptForMissingInfo(connectionCreds: Interfaces.IConnectionCredentials)
-    {
-        const self = this;
-        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) =>
-        {
-            // called by async.js when all functions have finished executing
-            var final = function(err, self, results)
-            {
-                if(err) {
-                    return false;
+    // Calls the create profile workflow
+    // Returns undefined if profile creation failed
+    public createAndSaveProfile(): Promise<IConnectionProfile> {
+        let self = this;
+        return self.promptForCreateProfile()
+            .then(profile => {
+                if (profile) {
+                    return self._connectionStore.saveProfile(profile);
                 }
-                else {
-                    resolve(results); // final connectionCreds with all the missing inputs filled in
-                }
-            }
+                return undefined;
+            });
+    }
 
-            // call each of these functions in a waterfall and pass parameters from one to the next
-            // See this for more info: https://github.com/caolan/async#waterfall
-            async.waterfall([
-                async.apply(self.promptForUsername, self, connectionCreds),
-                self.promptForPassword
-            ], final);
+    private promptForCreateProfile(): Promise<IConnectionProfile> {
+        return ConnectionProfile.createProfile(this._prompter);
+    }
+
+    private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+        return this._connectionStore.addSavedPassword(selection)
+        .then(sel => {
+            return ConnectionCredentials.ensureRequiredPropertiesSet(sel.connectionCreds, false, this._prompter);
         });
     }
 
-    // Helper to prompt for username
-    private promptForUsername(self, connectionCreds: Interfaces.IConnectionCredentials, callback)
-    {
-        if(connectionCreds.user)
-        {
-            // we already have a username - tell async.js to proceed to the next function
-            callback(null, self, connectionCreds);
-        }
-        else
-        {
-            // we don't have a username, prompt the user to enter it
-            let usernameInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.gUsernamePlaceholder, prompt: Constants.gUsernamePrompt};
-            self.promptUser(usernameInputOptions)
-            .then((input) =>
-            {
-                if(input)
-                {
-                    connectionCreds.user = input;
-                    callback(null, self, connectionCreds); // tell async.js to proceed to the next function
-                }
-                else
-                {
-                    // user cancelled - raise an error and abort the wizard
-                    callback(true, self, connectionCreds);
-                }
-            });
-        }
-    }
+    // Prompts the user to pick a profile for removal, then removes from the global saved state
+    public removeProfile(): Promise<boolean> {
+        let self = this;
 
-    // Helper to prompt for password
-    private promptForPassword(self, connectionCreds: Interfaces.IConnectionCredentials, callback)
-    {
-        if(connectionCreds.password)
-        {
-            // we already have a password - tell async.js to proceed to the next function
-            callback(null, self, connectionCreds);
-        }
-        else
-        {
-            // we don't have a password, prompt the user to enter it
-            let passwordInputOptions: vscode.InputBoxOptions = {placeHolder: Constants.gPasswordPlaceholder, prompt: Constants.gPasswordPrompt, password: true};
-            self.promptUser(passwordInputOptions)
-            .then((input) =>
-            {
-                if(input)
-                {
-                    connectionCreds.password = input;
-                    callback(null, self, connectionCreds); // tell async.js to proceed to the next function
-                }
-                else
-                {
-                    // user cancelled - raise an error and abort the wizard
-                    callback(true, self, connectionCreds);
-                }
-            });
-        }
-    }
-
-    // Helper to prompt user for input
-    // If the input is a mandatory inout then keeps prompting the user until cancelled
-    private promptUser(options: vscode.InputBoxOptions, mandatoryInput = true)
-    {
-        return new Promise<string>((resolve, reject) =>
-        {
-            var prompt = () =>
-            {
-                vscode.window.showInputBox(options).then((input) =>
-                {
-                    if ((!input || !input.trim()) && mandatoryInput)
-                    {
-                        // Prompt user to re-enter if this is a mandatory input
-                        vscode.window.showWarningMessage(options.prompt + Constants.gMsgIsRequired, Constants.gMsgRetry).then((choice) =>
-                        {
-                            if (choice === Constants.gMsgRetry) {
-                                prompt();
-                            }
-                        });
-                        return false;
-                    }
-                    else
-                    {
-                        resolve(input);
-                    }
-                });
+        // Flow: Select profile to remove, confirm removal, remove, notify
+        let profiles = self._connectionStore.getProfilePickListItems();
+        return self.selectProfileForRemoval(profiles)
+        .then(profile => {
+            if (profile) {
+                return self._connectionStore.removeProfile(profile);
             }
-            prompt();
+            return false;
+        }).then(result => {
+            if (result) {
+                // TODO again consider moving information prompts to the prompt package
+                vscode.window.showInformationMessage(Constants.msgProfileRemoved);
+            }
+            return result;
+        });
+    }
+
+    private selectProfileForRemoval(profiles: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionProfile> {
+        let self = this;
+        if (!profiles || profiles.length === 0) {
+            // Inform the user we have no profiles available for deletion
+            // TODO: consider moving to prompter if we separate all UI logic from workflows in the future
+            vscode.window.showErrorMessage(Constants.msgNoProfilesSaved);
+            return Promise.resolve(undefined);
+        }
+
+        let chooseProfile = 'ChooseProfile';
+        let confirm = 'ConfirmRemoval';
+        let questions: IQuestion[] = [
+            {
+                // 1: what profile should we remove?
+                type: QuestionTypes.expand,
+                name: chooseProfile,
+                message: Constants.msgSelectProfileToRemove,
+                matchOptions: { matchOnDescription: true },
+                choices: profiles
+            },
+            {
+                // 2: Confirm removal before proceeding
+                type: QuestionTypes.confirm,
+                name: confirm,
+                message: Constants.confirmRemoveProfilePrompt
+            }
+        ];
+
+        // Prompt and return the value if the user confirmed
+        return self._prompter.prompt(questions).then(answers => {
+            if (answers && answers[confirm]) {
+                let profilePickItem = <IConnectionCredentialsQuickPickItem> answers[chooseProfile];
+                return profilePickItem.connectionCreds;
+            } else {
+                return undefined;
+            }
         });
     }
 }

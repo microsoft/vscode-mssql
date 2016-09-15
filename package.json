@@ -5,6 +5,7 @@
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
   "publisher": "microsoft",
   "license": "SEE LICENSE IN LICENSE.txt",
+  "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
   "icon": "images/sqlserver.png",
   "galleryBanner": {
     "color": "#CFB69A",
@@ -39,16 +40,36 @@
     "vscode.sql"
   ],
   "devDependencies": {
+    "del": "^2.2.1",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-install": "^0.6.0",
+    "gulp-less": "^3.1.0",
+    "gulp-nuget": "1.0.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-tslint": "^6.0.2",
+    "gulp-typescript": "^2.13.6",
+    "gulp-rename": "^1.2.2",
+    "pm-mocha-jenkins-reporter": "^0.2.6",
+    "tslint": "^3.14.0",
     "typescript": "^1.8.9",
-    "vscode": "^0.11.0",
-    "xunit-file": "^1.0.0"
+    "typemoq": "^0.3.2",
+    "vscode": "^0.11.0"
   },
   "dependencies": {
-    "async": "^2.0.0-rc.3",
     "ejs": "^2.4.2",
+    "error-ex": "^1.3.0",
     "express": "^4.13.3",
-    "mssql": "^3.2.0",
-    "request": "^2.73.0"
+    "figures": "^1.4.0",
+    "getmac": "1.2.1",
+    "request": "^2.73.0",
+    "underscore": "^1.8.3",
+    "vscode-extension-telemetry": "^0.0.5",
+    "vscode-languageclient": "^2.0.0",
+    "fs-extra-promise": "^0.3.1",
+    "http-proxy-agent": "^1.0.0",
+    "https-proxy-agent": "^1.0.0",
+    "tmp": "^0.0.28",
+    "decompress": "^4.0.0"
   },
   "contributes": {
     "languages": [
@@ -94,6 +115,21 @@
         "command": "extension.disconnect",
         "title": "Disconnect active connection",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.createprofile",
+        "title": "Create Connection Profile",
+        "category": "MSSQL"
+      },
+      {
+        "command": "extension.removeprofile",
+        "title": "Remove Connection Profile",
+        "category": "MSSQL"
+      },
+      {
+        "command": "extension.chooseDatabase",
+        "title": "Switch database on current server",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [
@@ -114,6 +150,12 @@
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus && editorLangId == 'sql'"
+      },
+      {
+        "command": "extension.createprofile",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],
     "configuration": {
@@ -124,6 +166,11 @@
           "type": "boolean",
           "default": false,
           "description": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)"
+        },
+        "vscode-mssql.maxRecentConnections": {
+          "type": "number",
+          "default": 5,
+          "description": "The maximum number of recently used connections to store in the connection list"
         },
         "vscode-mssql.connections": {
           "type": "array",
@@ -159,30 +206,129 @@
                 "default": "{{put-password-here}}",
                 "description": "[Optional] Password for SQL authentication. If this is empty, you are prompted when you connect."
               },
-              "connectionTimeout": {
-                "type": "number",
-                "default": 15000,
-                "description": "[Optional] Connection timeout in milliseconds. Default is 30000 ms for Azure SQL DB and 15000 ms otherwise."
+              "authenticationType": {
+                "type": "string",
+                "default": "SqlLogin",
+                "enum": [
+                  "Integrated",
+                  "SqlLogin"
+                ],
+                "description": "[Optional] Specifies the method of authenticating with SQL Server."
               },
-              "requestTimeout": {
+              "port": {
                 "type": "number",
-                "default": 15000,
-                "description": "[Optional] Request timeout in milliseconds. Default is 30000 ms for Azure SQL DB and 15000 ms otherwise."
+                "default": 1433,
+                "description": "[Optional] Specify the port number to connect to."
               },
-              "options": {
-                "type": "object",
-                "properties": {
-                  "encrypt": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "[Optional] Specify if the connection will be encrypted. Always set to 'true' for Azure SQL DB and loaded from here otherwise."
-                  },
-                  "appName": {
-                    "type": "string",
-                    "default": "vscode-mssql",
-                    "description": "[Optional] Application name used for SQL server logging (default: 'vscode-mssql')."
-                  }
-                }
+              "encrypt": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional] Specify if the connection will be encrypted. Always set to 'true' for Azure SQL DB and loaded from here otherwise."
+              },
+              "trustServerCertificate": {
+                "type": "boolean",
+                "description": "[Optional]"
+              },
+              "persistSecurityInfo": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional]"
+              },
+              "connectTimeout": {
+                "type": "number",
+                "default": 15,
+                "description": "[Optional] The length of time in seconds to wait for a connection to the server before terminating the attempt and generating error."
+              },
+              "connectRetryCount": {
+                "type": "number",
+                "default": 1,
+                "description": "[Optional] Number of attempts to restore connection."
+              },
+              "connectRetryInterval": {
+                "type": "number",
+                "default": 10,
+                "description": "[Optional] Delay between attempts to restore connection."
+              },
+              "applicationName": {
+                "type": "string",
+                "default": "vscode-mssql",
+                "description": "[Optional] Application name used for SQL server logging (default: 'vscode-mssql')."
+              },
+              "workstationId": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional] The name of the workstation connecting to SQL Server."
+              },
+              "applicationIntent": {
+                "type": "string",
+                "default": "ReadWrite",
+                "enum": [
+                  "ReadWrite",
+                  "ReadOnly"
+                ],
+                "description": "[Optional]"
+              },
+              "currentLanguage": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional]"
+              },
+              "pooling": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional]"
+              },
+              "maxPoolSize": {
+                "type": "number",
+                "default": 100,
+                "description": "[Optional]"
+              },
+              "minPoolSize": {
+                "type": "number",
+                "default": 0,
+                "description": "[Optional]"
+              },
+              "loadBalanceTimeout": {
+                "type": "number",
+                "default": 0,
+                "description": "[Optional]"
+              },
+              "replication": {
+                "type": "boolean",
+                "default": true,
+                "description": "[Optional]"
+              },
+              "attachDbFilename": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional]"
+              },
+              "failoverPartner": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional]"
+              },
+              "multiSubnetFailover": {
+                "type": "boolean",
+                "default": true,
+                "description": "[Optional]"
+              },
+              "multipleActiveResultSets": {
+                "type": "boolean",
+                "default": false,
+                "description": "[Optional]"
+              },
+              "packetSize": {
+                "type": "number",
+                "default": 8192,
+                "description": "[Optional]"
+              },
+              "typeSystemVersion": {
+                "type": "string",
+                "enum": [
+                  "Latest"
+                ],
+                "description": "[Optional]"
               }
             }
           }
@@ -191,8 +337,7 @@
     }
   },
   "scripts": {
-    "compile": "node ./node_modules/vscode/bin/compile -p ./",
-    "compile_watch": "node ./node_modules/vscode/bin/compile -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "install-packages": "npm install github:gulpjs/gulp#4.0 && npm install gulp-install && gulp --gulpfile install.js install"
   }
 }

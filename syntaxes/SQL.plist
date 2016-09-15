@@ -15,6 +15,12 @@
 	<key>patterns</key>
 	<array>
 		<dict>
+      			<key>match</key>
+      			<string>\b(?i)(absolute|accent_sensitivity|action|activation|add|address|admin|after|aggregate|algorithm|allow_page_locks|allow_row_locks|allow_snapshot_isolation|alter|always|ansi_null_default|ansi_nulls|ansi_padding|ansi_warnings|application|arithabort|as|asc|assembly|asymmetric|at|atomic|audit|authentication|authorization|auto|auto_close|auto_shrink|auto_update_statistics|auto_update_statistics_async|availability|backup|before|begin|binary|bit|block|break|browse|bucket_count|bulk|by|call|caller|card|cascade|case|catalog|catch|change_tracking|changes|char|character|check|checkpoint|close|clustered|collection|column|column_encryption_key|columnstore|commit|compatibility_level|compress_all_row_groups|compression|compression_delay|compute|concat_null_yields_null|configuration|connect|constraint|containstable|continue|create|cube|current|current_date|cursor|cursor_close_on_commit|cursor_default|data|data_compression|database|date|date_correlation_optimization|datefirst|datetime|datetime2|days|db_chaining|dbcc|deallocate|dec|decimal|declare|default|delayed_durability|delete|deny|desc|description|disable_broker|disabled|disk|distinct|distributed|double|drop|drop_existing|dump|durability|dynamic|else|enable|encrypted|encryption_type|end|end-exec|entry|errlvl|escape|event|except|exec|execute|exit|external|fast_forward|fetch|file|filegroup|filename|filestream|fillfactor|filter|first|float|for|foreign|freetext|freetexttable|from|full|fullscan|fulltext|function|generated|geography|get|global|go|goto|grant|group|hash|hashed|having|hidden|hierarchyid|holdlock|hours|identity|identity_insert|identitycol|if|ignore_dup_key|image|immediate|include|index|inflectional|insensitive|insert|instead|int|integer|integrated|intersect|into|isolation|json|key|kill|language|last|legacy_cardinality_estimation|level|lineno|load|local|locate|location|login|masked|master|maxdop|memory_optimized|merge|message|modify|move|multi_user|namespace|national|native_compilation|nchar|next|no|nocheck|nocount|nonclustered|none|norecompute|now|numeric|numeric_roundabort|object|of|off|offsets|on|online|open|opendatasource|openquery|openrowset|openxml|option|order|out|output|over|owner|pad_index|page|page_verify|parameter_sniffing|parameterization|partial|partition|password|path|percent|percentage|period|persisted|plan|policy|population|precision|predicate|primary|print|prior|proc|procedure|public|query_optimizer_hotfixes|query_store|quoted_identifier|raiserror|range|raw|read|read_committed_snapshot|read_only|read_write|readonly|readtext|real|rebuild|receive|reconfigure|recovery|recursive|recursive_triggers|references|relative|remove|reorganize|replication|required|restart|restore|restrict|resume|return|returns|revert|revoke|role|rollback|rollup|row|rowcount|rowguidcol|rows|rule|sample|save|schema|schemabinding|scoped|scroll|secondary|security|securityaudit|select|semantickeyphrasetable|semanticsimilaritydetailstable|semanticsimilaritytable|send|sent|sequence|server|session|set|sets|setuser|shutdown|simple|smallint|smallmoney|snapshot|sort_in_tempdb|sql|standard|start|started|state|statement|static|statistics|statistics_norecompute|status|stopped|supported|symmetric|sysname|system|system_time|system_versioning|table|tablesample|take|target|textimage_on|textsize|then|thesaurus|throw|time|timestamp|tinyint|to|top|tran|transaction|trigger|truncate|trustworthy|try|tsql|type|union|unique|uniqueidentifier|unlimited|updatetext|use|user|using|value|values|varchar|varying|version|view|waitfor|weight|when|where|while|with|within|within group|without|writetext|xact_abort|xml|zone)\b</string>
+      			<key>name</key>
+      			<string>keyword.other.sql</string>
+    		</dict>
+		<dict>
 			<key>include</key>
 			<string>#comments</string>
 		</dict>
@@ -584,7 +590,7 @@
 					<key>comment</key>
 					<string>this is faster than the next begin/end rule since sub-pattern will match till end-of-line and SQL files tend to have very long lines.</string>
 					<key>match</key>
-					<string>(')[^'\\]*(')</string>
+					<string>(')[^']*(')</string>
 					<key>name</key>
 					<string>string.quoted.single.sql</string>
 				</dict>
