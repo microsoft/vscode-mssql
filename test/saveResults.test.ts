@@ -2,7 +2,7 @@ import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import Constants = require('../src/models/constants');
 import ResultsSerializer  from './../src/models/resultsSerializer';
-import { SaveResultsRequest } from './../src/models/contracts';
+import { SaveResultsAsCsvRequest } from './../src/models/contracts';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { IQuestion, IPrompter } from '../src/prompts/question';
 import { TestPrompter } from './stubs';
@@ -29,14 +29,6 @@ suite('save results tests', () => {
         }
     });
 
-    test('initialise and check defaults for saveResults', () => {
-
-        let saveResults = new ResultsSerializer();
-        assert.equal(typeof saveResults !== undefined, true);
-        saveResults.sendRequestToService(testFile, filePath, 0, 0);
-        assert.equal(saveResults.saveResultsParams.includeHeaders, true);
-        assert.equal(saveResults.saveResultsParams.valueInQuotes, false);
-    });
 
     test('check if filepath prompt displays and right value is set', () => {
 
@@ -52,10 +44,10 @@ suite('save results tests', () => {
 
         // setup mock sql tools server client
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                        .callback((type, details: SaveResultsRequest.SaveResultsRequestParams) => {
+                                        .callback((type, details: SaveResultsAsCsvRequest.SaveResultsRequestParams) => {
                                                 // check if filepath was set from answered prompt
                                                 assert.equal(details.ownerUri, testFile);
-                                                // assert.equal(details.filePath, filePath);
+                                                assert.equal(details.filePath, filePath);
                                         })
                                         .returns(() => {
                                             return Promise.resolve({messages: undefined});
@@ -71,7 +63,7 @@ suite('save results tests', () => {
     test('check if filename resolves to absolute filepath with current directory', () => {
 
         let answers = {};
-        let params: SaveResultsRequest.SaveResultsRequestParams;
+        let params: SaveResultsAsCsvRequest.SaveResultsRequestParams;
         let filename = 'testfilename.csv';
         let resolvedFilePath = '';
         if (os.platform() === 'win32') {
@@ -85,7 +77,7 @@ suite('save results tests', () => {
                                         .returns((questions: IQuestion[]) => Promise.resolve(answers));
 
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                    .callback((type, details: SaveResultsRequest.SaveResultsRequestParams) => {
+                                    .callback((type, details: SaveResultsAsCsvRequest.SaveResultsRequestParams) => {
                                                               params = details;
                                     })
                                     .returns(() => {
@@ -100,7 +92,7 @@ suite('save results tests', () => {
     });
 
 
-    test('test if information message is displayed on success', () => {
+    test('Save as CSV - test if information message is displayed on success', () => {
 
         let answers = {};
         answers['File path'] = filePath;
@@ -121,7 +113,7 @@ suite('save results tests', () => {
         });
     });
 
-    test('test if error message is displayed on failure to save', () => {
+    test('Save as CSV - test if error message is displayed on failure to save', () => {
 
         let answers = {};
         answers['File path'] = filePath;
@@ -137,6 +129,48 @@ suite('save results tests', () => {
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResultsAsCsv( testFile, 0, 0).then( () => {
+                    // check if error message was displayed
+                    vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
+    });
+
+    test('Save as JSON - test if information message is displayed on success', () => {
+
+        let answers = {};
+        answers['File path'] = filePath;
+
+        // setup mocks
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                                    .returns((questions: IQuestion[]) => Promise.resolve(answers));
+        vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
+        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                                    .returns(() => {
+                                        return Promise.resolve({messages: 'Success'});
+                                    });
+
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        return saveResults.onSaveResultsAsJson( testFile, 0, 0).then( () => {
+                    // check if information message was displayed
+                    vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
+    });
+
+    test('Save as JSON - test if error message is displayed on failure to save', () => {
+
+        let answers = {};
+        answers['File path'] = filePath;
+
+        // setup mocks
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                                .returns((questions: IQuestion[]) => Promise.resolve(answers));
+        vscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                                .returns(() => {
+                                    return Promise.resolve({messages: 'failure'});
+                                });
+
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        return saveResults.onSaveResultsAsJson( testFile, 0, 0).then( () => {
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
