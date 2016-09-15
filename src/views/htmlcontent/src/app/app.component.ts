@@ -64,6 +64,7 @@ export class AppComponent implements OnInit {
             for (let batchId = 0; batchId < numberOfBatches; batchId++) {
                 self.dataService.getMessages(batchId).then(data => {
                     self.messages = self.messages.concat(data);
+                    self.selected = SelectedTab.Messages;
                 });
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {
@@ -115,6 +116,7 @@ export class AppComponent implements OnInit {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            self.selected = SelectedTab.Results;
                         });
                     }
                 });

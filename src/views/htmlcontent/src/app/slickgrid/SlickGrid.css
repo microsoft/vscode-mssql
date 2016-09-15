@@ -24,7 +24,7 @@
   border-right-color: #ACACAC;
   border-right-style: dotted;
   padding: 0.5em 0.8em 0.4em;
-  background-color: var(--color-bg-content-dark);
+  background-color: var(--background-color);
   border-bottom-color: #ACACAC;
 }
 .grid .slick-cell {
@@ -38,20 +38,20 @@
   border-right-color: #ACACAC;
   border-right-style: dotted;
   padding: 0.5em 0.8em 0.4em;
-  background-color: var(--grid-cell-color);
+  background-color: var(--background-color);
 }
 .grid .slick-cell.selected {
   background-color: var(--color-grid-selected);
   color: var(--color-content);
 }
 .grid .slick-cell.selected.active {
-  background-color: var(--grid-cell-color, #FFFFFF);
+  background-color: var(--background-color, #FFFFFF);
   color: var(--color-content);
   border-style: solid;
-  border-color: var(--color-grid-selected);
+  border-color: var(--color-border-grid-active);
 }
 .grid .slick-cell.selected .grid-cell-value-container.missing-value {
-  color: black;
+  color: var(--color-content-disabled);
 }
 .grid .slick-cell.editable {
   padding: 0;
@@ -82,7 +82,7 @@
   color: #ABABAB;
 }
 .grid .slick-cell .grid-cell-value-container.missing-value {
-  color: lightgray;
+  color: var(--color-content-disabled);
 }
 .grid .slick-cell .grid-cell-value-container.context {
   color: darkblue;
