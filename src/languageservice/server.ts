@@ -6,30 +6,21 @@
 'use strict';
 
 import * as path from 'path';
-import * as Utils from '../models/utils';
 import {Platform, getCurrentPlatform} from '../models/platform';
 import ServiceDownloadProvider from './download';
-import StatusView from '../views/statusView';
-import Config from  '../configurations/config';
+import {IConfig, IStatusView, IExtensionWrapper} from './interfaces';
 let fs = require('fs-extra-promise');
+
 
 /*
 * Service Provider class finds the SQL tools service executable file or downloads it if doesn't exist.
 */
 export default class ServerProvider {
 
-    constructor(private _downloadProvider?: ServiceDownloadProvider,
-                private _config?: Config,
-                private _statusView?: StatusView) {
-                    if (!this._config) {
-                        this._config = new Config();
-                    }
-                    if (!this._downloadProvider) {
-                        this._downloadProvider = new ServiceDownloadProvider(this._config);
-                    }
-                    if (!this._statusView) {
-                        this._statusView = new StatusView();
-                    }
+    constructor(private _downloadProvider: ServiceDownloadProvider,
+                private _config: IConfig,
+                private _statusView: IStatusView,
+                private _vsCodeExtention: IExtensionWrapper) {
     }
 
     /**
@@ -63,17 +54,20 @@ export default class ServerProvider {
     /**
      * Download the SQL tools service if doesn't exist and returns the file path.
      */
-    public getServerPath(): Promise<string> {
+    public getServerPath(platform: Platform): Promise<string> {
 
+        if (platform === undefined) {
+            platform = getCurrentPlatform();
+        }
         // Attempt to find launch file path first from options, and then from the default install location.
         // If SQL tools service can't be found, download it.
 
-        const installDirectory = this._downloadProvider.getInstallDirectory();
+        const installDirectory = this._downloadProvider.getInstallDirectory(platform);
 
         return new Promise<string>((resolve, reject) => {
             return this.findServerPath(installDirectory).then(result => {
                 if (result === undefined) {
-                    return this.downloadServerFiles().then ( downloadResult => {
+                    return this.downloadServerFiles(platform).then ( downloadResult => {
                         resolve(downloadResult);
                     });
                 } else {
@@ -87,14 +81,9 @@ export default class ServerProvider {
         });
     }
 
-    private downloadServerFiles(): Promise<string> {
-        const platform = getCurrentPlatform();
-        if (platform === Platform.Unknown) {
-            throw new Error('Invalid Platform');
-        }
-
-        const installDirectory = this._downloadProvider.getInstallDirectory();
-        let currentFileUrl = Utils.getActiveTextEditorUri();
+    private downloadServerFiles(platform: Platform): Promise<string> {
+        const installDirectory = this._downloadProvider.getInstallDirectory(platform);
+        let currentFileUrl = this._vsCodeExtention.getActiveTextEditorUri();
         this._statusView.installingService(currentFileUrl);
         return this._downloadProvider.go(platform).then( _ => {
             return this.findServerPath(installDirectory).then ( result => {
