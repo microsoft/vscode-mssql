@@ -1,12 +1,13 @@
 <div class="fullsize box">
     <tabs class="boxRow content box" [selected]="selected" (tabChange)="tabChange($event)">
         <tab [id]="SelectedTab.Results" tabTitle="Results" [show]="dataSets.length > 0" class="boxRow content box">
-            <slick-grid *ngFor="let dataSet of dataSets"
+            <slick-grid *ngFor="let dataSet of dataSets; let i = index"
                         [columnDefinitions]="dataSet.columnDefinitions"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId)"
                         showDataTypeIcon="false"
                         showHeader="true"
+                        (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
                         class="boxRow content box slickgrid">
             </slick-grid>
             <context-menu (clickEvent)="handleContextClick($event)"></context-menu>

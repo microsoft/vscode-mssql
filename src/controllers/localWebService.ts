@@ -3,6 +3,7 @@ import path = require('path');
 import Utils = require('../models/utils');
 import Constants = require('../models/constants');
 import Interfaces = require('../models/interfaces');
+const bodyParser = require('body-parser');
 const express = require('express');
 
 export default class LocalWebService {
@@ -17,6 +18,7 @@ export default class LocalWebService {
         LocalWebService._vscodeExtensionPath = extensionPath;
         LocalWebService._staticContentPath = path.join(extensionPath, LocalWebService._htmlContentLocation);
         this.app.use(express.static(LocalWebService.staticContentPath));
+        this.app.use( bodyParser.json() );
         this.app.set('view engine', 'ejs');
         Utils.logDebug(Constants.msgLocalWebserviceStaticContent + LocalWebService.staticContentPath);
     }
@@ -40,6 +42,11 @@ export default class LocalWebService {
     addHandler(type: Interfaces.ContentType, handler: (req, res) => void): void {
         let segment = '/' + Interfaces.ContentTypes[type];
         this.app.get(segment, handler);
+    }
+
+    addPostHandler(type: Interfaces.ContentType, handler: (req, res) => void): void {
+        let segment = '/' + Interfaces.ContentTypes[type];
+        this.app.post(segment, handler);
     }
 
     start(): void {

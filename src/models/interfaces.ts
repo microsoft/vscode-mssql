@@ -9,8 +9,16 @@ export enum ContentType {
     ResultsetsMeta = 2,
     Columns = 3,
     Rows = 4,
-    SaveResults = 5
+    SaveResults = 5,
+    Copy = 6
 };
+
+export interface ISlickRange {
+    fromCell: number;
+    fromRow: number;
+    toCell: number;
+    toRow: number;
+}
 
 export enum AuthenticationTypes {
     Integrated = 1,
@@ -24,7 +32,8 @@ export const ContentTypes = [
     Constants.outputContentTypeResultsetMeta,
     Constants.outputContentTypeColumns,
     Constants.outputContentTypeRows,
-    Constants.outputContentTypeSaveResults
+    Constants.outputContentTypeSaveResults,
+    Constants.outputContentTypeCopy
     ];
 
 /**
