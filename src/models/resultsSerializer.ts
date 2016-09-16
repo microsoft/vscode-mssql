@@ -114,7 +114,7 @@ export default class ResultsSerializer {
 
         // send message to the sqlserverclient for converting resuts to CSV and saving to filepath
         return self._client.sendRequest( Contracts.SaveResultsAsCsvRequest.type, saveResultsParams).then(result => {
-                if (result.messages === 'Success') {
+                if (result.messages === null) {
                     self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
                 } else {
                     self._vscodeWrapper.showErrorMessage(result.messages);
@@ -142,7 +142,7 @@ export default class ResultsSerializer {
 
         // send message to the sqlserverclient for converting resuts to JSON and saving to filepath
         return self._client.sendRequest( Contracts.SaveResultsAsJsonRequest.type, saveResultsParams).then(result => {
-                if (result.messages === 'Success') {
+                if (result.messages === null) {
                     self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
                 } else {
                     self._vscodeWrapper.showErrorMessage(result.messages);
