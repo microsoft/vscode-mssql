@@ -79,6 +79,24 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Opens the denoted document from disk. Will return early if the
+     * document is already open, otherwise the document is loaded and the
+     * [open document](#workspace.onDidOpenTextDocument)-event fires.
+     * The document to open is denoted by the [uri](#Uri). Two schemes are supported:
+     *
+     * file: A file on disk, will be rejected if the file does not exist or cannot be loaded, e.g. `file:///Users/frodo/r.ini`.
+     * untitled: A new file that should be saved on disk, e.g. `untitled:c:\frodo\new.js`. The language will be derived from the file name.
+     *
+     * Uris with other schemes will make this method return a rejected promise.
+     *
+     * @param uri Identifies the resource to open.
+     * @return A promise that resolves to a [document](#TextDocument).
+     */
+    public openTextDocument(uri: vscode.Uri): Thenable<vscode.TextDocument> {
+        return vscode.workspace.openTextDocument(uri);
+    }
+
+    /**
      * Helper to log messages to "MSSQL" output channel.
      */
     public logToOutputChannel(msg: any): void {
@@ -123,6 +141,20 @@ export default class VscodeWrapper {
      */
     public showQuickPick<T extends vscode.QuickPickItem>(items: T[] | Thenable<T[]>, options?: vscode.QuickPickOptions): Thenable<T> {
         return vscode.window.showQuickPick<T>(items, options);
+    }
+
+    /**
+     * Show the given document in a text editor. A [column](#ViewColumn) can be provided
+     * to control where the editor is being shown. Might change the [active editor](#window.activeTextEditor).
+     *
+     * @param document A text document to be shown.
+     * @param column A view column in which the editor should be shown. The default is the [one](#ViewColumn.One), other values
+     * are adjusted to be __Min(column, columnCount + 1)__.
+     * @param preserveFocus When `true` the editor will not take focus.
+     * @return A promise that resolves to an [editor](#TextEditor).
+     */
+    public showTextDocument(document: vscode.TextDocument, column?: vscode.ViewColumn, preserveFocus?: boolean): Thenable<vscode.TextEditor> {
+        return vscode.window.showTextDocument(document, column, preserveFocus);
     }
 
     /**

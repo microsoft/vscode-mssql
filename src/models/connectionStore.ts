@@ -1,5 +1,7 @@
 'use strict';
 import vscode = require('vscode');
+import fs = require('fs');
+import os = require('os');
 import Constants = require('./constants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
@@ -26,8 +28,8 @@ export class ConnectionStore {
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore();
         }
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
         }
     }
 
@@ -81,6 +83,14 @@ export class ConnectionStore {
         if (Utils.isNotEmpty(value)) {
             arr.push(prefix.concat(value));
         }
+    }
+
+    private get vscodeWrapper(): VscodeWrapper {
+        return this._vscodeWrapper;
+    }
+
+    private set vscodeWrapper(value: VscodeWrapper) {
+        this._vscodeWrapper = value;
     }
 
     /**
@@ -153,7 +163,7 @@ export class ConnectionStore {
             // Add the profile to the saved list, taking care to clear out the password field
             let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
             configValues.push(savedProfile);
-            self._context.globalState.update(Constants.configMyConnections, configValues)
+            self.writeConnectionsToConfigFile(configValues)
             .then(() => {
                 // Only save if we successfully added the profile
                 return self.saveProfilePasswordIfNeeded(profile);
@@ -277,7 +287,7 @@ export class ConnectionStore {
                 }
             });
 
-            self._context.globalState.update(Constants.configMyConnections, configValues).then(() => {
+            self.writeConnectionsToConfigFile(configValues).then(() => {
                 resolve(found);
             }, err => reject(err));
         }).then(profileFound => {
@@ -316,8 +326,7 @@ export class ConnectionStore {
         let profilesInConfiguration = this.getConnectionsFromConfig<IConnectionCredentials>(Constants.configMyConnections);
         quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(profilesInConfiguration, CredentialsQuickPickItemType.Profile));
 
-        // next read from the profiles saved in our own memento
-        // TODO remove once user settings are editable programmatically
+        // next read from the profiles saved in the user-editable config file
         let profiles = this.loadProfiles();
         quickPickItems = quickPickItems.concat(profiles);
 
@@ -329,6 +338,14 @@ export class ConnectionStore {
         let connections: T[] = [];
         // read from the global state
         let configValues = this._context.globalState.get<T[]>(configName);
+        this.addConnections(connections, configValues);
+        return connections;
+    }
+
+    private getConnectionsFromConfigFile<T extends IConnectionCredentials>(): T[] {
+        let connections: T[] = [];
+        // read from the config file
+        let configValues = this.readConnectionsFromConfigFile();
         this.addConnections(connections, configValues);
         return connections;
     }
@@ -354,7 +371,8 @@ export class ConnectionStore {
     }
 
     private loadProfiles(): IConnectionCredentialsQuickPickItem[] {
-        let connections: IConnectionProfile[] = this.getConnectionsFromGlobalState<IConnectionProfile>(Constants.configMyConnections);
+        // let connections: IConnectionProfile[] = this.getConnectionsFromGlobalState<IConnectionProfile>(Constants.configMyConnections);
+        let connections: IConnectionProfile[] = this.getConnectionsFromConfigFile<IConnectionProfile>();
         let quickPickItems = connections.map(c => this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
         return quickPickItems;
     }
@@ -381,5 +399,87 @@ export class ConnectionStore {
             maxConnections = 5;
         }
         return maxConnections;
+    }
+
+    /**
+     * Get the directory containing the connection config file.
+     */
+    private get configFileDirectory(): string {
+        if (os.platform() === 'win32') {
+            // On Windows, we store connection configurations in %APPDATA%\<extension name>\
+            return process.env['APPDATA'] + '\\' + Constants.extensionName + '\\';
+        } else {
+            // On OSX/Linux, we store connection configurations in ~/.config/<extension name>/
+            return '~/.config/' + Constants.extensionName + '/';
+        }
+    }
+
+    /**
+     * Get the full path of the connection config filename.
+     */
+    public get configFilePath(): string {
+        return this.configFileDirectory + Constants.connectionConfigFilename;
+    }
+
+    private createConfigFileDirectory(): Promise<void> {
+        const configFileDir: string = this.configFileDirectory;
+        return new Promise<void>((resolve, reject) => {
+            fs.mkdir(configFileDir, err => {
+                // If the directory already exists, ignore the error
+                if (err && err.code !== 'EEXIST') {
+                    reject(err);
+                }
+                resolve();
+            });
+        });
+    }
+
+    private readConnectionsFromConfigFile(): IConnectionCredentials[] {
+        let profiles: IConnectionProfile[] = [];
+
+        try {
+            let fileBuffer: Buffer = fs.readFileSync(this.configFilePath);
+            if (fileBuffer) {
+                let fileContents: string = fileBuffer.toString();
+                if (!Utils.isEmpty(fileContents)) {
+                    try {
+                        let json: any = JSON.parse(fileContents);
+                        if (json && json.hasOwnProperty(Constants.connectionsArrayName)) {
+                            profiles = json[Constants.connectionsArrayName];
+                        } else {
+                            this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, this.configFilePath));
+                        }
+                    } catch (e) { // Error parsing JSON
+                        this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, this.configFilePath));
+                    }
+                }
+            }
+        } catch (e) { // Error reading the file
+            if (e.code !== 'ENOENT') { // Ignore error if the file doesn't exist
+                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, this.configFilePath));
+            }
+        }
+
+        return profiles;
+    }
+
+    private writeConnectionsToConfigFile(connections: IConnectionCredentials[]): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            self.createConfigFileDirectory().then(() => {
+                let connectionsObject = {};
+                connectionsObject[Constants.connectionsArrayName] = connections;
+
+                // Format the file using 4 spaces as indentation
+                fs.writeFile(self.configFilePath, JSON.stringify(connectionsObject, undefined, 4), err => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve();
+                });
+            }).catch(err => {
+                reject(err);
+            });
+        });
     }
 }
