@@ -213,4 +213,6 @@ export interface IGridResultSet {
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
     messages: string[];
+    hasError: boolean;
 }
+
