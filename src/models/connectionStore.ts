@@ -152,7 +152,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
             // Get all profiles
-            let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
+            let configValues = self.readConnectionsFromConfigFile();
             if (!configValues) {
                 configValues = [];
             }
@@ -270,7 +270,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
             // Get all profiles
-            let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
+            let configValues = self.readConnectionsFromConfigFile();
             if (!configValues) {
                 configValues = [];
             }
@@ -371,7 +371,6 @@ export class ConnectionStore {
     }
 
     private loadProfiles(): IConnectionCredentialsQuickPickItem[] {
-        // let connections: IConnectionProfile[] = this.getConnectionsFromGlobalState<IConnectionProfile>(Constants.configMyConnections);
         let connections: IConnectionProfile[] = this.getConnectionsFromConfigFile<IConnectionProfile>();
         let quickPickItems = connections.map(c => this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
         return quickPickItems;
@@ -434,7 +433,7 @@ export class ConnectionStore {
         });
     }
 
-    private readConnectionsFromConfigFile(): IConnectionCredentials[] {
+    private readConnectionsFromConfigFile(): IConnectionProfile[] {
         let profiles: IConnectionProfile[] = [];
 
         try {
