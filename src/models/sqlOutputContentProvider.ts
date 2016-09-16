@@ -40,7 +40,22 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
             let uri: string = decodeURI(req.query.uri);
             let theme: string = req.query.theme;
-            res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml), {uri: uri, theme: theme});
+            let backgroundcolor: string = req.query.backgroundcolor;
+            let color: string = req.query.color;
+            let fontfamily: string = decodeURI(req.query.fontfamily);
+            let fontsize: string = req.query.fontsize;
+            let fontweight: string = req.query.fontweight;
+            res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
+                {
+                    uri: uri,
+                    theme: theme,
+                    backgroundcolor: backgroundcolor,
+                    color: color,
+                    fontfamily: fontfamily,
+                    fontsize: fontsize,
+                    fontweight: fontweight
+                }
+            );
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
@@ -151,17 +166,31 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `
-                <html>
-                    <head>
-                    </head>
-                    <body></body>
-                    <script type="text/javascript">
-                            var classList = document.body.className;
-                             window.onload = function(event) {
-                                event.stopPropagation(true);
-                                window.location.href="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}&theme=" + classList;
-                            };
-                        </script>
-                </html>`;
+        <html>
+        <head>
+        </head>
+        <body></body>
+        <script type="text/javascript">
+            var doc = document.documentElement;
+            var styles = window.getComputedStyle(doc);
+            var backgroundcolor = styles.getPropertyValue('--background-color');
+            var color = styles.getPropertyValue('--color');
+            var fontfamily = styles.getPropertyValue('--font-family');
+            var fontweight = styles.getPropertyValue('--font-weight');
+            var fontsize = styles.getPropertyValue('--font-size');
+            var theme = document.body.className;
+            window.onload = function(event) {
+                event.stopPropagation(true);
+                var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}" +
+                                                                                                        "&theme=" + theme +
+                                                                                                        "&backgroundcolor=" + backgroundcolor +
+                                                                                                        "&color=" + color +
+                                                                                                        "&fontfamily=" + fontfamily +
+                                                                                                        "&fontweight=" + fontweight +
+                                                                                                        "&fontsize=" + fontsize;
+                window.location.href = url
+            };
+        </script>
+        </html>`;
     }
 }
