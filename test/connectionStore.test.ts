@@ -11,6 +11,7 @@ import * as interfaces from '../src/models/interfaces';
 import { CredentialStore } from '../src/credentialstore/credentialstore';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionStore } from '../src/models/connectionStore';
+import { ConnectionConfig } from '../src/connectionconfig/connectionconfig';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 import assert = require('assert');
@@ -22,6 +23,7 @@ suite('ConnectionStore tests', () => {
     let globalstate: TypeMoq.Mock<vscode.Memento>;
     let credentialStore: TypeMoq.Mock<CredentialStore>;
     let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
+    let connectionConfig: TypeMoq.Mock<ConnectionConfig>;
 
     setup(() => {
         defaultNamedProfile = Object.assign(new ConnectionProfile(), {
@@ -47,6 +49,10 @@ suite('ConnectionStore tests', () => {
         context.object.globalState = globalstate.object;
         credentialStore = TypeMoq.Mock.ofType(CredentialStore);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        connectionConfig = TypeMoq.Mock.ofType(ConnectionConfig);
+
+        // setup default behavior for credentialStore
+        credentialStore.setup(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
 
         // setup default behavior for vscodeWrapper
         // setup configuration to return maxRecent for the #MRU items
@@ -325,7 +331,7 @@ suite('ConnectionStore tests', () => {
 
         // When saving 4 connections
         // Then expect the only the 3 most recently saved connections to be returned as size is limited to 3
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, undefined, vscodeWrapper.object);
 
         let promise = Promise.resolve();
         for (let i = 0; i < numCreds; i++) {
@@ -365,7 +371,7 @@ suite('ConnectionStore tests', () => {
 
         // Given we save the same connection twice
         // Then expect the only 1 instance of that connection to be listed in the MRU
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, undefined, vscodeWrapper.object);
 
         let promise = Promise.resolve();
         let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + 1});
@@ -404,7 +410,7 @@ suite('ConnectionStore tests', () => {
         .returns(() => Promise.resolve(true));
 
         // Given we save 1 connection with password and multiple other connections without
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, undefined, vscodeWrapper.object);
         let integratedCred = Object.assign({}, defaultNamedProfile, {
             server: defaultNamedProfile.server + 'Integrated',
             authenticationType: interfaces.AuthenticationTypes[interfaces.AuthenticationTypes.Integrated],
@@ -461,7 +467,7 @@ suite('ConnectionStore tests', () => {
         // When we get the list of available connection items
 
         // Then expect MRU items first, then profile items, then a new connection item
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, undefined, vscodeWrapper.object);
 
         let items: interfaces.IConnectionCredentialsQuickPickItem[] = connectionStore.getPickListItems();
         let expectedCount = recentlyUsed.length + profiles.length + 1;

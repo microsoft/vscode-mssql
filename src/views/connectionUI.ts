@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
+import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
@@ -297,13 +298,13 @@ export class ConnectionUI {
      */
     public openConnectionProfileConfigFile(): void {
         const self = this;
-        this.vscodeWrapper.openTextDocument(vscode.Uri.file(this._connectionStore.configFilePath))
+        this.vscodeWrapper.openTextDocument(vscode.Uri.file(ConnectionConfig.configFilePath))
         .then(doc => {
             self.vscodeWrapper.showTextDocument(doc);
         }, error => {
             if (error.indexOf('not found') !== -1) {
                 // Open an untitled file to be saved at the proper path if it doesn't exist
-                self.vscodeWrapper.openTextDocument(vscode.Uri.parse(Constants.untitledScheme + ':' + self._connectionStore.configFilePath))
+                self.vscodeWrapper.openTextDocument(vscode.Uri.parse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
                 .then(doc => {
                     self.vscodeWrapper.showTextDocument(doc).then(editor => {
                         // Insert the template for a new connection into the file
