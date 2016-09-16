@@ -95,6 +95,41 @@ export class DataService {
     }
 
     /**
+     * Get a batch
+     * @param batchId The batchId of the batch to return
+     * @return The batch
+     */
+    getBatch(batchId: number): Promise<IGridBatchMetaData> {
+        const self = this;
+        return new Promise<IGridBatchMetaData>((resolve, reject) => {
+            if (!self.batchSets) {
+                self.getMetaData().then(() => {
+                    resolve(self.batchSets[batchId]);
+                });
+            } else {
+                resolve(self.batchSets[batchId]);
+            }
+        });
+    }
+
+    /**
+     * Get all the batches
+     * @return The batches
+     */
+    getBatches(): Promise<IGridBatchMetaData[]> {
+        const self = this;
+        return new Promise<IGridBatchMetaData[]>((resolve, reject) => {
+            if (!self.batchSets) {
+                self.getMetaData().then(() => {
+                    resolve(self.batchSets);
+                });
+            } else {
+                resolve(self.batchSets);
+            }
+        });
+    }
+
+    /**
      * Gets the total number of rows in the results set
      * @param batchId The id of the batch you want to access result for
      * @param resultId The id of the result you want to get the number of rows

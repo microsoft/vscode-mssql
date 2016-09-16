@@ -48,7 +48,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = decodeURI(req.query.uri);
             for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
-                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: undefined};
+                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: batch.messages, hasError: batch.hasError};
                 for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
                     tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
                         columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
@@ -56,7 +56,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         numberOfRows: result.rowCount
                     });
                 }
-                tempBatch.messages = batch.messages;
                 batchSets.push(tempBatch);
             }
             let json = JSON.stringify(batchSets);
