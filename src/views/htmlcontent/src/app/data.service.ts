@@ -220,8 +220,9 @@ export class DataService {
      */
     openLink(content: string): void {
         const self = this;
-        let headers = { 'Content-Type': 'application/json' };
-        self.http.post('/openLink', JSON.stringify(content), headers).subscribe();
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        self.http.post('/openLink', JSON.stringify({ 'content': content }), { headers : headers }).subscribe();
     }
 
     /**
