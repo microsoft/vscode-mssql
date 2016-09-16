@@ -410,7 +410,7 @@ export class ConnectionStore {
             return process.env['APPDATA'] + '\\' + Constants.extensionName + '\\';
         } else {
             // On OSX/Linux, we store connection configurations in ~/.config/<extension name>/
-            return '~/.config/' + Constants.extensionName + '/';
+            return process.env['HOME'] + '/.config/' + Constants.extensionName + '/';
         }
     }
 
