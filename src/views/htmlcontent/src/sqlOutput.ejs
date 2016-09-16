@@ -25,7 +25,23 @@
     </script>
     <link rel="stylesheet" type="text/css" href="app/flexbox.css"/>
     <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
-    <link rel="stylesheet" type="text/css" href="app/styles.css"/>
+    <style>
+      :root {
+        --background-color: <%=backgroundcolor%>;
+        --color: <%=color%>;
+        --font-family: <%=fontfamily%>;
+        --font-weight: <%=fontweight%>;
+        --font-size: <%=fontsize%>;
+      }
+      body {
+        background-color: var(--background-color);
+        color: var(--color);
+        font-family: var(--font-family);
+        font-weight: var(--font-weight);
+        font-size: var(--font-size);
+      }
+    </style>
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
     <%if (theme === 'vscode-light') { %>
     <link rel="stylesheet" type="text/css" href="color-theme-light.css"/>
     <%} else { %>

@@ -2,7 +2,7 @@
   --color-h1: #FF5500;
   --color-h2: #FCF8E3;
   --color-content: #E5E5E5;
-  --color-content-disabled: #ffffff;
+  --color-content-disabled: grey;
   --color-content-light: #ffffff;
   --color-active: #FF6000;
   --color-blank: #FFFFFF;
@@ -33,6 +33,7 @@
   --color-chart-line: #000000;
   --color-chart-bar-border: #404040;
   --color-grid-selected: rgba(0, 111, 148, 0.2);
+  --color-border-grid-active: #FF6000;
   --color-start-page-primary-bg: #E7E8E8;
   --color-start-page-primary-text: #E5E5E5;
   --color-start-page-primary-text-light: #ffffff;
@@ -42,20 +43,36 @@
   --color-grid-cell-preview-bg: #3d3d3d;
   --grid-cell-color: #1a1a1a;
 }
+
 a {
   color: #FF6000;
 }
+
 a:hover {
   color: #ff8033;
 }
 
+slick-grid {
+  border-style: solid;
+  border-color: grey;
+  border-width: 0 0 3 0;
+}
+
+slick-grid:last-of-type {
+  border-width: 0 0 0 0;
+}
+
 ::-webkit-scrollbar {
-  width: auto;
-  height: auto;
+  width: 14px;
+  height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #bbb;
+  background: hsla(0,0%,39%,.7);
 }
 ::-webkit-scrollbar-track {
-  background: #333;
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }

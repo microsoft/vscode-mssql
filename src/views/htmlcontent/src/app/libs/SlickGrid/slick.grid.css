@@ -137,7 +137,7 @@ classes should alter those!
 }
 
 .slick-cell > .row-number {
-  color: #48525D;
+  color: var(--color-content);
   font-style: italic;
   font-weight: lighter;
   display: flex;

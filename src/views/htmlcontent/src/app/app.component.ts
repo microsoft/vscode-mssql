@@ -126,6 +126,7 @@ export class AppComponent implements OnInit {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            self.selected = SelectedTab.Results;
                         });
                     }
                 });
