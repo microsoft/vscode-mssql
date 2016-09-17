@@ -105,7 +105,34 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/openLink' - return success message as JSON
         this._service.addHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
+            let content: string = req.body.content;
+            console.log('content:' + content);
+            vscode.commands.executeCommand('workbench.action.files.newUntitledFile').then(() => {
+                            let editor = self._vscodeWrapper.activeTextEditor;
+                            editor.edit( edit => {
+                            edit.insert( new vscode.Position(0, 0), content);
+                        });
+            }, (error: any) => {
+                 console.error(error);
+             });
+            // vscode.commands.executeCommand( 'vscode.open' , content ).then(() => {
+            //    console.log('in then');
+            // });
+            // workbench.action.files.newUntitledFile
+            // self.callasync(content);
 
+            /*
+            let uri = vscode.Uri.parse('untitled:c:\\Users\\shravind\\Documents\\temp.json');
+            vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+                    vscode.window.showTextDocument(doc, 1, false).then(editor => {
+                        editor.edit( edit => {
+                            edit.insert( new vscode.Position(0, 0), content);
+                        });
+                    });
+             }, (error: any) => {
+                 console.error(error);
+             });
+             */
             res.status = 200;
             res.send();
         });
