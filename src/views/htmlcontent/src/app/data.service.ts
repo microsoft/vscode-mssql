@@ -5,8 +5,8 @@
 import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
-import { IDbColumn, ResultSetSubset, IGridBatchMetaData } from './../interfaces';
-import {ISlickRange} from './SlickGrid/SelectionModel';
+import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData } from './../interfaces';
+import { ISlickRange } from './SlickGrid/SelectionModel';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.
@@ -260,6 +260,17 @@ export class DataService {
         const self = this;
         let headers = new Headers();
         let url = '/copyResults?' + '&uri=' + self.uri + '&batchId=' + batchId + '&resultId=' + resultId;
+        self.http.post(url, selection, { headers: headers }).subscribe();
+    }
+
+    /**
+     * Sends a request to set the selection in the VScode window
+     * @param selection The selection range in the VSCode window
+     */
+    setEditorSelection(selection: ISelectionData): void {
+        const self = this;
+        let headers = new Headers();
+        let url = '/setEditorSelection?' + '&uri=' + self.uri;
         self.http.post(url, selection, { headers: headers }).subscribe();
     }
 }

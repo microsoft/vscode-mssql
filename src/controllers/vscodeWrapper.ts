@@ -1,6 +1,8 @@
 import vscode = require('vscode');
 import * as Constants from './../models/constants';
 
+export import TextEditor = vscode.TextEditor;
+
 export default class VscodeWrapper {
 
     /**
@@ -98,6 +100,14 @@ export default class VscodeWrapper {
      */
     public range(start: vscode.Position, end: vscode.Position): vscode.Range {
         return new vscode.Range(start, end);
+    }
+
+    public position(line: number, column: number): vscode.Position {
+        return new vscode.Position(line, column);
+    }
+
+    public selection(start: vscode.Position, end: vscode.Position): vscode.Selection {
+        return new vscode.Selection(start, end);
     }
 
     /**

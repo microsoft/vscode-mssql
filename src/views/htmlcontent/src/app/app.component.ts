@@ -13,7 +13,7 @@ import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
-import { IGridBatchMetaData } from './../interfaces';
+import { IGridBatchMetaData, ISelectionData } from './../interfaces';
 
 enum FieldType {
     String = 0,
@@ -32,6 +32,7 @@ enum SelectedTab {
 interface IMessages {
     messages: string[];
     hasError: boolean;
+    selection: ISelectionData;
 }
 
 /**
@@ -73,8 +74,7 @@ export class AppComponent implements OnInit {
         const self = this;
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
-                let messages: IMessages = {messages: batch.messages, hasError: batch.hasError};
-                console.log(messages);
+                let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
                 self.messages.push(messages);
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {
@@ -193,5 +193,12 @@ export class AppComponent implements OnInit {
             let selection = this.slickgrids.toArray()[index].getSelectedRanges();
             this.dataService.copyResults(selection, batchId, resultId);
         }
+    }
+
+    /**
+     * Binded to mouse click on messages
+     */
+    editorSelection(selection: ISelectionData): void {
+        this.dataService.setEditorSelection(selection);
     }
 }
