@@ -33,6 +33,7 @@
   --color-chart-line: #000000;
   --color-chart-bar-border: #404040;
   --color-grid-selected: rgba(0, 111, 148, 0.2);
+  --color-border-grid-active: #0078D7;
   --color-start-page-primary-bg: #E7E8E8;
   --color-start-page-primary-text: #101010;
   --color-start-page-primary-text-light: #505050;
@@ -46,4 +47,29 @@ a {
 }
 a:hover {
   color: #0b93ff;
+}
+
+slick-grid {
+  border-style: solid;
+  border-color: grey;
+  border-width: 0 0 3 0;
+}
+
+slick-grid:last-of-type {
+  border-width: 0 0 0 0;
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsla(0,0%,39%,.7);
+}
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }

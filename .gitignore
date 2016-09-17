@@ -7,6 +7,7 @@ packages
 *.log
 *.nupkg
 *.vsix
+*BROWSE.VC*
 tools
 examples
 sqltoolsservice
