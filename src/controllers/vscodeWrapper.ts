@@ -33,11 +33,8 @@ export default class VscodeWrapper {
         return vscode.workspace.openTextDocument(uri);
     }
 
-    /**
-     * Show text document
-     */
-    public showTextDocument(doc: vscode.TextDocument): Thenable<vscode.TextEditor> {
-        return vscode.window.showTextDocument(doc);
+    public showTextDocument(document: vscode.TextDocument, column?: vscode.ViewColumn, preserveFocus?: boolean): Thenable<vscode.TextEditor> {
+        return vscode.window.showTextDocument(document, column, preserveFocus);
     }
 
     /**
