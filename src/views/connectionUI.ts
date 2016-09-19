@@ -9,6 +9,7 @@ import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuick
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
+import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ConnectionUI {
@@ -307,11 +308,13 @@ export class ConnectionUI {
                 self.vscodeWrapper.openTextDocument(vscode.Uri.parse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
                 .then(doc => {
                     self.vscodeWrapper.showTextDocument(doc).then(editor => {
-                        // Insert the template for a new connection into the file
-                        editor.edit(builder => {
-                            let position: vscode.Position = new vscode.Position(0, 0);
-                            builder.insert(position, JSON.stringify(Constants.defaultConnectionSettingsFileJson, undefined, 4));
-                        });
+                        if (Utils.isEmpty(editor.document.getText())) {
+                            // Insert the template for a new connection into the file
+                            editor.edit(builder => {
+                                let position: vscode.Position = new vscode.Position(0, 0);
+                                builder.insert(position, JSON.stringify(Constants.defaultConnectionSettingsFileJson, undefined, 4));
+                            });
+                        }
 
                         // Remind the user to save if they would like auto-completion enabled while editing the new file
                         self._vscodeWrapper.showInformationMessage(Constants.msgNewConfigFileHelpInfo);
