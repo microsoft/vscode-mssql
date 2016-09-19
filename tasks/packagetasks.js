@@ -43,10 +43,10 @@ function doOfflinePackage(runtimeId, platform, packageName) {
 }
 
 //Install vsce to be able to run this task: npm install -g vsce
-gulp.task('package:online', function (done) {
+gulp.task('package:online', () => {
     return cleanServiceInstallFolder().then(() => {
          doPackageSync();
-         done();
+         return installSqlToolsService();
     });
 });
 
@@ -78,7 +78,7 @@ gulp.task('package:offline', () => {
                         return cleanServiceInstallFolder();
                  });
               });
-        });
+             });
     });
 
     return promise;
