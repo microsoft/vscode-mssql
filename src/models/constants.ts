@@ -105,6 +105,7 @@ export const msgSelectProfileToRemove = 'Select profile to remove';
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';
+export const msgProfileCreated = 'Profile created and connected';
 
 export const msgSelectionIsRequired = 'Selection is required.';
 export const msgIsRequired = ' is required.';
@@ -142,4 +143,7 @@ export const msgChangeLanguageMode = 'To use this command, you must set the lang
 export const timeToWaitForLanguageModeChange = 10000.0;
 
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
+
+export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the profile information provided. Retry profile creation?';
+
 export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';

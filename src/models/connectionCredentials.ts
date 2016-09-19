@@ -95,7 +95,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
     protected static getRequiredCredentialValuesQuestions(
         credentials: IConnectionCredentials,
         promptForDbName: boolean,
-        isPasswordRequired: boolean): IQuestion[] {
+        isPasswordRequired: boolean,
+        defaultProfileValues?: IConnectionCredentials): IQuestion[] {
 
         let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
 
@@ -106,6 +107,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 name: Constants.serverPrompt,
                 message: Constants.serverPrompt,
                 placeHolder: Constants.serverPlaceholder,
+                default: defaultProfileValues ? defaultProfileValues.server : undefined,
                 shouldPrompt: (answers) => utils.isEmpty(credentials.server),
                 validate: (value) => ConnectionCredentials.validateRequiredString(Constants.serverPrompt, value),
                 onAnswered: (value) => credentials.server = value
@@ -116,6 +118,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 name: Constants.databasePrompt,
                 message: Constants.databasePrompt,
                 placeHolder: Constants.databasePlaceholder,
+                default: defaultProfileValues ? defaultProfileValues.database : undefined,
                 shouldPrompt: (answers) => promptForDbName,
                 onAnswered: (value) => credentials.database = value
             },
@@ -136,6 +139,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 name: Constants.usernamePrompt,
                 message: Constants.usernamePrompt,
                 placeHolder: Constants.usernamePlaceholder,
+                default: defaultProfileValues ? defaultProfileValues.user : undefined,
                 shouldPrompt: (answers) => ConnectionCredentials.shouldPromptForUser(credentials),
                 validate: (value) => ConnectionCredentials.validateRequiredString(Constants.usernamePrompt, value),
                 onAnswered: (value) => credentials.user = value
