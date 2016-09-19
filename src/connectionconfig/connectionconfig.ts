@@ -20,7 +20,10 @@ export class ConnectionConfig implements IConnectionConfig {
     /**
      * Constructor.
      */
-    public constructor(private _vscodeWrapper?: VscodeWrapper) {
+    public constructor(private _fs?: any, private _vscodeWrapper?: VscodeWrapper) {
+        if (!this._fs) {
+            this._fs = fs;
+        }
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
@@ -41,7 +44,7 @@ export class ConnectionConfig implements IConnectionConfig {
         let profiles: IConnectionProfile[] = [];
 
         try {
-            let fileBuffer: Buffer = fs.readFileSync(ConnectionConfig.configFilePath);
+            let fileBuffer: Buffer = this._fs.readFileSync(ConnectionConfig.configFilePath);
             if (fileBuffer) {
                 let fileContents: string = fileBuffer.toString();
                 if (!Utils.isEmpty(fileContents)) {
@@ -77,7 +80,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 connectionsObject[Constants.connectionsArrayName] = connections;
 
                 // Format the file using 4 spaces as indentation
-                fs.writeFile(ConnectionConfig.configFilePath, JSON.stringify(connectionsObject, undefined, 4), err => {
+                self._fs.writeFile(ConnectionConfig.configFilePath, JSON.stringify(connectionsObject, undefined, 4), err => {
                     if (err) {
                         reject(err);
                     }
@@ -112,7 +115,7 @@ export class ConnectionConfig implements IConnectionConfig {
     private createConfigFileDirectory(): Promise<void> {
         const configFileDir: string = ConnectionConfig.configFileDirectory;
         return new Promise<void>((resolve, reject) => {
-            fs.mkdir(configFileDir, err => {
+            this._fs.mkdir(configFileDir, err => {
                 // If the directory already exists, ignore the error
                 if (err && err.code !== 'EEXIST') {
                     reject(err);
