@@ -32,6 +32,10 @@ export class SelectionModel implements ISlickSelectionModel {
         this.updateSelectedRanges(ranges);
     }
 
+    getSelectedRanges(): ISlickRange[] {
+        return this._rowSelectionModel.getSelectedRanges();
+    }
+
     changeSelectedRanges(selections: ISelectionRange[]): void {
         let slickRange = (selections || []).map(s =>
             this._slickRangeFactory(s.startRow, s.startColumn, s.endRow - 1, s.endColumn - 1)
@@ -173,6 +177,7 @@ export interface ISlickSelectionModel {
     init(grid: any): void;
     destroy(): void;
     setSelectedRanges(ranges: ISlickRange[]): void;
+    getSelectedRanges(): ISlickRange[];
 }
 
 export interface ISlickEventHandler {

@@ -8,16 +8,16 @@
 import * as child_process from 'child_process';
 
 export enum Platform {
-    Unknown,
-    Windows,
-    OSX,
-    CentOS,
-    Debian,
-    Fedora,
-    OpenSUSE,
-    RHEL,
-    Ubuntu14,
-    Ubuntu16
+    Unknown = <any>'Unknown',
+    Windows = <any>'Windows',
+    OSX = <any> 'OSX',
+    CentOS = <any>'CentOS',
+    Debian = <any>'Debian',
+    Fedora = <any>'Fedora',
+    OpenSUSE = <any>'OpenSUSE',
+    RHEL = <any>'RHEL',
+    Ubuntu14 = <any>'Ubuntu14',
+    Ubuntu16 = <any>'Ubuntu16'
 }
 
 export function getCurrentPlatform(): Platform {

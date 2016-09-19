@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -48,8 +48,10 @@ export class AppComponent implements OnInit {
     private messages: string[] = [];
     private selected: SelectedTab;
     private windowSize = 50;
+    private c_key = 67;
     public SelectedTab = SelectedTab;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
+    @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
@@ -62,6 +64,7 @@ export class AppComponent implements OnInit {
             for (let batchId = 0; batchId < numberOfBatches; batchId++) {
                 self.dataService.getMessages(batchId).then(data => {
                     self.messages = self.messages.concat(data);
+                    self.selected = SelectedTab.Messages;
                 });
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {
@@ -113,6 +116,7 @@ export class AppComponent implements OnInit {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            self.selected = SelectedTab.Results;
                         });
                     }
                 });
@@ -169,5 +173,15 @@ export class AppComponent implements OnInit {
      */
     tabChange(to: SelectedTab): void {
         this.selected = to;
+    }
+
+    /**
+     * Handles keyboard events on angular, currently only needed for copy-paste
+     */
+    onKey(e: any, batchId: number, resultId: number, index: number): void {
+        if ((e.ctrlKey || e.metaKey) && e.which === this.c_key) {
+            let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+            this.dataService.copyResults(selection, batchId, resultId);
+        }
     }
 }

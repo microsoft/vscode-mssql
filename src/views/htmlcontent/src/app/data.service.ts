@@ -3,9 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import {Injectable, Inject, forwardRef} from '@angular/core';
-import {Http} from '@angular/http';
+import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
 import { IDbColumn, ResultSetSubset, IGridBatchMetaData } from './../interfaces';
+import {ISlickRange} from './SlickGrid/SelectionModel';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.
@@ -212,5 +213,18 @@ export class DataService {
         const self = this;
         self.http.get('/saveResults?'
                              + '&uri=' + self.uri + '&format=' + format + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber).subscribe();
+    }
+
+    /**
+     * Sends a copy request
+     * @param selection The selection range to copy
+     * @param batchId The batch id of the result to copy from
+     * @param resultId The result id of the result to copy from
+     */
+    copyResults(selection: ISlickRange[], batchId: number, resultId: number): void {
+        const self = this;
+        let headers = new Headers();
+        let url = '/copyResults?' + '&uri=' + self.uri + '&batchId=' + batchId + '&resultId=' + resultId;
+        self.http.post(url, selection, { headers: headers }).subscribe();
     }
 }

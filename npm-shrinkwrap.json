@@ -2868,9 +2868,9 @@
       "resolved": "https://registry.npmjs.org/vscode-extension-telemetry/-/vscode-extension-telemetry-0.0.5.tgz",
       "dependencies": {
         "applicationinsights": {
-          "version": "0.15.6",
-          "from": "applicationinsights@0.15.6",
-          "resolved": "https://registry.npmjs.org/applicationinsights/-/applicationinsights-0.15.6.tgz"
+          "version": "0.15.19",
+          "from": "applicationinsights@0.15.19",
+          "resolved": "https://registry.npmjs.org/applicationinsights/-/applicationinsights-0.15.19.tgz"
         }
       }
     },

@@ -13,6 +13,7 @@ import {IGridDataRow} from './SharedControlInterfaces';
 import {IColumnDefinition} from './ModelInterfaces';
 import {LocalizationService} from './LocalizationService';
 import {GridSyncService} from './GridSyncService';
+import {ISlickRange} from './SelectionModel';
 
 enum FieldType {
     String = 0,
@@ -317,6 +318,10 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
             // this will make sure the grid header and body to be re-rendered
             this._grid.resizeCanvas();
         }
+    }
+
+    public getSelectedRanges(): ISlickRange[] {
+        return this._gridSyncService.selectionModel.getSelectedRanges();
     }
 
     /* tslint:disable:member-ordering */
