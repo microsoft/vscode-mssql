@@ -4,26 +4,31 @@ import ServiceDownloadProvider from '../src/languageservice/download';
 import ServerProvider from '../src/languageservice/server';
 import StatusView from './../src/views/statusView';
 import Config from './../src/configurations/config';
+import {ExtensionWrapper} from '../src/languageservice/extUtil';
 import * as path from 'path';
 import {getCurrentPlatform} from '../src/models/platform';
+import {IConfig, IStatusView, IExtensionWrapper} from '../src/languageservice/interfaces';
 
 suite('Server tests', () => {
 
     let testDownloadProvider: TypeMoq.Mock<ServiceDownloadProvider>;
-    let testStatusView: TypeMoq.Mock<StatusView>;
-    let testConfig: TypeMoq.Mock<Config>;
+    let testStatusView: TypeMoq.Mock<IStatusView>;
+    let testConfig: TypeMoq.Mock<IConfig>;
+    let testVsCode: TypeMoq.Mock<IExtensionWrapper>;
 
     setup(() => {
         testDownloadProvider = TypeMoq.Mock.ofType(ServiceDownloadProvider, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType(StatusView, TypeMoq.MockBehavior.Strict);
         testConfig = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
+        testVsCode = TypeMoq.Mock.ofType(ExtensionWrapper, TypeMoq.MockBehavior.Strict);
     });
 
     test('findServerPath should return error given a folder with no installed service', () => {
         let installDir = __dirname;
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', 'exeFile2']);
         testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object);
+        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
+        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
         server.findServerPath(installDir).then( result => {
             assert.equal(result, undefined);
@@ -34,7 +39,8 @@ suite('Server tests', () => {
         let installDir = __dirname;
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', 'exeFile2']);
         testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object);
+        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
+        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
         server.findServerPath(installDir).then( result => {
             assert.equal(result, undefined);
@@ -45,7 +51,8 @@ suite('Server tests', () => {
         let installDir = __dirname;
         let fileName = path.join(installDir, __filename);
         testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object);
+        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
+        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
         server.findServerPath(fileName).then( result => {
             assert.equal(result, fileName);
@@ -57,7 +64,8 @@ suite('Server tests', () => {
         let fileName = path.join(installDir, __filename);
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', 'exeFile2']);
         testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object);
+        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
+        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
         server.findServerPath(fileName).then( result => {
             assert.equal(fileName, undefined);
@@ -69,7 +77,8 @@ suite('Server tests', () => {
         let fileName = __filename;
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', fileName]);
         testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object);
+        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
+        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
         server.findServerPath(fileName).then( result => {
             assert.equal(result, path.join(installDir, fileName));
@@ -83,17 +92,18 @@ suite('Server tests', () => {
         let executables: string[]  = ['exeFile1'];
 
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => executables);
-        testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
+        testDownloadProvider.setup(x => x.getInstallDirectory(platform)).returns(() => installDir);
         testStatusView.setup(x => x.serviceInstalled(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.installingService(TypeMoq.It.isAny()));
+        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
         testDownloadProvider.setup(x => x.go(platform)).callback(() => {
             executables = [fileName];
 
         }).returns(() => { return Promise.resolve(true); });
 
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object);
+        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
-        server.getServerPath().then( result => {
+        server.getServerPath(platform).then( result => {
             assert.equal(result, path.join(installDir, fileName));
         });
     });
@@ -101,16 +111,18 @@ suite('Server tests', () => {
     test('getServerPath should not download the service if already exist', () => {
         let installDir = __dirname;
         let fileName: string = __filename.replace(installDir, '');
+        const platform = getCurrentPlatform();
         let executables: string[]  = [fileName];
 
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => executables);
-        testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
+        testDownloadProvider.setup(x => x.getInstallDirectory(platform)).returns(() => installDir);
         testStatusView.setup(x => x.serviceInstalled(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.installingService(TypeMoq.It.isAny()));
+        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
 
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object);
+        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
-        server.getServerPath().then( result => {
+        server.getServerPath(platform).then( result => {
              assert.equal(result, path.join(installDir, fileName));
         });
     });

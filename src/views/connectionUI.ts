@@ -2,6 +2,7 @@
 import vscode = require('vscode');
 import Constants = require('../models/constants');
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
@@ -13,11 +14,18 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
 
-    constructor(private _connectionStore: ConnectionStore, private _prompter: IPrompter, private _vscodeWrapper?: VscodeWrapper) {
+    constructor(private _connectionManager: ConnectionManager,
+                private _connectionStore: ConnectionStore,
+                private _prompter: IPrompter,
+                private _vscodeWrapper?: VscodeWrapper) {
         this._errorOutputChannel = vscode.window.createOutputChannel(Constants.connectionErrorChannelName);
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
+    }
+
+    private get connectionManager(): ConnectionManager {
+        return this._connectionManager;
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -215,14 +223,60 @@ export class ConnectionUI {
         return self.promptForCreateProfile()
             .then(profile => {
                 if (profile) {
-                    return self._connectionStore.saveProfile(profile);
+                    // Validate the profile before saving
+                    return self.validateAndSaveProfile(profile);
                 }
                 return undefined;
             });
     }
 
+    /**
+     * Validate a connection profile by connecting to it, and save it if we are successful.
+     */
+    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): Promise<Interfaces.IConnectionProfile> {
+        const self = this;
+        return self.connectionManager.connect(self.vscodeWrapper.activeTextEditorUri, profile).then(result => {
+            if (result) {
+                // Success! save it
+                return self.saveProfile(profile);
+            } else {
+                // Error! let the user try again, prefilling values that they already entered
+                return self.promptForRetryCreateProfile(profile).then(updatedProfile => {
+                    if (updatedProfile) {
+                        return self.validateAndSaveProfile(updatedProfile);
+                    } else {
+                        return undefined;
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Save a connection profile using the connection store.
+     */
+    private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+        return this._connectionStore.saveProfile(profile);
+    }
+
     private promptForCreateProfile(): Promise<IConnectionProfile> {
         return ConnectionProfile.createProfile(this._prompter);
+    }
+
+    private promptForRetryCreateProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+        // Ask if the user would like to fix the profile
+        const retryPrompt: IQuestion = {
+            type: QuestionTypes.confirm,
+            name: Constants.msgPromptRetryCreateProfile,
+            message: Constants.msgPromptRetryCreateProfile
+        };
+        return this._prompter.promptSingle(retryPrompt).then(result => {
+            if (result) {
+                return ConnectionProfile.createProfile(this._prompter, profile);
+            } else {
+                return undefined;
+            }
+        });
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {

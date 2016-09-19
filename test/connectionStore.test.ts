@@ -323,6 +323,9 @@ suite('ConnectionStore tests', () => {
                 return Promise.resolve();
             });
 
+        credentialStore.setup(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(() => Promise.resolve(true));
+
         // When saving 4 connections
         // Then expect the only the 3 most recently saved connections to be returned as size is limited to 3
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, vscodeWrapper.object);
@@ -362,6 +365,9 @@ suite('ConnectionStore tests', () => {
                 creds = credsToSave;
                 return Promise.resolve();
             });
+
+        credentialStore.setup(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(() => Promise.resolve(true));
 
         // Given we save the same connection twice
         // Then expect the only 1 instance of that connection to be listed in the MRU
