@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
+import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
@@ -288,6 +289,38 @@ export class ConnectionUI {
                 return profilePickItem.connectionCreds;
             } else {
                 return undefined;
+            }
+        });
+    }
+
+    /**
+     * Open the configuration file that stores the connection profiles.
+     */
+    public openConnectionProfileConfigFile(): void {
+        const self = this;
+        this.vscodeWrapper.openTextDocument(vscode.Uri.file(ConnectionConfig.configFilePath))
+        .then(doc => {
+            self.vscodeWrapper.showTextDocument(doc);
+        }, error => {
+            if (error.indexOf('not found') !== -1) {
+                // Open an untitled file to be saved at the proper path if it doesn't exist
+                self.vscodeWrapper.openTextDocument(vscode.Uri.parse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
+                .then(doc => {
+                    self.vscodeWrapper.showTextDocument(doc).then(editor => {
+                        // Insert the template for a new connection into the file
+                        editor.edit(builder => {
+                            let position: vscode.Position = new vscode.Position(0, 0);
+                            builder.insert(position, JSON.stringify(Constants.defaultConnectionSettingsFileJson, undefined, 4));
+                        });
+
+                        // Remind the user to save if they would like auto-completion enabled while editing the new file
+                        self._vscodeWrapper.showInformationMessage(Constants.msgNewConfigFileHelpInfo);
+                    });
+                }, err => {
+                    self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
+                });
+            } else {
+                self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
             }
         });
     }
