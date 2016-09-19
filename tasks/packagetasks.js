@@ -57,7 +57,7 @@ gulp.task('package:offline', () => {
     var json = JSON.parse(fs.readFileSync('package.json'));
     var name = json.name;
     var version = json.version;
-    var packageName = name + '.' + version;
+    var packageName = name + '-' + version;
 
     var packages = [];
     packages.push({rid: 'win7-x64', platform: Platform.Windows});
