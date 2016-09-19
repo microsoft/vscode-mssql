@@ -134,7 +134,7 @@ export default class ServiceDownloadProvider {
     */
     public getInstallDirectoryRoot(): string {
         let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        //The path from config is relative to the out folder
+        // The path from config is relative to the out folder
         let basePath = this.getInstallDirectoryPart(__dirname, '../../' + installDirFromConfig);
         return basePath;
     }
