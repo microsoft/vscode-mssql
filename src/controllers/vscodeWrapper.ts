@@ -27,17 +27,6 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Open text document
-     */
-    public openTextDocument(uri: vscode.Uri): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument(uri);
-    }
-
-    public showTextDocument(document: vscode.TextDocument, column?: vscode.ViewColumn, preserveFocus?: boolean): Thenable<vscode.TextEditor> {
-        return vscode.window.showTextDocument(document, column, preserveFocus);
-    }
-
-    /**
      * Parse uri
      */
     public parseUri(uri: string): vscode.Uri {

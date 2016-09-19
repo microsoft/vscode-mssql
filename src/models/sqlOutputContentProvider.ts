@@ -1,6 +1,5 @@
 'use strict';
 import vscode = require('vscode');
-import { TextEditor } from './../controllers/vscodeWrapper';
 import path = require('path');
 import Constants = require('./constants');
 import LocalWebService from '../controllers/localWebService';
@@ -158,9 +157,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
     }
 
-    public runQuery(connectionMgr, statusView, editor: TextEditor, uri: string, selection: ISelectionData, title: string): void {
+    public runQuery(connectionMgr, statusView, uri: string, selection: ISelectionData, title: string): void {
         let queryRunner = new QueryRunner(connectionMgr, statusView, this);
-        queryRunner.runQuery(editor, uri, selection, title);
+        queryRunner.runQuery(uri, selection, title);
     }
 
     public updateContent(queryRunner: QueryRunner): string {

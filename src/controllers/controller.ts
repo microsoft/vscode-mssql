@@ -167,7 +167,7 @@ export default class MainController implements vscode.Disposable {
                     endColumn: selection.end.character
                 };
             }
-            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, editor, uri, querySelection, title);
+            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, querySelection, title);
         }
     }
 

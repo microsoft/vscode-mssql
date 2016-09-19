@@ -5,7 +5,6 @@ import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
 import VscodeWrapper from './vscodeWrapper';
-import {TextEditor} from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
@@ -28,7 +27,6 @@ export default class QueryRunner {
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
-    private _editor: TextEditor;
 
     constructor(private _connectionMgr: ConnectionManager,
                 private _statusView: StatusView,
@@ -102,9 +100,8 @@ export default class QueryRunner {
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    public runQuery(texteditor: TextEditor, uri: string, selection: ISelectionData, title: string): Thenable<void> {
+    public runQuery(uri: string, selection: ISelectionData, title: string): Thenable<void> {
         const self = this;
-        this._editor = texteditor;
         let queryDetails = new QueryExecuteParams();
         queryDetails.ownerUri = uri;
         queryDetails.querySelection = selection;
