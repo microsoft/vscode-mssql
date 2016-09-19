@@ -4,13 +4,13 @@ import Constants = require('./constants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
-import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CredentialStore } from '../credentialstore/credentialstore';
 import { IConnectionConfig } from '../connectionconfig/iconnectionconfig';
 import { ConnectionConfig } from '../connectionconfig/connectionconfig';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -25,7 +25,6 @@ export class ConnectionStore {
         private _credentialStore?: ICredentialStore,
         private _connectionConfig?: IConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper) {
-
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore();
         }
@@ -178,6 +177,7 @@ export class ConnectionStore {
                 // Add necessary default properties before returning
                 // this is needed to support immediate connections
                 ConnInfo.fixupConnectionCredentials(profile);
+                self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreated);
                 resolve(profile);
             }, err => {
                 reject(err);

@@ -6,6 +6,9 @@ import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
 import { TestPrompter } from './stubs';
+import { ConnectionUI } from '../src/views/connectionUI';
+import { ConnectionStore } from '../src/models/connectionStore';
+import ConnectionManager from '../src/controllers/connectionManager';
 
 import Constants = require('../src/models/constants');
 import assert = require('assert');
@@ -204,6 +207,87 @@ suite('Connection Profile tests', () => {
         assert.notStrictEqual(typeof details.typeSystemVersion, 'undefined');
         assert.notStrictEqual(typeof details.userName, 'undefined');
         assert.notStrictEqual(typeof details.workstationId, 'undefined');
+    });
+
+    test('Profile is connected to and validated prior to saving', done => {
+        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
+
+        let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+        connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+
+        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                .returns(questions => {
+                    let answers: {[key: string]: string} = {};
+                    answers[Constants.serverPrompt] = 'my-server';
+                    answers[Constants.databasePrompt] = 'my_db';
+                    answers[Constants.usernamePrompt] = 'sa';
+                    answers[Constants.passwordPrompt] = '12345678';
+                    answers[Constants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+                    for (let key in answers) {
+                        if (answers.hasOwnProperty(key)) {
+                            questions.map(q => { if (q.name === key) { q.onAnswered(answers[key]); } });
+                        }
+                    }
+                    return Promise.resolve(answers);
+                });
+
+        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object);
+
+        // create a new connection profile
+        connectionUI.createAndSaveProfile().then(profile => {
+            // connection is attempted
+            connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+            // profile is saved
+            connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+            done();
+        }).catch(err => {
+            done(err);
+        });
+    });
+
+    test('Profile is not saved when connection validation fails', done => {
+        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
+
+        let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+        connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+
+        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                .returns(questions => {
+                    let answers: {[key: string]: string} = {};
+                    answers[Constants.serverPrompt] = 'my-server';
+                    answers[Constants.databasePrompt] = 'my_db';
+                    answers[Constants.usernamePrompt] = 'sa';
+                    answers[Constants.passwordPrompt] = '12345678';
+                    answers[Constants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+                    for (let key in answers) {
+                        if (answers.hasOwnProperty(key)) {
+                            questions.map(q => { if (q.name === key) { q.onAnswered(answers[key]); } });
+                        }
+                    }
+                    return Promise.resolve(answers);
+                });
+        prompter.setup(x => x.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
+
+        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object);
+
+        // create a new connection profile
+        connectionUI.createAndSaveProfile().then(profile => {
+            // connection is attempted
+            connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+            // profile is not saved
+            connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
+
+            done();
+        }).catch(err => {
+            done(err);
+        });
     });
 });
 
