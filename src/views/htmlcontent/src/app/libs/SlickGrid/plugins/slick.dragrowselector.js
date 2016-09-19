@@ -105,13 +105,13 @@
             if((e.metaKey || e.ctrlKey) && e.which == a_key) {
                 _ranges = [new Slick.Range(0, 0, _grid.getDataLength() - 1, _grid.getColumns().length)]
                 setSelectedRanges(_ranges);
-                e.preventDefault();
-                e.stopPropagation();
+                e.stopImmediatePropagation();
             }
             // do we have a context to navigate on
             else if (activeCell) {
-                // arrow keys with non-selection
+                // arrow keys
                 if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40) {
+                    e.stopImmediatePropagation();
                     // left arrow
                     if (e.which == left_arrow && activeCell.cell > 1) {
                         if (e.shiftKey) {
@@ -126,8 +126,6 @@
                         }
                         _grid.setActiveCell(activeCell.row, activeCell.cell - 1);
                         setSelectedRanges(_ranges);
-                        e.preventDefault();
-                        e.stopPropagation();
                     // up arrow
                     } else if (e.which == up_arrow && activeCell.row > 0) {
                         if (e.shiftKey) {
@@ -142,8 +140,6 @@
                         }
                         _grid.setActiveCell(activeCell.row - 1, activeCell.cell);
                         setSelectedRanges(_ranges);
-                        e.preventDefault();
-                        e.stopPropagation();
                     // right arrow
                     } else if (e.which == right_arrow && activeCell.cell < _grid.getColumns().length) {
                         if (e.shiftKey) {
@@ -158,10 +154,8 @@
                         }
                         _grid.setActiveCell(activeCell.row, activeCell.cell + 1);
                         setSelectedRanges(_ranges);
-                        e.preventDefault();
-                        e.stopPropagation();
                     // down arrow
-                    } else if (e.which == down_arrow && activeCell.row < _grid.getDataLength()) {
+                    } else if (e.which == down_arrow && activeCell.row < _grid.getDataLength() - 1) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
                             var fromRow = Math.min(activeCell.row + 1, last.fromRow);
@@ -174,8 +168,6 @@
                         }
                         _grid.setActiveCell(activeCell.row + 1, activeCell.cell);
                         setSelectedRanges(_ranges);
-                        e.preventDefault();
-                        e.stopPropagation();
                     }
                 }
             }
