@@ -228,11 +228,14 @@ export default class QueryRunner {
     public setEditorSelection(selection: ISelectionData): Thenable<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
-            self._editor.selection = self.vscodeWrapper.selection(
-                self.vscodeWrapper.position(selection.startLine, selection.startColumn),
-                self.vscodeWrapper.position(selection.endLine, selection.endColumn));
-            self._editor.show;
-            resolve();
+            self.vscodeWrapper.openTextDocument(self.vscodeWrapper.parseUri(self.uri)).then((doc) => {
+                self.vscodeWrapper.showTextDocument(doc).then((editor) => {
+                    editor.selection = self.vscodeWrapper.selection(
+                                       self.vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                       self.vscodeWrapper.position(selection.endLine, selection.endColumn));
+                    resolve();
+                });
+            });
         });
     }
 }

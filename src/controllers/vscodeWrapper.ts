@@ -27,6 +27,27 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Open text document
+     */
+    public openTextDocument(uri: vscode.Uri): Thenable<vscode.TextDocument> {
+        return vscode.workspace.openTextDocument(uri);
+    }
+
+    /**
+     * Show text document
+     */
+    public showTextDocument(doc: vscode.TextDocument): Thenable<vscode.TextEditor> {
+        return vscode.window.showTextDocument(doc);
+    }
+
+    /**
+     * Parse uri
+     */
+    public parseUri(uri: string): vscode.Uri {
+        return vscode.Uri.parse(uri);
+    }
+
+    /**
      * Get the URI string for the current active text editor
      */
     public get activeTextEditorUri(): string {
