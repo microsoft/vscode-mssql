@@ -8,6 +8,8 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CredentialStore } from '../credentialstore/credentialstore';
+import { IConnectionConfig } from '../connectionconfig/iconnectionconfig';
+import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 /**
@@ -21,12 +23,16 @@ export class ConnectionStore {
     constructor(
         private _context: vscode.ExtensionContext,
         private _credentialStore?: ICredentialStore,
+        private _connectionConfig?: IConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper) {
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore();
         }
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
+        if (!this._connectionConfig) {
+            this._connectionConfig = new ConnectionConfig();
         }
     }
 
@@ -149,10 +155,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
             // Get all profiles
-            let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
-            if (!configValues) {
-                configValues = [];
-            }
+            let configValues = self.getConnectionsFromConfigFile();
 
             // Remove the profile if already set
             configValues = configValues.filter(value => !Utils.isSameProfile(value, profile));
@@ -160,7 +163,7 @@ export class ConnectionStore {
             // Add the profile to the saved list, taking care to clear out the password field
             let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
             configValues.push(savedProfile);
-            self._context.globalState.update(Constants.configMyConnections, configValues)
+            self._connectionConfig.writeConnectionsToConfigFile(configValues)
             .then(() => {
                 // Only save if we successfully added the profile
                 return self.saveProfilePasswordIfNeeded(profile);
@@ -268,10 +271,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
             // Get all profiles
-            let configValues = self._context.globalState.get<IConnectionProfile[]>(Constants.configMyConnections);
-            if (!configValues) {
-                configValues = [];
-            }
+            let configValues = self.getConnectionsFromConfigFile();
 
             // Remove the profile if already set
             let found: boolean = false;
@@ -285,7 +285,7 @@ export class ConnectionStore {
                 }
             });
 
-            self._context.globalState.update(Constants.configMyConnections, configValues).then(() => {
+            self._connectionConfig.writeConnectionsToConfigFile(configValues).then(() => {
                 resolve(found);
             }, err => reject(err));
         }).then(profileFound => {
@@ -324,8 +324,7 @@ export class ConnectionStore {
         let profilesInConfiguration = this.getConnectionsFromConfig<IConnectionCredentials>(Constants.configMyConnections);
         quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(profilesInConfiguration, CredentialsQuickPickItemType.Profile));
 
-        // next read from the profiles saved in our own memento
-        // TODO remove once user settings are editable programmatically
+        // next read from the profiles saved in the user-editable config file
         let profiles = this.loadProfiles();
         quickPickItems = quickPickItems.concat(profiles);
 
@@ -337,6 +336,14 @@ export class ConnectionStore {
         let connections: T[] = [];
         // read from the global state
         let configValues = this._context.globalState.get<T[]>(configName);
+        this.addConnections(connections, configValues);
+        return connections;
+    }
+
+    private getConnectionsFromConfigFile<T extends IConnectionProfile>(): T[] {
+        let connections: T[] = [];
+        // read from the config file
+        let configValues = this._connectionConfig.readConnectionsFromConfigFile();
         this.addConnections(connections, configValues);
         return connections;
     }
@@ -362,7 +369,7 @@ export class ConnectionStore {
     }
 
     private loadProfiles(): IConnectionCredentialsQuickPickItem[] {
-        let connections: IConnectionProfile[] = this.getConnectionsFromGlobalState<IConnectionProfile>(Constants.configMyConnections);
+        let connections: IConnectionProfile[] = this.getConnectionsFromConfigFile<IConnectionProfile>();
         let quickPickItems = connections.map(c => this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
         return quickPickItems;
     }

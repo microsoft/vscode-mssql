@@ -1,6 +1,8 @@
 'use strict';
 import vscode = require('vscode');
+import fs = require('fs');
 import Constants = require('../models/constants');
+import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
@@ -9,6 +11,7 @@ import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuick
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
+import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ConnectionUI {
@@ -342,6 +345,50 @@ export class ConnectionUI {
                 return profilePickItem.connectionCreds;
             } else {
                 return undefined;
+            }
+        });
+    }
+
+    /**
+     * Open the configuration file that stores the connection profiles.
+     */
+    public openConnectionProfileConfigFile(): void {
+        const self = this;
+        this.vscodeWrapper.openTextDocument(this.vscodeWrapper.uriFile(ConnectionConfig.configFilePath))
+        .then(doc => {
+            self.vscodeWrapper.showTextDocument(doc);
+        }, error => {
+            // Check if the file doesn't exist
+            let fileExists = true;
+            try {
+                fs.accessSync(ConnectionConfig.configFilePath);
+            } catch (err) {
+                if (err.code === 'ENOENT') {
+                    fileExists = false;
+                }
+            }
+
+            if (!fileExists) {
+                // Open an untitled file to be saved at the proper path if it doesn't exist
+                self.vscodeWrapper.openTextDocument(self.vscodeWrapper.uriParse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
+                .then(doc => {
+                    self.vscodeWrapper.showTextDocument(doc).then(editor => {
+                        if (Utils.isEmpty(editor.document.getText())) {
+                            // Insert the template for a new connection into the file
+                            editor.edit(builder => {
+                                let position: vscode.Position = new vscode.Position(0, 0);
+                                builder.insert(position, JSON.stringify(Constants.defaultConnectionSettingsFileJson, undefined, 4));
+                            });
+                        }
+
+                        // Remind the user to save if they would like auto-completion enabled while editing the new file
+                        self._vscodeWrapper.showInformationMessage(Constants.msgNewConfigFileHelpInfo);
+                    });
+                }, err => {
+                    self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
+                });
+            } else { // Unable to access the file
+                self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
             }
         });
     }

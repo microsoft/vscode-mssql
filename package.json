@@ -133,6 +133,11 @@
         "command": "extension.chooseDatabase",
         "title": "Switch database on current server",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.openConnectionSettingsFile",
+        "title": "Open Connection Profile Settings",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [
@@ -159,6 +164,12 @@
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r",
         "when": "editorTextFocus && editorLangId == 'sql'"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch" : "connections.json",
+        "url": "./connections.schema.json"
       }
     ],
     "configuration": {
@@ -331,6 +342,10 @@
                 "enum": [
                   "Latest"
                 ],
+                "description": "[Optional]"
+              },
+              "profileName": {
+                "type": "string",
                 "description": "[Optional]"
               }
             }
