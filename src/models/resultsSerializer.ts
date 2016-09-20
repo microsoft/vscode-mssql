@@ -1,6 +1,7 @@
 import path = require('path');
 import vscode = require('vscode');
 import Constants = require('./constants');
+import os = require('os');
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
 import * as Utils from '../models/utils';
@@ -90,6 +91,12 @@ export default class ResultsSerializer {
         // user entered only the file name. Save file in current directory
         if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
+        } else if (sqlUri.scheme === 'untitled') {
+            if (vscode.workspace.rootPath) {
+                currentDirectory = vscode.workspace.rootPath;
+            } else {
+                currentDirectory = os.tmpdir();
+            }
         } else {
             currentDirectory = path.dirname(sqlUri.path);
         }
@@ -102,13 +109,12 @@ export default class ResultsSerializer {
      */
     public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
-        let sqlUri = vscode.Uri.parse(uri);
         if (!path.isAbsolute(filePath)) {
             filePath = self.resolveFilePath(uri, filePath);
         }
         let saveResultsParams =  self.getConfigForCsv();
         saveResultsParams.filePath = filePath;
-        saveResultsParams.ownerUri = vscode.Uri.file(sqlUri.fsPath).toString();
+        saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
 
@@ -129,14 +135,13 @@ export default class ResultsSerializer {
      */
     public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
-        let sqlUri = vscode.Uri.parse(uri);
         if (!path.isAbsolute(filePath)) {
             filePath = self.resolveFilePath(uri, filePath);
         }
 
         let saveResultsParams =  self.getConfigForJson();
         saveResultsParams.filePath = filePath;
-        saveResultsParams.ownerUri = vscode.Uri.file(sqlUri.fsPath).toString();
+        saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
 
