@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import path = require('path');
+import os = require('os');
 import Constants = require('./constants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
@@ -120,9 +121,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/openLink' - return success message as JSON
-        this._service.addHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             console.log('content:' + content);
+            /*
             vscode.commands.executeCommand('workbench.action.files.newUntitledFile').then(() => {
                             let editor = self._vscodeWrapper.activeTextEditor;
                             editor.edit( edit => {
@@ -136,9 +138,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // });
             // workbench.action.files.newUntitledFile
             // self.callasync(content);
-
-            /*
-            let uri = vscode.Uri.parse('untitled:c:\\Users\\shravind\\Documents\\temp.json');
+            */
+            let tempFilePath = path.join(os.tmpdir(), 'tmp1.xml');
+            let uri = vscode.Uri.parse('untitled:' + tempFilePath);
             vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
                     vscode.window.showTextDocument(doc, 1, false).then(editor => {
                         editor.edit( edit => {
@@ -148,7 +150,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
              }, (error: any) => {
                  console.error(error);
              });
-             */
+
             res.status = 200;
             res.send();
         });

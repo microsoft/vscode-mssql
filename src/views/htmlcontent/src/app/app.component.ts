@@ -21,6 +21,7 @@ enum FieldType {
     Decimal = 3,
     Date = 4,
     Unknown = 5,
+    Xml = 6
 }
 
 enum SelectedTab {
@@ -87,11 +88,21 @@ export class AppComponent implements OnInit {
                             let totalRows = data[0];
                             let columnData = data[1];
                             let columnDefinitions = [];
+
                             for (let i = 0; i < columnData.length; i++) {
-                                columnDefinitions.push({
+                                if (columnData[i].isXml) {
+                                    console.log('Xml field');
+                                    columnDefinitions.push({
+                                    id: columnData[i].columnName,
+                                    type: self.stringToFieldType('xml')
+                                });
+                                } else {
+                                    columnDefinitions.push({
                                     id: columnData[i].columnName,
                                     type: self.stringToFieldType('string')
                                 });
+                                }
+
                             }
                             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                                 return new Promise<IGridDataRow[]>((resolve, reject) => {
@@ -125,6 +136,7 @@ export class AppComponent implements OnInit {
         });
     }
 
+
     /**
      * Used to convert the string to a enum compatible with SlickGrid
      */
@@ -139,6 +151,9 @@ export class AppComponent implements OnInit {
                 break;
             case 'decimal':
                 fieldtype = FieldType.Decimal;
+                break;
+            case 'xml':
+                fieldtype = FieldType.Xml;
                 break;
             default:
                 fieldtype = FieldType.String;
@@ -183,6 +198,10 @@ export class AppComponent implements OnInit {
     handleDoubleClick(event: {content: string }): void {
         console.log('handler in app');
         this.dataService.openLink(event.content);
+    }
+    onLinkCLick(): void {
+        console.log('handler in app');
+        // this.dataService.openLink(content);
     }
 
     /**

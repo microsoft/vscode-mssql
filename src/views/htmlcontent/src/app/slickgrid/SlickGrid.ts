@@ -269,6 +269,10 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
                 }
             }
         }
+        console.log('adding xml link in on changes');
+        $('.xmlLink').click(function(): void {
+            console.log('clicked LINK');
+        });
     }
 
     private invalidateRange(start: number, end: number): void {
@@ -492,6 +496,10 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
             console.log('value is ' + value);
             self.doubleClick.emit({content: value});
         });
+        console.log('adding xml link');
+        $('.xmlLink').click(function(): void {
+            console.log('clicked LINK');
+        });
     }
 
     private updateSchema(): void {
@@ -518,10 +526,26 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
                 column.minWidth = this._gridSyncService.columnMinWidthPX;
             }
 
+            if (c.type === 6) {
+                column.formatter = this.hyperLinkFormatter;
+            }
+
             return column;
         });
     }
+    private hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+        console.log('value ' + value );
+        console.log('data ' + dataContext);
+        // onclick="onLinkClick(\'' + value + '\');return false;"
+        return '<a class= "xmlLink" href="#" >'
+                + (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                + '</a>';
+    }
 
+    public onLinkClick(value: string): void {
+        const self = this;
+        self.doubleClick.emit({content: value});
+    }
     private getImagePathForDataType(type: FieldType): string {
         const resourcePath = './resources/';
         switch (type) {
@@ -596,4 +620,5 @@ interface ISlickGridColumn {
     minWidth?: number;
     width?: number;
     asyncPostRender?: (cellRef: string, row: number, dataContext: JSON, colDef: any) => void;
+    formatter?: (row: number, cell: any, value: any, columnDef: any, dataContext: any) => string;
 }
