@@ -91,7 +91,7 @@ export default class ResultsSerializer {
         // user entered only the file name. Save file in current directory
         if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
-        } else if ( sqlUri.scheme === 'untitled') {
+        } else if (sqlUri.scheme === 'untitled') {
             if (vscode.workspace.rootPath) {
                 currentDirectory = vscode.workspace.rootPath;
             } else {
