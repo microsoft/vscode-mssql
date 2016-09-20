@@ -13,6 +13,7 @@ var gutil = require('gulp-util');
 var through = require('through2');
 var cproc = require('child_process');
 var os = require('os');
+var jeditor = require("gulp-json-editor");
 const path = require('path');
 
 require('./tasks/htmltasks')
@@ -91,6 +92,26 @@ gulp.task('ext:copy-js', () => {
         .pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
+// The version of applicationinsights the extension needs is 0.15.19 but the version vscode-telemetry dependns on is 0.15.6
+// so we need to manually overwrite the version in package.json inside vscode-extension-telemetry module.
+gulp.task('ext:appinsights-version', () => {
+    return gulp.src("./node_modules/vscode-extension-telemetry/package.json")
+    .pipe(jeditor(function(json) {
+        json.dependencies.applicationinsights = "0.15.19";
+        return json; // must return JSON object.
+    }))
+     .pipe(gulp.dest("./node_modules/vscode-extension-telemetry", {'overwrite':true}));
+});
+
+gulp.task('ext:copy-appinsights', () => {
+    var filesToMove = [
+        './node_modules/applicationinsights/**/*.*',
+        './node_modules/applicationinsights/*.*'
+    ];
+    return gulp.src(filesToMove, { base: './' })
+     .pipe(gulp.dest("./node_modules/vscode-extension-telemetry", {'overwrite':true}));
+});
+
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
 gulp.task('ext:build', gulp.series('ext:lint', 'ext:compile', 'ext:copy'));
@@ -99,9 +120,9 @@ gulp.task('clean', function (done) {
     return del('out', done);
 });
 
-gulp.task('build', gulp.series('clean', 'html:build', 'ext:build', 'ext:install-service'));
+gulp.task('build', gulp.series('clean', 'html:build', 'ext:build', 'ext:install-service', 'ext:appinsights-version'));
 
-gulp.task('install', function(){
+gulp.task('install', function() {
     return gulp.src(['./package.json', './src/views/htmlcontent/package.json'])
                 .pipe(install());
 });

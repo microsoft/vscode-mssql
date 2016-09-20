@@ -13,7 +13,7 @@ import Constants = require('../models/constants');
 import ServerProvider from './server';
 import ServiceDownloadProvider from './download';
 import {ExtensionWrapper, Logger} from './extUtil';
-import ExtConfig from  '../configurations/ExtConfig';
+import ExtConfig from  '../configurations/extConfig';
 import StatusView from '../views/statusView';
 import {Platform, getCurrentPlatform} from '../models/platform';
 

@@ -52,7 +52,8 @@
     "tslint": "^3.14.0",
     "typescript": "^1.8.9",
     "typemoq": "^0.3.2",
-    "vscode": "^0.11.0"
+    "vscode": "^0.11.0",
+    "gulp-json-editor": "^2.2.1"
   },
   "dependencies": {
     "body-parser": "^1.15.2",
@@ -70,6 +71,7 @@
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.0.5",
+    "applicationinsights": "^0.15.0",
     "vscode-languageclient": "^2.0.0"
   },
   "contributes": {
