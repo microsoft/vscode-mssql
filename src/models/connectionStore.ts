@@ -155,10 +155,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
             // Get all profiles
-            let configValues = self._connectionConfig.readConnectionsFromConfigFile();
-            if (!configValues) {
-                configValues = [];
-            }
+            let configValues = self.getConnectionsFromConfigFile();
 
             // Remove the profile if already set
             configValues = configValues.filter(value => !Utils.isSameProfile(value, profile));
@@ -274,10 +271,7 @@ export class ConnectionStore {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
             // Get all profiles
-            let configValues = self._connectionConfig.readConnectionsFromConfigFile();
-            if (!configValues) {
-                configValues = [];
-            }
+            let configValues = self.getConnectionsFromConfigFile();
 
             // Remove the profile if already set
             let found: boolean = false;
@@ -346,7 +340,7 @@ export class ConnectionStore {
         return connections;
     }
 
-    private getConnectionsFromConfigFile<T extends IConnectionCredentials>(): T[] {
+    private getConnectionsFromConfigFile<T extends IConnectionProfile>(): T[] {
         let connections: T[] = [];
         // read from the config file
         let configValues = this._connectionConfig.readConnectionsFromConfigFile();

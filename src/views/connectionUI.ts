@@ -1,5 +1,6 @@
 'use strict';
 import vscode = require('vscode');
+import fs = require('fs');
 import Constants = require('../models/constants');
 import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import { ConnectionCredentials } from '../models/connectionCredentials';
@@ -353,13 +354,23 @@ export class ConnectionUI {
      */
     public openConnectionProfileConfigFile(): void {
         const self = this;
-        this.vscodeWrapper.openTextDocument(vscode.Uri.file(ConnectionConfig.configFilePath))
+        this.vscodeWrapper.openTextDocument(this.vscodeWrapper.uriFile(ConnectionConfig.configFilePath))
         .then(doc => {
             self.vscodeWrapper.showTextDocument(doc);
         }, error => {
-            if (error.indexOf('not found') !== -1) {
+            // Check if the file doesn't exist
+            let fileExists = true;
+            try {
+                fs.accessSync(ConnectionConfig.configFilePath);
+            } catch (err) {
+                if (err.code === 'ENOENT') {
+                    fileExists = false;
+                }
+            }
+
+            if (!fileExists) {
                 // Open an untitled file to be saved at the proper path if it doesn't exist
-                self.vscodeWrapper.openTextDocument(vscode.Uri.parse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
+                self.vscodeWrapper.openTextDocument(self.vscodeWrapper.uriParse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
                 .then(doc => {
                     self.vscodeWrapper.showTextDocument(doc).then(editor => {
                         if (Utils.isEmpty(editor.document.getText())) {
@@ -376,7 +387,7 @@ export class ConnectionUI {
                 }, err => {
                     self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
                 });
-            } else {
+            } else { // Unable to access the file
                 self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
             }
         });

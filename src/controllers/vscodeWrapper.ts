@@ -91,6 +91,7 @@ export default class VscodeWrapper {
      *
      * @param uri Identifies the resource to open.
      * @return A promise that resolves to a [document](#TextDocument).
+     * @see vscode.workspace.openTextDocument
      */
     public openTextDocument(uri: vscode.Uri): Thenable<vscode.TextDocument> {
         return vscode.workspace.openTextDocument(uri);
@@ -162,5 +163,29 @@ export default class VscodeWrapper {
      */
     public showWarningMessage(msg: string): Thenable<string> {
         return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
+    }
+
+    /**
+     * Create an URI from a file system path. The [scheme](#Uri.scheme)
+     * will be `file`.
+     *
+     * @param path A file system or UNC path.
+     * @return A new Uri instance.
+     * @see vscode.Uri.file
+     */
+    public uriFile(path: string): vscode.Uri {
+        return vscode.Uri.file(path);
+    }
+
+    /**
+     * Create an URI from a string. Will throw if the given value is not
+     * valid.
+     *
+     * @param value The string value of an Uri.
+     * @return A new Uri instance.
+     * @see vscode.Uri.parse
+     */
+    public uriParse(value: string): vscode.Uri {
+        return vscode.Uri.parse(value);
     }
 }
