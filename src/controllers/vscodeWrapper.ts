@@ -180,4 +180,8 @@ export default class VscodeWrapper {
     public showWarningMessage(msg: string): Thenable<string> {
         return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
     }
+
+    public get visibleEditors(): vscode.TextEditor[] {
+        return vscode.window.visibleTextEditors;
+    }
 }

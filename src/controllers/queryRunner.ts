@@ -226,12 +226,22 @@ export default class QueryRunner {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             self.vscodeWrapper.openTextDocument(self.vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                self.vscodeWrapper.showTextDocument(doc).then((editor) => {
-                    editor.selection = self.vscodeWrapper.selection(
-                                       self.vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                       self.vscodeWrapper.position(selection.endLine, selection.endColumn));
-                    resolve();
+                let docEditors = self.vscodeWrapper.visibleEditors.filter((editor) => {
+                    return editor.document === doc;
                 });
+                if (docEditors.length !== 0) {
+                    docEditors[0].selection = self.vscodeWrapper.selection(
+                                              self.vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                              self.vscodeWrapper.position(selection.endLine, selection.endColumn));
+                    resolve();
+                } else {
+                    self.vscodeWrapper.showTextDocument(doc).then((editor) => {
+                        editor.selection = self.vscodeWrapper.selection(
+                                        self.vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                        self.vscodeWrapper.position(selection.endLine, selection.endColumn));
+                        resolve();
+                    });
+                }
             });
         });
     }
