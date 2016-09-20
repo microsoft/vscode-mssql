@@ -103,6 +103,15 @@ gulp.task('ext:appinsights-version', () => {
      .pipe(gulp.dest("./node_modules/vscode-extension-telemetry", {'overwrite':true}));
 });
 
+gulp.task('ext:copy-appinsights', () => {
+    var filesToMove = [
+        './node_modules/applicationinsights/**/*.*',
+        './node_modules/applicationinsights/*.*'
+    ];
+    return gulp.src(filesToMove, { base: './' })
+     .pipe(gulp.dest("./node_modules/vscode-extension-telemetry", {'overwrite':true}));
+});
+
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
 gulp.task('ext:build', gulp.series('ext:lint', 'ext:compile', 'ext:copy'));
