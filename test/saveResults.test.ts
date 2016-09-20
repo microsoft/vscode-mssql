@@ -50,6 +50,7 @@ suite('save results tests', () => {
                                                 assert.equal(details.filePath, filePath);
                                         })
                                         .returns(() => {
+                                            // This will come back as null from the service layer, but tslinter doesn't like that
                                             return Promise.resolve({messages: undefined});
                                         });
 
@@ -81,6 +82,7 @@ suite('save results tests', () => {
                                                               params = details;
                                     })
                                     .returns(() => {
+                                        // This will come back as null from the service layer, but tslinter doesn't like that
                                         return Promise.resolve({messages: undefined});
                                     });
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
@@ -103,7 +105,8 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                                     .returns(() => {
-                                        return Promise.resolve({messages: 'Success'});
+                                        // This will come back as null from the service layer, but tslinter doesn't like that
+                                        return Promise.resolve({messages: undefined});
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
@@ -145,7 +148,8 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                                     .returns(() => {
-                                        return Promise.resolve({messages: 'Success'});
+                                        // This will come back as null from the service layer, but tslinter doesn't like that
+                                        return Promise.resolve({messages: undefined});
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
