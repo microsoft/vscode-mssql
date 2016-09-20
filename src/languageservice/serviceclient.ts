@@ -63,7 +63,10 @@ export default class SqlToolsServiceClient {
             this._server.getServerPath(platform).then(serverPath => {
                 let serverArgs = [];
                 let serverCommand = serverPath;
-                if (serverPath.endsWith('.dll')) {
+                if (serverPath === undefined) {
+                    Utils.logDebug(Constants.invalidServiceFilePath);
+                    throw new Error(Constants.invalidServiceFilePath);
+                } else if (serverPath.endsWith('.dll')) {
                     serverArgs = [serverPath];
                     serverCommand = 'dotnet';
                 }
@@ -91,6 +94,10 @@ export default class SqlToolsServiceClient {
                 context.subscriptions.push(disposable);
                 resolve(true);
 
+            }).catch(err => {
+                Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err );
+                Utils.showErrorMsg(Constants.serviceLoadingFailed);
+                reject(err);
             });
         });
     }
@@ -123,7 +130,7 @@ export default class SqlToolsServiceClient {
             this._client.sendRequest(VersionRequest.type, undefined).then((result) => {
                  Utils.logDebug('sqlserverclient version: ' + result);
 
-                 if (!result || !result.startsWith(Constants.serviceCompatibleVersion)) {
+                 if (result === undefined || !result.startsWith(Constants.serviceCompatibleVersion)) {
                      Utils.showErrorMsg(Constants.serviceNotCompatibleError);
                      Utils.logDebug(Constants.serviceNotCompatibleError);
                      resolve(false);

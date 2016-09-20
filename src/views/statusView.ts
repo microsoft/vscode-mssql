@@ -140,6 +140,18 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.command = undefined;
         bar.statusConnection.text = Constants.serviceInstalled;
         this.showStatusBarItem(fileUri, bar.statusConnection);
+        // Cleat the status bar after 2 seconds
+        setTimeout(() => {
+            bar.statusConnection.text = '';
+            this.showStatusBarItem(fileUri, bar.statusConnection);
+        }, 2000);
+    }
+
+    public serviceInstallationFailed(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
+        bar.statusConnection.command = undefined;
+        bar.statusConnection.text = Constants.serviceInstallationFailed;
+        this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
     /**
