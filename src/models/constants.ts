@@ -76,7 +76,8 @@ export const msgContentProviderProvideContent = 'Content provider: provideTextDo
 export const msgChooseDatabaseNotConnected = 'Not connected. Please connect to a server first.';
 export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
-export const msgConnectionError = 'Connection failed. See output window for details.';
+export const msgConnectionError = 'Error {0}: {1}';
+export const msgConnectionError2 = 'Failed to connect: {0}';
 export const connectionErrorChannelName = 'Connection Errors';
 
 export const extensionActivated = 'activated.';
