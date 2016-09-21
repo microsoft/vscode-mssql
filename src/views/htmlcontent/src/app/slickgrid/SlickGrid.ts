@@ -493,7 +493,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
                 column.asyncPostRender = c.asyncPostRender;
             }
 
-            if(c.formatter) {
+            if (c.formatter) {
                 column.formatter = c.formatter;
             }
 
