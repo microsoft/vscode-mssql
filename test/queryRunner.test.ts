@@ -23,7 +23,7 @@ suite('Query Runner tests', () => {
         testSqlOutputContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Strict, {extensionPath: ''});
         testSqlToolsServerClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Strict);
         testQueryNotificationHandler = TypeMoq.Mock.ofType(QueryNotificationHandler, TypeMoq.MockBehavior.Strict);
-        testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType(StatusView, TypeMoq.MockBehavior.Strict);
 
     });
@@ -219,95 +219,6 @@ suite('Query Runner tests', () => {
         return queryRunner.copyResults(testRange, 0, 0).then(() => {
             let pasteContents = ncp.paste();
             assert.equal(pasteContents, finalString);
-        });
-    });
-
-    test('Sets Selection Correctly', () => {
-        let selection: ISelectionData = {
-            startLine: 0,
-            startColumn: 0,
-            endLine: 2,
-            endColumn: 2
-        };
-
-        testVscodeWrapper.setup(x => x.position(TypeMoq.It.isAnyNumber(), TypeMoq.It.isAnyNumber()))
-            .returns((line, column) => {
-                return {
-                    line: line,
-                    character: column,
-                    isBefore: undefined,
-                    isBeforeOrEqual: undefined,
-                    isAfter: undefined,
-                    isAfterOrEqual: undefined,
-                    isEqual: undefined,
-                    compareTo: undefined,
-                    translate: undefined,
-                    with: undefined
-                };
-            });
-
-        testVscodeWrapper.setup(x => x.selection(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((start, end) => {
-                return {
-                    anchor: start,
-                    active: end,
-                    isReversed: undefined,
-                    start: undefined,
-                    end: undefined,
-                    isEmpty: undefined,
-                    isSingleLine: undefined,
-                    contains: undefined,
-                    isEqual: undefined,
-                    intersection: undefined,
-                    union: undefined,
-                    with: undefined
-                };
-            });
-
-        testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny()))
-            .returns(() => {
-                let textDocument = {};
-                return Promise.resolve(textDocument);
-            });
-
-        let editor = {
-            selection: undefined
-        };
-        testVscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny()))
-            .returns(() => {
-                return Promise.resolve(editor);
-            });
-
-        testVscodeWrapper.setup(x => x.parseUri(TypeMoq.It.isAnyString()))
-            .returns((uri) => {
-                return {
-                    file: undefined,
-                    parse: undefined,
-                    scheme: undefined,
-                    authority: undefined,
-                    path: undefined,
-                    query: undefined,
-                    fragment: undefined,
-                    fsPath: undefined,
-                    toString: undefined,
-                    toJSON: undefined
-                };
-            });
-
-        let queryRunner = new QueryRunner(
-            undefined,
-            testStatusView.object,
-            testSqlOutputContentProvider.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object
-        );
-
-        return queryRunner.setEditorSelection(selection).then(() => {
-            assert.equal(editor.selection.anchor.line, selection.startLine);
-            assert.equal(editor.selection.anchor.character, selection.startColumn);
-            assert.equal(editor.selection.active.line, selection.endLine);
-            assert.equal(editor.selection.active.character, selection.endColumn);
         });
     });
 });
