@@ -197,18 +197,12 @@ export class AppComponent implements OnInit {
      *
      *
      */
-    public xmlLinkHandler(cellRef: string, row: number, dataContext: JSON, colDef: any): void {
+    xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
             console.log('clicked LINK ' + value);
-            // $.post( '/openLink', {'content': value}, null, 'json');
-            $.ajax ({
-                type: 'POST',
-                url: '/openLink',
-                data: JSON.stringify({'content': value}),
-                headers: { 'Content-Type': 'application/json' },
-                dataType: 'json'
-            });
+            self.dataService.openLink(value, colDef.field);
         });
     }
 
@@ -216,12 +210,17 @@ export class AppComponent implements OnInit {
      *
      */
     public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
-        // console.log('value ' + value );
-        // console.log('data ' + dataContext);
-        // onclick="onLinkClick(\'' + value + '\');return false;"
-        return '<a class= "xmlLink" href="#" >'
-                + (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        let valueToDisplay = (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let cellClasses = 'grid-cell-value-container';
+        if (value) {
+            cellClasses += ' xmlLink';
+            return '<a class="' + cellClasses + '" href="#" >'
+                + valueToDisplay
                 + '</a>';
+        } else {
+            cellClasses += ' missing-value';
+            return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+        }
     }
 
     /**

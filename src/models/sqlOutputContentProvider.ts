@@ -10,7 +10,7 @@ import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
-
+const pd  = require('pretty-data').pd;
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -120,17 +120,19 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             res.send();
         });
 
-        // add http handler for '/openLink' - return success message as JSON
+        // add http handler for '/openLink'
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
+            let columnName: string = req.body.columnName;
             console.log('content:' + content);
-            let tempFileName = String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+            let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
             let tempFilePath = path.join(os.tmpdir(), tempFileName );
             let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+            let xml = pd.xml(content);
             vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
                     vscode.window.showTextDocument(doc, 1, false).then(editor => {
                         editor.edit( edit => {
-                            edit.insert( new vscode.Position(0, 0), content);
+                            edit.insert( new vscode.Position(0, 0), xml);
                         });
                     });
              }, (error: any) => {
