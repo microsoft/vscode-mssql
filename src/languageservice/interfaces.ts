@@ -6,6 +6,7 @@
 export interface IStatusView {
     installingService(fileUri: string): void;
     serviceInstalled(fileUri: string): void;
+    serviceInstallationFailed(fileUri: string): void;
 }
 
 export interface IConfig {

@@ -15,6 +15,9 @@ class StubStatusView {
     serviceInstalled(fileUri: string): void {
         console.log('Service installed');
     }
+    serviceInstallationFailed(fileUri: string): void {
+        console.log('Service installation failed');
+    }
 }
 
 class StubLogger {
