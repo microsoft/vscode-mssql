@@ -60,14 +60,10 @@ slick-grid {
 
 .header {
   background-color: var(--color-bg-content-light);
-  height: auto;
-  overflow: hidden;
 }
 
 .header > span {
-  padding: 10px 15px;
   color: var(--color-content);
-  float: left;
 }
 
 slick-grid:last-of-type {

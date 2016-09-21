@@ -13,6 +13,7 @@ import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
+import { IGridIcon } from './../interfaces';
 
 enum FieldType {
     String = 0,
@@ -50,6 +51,14 @@ export class AppComponent implements OnInit {
     private windowSize = 50;
     private c_key = 67;
     public SelectedTab = SelectedTab;
+    // tslint:disable-next-line:no-unused-variable
+    private dataIcons: IGridIcon[] = [{
+        icon: '/images/u32.png',
+        hoverText: 'icon',
+        functionality: () => {
+            console.log('clicked icons');
+        }
+    }];
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
