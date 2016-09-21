@@ -1,6 +1,6 @@
 {
   "name": "vscode-mssql",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "displayname": "MSSQL support in VS Code",
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
   "publisher": "microsoft",
@@ -44,7 +44,6 @@
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-install": "^0.6.0",
     "gulp-less": "^3.1.0",
-    "gulp-nuget": "1.0.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^6.0.2",
     "gulp-typescript": "^2.13.6",
@@ -53,7 +52,8 @@
     "tslint": "^3.14.0",
     "typescript": "^1.8.9",
     "typemoq": "^0.3.2",
-    "vscode": "^0.11.0"
+    "vscode": "^0.11.0",
+    "gulp-json-editor": "^2.2.1"
   },
   "dependencies": {
     "body-parser": "^1.15.2",
@@ -71,6 +71,7 @@
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.0.5",
+    "applicationinsights": "^0.15.0",
     "vscode-languageclient": "^2.0.0"
   },
   "contributes": {
@@ -132,6 +133,11 @@
         "command": "extension.chooseDatabase",
         "title": "Switch database on current server",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.openConnectionSettingsFile",
+        "title": "Open Connection Profile Settings",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [
@@ -158,6 +164,12 @@
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r",
         "when": "editorTextFocus && editorLangId == 'sql'"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch" : "connections.json",
+        "url": "./connections.schema.json"
       }
     ],
     "configuration": {
@@ -330,6 +342,10 @@
                 "enum": [
                   "Latest"
                 ],
+                "description": "[Optional]"
+              },
+              "profileName": {
+                "type": "string",
                 "description": "[Optional]"
               }
             }

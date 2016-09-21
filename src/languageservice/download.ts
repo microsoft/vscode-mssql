@@ -9,12 +9,10 @@ import * as https from 'https';
 import * as http from 'http';
 import * as stream from 'stream';
 import {parse} from 'url';
-import {Platform} from '../models/platform';
+import {Platform, getCurrentPlatform} from '../models/platform';
 import {getProxyAgent} from './proxy';
-import Utils = require('../models/utils');
-import Config from  '../configurations/config';
 import * as path from 'path';
-import { workspace } from 'vscode';
+import {IConfig, ILogger} from './interfaces';
 
 let tmp = require('tmp');
 let fs = require('fs');
@@ -27,10 +25,8 @@ tmp.setGracefulCleanup();
 */
 export default class ServiceDownloadProvider {
 
-    constructor(private _config: Config) {
-        if (!this._config) {
-            this._config = new Config();
-        }
+    constructor(private _config: IConfig,
+                private _logger: ILogger) {
     }
 
    /**
@@ -71,7 +67,7 @@ export default class ServiceDownloadProvider {
                     if (process.platform === 'linux') {
                         throw new Error('Unsupported linux distribution');
                     } else {
-                        throw new Error('Unsupported platform: ${process.platform}');
+                        throw new Error(`Unsupported platform: ${process.platform}`);
                     }
         }
 
@@ -111,7 +107,7 @@ export default class ServiceDownloadProvider {
                 if (res.statusCode === 302) {
                     return this.download(res.headers.location);
                 } else if (res.statusCode !== 200) {
-                    return reject(Error('Download failed with code ${res.statusCode}.'));
+                    return reject(Error(`Download failed with code ${res.statusCode}.`));
                 }
 
                 return resolve(res);
@@ -122,14 +118,29 @@ export default class ServiceDownloadProvider {
    /**
     * Returns SQL tools service installed folder.
     */
-    public getInstallDirectory(): string {
-        let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        let versionFromConfig = this._config.getSqlToolsPackageVersion();
-        let basePath = path.join(__dirname, installDirFromConfig);
-        if (!fs.existsSync(basePath)) {
-            fs.mkdirSync(basePath);
+    public getInstallDirectory(platform?: Platform): string {
+        if (platform === undefined) {
+            platform = getCurrentPlatform();
         }
-        basePath = path.join(basePath, versionFromConfig);
+        let root = this.getInstallDirectoryRoot();
+        let versionFromConfig = this._config.getSqlToolsPackageVersion();
+        let basePath = this.getInstallDirectoryPart(root, versionFromConfig);
+        basePath = this.getInstallDirectoryPart(basePath, platform.toString());
+        return basePath;
+    }
+
+   /**
+    * Returns SQL tools service installed folder root.
+    */
+    public getInstallDirectoryRoot(): string {
+        let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
+        // The path from config is relative to the out folder
+        let basePath = this.getInstallDirectoryPart(__dirname, '../../' + installDirFromConfig);
+        return basePath;
+    }
+
+    private getInstallDirectoryPart(dirName: string, suffix: string): string {
+        let basePath = path.join(dirName, suffix);
         if (!fs.existsSync(basePath)) {
             fs.mkdirSync(basePath);
         }
@@ -139,20 +150,22 @@ export default class ServiceDownloadProvider {
    /**
     * Downloads the SQL tools service and decompress it in the install folder.
     */
-    public go(platform: Platform): Promise<boolean> {
-        const config = workspace.getConfiguration();
-        const proxy = config.get<string>('http.proxy');
-        const strictSSL = config.get('http.proxyStrictSSL', true);
+    public go(platform?: Platform): Promise<boolean> {
+        const proxy = <string>this._config.getConfig('http.proxy');
+        const strictSSL = this._config.getConfig('http.proxyStrictSSL', true);
+        if (platform === undefined) {
+            platform = getCurrentPlatform();
+        }
 
         return new Promise<boolean>((resolve, reject) => {
             const fileName = this.getDownloadFileName( platform);
-            const installDirectory = this.getInstallDirectory();
+            const installDirectory = this.getInstallDirectory(platform);
 
-            Utils.logDebug('Installing sql tools service to ${installDirectory}');
+            this._logger.logDebug(`Installing sql tools service to ${installDirectory}`);
             let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
             const urlString = baseDownloadUrl + '/' + fileName;
 
-            Utils.logDebug('Attempting to download ${fileName}');
+            this._logger.logDebug(`Attempting to download ${fileName}`);
 
             return this.download(urlString, proxy, strictSSL)
                 .then(inStream => {
@@ -161,7 +174,7 @@ export default class ServiceDownloadProvider {
                             return reject(err);
                         }
 
-                        Utils.logDebug('Downloading to ${tmpPath}...');
+                        this._logger.logDebug(`Downloading to ${tmpPath}...`);
 
                         const outStream = fs.createWriteStream(undefined, { fd: fd });
 
@@ -171,16 +184,16 @@ export default class ServiceDownloadProvider {
                         outStream.once('finish', () => {
                             // At this point, the asset has finished downloading.
 
-                            Utils.logDebug('Download complete!');
-                            Utils.logDebug('Decompressing...');
+                            this._logger.logDebug('Download complete!');
+                            this._logger.logDebug('Decompressing...');
 
                             return decompress(tmpPath, installDirectory)
                                 .then(files => {
-                                    Utils.logDebug('Done! ${files.length} files unpacked.\n');
+                                    this._logger.logDebug(`Done! ${files.length} files unpacked.\n`);
                                     return resolve(true);
                                 })
                                 .catch(decompressErr => {
-                                    Utils.logDebug('[ERROR] ${err}');
+                                    this._logger.logDebug(`[ERROR] ${err}`);
                                     return reject(decompressErr);
                                 });
                         });
@@ -189,7 +202,7 @@ export default class ServiceDownloadProvider {
                     });
                 })
                 .catch(err => {
-                    Utils.logDebug('[ERROR] ${err}');
+                    this._logger.logDebug(`[ERROR] ${err}`);
                     reject(err);
                 });
         }).then(res => {

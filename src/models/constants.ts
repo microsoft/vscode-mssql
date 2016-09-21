@@ -3,12 +3,26 @@ export const languageId = 'sql';
 export const extensionName = 'vscode-mssql';
 export const outputChannelName = 'MSSQL';
 
+export const connectionConfigFilename = 'connections.json';
+export const connectionsArrayName = 'vscode-mssql.connections';
+export const defaultConnectionSettingsFileJson = {
+    'vscode-mssql.connections': [
+        {
+            'server': '{{put-server-name-here}}',
+            'database': '{{put-database-name-here}}',
+            'user': '{{put-username-here}}',
+            'password': '{{put-password-here}}'
+        }
+    ]
+};
+
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
+export const cmdOpenConnectionSettings = 'extension.openConnectionSettingsFile';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
@@ -105,6 +119,7 @@ export const msgSelectProfileToRemove = 'Select profile to remove';
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';
+export const msgProfileCreated = 'Profile created and connected';
 
 export const msgSelectionIsRequired = 'Selection is required.';
 export const msgIsRequired = ' is required.';
@@ -142,4 +157,11 @@ export const msgChangeLanguageMode = 'To use this command, you must set the lang
 export const timeToWaitForLanguageModeChange = 10000.0;
 
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
+
+export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the profile information provided. Retry profile creation?';
+
 export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';
+
+export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check that the file is formatted correctly.';
+export const msgNewConfigFileHelpInfo = 'Save connections.json to enable autocomplete while editing connection profile settings.';
+export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';

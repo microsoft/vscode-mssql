@@ -1,23 +1,34 @@
 'use strict';
 import vscode = require('vscode');
+import fs = require('fs');
 import Constants = require('../models/constants');
+import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
+import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
 
-    constructor(private _connectionStore: ConnectionStore, private _prompter: IPrompter, private _vscodeWrapper?: VscodeWrapper) {
+    constructor(private _connectionManager: ConnectionManager,
+                private _connectionStore: ConnectionStore,
+                private _prompter: IPrompter,
+                private _vscodeWrapper?: VscodeWrapper) {
         this._errorOutputChannel = vscode.window.createOutputChannel(Constants.connectionErrorChannelName);
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
+    }
+
+    private get connectionManager(): ConnectionManager {
+        return this._connectionManager;
     }
 
     private get vscodeWrapper(): VscodeWrapper {
@@ -215,14 +226,60 @@ export class ConnectionUI {
         return self.promptForCreateProfile()
             .then(profile => {
                 if (profile) {
-                    return self._connectionStore.saveProfile(profile);
+                    // Validate the profile before saving
+                    return self.validateAndSaveProfile(profile);
                 }
                 return undefined;
             });
     }
 
+    /**
+     * Validate a connection profile by connecting to it, and save it if we are successful.
+     */
+    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): Promise<Interfaces.IConnectionProfile> {
+        const self = this;
+        return self.connectionManager.connect(self.vscodeWrapper.activeTextEditorUri, profile).then(result => {
+            if (result) {
+                // Success! save it
+                return self.saveProfile(profile);
+            } else {
+                // Error! let the user try again, prefilling values that they already entered
+                return self.promptForRetryCreateProfile(profile).then(updatedProfile => {
+                    if (updatedProfile) {
+                        return self.validateAndSaveProfile(updatedProfile);
+                    } else {
+                        return undefined;
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Save a connection profile using the connection store.
+     */
+    private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+        return this._connectionStore.saveProfile(profile);
+    }
+
     private promptForCreateProfile(): Promise<IConnectionProfile> {
         return ConnectionProfile.createProfile(this._prompter);
+    }
+
+    private promptForRetryCreateProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+        // Ask if the user would like to fix the profile
+        const retryPrompt: IQuestion = {
+            type: QuestionTypes.confirm,
+            name: Constants.msgPromptRetryCreateProfile,
+            message: Constants.msgPromptRetryCreateProfile
+        };
+        return this._prompter.promptSingle(retryPrompt).then(result => {
+            if (result) {
+                return ConnectionProfile.createProfile(this._prompter, profile);
+            } else {
+                return undefined;
+            }
+        });
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
@@ -288,6 +345,50 @@ export class ConnectionUI {
                 return profilePickItem.connectionCreds;
             } else {
                 return undefined;
+            }
+        });
+    }
+
+    /**
+     * Open the configuration file that stores the connection profiles.
+     */
+    public openConnectionProfileConfigFile(): void {
+        const self = this;
+        this.vscodeWrapper.openTextDocument(this.vscodeWrapper.uriFile(ConnectionConfig.configFilePath))
+        .then(doc => {
+            self.vscodeWrapper.showTextDocument(doc);
+        }, error => {
+            // Check if the file doesn't exist
+            let fileExists = true;
+            try {
+                fs.accessSync(ConnectionConfig.configFilePath);
+            } catch (err) {
+                if (err.code === 'ENOENT') {
+                    fileExists = false;
+                }
+            }
+
+            if (!fileExists) {
+                // Open an untitled file to be saved at the proper path if it doesn't exist
+                self.vscodeWrapper.openTextDocument(self.vscodeWrapper.uriParse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
+                .then(doc => {
+                    self.vscodeWrapper.showTextDocument(doc).then(editor => {
+                        if (Utils.isEmpty(editor.document.getText())) {
+                            // Insert the template for a new connection into the file
+                            editor.edit(builder => {
+                                let position: vscode.Position = new vscode.Position(0, 0);
+                                builder.insert(position, JSON.stringify(Constants.defaultConnectionSettingsFileJson, undefined, 4));
+                            });
+                        }
+
+                        // Remind the user to save if they would like auto-completion enabled while editing the new file
+                        self._vscodeWrapper.showInformationMessage(Constants.msgNewConfigFileHelpInfo);
+                    });
+                }, err => {
+                    self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
+                });
+            } else { // Unable to access the file
+                self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
             }
         });
     }
