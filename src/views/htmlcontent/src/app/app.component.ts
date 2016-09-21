@@ -91,7 +91,6 @@ export class AppComponent implements OnInit {
 
                             for (let i = 0; i < columnData.length; i++) {
                                 if (columnData[i].isXml) {
-                                    console.log('Xml field');
                                     columnDefinitions.push({
                                     id: columnData[i].columnName,
                                     type: self.stringToFieldType('xml'),
@@ -201,7 +200,6 @@ export class AppComponent implements OnInit {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            console.log('clicked LINK ' + value);
             self.dataService.openLink(value, colDef.field);
         });
     }

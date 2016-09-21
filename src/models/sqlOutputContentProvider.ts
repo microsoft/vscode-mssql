@@ -124,7 +124,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
-            console.log('content:' + content);
             let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
             let tempFilePath = path.join(os.tmpdir(), tempFileName );
             let uri = vscode.Uri.parse('untitled:' + tempFilePath);
