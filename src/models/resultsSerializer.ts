@@ -91,7 +91,7 @@ export default class ResultsSerializer {
         // user entered only the file name. Save file in current directory
         if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
-        } else if ( sqlUri.scheme === 'untitled') {
+        } else if (sqlUri.scheme === 'untitled') {
             if (vscode.workspace.rootPath) {
                 currentDirectory = vscode.workspace.rootPath;
             } else {
@@ -120,10 +120,10 @@ export default class ResultsSerializer {
 
         // send message to the sqlserverclient for converting resuts to CSV and saving to filepath
         return self._client.sendRequest( Contracts.SaveResultsAsCsvRequest.type, saveResultsParams).then(result => {
-                if (result.messages === 'Success') {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
-                } else {
+                if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(result.messages);
+                } else {
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
                 }
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
@@ -147,10 +147,10 @@ export default class ResultsSerializer {
 
         // send message to the sqlserverclient for converting resuts to JSON and saving to filepath
         return self._client.sendRequest( Contracts.SaveResultsAsJsonRequest.type, saveResultsParams).then(result => {
-                if (result.messages === 'Success') {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
-                } else {
+                if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(result.messages);
+                } else {
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
                 }
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);

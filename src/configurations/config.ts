@@ -6,8 +6,10 @@
 'use strict';
 const fs = require('fs');
 import * as path from 'path';
-import Utils = require('../models/utils');
 
+/*
+* Config class handles getting values from config.json.
+*/
 export default class Config {
      private static _configJsonContent = undefined;
 
@@ -23,7 +25,6 @@ export default class Config {
             let json = Config.configJsonContent;
             return json.sqlToolsService.downloadUrl + '/' + json.sqlToolsService.version;
         } catch (error) {
-                Utils.showErrorMsg(error);
                 throw(error);
         }
     }
@@ -33,7 +34,6 @@ export default class Config {
             let json = Config.configJsonContent;
             return json.sqlToolsService.installDir;
         } catch (error) {
-                Utils.showErrorMsg(error);
                 throw(error);
         }
     }
@@ -43,17 +43,24 @@ export default class Config {
             let json = Config.configJsonContent;
             return json.sqlToolsService.executableFiles;
         } catch (error) {
-                Utils.showErrorMsg(error);
                 throw(error);
         }
     }
 
-    public getSqlToolsPackageVersion(): string[] {
+    public getSqlToolsPackageVersion(): string {
         try {
             let json = Config.configJsonContent;
             return json.sqlToolsService.version;
         } catch (error) {
-                Utils.showErrorMsg(error);
+                throw(error);
+        }
+    }
+
+    public getConfig(key: string, defaultValue?: any): any {
+        try {
+            let json = Config.configJsonContent;
+            return json.key;
+        } catch (error) {
                 throw(error);
         }
     }

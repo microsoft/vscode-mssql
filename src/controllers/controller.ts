@@ -70,6 +70,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
+        this.registerCommand(Constants.cmdOpenConnectionSettings);
+        this._event.on(Constants.cmdOpenConnectionSettings, () => { self.onOpenConnectionSettings(); } );
 
         this._vscodeWrapper = new VscodeWrapper();
 
@@ -172,6 +174,13 @@ export default class MainController implements vscode.Disposable {
     // Prompts to remove a registered SQL connection profile
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
+    }
+
+    /**
+     * Opens the settings file where connection profiles are stored.
+     */
+    public onOpenConnectionSettings(): void {
+        this._connectionMgr.connectionUI.openConnectionProfileConfigFile();
     }
 
     private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
