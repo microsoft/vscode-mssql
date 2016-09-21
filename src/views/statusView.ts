@@ -1,6 +1,7 @@
 import vscode = require('vscode');
 import Constants = require('../models/constants');
 import ConnInfo = require('../models/connectionInfo');
+import * as ConnectionContracts from '../models/contracts/connection';
 import Interfaces = require('../models/interfaces');
 import * as Utils from '../models/utils';
 
@@ -105,13 +106,18 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public connectError(fileUri: string, connCreds: Interfaces.IConnectionCredentials, error: any): void {
+    public connectError(fileUri: string, connCreds: Interfaces.IConnectionCredentials, error: ConnectionContracts.ConnectionResult): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
         bar.statusConnection.text = Constants.connectErrorLabel;
-        bar.statusConnection.tooltip = Constants.connectErrorTooltip + connCreds.server + '\n' +
-                                      Constants.connectErrorCode + error.code + '\n' +
-                                      Constants.connectErrorMessage + error.message;
+        if (error.errorNumber && error.errorMessage && !Utils.isEmpty(error.errorMessage)) {
+            bar.statusConnection.tooltip = Constants.connectErrorTooltip + connCreds.server + '\n' +
+                                        Constants.connectErrorCode + error.errorNumber + '\n' +
+                                        Constants.connectErrorMessage + error.errorMessage;
+        } else {
+            bar.statusConnection.tooltip = Constants.connectErrorTooltip + connCreds.server + '\n' +
+                                        Constants.connectErrorMessage + error.messages;
+        }
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
