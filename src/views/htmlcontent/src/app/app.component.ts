@@ -52,13 +52,22 @@ export class AppComponent implements OnInit {
     private c_key = 67;
     public SelectedTab = SelectedTab;
     // tslint:disable-next-line:no-unused-variable
-    private dataIcons: IGridIcon[] = [{
-        icon: '/images/u32.png',
-        hoverText: 'icon',
-        functionality: () => {
-            console.log('clicked icons');
+    private dataIcons: IGridIcon[] = [
+        {
+            icon: '/images/u32.png',
+            hoverText: 'Save as CSV',
+            functionality: (batchId, resultId) => {
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId})
+            }
+        },
+        {
+            icon: '/images/u26.png',
+            hoverText: 'Save as JSON',
+            functionality: (batchId, resultId) => {
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId})
+            }
         }
-    }];
+    ];
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 

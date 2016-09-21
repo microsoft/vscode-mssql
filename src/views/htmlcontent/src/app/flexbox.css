@@ -7,24 +7,41 @@ body {
 .fullsize {
     height: 100%;
 }
-
-.box {
+/* vertical box styles */
+.vertBox {
     display: flex;
     flex-flow: column;
     overflow: auto;
 }
 
-.box .boxRow.header {
+.vertBox .boxRow.header {
     flex: 0 0 auto;
 }
 
-.box .boxRow.content {
+.vertBox .boxRow.content {
     flex: 1 1 1%;
     overflow: auto;
+    min-height: fit-content;
 }
 
-.box .boxRow.content .slickgrid {
-    min-height: 232
+.vertBox .boxRow.content .slickgrid {
+    min-height: 232;
+    max-height: fit-content;
+}
+
+/* horizontal box style */
+.horzBox {
+    display: flex;
+    flex-flow: row;
+    overflow: auto;
+    align-items: center;
+}
+
+.vertBox .boxCol.content {
+    flex: 1 1 1%;
+    overflow: auto;
+    max-width: fit-content;
+    min-height: fit-content;
 }
 
 .hidden {

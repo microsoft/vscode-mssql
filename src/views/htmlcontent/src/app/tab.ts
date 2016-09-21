@@ -25,14 +25,8 @@ enum SelectedTab {
         <div class="boxRow header">
             <span (click)="active = !active" class="collapsible" [class.collapsed]="!active"></span>
             <span> {{title}} </span>
-            <span *ngIf="icons" class="gridIcon">
-                <a href="#" *ngFor="let icon of icons"
-                (click)="icon.functionality()">
-                    <img src="{{icon.icon}}" alt="icon.hoverText"/>
-                </a>
-            </span>
         </div>
-        <div class="boxRow content box padded">
+        <div class="boxRow content vertBox padded">
             <ng-content></ng-content>
         </div>`
 })
