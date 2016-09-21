@@ -14,15 +14,7 @@ import {IColumnDefinition} from './ModelInterfaces';
 import {LocalizationService} from './LocalizationService';
 import {GridSyncService} from './GridSyncService';
 import {ISlickRange} from './SelectionModel';
-
-enum FieldType {
-    String = 0,
-    Boolean = 1,
-    Integer = 2,
-    Decimal = 3,
-    Date = 4,
-    Unknown = 5,
-}
+import {FieldType} from './EngineAPI';
 
 declare let System;
 // noinspection JSUnusedAssignment
@@ -146,7 +138,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
     @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
-    @Output() doubleClick: EventEmitter<{content: string}> = new EventEmitter<{content: string}>();
 
     @Input() topRowNumber: number;
     @Output() topRowNumberChange: EventEmitter<number> = new EventEmitter<number>();
@@ -269,10 +260,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
                 }
             }
         }
-        console.log('adding xml link in on changes');
-        $('.xmlLink').click(function(): void {
-            console.log('clicked LINK');
-        });
     }
 
     private invalidateRange(start: number, end: number): void {
@@ -300,7 +287,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
         this.subscribeToScroll();
         this.subscribeToCellChanged();
         this.subscribeToContextMenu();
-        this.subscribeToClick();
     }
 
     ngDoCheck(): void {
@@ -413,6 +399,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
             rowHeight: this._rowHeight,
             defaultColumnWidth: 120,
             editable: true,
+            enableAsyncPostRender: true,
             editorFactory: {
                 getEditor: this.getColumnEditor
             },
@@ -488,20 +475,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
         });
     }
 
-    public subscribeToClick(): void {
-        const self = this;
-        this._grid.onDblClick.subscribe((event, args) => {
-            event.preventDefault();
-            let value = this.dataRows.at(args.row).values[args.cell - 1];
-            console.log('value is ' + value);
-            self.doubleClick.emit({content: value});
-        });
-        console.log('adding xml link');
-        $('.xmlLink').click(function(): void {
-            console.log('clicked LINK');
-        });
-    }
-
     private updateSchema(): void {
         if (!this.columnDefinitions) {
             return;
@@ -520,35 +493,24 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
                 column.asyncPostRender = c.asyncPostRender;
             }
 
+            if(c.formatter) {
+                column.formatter = c.formatter;
+            }
+
             if (this._gridSyncService) {
                 let columnWidth = this._gridSyncService.columnWidthPXs[i];
                 column.width = columnWidth ? columnWidth : undefined;
                 column.minWidth = this._gridSyncService.columnMinWidthPX;
             }
 
-            if (c.type === 6) {
-                column.formatter = this.hyperLinkFormatter;
-            }
-
             return column;
         });
     }
-    private hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
-        console.log('value ' + value );
-        console.log('data ' + dataContext);
-        // onclick="onLinkClick(\'' + value + '\');return false;"
-        return '<a class= "xmlLink" href="#" >'
-                + (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                + '</a>';
-    }
 
-    public onLinkClick(value: string): void {
-        const self = this;
-        self.doubleClick.emit({content: value});
-    }
     private getImagePathForDataType(type: FieldType): string {
         const resourcePath = './resources/';
         switch (type) {
+            case FieldType.Xml:
             case FieldType.String:
                 return resourcePath + 'col-type-string.svg';
             case FieldType.Boolean:

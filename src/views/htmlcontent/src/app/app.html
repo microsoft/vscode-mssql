@@ -5,7 +5,6 @@
                         [columnDefinitions]="dataSet.columnDefinitions"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId)"
-                        (doubleClick)="handleDoubleClick($event)"
                         showDataTypeIcon="false"
                         showHeader="true"
                         (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"

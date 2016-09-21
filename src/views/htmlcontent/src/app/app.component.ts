@@ -94,7 +94,9 @@ export class AppComponent implements OnInit {
                                     console.log('Xml field');
                                     columnDefinitions.push({
                                     id: columnData[i].columnName,
-                                    type: self.stringToFieldType('xml')
+                                    type: self.stringToFieldType('xml'),
+                                    formatter: self.hyperLinkFormatter,
+                                    asyncPostRender: self.xmlLinkHandler
                                 });
                                 } else {
                                     columnDefinitions.push({
@@ -195,13 +197,31 @@ export class AppComponent implements OnInit {
      *
      *
      */
-    handleDoubleClick(event: {content: string }): void {
-        console.log('handler in app');
-        this.dataService.openLink(event.content);
+    public xmlLinkHandler(cellRef: string, row: number, dataContext: JSON, colDef: any): void {
+        let value = dataContext[colDef.field];
+        $(cellRef).children('.xmlLink').click(function(): void {
+            console.log('clicked LINK ' + value);
+            // $.post( '/openLink', {'content': value}, null, 'json');
+            $.ajax ({
+                type: 'POST',
+                url: '/openLink',
+                data: JSON.stringify({'content': value}),
+                headers: { 'Content-Type': 'application/json' },
+                dataType: 'json'
+            });
+        });
     }
-    onLinkCLick(): void {
-        console.log('handler in app');
-        // this.dataService.openLink(content);
+
+    /**
+     *
+     */
+    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+        // console.log('value ' + value );
+        // console.log('data ' + dataContext);
+        // onclick="onLinkClick(\'' + value + '\');return false;"
+        return '<a class= "xmlLink" href="#" >'
+                + (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                + '</a>';
     }
 
     /**

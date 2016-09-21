@@ -124,22 +124,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             console.log('content:' + content);
-            /*
-            vscode.commands.executeCommand('workbench.action.files.newUntitledFile').then(() => {
-                            let editor = self._vscodeWrapper.activeTextEditor;
-                            editor.edit( edit => {
-                            edit.insert( new vscode.Position(0, 0), content);
-                        });
-            }, (error: any) => {
-                 console.error(error);
-             });
-            // vscode.commands.executeCommand( 'vscode.open' , content ).then(() => {
-            //    console.log('in then');
-            // });
-            // workbench.action.files.newUntitledFile
-            // self.callasync(content);
-            */
-            let tempFilePath = path.join(os.tmpdir(), 'tmp1.xml');
+            let tempFileName = String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+            let tempFilePath = path.join(os.tmpdir(), tempFileName );
             let uri = vscode.Uri.parse('untitled:' + tempFilePath);
             vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
                     vscode.window.showTextDocument(doc, 1, false).then(editor => {
