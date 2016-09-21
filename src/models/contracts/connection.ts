@@ -224,6 +224,16 @@ export class ConnectionResult {
     public messages: string;
 
     /**
+     * Error message returned from the engine, if any.
+     */
+    public errorMessage: string;
+
+    /**
+     * Error number returned from the engine, if any.
+     */
+    public errorNumber: number;
+
+    /**
      * Information about the connected server.
      */
     public serverInfo: ServerInfo;
