@@ -120,7 +120,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             res.send();
         });
 
-        // add http handler for '/openLink'
+        // add http handler for '/openLink' - open content in a new vscode editor pane
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;

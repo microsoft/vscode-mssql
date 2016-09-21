@@ -13,16 +13,7 @@ import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
-
-enum FieldType {
-    String = 0,
-    Boolean = 1,
-    Integer = 2,
-    Decimal = 3,
-    Date = 4,
-    Unknown = 5,
-    Xml = 6
-}
+import { FieldType } from './slickgrid/EngineAPI';
 
 enum SelectedTab {
     Results = 0,
@@ -96,12 +87,12 @@ export class AppComponent implements OnInit {
                                     type: self.stringToFieldType('xml'),
                                     formatter: self.hyperLinkFormatter,
                                     asyncPostRender: self.xmlLinkHandler
-                                });
+                                    });
                                 } else {
                                     columnDefinitions.push({
                                     id: columnData[i].columnName,
                                     type: self.stringToFieldType('string')
-                                });
+                                    });
                                 }
 
                             }
@@ -137,7 +128,6 @@ export class AppComponent implements OnInit {
         });
     }
 
-
     /**
      * Used to convert the string to a enum compatible with SlickGrid
      */
@@ -162,7 +152,6 @@ export class AppComponent implements OnInit {
         }
         return fieldtype;
     }
-
 
     /**
      * Send save result set request to service
@@ -193,8 +182,7 @@ export class AppComponent implements OnInit {
     }
 
     /**
-     *
-     *
+     * Add handler for clicking on xml link
      */
     xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
         const self = this;
@@ -205,7 +193,7 @@ export class AppComponent implements OnInit {
     }
 
     /**
-     *
+     * Format xml field into a hyperlink
      */
     public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
         let valueToDisplay = (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
