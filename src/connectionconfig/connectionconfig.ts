@@ -111,11 +111,14 @@ export class ConnectionConfig implements IConnectionConfig {
     public static get configFilePath(): string {
         return this.configFileDirectory + Constants.connectionConfigFilename;
     }
-
-    private createConfigFileDirectory(): Promise<void> {
+    /**
+     * Public for testing purposes.
+     */
+    public createConfigFileDirectory(): Promise<void> {
+        const self = this;
         const configFileDir: string = ConnectionConfig.configFileDirectory;
         return new Promise<void>((resolve, reject) => {
-            this._fs.mkdir(configFileDir, err => {
+            self._fs.mkdir(configFileDir, err => {
                 // If the directory already exists, ignore the error
                 if (err && err.code !== 'EEXIST') {
                     reject(err);

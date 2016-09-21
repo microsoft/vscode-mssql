@@ -109,4 +109,48 @@ suite('ConnectionConfig tests', () => {
         // Verify that an error message was shown to the user
         vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
+
+    test('error is thrown when config directory cannot be created', done => {
+        let fsMock = TypeMoq.Mock.ofInstance(fs);
+        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((path, errorHandler) => {
+                let error = {
+                    code: 'EACCES'
+                };
+                errorHandler(error);
+            });
+
+        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
+
+        // Given a connection config object that tries to create a config directory without appropriate permissions
+        let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
+        config.createConfigFileDirectory().then(() => {
+            done('Promise should not resolve successfully');
+        }).catch(err => {
+            // Expect an error to be thrown
+            done();
+        });
+    });
+
+    test('error is not thrown when config directory already exists', done => {
+        let fsMock = TypeMoq.Mock.ofInstance(fs);
+        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((path, errorHandler) => {
+                let error = {
+                    code: 'EEXIST'
+                };
+                errorHandler(error);
+            });
+
+        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
+
+        // Given a connection config object that tries to create a config directory when it already exists
+        let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
+        config.createConfigFileDirectory().then(() => {
+            // Expect no error to be thrown
+            done();
+        }).catch(err => {
+            done(err);
+        });
+    });
 });

@@ -63,7 +63,7 @@ export default class ConnectionManager {
             this._connectionStore = new ConnectionStore(context);
         }
 
-        this._connectionUI = new ConnectionUI(this._connectionStore, prompter, this.vscodeWrapper);
+        this._connectionUI = new ConnectionUI(this, this._connectionStore, prompter, this.vscodeWrapper);
 
         this.vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
         this.vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
@@ -341,14 +341,22 @@ export default class ConnectionManager {
 
     public onCreateProfile(): Promise<boolean> {
         let self = this;
-        return new Promise<any>((resolve, reject) => {
-            self.connectionUI.createAndSaveProfile()
-            .then(profile => {
-                if (profile) {
-                    resolve(true);
-                } else {
-                    resolve(false);
-            }});
+        return new Promise<boolean>((resolve, reject) => {
+            // Ensure we are in SQL mode before creating a profile and connecting
+            if (!self.vscodeWrapper.isEditingSqlFile) {
+                self.connectionUI.promptToChangeLanguageMode()
+                .then( result => {
+                    if (result) {
+                        self.connectionUI.createAndSaveProfile()
+                            .then(profile => resolve(profile ? true : false));
+                    } else {
+                        resolve(false);
+                    }
+                });
+            } else {
+                self.connectionUI.createAndSaveProfile()
+                    .then(profile => resolve(profile ? true : false));
+            }
         });
     }
 

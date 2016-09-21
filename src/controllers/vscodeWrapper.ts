@@ -100,6 +100,7 @@ export default class VscodeWrapper {
      *
      * @param uri Identifies the resource to open.
      * @return A promise that resolves to a [document](#TextDocument).
+     * @see vscode.workspace.openTextDocument
      */
     public openTextDocument(uri: vscode.Uri): Thenable<vscode.TextDocument> {
         return vscode.workspace.openTextDocument(uri);
@@ -127,10 +128,20 @@ export default class VscodeWrapper {
         return new vscode.Range(start, end);
     }
 
+    /**
+     * Create a vscode.Position object
+     * @param line The line for the position
+     * @param column The column for the position
+     */
     public position(line: number, column: number): vscode.Position {
         return new vscode.Position(line, column);
     }
 
+    /**
+     * Create a vscode.Selection object
+     * @param start The start postion of the selection
+     * @param end The end position of the selection
+     */
     public selection(start: vscode.Position, end: vscode.Position): vscode.Selection {
         return new vscode.Selection(start, end);
     }
@@ -181,7 +192,34 @@ export default class VscodeWrapper {
         return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
     }
 
+    /**
+     * Returns a array of the text editors currently visible in the window
+     */
     public get visibleEditors(): vscode.TextEditor[] {
         return vscode.window.visibleTextEditors;
+    }
+
+    /**
+     * Create an URI from a file system path. The [scheme](#Uri.scheme)
+     * will be `file`.
+     *
+     * @param path A file system or UNC path.
+     * @return A new Uri instance.
+     * @see vscode.Uri.file
+     */
+    public uriFile(path: string): vscode.Uri {
+        return vscode.Uri.file(path);
+    }
+
+    /**
+     * Create an URI from a string. Will throw if the given value is not
+     * valid.
+     *
+     * @param value The string value of an Uri.
+     * @return A new Uri instance.
+     * @see vscode.Uri.parse
+     */
+    public uriParse(value: string): vscode.Uri {
+        return vscode.Uri.parse(value);
     }
 }

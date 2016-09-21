@@ -12,8 +12,10 @@ import {VersionRequest} from '../models/contracts';
 import Constants = require('../models/constants');
 import ServerProvider from './server';
 import ServiceDownloadProvider from './download';
-import Config from  '../configurations/config';
+import {ExtensionWrapper, Logger} from './extUtil';
+import ExtConfig from  '../configurations/extConfig';
 import StatusView from '../views/statusView';
+import {Platform, getCurrentPlatform} from '../models/platform';
 
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
@@ -38,10 +40,13 @@ export default class SqlToolsServiceClient {
     // gets or creates the singleton SQL Tools service client instance
     public static get instance(): SqlToolsServiceClient {
         if (this._instance === undefined) {
-            let config = new Config();
-            let downloadProvider = new ServiceDownloadProvider(config);
+            let config = new ExtConfig();
+            let logger = new Logger();
+            let downloadProvider = new ServiceDownloadProvider(config, logger);
             let statusView = new StatusView();
-            let serviceProvider = new ServerProvider(downloadProvider, config, statusView);
+            let extWrapper = new ExtensionWrapper();
+            let serviceProvider = new ServerProvider(downloadProvider, config, statusView, extWrapper);
+
             this._instance = new SqlToolsServiceClient(serviceProvider);
         }
         return this._instance;
@@ -51,7 +56,11 @@ export default class SqlToolsServiceClient {
     // out-of-proc server through the LanguageClient
     public initialize(context: ExtensionContext): Promise<boolean> {
         return new Promise<boolean>( (resolve, reject) => {
-            this._server.getServerPath().then(serverPath => {
+            const platform = getCurrentPlatform();
+            if (platform === Platform.Unknown) {
+                throw new Error('Invalid Platform');
+            }
+            this._server.getServerPath(platform).then(serverPath => {
                 let serverArgs = [];
                 let serverCommand = serverPath;
                 if (serverPath.endsWith('.dll')) {
