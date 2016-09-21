@@ -1,4 +1,3 @@
-.nav > li > a {
-  padding-top: 5px;
-  padding-bottom: 5px;
+.boxRow.content.box.padded {
+  padding: 15px
 }

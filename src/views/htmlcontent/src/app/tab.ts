@@ -21,8 +21,13 @@ enum SelectedTab {
         padding: 1em;
         }`],
     template: `
-        <div class="boxRow content box">
-        <ng-content></ng-content>
+        <div class="boxRow header">
+            <span (click)="active = !active" class="glyphicon"
+                  [class.glyphicon-expand]="!_active"
+                  [class.glyphicon-collapse-down]="_active"></span> <span> {{title}} </span>
+        </div>
+        <div class="boxRow content box padded">
+            <ng-content></ng-content>
         </div>`
 })
 export class Tab implements AfterViewInit {
@@ -37,9 +42,10 @@ export class Tab implements AfterViewInit {
 
     private updateActive(): void {
         if (!this._active) {
-            this._el.nativeElement.className += ' hidden';
+            this._el.nativeElement.getElementsByClassName("content")[0].className += ' hidden';
         } else {
-            this._el.nativeElement.className = this._el.nativeElement.className.replace( /(?:^|\s)hidden(?!\S)/g , '' );
+            this._el.nativeElement.getElementsByClassName("content")[0].className =
+                this._el.nativeElement.getElementsByClassName("content")[0].className.replace( /(?:^|\s)hidden(?!\S)/g , '' );
         }
     }
 
