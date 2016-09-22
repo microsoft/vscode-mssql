@@ -83,15 +83,15 @@ export class AppComponent implements OnInit {
                             for (let i = 0; i < columnData.length; i++) {
                                 if (columnData[i].isXml) {
                                     columnDefinitions.push({
-                                    id: columnData[i].columnName,
-                                    type: self.stringToFieldType('xml'),
-                                    formatter: self.hyperLinkFormatter,
-                                    asyncPostRender: self.xmlLinkHandler
+                                        id: columnData[i].columnName,
+                                        type: self.stringToFieldType('xml'),
+                                        formatter: self.hyperLinkFormatter,
+                                        asyncPostRender: self.xmlLinkHandler
                                     });
                                 } else {
                                     columnDefinitions.push({
-                                    id: columnData[i].columnName,
-                                    type: self.stringToFieldType('string')
+                                        id: columnData[i].columnName,
+                                        type: self.stringToFieldType('string')
                                     });
                                 }
 
