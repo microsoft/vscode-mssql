@@ -49,3 +49,9 @@ export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
     messages: string[];
 }
+
+export interface IGridIcon {
+    icon: string;
+    hoverText: string;
+    functionality: (batchId: number, resultId: number) => void;
+}

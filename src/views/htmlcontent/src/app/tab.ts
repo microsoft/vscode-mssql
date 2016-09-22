@@ -2,8 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, Input, ContentChild, AfterViewInit, ElementRef, forwardRef, Inject } from '@angular/core';
+import { Component, Input, ContentChild, AfterViewInit, ElementRef, forwardRef, Inject, OnInit } from '@angular/core';
 import { SlickGrid } from './slickgrid/SlickGrid';
+import { IGridIcon } from './../interfaces';
 
 enum SelectedTab {
     Results = 0,
@@ -22,23 +23,27 @@ enum SelectedTab {
         }`],
     template: `
         <div class="boxRow header">
-            <span (click)="active = !active" class="glyphicon"
-                  [class.glyphicon-expand]="!_active"
-                  [class.glyphicon-collapse-down]="_active"></span> <span> {{title}} </span>
+            <span (click)="active = !active" class="collapsible" [class.collapsed]="!active"></span>
+            <span> {{title}} </span>
         </div>
-        <div class="boxRow content box padded">
+        <div class="boxRow content vertBox padded">
             <ng-content></ng-content>
         </div>`
 })
-export class Tab implements AfterViewInit {
+export class Tab implements AfterViewInit, OnInit {
     @Input('tabTitle') title: string;
     @Input() id: SelectedTab;
     @Input() show: boolean;
+    @Input() icons: IGridIcon[];
     @ContentChild(SlickGrid) slickgrid: SlickGrid;
 
     private _active = false;
 
     constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {};
+
+    ngOnInit(): void {
+        this.updateActive();
+    }
 
     private updateActive(): void {
         if (!this._active) {
