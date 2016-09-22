@@ -316,7 +316,7 @@ export default class ConnectionManager {
                     return newCredentials;
                 } else {
                     if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
-                        // Check if the error has an expired password
+                        // Check if the error is an expired password
                         if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
                             // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
                             Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
