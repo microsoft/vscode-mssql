@@ -84,7 +84,7 @@ export class AppComponent implements OnInit {
                                 if (columnData[i].isXml) {
                                     columnDefinitions.push({
                                         id: columnData[i].columnName,
-                                        type: self.stringToFieldType('xml'),
+                                        type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
                                         asyncPostRender: self.xmlLinkHandler
                                     });
@@ -142,9 +142,6 @@ export class AppComponent implements OnInit {
                 break;
             case 'decimal':
                 fieldtype = FieldType.Decimal;
-                break;
-            case 'xml':
-                fieldtype = FieldType.Xml;
                 break;
             default:
                 fieldtype = FieldType.String;

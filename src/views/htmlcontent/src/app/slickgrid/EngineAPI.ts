@@ -5,8 +5,7 @@ export enum FieldType {
     Integer = 2,
     Decimal = 3,
     Date = 4,
-    Unknown = 5,
-    Xml = 6
+    Unknown = 5
 }
 
 export interface IColumnDefinition {

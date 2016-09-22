@@ -511,7 +511,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     private getImagePathForDataType(type: FieldType): string {
         const resourcePath = './resources/';
         switch (type) {
-            case FieldType.Xml:
             case FieldType.String:
                 return resourcePath + 'col-type-string.svg';
             case FieldType.Boolean:
