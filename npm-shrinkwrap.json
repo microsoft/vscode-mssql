@@ -2880,9 +2880,9 @@
       "resolved": "https://registry.npmjs.org/vscode-jsonrpc/-/vscode-jsonrpc-1.2.0.tgz"
     },
     "vscode-languageclient": {
-      "version": "2.0.0",
+      "version": "2.5.0",
       "from": "vscode-languageclient@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/vscode-languageclient/-/vscode-languageclient-2.0.0.tgz"
+      "resolved": "https://registry.npmjs.org/vscode-languageclient/-/vscode-languageclient-2.5.0.tgz"
     },
     "when": {
       "version": "3.7.7",

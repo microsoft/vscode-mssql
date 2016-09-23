@@ -1,6 +1,8 @@
 import vscode = require('vscode');
 import * as Constants from './../models/constants';
 
+export import TextEditor = vscode.TextEditor;
+
 export default class VscodeWrapper {
 
     /**
@@ -22,6 +24,13 @@ export default class VscodeWrapper {
      */
     public get activeTextEditor(): vscode.TextEditor {
         return vscode.window.activeTextEditor;
+    }
+
+    /**
+     * Parse uri
+     */
+    public parseUri(uri: string): vscode.Uri {
+        return vscode.Uri.parse(uri);
     }
 
     /**
@@ -120,6 +129,24 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Create a vscode.Position object
+     * @param line The line for the position
+     * @param column The column for the position
+     */
+    public position(line: number, column: number): vscode.Position {
+        return new vscode.Position(line, column);
+    }
+
+    /**
+     * Create a vscode.Selection object
+     * @param start The start postion of the selection
+     * @param end The end position of the selection
+     */
+    public selection(start: vscode.Position, end: vscode.Position): vscode.Selection {
+        return new vscode.Selection(start, end);
+    }
+
+    /**
      * Formats and shows a vscode error message
      */
     public showErrorMessage(msg: string): Thenable<string> {
@@ -163,6 +190,13 @@ export default class VscodeWrapper {
      */
     public showWarningMessage(msg: string): Thenable<string> {
         return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
+    }
+
+    /**
+     * Returns a array of the text editors currently visible in the window
+     */
+    public get visibleEditors(): vscode.TextEditor[] {
+        return vscode.window.visibleTextEditors;
     }
 
     /**

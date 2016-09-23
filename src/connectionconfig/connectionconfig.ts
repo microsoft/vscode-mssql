@@ -111,7 +111,6 @@ export class ConnectionConfig implements IConnectionConfig {
     public static get configFilePath(): string {
         return this.configFileDirectory + Constants.connectionConfigFilename;
     }
-
     /**
      * Public for testing purposes.
      */

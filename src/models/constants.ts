@@ -38,6 +38,7 @@ export const outputContentTypeRows = 'rows';
 export const outputContentTypeSaveResults = 'saveResults';
 export const outputContentTypeOpenLink = 'openLink';
 export const outputContentTypeCopy = 'copyResults';
+export const outputContentTypeEditorSelection = 'setEditorSelection';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 
@@ -77,7 +78,8 @@ export const msgContentProviderProvideContent = 'Content provider: provideTextDo
 export const msgChooseDatabaseNotConnected = 'Not connected. Please connect to a server first.';
 export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
-export const msgConnectionError = 'Connection failed. See output window for details.';
+export const msgConnectionError = 'Error {0}: {1}';
+export const msgConnectionError2 = 'Failed to connect: {0}';
 export const connectionErrorChannelName = 'Connection Errors';
 
 export const extensionActivated = 'activated.';
@@ -150,6 +152,9 @@ export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
 export const serviceInstalling = 'Installing Sql Tools Service';
 export const serviceInstalled = 'Sql Tools Service installed';
+export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
+export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
+export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
 
 export const untitledScheme = 'untitled';
 export const untitledSaveTimeThreshold = 10.0;

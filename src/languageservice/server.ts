@@ -91,6 +91,9 @@ export default class ServerProvider {
                  return result;
             });
 
+        }).catch(err => {
+            this._statusView.serviceInstallationFailed(currentFileUrl);
+            throw err;
         });
     }
 }
