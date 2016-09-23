@@ -13,6 +13,7 @@ import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
+import { IGridBatchMetaData, ISelectionData } from './../interfaces';
 
 enum FieldType {
     String = 0,
@@ -28,6 +29,12 @@ enum SelectedTab {
     Messages = 1,
 }
 
+interface IMessages {
+    messages: string[];
+    hasError: boolean;
+    selection: ISelectionData;
+}
+
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
@@ -35,7 +42,12 @@ enum SelectedTab {
     selector: 'my-app',
     directives: [SlickGrid, Tabs, Tab, ContextMenu],
     templateUrl: 'app/app.html',
-    providers: [DataService]
+    providers: [DataService],
+    styles: [`
+    .errorMessage {
+        color: red;
+    }`
+    ]
 })
 
 export class AppComponent implements OnInit {
@@ -45,7 +57,7 @@ export class AppComponent implements OnInit {
         totalRows: number,
         batchId: number,
         resultId: number}[] = [];
-    private messages: string[] = [];
+    private messages: IMessages[] = [];
     private selected: SelectedTab;
     private windowSize = 50;
     private c_key = 67;
@@ -60,12 +72,10 @@ export class AppComponent implements OnInit {
      */
     ngOnInit(): void {
         const self = this;
-        this.dataService.numberOfBatchSets().then((numberOfBatches: number) => {
-            for (let batchId = 0; batchId < numberOfBatches; batchId++) {
-                self.dataService.getMessages(batchId).then(data => {
-                    self.messages = self.messages.concat(data);
-                    self.selected = SelectedTab.Messages;
-                });
+        this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
+            for (let [batchId, batch] of batchs.entries()) {
+                let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
+                self.messages.push(messages);
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
@@ -183,5 +193,12 @@ export class AppComponent implements OnInit {
             let selection = this.slickgrids.toArray()[index].getSelectedRanges();
             this.dataService.copyResults(selection, batchId, resultId);
         }
+    }
+
+    /**
+     * Binded to mouse click on messages
+     */
+    editorSelection(selection: ISelectionData): void {
+        this.dataService.setEditorSelection(selection);
     }
 }

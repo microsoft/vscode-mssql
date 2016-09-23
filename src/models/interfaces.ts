@@ -10,7 +10,8 @@ export enum ContentType {
     Columns = 3,
     Rows = 4,
     SaveResults = 5,
-    Copy = 6
+    Copy = 6,
+    EditorSelection = 7
 };
 
 export interface ISlickRange {
@@ -33,7 +34,8 @@ export const ContentTypes = [
     Constants.outputContentTypeColumns,
     Constants.outputContentTypeRows,
     Constants.outputContentTypeSaveResults,
-    Constants.outputContentTypeCopy
+    Constants.outputContentTypeCopy,
+    Constants.outputContentTypeEditorSelection
     ];
 
 /**
@@ -210,7 +212,17 @@ export interface IGridResultSet {
     numberOfRows: number;
 }
 
+export interface ISelectionData {
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+}
+
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
     messages: string[];
+    hasError: boolean;
+    selection: ISelectionData;
 }
+

@@ -9,6 +9,7 @@ import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
+import { ISelectionData } from './interfaces';
 
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
@@ -63,7 +64,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = decodeURI(req.query.uri);
             for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
-                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: undefined};
+                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
                 for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
                     tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
                         columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
@@ -71,7 +72,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         numberOfRows: result.rowCount
                     });
                 }
-                tempBatch.messages = batch.messages;
                 batchSets.push(tempBatch);
             }
             let json = JSON.stringify(batchSets);
@@ -119,12 +119,23 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             res.send();
         });
 
+        // add http post handler for copying results
         this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
             let uri = decodeURI(req.query.uri);
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let selection: Interfaces.ISlickRange[] = req.body;
             self._queryResultsMap.get(uri).copyResults(selection, batchId, resultId).then(() => {
+                res.status = 200;
+                res.send();
+            });
+        });
+
+        // add http post handler for setting the selection in the editor
+        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, function(req, res): void {
+            let uri = decodeURI(req.query.uri);
+            let selection: ISelectionData = req.body;
+            self._queryResultsMap.get(uri).setEditorSelection(selection).then(() => {
                 res.status = 200;
                 res.send();
             });
@@ -147,9 +158,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
     }
 
-    public runQuery(connectionMgr, statusView, uri: string, text: string, title: string): void {
+    public runQuery(connectionMgr, statusView, uri: string, selection: ISelectionData, title: string): void {
         let queryRunner = new QueryRunner(connectionMgr, statusView, this);
-        queryRunner.runQuery(uri, text, title);
+        queryRunner.runQuery(uri, selection, title);
     }
 
     public updateContent(queryRunner: QueryRunner): string {

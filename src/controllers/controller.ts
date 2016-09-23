@@ -12,6 +12,7 @@ import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
+import { ISelectionData } from './../models/interfaces';
 
 export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
@@ -155,14 +156,18 @@ export default class MainController implements vscode.Disposable {
             let editor = this._vscodeWrapper.activeTextEditor;
             let uri = this._vscodeWrapper.activeTextEditorUri;
             let title = editor.document.fileName;
-            let queryText: string;
+            let querySelection: ISelectionData;
 
-            if (editor.selection.isEmpty) {
-                queryText = editor.document.getText();
-            } else {
-                queryText = editor.document.getText(new vscode.Range(editor.selection.start, editor.selection.end));
+            if (!editor.selection.isEmpty) {
+                let selection = editor.selection;
+                querySelection = {
+                    startLine: selection.start.line,
+                    startColumn: selection.start.character,
+                    endLine: selection.end.line,
+                    endColumn: selection.end.character
+                };
             }
-            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, queryText, title);
+            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, querySelection, title);
         }
     }
 
