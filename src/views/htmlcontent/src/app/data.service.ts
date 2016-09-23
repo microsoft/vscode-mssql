@@ -251,6 +251,16 @@ export class DataService {
     }
 
     /**
+     * send request to open content in new editor
+     */
+    openLink(content: string, columnName: string): void {
+        const self = this;
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        self.http.post('/openLink', JSON.stringify({ 'content': content , 'columnName': columnName}), { headers : headers }).subscribe();
+    }
+
+    /**
      * Sends a copy request
      * @param selection The selection range to copy
      * @param batchId The batch id of the result to copy from

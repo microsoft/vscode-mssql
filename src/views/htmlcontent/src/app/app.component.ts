@@ -13,16 +13,8 @@ import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
+import { FieldType } from './slickgrid/EngineAPI';
 import { IGridBatchMetaData, ISelectionData } from './../interfaces';
-
-enum FieldType {
-    String = 0,
-    Boolean = 1,
-    Integer = 2,
-    Decimal = 3,
-    Date = 4,
-    Unknown = 5,
-}
 
 enum SelectedTab {
     Results = 0,
@@ -65,6 +57,7 @@ export class AppComponent implements OnInit {
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
+
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
 
     /**
@@ -96,11 +89,22 @@ export class AppComponent implements OnInit {
                             let totalRows = data[0];
                             let columnData = data[1];
                             let columnDefinitions = [];
+
                             for (let i = 0; i < columnData.length; i++) {
-                                columnDefinitions.push({
-                                    id: columnData[i].columnName,
-                                    type: self.stringToFieldType('string')
-                                });
+                                if (columnData[i].isXml) {
+                                    columnDefinitions.push({
+                                        id: columnData[i].columnName,
+                                        type: self.stringToFieldType('string'),
+                                        formatter: self.hyperLinkFormatter,
+                                        asyncPostRender: self.xmlLinkHandler
+                                    });
+                                } else {
+                                    columnDefinitions.push({
+                                        id: columnData[i].columnName,
+                                        type: self.stringToFieldType('string')
+                                    });
+                                }
+
                             }
                             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                                 return new Promise<IGridDataRow[]>((resolve, reject) => {
@@ -156,7 +160,6 @@ export class AppComponent implements OnInit {
         return fieldtype;
     }
 
-
     /**
      * Send save result set request to service
      */
@@ -183,6 +186,34 @@ export class AppComponent implements OnInit {
      */
     tabChange(to: SelectedTab): void {
         this.selected = to;
+    }
+
+    /**
+     * Add handler for clicking on xml link
+     */
+    xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        const self = this;
+        let value = dataContext[colDef.field];
+        $(cellRef).children('.xmlLink').click(function(): void {
+            self.dataService.openLink(value, colDef.field);
+        });
+    }
+
+    /**
+     * Format xml field into a hyperlink
+     */
+    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+        let valueToDisplay = (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let cellClasses = 'grid-cell-value-container';
+        if (value) {
+            cellClasses += ' xmlLink';
+            return '<a class="' + cellClasses + '" href="#" >'
+                + valueToDisplay
+                + '</a>';
+        } else {
+            cellClasses += ' missing-value';
+            return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import path = require('path');
+import os = require('os');
 import Constants = require('./constants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
@@ -10,7 +11,7 @@ import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData } from './interfaces';
-
+const pd  = require('pretty-data').pd;
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -114,6 +115,28 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             } else if (format === 'json') {
                 saveResults.onSaveResultsAsJson(queryUri, batchIndex, selectedResultSetNo);
             }
+
+            res.status = 200;
+            res.send();
+        });
+
+        // add http handler for '/openLink' - open content in a new vscode editor pane
+        this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
+            let content: string = req.body.content;
+            let columnName: string = req.body.columnName;
+            let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+            let tempFilePath = path.join(os.tmpdir(), tempFileName );
+            let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+            let xml = pd.xml(content);
+            vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+                    vscode.window.showTextDocument(doc, 1, false).then(editor => {
+                        editor.edit( edit => {
+                            edit.insert( new vscode.Position(0, 0), xml);
+                        });
+                    });
+             }, (error: any) => {
+                 console.error(error);
+             });
 
             res.status = 200;
             res.send();
