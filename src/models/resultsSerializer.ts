@@ -138,10 +138,10 @@ export default class ResultsSerializer {
     }
 
     /**
-     *
+     * Check if a range of cells were selected.
      */
     public isSelected(selection:  Interfaces.ISlickRange): boolean {
-        return !( (selection.fromCell === selection.toCell) && (selection.fromRow === selection.toRow));
+        return ( selection && (selection.fromCell !== selection.toCell) && (selection.fromRow !== selection.toRow));
     }
 
     /**
@@ -181,7 +181,7 @@ export default class ResultsSerializer {
         const self = this;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo, selection[0]);
+            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo, selection ? selection[0] : undefined);
         });
     }
 
@@ -189,7 +189,7 @@ export default class ResultsSerializer {
         const self = this;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo, selection[0]);
+            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo, selection ? selection[0] : undefined);
         });
     }
 
