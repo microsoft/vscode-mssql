@@ -7,7 +7,7 @@ import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { QueryExecuteParams, QueryExecuteCompleteNotificationResult } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
-import { ISlickRange, ISelectionData } from './../src/models/interfaces';
+import { ISlickRange } from './../src/models/interfaces';
 
 const ncp = require('copy-paste');
 
