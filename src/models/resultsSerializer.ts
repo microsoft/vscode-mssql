@@ -16,7 +16,7 @@ export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
-    private filePath: string;
+    private _filePath: string;
 
     constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
         if (client) {
@@ -111,10 +111,12 @@ export default class ResultsSerializer {
     public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
         if (!path.isAbsolute(filePath)) {
-            this.filePath = self.resolveFilePath(uri, filePath);
+            this._filePath = self.resolveFilePath(uri, filePath);
+        } else {
+            this._filePath = filePath;
         }
         let saveResultsParams =  self.getConfigForCsv();
-        saveResultsParams.filePath = this.filePath;
+        saveResultsParams.filePath = this._filePath;
         saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
@@ -124,7 +126,8 @@ export default class ResultsSerializer {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(result.messages);
                 } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this.filePath);
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this._filePath);
+                    self.openSavedFile(self._filePath);
                 }
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
@@ -137,11 +140,12 @@ export default class ResultsSerializer {
     public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
         if (!path.isAbsolute(filePath)) {
-            this.filePath = self.resolveFilePath(uri, filePath);
+            this._filePath = self.resolveFilePath(uri, filePath);
+        } else {
+            this._filePath = filePath;
         }
-
         let saveResultsParams =  self.getConfigForJson();
-        saveResultsParams.filePath = this.filePath;
+        saveResultsParams.filePath = this._filePath;
         saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
@@ -151,7 +155,8 @@ export default class ResultsSerializer {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(result.messages);
                 } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this.filePath);
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this._filePath);
+                    self.openSavedFile(self._filePath);
                 }
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
@@ -162,9 +167,7 @@ export default class ResultsSerializer {
         const self = this;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo).then( () => {
-                self.openSavedFile(self.filePath);
-            });
+            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo);
         });
     }
 
@@ -172,9 +175,7 @@ export default class ResultsSerializer {
         const self = this;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo).then( () => {
-                self.openSavedFile(self.filePath);
-            });
+            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo);
         });
     }
 
@@ -182,11 +183,13 @@ export default class ResultsSerializer {
     public openSavedFile(filePath: string): void {
             const self = this;
             let uri = vscode.Uri.file(filePath);
-            vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+            self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
                     // Show open document and set focus
-                    vscode.window.showTextDocument(doc, 1, false).then(editor => {
+                    self._vscodeWrapper.showTextDocument(doc, 1, false).then(editor => {
                         // write message to output tab
                         self._vscodeWrapper.logToOutputChannel('Results saved to ' + filePath);
+                    }, (error: any) => {
+                        console.error(error);
                     });
              }, (error: any) => {
                  console.error(error);
