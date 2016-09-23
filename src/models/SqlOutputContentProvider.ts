@@ -147,9 +147,31 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
     }
 
-    public runQuery(connectionMgr, statusView, uri: string, text: string, title: string): void {
-        let queryRunner = new QueryRunner(connectionMgr, statusView, this);
-        queryRunner.runQuery(uri, text, title);
+    public runQuery(statusView, uri: string, text: string, title: string): void {
+        // Reuse existing query runner
+        let queryRunner: QueryRunner = this._queryResultsMap.has(uri)
+            ? this._queryResultsMap[uri]
+            : new QueryRunner(uri, title, statusView, this);
+
+        // Execute the query
+        queryRunner.runQuery(text);
+    }
+
+    public cancelQuery(uri: string): boolean {
+        let self = this;
+        // If we don't have a query runner for this uri, then we can't do anything
+        if (!this._queryResultsMap.has(uri)) {
+            return false;
+        }
+
+        // Cancel the query
+        this._queryResultsMap[uri].cancelQuery().then(success => {
+            // On success, dispose of the query runner
+            this._queryResultsMap.delete(uri);
+        }, error => {
+            // On error, show error message
+            self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
+        });
     }
 
     public updateContent(queryRunner: QueryRunner): string {

@@ -138,6 +138,11 @@
         "command": "extension.openConnectionSettingsFile",
         "title": "Open Connection Profile Settings",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.cancelQuery",
+        "title": "Cancel running query",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [

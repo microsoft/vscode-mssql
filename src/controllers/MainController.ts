@@ -64,6 +64,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
+        this.registerCommand(Constants.cmdCancelQuery);
+        this._event.on(Constants.cmdCancelQuery, self.onRunQuery);
         this.registerCommand(Constants.cmdCreateProfile);
         this._event.on(Constants.cmdCreateProfile, () => { self.runAndLogErrors(self.onCreateProfile()); });
         this.registerCommand(Constants.cmdRemoveProfile);
@@ -162,8 +164,12 @@ export default class MainController implements vscode.Disposable {
             } else {
                 queryText = editor.document.getText(new vscode.Range(editor.selection.start, editor.selection.end));
             }
-            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, queryText, title);
+            this._outputContentProvider.runQuery(this._statusview, uri, queryText, title);
         }
+    }
+
+    public onCancelQuery(): void {
+        this._outputContentProvider.cancelQuery(this._vscodeWrapper.activeTextEditorUri);
     }
 
     // Prompts to create a new SQL connection profile

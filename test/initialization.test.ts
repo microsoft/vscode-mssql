@@ -3,7 +3,7 @@ import vscode = require('vscode');
 
 import * as Extension from '../src/extension';
 import ConnectionManager from '../src/controllers/connectionManager';
-import MainController from '../src/controllers/controller';
+import MainController from '../src/controllers/MainController';
 import Telemetry from '../src/models/telemetry';
 
 function ensureExtensionIsActive(): Promise<any> {

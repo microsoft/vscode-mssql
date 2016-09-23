@@ -1,6 +1,5 @@
 'use strict';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
-import ConnectionManager from './connectionManager';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
@@ -9,6 +8,7 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
     QueryDisposeRequest } from '../models/contracts/queryExecute';
+import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange } from '../models/interfaces';
 
 
@@ -24,10 +24,12 @@ export interface IResultSet {
 */
 export default class QueryRunner {
     private _batchSets: BatchSummary[];
+    private _isExecuting: boolean;
     private _uri: string;
     private _title: string;
 
-    constructor(private _connectionMgr: ConnectionManager,
+    constructor(private _ownerUri: string,
+                private _editorTitle: string,
                 private _statusView: StatusView,
                 private _outputProvider: SqlOutputContentProvider,
                 private _client?: SqlToolsServerClient,
@@ -44,6 +46,11 @@ export default class QueryRunner {
         if (!_vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
+
+        // Store the state
+        this._uri = _ownerUri;
+        this._title = _editorTitle;
+        this._isExecuting = false;
     }
 
     private get notificationHandler(): QueryNotificationHandler {
@@ -98,14 +105,21 @@ export default class QueryRunner {
         this._batchSets = batchSets;
     }
 
+    // PUBLIC METHODS ======================================================
+
+    public cancel(): Thenable<QueryCancelResult> {
+        // Make the request to cancel the query
+        let cancelParams: QueryCancelParams = { ownerUri: this._uri };
+        return this.client.sendRequest(QueryCancelRequest.type, cancelParams);
+    }
+
     // Pulls the query text from the current document/selection and initiates the query
-    public runQuery(uri: string, text: string, title: string): Thenable<void> {
+    public runQuery(text: string): Thenable<void> {
         const self = this;
-        let queryDetails = new QueryExecuteParams();
-        queryDetails.ownerUri = uri;
-        queryDetails.queryText = text;
-        this.title = title;
-        this.uri = uri;
+        let queryDetails: QueryExecuteParams = {
+            ownerUri: this._uri,
+            queryText: text
+        };
 
         return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {

@@ -1,6 +1,6 @@
 'use strict';
 import vscode = require('vscode');
-import MainController from './controllers/controller';
+import MainController from './controllers/MainController';
 
 let controller: MainController = undefined;
 

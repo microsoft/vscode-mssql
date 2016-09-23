@@ -17,6 +17,7 @@ export const defaultConnectionSettingsFileJson = {
 };
 
 export const cmdRunQuery = 'extension.runQuery';
+export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
@@ -61,6 +62,8 @@ export const msgRunQueryAddBatchError = 'runQuery: adding error message for batc
 export const msgRunQueryConnectionActive = 'runQuery: active connection is connected, using it to run query';
 export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
+
+export const msgCancelQueryFailed = 'Failed to cancel query: {0}';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
