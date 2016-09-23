@@ -13,8 +13,12 @@
             <context-menu (clickEvent)="handleContextClick($event)"></context-menu>
         </tab>
         <tab [id]="SelectedTab.Messages" tabTitle="Messages" [show]="messages.length > 0">
-            <div *ngFor="let message of messages">
-                {{message}}
+            <div *ngFor="let imessage of messages">
+                <div> <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></div>
+                <div *ngFor="let message of imessage.messages" [class.errorMessage]="imessage.hasError">
+                    {{message}}
+                </div>
+                <br>
             </div>
         </tab>
     </tabs>
