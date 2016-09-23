@@ -1,4 +1,5 @@
 import {RequestType, NotificationType} from 'vscode-languageclient';
+import { IDbColumn } from './../interfaces';
 
 // ------------------------------- < Query Dispose Request > ----------------------------------------
 export namespace QueryDisposeRequest {
@@ -25,31 +26,6 @@ export namespace QueryExecuteCompleteNotification {
                                                                                             return 'query/complete';
                                                                                         }
                                                                                   };
-}
-
-export interface IDbColumn {
-    allowDBNull?: boolean;
-    baseCatalogName: string;
-    baseColumnName: string;
-    baseSchemaName: string;
-    baseServerName: string;
-    baseTableName: string;
-    columnName: string;
-    columnOrdinal?: number;
-    columnSize?: number;
-    isAliased?: boolean;
-    isAutoIncrement?: boolean;
-    isExpression?: boolean;
-    isHidden?: boolean;
-    isIdentity?: boolean;
-    isKey?: boolean;
-    isLong?: boolean;
-    isReadOnly?: boolean;
-    isUnique?: boolean;
-    numericPrecision?: number;
-    numericScale?: number;
-    udtAssemblyQualifiedName: string;
-    dataTypeName: string;
 }
 
 export class ResultSetSummary {

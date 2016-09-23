@@ -66,7 +66,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: undefined};
                 for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
                     tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                        columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
+                        columns: result.columnInfo,
                         rowsUri: '/' + Constants.outputContentTypeRows +  '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
                         numberOfRows: result.rowCount
                     });
