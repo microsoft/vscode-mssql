@@ -181,6 +181,9 @@
           "default": false,
           "description": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)"
         },
+        "vscode-mssql.sqlToolsService.installDir": {
+          "type":"string"
+        },
         "vscode-mssql.maxRecentConnections": {
           "type": "number",
           "default": 5,

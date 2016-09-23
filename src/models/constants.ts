@@ -169,3 +169,10 @@ export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \
 export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check that the file is formatted correctly.';
 export const msgNewConfigFileHelpInfo = 'Save connections.json to enable autocomplete while editing connection profile settings.';
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
+
+
+export const sqlToolsServiceConfigKey = 'sqlToolsService';
+export const sqlToolsServiceInstallDirConfigKey = 'installDir';
+export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
+export const sqlToolsServiceVersionConfigKey = 'version';
+export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';

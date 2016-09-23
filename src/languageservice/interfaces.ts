@@ -15,7 +15,8 @@ export interface IConfig {
     getSqlToolsInstallDirectory(): string;
     getSqlToolsExecutableFiles(): string[];
     getSqlToolsPackageVersion(): string;
-    getConfig(key: string, defaultValue?: any): any;
+    getExtensionConfig(key: string): any;
+    getWorkspaceConfig(key: string, defaultValue?: any): any;
 }
 
 export interface IExtensionWrapper {

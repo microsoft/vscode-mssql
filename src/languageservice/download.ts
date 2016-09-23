@@ -147,12 +147,18 @@ export default class ServiceDownloadProvider {
         return basePath;
     }
 
+    private getGetDownloadUrl(fileName: string): string {
+        let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
+        let version = this._config.getSqlToolsPackageVersion();
+        return baseDownloadUrl + '/' + version + '/' + fileName;
+    }
+
    /**
     * Downloads the SQL tools service and decompress it in the install folder.
     */
     public go(platform?: Platform): Promise<boolean> {
-        const proxy = <string>this._config.getConfig('http.proxy');
-        const strictSSL = this._config.getConfig('http.proxyStrictSSL', true);
+        const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
+        const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
         if (platform === undefined) {
             platform = getCurrentPlatform();
         }
@@ -162,8 +168,7 @@ export default class ServiceDownloadProvider {
             const installDirectory = this.getInstallDirectory(platform);
 
             this._logger.logDebug(`Installing sql tools service to ${installDirectory}`);
-            let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
-            const urlString = baseDownloadUrl + '/' + fileName;
+            const urlString = this.getGetDownloadUrl(fileName);
 
             this._logger.logDebug(`Attempting to download ${fileName}`);
 
