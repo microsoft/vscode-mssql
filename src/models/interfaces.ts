@@ -10,7 +10,8 @@ export enum ContentType {
     Columns = 3,
     Rows = 4,
     SaveResults = 5,
-    Copy = 6
+    Copy = 6,
+    OpenLink = 7
 };
 
 export interface ISlickRange {
@@ -33,7 +34,8 @@ export const ContentTypes = [
     Constants.outputContentTypeColumns,
     Constants.outputContentTypeRows,
     Constants.outputContentTypeSaveResults,
-    Constants.outputContentTypeCopy
+    Constants.outputContentTypeCopy,
+    Constants.outputContentTypeOpenLink
     ];
 
 /**
