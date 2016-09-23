@@ -4,7 +4,7 @@
             <slick-grid *ngFor="let dataSet of dataSets; let i = index"
                         [columnDefinitions]="dataSet.columnDefinitions"
                         [dataRows]="dataSet.dataRows"
-                        (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId)"
+                        (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
                         showDataTypeIcon="false"
                         showHeader="true"
                         (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
