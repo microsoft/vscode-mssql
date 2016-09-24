@@ -4,7 +4,7 @@ import QueryRunner from './../src/controllers/queryRunner';
 import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
 import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
-import { QueryExecuteParams } from './../src/models/contracts/queryExecute';
+import { QueryExecuteParams, QueryExecuteCompleteNotificationResult } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
 import { ISlickRange } from './../src/models/interfaces';
@@ -42,13 +42,14 @@ suite('Query Runner tests', () => {
 
     test('Runs Query Corrects', () => {
         let testuri = 'uri';
-        let testquery = 'SELECT * FROM sys.objects';
+        let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
         let testtitle = 'title';
+<<<<<<< HEAD
 
         testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .callback((type, details: QueryExecuteParams) => {
                 assert.equal(details.ownerUri, testuri);
-                assert.equal(details.queryText, testquery);
+                assert.equal(details.querySelection, testSelection);
             })
             .returns(() => { return Promise.resolve({ messages: undefined }); });
         testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
@@ -66,7 +67,8 @@ suite('Query Runner tests', () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
-        return queryRunner.runQuery(testquery).then(() => {
+
+        return queryRunner.runQuery(testSelection).then(() => {
             testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
 
@@ -74,12 +76,12 @@ suite('Query Runner tests', () => {
 
     test('Handles Query Error Correctly', () => {
         let testuri = 'uri';
-        let testquery = 'SELECT * FROM sys.objects';
+        let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
         let testtitle = 'title';
         testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
                                                           TypeMoq.It.isAny())).callback((type, details: QueryExecuteParams) => {
                                                               assert.equal(details.ownerUri, testuri);
-                                                              assert.equal(details.queryText, testquery);
+                                                              assert.equal(details.querySelection, testSelection);
                                                           })
                                 .returns(() => { return Promise.resolve({messages: 'failed'}); });
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
@@ -93,12 +95,23 @@ suite('Query Runner tests', () => {
                     testQueryNotificationHandler.object,
                     testVscodeWrapper.object
                 );
-        return queryRunner.runQuery(testquery).then(() => {
+        return queryRunner.runQuery(testSelection).then(() => {
             testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
     });
 
     test('Handles result correctly', () => {
+        let result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: 'uri',
+            batchSummaries: [{
+                hasError: false,
+                id: 0,
+                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+                messages: ['6 affects rows'],
+                resultSetSummaries: []
+            }]
+        };
+
         testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
         let queryRunner = new QueryRunner(
@@ -110,12 +123,7 @@ suite('Query Runner tests', () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
-        queryRunner.handleResult({ownerUri: 'vscode', batchSummaries: [{
-            hasError: false,
-            id: 0,
-            messages: ['6 affects rows'],
-            resultSetSummaries: []
-        }]});
+        queryRunner.handleResult(result);
         testSqlOutputContentProvider.verify(x => x.updateContent(TypeMoq.It.isAny()), TypeMoq.Times.once());
         testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
     });

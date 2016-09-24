@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import path = require('path');
+import os = require('os');
 import Constants = require('./constants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
@@ -9,7 +10,8 @@ import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
-
+import { ISelectionData } from './interfaces';
+const pd  = require('pretty-data').pd;
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -63,7 +65,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = decodeURI(req.query.uri);
             for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
-                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: undefined};
+                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
                 for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
                     tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
                         columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
@@ -71,7 +73,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         numberOfRows: result.rowCount
                     });
                 }
-                tempBatch.messages = batch.messages;
                 batchSets.push(tempBatch);
             }
             let json = JSON.stringify(batchSets);
@@ -119,12 +120,45 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             res.send();
         });
 
+        // add http handler for '/openLink' - open content in a new vscode editor pane
+        this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
+            let content: string = req.body.content;
+            let columnName: string = req.body.columnName;
+            let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+            let tempFilePath = path.join(os.tmpdir(), tempFileName );
+            let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+            let xml = pd.xml(content);
+            vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+                    vscode.window.showTextDocument(doc, 1, false).then(editor => {
+                        editor.edit( edit => {
+                            edit.insert( new vscode.Position(0, 0), xml);
+                        });
+                    });
+             }, (error: any) => {
+                 console.error(error);
+             });
+
+            res.status = 200;
+            res.send();
+        });
+
+        // add http post handler for copying results
         this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
             let uri = decodeURI(req.query.uri);
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let selection: Interfaces.ISlickRange[] = req.body;
             self._queryResultsMap.get(uri).copyResults(selection, batchId, resultId).then(() => {
+                res.status = 200;
+                res.send();
+            });
+        });
+
+        // add http post handler for setting the selection in the editor
+        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, function(req, res): void {
+            let uri = decodeURI(req.query.uri);
+            let selection: ISelectionData = req.body;
+            self._queryResultsMap.get(uri).setEditorSelection(selection).then(() => {
                 res.status = 200;
                 res.send();
             });
@@ -147,14 +181,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
     }
 
-    public runQuery(statusView, uri: string, text: string, title: string): void {
+    public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner
         let queryRunner: QueryRunner = this._queryResultsMap.has(uri)
             ? this._queryResultsMap[uri]
             : new QueryRunner(uri, title, statusView, this);
 
         // Execute the query
-        queryRunner.runQuery(text);
+        queryRunner.runQuery(selection);
     }
 
     public cancelQuery(uri: string): boolean {

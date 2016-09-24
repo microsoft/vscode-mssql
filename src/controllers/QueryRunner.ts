@@ -8,8 +8,12 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
     QueryDisposeRequest } from '../models/contracts/queryExecute';
+<<<<<<< HEAD:src/controllers/QueryRunner.ts
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange } from '../models/interfaces';
+=======
+import { ISlickRange, ISelectionData } from '../models/interfaces';
+>>>>>>> dev:src/controllers/queryRunner.ts
 
 
 const ncp = require('copy-paste');
@@ -27,6 +31,7 @@ export default class QueryRunner {
     private _isExecuting: boolean;
     private _uri: string;
     private _title: string;
+    private _resultLineOffset: number;
 
     constructor(private _ownerUri: string,
                 private _editorTitle: string,
@@ -114,12 +119,13 @@ export default class QueryRunner {
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    public runQuery(text: string): Thenable<void> {
+    public runQuery(selection: ISelectionData): Thenable<void> {
         const self = this;
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
             queryText: text
         };
+        this._resultLineOffset = selection ? selection.startLine : 0;
 
         return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
@@ -137,6 +143,10 @@ export default class QueryRunner {
     // handle the result of the notification
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
         this.batchSets = result.batchSummaries;
+        this.batchSets.map((batch) => {
+            batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
+            batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+        });
         this.statusView.executedQuery(this.uri);
         this._outputProvider.updateContent(this);
     }
@@ -184,6 +194,12 @@ export default class QueryRunner {
         });
     }
 
+    /**
+     * Copy the result range to the system clip-board
+     * @param selection The selection range array to copy
+     * @param batchId The id of the batch to copy from
+     * @param resultId The id of the result to copy from
+     */
     public copyResults(selection: ISlickRange[], batchId: number, resultId: number): Promise<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
@@ -212,6 +228,34 @@ export default class QueryRunner {
                 ncp.copy(copyString, () => {
                     resolve();
                 });
+            });
+        });
+    }
+
+    /**
+     * Sets a selection range in the editor for this query
+     * @param selection The selection range to select
+     */
+    public setEditorSelection(selection: ISelectionData): Thenable<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            self.vscodeWrapper.openTextDocument(self.vscodeWrapper.parseUri(self.uri)).then((doc) => {
+                let docEditors = self.vscodeWrapper.visibleEditors.filter((editor) => {
+                    return editor.document === doc;
+                });
+                if (docEditors.length !== 0) {
+                    docEditors[0].selection = self.vscodeWrapper.selection(
+                                              self.vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                              self.vscodeWrapper.position(selection.endLine, selection.endColumn));
+                    resolve();
+                } else {
+                    self.vscodeWrapper.showTextDocument(doc).then((editor) => {
+                        editor.selection = self.vscodeWrapper.selection(
+                                        self.vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                        self.vscodeWrapper.position(selection.endLine, selection.endColumn));
+                        resolve();
+                    });
+                }
             });
         });
     }
