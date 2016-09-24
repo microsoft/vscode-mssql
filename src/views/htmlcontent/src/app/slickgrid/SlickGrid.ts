@@ -6,7 +6,7 @@
 
 /// <reference path="../../../typings/underscore.d.ts" />
 import {Component, Input, Output, Inject, forwardRef, OnChanges, OnInit, OnDestroy, ElementRef, SimpleChange, EventEmitter,
-    ViewEncapsulation, Optional, HostListener } from '@angular/core';
+    ViewEncapsulation, Optional, HostListener, AfterViewInit } from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
 import {IObservableCollection, CollectionChange} from './BaseLibrary';
 import {IGridDataRow} from './SharedControlInterfaces';
@@ -129,7 +129,7 @@ function getOverridableTextEditorClass(grid: SlickGrid): any {
     providers: [LocalizationService, GridSyncService],
     encapsulation: ViewEncapsulation.None
 })
-export class SlickGrid implements OnChanges, OnInit, OnDestroy {
+export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
     @Input() columnDefinitions: IColumnDefinition[];
     @Input() dataRows: IObservableCollection<IGridDataRow>;
     @Input() resized: Observable<any>;
@@ -143,6 +143,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
     @Input() showDataTypeIcon: boolean = true;
     @Input() enableColumnReorder: boolean = false;
 
+    @Output() loadFinished: EventEmitter<void> = new EventEmitter<void>();
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
     @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
@@ -294,6 +295,10 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy {
         this.subscribeToScroll();
         this.subscribeToCellChanged();
         this.subscribeToContextMenu();
+    }
+
+    ngAfterViewInit(): void {
+        this.loadFinished.emit();
     }
 
     ngOnDestroy(): void {

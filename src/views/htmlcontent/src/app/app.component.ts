@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, EventEmitter} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -10,9 +10,9 @@ import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
+import { ScrollEvent } from './tab';
 
 enum FieldType {
     String = 0,
@@ -28,23 +28,28 @@ enum SelectedTab {
     Messages = 1,
 }
 
+interface IGridDataSet {
+    dataRows: IObservableCollection<IGridDataRow>;
+    columnDefinitions: IColumnDefinition[];
+    resized: EventEmitter<any>;
+    totalRows: number;
+    batchId: number;
+    resultId: number;
+}
+
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, Tabs, Tab, ContextMenu],
+    directives: [SlickGrid, Tab, ContextMenu],
     templateUrl: 'app/app.html',
     providers: [DataService]
 })
 
 export class AppComponent implements OnInit {
-    private dataSets: {
-        dataRows: IObservableCollection<IGridDataRow>,
-        columnDefinitions: IColumnDefinition[],
-        totalRows: number,
-        batchId: number,
-        resultId: number}[] = [];
+    private dataSets: IGridDataSet[] = [];
+    private renderedDataSets: IGridDataSet[] = [];
     private messages: string[] = [];
     private selected: SelectedTab;
     private windowSize = 50;
@@ -60,6 +65,14 @@ export class AppComponent implements OnInit {
      */
     ngOnInit(): void {
         const self = this;
+        // const dataSetPlaceHolder: IGridDataSet = {
+        //     dataRows: undefined,
+        //     columnDefinitions: undefined,
+        //     resized: undefined,
+        //     totalRows: undefined,
+        //     batchId: undefined,
+        //     resultId: undefined
+        // };
         this.dataService.numberOfBatchSets().then((numberOfBatches: number) => {
             for (let batchId = 0; batchId < numberOfBatches; batchId++) {
                 self.dataService.getMessages(batchId).then(data => {
@@ -71,15 +84,11 @@ export class AppComponent implements OnInit {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
                         let columnDefinitionsObs = self.dataService.getColumns(batchId, resultId);
                         Observable.forkJoin([totalRowsObs, columnDefinitionsObs]).subscribe((data: any[]) => {
-                            let dataSet: {
-                                dataRows: IObservableCollection<IGridDataRow>,
-                                columnDefinitions: IColumnDefinition[],
-                                totalRows: number,
-                                batchId: number,
-                                resultId: number} = {
+                            let dataSet: IGridDataSet = {
                                     dataRows: undefined,
                                     columnDefinitions: undefined,
                                     totalRows: undefined,
+                                    resized: undefined,
                                     batchId: batchId,
                                     resultId: resultId
                                 };
@@ -116,6 +125,9 @@ export class AppComponent implements OnInit {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            let undefinedDataSet: IGridDataSet = JSON.parse(JSON.stringify(dataSet));
+                            undefinedDataSet.dataRows = undefined;
+                            self.renderedDataSets.push(undefinedDataSet);
                             self.selected = SelectedTab.Results;
                         });
                     }
@@ -182,6 +194,30 @@ export class AppComponent implements OnInit {
         if ((e.ctrlKey || e.metaKey) && e.which === this.c_key) {
             let selection = this.slickgrids.toArray()[index].getSelectedRanges();
             this.dataService.copyResults(selection, batchId, resultId);
+        }
+    }
+
+    onGridScroll(event: ScrollEvent): void {
+        // const dataSetPlaceHolder: IGridDataSet = {
+        //     dataRows: undefined,
+        //     columnDefinitions: undefined,
+        //     resized: undefined,
+        //     totalRows: undefined,
+        //     batchId: undefined,
+        //     resultId: undefined
+        // };
+        let numOfVisibleGrids = Math.ceil((event.elementSize / event.gridHeight)
+            + ((event.scrollTop % event.gridHeight) / event.gridHeight));
+        let min = Math.floor(event.scrollTop / event.gridHeight);
+        let max = min + numOfVisibleGrids;
+        for (let i = 0; i < this.renderedDataSets.length; i++) {
+            if ( i >= min && i < max) {
+                if (this.renderedDataSets[i].dataRows === undefined) {
+                    this.renderedDataSets[i].dataRows = this.dataSets[i].dataRows;
+                }
+            } else if (this.renderedDataSets[i].dataRows !== undefined) {
+                this.renderedDataSets[i].dataRows = undefined;
+            }
         }
     }
 }

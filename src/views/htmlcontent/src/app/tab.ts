@@ -2,12 +2,19 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, Input, ContentChild, AfterViewInit, ElementRef, forwardRef, Inject } from '@angular/core';
-import { SlickGrid } from './slickgrid/SlickGrid';
+import { Component, Input, ElementRef, forwardRef, Inject,
+    EventEmitter, Output } from '@angular/core';
+import { Observable } from 'rxjs/RX';
 
 enum SelectedTab {
     Results = 0,
     Messages = 1,
+}
+
+export class ScrollEvent {
+    scrollTop: number;
+    gridHeight: number;
+    elementSize: number;
 }
 
 /**
@@ -20,20 +27,25 @@ enum SelectedTab {
         .pane{
         padding: 1em;
         }`],
-    template: `
-        <div class="boxRow content box">
-        <ng-content></ng-content>
-        </div>`
+    template: '<ng-content></ng-content>'
 })
-export class Tab implements AfterViewInit {
+export class Tab {
     @Input('tabTitle') title: string;
     @Input() id: SelectedTab;
     @Input() show: boolean;
-    @ContentChild(SlickGrid) slickgrid: SlickGrid;
+    @Output() onScroll: EventEmitter<ScrollEvent> = new EventEmitter<ScrollEvent>();
 
     private _active = false;
 
-    constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {};
+    constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {
+        Observable.fromEvent(this._el.nativeElement, 'scroll').subscribe((event) => {
+            this.onScroll.emit({
+                scrollTop: this._el.nativeElement.scrollTop,
+                gridHeight: this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight,
+                elementSize: this._el.nativeElement.offsetHeight
+            });
+        });
+    };
 
     private updateActive(): void {
         if (!this._active) {
@@ -50,14 +62,5 @@ export class Tab implements AfterViewInit {
 
     public get active(): boolean {
         return this._active;
-    }
-
-    /**
-     * Called by angular
-     */
-    ngAfterViewInit(): void {
-        if (this.slickgrid) {
-            this.slickgrid.onResize();
-        }
     }
 }
