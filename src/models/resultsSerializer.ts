@@ -18,6 +18,8 @@ export default class ResultsSerializer {
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
+    private _filePath: string;
+
 
     constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
         if (client) {
@@ -152,10 +154,12 @@ export default class ResultsSerializer {
     public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
         if (!path.isAbsolute(filePath)) {
-            filePath = self.resolveFilePath(uri, filePath);
+            this._filePath = self.resolveFilePath(uri, filePath);
+        } else {
+            this._filePath = filePath;
         }
         let saveResultsParams =  self.getConfigForCsv();
-        saveResultsParams.filePath = filePath;
+        saveResultsParams.filePath = this._filePath;
         saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
@@ -165,7 +169,8 @@ export default class ResultsSerializer {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(result.messages);
                 } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this._filePath);
+                    self.openSavedFile(self._filePath);
                 }
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
@@ -178,11 +183,12 @@ export default class ResultsSerializer {
     public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
         const self = this;
         if (!path.isAbsolute(filePath)) {
-            filePath = self.resolveFilePath(uri, filePath);
+            this._filePath = self.resolveFilePath(uri, filePath);
+        } else {
+            this._filePath = filePath;
         }
-
         let saveResultsParams =  self.getConfigForJson();
-        saveResultsParams.filePath = filePath;
+        saveResultsParams.filePath = this._filePath;
         saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
@@ -192,7 +198,8 @@ export default class ResultsSerializer {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(result.messages);
                 } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
+                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this._filePath);
+                    self.openSavedFile(self._filePath);
                 }
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
@@ -282,6 +289,24 @@ export default class ResultsSerializer {
         return self.promptForFilepath().then(function(filePath): void {
             self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo);
         });
+    }
+
+    // Open the saved file in a new vscode editor pane
+    public openSavedFile(filePath: string): void {
+            const self = this;
+            let uri = vscode.Uri.file(filePath);
+            self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+                    // Show open document and set focus
+                    self._vscodeWrapper.showTextDocument(doc, 1, false).then(editor => {
+                        // write message to output tab
+                        self._vscodeWrapper.logToOutputChannel('Results saved to ' + filePath);
+                    }, (error: any) => {
+                        console.error(error);
+                        self._vscodeWrapper.showErrorMessage(error);
+                    });
+             }, (error: any) => {
+                 console.error(error);
+             });
     }
 
     private validateFilePath(property: string, value: string): string {
