@@ -2,3 +2,16 @@
   padding-top: 5px;
   padding-bottom: 5px;
 }
+
+table {
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+#messageTable td {
+  padding-right: 20px;
+}
+
+#messageTable tbody tr:last-child > td {
+  padding-bottom: 2em;
+}

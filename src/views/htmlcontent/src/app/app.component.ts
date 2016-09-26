@@ -14,7 +14,7 @@ import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
 import { FieldType } from './slickgrid/EngineAPI';
-import { IGridBatchMetaData, ISelectionData } from './../interfaces';
+import { IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 
 enum SelectedTab {
     Results = 0,
@@ -22,7 +22,7 @@ enum SelectedTab {
 }
 
 interface IMessages {
-    messages: string[];
+    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
 }
@@ -67,7 +67,16 @@ export class AppComponent implements OnInit {
         const self = this;
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
-                let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
+                let messages: IMessages = {
+                    messages: [],
+                    hasError: batch.hasError,
+                    selection: batch.selection
+                };
+                for (let message of batch.messages) {
+                    let date = new Date(message.time);
+                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    messages.messages.push({time: timeString, message: message.message});
+                }
                 self.messages.push(messages);
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {

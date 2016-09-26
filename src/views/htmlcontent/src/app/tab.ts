@@ -21,9 +21,7 @@ enum SelectedTab {
         padding: 1em;
         }`],
     template: `
-        <div class="boxRow content box">
-        <ng-content></ng-content>
-        </div>`
+        <ng-content></ng-content>`
 })
 export class Tab implements AfterViewInit {
     @Input('tabTitle') title: string;
