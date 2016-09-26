@@ -5,21 +5,28 @@
 .header {
     height: auto;
     overflow: hidden;
+    height: 22px;
+    padding-left: 20px;
+    line-height: 22px;
 }
 
 .header > span {
-    padding: 10px 15px;
     float: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .collapsible:not(.collapsed) {
     background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23e8e8e8' d='M11 10.07H5.344L11 4.414v5.656z'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
+    background-position: 2px;
 }
 
 .collapsible {
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23e8e8e8' d='M6 4v8l4-4-4-4zm1 2.414L8.586 8 7 9.586V6.414z'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
+    background-position: 2px;
 }
 
 .gridIcon {

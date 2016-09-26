@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, Input, ContentChild, AfterViewInit, ElementRef, forwardRef, Inject, OnInit } from '@angular/core';
+import { Component, Input, ContentChildren, ElementRef, forwardRef, Inject, OnInit, QueryList } from '@angular/core';
 import { SlickGrid } from './slickgrid/SlickGrid';
 import { IGridIcon } from './../interfaces';
 
@@ -22,20 +22,19 @@ enum SelectedTab {
         padding: 1em;
         }`],
     template: `
-        <div class="boxRow header">
-            <span (click)="active = !active" class="collapsible" [class.collapsed]="!active"></span>
+        <div class="boxRow header collapsible" [class.collapsed]="!active" (click)="active = !active">
             <span> {{title}} </span>
         </div>
         <div class="boxRow content vertBox padded">
             <ng-content></ng-content>
         </div>`
 })
-export class Tab implements AfterViewInit, OnInit {
+export class Tab implements OnInit {
     @Input('tabTitle') title: string;
     @Input() id: SelectedTab;
     @Input() show: boolean;
     @Input() icons: IGridIcon[];
-    @ContentChild(SlickGrid) slickgrid: SlickGrid;
+    @ContentChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
     private _active = false;
 
@@ -61,14 +60,5 @@ export class Tab implements AfterViewInit, OnInit {
 
     public get active(): boolean {
         return this._active;
-    }
-
-    /**
-     * Called by angular
-     */
-    ngAfterViewInit(): void {
-        if (this.slickgrid) {
-            this.slickgrid.onResize();
-        }
     }
 }

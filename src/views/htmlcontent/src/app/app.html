@@ -15,7 +15,7 @@
                         class="boxCol content vertBox slickgrid">
             </slick-grid>
             <span class="boxCol content vertBox">
-                <div class="boxRow content gridIcon" *ngFor="let icon of dataIcons">
+                <div class="boxRow content gridIcon maxHeight" *ngFor="let icon of dataIcons">
                     <a href="#"
                     (click)="icon.functionality()"
                     [title]="icon.hoverText">

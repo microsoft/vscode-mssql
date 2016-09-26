@@ -24,9 +24,12 @@ body {
     min-height: fit-content;
 }
 
+.vertBox .boxRow.content.maxHeight {
+    max-height: fit-content;
+}
+
 .vertBox .boxRow.content .slickgrid {
     min-height: 232;
-    max-height: fit-content;
 }
 
 /* horizontal box style */
@@ -34,7 +37,6 @@ body {
     display: flex;
     flex-flow: row;
     overflow: auto;
-    align-items: center;
 }
 
 .vertBox .boxCol.content {
