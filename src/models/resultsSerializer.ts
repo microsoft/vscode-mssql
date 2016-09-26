@@ -141,7 +141,7 @@ export default class ResultsSerializer {
      * Check if a range of cells were selected.
      */
     public isSelected(selection:  Interfaces.ISlickRange): boolean {
-        return ( selection && (selection.fromCell !== selection.toCell) && (selection.fromRow !== selection.toRow));
+        return (selection && !((selection.fromCell === selection.toCell) && (selection.fromRow === selection.toRow)));
     }
 
     /**
