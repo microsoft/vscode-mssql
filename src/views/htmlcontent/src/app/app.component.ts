@@ -2,7 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, EventEmitter} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, EventEmitter,
+    ElementRef} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -48,31 +49,30 @@ interface IGridDataSet {
 })
 
 export class AppComponent implements OnInit {
+    // Constants
+    private scrollTimeOutTime = 200;
+    private windowSize = 50;
+    private c_key = 67;
+
+    // fields
     private dataSets: IGridDataSet[] = [];
     private renderedDataSets: IGridDataSet[] = [];
     private messages: string[] = [];
     private selected: SelectedTab;
-    private windowSize = 50;
-    private c_key = 67;
+    private scrollTimeOut;
     public SelectedTab = SelectedTab;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
-    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
+    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
+                @Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {}
+
 
     /**
      * Called by Angular when the object is initialized
      */
     ngOnInit(): void {
         const self = this;
-        // const dataSetPlaceHolder: IGridDataSet = {
-        //     dataRows: undefined,
-        //     columnDefinitions: undefined,
-        //     resized: undefined,
-        //     totalRows: undefined,
-        //     batchId: undefined,
-        //     resultId: undefined
-        // };
         this.dataService.numberOfBatchSets().then((numberOfBatches: number) => {
             for (let batchId = 0; batchId < numberOfBatches; batchId++) {
                 self.dataService.getMessages(batchId).then(data => {
@@ -129,6 +129,9 @@ export class AppComponent implements OnInit {
                             undefinedDataSet.dataRows = undefined;
                             self.renderedDataSets.push(undefinedDataSet);
                             self.selected = SelectedTab.Results;
+                            setTimeout(() => {
+                                self.onGridScroll({scrollTop: 0});
+                            });
                         });
                     }
                 });
@@ -198,26 +201,24 @@ export class AppComponent implements OnInit {
     }
 
     onGridScroll(event: ScrollEvent): void {
-        // const dataSetPlaceHolder: IGridDataSet = {
-        //     dataRows: undefined,
-        //     columnDefinitions: undefined,
-        //     resized: undefined,
-        //     totalRows: undefined,
-        //     batchId: undefined,
-        //     resultId: undefined
-        // };
-        let numOfVisibleGrids = Math.ceil((event.elementSize / event.gridHeight)
-            + ((event.scrollTop % event.gridHeight) / event.gridHeight));
-        let min = Math.floor(event.scrollTop / event.gridHeight);
-        let max = min + numOfVisibleGrids;
-        for (let i = 0; i < this.renderedDataSets.length; i++) {
-            if ( i >= min && i < max) {
-                if (this.renderedDataSets[i].dataRows === undefined) {
-                    this.renderedDataSets[i].dataRows = this.dataSets[i].dataRows;
+        const self = this;
+        clearTimeout(self.scrollTimeOut);
+        this.scrollTimeOut = setTimeout(() => {
+            let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+            let tabHeight = self._el.nativeElement.getElementsByTagName('tab')[0].offsetHeight;
+            let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
+                + ((event.scrollTop % gridHeight) / gridHeight));
+            let min = Math.floor(event.scrollTop / gridHeight);
+            let max = min + numOfVisibleGrids;
+            for (let i = 0; i < self.renderedDataSets.length; i++) {
+                if ( i >= min && i < max) {
+                    if (self.renderedDataSets[i].dataRows === undefined) {
+                        self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
+                    }
+                } else if (self.renderedDataSets[i].dataRows !== undefined) {
+                    self.renderedDataSets[i].dataRows = undefined;
                 }
-            } else if (this.renderedDataSets[i].dataRows !== undefined) {
-                this.renderedDataSets[i].dataRows = undefined;
             }
-        }
+        }, self.scrollTimeOutTime);
     }
 }

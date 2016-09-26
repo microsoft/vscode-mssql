@@ -13,8 +13,6 @@ enum SelectedTab {
 
 export class ScrollEvent {
     scrollTop: number;
-    gridHeight: number;
-    elementSize: number;
 }
 
 /**
@@ -40,9 +38,7 @@ export class Tab {
     constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {
         Observable.fromEvent(this._el.nativeElement, 'scroll').subscribe((event) => {
             this.onScroll.emit({
-                scrollTop: this._el.nativeElement.scrollTop,
-                gridHeight: this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight,
-                elementSize: this._el.nativeElement.offsetHeight
+                scrollTop: this._el.nativeElement.scrollTop
             });
         });
     };
