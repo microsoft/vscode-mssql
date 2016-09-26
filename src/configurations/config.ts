@@ -7,11 +7,12 @@
 const fs = require('fs');
 import * as path from 'path';
 import * as Constants from '../models/constants';
+import {IConfig} from '../languageservice/interfaces';
 
 /*
 * Config class handles getting values from config.json.
 */
-export default class Config {
+export default class Config implements IConfig {
      private static _configJsonContent = undefined;
 
      public static get configJsonContent(): any {

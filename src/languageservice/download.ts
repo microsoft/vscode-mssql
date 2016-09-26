@@ -16,6 +16,7 @@ import {IConfig, ILogger} from './interfaces';
 
 let tmp = require('tmp');
 let fs = require('fs');
+let fse = require('fs-extra');
 const decompress = require('decompress');
 
 tmp.setGracefulCleanup();
@@ -122,10 +123,11 @@ export default class ServiceDownloadProvider {
         if (platform === undefined) {
             platform = getCurrentPlatform();
         }
-        let root = this.getInstallDirectoryRoot();
+        let basePath = this.getInstallDirectoryRoot();
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
-        let basePath = this.getInstallDirectoryPart(root, versionFromConfig);
-        basePath = this.getInstallDirectoryPart(basePath, platform.toString());
+        basePath = basePath.replace('{#version#}', versionFromConfig);
+        basePath = basePath.replace('{#platform#}', platform.toString());
+        fse.mkdirsSync(basePath);
         return basePath;
     }
 
@@ -134,15 +136,12 @@ export default class ServiceDownloadProvider {
     */
     public getInstallDirectoryRoot(): string {
         let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        // The path from config is relative to the out folder
-        let basePath = this.getInstallDirectoryPart(__dirname, '../../' + installDirFromConfig);
-        return basePath;
-    }
-
-    private getInstallDirectoryPart(dirName: string, suffix: string): string {
-        let basePath = path.join(dirName, suffix);
-        if (!fs.existsSync(basePath)) {
-            fs.mkdirSync(basePath);
+        let basePath: string;
+        if (path.isAbsolute(installDirFromConfig)) {
+            basePath = installDirFromConfig;
+        } else {
+            // The path from config is relative to the out folder
+            basePath = path.join(__dirname, '../../' + installDirFromConfig);
         }
         return basePath;
     }
