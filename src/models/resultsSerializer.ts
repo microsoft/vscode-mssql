@@ -190,6 +190,7 @@ export default class ResultsSerializer {
                         self._vscodeWrapper.logToOutputChannel('Results saved to ' + filePath);
                     }, (error: any) => {
                         console.error(error);
+                        self._vscodeWrapper.showErrorMessage(error);
                     });
              }, (error: any) => {
                  console.error(error);
