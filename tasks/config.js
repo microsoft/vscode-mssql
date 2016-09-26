@@ -25,9 +25,6 @@ var config = {
                 htmlcontentRoot + '/node_modules/reflect-metadata/Reflect.js',
                 htmlcontentRoot + '/node_modules/systemjs/dist/system.src.js',
                 htmlcontentRoot + '/node_modules/moment/moment.js',
-                htmlcontentRoot + '/node_modules/ng2-bootstrap/bundles/ng2-bootstrap.min.js',
-                htmlcontentRoot + '/node_modules/ng2-select/bundles/ng2-select.min.js',
-                htmlcontentRoot + '/node_modules/ng2-select/components/css/ng2-select.css',
                 htmlcontentRoot + '/node_modules/@angular/**/*',
                 htmlcontentRoot + '/node_modules/rxjs/**/*',
                 htmlcontentRoot + '/node_modules/angular2-in-memory-web-api/**/*'
