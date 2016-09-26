@@ -3,6 +3,7 @@ import vscode = require('vscode');
 import Constants = require('./constants');
 import os = require('os');
 import fs = require('fs');
+import Interfaces = require('./interfaces');
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
 import * as Utils from '../models/utils';
@@ -95,11 +96,11 @@ export default class ResultsSerializer {
 
     }
 
-    private getConfigForCsv(): Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams {
+    private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
         // get save results config from vscode config
         let config = vscode.workspace.getConfiguration(Constants.extensionName);
         let saveConfig = config[Constants.configSaveAsCsv];
-        let saveResultsParams = new Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams();
+        let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
 
         // if user entered config, set options
         if (saveConfig) {
@@ -116,11 +117,11 @@ export default class ResultsSerializer {
         return saveResultsParams;
     }
 
-    private getConfigForJson(): Contracts.SaveResultsAsJsonRequest.SaveResultsRequestParams {
+    private getConfigForJson(): Contracts.SaveResultsAsJsonRequestParams {
         // get save results config from vscode config
         let config = vscode.workspace.getConfiguration(Constants.extensionName);
         let saveConfig = config[Constants.configSaveAsJson];
-        let saveResultsParams = new Contracts.SaveResultsAsJsonRequest.SaveResultsRequestParams();
+        let saveResultsParams = new Contracts.SaveResultsAsJsonRequestParams();
 
         if (saveConfig) {
             // TODO: assign config
@@ -151,7 +152,7 @@ export default class ResultsSerializer {
     /**
      * Send request to sql tools service to save a result set in CSV format
      */
-    public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
+    public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange): Thenable<void> {
         const self = this;
         if (!path.isAbsolute(filePath)) {
             this._filePath = self.resolveFilePath(uri, filePath);
@@ -163,6 +164,12 @@ export default class ResultsSerializer {
         saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
+        if (this.isSelected(selection)) {
+            saveResultsParams.rowStartIndex = selection.fromRow;
+            saveResultsParams.rowEndIndex =  selection.toRow;
+            saveResultsParams.columnStartIndex = selection.fromCell;
+            saveResultsParams.columnEndIndex = selection.toCell;
+        }
 
         // send message to the sqlserverclient for converting resuts to CSV and saving to filepath
         return self._client.sendRequest( Contracts.SaveResultsAsCsvRequest.type, saveResultsParams).then(result => {
@@ -178,9 +185,16 @@ export default class ResultsSerializer {
     }
 
     /**
+     * Check if a range of cells were selected.
+     */
+    public isSelected(selection:  Interfaces.ISlickRange): boolean {
+        return (selection && !((selection.fromCell === selection.toCell) && (selection.fromRow === selection.toRow)));
+    }
+
+    /**
      * Send request to sql tools service to save a result set in JSON format
      */
-    public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number): Thenable<void> {
+    public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange): Thenable<void> {
         const self = this;
         if (!path.isAbsolute(filePath)) {
             this._filePath = self.resolveFilePath(uri, filePath);
@@ -192,6 +206,12 @@ export default class ResultsSerializer {
         saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
+        if (this.isSelected(selection)) {
+            saveResultsParams.rowStartIndex = selection.fromRow;
+            saveResultsParams.rowEndIndex =  selection.toRow;
+            saveResultsParams.columnStartIndex = selection.fromCell;
+            saveResultsParams.columnEndIndex = selection.toCell;
+        }
 
         // send message to the sqlserverclient for converting resuts to JSON and saving to filepath
         return self._client.sendRequest( Contracts.SaveResultsAsJsonRequest.type, saveResultsParams).then(result => {
@@ -221,7 +241,6 @@ export default class ResultsSerializer {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
             });
     }
-
 
     private getParametersForCsv(uri: string, batchIndex: number, resultSetNo: number, filePath: string):
                                                         Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams {
@@ -274,20 +293,22 @@ export default class ResultsSerializer {
     }
     */
 
-    public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number ): Thenable<void> {
+
+    public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange[] ): Thenable<void> {
         const self = this;
         this._uri = uri;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo);
+            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo, selection ? selection[0] : undefined);
         });
     }
 
-    public onSaveResultsAsJson(uri: string, batchIndex: number, resultSetNo: number ): Thenable<void> {
+    public onSaveResultsAsJson(uri: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange[] ): Thenable<void> {
         const self = this;
+        this._uri = uri;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo);
+            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo, selection ? selection[0] : undefined);
         });
     }
 
@@ -306,6 +327,7 @@ export default class ResultsSerializer {
                     });
              }, (error: any) => {
                  console.error(error);
+                 self._vscodeWrapper.showErrorMessage(error);
              });
     }
 

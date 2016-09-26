@@ -52,41 +52,43 @@ export namespace SaveCredentialRequest {
 export namespace DeleteCredentialRequest {
     export const type: RequestType<Credential, boolean, void> = { get method(): string { return 'credential/delete'; } };
 }
-// --------------------------------- </ Save Credential Request > -------------------------------------------------
+// --------------------------------- </ Delete Credential Request > -------------------------------------------------
 
-// --------------------------------- < Save Results as CSV Request > ------------------------------------------
-// save results as csv format
-export namespace SaveResultsAsCsvRequest {
-    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveCsv'; } };
-    export class SaveResultsRequestParams {
+export class SaveResultsRequestParams {
         ownerUri: string;
         filePath: string;
         batchIndex: number;
         resultSetIndex: number;
+        rowStartIndex: number;
+        rowEndIndex: number;
+        columnStartIndex: number;
+        columnEndIndex: number;
+}
+
+export class SaveResultsAsCsvRequestParams extends SaveResultsRequestParams {
         fileEncoding: string = 'utf-8';
         includeHeaders: boolean = true;
         valueInQuotes: boolean = false;
-    }
+}
 
-    export class SaveResultRequestResult {
+export class SaveResultsAsJsonRequestParams extends SaveResultsRequestParams {
+        // TODO: Define config for JSON
+}
+
+export class SaveResultRequestResult {
         messages: string;
     }
+
+// --------------------------------- < Save Results as CSV Request > ------------------------------------------
+// save results in csv format
+export namespace SaveResultsAsCsvRequest {
+    export const type: RequestType<SaveResultsAsCsvRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveCsv'; } };
 }
 // --------------------------------- </ Save Results as CSV Request > ------------------------------------------
 
 // --------------------------------- < Save Results as JSON Request > ------------------------------------------
-// save results as csv format
+// save results in json format
 export namespace SaveResultsAsJsonRequest {
-    export const type: RequestType<SaveResultsRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveJson'; } };
-    export class SaveResultsRequestParams {
-        ownerUri: string;
-        filePath: string;
-        batchIndex: number;
-        resultSetIndex: number;
-    }
-
-    export class SaveResultRequestResult {
-        messages: string;
-    }
+    export const type: RequestType<SaveResultsAsJsonRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveJson'; } };
 }
 // --------------------------------- </ Save Results as JSON Request > ------------------------------------------
