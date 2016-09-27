@@ -132,7 +132,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         });
                     });
              }, (error: any) => {
-                 console.error(error);
+                 self._vscodeWrapper.showErrorMessage(error);
              });
 
             res.status = 200;

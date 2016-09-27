@@ -92,7 +92,7 @@ export default class ResultsSerializer {
         // check if file already exists on disk
         try {
             let stats = fs.statSync(filePath);
-            console.warn('The file already exists ' + stats);
+            self._vscodeWrapper.logToOutputChannel('File already exists ' + stats);
             return true;
         } catch (err) {
             return false;
@@ -140,9 +140,11 @@ export default class ResultsSerializer {
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
 
+        // use current directory of the sql file if sql file is saved
         if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
         } else if (sqlUri.scheme === 'untitled') {
+            // if sql file is unsaved/untitled but a workspace is open
             if (vscode.workspace.rootPath) {
                 currentDirectory = vscode.workspace.rootPath;
             } else {
@@ -224,12 +226,13 @@ export default class ResultsSerializer {
                 }
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
-            });
+        });
     }
 
     public onSaveResults(uri: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange[] ): Thenable<void> {
         const self = this;
         this._uri = uri;
+
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
             self.sendRequestToService(uri, filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
@@ -238,22 +241,18 @@ export default class ResultsSerializer {
 
     // Open the saved file in a new vscode editor pane
     public openSavedFile(filePath: string): void {
-            const self = this;
-            let uri = vscode.Uri.file(filePath);
-            self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
-                    // Show open document and set focus
-                    self._vscodeWrapper.showTextDocument(doc, 1, false).then(editor => {
-                        // write message to output tab
-                        self._vscodeWrapper.logToOutputChannel('Results saved to ' + filePath);
-                    }, (error: any) => {
-                        console.error(error);
-                        self._vscodeWrapper.showErrorMessage(error);
-                    });
-             }, (error: any) => {
-                 console.error(error);
-                 self._vscodeWrapper.showErrorMessage(error);
-             });
+        const self = this;
+        let uri = vscode.Uri.file(filePath);
+        self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+            // Show open document and set focus
+            self._vscodeWrapper.showTextDocument(doc, 1, false).then(editor => {
+                // write message to output tab
+                self._vscodeWrapper.logToOutputChannel('Results saved to ' + filePath);
+            }, (error: any) => {
+                self._vscodeWrapper.showErrorMessage(error);
+            });
+        }, (error: any) => {
+            self._vscodeWrapper.showErrorMessage(error);
+        });
     }
-
-
 }
