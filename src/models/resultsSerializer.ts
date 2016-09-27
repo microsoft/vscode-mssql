@@ -6,6 +6,7 @@ import fs = require('fs');
 import Interfaces = require('./interfaces');
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
+import {RequestType} from 'vscode-languageclient';
 import * as Utils from '../models/utils';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
@@ -20,6 +21,7 @@ export default class ResultsSerializer {
     private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
     private _filePath: string;
+    private _isTempFile: boolean;
 
 
     constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
@@ -68,8 +70,6 @@ export default class ResultsSerializer {
                 if (!prompted || (prompted && answers[Constants.overwritePrompt])) {
                      return answers[Constants.filepathPrompt];
                 }
-                console.log('overwrite ' + answers[Constants.overwritePrompt]);
-                console.log('prompted ' + prompted);
                 // call prompt again if user did not opt to overwrite
                 if (prompted && !answers[Constants.overwritePrompt]) {
                     return self.promptForFilepath();
@@ -82,15 +82,19 @@ export default class ResultsSerializer {
         const self = this;
         // resolve filepath
         if (!path.isAbsolute(filePath)) {
+
             filePath = self.resolveFilePath(this._uri, filePath);
+        }
+
+        if (self._isTempFile) {
+            return false;
         }
         // check if file already exists on disk
         try {
             let stats = fs.statSync(filePath);
-            console.log('it exists ' + stats);
+            console.warn('The file already exists ' + stats);
             return true;
         } catch (err) {
-            console.log('it does not exist');
             return false;
         }
 
@@ -130,10 +134,12 @@ export default class ResultsSerializer {
     }
 
     private resolveFilePath(uri: string, filePath: string): string {
-        // set params to values from config and send request to service
+        const self = this;
+        self._isTempFile = false;
+
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
-        // user entered only the file name. Save file in current directory
+
         if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
         } else if (sqlUri.scheme === 'untitled') {
@@ -141,6 +147,7 @@ export default class ResultsSerializer {
                 currentDirectory = vscode.workspace.rootPath;
             } else {
                 currentDirectory = os.tmpdir();
+                self._isTempFile = true;
             }
         } else {
             currentDirectory = path.dirname(sqlUri.path);
@@ -149,17 +156,29 @@ export default class ResultsSerializer {
 
     }
 
-    /**
-     * Send request to sql tools service to save a result set in CSV format
-     */
-    public sendCsvRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange): Thenable<void> {
+    private validateFilePath(property: string, value: string): string {
+        if (Utils.isEmpty(value.trim())) {
+            return property + Constants.msgIsRequired;
+        }
+        return undefined;
+    }
+
+    private getParameters(uri: string, filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange):
+                                                        Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams {
         const self = this;
+        let saveResultsParams: Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams;
         if (!path.isAbsolute(filePath)) {
             this._filePath = self.resolveFilePath(uri, filePath);
         } else {
             this._filePath = filePath;
         }
-        let saveResultsParams =  self.getConfigForCsv();
+
+        if (format === 'csv') {
+            saveResultsParams =  self.getConfigForCsv();
+        } else if (format === 'json') {
+            saveResultsParams =  self.getConfigForJson();
+        }
+
         saveResultsParams.filePath = this._filePath;
         saveResultsParams.ownerUri = uri;
         saveResultsParams.resultSetIndex = resultSetNo;
@@ -170,18 +189,7 @@ export default class ResultsSerializer {
             saveResultsParams.columnStartIndex = selection.fromCell;
             saveResultsParams.columnEndIndex = selection.toCell;
         }
-
-        // send message to the sqlserverclient for converting resuts to CSV and saving to filepath
-        return self._client.sendRequest( Contracts.SaveResultsAsCsvRequest.type, saveResultsParams).then(result => {
-                if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage(result.messages);
-                } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this._filePath);
-                    self.openSavedFile(self._filePath);
-                }
-            }, error => {
-                self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
-            });
+        return saveResultsParams;
     }
 
     /**
@@ -191,30 +199,23 @@ export default class ResultsSerializer {
         return (selection && !((selection.fromCell === selection.toCell) && (selection.fromRow === selection.toRow)));
     }
 
+
     /**
-     * Send request to sql tools service to save a result set in JSON format
+     * Send request to sql tools service to save a result set
      */
-    public sendJsonRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange): Thenable<void> {
+    public sendRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange):
+                                                                                                                                        Thenable<void> {
         const self = this;
-        if (!path.isAbsolute(filePath)) {
-            this._filePath = self.resolveFilePath(uri, filePath);
-        } else {
-            this._filePath = filePath;
-        }
-        let saveResultsParams =  self.getConfigForJson();
-        saveResultsParams.filePath = this._filePath;
-        saveResultsParams.ownerUri = uri;
-        saveResultsParams.resultSetIndex = resultSetNo;
-        saveResultsParams.batchIndex = batchIndex;
-        if (this.isSelected(selection)) {
-            saveResultsParams.rowStartIndex = selection.fromRow;
-            saveResultsParams.rowEndIndex =  selection.toRow;
-            saveResultsParams.columnStartIndex = selection.fromCell;
-            saveResultsParams.columnEndIndex = selection.toCell;
+        let saveResultsParams =  self.getParameters(uri, filePath, batchIndex, resultSetNo, format, selection);
+        let type: RequestType<Contracts.SaveResultsRequestParams, Contracts.SaveResultRequestResult, void>;
+        if (format === 'csv') {
+            type = Contracts.SaveResultsAsCsvRequest.type;
+        } else if (format === 'json') {
+            type = Contracts.SaveResultsAsJsonRequest.type;
         }
 
-        // send message to the sqlserverclient for converting resuts to JSON and saving to filepath
-        return self._client.sendRequest( Contracts.SaveResultsAsJsonRequest.type, saveResultsParams).then(result => {
+        // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
+        return self._client.sendRequest( type, saveResultsParams).then(result => {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(result.messages);
                 } else {
@@ -226,89 +227,12 @@ export default class ResultsSerializer {
             });
     }
 
-    /*
-    public sendRequestToService(type: any, saveResultsParams: any): Thenable<void> {
-        const self = this;
-
-        // send message to the sqlserverclient for converting resuts to JSON and saving to filepath
-        return self._client.sendRequest(type, saveResultsParams).then(result => {
-                if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage(result.messages);
-                } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + filePath);
-                }
-            }, error => {
-                self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
-            });
-    }
-
-    private getParametersForCsv(uri: string, batchIndex: number, resultSetNo: number, filePath: string):
-                                                        Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams {
-        // get save results config from vscode config
-        let config = vscode.workspace.getConfiguration(Constants.extensionName);
-        let saveConfig = config[Constants.configSaveAsCsv];
-        let saveResultsParams = new Contracts.SaveResultsAsCsvRequest.SaveResultsRequestParams();
-
-        const self = this;
-        if (!path.isAbsolute(filePath)) {
-            filePath = self.resolveFilePath(uri, filePath);
-        }
-
-        saveResultsParams.filePath = filePath;
-        saveResultsParams.ownerUri = uri;
-        saveResultsParams.resultSetIndex = resultSetNo;
-        saveResultsParams.batchIndex = batchIndex;
-        // if user entered config, set options
-        if (saveConfig) {
-            if (saveConfig.encoding) {
-                saveResultsParams.fileEncoding  = saveConfig.encoding;
-            }
-            if (saveConfig.includeHeaders) {
-                saveResultsParams.includeHeaders = saveConfig.includeHeaders;
-            }
-            if (saveConfig.valueInQuotes) {
-                saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
-            }
-        }
-        return saveResultsParams;
-    }
-
-    public onSaveResults(uri: string, batchIndex: number, resultSetNo: number, format: string): Thenable<void> {
+    public onSaveResults(uri: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange[] ): Thenable<void> {
         const self = this;
         this._uri = uri;
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-
-            if (format === 'csv') {
-                let saveParams = self.getParametersForCsv(uri, batchIndex, resultSetNo, filePath);
-                self.sendRequestToService(Contracts.SaveResultsAsCsvRequest.type, saveParams);
-
-            } else if (format === 'json') {
-                let saveParams = self.getParameters(uri, batchIndex, resultSetNo, format);
-                self.sendRequestToService(Contracts.SaveResultsAsJsonRequest.type, saveParams);
-
-            }
-
-        });
-    }
-    */
-
-
-    public onSaveResultsAsCsv(uri: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange[] ): Thenable<void> {
-        const self = this;
-        this._uri = uri;
-        // prompt for filepath
-        return self.promptForFilepath().then(function(filePath): void {
-            self.sendCsvRequestToService(uri, filePath, batchIndex, resultSetNo, selection ? selection[0] : undefined);
-        });
-    }
-
-    public onSaveResultsAsJson(uri: string, batchIndex: number, resultSetNo: number, selection: Interfaces.ISlickRange[] ): Thenable<void> {
-        const self = this;
-        this._uri = uri;
-        // prompt for filepath
-        return self.promptForFilepath().then(function(filePath): void {
-            self.sendJsonRequestToService(uri, filePath, batchIndex, resultSetNo, selection ? selection[0] : undefined);
+            self.sendRequestToService(uri, filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
         });
     }
 
@@ -331,10 +255,5 @@ export default class ResultsSerializer {
              });
     }
 
-    private validateFilePath(property: string, value: string): string {
-        if (Utils.isEmpty(value.trim())) {
-            return property + Constants.msgIsRequired;
-        }
-        return undefined;
-    }
+
 }
