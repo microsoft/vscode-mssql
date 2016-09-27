@@ -424,6 +424,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
                     this.updateColumnWidths();
                 });
         }
+        this._grid.registerPlugin( new Slick.AutoColumnSize());
         this.onResize();
     }
 

@@ -1349,7 +1349,7 @@ if (typeof Slick === "undefined") {
         if (m.maxWidth && m.width > m.maxWidth) {
           m.width = m.maxWidth;
         }
-        if (widthChanged === false) {
+        if (!widthChanged) {
           widthChanged |= previousColumns[i].width !== m.width;
         }
       }

@@ -1,5 +1,5 @@
 // Drag select selection model gist taken from https://gist.github.com/skoon/5312536
-// modified for box select
+// heavily modified
 (function ($) {
     // register namespace
     $.extend(true, window, {
