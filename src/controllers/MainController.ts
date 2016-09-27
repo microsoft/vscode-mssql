@@ -23,6 +23,8 @@ export default class MainController implements vscode.Disposable {
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
     private _initialized: boolean = false;
+    private _lastSavedUri: string;
+    private _lastSavedTimer: Utils.Timer;
 
     constructor(context: vscode.ExtensionContext,
                 connectionManager?: ConnectionManager,
@@ -78,6 +80,10 @@ export default class MainController implements vscode.Disposable {
 
         this._vscodeWrapper = new VscodeWrapper();
 
+        // Add handlers for VS Code generated commands
+        this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
+        this._vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
+
         return this.initialize(activationTimer);
     }
 
@@ -88,7 +94,7 @@ export default class MainController implements vscode.Disposable {
     public initialize(activationTimer: Utils.Timer): Promise<boolean> {
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-                SqlToolsServerClient.instance.initialize(this._context).then(() => {
+            SqlToolsServerClient.instance.initialize(this._context).then(() => {
                 const self = this;
                 // Init status bar
                 this._statusview = new StatusView();
@@ -116,7 +122,7 @@ export default class MainController implements vscode.Disposable {
                 resolve(true);
             });
         });
-   }
+    }
 
     // Choose a new database from the current server
     private onChooseDatabase(): Promise<boolean> {
@@ -199,6 +205,40 @@ export default class MainController implements vscode.Disposable {
         return promise.catch(err => {
             self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
         });
+    }
+
+    private onDidCloseTextDocument(doc: vscode.TextDocument): void {
+        let closedDocumentUri: string = doc.uri.toString();
+        let closedDocumentUriScheme: string = doc.uri.scheme;
+
+        // Did we save a document before this close event? Was it an untitled document?
+        if (this._lastSavedUri && this._lastSavedTimer && closedDocumentUriScheme === Constants.untitledScheme) {
+            // Stop the save timer
+            this._lastSavedTimer.end();
+
+            // Check that we saved a document *just* before this close event
+            // If so, then we saved an untitled document and need to update where necessary
+            if (this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
+                this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
+            }
+
+            // Reset the save timer
+            this._lastSavedTimer = undefined;
+            this._lastSavedUri = undefined;
+        } else {
+            // Pass along the close event to the other handlers
+            this._connectionMgr.onDidCloseTextDocument(doc);
+            this._outputContentProvider.onDidCloseTextDocument(doc);
+        }
+    }
+
+    private onDidSaveTextDocument(doc: vscode.TextDocument): void {
+        let savedDocumentUri: string = doc.uri.toString();
+
+        // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
+        this._lastSavedTimer = new Utils.Timer();
+        this._lastSavedTimer.start();
+        this._lastSavedUri = savedDocumentUri;
     }
 
     /**

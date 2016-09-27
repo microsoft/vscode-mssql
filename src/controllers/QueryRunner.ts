@@ -1,4 +1,5 @@
 'use strict';
+
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -8,13 +9,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
     QueryDisposeRequest } from '../models/contracts/queryExecute';
-<<<<<<< HEAD:src/controllers/QueryRunner.ts
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
-import { ISlickRange } from '../models/interfaces';
-=======
 import { ISlickRange, ISelectionData } from '../models/interfaces';
->>>>>>> dev:src/controllers/queryRunner.ts
-
 
 const ncp = require('copy-paste');
 
@@ -27,11 +23,14 @@ export interface IResultSet {
 * and handles getting more rows from the service layer and disposing when the content is closed.
 */
 export default class QueryRunner {
+    // MEMBER VARIABLES ====================================================
     private _batchSets: BatchSummary[];
     private _isExecuting: boolean;
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
+
+    // CONSTRUCTOR =========================================================
 
     constructor(private _ownerUri: string,
                 private _editorTitle: string,
@@ -78,6 +77,8 @@ export default class QueryRunner {
         return this._statusView;
     }
 
+    // PROPERTIES ==========================================================
+
     get uri(): string {
         return this._uri;
     }
@@ -110,6 +111,10 @@ export default class QueryRunner {
         this._batchSets = batchSets;
     }
 
+    get isExecutingQuery(): boolean {
+        return this._isExecuting;
+    }
+
     // PUBLIC METHODS ======================================================
 
     public cancel(): Thenable<QueryCancelResult> {
@@ -123,12 +128,14 @@ export default class QueryRunner {
         const self = this;
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
-            queryText: text
+            querySelection: selection
         };
         this._resultLineOffset = selection ? selection.startLine : 0;
+        this._isExecuting = true;
 
         return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
+                self._isExecuting = false;
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
             } else {
                 self.statusView.executingQuery(self.uri);
@@ -136,6 +143,7 @@ export default class QueryRunner {
                 self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
         }, error => {
+            self._isExecuting = false;
             self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }

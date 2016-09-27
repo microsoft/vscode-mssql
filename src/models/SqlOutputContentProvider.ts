@@ -11,7 +11,7 @@ import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData } from './interfaces';
-const pd  = require('pretty-data').pd;
+const pd = require('pretty-data').pd;
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -177,12 +177,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._queryResultsMap.delete(uri);
     }
 
-    public show(uri: string, title: string): void {
-        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, 'SQL Query Results: ' + title);
+    public isRunningQuery(uri: string): boolean {
+        return !this._queryResultsMap.has(uri)
+            ? false
+            : this._queryResultsMap[uri].isExecutingQuery;
     }
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
-        // Reuse existing query runner
+        // Reuse existing query runner if it exists
         let queryRunner: QueryRunner = this._queryResultsMap.has(uri)
             ? this._queryResultsMap[uri]
             : new QueryRunner(uri, title, statusView, this);
@@ -191,17 +193,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         queryRunner.runQuery(selection);
     }
 
-    public cancelQuery(uri: string): boolean {
+    public cancelQuery(uri: string): void {
         let self = this;
-        // If we don't have a query runner for this uri, then we can't do anything
-        if (!this._queryResultsMap.has(uri)) {
-            return false;
-        }
 
         // Cancel the query
         this._queryResultsMap[uri].cancelQuery().then(success => {
             // On success, dispose of the query runner
-            this._queryResultsMap.delete(uri);
+            self._queryResultsMap.delete(uri);
         }, error => {
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
@@ -209,18 +207,61 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     public updateContent(queryRunner: QueryRunner): string {
-        let title = queryRunner.title;
-        let uri = SqlOutputContentProvider.providerUri + title;
-        this.clear(uri);
+        // Map the query runner to the results uri
+        // TODO: Fix this issue with the uri's not being correct
+        let uri = SqlOutputContentProvider.providerUri + encodeURI(queryRunner.uri);
+        console.log("uri=" + uri);
+        this._queryResultsMap.delete(uri);
         this._queryResultsMap.set(uri, queryRunner);
-        this.show(uri, title);
+
+        // Show the results pane
+        let title = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        console.log("title=" + title);
+        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, title);
         this.onContentUpdated();
         return uri;
     }
 
+    public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
+        // If we don't have any query runners mapped to this uri, don't do anything
+        if (!this._queryResultsMap.has(untitledUri)) {
+            return;
+        }
+
+        // NOTE: We don't need to remap the query in the service because the queryrunner still has
+        // the old uri. As long as we make requests to the service against that uri, we'll be good.
+
+        // Remap the query runner in the map
+        this._queryResultsMap.set(savedUri, this._queryResultsMap[untitledUri]);
+        this._queryResultsMap.delete(untitledUri);
+    }
+
+    public onDidCloseTextDocument(doc: vscode.TextDocument): void {
+        let uri = decodeURI(doc.uri.toString());
+
+        // If there isn't a query runner for this uri, then nothing to do
+        if(!this._queryResultsMap.has(uri)) {
+            // NOTE: It is not necessary to check if this is a results pane or a src file, a
+            // queryrunner is only ever coupled to a results pane in the map.
+            return;
+        }
+
+        // Is the query in progress
+        if (this._queryResultsMap[uri].isExecutingQuery()) {
+            // We need to cancel it, which will dispose it
+            this.cancelQuery(uri);
+        } else {
+            // We need to explicitly dispose the query
+            this._queryResultsMap[uri].dispose();
+        }
+
+        // Unmap the uri to the queryrunner
+        this._queryResultsMap.delete(uri);
+    }
+
     // Called by VS Code exactly once to load html content in the preview window
     public provideTextDocumentContent(uri: vscode.Uri): string {
-
+        console.log(uri.toString());
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `
         <html>
