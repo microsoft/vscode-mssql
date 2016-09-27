@@ -15,8 +15,15 @@ suite('Telemetry Tests', () => {
         assert.ok(versionString);
         const version: number[] = versionString.split('.').map(str => parseInt(str, 10));
         assert.ok(version);
-        assert.ok(version[0] >= 0);
-        assert.ok(version[1] >= 15);
-        assert.ok(version[2] >= 19);
+
+        let versionOk: boolean = false;
+        if (version[0] >= 1) {
+            versionOk = true; // 1.x.x
+        } else if (version[1] >= 16) {
+            versionOk = true; // 0.16.x
+        } else if (version[2] >= 19) {
+            versionOk = true; // 0.15.x (x >= 19)
+        }
+        assert.ok(versionOk, 'Version of applicationInsights must be greater than or equal to 0.15.19. Detected version was ' + versionString);
     });
 });
