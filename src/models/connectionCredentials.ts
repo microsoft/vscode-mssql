@@ -105,18 +105,21 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     }
                 }
             );
-
-            // If this is a profile, and the user has set save password to true and stored the password in the config file,
-            // then transfer the password to the credential store
-            if (profile.savePassword && !wasPasswordEmptyInConfigFile) {
-                connectionStore.removeProfile(profile).then(() => {
-                    connectionStore.saveProfile(profile);
-                });
-            }
         }
 
         return prompter.prompt(questions).then(answers => {
             if (answers) {
+                if (isProfile) {
+                    let profile: IConnectionProfile = <IConnectionProfile>credentials;
+
+                    // If this is a profile, and the user has set save password to true and stored the password in the config file,
+                    // then transfer the password to the credential store
+                    if (profile.savePassword && !wasPasswordEmptyInConfigFile) {
+                        connectionStore.removeProfile(profile).then(() => {
+                            connectionStore.saveProfile(profile);
+                        });
+                    }
+                }
                 return credentials;
             } else {
                 return undefined;
