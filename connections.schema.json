@@ -161,6 +161,10 @@
                     "profileName": {
                         "type": "string",
                         "description": "[Optional]"
+                    },
+                    "savePassword": {
+                        "type": "boolean",
+                        "description": "[Optional]"
                     }
                 }
             }
