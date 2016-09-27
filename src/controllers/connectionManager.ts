@@ -315,9 +315,18 @@ export default class ConnectionManager {
                     });
                     return newCredentials;
                 } else {
-                    Utils.showErrorMsg(Constants.msgError + Constants.msgConnectionError);
-                    self.statusView.connectError(fileUri, connectionCreds, result.messages);
-                    self.connectionUI.showConnectionErrors(result.messages);
+                    if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
+                        // Check if the error is an expired password
+                        if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
+                            // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
+                            Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
+                        } else {
+                            Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError, result.errorNumber, result.errorMessage));
+                        }
+                    } else {
+                        Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
+                    }
+                    self.statusView.connectError(fileUri, connectionCreds, result);
                     return undefined;
                 }
             }).then( (newConnection: Interfaces.IConnectionCredentials) => {

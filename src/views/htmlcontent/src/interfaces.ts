@@ -45,9 +45,18 @@ export interface IGridResultSet {
     numberOfRows: number;
 }
 
+export interface ISelectionData {
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+}
+
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
     messages: string[];
+    hasError: boolean;
+    selection: ISelectionData;
 }
 
 export interface IGridIcon {
