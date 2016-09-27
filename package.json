@@ -1,6 +1,6 @@
 {
   "name": "vscode-mssql",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "displayname": "MSSQL support in VS Code",
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
   "publisher": "microsoft",
