@@ -11,7 +11,6 @@ body {
 .vertBox {
     display: flex;
     flex-flow: column;
-    overflow: auto;
 }
 
 .vertBox .boxRow.header {
@@ -20,8 +19,11 @@ body {
 
 .vertBox .boxRow.content {
     flex: 1 1 1%;
+    overflow: hidden;
+}
+
+.vertBox .boxRow.content.scrollable {
     overflow: auto;
-    min-height: fit-content;
 }
 
 .vertBox .boxRow.content.maxHeight {
@@ -36,10 +38,9 @@ body {
 .horzBox {
     display: flex;
     flex-flow: row;
-    overflow: auto;
 }
 
-.vertBox .boxCol.content {
+.horzBox .boxCol.content {
     flex: 1 1 1%;
     overflow: auto;
     max-width: fit-content;
@@ -49,3 +50,14 @@ body {
 .hidden {
     display: none;
 }
+
+/* testing
+
+.vertBox {
+    border: 1px solid green;
+}
+
+.horzBox {
+    border: 1px solid red;
+}
+*/

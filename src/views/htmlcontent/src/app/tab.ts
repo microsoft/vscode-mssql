@@ -25,7 +25,7 @@ enum SelectedTab {
         <div class="boxRow header collapsible" [class.collapsed]="!active" (click)="active = !active">
             <span> {{title}} </span>
         </div>
-        <div class="boxRow content vertBox padded">
+        <div class="boxRow content vertBox padded scrollable">
             <ng-content></ng-content>
         </div>`
 })
@@ -36,7 +36,7 @@ export class Tab implements OnInit {
     @Input() icons: IGridIcon[];
     @ContentChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
-    private _active = false;
+    private _active = true;
 
     constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {};
 
