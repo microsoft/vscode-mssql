@@ -40,7 +40,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = req.query.uri;
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
@@ -63,13 +63,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
             let batchSets: Interfaces.IGridBatchMetaData[] = [];
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = req.query.uri;
             for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
                 let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
                 for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
+                    let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
+                    let encodedUri = encodeURIComponent(uri);
+                    let columnsUri = Utils.formatString(uriFormat, Constants.outputContentTypeColumns, batchIndex, resultIndex, encodedUri);
+                    let rowsUri = Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri);
+
                     tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                        columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
-                        rowsUri: '/' + Constants.outputContentTypeRows +  '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
+                        columnsUri: columnsUri,
+                        rowsUri: rowsUri,
                         numberOfRows: result.rowCount
                     });
                 }
@@ -83,7 +88,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = req.query.uri;
             let columnMetadata = self._queryResultsMap.get(uri).batchSets[batchId].resultSetSummaries[resultId].columnInfo;
             let json = JSON.stringify(columnMetadata);
             res.send(json);
@@ -95,7 +100,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchId = req.query.batchId;
             let rowStart = req.query.rowStart;
             let numberOfRows = req.query.numberOfRows;
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = req.query.uri;
             self._queryResultsMap.get(uri).getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
@@ -104,7 +109,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/saveResults' - return success message as JSON
         this._service.addHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = req.query.uri;
             let queryUri = self._queryResultsMap.get(uri).uri;
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
@@ -144,7 +149,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http post handler for copying results
         this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
-            let uri = decodeURI(req.query.uri);
+            let uri = req.query.uri.toString();
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let selection: Interfaces.ISlickRange[] = req.body;
@@ -156,7 +161,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http post handler for setting the selection in the editor
         this._service.addPostHandler(Interfaces.ContentType.EditorSelection, function(req, res): void {
-            let uri = decodeURI(req.query.uri);
+            let uri = req.query.uri.toString();
             let selection: ISelectionData = req.body;
             self._queryResultsMap.get(uri).setEditorSelection(selection).then(() => {
                 res.status = 200;
@@ -173,20 +178,22 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
     }
 
-    private clear(uri: string): void {
-        this._queryResultsMap.delete(uri);
-    }
-
     public isRunningQuery(uri: string): boolean {
         return !this._queryResultsMap.has(uri)
             ? false
-            : this._queryResultsMap[uri].isExecutingQuery;
+            : this._queryResultsMap.get(uri).isExecutingQuery;
+    }
+
+    private getResultsUri(srcUri: string): string {
+        // NOTE: The results uri will be encoded when we parse it to a uri
+        return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
     }
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
-        let queryRunner: QueryRunner = this._queryResultsMap.has(uri)
-            ? this._queryResultsMap[uri]
+        let resultsUri = this.getResultsUri(uri).toString();
+        let queryRunner: QueryRunner = this._queryResultsMap.has(resultsUri)
+            ? this._queryResultsMap.get(resultsUri)
             : new QueryRunner(uri, title, statusView, this);
 
         // Execute the query
@@ -197,9 +204,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let self = this;
 
         // Cancel the query
-        this._queryResultsMap[uri].cancelQuery().then(success => {
+        let resultsUri = this.getResultsUri(uri).toString();
+        this._queryResultsMap.get(resultsUri).cancel().then(success => {
             // On success, dispose of the query runner
-            self._queryResultsMap.delete(uri);
+            self._queryResultsMap.delete(resultsUri);
         }, error => {
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
@@ -208,15 +216,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     public updateContent(queryRunner: QueryRunner): string {
         // Map the query runner to the results uri
-        // TODO: Fix this issue with the uri's not being correct
-        let uri = SqlOutputContentProvider.providerUri + encodeURI(queryRunner.uri);
-        console.log("uri=" + uri);
-        this._queryResultsMap.delete(uri);
-        this._queryResultsMap.set(uri, queryRunner);
+        let uri = this.getResultsUri(queryRunner.uri).toString();
+        this._queryResultsMap.set(uri.toString(), queryRunner);
 
         // Show the results pane
         let title = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
-        console.log("title=" + title);
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, title);
         this.onContentUpdated();
         return uri;
@@ -232,27 +236,28 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // the old uri. As long as we make requests to the service against that uri, we'll be good.
 
         // Remap the query runner in the map
-        this._queryResultsMap.set(savedUri, this._queryResultsMap[untitledUri]);
+        this._queryResultsMap.set(savedUri, this._queryResultsMap.get(untitledUri));
         this._queryResultsMap.delete(untitledUri);
     }
 
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
-        let uri = decodeURI(doc.uri.toString());
+        let uri = doc.uri.toString();
 
         // If there isn't a query runner for this uri, then nothing to do
-        if(!this._queryResultsMap.has(uri)) {
+        if (!this._queryResultsMap.has(uri)) {
             // NOTE: It is not necessary to check if this is a results pane or a src file, a
             // queryrunner is only ever coupled to a results pane in the map.
             return;
         }
 
         // Is the query in progress
-        if (this._queryResultsMap[uri].isExecutingQuery()) {
+        let queryRunner: QueryRunner = this._queryResultsMap.get(uri);
+        if (queryRunner.isExecutingQuery) {
             // We need to cancel it, which will dispose it
             this.cancelQuery(uri);
         } else {
             // We need to explicitly dispose the query
-            this._queryResultsMap[uri].dispose();
+            queryRunner.dispose();
         }
 
         // Unmap the uri to the queryrunner
@@ -261,7 +266,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     // Called by VS Code exactly once to load html content in the preview window
     public provideTextDocumentContent(uri: vscode.Uri): string {
-        console.log(uri.toString());
+        // URI needs to be encoded as a component for proper inclusion in a url
+        let encodedUri = encodeURIComponent(uri.toString());
+
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `
         <html>
@@ -279,13 +286,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             var theme = document.body.className;
             window.onload = function(event) {
                 event.stopPropagation(true);
-                var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${uri.toString()}" +
-                                                                                                        "&theme=" + theme +
-                                                                                                        "&backgroundcolor=" + backgroundcolor +
-                                                                                                        "&color=" + color +
-                                                                                                        "&fontfamily=" + fontfamily +
-                                                                                                        "&fontweight=" + fontweight +
-                                                                                                        "&fontsize=" + fontsize;
+                var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
+                          "uri=${encodedUri}" +
+                          "&theme=" + theme +
+                          "&backgroundcolor=" + backgroundcolor +
+                          "&color=" + color +
+                          "&fontfamily=" + fontfamily +
+                          "&fontweight=" + fontweight +
+                          "&fontsize=" + fontsize;
                 window.location.href = url
             };
         </script>

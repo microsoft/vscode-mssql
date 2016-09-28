@@ -150,6 +150,8 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
+        this._isExecuting = false;
+
         this.batchSets = result.batchSummaries;
         this.batchSets.map((batch) => {
             batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
