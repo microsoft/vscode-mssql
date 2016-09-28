@@ -97,6 +97,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
         this.registerCommand(Constants.cmdOpenConnectionSettings);
         this._event.on(Constants.cmdOpenConnectionSettings, () => { self.onOpenConnectionSettings(); } );
+        this.registerCommand(Constants.cmdShowReleaseNotes);
+        this._event.on(Constants.cmdShowReleaseNotes, () => { self.launchReleaseNotesPage(); } );
 
         this._vscodeWrapper = new VscodeWrapper();
 

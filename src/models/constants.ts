@@ -23,6 +23,7 @@ export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdOpenConnectionSettings = 'extension.openConnectionSettingsFile';
+export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
