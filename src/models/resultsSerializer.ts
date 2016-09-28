@@ -45,13 +45,14 @@ export default class ResultsSerializer {
     private promptForFilepath(): Promise<string> {
         const self = this;
         let prompted: boolean = false;
+        let filepathPlaceHolder = self.resolveCurrentDirectory(self._uri);
         let questions: IQuestion[] = [
             // prompt user to enter file path
             {
                 type: QuestionTypes.input,
                 name: Constants.filepathPrompt,
-                message: Constants.filepathPrompt,
-                placeHolder: Constants.filepathPlaceholder,
+                message: Constants.filepathMessage,
+                placeHolder: filepathPlaceHolder,
                 validate: (value) => this.validateFilePath(Constants.filepathPrompt, value)
             },
             // prompt to overwrite file if file already exists
@@ -133,10 +134,9 @@ export default class ResultsSerializer {
         return saveResultsParams;
     }
 
-    private resolveFilePath(uri: string, filePath: string): string {
+    private resolveCurrentDirectory(uri: string): string {
         const self = this;
         self._isTempFile = false;
-
         let sqlUri = vscode.Uri.parse(uri);
         let currentDirectory: string;
 
@@ -154,8 +154,13 @@ export default class ResultsSerializer {
         } else {
             currentDirectory = path.dirname(sqlUri.path);
         }
-        return path.normalize(path.join(currentDirectory, filePath));
+        return currentDirectory;
+    }
 
+    private resolveFilePath(uri: string, filePath: string): string {
+        const self = this;
+        let currentDirectory = self.resolveCurrentDirectory(uri);
+        return path.normalize(path.join(currentDirectory, filePath));
     }
 
     private validateFilePath(property: string, value: string): string {
@@ -165,12 +170,12 @@ export default class ResultsSerializer {
         return undefined;
     }
 
-    private getParameters(uri: string, filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange):
+    private getParameters(filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange):
                                                         Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams {
         const self = this;
         let saveResultsParams: Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams;
         if (!path.isAbsolute(filePath)) {
-            this._filePath = self.resolveFilePath(uri, filePath);
+            this._filePath = self.resolveFilePath(this._uri, filePath);
         } else {
             this._filePath = filePath;
         }
@@ -182,7 +187,7 @@ export default class ResultsSerializer {
         }
 
         saveResultsParams.filePath = this._filePath;
-        saveResultsParams.ownerUri = uri;
+        saveResultsParams.ownerUri = this._uri;
         saveResultsParams.resultSetIndex = resultSetNo;
         saveResultsParams.batchIndex = batchIndex;
         if (this.isSelected(selection)) {
@@ -205,10 +210,10 @@ export default class ResultsSerializer {
     /**
      * Send request to sql tools service to save a result set
      */
-    public sendRequestToService(uri: string, filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange):
+    public sendRequestToService( filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange):
                                                                                                                                         Thenable<void> {
         const self = this;
-        let saveResultsParams =  self.getParameters(uri, filePath, batchIndex, resultSetNo, format, selection);
+        let saveResultsParams =  self.getParameters( filePath, batchIndex, resultSetNo, format, selection);
         let type: RequestType<Contracts.SaveResultsRequestParams, Contracts.SaveResultRequestResult, void>;
         if (format === 'csv') {
             type = Contracts.SaveResultsAsCsvRequest.type;
@@ -235,7 +240,7 @@ export default class ResultsSerializer {
 
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendRequestToService(uri, filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
+            self.sendRequestToService( filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
         });
     }
 

@@ -119,6 +119,7 @@ export const profileNamePlaceholder = 'optional - enter a name for this profile'
 
 export const filepathPrompt = 'File path';
 export const filepathPlaceholder = 'Enter full path or simply file name';
+export const filepathMessage = 'Enter full path or simply file name';
 export const overwritePrompt = 'The file already exists. Would you like to overwrite?';
 export const overwritePlaceholder = 'The file already exists';
 
