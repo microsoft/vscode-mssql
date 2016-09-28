@@ -258,7 +258,7 @@ export default class MainController implements vscode.Disposable {
      */
     private showReleaseNotesPrompt(): void {
         let self = this;
-        if (this.doesExtensionLaunchedFileExist()) {
+        if (!this.doesExtensionLaunchedFileExist()) {
             // ask the user to view a scenario document
             let confirmText = 'View Now';
             this._vscodeWrapper.showInformationMessage(
