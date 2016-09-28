@@ -3,7 +3,7 @@
   "version": "0.0.5",
   "displayname": "MSSQL support in VS Code",
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
-  "publisher": "microsoft",
+  "publisher": "Microsoft",
   "license": "SEE LICENSE IN LICENSE.txt",
   "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
   "icon": "images/sqlserver.png",
@@ -138,6 +138,11 @@
       {
         "command": "extension.openConnectionSettingsFile",
         "title": "Open Connection Profile Settings",
+        "category": "MSSQL"
+      },
+      {
+        "command": "extension.showReleaseNotes",
+        "title": "Getting Started Guide",
         "category": "MSSQL"
       }
     ],
