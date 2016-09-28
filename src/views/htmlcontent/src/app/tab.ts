@@ -47,9 +47,12 @@ export class Tab implements OnInit {
     private updateActive(): void {
         if (!this._active) {
             this._el.nativeElement.getElementsByClassName('content')[0].className += ' hidden';
+            this._el.nativeElement.className += ' maxHeight';
         } else {
             this._el.nativeElement.getElementsByClassName('content')[0].className =
                 this._el.nativeElement.getElementsByClassName('content')[0].className.replace( /(?:^|\s)hidden(?!\S)/g , '' );
+            this._el.nativeElement.className =
+                this._el.nativeElement.className.replace( /(?:^|\s)maxHeight(?!\S)/g , '' );
         }
     }
 

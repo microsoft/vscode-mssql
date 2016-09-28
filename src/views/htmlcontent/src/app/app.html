@@ -1,34 +1,38 @@
 <div class="fullsize vertBox">
-    <tab class="boxRow content maxHeight" [id]="SelectedTab.Messages" tabTitle="Messages">
-        <div *ngFor="let imessage of messages">
-            <div> <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></div>
-            <div *ngFor="let message of imessage.messages" [class.errorMessage]="imessage.hasError">
-                {{message}}
+    <tab *ngIf="dataSets.length > 0" [icons]="dataIcons" [id]="SelectedTab.Results" tabTitle="Results" class="boxRow content vertBox maxHeight">
+        <div class="boxRow content vertBox minHeight">
+            <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of dataSets; let i = index">
+                <slick-grid [columnDefinitions]="dataSet.columnDefinitions"
+                            [dataRows]="dataSet.dataRows"
+                            (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId)"
+                            enableAyncPostRender="true"
+                            showDataTypeIcon="false"
+                            showHeader="true"
+                            (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
+                            class="boxCol content vertBox slickgrid scrollable">
+                </slick-grid>
+                <span class="boxCol content vertBox">
+                    <div class="boxRow content gridIcon maxHeight" *ngFor="let icon of dataIcons">
+                        <a href="#"
+                        (click)="icon.functionality()"
+                        [title]="icon.hoverText">
+                            <img [src]="icon.icon" (alt)="icon.hoverText">
+                        </a>
+                    </div>
+                </span>
             </div>
-            <br>
-        </div>
-    </tab>
-    <tab *ngIf="dataSets.length > 0" [icons]="dataIcons" [id]="SelectedTab.Results" tabTitle="Results" class="boxRow content vertBox">
-        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of dataSets; let i = index">
-            <slick-grid [columnDefinitions]="dataSet.columnDefinitions"
-                        [dataRows]="dataSet.dataRows"
-                        (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId)"
-                        enableAyncPostRender="true"
-                        showDataTypeIcon="false"
-                        showHeader="true"
-                        (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
-                        class="boxCol content vertBox slickgrid scrollable">
-            </slick-grid>
-            <span class="boxCol content vertBox">
-                <div class="boxRow content gridIcon maxHeight" *ngFor="let icon of dataIcons">
-                    <a href="#"
-                    (click)="icon.functionality()"
-                    [title]="icon.hoverText">
-                        <img [src]="icon.icon" (alt)="icon.hoverText">
-                    </a>
-                </div>
-            </span>
         </div>
         <context-menu (clickEvent)="handleContextClick($event)"></context-menu>
+    </tab>
+    <tab class="vertBox messages" [id]="SelectedTab.Messages" tabTitle="Messages">
+        <div class="scrollable">
+            <div *ngFor="let imessage of messages">
+                <div> <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></div>
+                <div *ngFor="let message of imessage.messages" [class.errorMessage]="imessage.hasError">
+                    {{message}}
+                </div>
+                <br>
+            </div>
+        </div>
     </tab>
 </div>

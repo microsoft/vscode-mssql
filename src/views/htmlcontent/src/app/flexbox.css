@@ -18,16 +18,26 @@ body {
 }
 
 .vertBox .boxRow.content {
-    flex: 1 1 1%;
+    flex: 100 1 1%;
     overflow: hidden;
 }
 
 .vertBox .boxRow.content.scrollable {
-    overflow: auto;
+    overflow: scroll;
 }
 
 .vertBox .boxRow.content.maxHeight {
     max-height: fit-content;
+}
+
+.messages {
+    min-height: 20%;
+    flex-shrink: 100;
+    flex-grow: 1;
+}
+
+.vertBox .boxRow.content.minHeight {
+    min-height: fit-content;
 }
 
 .vertBox .boxRow.content .slickgrid {
