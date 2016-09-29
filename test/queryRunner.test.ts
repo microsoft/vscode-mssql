@@ -44,7 +44,6 @@ suite('Query Runner tests', () => {
         let testuri = 'uri';
         let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
         let testtitle = 'title';
-<<<<<<< HEAD
 
         testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .callback((type, details: QueryExecuteParams) => {

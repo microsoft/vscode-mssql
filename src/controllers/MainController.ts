@@ -15,6 +15,8 @@ import VscodeWrapper from './vscodeWrapper';
 import { ISelectionData } from './../models/interfaces';
 
 export default class MainController implements vscode.Disposable {
+    // MEMBER VARIABLES ////////////////////////////////////////////////////
+
     private _context: vscode.ExtensionContext;
     private _event: events.EventEmitter = new events.EventEmitter();
     private _outputContentProvider: SqlOutputContentProvider;
@@ -26,6 +28,7 @@ export default class MainController implements vscode.Disposable {
     private _lastSavedUri: string;
     private _lastSavedTimer: Utils.Timer;
 
+    // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(context: vscode.ExtensionContext,
                 connectionManager?: ConnectionManager,
                 vscodeWrapper?: VscodeWrapper) {
@@ -38,16 +41,16 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
-    private registerCommand(command: string): void {
-        const self = this;
-        this._context.subscriptions.push(vscode.commands.registerCommand(command, () => {
-            self._event.emit(command);
-        }));
+    // PROPERTIES //////////////////////////////////////////////////////////
+
+    /**
+     * Access the connection manager for testing
+     */
+    public get connectionManager(): ConnectionManager {
+        return this._connectionMgr;
     }
 
-    dispose(): void {
-        this.deactivate();
-    }
+    // PUBLIC METHODS //////////////////////////////////////////////////////
 
     public deactivate(): void {
         Utils.logDebug(Constants.extensionDeactivated);
@@ -125,12 +128,12 @@ export default class MainController implements vscode.Disposable {
     }
 
     // Choose a new database from the current server
-    private onChooseDatabase(): Promise<boolean> {
+    public onChooseDatabase(): Promise<boolean> {
         return this._connectionMgr.onChooseDatabase();
     }
 
     // Close active connection, if any
-    private onDisconnect(): Promise<any> {
+    public onDisconnect(): Promise<any> {
         return this._connectionMgr.onDisconnect();
     }
 
@@ -200,14 +203,7 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr.connectionUI.openConnectionProfileConfigFile();
     }
 
-    private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
-        let self = this;
-        return promise.catch(err => {
-            self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
-        });
-    }
-
-    private onDidCloseTextDocument(doc: vscode.TextDocument): void {
+    public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         let closedDocumentUri: string = doc.uri.toString();
         let closedDocumentUriScheme: string = doc.uri.scheme;
 
@@ -220,6 +216,7 @@ export default class MainController implements vscode.Disposable {
             // If so, then we saved an untitled document and need to update where necessary
             if (this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
                 this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
+                // OutputContentProvider doesn't need to
             }
 
             // Reset the save timer
@@ -232,7 +229,7 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
-    private onDidSaveTextDocument(doc: vscode.TextDocument): void {
+    public onDidSaveTextDocument(doc: vscode.TextDocument): void {
         let savedDocumentUri: string = doc.uri.toString();
 
         // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
@@ -241,10 +238,22 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedUri = savedDocumentUri;
     }
 
-    /**
-     * Access the connection manager for testing
-     */
-    public get connectionManager(): ConnectionManager {
-        return this._connectionMgr;
+    public dispose(): void {
+        this.deactivate();
+    }
+
+    // PRIVATE HELPERS /////////////////////////////////////////////////////
+    private registerCommand(command: string): void {
+        const self = this;
+        this._context.subscriptions.push(vscode.commands.registerCommand(command, () => {
+            self._event.emit(command);
+        }));
+    }
+
+    private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
+        let self = this;
+        return promise.catch(err => {
+            self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+        });
     }
 }

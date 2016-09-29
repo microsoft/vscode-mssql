@@ -14,23 +14,18 @@ import { ISelectionData } from './interfaces';
 const pd = require('pretty-data').pd;
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
-    private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
+    // CONSTANTS ///////////////////////////////////////////////////////////
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
+
+    // MEMBER VARIABLES ////////////////////////////////////////////////////
+    private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private _vscodeWrapper: VscodeWrapper;
 
-    get onDidChange(): vscode.Event<vscode.Uri> {
-        return this._onDidChange.event;
-    }
-
-    public onContentUpdated(): void {
-        this._onDidChange.fire(SqlOutputContentProvider.providerUri);
-    }
-
-    constructor(context: vscode.ExtensionContext,
-                private _statusView: StatusView) {
+    // CONSTRUCTOR /////////////////////////////////////////////////////////
+    constructor(context: vscode.ExtensionContext, private _statusView: StatusView) {
         const self = this;
 
         this._vscodeWrapper = new VscodeWrapper();
@@ -178,15 +173,22 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
     }
 
+    // PROPERTIES //////////////////////////////////////////////////////////
+
+    public get onDidChange(): vscode.Event<vscode.Uri> {
+        return this._onDidChange.event;
+    }
+
+    public onContentUpdated(): void {
+        this._onDidChange.fire(SqlOutputContentProvider.providerUri);
+    }
+
+    // PUBLIC METHODS //////////////////////////////////////////////////////
+
     public isRunningQuery(uri: string): boolean {
         return !this._queryResultsMap.has(uri)
             ? false
             : this._queryResultsMap.get(uri).isExecutingQuery;
-    }
-
-    private getResultsUri(srcUri: string): string {
-        // NOTE: The results uri will be encoded when we parse it to a uri
-        return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
     }
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
@@ -226,9 +228,17 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return uri;
     }
 
+    /**
+     * Executed from the MainController when an untitled text document was saved to the disk. If
+     * any queries were executed from the untitled document, the queryrunner will be remapped to
+     * a new resuls uri based on the uri of the newly saved file.
+     * @param untitledUri   The URI of the untitled file
+     * @param savedUri  The URI of the file after it was saved
+     */
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
         // If we don't have any query runners mapped to this uri, don't do anything
-        if (!this._queryResultsMap.has(untitledUri)) {
+        let untitledResultsUri = this.getResultsUri(untitledUri);
+        if (!this._queryResultsMap.has(untitledResultsUri)) {
             return;
         }
 
@@ -236,17 +246,21 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // the old uri. As long as we make requests to the service against that uri, we'll be good.
 
         // Remap the query runner in the map
-        this._queryResultsMap.set(savedUri, this._queryResultsMap.get(untitledUri));
-        this._queryResultsMap.delete(untitledUri);
+        let savedResultUri = this.getResultsUri(savedUri);
+        this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
+        this._queryResultsMap.delete(untitledResultsUri);
     }
 
+    /**
+     * Executed from the MainController when a text document (that already exists on disk) was
+     * closed. If the query is in progress, it will be cancelled. If there is a query at all,
+     * the query will be disposed.
+     * @param doc   The document that was closed
+     */
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
-        let uri = doc.uri.toString();
-
         // If there isn't a query runner for this uri, then nothing to do
+        let uri = doc.uri.toString();
         if (!this._queryResultsMap.has(uri)) {
-            // NOTE: It is not necessary to check if this is a results pane or a src file, a
-            // queryrunner is only ever coupled to a results pane in the map.
             return;
         }
 
@@ -298,5 +312,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             };
         </script>
         </html>`;
+    }
+
+    // PRIVATE HELPERS /////////////////////////////////////////////////////
+
+    /**
+     * Generates a URI for the results pane. NOTE: this MUST be encoded using encodeURIComponent()
+     * before outputting as part of a URI (ie, as a query param in an href)
+     * @param srcUri    The URI for the source file where the SQL was executed from
+     * @returns The URI for the results pane
+     */
+    private getResultsUri(srcUri: string): string {
+        // NOTE: The results uri will be encoded when we parse it to a uri
+        return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
     }
 }

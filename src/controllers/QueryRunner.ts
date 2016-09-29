@@ -23,14 +23,14 @@ export interface IResultSet {
 * and handles getting more rows from the service layer and disposing when the content is closed.
 */
 export default class QueryRunner {
-    // MEMBER VARIABLES ====================================================
+    // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _batchSets: BatchSummary[];
     private _isExecuting: boolean;
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
 
-    // CONSTRUCTOR =========================================================
+    // CONSTRUCTOR /////////////////////////////////////////////////////////
 
     constructor(private _ownerUri: string,
                 private _editorTitle: string,
@@ -40,15 +40,15 @@ export default class QueryRunner {
                 private _notificationHandler?: QueryNotificationHandler,
                 private _vscodeWrapper?: VscodeWrapper) {
         if (!_client) {
-            this.client = SqlToolsServerClient.instance;
+            this._client = SqlToolsServerClient.instance;
         }
 
         if (!_notificationHandler) {
-            this.notificationHandler = QueryNotificationHandler.instance;
+            this._notificationHandler = QueryNotificationHandler.instance;
         }
 
         if (!_vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
+            this._vscodeWrapper = new VscodeWrapper();
         }
 
         // Store the state
@@ -57,27 +57,7 @@ export default class QueryRunner {
         this._isExecuting = false;
     }
 
-    private get notificationHandler(): QueryNotificationHandler {
-        return this._notificationHandler;
-    }
-
-    private set notificationHandler(handler: QueryNotificationHandler) {
-        this._notificationHandler = handler;
-    }
-
-    private get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper;
-    }
-
-    private set vscodeWrapper(wrapper: VscodeWrapper) {
-        this._vscodeWrapper = wrapper;
-    }
-
-    private get statusView(): StatusView {
-        return this._statusView;
-    }
-
-    // PROPERTIES ==========================================================
+    // PROPERTIES //////////////////////////////////////////////////////////
 
     get uri(): string {
         return this._uri;
@@ -85,14 +65,6 @@ export default class QueryRunner {
 
     set uri(uri: string) {
         this._uri = uri;
-    }
-
-    private get client(): SqlToolsServerClient {
-        return this._client;
-    }
-
-    private set client(client: SqlToolsServerClient) {
-        this._client = client;
     }
 
     get title(): string {
@@ -120,7 +92,7 @@ export default class QueryRunner {
     public cancel(): Thenable<QueryCancelResult> {
         // Make the request to cancel the query
         let cancelParams: QueryCancelParams = { ownerUri: this._uri };
-        return this.client.sendRequest(QueryCancelRequest.type, cancelParams);
+        return this._client.sendRequest(QueryCancelRequest.type, cancelParams);
     }
 
     // Pulls the query text from the current document/selection and initiates the query
@@ -132,19 +104,21 @@ export default class QueryRunner {
         };
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
+        this._statusView.executingQuery(this.uri);
 
-        return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
+        return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
+            self._statusView.executedQuery(this.uri);
             if (result.messages) {
                 self._isExecuting = false;
-                self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
+                self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
             } else {
-                self.statusView.executingQuery(self.uri);
                 // register with the Notification Handler
-                self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
+                self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
         }, error => {
+            self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
-            self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
+            self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }
 
@@ -157,7 +131,7 @@ export default class QueryRunner {
             batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
             batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
         });
-        this.statusView.executedQuery(this.uri);
+        this._statusView.executedQuery(this.uri);
         this._outputProvider.updateContent(this);
     }
 
@@ -171,9 +145,9 @@ export default class QueryRunner {
         queryDetails.rowsStartIndex = rowStart;
         queryDetails.batchIndex = batchIndex;
         return new Promise<QueryExecuteSubsetResult>((resolve, reject) => {
-            self.client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
+            self._client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
                 if (result.message) {
-                    self.vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + result.message);
+                    self._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + result.message);
                     reject();
                 } else {
                     resolve(result);
@@ -191,15 +165,15 @@ export default class QueryRunner {
         return new Promise<void>((resolve, reject) => {
             let disposeDetails = new QueryDisposeParams();
             disposeDetails.ownerUri = self.uri;
-            self.client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
+            self._client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
                 if (result.messages) {
-                    self.vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
+                    self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
                     reject();
                 } else {
                     resolve();
                 }
             }, error => {
-                self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
+                self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
             });
         });
     }
@@ -249,20 +223,20 @@ export default class QueryRunner {
     public setEditorSelection(selection: ISelectionData): Thenable<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
-            self.vscodeWrapper.openTextDocument(self.vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                let docEditors = self.vscodeWrapper.visibleEditors.filter((editor) => {
+            self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
+                let docEditors = self._vscodeWrapper.visibleEditors.filter((editor) => {
                     return editor.document === doc;
                 });
                 if (docEditors.length !== 0) {
-                    docEditors[0].selection = self.vscodeWrapper.selection(
-                                              self.vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                              self.vscodeWrapper.position(selection.endLine, selection.endColumn));
+                    docEditors[0].selection = self._vscodeWrapper.selection(
+                                              self._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                              self._vscodeWrapper.position(selection.endLine, selection.endColumn));
                     resolve();
                 } else {
-                    self.vscodeWrapper.showTextDocument(doc).then((editor) => {
-                        editor.selection = self.vscodeWrapper.selection(
-                                        self.vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                        self.vscodeWrapper.position(selection.endLine, selection.endColumn));
+                    self._vscodeWrapper.showTextDocument(doc).then((editor) => {
+                        editor.selection = self._vscodeWrapper.selection(
+                                        self._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                        self._vscodeWrapper.position(selection.endLine, selection.endColumn));
                         resolve();
                     });
                 }

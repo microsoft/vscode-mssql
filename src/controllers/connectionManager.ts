@@ -365,7 +365,7 @@ export default class ConnectionManager {
         let docUri: string = doc.uri.toString();
 
         // If this file isn't connected, then don't do anything
-        if(!this.isConnected(docUri)) {
+        if (!this.isConnected(docUri)) {
             return;
         }
 
