@@ -40,7 +40,7 @@ declare let $;
     providers: [DataService],
     styles: [`
     .errorMessage {
-        color: red;
+        color: var(--color-error);
     }`
     ]
 })
@@ -290,7 +290,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
         $resizeHandle.bind('dragend', (e, dd) => {
             self.resizing = false;
-            $messagePane.css('min-height', $(window).height() - (e.pageY - 22));
+            $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
             self.cd.detectChanges();
         });
     }
