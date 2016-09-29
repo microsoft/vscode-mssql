@@ -2,7 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
+    ChangeDetectorRef, AfterViewChecked} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -27,6 +28,8 @@ interface IMessages {
     selection: ISelectionData;
 }
 
+declare let $;
+
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
@@ -42,7 +45,7 @@ interface IMessages {
     ]
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewChecked {
     private dataSets: {
         dataRows: IObservableCollection<IGridDataRow>,
         columnDefinitions: IColumnDefinition[],
@@ -50,10 +53,17 @@ export class AppComponent implements OnInit {
         batchId: number,
         resultId: number}[] = [];
     private messages: IMessages[] = [];
+    private messagesAdded = false;
     private selected: SelectedTab;
     private windowSize = 50;
     private c_key = 67;
     public SelectedTab = SelectedTab;
+    private resizing = false;
+    private resizeHandleTop = 0;
+    // tslint:disable-next-line:no-unused-variable
+    private resultActive = true;
+    // tslint:disable-next-line:no-unused-variable
+    private messageActive = true;
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
         {
@@ -75,17 +85,21 @@ export class AppComponent implements OnInit {
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
 
-    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
+    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
+                @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
+                @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
 
     /**
      * Called by Angular when the object is initialized
      */
     ngOnInit(): void {
         const self = this;
+        this.setupResizeBind();
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
                 let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
                 self.messages.push(messages);
+                self.messagesAdded = true;
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
@@ -147,12 +161,20 @@ export class AppComponent implements OnInit {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            self.messagesAdded = true;
                             self.selected = SelectedTab.Results;
                         });
                     }
                 });
             }
         });
+    }
+
+    ngAfterViewChecked(): void {
+        if (this.messagesAdded) {
+            this.messagesAdded = false;
+            this.scrollMessages();
+        }
     }
 
     /**
@@ -248,5 +270,36 @@ export class AppComponent implements OnInit {
      */
     editorSelection(selection: ISelectionData): void {
         this.dataService.setEditorSelection(selection);
+    }
+
+    /**
+     * Sets up the resize bar
+     */
+    setupResizeBind(): void {
+        const self = this;
+        let $resizeHandle = $(document.getElementById('messageResizeHandle'));
+        let $messagePane = $(document.getElementById('messages'));
+        $resizeHandle.bind('dragstart', (e, dd) => {
+            self.resizing = true;
+            self.resizeHandleTop = e.pageY;
+        });
+
+        $resizeHandle.bind('drag', (e, dd) => {
+            self.resizeHandleTop = e.pageY;
+        });
+
+        $resizeHandle.bind('dragend', (e, dd) => {
+            self.resizing = false;
+            $messagePane.css('min-height', $(window).height() - (e.pageY - 22));
+            self.cd.detectChanges();
+        });
+    }
+
+    /**
+     * Ensures the messages tab is scrolled to the bottom
+     */
+    scrollMessages(): void {
+        let messagesDiv = document.getElementById('messages');
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 }

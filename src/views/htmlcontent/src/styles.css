@@ -32,3 +32,25 @@
 .gridIcon {
     margin: 5px 5px;
 }
+
+.resizableHandle {
+    font-size: 0.1px;
+    display: block;
+    float: right;
+    position: absolute;
+    cursor: row-resize;
+    top: 0;
+    height: 4px;
+    width: 100%;
+    z-index: 1;
+}
+
+#resizeHandle {
+    font-size: 0.1px;
+    position: absolute;
+    cursor: row-resize;
+    height: 4px;
+    width: 100%;
+    z-index: 2;
+    background-color: var(--color-bg-content-light);
+}

@@ -25,7 +25,7 @@ enum SelectedTab {
         <div class="boxRow header collapsible" [class.collapsed]="!active" (click)="active = !active">
             <span> {{title}} </span>
         </div>
-        <div class="boxRow content vertBox padded scrollable">
+        <div class="boxRow content vertBox scrollable" style="min-Height: 20%">
             <ng-content></ng-content>
         </div>`
 })
@@ -47,12 +47,9 @@ export class Tab implements OnInit {
     private updateActive(): void {
         if (!this._active) {
             this._el.nativeElement.getElementsByClassName('content')[0].className += ' hidden';
-            this._el.nativeElement.className += ' maxHeight';
         } else {
             this._el.nativeElement.getElementsByClassName('content')[0].className =
                 this._el.nativeElement.getElementsByClassName('content')[0].className.replace( /(?:^|\s)hidden(?!\S)/g , '' );
-            this._el.nativeElement.className =
-                this._el.nativeElement.className.replace( /(?:^|\s)maxHeight(?!\S)/g , '' );
         }
     }
 
