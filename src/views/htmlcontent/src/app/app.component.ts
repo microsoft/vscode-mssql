@@ -52,6 +52,12 @@ export class AppComponent implements OnInit, AfterViewChecked {
         totalRows: number,
         batchId: number,
         resultId: number}[] = [];
+    private renderedDataSets: {
+        dataRows: IObservableCollection<IGridDataRow>,
+        columnDefinitions: IColumnDefinition[],
+        totalRows: number,
+        batchId: number,
+        resultId: number}[] = [];
     private messages: IMessages[] = [];
     private messagesAdded = false;
     private selected: SelectedTab;
@@ -78,6 +84,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: 'Save as JSON',
             functionality: (batchId, resultId) => {
                 this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId});
+            }
+        },
+        {
+            icon: '/images/glass.svg',
+            hoverText: 'Enbiggen/Ensmallen',
+            functionality: (batchId, resultId, index) => {
+                this.magnify(index);
             }
         }
     ];
@@ -161,6 +174,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            self.renderedDataSets.push(dataSet);
                             self.messagesAdded = true;
                             self.selected = SelectedTab.Results;
                         });
@@ -273,7 +287,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Sets up the resize bar
+     * Sets up the resize for the messages/results panes bar
      */
     setupResizeBind(): void {
         const self = this;
@@ -290,6 +304,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
         $resizeHandle.bind('dragend', (e, dd) => {
             self.resizing = false;
+            // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
             self.cd.detectChanges();
         });
@@ -301,5 +316,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
     scrollMessages(): void {
         let messagesDiv = document.getElementById('messages');
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    /**
+     * Makes a resultset take up the full result height if this is not already true
+     * Otherwise rerenders the result sets from default
+     */
+    magnify(index: number): void {
+        if (this.renderedDataSets.length > 1) {
+            this.renderedDataSets = [this.dataSets[index]];
+        } else {
+            this.renderedDataSets = this.dataSets;
+        }
     }
 }

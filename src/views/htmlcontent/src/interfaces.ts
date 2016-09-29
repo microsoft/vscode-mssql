@@ -62,5 +62,5 @@ export interface IGridBatchMetaData {
 export interface IGridIcon {
     icon: string;
     hoverText: string;
-    functionality: (batchId: number, resultId: number) => void;
+    functionality: (batchId: number, resultId: number, index: number) => void;
 }
