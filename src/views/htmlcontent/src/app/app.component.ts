@@ -88,7 +88,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         },
         {
             icon: '/images/glass.svg',
-            hoverText: 'Enbiggen/Ensmallen',
+            hoverText: 'Magnify/Reset',
             functionality: (batchId, resultId, index) => {
                 this.magnify(index);
             }
