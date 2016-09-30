@@ -11,3 +11,4 @@ tasks/**
 packages/**
 samples/**
 *.exe
+*.dat

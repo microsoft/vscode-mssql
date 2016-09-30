@@ -199,6 +199,7 @@ export default class ResultsSerializer {
         return saveResultsParams;
     }
 
+
     /**
      * Check if a range of cells were selected.
      */
@@ -234,6 +235,9 @@ export default class ResultsSerializer {
         });
     }
 
+    /**
+     * Handle save request by getting filename from user and sending request to service
+     */
     public onSaveResults(uri: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange[] ): Thenable<void> {
         const self = this;
         this._uri = uri;
@@ -241,10 +245,13 @@ export default class ResultsSerializer {
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
             self.sendRequestToService( filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
+
         });
     }
 
-    // Open the saved file in a new vscode editor pane
+    /**
+     * Open the saved file in a new vscode editor pane
+     */
     public openSavedFile(filePath: string): void {
         const self = this;
         let uri = vscode.Uri.file(filePath);

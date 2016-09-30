@@ -112,7 +112,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let selection: Interfaces.ISlickRange[] = req.body;
             let saveResults = new ResultsSerializer();
             saveResults.onSaveResults(queryUri, batchIndex, selectedResultSetNo, format, selection);
-
             res.status = 200;
             res.send();
         });
