@@ -56,6 +56,7 @@ suite('Query Runner tests', () => {
                 assert.equal(uri, testuri);
             });
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
 
         let queryRunner = new QueryRunner(
             testuri,
@@ -85,6 +86,7 @@ suite('Query Runner tests', () => {
                                 .returns(() => { return Promise.resolve({messages: 'failed'}); });
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
         let queryRunner = new QueryRunner(
                     testuri,
                     testtitle,
@@ -112,6 +114,7 @@ suite('Query Runner tests', () => {
         };
 
         testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()));
+        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
         let queryRunner = new QueryRunner(
             '',
