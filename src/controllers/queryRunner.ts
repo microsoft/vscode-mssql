@@ -27,6 +27,8 @@ export default class QueryRunner {
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
+    private batchSetsPromise: Promise<BatchSummary[]>;
+    private dataResolveReject;
 
     constructor(private _connectionMgr: ConnectionManager,
                 private _statusView: StatusView,
@@ -91,11 +93,15 @@ export default class QueryRunner {
         this._title = title;
     }
 
-    get batchSets(): BatchSummary[] {
+    getBatchSets(): Promise<BatchSummary[]> {
+        return this.batchSetsPromise;
+    }
+
+    private get batchSets(): BatchSummary[] {
         return this._batchSets;
     }
 
-    set batchSets(batchSets: BatchSummary[]) {
+    private set batchSets(batchSets: BatchSummary[]) {
         this._batchSets = batchSets;
     }
 
@@ -113,13 +119,20 @@ export default class QueryRunner {
             this._resultLineOffset = 0;
         }
 
+        self.batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
+            self.dataResolveReject = {resolve: resolve, reject: reject};
+        });
+
+        self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
+
         return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
+                self.batchSets = [{hasError: true, id: 0, selection: undefined, messages: [result.messages], resultSetSummaries: undefined}]
+                self.dataResolveReject.resolve()
             } else {
                 self.statusView.executingQuery(self.uri);
                 // register with the Notification Handler
-                self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
         }, error => {
             self.vscodeWrapper.showErrorMessage('Execution failed: ' + error);
@@ -134,7 +147,7 @@ export default class QueryRunner {
             batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
         });
         this.statusView.executedQuery(this.uri);
-        this._outputProvider.updateContent(this);
+        this.dataResolveReject.resolve(this.batchSets);
     }
 
     // get more data rows from the current resultSets from the service layer

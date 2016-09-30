@@ -95,6 +95,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
+        this.messages.push({messages: ['Executing query...'], hasError: false, selection: undefined});
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
                 let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
