@@ -24,12 +24,16 @@ export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdOpenConnectionSettings = 'extension.openConnectionSettingsFile';
+export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
 export const defaultPortNumber = 1433;
+
+export const errorPasswordExpired = 18487;
+export const errorPasswordNeedsReset = 18488;
 
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
@@ -83,6 +87,7 @@ export const msgChooseDatabasePlaceholder = 'Choose a database from the list bel
 
 export const msgConnectionError = 'Error {0}: {1}';
 export const msgConnectionError2 = 'Failed to connect: {0}';
+export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
 
 export const extensionActivated = 'activated.';
