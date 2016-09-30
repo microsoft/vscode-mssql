@@ -56,7 +56,7 @@ suite('save results tests', () => {
                                         });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-<<<<<<< HEAD
+
         saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
             assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
         });
@@ -91,9 +91,6 @@ suite('save results tests', () => {
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
 
         saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
-=======
-        saveResults.onSaveResultsAsCsv(testFile, 0, 0, undefined).then( () => {
->>>>>>> dev
             assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
         });
 
@@ -124,11 +121,7 @@ suite('save results tests', () => {
                                         return Promise.resolve({messages: undefined});
                                     });
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-<<<<<<< HEAD
         return saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
-=======
-        return saveResults.onSaveResultsAsCsv(testFile, 0, 0, undefined).then( () => {
->>>>>>> dev
                                     // check if filename is resolved to full path
                                     // resolvedpath = current directory + filename
                                     assert.equal( params.filePath, resolvedFilePath);
@@ -152,11 +145,7 @@ suite('save results tests', () => {
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-<<<<<<< HEAD
         return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
-=======
-        return saveResults.onSaveResultsAsCsv( testFile, 0, 0, undefined).then( () => {
->>>>>>> dev
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
@@ -177,11 +166,7 @@ suite('save results tests', () => {
                                 });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-<<<<<<< HEAD
         return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
-=======
-        return saveResults.onSaveResultsAsCsv( testFile, 0, 0, undefined).then( () => {
->>>>>>> dev
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
@@ -203,11 +188,7 @@ suite('save results tests', () => {
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-<<<<<<< HEAD
         return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
-=======
-        return saveResults.onSaveResultsAsJson( testFile, 0, 0, undefined).then( () => {
->>>>>>> dev
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
@@ -228,11 +209,7 @@ suite('save results tests', () => {
                                 });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-<<<<<<< HEAD
         return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
-=======
-        return saveResults.onSaveResultsAsJson( testFile, 0, 0, undefined).then( () => {
->>>>>>> dev
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
