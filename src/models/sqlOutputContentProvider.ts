@@ -103,17 +103,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/saveResults' - return success message as JSON
-        this._service.addHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
             let uri: string = decodeURI(req.query.uri);
             let queryUri = self._queryResultsMap.get(uri).uri;
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
             let format: string = req.query.format;
+            let selection: Interfaces.ISlickRange[] = req.body;
             let saveResults = new ResultsSerializer();
             if (format === 'csv') {
-                saveResults.onSaveResultsAsCsv(queryUri, batchIndex, selectedResultSetNo);
+                saveResults.onSaveResultsAsCsv(queryUri, batchIndex, selectedResultSetNo, selection);
             } else if (format === 'json') {
-                saveResults.onSaveResultsAsJson(queryUri, batchIndex, selectedResultSetNo);
+                saveResults.onSaveResultsAsJson(queryUri, batchIndex, selectedResultSetNo, selection);
             }
 
             res.status = 200;
