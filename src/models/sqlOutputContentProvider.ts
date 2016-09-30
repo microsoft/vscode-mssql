@@ -111,12 +111,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let format: string = req.query.format;
             let selection: Interfaces.ISlickRange[] = req.body;
             let saveResults = new ResultsSerializer();
-            if (format === 'csv') {
-                saveResults.onSaveResultsAsCsv(queryUri, batchIndex, selectedResultSetNo, selection);
-            } else if (format === 'json') {
-                saveResults.onSaveResultsAsJson(queryUri, batchIndex, selectedResultSetNo, selection);
-            }
-
+            saveResults.onSaveResults(queryUri, batchIndex, selectedResultSetNo, format, selection);
             res.status = 200;
             res.send();
         });
@@ -136,7 +131,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         });
                     });
              }, (error: any) => {
-                 console.error(error);
+                 self._vscodeWrapper.showErrorMessage(error);
              });
 
             res.status = 200;

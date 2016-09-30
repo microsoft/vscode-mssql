@@ -5,7 +5,7 @@
                         [columnDefinitions]="dataSet.columnDefinitions"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
-                        enableAyncPostRender="true"
+                        enableAsyncPostRender="true"
                         showDataTypeIcon="false"
                         showHeader="true"
                         (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
