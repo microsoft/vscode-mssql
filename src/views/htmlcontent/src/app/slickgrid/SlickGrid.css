@@ -100,23 +100,29 @@
 }
 .contextMenu {
   position: absolute;
-  background: #007ACC;
-  color: white;
-  border: 1px solid gray;
   padding: 2px;
   display: inline-block;
   min-width: 100px;
-  -moz-box-shadow: 2px 2px 2px silver;
-  -webkit-box-shadow: 2px 2px 2px silver;
   z-index: 99999;
+	border: none;
+  outline: 0;
+	color: black;
+	background-color: white;
 }
 .contextMenu li {
-  padding: 4px 4px 4px 14px;
+  padding: 4px 14px 4px 14px;
   list-style: none;
   cursor: pointer;
 }
-.contextMenu li:hover {
-  background-color: white;
-  color: #007ACC;
-  text-decoration: underline;
+.contextMenu li:hover:not(.disabled) {
+  background-color: #007ACC;
+  color: black;
+}
+
+.contextMenu.disabled {
+  color: #777;
+  text-decoration: none;
+  cursor: not-allowed;
+  background-color: transparent;
+  opacity: 0.4;
 }

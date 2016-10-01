@@ -24,6 +24,9 @@ export class ContextMenu {
         this.batchId = batchId;
         this.resultId = resultId;
         this.selection = selection;
+        if (selection.length > 1) {
+            $('ul.contextMenu li').addClass('disabled');
+        }
         $('.contextMenu').css('top', y).css('left', x).show();
         $('body').one('click', () => {
             $('.contextMenu').hide();
@@ -32,6 +35,14 @@ export class ContextMenu {
 
     hide(): void {
         $('.contextMenu').hide();
+    }
+
+    handleContextActionClick(event: {}): void {
+        console.log(event);
+        if (!($('ul.contextMenu li').hasClass('disabled'))) {
+            console.log('sending click event');
+            this.clickEvent.emit({'type': 'json', 'batchId': this.batchId, 'resultId': this.resultId, 'selection': this.selection});
+        }
     }
 
 }
