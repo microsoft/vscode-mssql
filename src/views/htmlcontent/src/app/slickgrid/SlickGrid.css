@@ -104,10 +104,10 @@
   display: inline-block;
   min-width: 100px;
   z-index: 99999;
-	border: none;
+  border: none;
   outline: 0;
-	color: black;
-	background-color: white;
+  color: black;
+  background-color: white;
   font-family: "Segoe WPC", "Segoe UI", ".SFNSDisplay-Light", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
 }
 .contextMenu li {
