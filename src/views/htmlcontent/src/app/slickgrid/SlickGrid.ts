@@ -134,7 +134,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     @Input() showHeader: boolean = false;
     @Input() showDataTypeIcon: boolean = true;
     @Input() enableColumnReorder: boolean = false;
-    @Input() enableAyncPostRender: boolean = true;
+    @Input() enableAsyncPostRender: boolean = true;
 
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
@@ -400,7 +400,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
             rowHeight: this._rowHeight,
             defaultColumnWidth: 120,
             editable: true,
-            enableAsyncPostRender: this.enableAyncPostRender,
+            enableAsyncPostRender: this.enableAsyncPostRender,
             editorFactory: {
                 getEditor: this.getColumnEditor
             },

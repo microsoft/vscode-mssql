@@ -77,7 +77,7 @@ export class SaveResultsAsJsonRequestParams extends SaveResultsRequestParams {
 
 export class SaveResultRequestResult {
         messages: string;
-    }
+}
 
 // --------------------------------- < Save Results as CSV Request > ------------------------------------------
 // save results in csv format
