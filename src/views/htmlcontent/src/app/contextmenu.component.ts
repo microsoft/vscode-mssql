@@ -25,7 +25,9 @@ export class ContextMenu {
         this.resultId = resultId;
         this.selection = selection;
         if (selection.length > 1) {
-            $('ul.contextMenu li').addClass('disabled');
+            this.disable();
+        } else {
+            this.enable();
         }
         $('.contextMenu').css('top', y).css('left', x).show();
         $('body').one('click', () => {
@@ -35,6 +37,14 @@ export class ContextMenu {
 
     hide(): void {
         $('.contextMenu').hide();
+    }
+
+    disable(): void {
+         $('ul.contextMenu li').addClass('disabled');
+    }
+
+    enable(): void {
+        $('ul.contextMenu li').removeClass('disabled');
     }
 
     handleContextActionClick(event: {}): void {

@@ -108,21 +108,21 @@
   outline: 0;
 	color: black;
 	background-color: white;
+  font-family: "Segoe WPC", "Segoe UI", ".SFNSDisplay-Light", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
 }
 .contextMenu li {
   padding: 4px 14px 4px 14px;
   list-style: none;
-  cursor: pointer;
+  cursor: default;
 }
 .contextMenu li:hover:not(.disabled) {
   background-color: #007ACC;
   color: black;
 }
 
-.contextMenu.disabled {
+.contextMenu li.disabled {
   color: #777;
   text-decoration: none;
-  cursor: not-allowed;
   background-color: transparent;
   opacity: 0.4;
 }
