@@ -6,6 +6,7 @@ import vscode = require('vscode');
 import Constants = require('./constants');
 import * as interfaces from './interfaces';
 import {ExtensionContext} from 'vscode';
+import fs = require('fs');
 
 // Interface for package.json information
 export interface IPackageInfo {
@@ -210,6 +211,19 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
         && expectedConn.authenticationType === conn.authenticationType
         && expectedConn.user === conn.user;
 }
+
+/**
+ * Check if a file exists on disk
+ */
+export function isFileExisting(filePath: string): boolean {
+        try {
+            let stats = fs.statSync(filePath);
+            logDebug(stats);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
 
 
 // One-time use timer for performance testing

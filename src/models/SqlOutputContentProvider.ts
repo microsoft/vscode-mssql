@@ -17,6 +17,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     // CONSTANTS ///////////////////////////////////////////////////////////
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
+    public static tempFileCount: number = 1;
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -120,7 +121,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
-            let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+            let tempFileName = self.getXmlTempFileName(columnName);
             let tempFilePath = path.join(os.tmpdir(), tempFileName );
             let uri = vscode.Uri.parse('untitled:' + tempFilePath);
             let xml = pd.xml(content);
@@ -321,5 +322,23 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     private getResultsUri(srcUri: string): string {
         // NOTE: The results uri will be encoded when we parse it to a uri
         return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
+    }
+
+    /**
+     * Return temp file name for a XML link
+     */
+    private getXmlTempFileName(columnName: string): string {
+        let baseFileName = columnName + '_';
+        let i: number;
+        let noRetries: number = 5;
+        for (i = 0; i < noRetries; i++) {
+            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.xml');
+            SqlOutputContentProvider.tempFileCount++;
+            if (!Utils.isFileExisting(tempFileName)) {
+                return tempFileName;
+            }
+
+        }
+        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
     }
 }
