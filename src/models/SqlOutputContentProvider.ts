@@ -329,15 +329,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     private getXmlTempFileName(columnName: string): string {
         let baseFileName = columnName + '_';
-        let i: number;
-        let noRetries: number = 5;
-        for (i = 0; i < noRetries; i++) {
+        let retryCount: number = 5;
+        for (let i = 0; i < retryCount; i++) {
             let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.xml');
             SqlOutputContentProvider.tempFileCount++;
             if (!Utils.isFileExisting(tempFileName)) {
                 return tempFileName;
             }
-
         }
         return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
     }
