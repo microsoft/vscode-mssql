@@ -8,7 +8,7 @@ import { IPrompter } from '../src/prompts/question';
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentials, AuthenticationTypes } from '../src/models/interfaces';
 import * as ConnectionContracts from '../src/models/contracts/connection';
-import MainController from '../src/controllers/controller';
+import MainController from '../src/controllers/mainController';
 import * as Interfaces from '../src/models/interfaces';
 import { ConnectionStore } from '../src/models/connectionStore';
 import StatusView from '../src/views/statusView';

@@ -7,6 +7,7 @@ import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryLis
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
+import {ISlickRange} from './slickgrid/SelectionModel';
 import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
@@ -75,15 +76,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
         {
             icon: '/images/u32.png',
             hoverText: 'Save as CSV',
-            functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId});
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
             }
         },
         {
             icon: '/images/u26.png',
             hoverText: 'Save as JSON',
-            functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId});
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
             }
         },
         {
@@ -216,21 +219,22 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Send save result set request to service
      */
-    handleContextClick(event: {type: string, batchId: number, resultId: number}): void {
+    handleContextClick(event: {type: string, batchId: number, resultId: number, selection: ISlickRange[]}): void {
         switch (event.type) {
             case 'csv':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv', event.selection);
                 break;
             case 'json':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json', event.selection);
                 break;
             default:
                 break;
         }
     }
 
-    openContextMenu(event: {x: number, y: number}, batchId, resultId): void {
-        this.contextMenu.show(event.x, event.y, batchId, resultId);
+    openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
+        let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+        this.contextMenu.show(event.x, event.y, batchId, resultId, selection);
     }
 
     /**

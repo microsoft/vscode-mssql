@@ -16,6 +16,7 @@ import {IConfig, ILogger} from './interfaces';
 
 let tmp = require('tmp');
 let fs = require('fs');
+let fse = require('fs-extra');
 const decompress = require('decompress');
 
 tmp.setGracefulCleanup();
@@ -122,10 +123,11 @@ export default class ServiceDownloadProvider {
         if (platform === undefined) {
             platform = getCurrentPlatform();
         }
-        let root = this.getInstallDirectoryRoot();
+        let basePath = this.getInstallDirectoryRoot();
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
-        let basePath = this.getInstallDirectoryPart(root, versionFromConfig);
-        basePath = this.getInstallDirectoryPart(basePath, platform.toString());
+        basePath = basePath.replace('{#version#}', versionFromConfig);
+        basePath = basePath.replace('{#platform#}', platform.toString());
+        fse.mkdirsSync(basePath);
         return basePath;
     }
 
@@ -134,25 +136,28 @@ export default class ServiceDownloadProvider {
     */
     public getInstallDirectoryRoot(): string {
         let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        // The path from config is relative to the out folder
-        let basePath = this.getInstallDirectoryPart(__dirname, '../../' + installDirFromConfig);
+        let basePath: string;
+        if (path.isAbsolute(installDirFromConfig)) {
+            basePath = installDirFromConfig;
+        } else {
+            // The path from config is relative to the out folder
+            basePath = path.join(__dirname, '../../' + installDirFromConfig);
+        }
         return basePath;
     }
 
-    private getInstallDirectoryPart(dirName: string, suffix: string): string {
-        let basePath = path.join(dirName, suffix);
-        if (!fs.existsSync(basePath)) {
-            fs.mkdirSync(basePath);
-        }
-        return basePath;
+    private getGetDownloadUrl(fileName: string): string {
+        let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
+        let version = this._config.getSqlToolsPackageVersion();
+        return baseDownloadUrl + '/' + version + '/' + fileName;
     }
 
    /**
     * Downloads the SQL tools service and decompress it in the install folder.
     */
     public go(platform?: Platform): Promise<boolean> {
-        const proxy = <string>this._config.getConfig('http.proxy');
-        const strictSSL = this._config.getConfig('http.proxyStrictSSL', true);
+        const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
+        const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
         if (platform === undefined) {
             platform = getCurrentPlatform();
         }
@@ -162,8 +167,7 @@ export default class ServiceDownloadProvider {
             const installDirectory = this.getInstallDirectory(platform);
 
             this._logger.logDebug(`Installing sql tools service to ${installDirectory}`);
-            let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
-            const urlString = baseDownloadUrl + '/' + fileName;
+            const urlString = this.getGetDownloadUrl(fileName);
 
             this._logger.logDebug(`Attempting to download ${fileName}`);
 
