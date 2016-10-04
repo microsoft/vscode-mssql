@@ -179,4 +179,11 @@ export const msgErrorReadingConfigFile = 'Error: Unable to load connection profi
 export const msgNewConfigFileHelpInfo = 'Save connections.json to enable autocomplete while editing connection profile settings.';
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
 
+
+export const sqlToolsServiceConfigKey = 'service';
+export const sqlToolsServiceInstallDirConfigKey = 'installDir';
+export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
+export const sqlToolsServiceVersionConfigKey = 'version';
+export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
+
 export const titleResultsPane = 'SQL Query Results: {0}';
