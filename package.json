@@ -108,47 +108,47 @@
       {
         "command": "extension.runQuery",
         "title": "Run T-SQL query",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.connect",
         "title": "Connect to a database",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.disconnect",
         "title": "Disconnect active connection",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.createprofile",
         "title": "Create Connection Profile",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.removeprofile",
         "title": "Remove Connection Profile",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.chooseDatabase",
         "title": "Switch database on current server",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.openConnectionSettingsFile",
         "title": "Open Connection Profile Settings",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.cancelConnect",
         "title": "Cancel Connecting",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.showReleaseNotes",
         "title": "Getting Started Guide",
-        "category": "MSSQL"
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
