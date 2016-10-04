@@ -283,9 +283,16 @@ export class ConnectionUI {
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+        const passwordEmptyInConfigFile: boolean = Utils.isEmpty(selection.connectionCreds.password);
         return this._connectionStore.addSavedPassword(selection)
         .then(sel => {
-            return ConnectionCredentials.ensureRequiredPropertiesSet(sel.connectionCreds, false, this._prompter);
+            return ConnectionCredentials.ensureRequiredPropertiesSet(
+                sel.connectionCreds,
+                selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
+                false,
+                passwordEmptyInConfigFile,
+                this._prompter,
+                this._connectionStore);
         });
     }
 
