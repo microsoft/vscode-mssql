@@ -38,7 +38,7 @@ body {
     min-height: fit-content;
 }
 
-.vertBox .boxRow.content.slickgrid {
+.slickgrid {
     min-height: 232;
     flex-basis: auto;
 }
