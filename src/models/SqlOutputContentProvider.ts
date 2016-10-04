@@ -35,7 +35,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
-            let uri: string = req.query.uri;
+            let uri: string = decodeURIComponent(req.query.uri);
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
@@ -58,7 +58,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
             let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = decodeURIComponent(req.query.uri);
             self._queryResultsMap.get(uri).getBatchSets().then((batchSets) => {
                 for (let [batchIndex, batch] of batchSets.entries()) {
                     let tempBatch: Interfaces.IGridBatchMetaData = {
@@ -68,9 +68,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         selection: batch.selection
                     };
                     for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
+                        let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
+                        let encodedUri = encodeURIComponent(uri);
+
                         tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                            columnsUri: '/' + Constants.outputContentTypeColumns + '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
-                            rowsUri: '/' + Constants.outputContentTypeRows +  '?batchId=' + batchIndex + '&resultId=' + resultIndex + '&uri=' + uri,
+                            columnsUri: Utils.formatString(uriFormat, Constants.outputContentTypeColumns, batchIndex, resultIndex, encodedUri),
+                            rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
                             numberOfRows: result.rowCount
                         });
                     }
@@ -85,7 +88,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = decodeURIComponent(req.query.uri);
             self._queryResultsMap.get(uri).getBatchSets().then((data) => {
                 let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
                 let json = JSON.stringify(columnMetadata);
@@ -99,7 +102,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchId = req.query.batchId;
             let rowStart = req.query.rowStart;
             let numberOfRows = req.query.numberOfRows;
-            let uri: string = req.query.uri;
+            let uri: string = decodeURIComponent(req.query.uri);
             self._queryResultsMap.get(uri).getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
@@ -318,6 +321,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     private getResultsUri(srcUri: string): string {
         // NOTE: The results uri will be encoded when we parse it to a uri
-        return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
+        return SqlOutputContentProvider.providerUri + srcUri;
     }
 }
