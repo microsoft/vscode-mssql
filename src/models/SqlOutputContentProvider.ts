@@ -17,6 +17,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     // CONSTANTS ///////////////////////////////////////////////////////////
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
+    public static tempFileCount: number = 1;
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
@@ -121,7 +122,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
             let linkType: string = req.body.type;
-            let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
+            let tempFileName = self.getXmlTempFileName(columnName, linkType);
             let tempFilePath = path.join(os.tmpdir(), tempFileName );
             let uri = vscode.Uri.parse('untitled:' + tempFilePath);
             if ( linkType === 'xml') {
@@ -335,5 +336,21 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     private getResultsUri(srcUri: string): string {
         // NOTE: The results uri will be encoded when we parse it to a uri
         return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
+    }
+
+    /**
+     * Return temp file name for a XML link
+     */
+    private getXmlTempFileName(columnName: string, linkType: string): string {
+        let baseFileName = columnName + '_';
+        let retryCount: number = 5;
+        for (let i = 0; i < retryCount; i++) {
+            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
+            SqlOutputContentProvider.tempFileCount++;
+            if (!Utils.isFileExisting(tempFileName)) {
+                return tempFileName;
+            }
+        }
+        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
     }
 }
