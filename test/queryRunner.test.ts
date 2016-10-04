@@ -108,7 +108,7 @@ suite('Query Runner tests', () => {
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-                messages: ['6 affects rows'],
+                messages: [{time: '', message: '6 affects rows'}],
                 resultSetSummaries: []
             }]
         };

@@ -52,9 +52,14 @@ export interface ISelectionData {
     endColumn: number;
 }
 
+export interface IResultMessage {
+    time: string;
+    message: string;
+}
+
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
-    messages: string[];
+    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
 }

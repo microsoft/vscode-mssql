@@ -5,7 +5,7 @@
 import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
-import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData } from './../interfaces';
+import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { ISlickRange } from './SlickGrid/SelectionModel';
 
 /**
@@ -81,9 +81,9 @@ export class DataService {
      * Get the messages for a batch
      * @param batchId The batchId for which batch to return messages for
      */
-    getMessages(batchId: number): Promise<string[]> {
+    getMessages(batchId: number): Promise<IResultMessage[]> {
         const self = this;
-        return new Promise<string[]>((resolve, reject) => {
+        return new Promise<IResultMessage[]>((resolve, reject) => {
             if (!self.batchSets) {
                 self.getMetaData().then(() => {
                     resolve(self.batchSets[batchId].messages);

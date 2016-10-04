@@ -1,5 +1,5 @@
 import {RequestType, NotificationType} from 'vscode-languageclient';
-import { ISelectionData } from './../interfaces';
+import { ISelectionData, IResultMessage } from './../interfaces';
 
 // ------------------------------- < Query Dispose Request > ----------------------------------------
 export namespace QueryDisposeRequest {
@@ -63,7 +63,7 @@ export class BatchSummary {
     hasError: boolean;
     id: number;
     selection: ISelectionData;
-    messages: string[];
+    messages: IResultMessage[];
     resultSetSummaries: ResultSetSummary[];
 }
 

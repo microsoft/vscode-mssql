@@ -30,13 +30,17 @@
         <span> Messages </span>
     </div>
     <div id="messages" class="scrollable messages" [class.hidden]="!messageActive">
-        <div *ngFor="let imessage of messages">
-            <div> <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></div>
-            <div *ngFor="let message of imessage.messages" [class.errorMessage]="imessage.hasError">
-                {{message}}
+        <table id="messageTable">
+            <div *ngFor="let imessage of messages">
+                <tr><td></td><td><a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></td></tr>
+                <tr *ngFor="let message of imessage.messages">
+                    <td>[{{message.time}}]</td>
+                    <td [class.errorMessage]="imessage.hasError">
+                        {{message.message}}
+                    </td>
+                </tr>
             </div>
-            <br>
-        </div>
+        </table>
     </div>
     <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
 </div>
