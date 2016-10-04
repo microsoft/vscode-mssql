@@ -15,9 +15,8 @@ import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon, IGridBatchMetaData, ISelectionData } from './../interfaces';
+import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
-
 
 enum SelectedTab {
     Results = 0,
@@ -25,7 +24,7 @@ enum SelectedTab {
 }
 
 interface IMessages {
-    messages: string[];
+    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
 }
@@ -72,14 +71,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
             icon: '/images/u32.png',
             hoverText: 'Save as CSV',
             functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId});
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: undefined});
             }
         },
         {
             icon: '/images/u26.png',
             hoverText: 'Save as JSON',
             functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId});
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: undefined});
             }
         }
     ];
@@ -99,7 +98,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.setupResizeBind();
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
-                let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
+                let messages: IMessages = {
+                    messages: [],
+                    hasError: batch.hasError,
+                    selection: batch.selection
+                };
+                for (let message of batch.messages) {
+                    let date = new Date(message.time);
+                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    messages.messages.push({time: timeString, message: message.message});
+                }
                 self.messages.push(messages);
                 self.messagesAdded = true;
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
