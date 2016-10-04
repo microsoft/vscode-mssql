@@ -1,6 +1,6 @@
 {
   "name": "vscode-mssql",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "displayname": "MSSQL support in VS Code",
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
   "publisher": "Microsoft",
@@ -138,6 +138,11 @@
       {
         "command": "extension.openConnectionSettingsFile",
         "title": "Open Connection Profile Settings",
+        "category": "MSSQL"
+      },
+      {
+        "command": "extension.cancelConnect",
+        "title": "Cancel Connecting",
         "category": "MSSQL"
       },
       {
