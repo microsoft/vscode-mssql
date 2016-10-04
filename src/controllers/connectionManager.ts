@@ -212,57 +212,72 @@ export default class ConnectionManager {
                     newCredentials.database = result.connectionSummary.databaseName;
                 }
 
-                connection.connectionId = result.connectionId;
-                connection.serverInfo = result.serverInfo;
-                connection.credentials = newCredentials;
-
-                self.statusView.connectSuccess(fileUri, newCredentials);
-
-                self._vscodeWrapper.logToOutputChannel(
-                    Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
-                );
-
-                connection.extensionTimer.end();
-
-                Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {
-                    connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
-                    serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
-                    serverOs: connection.serverInfo ? connection.serverInfo.osVersion : ''
-                }, {
-                    isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
-                    isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
-                    extensionConnectionTime: connection.extensionTimer.getDuration() - connection.serviceTimer.getDuration(),
-                    serviceConnectionTime: connection.serviceTimer.getDuration()
-                });
+                self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
                 newConnection = newCredentials;
             } else {
-                if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
-                    // Check if the error is an expired password
-                    if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
-                        // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-                        Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
-                    } else {
-                        Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError, result.errorNumber, result.errorMessage));
-                    }
-                } else {
-                    Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
-                }
-                self.statusView.connectError(fileUri, connection.credentials, result);
+                self.handleConnectionErrors(fileUri, connection, result);
                 newConnection = undefined;
             }
 
-            if (newConnection) {
-                let connectionToSave: Interfaces.IConnectionCredentials = Object.assign({}, newConnection);
-                self._connectionStore.addRecentlyUsed(connectionToSave)
-                .then(() => {
-                    connection.connectHandler(true);
-                }, err => {
-                    connection.connectHandler(false, err);
-                });
-            } else {
-                connection.connectHandler(false);
-            }
+            self.tryAddMruConnection(connection, newConnection);
         };
+    }
+
+    private handleConnectionSuccess(fileUri: string,
+                                    connection: ConnectionInfo,
+                                    newCredentials: Interfaces.IConnectionCredentials,
+                                    result: ConnectionContracts.ConnectionCompleteParams): void {
+        connection.connectionId = result.connectionId;
+        connection.serverInfo = result.serverInfo;
+        connection.credentials = newCredentials;
+
+        this.statusView.connectSuccess(fileUri, newCredentials);
+
+        this._vscodeWrapper.logToOutputChannel(
+            Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
+        );
+
+        connection.extensionTimer.end();
+
+        Telemetry.sendTelemetryEvent(this._context, 'DatabaseConnected', {
+            connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
+            serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
+            serverOs: connection.serverInfo ? connection.serverInfo.osVersion : ''
+        }, {
+            isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
+            isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
+            extensionConnectionTime: connection.extensionTimer.getDuration() - connection.serviceTimer.getDuration(),
+            serviceConnectionTime: connection.serviceTimer.getDuration()
+        });
+    }
+
+    private handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): void {
+        if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
+            // Check if the error is an expired password
+            if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
+                // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
+                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
+            } else {
+                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError, result.errorNumber, result.errorMessage));
+            }
+        } else {
+            Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
+        }
+        this.statusView.connectError(fileUri, connection.credentials, result);
+    }
+
+    private tryAddMruConnection(connection: ConnectionInfo, newConnection: Interfaces.IConnectionCredentials): void {
+        if (newConnection) {
+            let connectionToSave: Interfaces.IConnectionCredentials = Object.assign({}, newConnection);
+            this._connectionStore.addRecentlyUsed(connectionToSave)
+            .then(() => {
+                connection.connectHandler(true);
+            }, err => {
+                connection.connectHandler(false, err);
+            });
+        } else {
+            connection.connectHandler(false);
+        }
     }
 
     // choose database to use on current server
