@@ -1,8 +1,9 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import Constants = require('../src/models/constants');
+import Interfaces = require('../src/models/interfaces');
 import ResultsSerializer  from './../src/models/resultsSerializer';
-import { SaveResultsAsCsvRequest } from './../src/models/contracts';
+import { SaveResultsAsCsvRequestParams } from './../src/models/contracts';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { IQuestion, IPrompter } from '../src/prompts/question';
 import { TestPrompter } from './stubs';
@@ -41,21 +42,54 @@ suite('save results tests', () => {
             filePathQuestions = questions;
             })
             .returns((questions: IQuestion[]) => Promise.resolve(answers));
-
         // setup mock sql tools server client
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                        .callback((type, details: SaveResultsAsCsvRequest.SaveResultsRequestParams) => {
+                                        .callback((type, details: SaveResultsAsCsvRequestParams) => {
                                                 // check if filepath was set from answered prompt
                                                 assert.equal(details.ownerUri, testFile);
                                                 assert.equal(details.filePath, filePath);
                                         })
                                         .returns(() => {
                                             // This will come back as null from the service layer, but tslinter doesn't like that
-                                            return Promise.resolve({messages: undefined});
+                                            return Promise.resolve({messages: 'failure'});
                                         });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        saveResults.onSaveResultsAsCsv(testFile, 0, 0).then( () => {
+
+        saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
+            assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
+        });
+
+    });
+
+    test('check if overwrite prompt displays and right value is set', () => {
+
+        let filePathQuestions: IQuestion[];
+        let answers = {};
+        answers[Constants.filepathPrompt] = filePath;
+        answers[Constants.overwritePrompt] = true;
+
+        // setup mock filepath prompt
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny())).callback(questions => {
+            filePathQuestions = questions;
+            })
+            .returns((questions: IQuestion[]) => Promise.resolve(answers));
+
+        // setup mock sql tools server client
+        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                                        .callback((type, details: SaveResultsAsCsvRequestParams) => {
+                                                // check if filepath was set from answered prompt
+                                                assert.equal(details.ownerUri, testFile);
+                                                assert.equal(details.filePath, filePath);
+                                        })
+                                        .returns(() => {
+                                            // This will come back as null from the service layer, but tslinter doesn't like that
+                                            return Promise.resolve({messages: 'failure'});
+                                        });
+
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+
+        saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
             assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
         });
 
@@ -64,7 +98,7 @@ suite('save results tests', () => {
     test('check if filename resolves to absolute filepath with current directory', () => {
 
         let answers = {};
-        let params: SaveResultsAsCsvRequest.SaveResultsRequestParams;
+        let params: SaveResultsAsCsvRequestParams;
         let filename = 'testfilename.csv';
         let resolvedFilePath = '';
         if (os.platform() === 'win32') {
@@ -78,15 +112,15 @@ suite('save results tests', () => {
                                         .returns((questions: IQuestion[]) => Promise.resolve(answers));
 
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                    .callback((type, details: SaveResultsAsCsvRequest.SaveResultsRequestParams) => {
+                                    .callback((type, details: SaveResultsAsCsvRequestParams) => {
                                                               params = details;
                                     })
                                     .returns(() => {
                                         // This will come back as null from the service layer, but tslinter doesn't like that
-                                        return Promise.resolve({messages: undefined});
+                                        return Promise.resolve({messages: 'failure'});
                                     });
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResultsAsCsv(testFile, 0, 0).then( () => {
+        return saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
                                     // check if filename is resolved to full path
                                     // resolvedpath = current directory + filename
                                     assert.equal( params.filePath, resolvedFilePath);
@@ -103,6 +137,12 @@ suite('save results tests', () => {
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
                                     .returns((questions: IQuestion[]) => Promise.resolve(answers));
         vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
+        vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                                     .returns(() => {
                                         // This will come back as null from the service layer, but tslinter doesn't like that
@@ -110,7 +150,7 @@ suite('save results tests', () => {
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResultsAsCsv( testFile, 0, 0).then( () => {
+        return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
@@ -131,7 +171,7 @@ suite('save results tests', () => {
                                 });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResultsAsCsv( testFile, 0, 0).then( () => {
+        return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
@@ -146,6 +186,12 @@ suite('save results tests', () => {
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
                                     .returns((questions: IQuestion[]) => Promise.resolve(answers));
         vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
+        vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                                     .returns(() => {
                                         // This will come back as null from the service layer, but tslinter doesn't like that
@@ -153,7 +199,7 @@ suite('save results tests', () => {
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResultsAsJson( testFile, 0, 0).then( () => {
+        return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
@@ -174,9 +220,89 @@ suite('save results tests', () => {
                                 });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResultsAsJson( testFile, 0, 0).then( () => {
+        return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
+    });
+
+    test('Save as with selection - test if selected range is passed in parameters', () => {
+
+        let answers = {};
+        answers['File path'] = filePath;
+        let selection: Interfaces.ISlickRange[] = [{
+            fromCell: 0,
+            toCell: 1,
+            fromRow: 0,
+            toRow: 1
+        }];
+
+        // setup mocks
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                                    .returns((questions: IQuestion[]) => Promise.resolve(answers));
+        vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
+        vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
+        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                                    .callback((type, params: SaveResultsAsCsvRequestParams) => {
+                                                            // check if right parameters were set from the selection
+                                                            assert.equal( params.columnStartIndex, selection[0].fromCell);
+                                                            assert.equal( params.columnEndIndex, selection[0].toCell);
+                                                            assert.equal( params.rowStartIndex, selection[0].fromRow);
+                                                            assert.equal( params.rowEndIndex, selection[0].toRow);
+
+                                    })
+                                    .returns(() => {
+                                        // This will come back as null from the service layer, but tslinter doesn't like that
+                                        return Promise.resolve({messages: 'failure'});
+                                    });
+
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        return saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
+    });
+
+    test('Save as with selection - test case when right click on single cell - no selection is set in parameters', () => {
+
+        let answers = {};
+        answers['File path'] = filePath;
+        let selection: Interfaces.ISlickRange[] = [{
+            fromCell: 0,
+            toCell: 0,
+            fromRow: 0,
+            toRow: 0
+        }];
+
+        // setup mocks
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                                    .returns((questions: IQuestion[]) => Promise.resolve(answers));
+        vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
+        vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
+        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                                    .callback((type, params: SaveResultsAsCsvRequestParams) => {
+                                                            // Check if selection parameters were undefined in the request
+                                                            // When rightclicking on resultgrid to save entire result set,
+                                                            // the cell that was clicked on is sent in selection from the front end
+                                                            assert.equal( params.columnStartIndex, undefined);
+                                                            assert.equal( params.columnEndIndex, undefined);
+                                                            assert.equal( params.rowStartIndex, undefined);
+                                                            assert.equal( params.rowEndIndex, undefined);
+
+                                    })
+                                    .returns(() => {
+                                        // This will come back as null from the service layer, but tslinter doesn't like that
+                                        return Promise.resolve({messages: 'failure'});
+                                    });
+
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        return saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
     });
 });
