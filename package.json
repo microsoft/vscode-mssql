@@ -132,7 +132,7 @@
       },
       {
         "command": "extension.chooseDatabase",
-        "title": "Switch database on current server",
+        "title": "Change Database on Current Server",
         "category": "MS SQL"
       },
       {
