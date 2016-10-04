@@ -111,6 +111,25 @@ export class ConnectionUI {
     }
 
     /**
+     * Prompt the user if they would like to cancel connecting.
+     */
+    public promptToCancelConnection(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: Constants.msgPromptCancelConnect,
+                message: Constants.msgPromptCancelConnect
+            };
+            self._prompter.promptSingle(question).then(result => {
+                resolve(result ? true : false);
+            }).catch(err => {
+                resolve(false);
+            });
+        });
+    }
+
+    /**
      * Prompt the user to change language mode to SQL.
      * @returns resolves to true if the user changed the language mode to SQL.
      */

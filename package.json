@@ -139,6 +139,11 @@
         "command": "extension.openConnectionSettingsFile",
         "title": "Open Connection Profile Settings",
         "category": "MSSQL"
+      },
+      {
+        "command": "extension.cancelConnect",
+        "title": "Cancel Connecting",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [

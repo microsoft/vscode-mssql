@@ -73,6 +73,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
         this.registerCommand(Constants.cmdOpenConnectionSettings);
         this._event.on(Constants.cmdOpenConnectionSettings, () => { self.onOpenConnectionSettings(); } );
+        this.registerCommand(Constants.cmdCancelConnect);
+        this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
 
         this._vscodeWrapper = new VscodeWrapper();
 
@@ -116,22 +118,37 @@ export default class MainController implements vscode.Disposable {
         });
    }
 
-    // Choose a new database from the current server
+    /**
+     * Choose a new database from the current server
+     */
     private onChooseDatabase(): Promise<boolean> {
         return this._connectionMgr.onChooseDatabase();
     }
 
-    // Close active connection, if any
+    /**
+     * Close active connection, if any
+     */
     private onDisconnect(): Promise<any> {
         return this._connectionMgr.onDisconnect();
     }
 
-    // Let users pick from a list of connections
+    /**
+     * Let users pick from a list of connections
+     */
     public onNewConnection(): Promise<boolean> {
         return this._connectionMgr.onNewConnection();
     }
 
-    // get the T-SQL query from the editor, run it and show output
+    /**
+     * Cancels the current connection attempt
+     */
+    public onCancelConnect(): void {
+        return this._connectionMgr.onCancelConnect();
+    }
+
+    /**
+     * get the T-SQL query from the editor, run it and show output
+     */
     public onRunQuery(): void {
         const self = this;
         if (!this._vscodeWrapper.isEditingSqlFile) {
@@ -171,12 +188,16 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
-    // Prompts to create a new SQL connection profile
+    /**
+     * Prompts to create a new SQL connection profile
+     */
     public onCreateProfile(): Promise<boolean> {
         return this._connectionMgr.onCreateProfile();
     }
 
-    // Prompts to remove a registered SQL connection profile
+    /**
+     * Prompts to remove a registered SQL connection profile
+     */
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
     }
