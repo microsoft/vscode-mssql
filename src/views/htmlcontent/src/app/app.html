@@ -1,26 +1,42 @@
-<div class="fullsize box">
-    <tabs class="boxRow content box" [selected]="selected" (tabChange)="tabChange($event)">
-        <tab [id]="SelectedTab.Results" tabTitle="Results" [show]="dataSets.length > 0" class="boxRow content box">
-            <slick-grid *ngFor="let dataSet of dataSets; let i = index"
-                        [columnDefinitions]="dataSet.columnDefinitions"
+<div class="fullsize vertBox">
+    <div *ngIf="dataSets.length > 0" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
+        <span> Results </span>
+    </div>
+    <div *ngIf="dataSets.length > 0" class="boxRow content vertBox scrollable" [class.hidden]="!resultActive">
+        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of dataSets; let i = index">
+            <slick-grid [columnDefinitions]="dataSet.columnDefinitions"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
                         enableAsyncPostRender="true"
                         showDataTypeIcon="false"
                         showHeader="true"
                         (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
-                        class="boxRow content box slickgrid">
+                        class="boxCol content vertBox slickgrid">
             </slick-grid>
-            <context-menu (clickEvent)="handleContextClick($event)"></context-menu>
-        </tab>
-        <tab [id]="SelectedTab.Messages" tabTitle="Messages" [show]="messages.length > 0">
-            <div *ngFor="let imessage of messages">
-                <div> <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></div>
-                <div *ngFor="let message of imessage.messages" [class.errorMessage]="imessage.hasError">
-                    {{message}}
+            <span class="boxCol content vertBox">
+                <div class="boxRow content gridIcon maxHeight" *ngFor="let icon of dataIcons">
+                    <a href="#"
+                    (click)="icon.functionality()"
+                    [title]="icon.hoverText">
+                        <img [src]="icon.icon" (alt)="icon.hoverText">
+                    </a>
                 </div>
-                <br>
+            </span>
+        </div>
+    </div>
+    <context-menu (clickEvent)="handleContextClick($event)"></context-menu>
+    <div class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
+        <div id="messageResizeHandle" class="resizableHandle"></div>
+        <span> Messages </span>
+    </div>
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive">
+        <div *ngFor="let imessage of messages">
+            <div> <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></div>
+            <div *ngFor="let message of imessage.messages" [class.errorMessage]="imessage.hasError">
+                {{message}}
             </div>
-        </tab>
-    </tabs>
+            <br>
+        </div>
+    </div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
 </div>

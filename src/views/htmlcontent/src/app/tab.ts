@@ -2,8 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, Input, ContentChild, AfterViewInit, ElementRef, forwardRef, Inject } from '@angular/core';
+import { Component, Input, ContentChildren, ElementRef, forwardRef, Inject, OnInit, QueryList } from '@angular/core';
 import { SlickGrid } from './slickgrid/SlickGrid';
+import { IGridIcon } from './../interfaces';
 
 enum SelectedTab {
     Results = 0,
@@ -21,25 +22,34 @@ enum SelectedTab {
         padding: 1em;
         }`],
     template: `
-        <div class="boxRow content box">
-        <ng-content></ng-content>
+        <div class="boxRow header collapsible" [class.collapsed]="!active" (click)="active = !active">
+            <span> {{title}} </span>
+        </div>
+        <div class="boxRow content vertBox scrollable" style="min-Height: 20%">
+            <ng-content></ng-content>
         </div>`
 })
-export class Tab implements AfterViewInit {
+export class Tab implements OnInit {
     @Input('tabTitle') title: string;
     @Input() id: SelectedTab;
     @Input() show: boolean;
-    @ContentChild(SlickGrid) slickgrid: SlickGrid;
+    @Input() icons: IGridIcon[];
+    @ContentChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
-    private _active = false;
+    private _active = true;
 
     constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {};
 
+    ngOnInit(): void {
+        this.updateActive();
+    }
+
     private updateActive(): void {
         if (!this._active) {
-            this._el.nativeElement.className += ' hidden';
+            this._el.nativeElement.getElementsByClassName('content')[0].className += ' hidden';
         } else {
-            this._el.nativeElement.className = this._el.nativeElement.className.replace( /(?:^|\s)hidden(?!\S)/g , '' );
+            this._el.nativeElement.getElementsByClassName('content')[0].className =
+                this._el.nativeElement.getElementsByClassName('content')[0].className.replace( /(?:^|\s)hidden(?!\S)/g , '' );
         }
     }
 
@@ -50,14 +60,5 @@ export class Tab implements AfterViewInit {
 
     public get active(): boolean {
         return this._active;
-    }
-
-    /**
-     * Called by angular
-     */
-    ngAfterViewInit(): void {
-        if (this.slickgrid) {
-            this.slickgrid.onResize();
-        }
     }
 }

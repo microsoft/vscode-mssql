@@ -1,4 +1,44 @@
-.nav > li > a {
-  padding-top: 5px;
-  padding-bottom: 5px;
+.boxRow.content.padded {
+    padding: 15px
+}
+
+.header {
+    height: auto;
+    overflow: hidden;
+    height: 22px;
+    padding-left: 20px;
+    line-height: 22px;
+}
+
+.header > span {
+    float: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.gridIcon {
+    margin: 5px 5px;
+}
+
+.resizableHandle {
+    font-size: 0.1px;
+    display: block;
+    float: right;
+    position: absolute;
+    cursor: row-resize;
+    top: 0;
+    height: 4px;
+    width: 100%;
+    z-index: 1;
+}
+
+#resizeHandle {
+    font-size: 0.1px;
+    position: absolute;
+    cursor: row-resize;
+    height: 4px;
+    width: 100%;
+    z-index: 2;
+    background-color: var(--color-bg-content-light);
 }

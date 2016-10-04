@@ -58,3 +58,9 @@ export interface IGridBatchMetaData {
     hasError: boolean;
     selection: ISelectionData;
 }
+
+export interface IGridIcon {
+    icon: string;
+    hoverText: string;
+    functionality: (batchId: number, resultId: number) => void;
+}
