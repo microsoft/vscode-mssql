@@ -278,7 +278,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public provideTextDocumentContent(uri: vscode.Uri): string {
         // URI needs to be encoded as a component for proper inclusion in a url
         let encodedUri = encodeURIComponent(uri.toString());
-        console.log(encodedUri);
 
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `
