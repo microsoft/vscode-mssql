@@ -1,4 +1,6 @@
 import vscode = require('vscode');
+
+
 import * as Constants from './../models/constants';
 
 export import TextEditor = vscode.TextEditor;
@@ -156,8 +158,8 @@ export default class VscodeWrapper {
     /**
      * Formats and shows a vscode information message
      */
-    public showInformationMessage(msg: string): Thenable<string> {
-        return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg );
+    public showInformationMessage(msg: string, ...items: string[]): Thenable<string> {
+        return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg, ...items);
     }
 
     /**

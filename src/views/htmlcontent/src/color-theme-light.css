@@ -12,6 +12,7 @@
   --color-bg-content: #E9E9E9;
   --color-bg-content-light: #ffffff;
   --color-bg-content-dark: #d0d0d0;
+  --color-bg-header: hsla(0,0%,50%,.2);
   --color-toolbar: #000000;
   --color-bg-toolbar: #F4F4F4;
   --color-toolbar-border: #C8C8C8;
@@ -49,6 +50,13 @@ a:hover {
   color: #0b93ff;
 }
 
+::-webkit-scrollbar-thumb {
+  background: hsla(0,0%,39%,.7);
+}
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
 slick-grid {
   border-style: solid;
   border-color: grey;
@@ -59,12 +67,37 @@ slick-grid:last-of-type {
   border-width: 0 0 0 0;
 }
 
+/* headers */
+.header {
+  background: var(--color-bg-header);
+  color: var(--color-content);
+}
+
+.collapsible:not(.collapsed) {
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23646465' d='M11 10.07H5.344L11 4.414v5.656z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position: 2px;
+}
+
+.collapsible {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23646465' d='M6 4v8l4-4-4-4zm1 2.414L8.586 8 7 9.586V6.414z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position: 2px;
+}
+
+/* scroll bar */
 ::-webkit-scrollbar {
   width: 14px;
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
+  background: hsla(0,0%,47%,.4);
+}
+::-webkit-scrollbar-thumb:hover {
   background: hsla(0,0%,39%,.7);
+}
+::-webkit-scrollbar-thumb:active {
+  background: rgba(85,85,85,0.8);
 }
 ::-webkit-scrollbar-track {
   background: var(--background-color);
