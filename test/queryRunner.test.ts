@@ -94,6 +94,7 @@ suite('Query Runner tests', () => {
     });
 
     test('Handles result correctly', () => {
+        let resolveRan = false;
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: 'uri',
             batchSummaries: [{
@@ -105,7 +106,6 @@ suite('Query Runner tests', () => {
             }]
         };
 
-        testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
         let queryRunner = new QueryRunner(
             undefined,
@@ -116,9 +116,12 @@ suite('Query Runner tests', () => {
             testVscodeWrapper.object
         );
         queryRunner.uri = '';
+        queryRunner.dataResolveReject = {resolve: () => {
+            resolveRan = true;
+        }};
         queryRunner.handleResult(result);
-        testSqlOutputContentProvider.verify(x => x.updateContent(TypeMoq.It.isAny()), TypeMoq.Times.once());
         testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        assert.equal(resolveRan, true);
     });
 
     test('Correctly handles subset', () => {

@@ -27,8 +27,8 @@ export default class QueryRunner {
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
-    private batchSetsPromise: Promise<BatchSummary[]>;
-    private dataResolveReject;
+    private _batchSetsPromise: Promise<BatchSummary[]>;
+    public dataResolveReject;
 
     constructor(private _connectionMgr: ConnectionManager,
                 private _statusView: StatusView,
@@ -94,7 +94,7 @@ export default class QueryRunner {
     }
 
     getBatchSets(): Promise<BatchSummary[]> {
-        return this.batchSetsPromise;
+        return this._batchSetsPromise;
     }
 
     private get batchSets(): BatchSummary[] {
@@ -119,19 +119,18 @@ export default class QueryRunner {
             this._resultLineOffset = 0;
         }
 
-        self.batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
+        self._batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
             self.dataResolveReject = {resolve: resolve, reject: reject};
         });
-
-        self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
 
         return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
                 self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
-                self.batchSets = [{hasError: true, id: 0, selection: undefined, messages: [result.messages], resultSetSummaries: undefined}]
-                self.dataResolveReject.resolve()
+                self.batchSets = [{hasError: true, id: 0, selection: undefined, messages: [result.messages], resultSetSummaries: undefined}];
+                self.dataResolveReject.resolve();
             } else {
                 self.statusView.executingQuery(self.uri);
+                self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
                 // register with the Notification Handler
             }
         }, error => {
@@ -143,8 +142,10 @@ export default class QueryRunner {
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
         this.batchSets = result.batchSummaries;
         this.batchSets.map((batch) => {
-            batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
-            batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+            if (batch.selection) {
+                batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
+                batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+            }
         });
         this.statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
