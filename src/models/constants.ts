@@ -181,7 +181,7 @@ export const msgNewConfigFileHelpInfo = 'Save connections.json to enable autocom
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
 
 
-export const sqlToolsServiceConfigKey = 'sqlToolsService';
+export const sqlToolsServiceConfigKey = 'service';
 export const sqlToolsServiceInstallDirConfigKey = 'installDir';
 export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
 export const sqlToolsServiceVersionConfigKey = 'version';

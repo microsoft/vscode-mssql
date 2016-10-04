@@ -35,18 +35,6 @@ suite('Server tests', () => {
         });
     });
 
-    test('findServerPath should return error given a folder with no installed service', () => {
-        let installDir = __dirname;
-        testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', 'exeFile2']);
-        testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
-        testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
-        let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
-
-        server.findServerPath(installDir).then( result => {
-            assert.equal(result, undefined);
-        });
-    });
-
     test('findServerPath should return the file path given a file that exists', () => {
         let installDir = __dirname;
         let fileName = path.join(installDir, __filename);
