@@ -3,7 +3,8 @@
         <span> Results </span>
     </div>
     <div *ngIf="dataSets.length > 0" class="boxRow content vertBox scrollable" [class.hidden]="!resultActive">
-        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of dataSets; let i = index">
+        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of dataSets; let i = index"
+            [style.min-height]="dataSet.totalRows > _defaultNumShowingRows ? _rowHeight * (_defaultNumShowingRows + 1) + 'px' : _rowHeight * (dataSet.totalRows + 1) + 10">
             <slick-grid [columnDefinitions]="dataSet.columnDefinitions"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"

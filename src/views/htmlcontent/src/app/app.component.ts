@@ -59,6 +59,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private selected: SelectedTab;
     private windowSize = 50;
     private c_key = 67;
+    // tslint:disable-next-line:no-unused-variable
+    private _rowHeight = 29;
+    // tslint:disable-next-line:no-unused-variable
+    private _defaultNumShowingRows = 8;
     public SelectedTab = SelectedTab;
     private resizing = false;
     private resizeHandleTop = 0;
