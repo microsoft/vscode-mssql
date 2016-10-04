@@ -33,7 +33,6 @@ suite('Query Runner tests', () => {
         let queryRunner = new QueryRunner('',
                                           '',
                                           testStatusView.object,
-                                          testSqlOutputContentProvider.object,
                                             testSqlToolsServerClient.object,
                                             testQueryNotificationHandler.object,
                                             testVscodeWrapper.object);
@@ -62,7 +61,6 @@ suite('Query Runner tests', () => {
             testuri,
             testtitle,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
@@ -91,7 +89,6 @@ suite('Query Runner tests', () => {
                     testuri,
                     testtitle,
                     testStatusView.object,
-                    testSqlOutputContentProvider.object,
                     testSqlToolsServerClient.object,
                     testQueryNotificationHandler.object,
                     testVscodeWrapper.object
@@ -120,7 +117,6 @@ suite('Query Runner tests', () => {
             '',
             '',
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
@@ -158,7 +154,6 @@ suite('Query Runner tests', () => {
             testuri,
             testuri,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
@@ -183,7 +178,6 @@ suite('Query Runner tests', () => {
             testuri,
             testuri,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
@@ -226,7 +220,6 @@ suite('Query Runner tests', () => {
             testuri,
             testuri,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object

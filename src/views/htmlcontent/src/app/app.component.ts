@@ -17,10 +17,6 @@ import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
-<<<<<<< HEAD
-=======
-
->>>>>>> dev
 
 enum SelectedTab {
     Results = 0,

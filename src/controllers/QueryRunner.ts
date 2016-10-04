@@ -1,6 +1,5 @@
 'use strict';
 
-import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
@@ -37,7 +36,6 @@ export default class QueryRunner {
     constructor(private _ownerUri: string,
                 private _editorTitle: string,
                 private _statusView: StatusView,
-                private _outputProvider: SqlOutputContentProvider,
                 private _client?: SqlToolsServerClient,
                 private _notificationHandler?: QueryNotificationHandler,
                 private _vscodeWrapper?: VscodeWrapper) {
@@ -116,16 +114,16 @@ export default class QueryRunner {
             self.dataResolveReject = {resolve: resolve, reject: reject};
         });
 
-        return this.client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
+        return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             if (result.messages) {
                 self._statusView.executedQuery(self.uri);
                 self._isExecuting = false;
-                self.vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
+                self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
                 self.batchSets = [{hasError: true, id: 0, selection: undefined, messages: [result.messages], resultSetSummaries: undefined}];
                 self.dataResolveReject.resolve();
             } else {
                 // register with the Notification Handler
-                self.notificationHandler.registerRunner(self, queryDetails.ownerUri);
+                self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
         }, error => {
             self._statusView.executedQuery(self.uri);
@@ -145,7 +143,7 @@ export default class QueryRunner {
                 batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
             }
         });
-        this.statusView.executedQuery(this.uri);
+        this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
     }
 

@@ -183,17 +183,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._onDidChange.fire(SqlOutputContentProvider.providerUri);
     }
 
-     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
-        // Reuse existing query runner if it exists
-        let resultsUri = this.getResultsUri(uri).toString();
-        let queryRunner: QueryRunner = this._queryResultsMap.has(resultsUri)
-            ? this._queryResultsMap.get(resultsUri)
-            : new QueryRunner(uri, title, statusView, this);
-
-        // Execute the query
-        queryRunner.runQuery(selection);
-    }
-
     // PUBLIC METHODS //////////////////////////////////////////////////////
 
     public isRunningQuery(uri: string): boolean {
@@ -214,8 +203,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         // Execute the query
-        let title = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
-        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, title);
+        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
         queryRunner.runQuery(selection);
     }
 
