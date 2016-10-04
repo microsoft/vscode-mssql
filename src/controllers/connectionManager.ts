@@ -203,7 +203,7 @@ export default class ConnectionManager {
 
             let newConnection: Interfaces.IConnectionCredentials;
 
-            if (result.connectionId && result.connectionId !== '') {
+            if (Utils.isNotEmpty(result.connectionId)) {
                 // We have a valid connection
                 // Copy credentials as the database name will be updated
                 let newCredentials: Interfaces.IConnectionCredentials = <any>{};
@@ -214,11 +214,6 @@ export default class ConnectionManager {
 
                 connection.connectionId = result.connectionId;
                 connection.serverInfo = result.serverInfo;
-                if (!connection.serverInfo) {
-                    // In the event that we can't retrieve server information for some reason,
-                    // set the properties to undefined to prevent exceptions later on
-                    connection.serverInfo = new ConnectionContracts.ServerInfo();
-                }
                 connection.credentials = newCredentials;
 
                 self.statusView.connectSuccess(fileUri, newCredentials);
@@ -230,9 +225,9 @@ export default class ConnectionManager {
                 connection.extensionTimer.end();
 
                 Telemetry.sendTelemetryEvent(self._context, 'DatabaseConnected', {
-                    connectionType: connection.serverInfo.isCloud ? 'Azure' : 'Standalone',
-                    serverVersion: connection.serverInfo.serverVersion,
-                    serverOs: connection.serverInfo.osVersion
+                    connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
+                    serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
+                    serverOs: connection.serverInfo ? connection.serverInfo.osVersion : ''
                 }, {
                     isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
                     isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
