@@ -40,7 +40,6 @@ body {
 
 .slickgrid {
     min-height: 232;
-    flex-basis: auto;
 }
 
 /* horizontal box style */
