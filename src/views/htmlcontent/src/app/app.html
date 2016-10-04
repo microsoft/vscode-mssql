@@ -33,7 +33,7 @@
         <div *ngFor="let imessage of messages">
             <div> <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></div>
             <div *ngFor="let message of imessage.messages" [class.errorMessage]="imessage.hasError">
-                {{message}}
+                {{message.message}}
             </div>
             <br>
         </div>

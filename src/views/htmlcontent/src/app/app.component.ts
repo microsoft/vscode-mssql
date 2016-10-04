@@ -72,14 +72,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
             icon: '/images/u32.png',
             hoverText: 'Save as CSV',
             functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId});
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: undefined});
             }
         },
         {
             icon: '/images/u26.png',
             hoverText: 'Save as JSON',
             functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId});
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: undefined});
             }
         }
     ];
