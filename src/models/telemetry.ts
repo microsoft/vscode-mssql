@@ -5,7 +5,6 @@ import Utils = require('./utils');
 import TelemetryReporter from 'vscode-extension-telemetry';
 
 const dns = require('dns');
-const regedit = require('regedit');
 
 export namespace Telemetry {
     let reporter: TelemetryReporter;
@@ -79,6 +78,7 @@ export namespace Telemetry {
         return new Promise<boolean>(resolve => {
             if (os.platform() === 'win32') {
                 // Check the windows registry for the internal Microsoft key
+                const regedit = require('regedit');
                 regedit.list(sqmClientRegKey, (err, result) => {
                     if (!err &&
                         result &&

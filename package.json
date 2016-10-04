@@ -68,13 +68,15 @@
     "http-proxy-agent": "^1.0.0",
     "https-proxy-agent": "^1.0.0",
     "pretty-data": "^0.40.0",
-    "regedit": "^2.2.6",
     "request": "^2.73.0",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.0.5",
     "applicationinsights": "^0.15.0",
     "vscode-languageclient": "^2.5.0"
+  },
+  "optionalDependencies": {
+    "regedit": "^2.2.6"
   },
   "contributes": {
     "languages": [
