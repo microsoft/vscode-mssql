@@ -120,14 +120,28 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
-            let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+            let linkType: string = req.body.type;
+            let tempFileName = columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
             let tempFilePath = path.join(os.tmpdir(), tempFileName );
             let uri = vscode.Uri.parse('untitled:' + tempFilePath);
-            let xml = pd.xml(content);
+            if ( linkType === 'xml') {
+                content = pd.xml(content);
+            } else {
+                let jsonContent: string = undefined;
+                try {
+                    jsonContent = JSON.parse(content);
+                } catch (e) {
+                    Utils.logDebug('Error parsing json');
+                }
+                if (jsonContent) {
+                    content = JSON.stringify(JSON.parse(content), undefined, 4);
+                }
+            }
+
             vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
                     vscode.window.showTextDocument(doc, 1, false).then(editor => {
                         editor.edit( edit => {
-                            edit.insert( new vscode.Position(0, 0), xml);
+                            edit.insert( new vscode.Position(0, 0), content);
                         });
                     });
              }, (error: any) => {
