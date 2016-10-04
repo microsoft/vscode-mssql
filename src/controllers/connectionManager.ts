@@ -93,11 +93,17 @@ export default class ConnectionManager {
         }
     }
 
-    private get vscodeWrapper(): VscodeWrapper {
+    /**
+     * Exposed for testing purposes
+     */
+    public get vscodeWrapper(): VscodeWrapper {
         return this._vscodeWrapper;
     }
 
-    private set vscodeWrapper(wrapper: VscodeWrapper) {
+    /**
+     * Exposed for testing purposes
+     */
+    public set vscodeWrapper(wrapper: VscodeWrapper) {
         this._vscodeWrapper = wrapper;
     }
 
@@ -122,11 +128,37 @@ export default class ConnectionManager {
         return this._connectionUI;
     }
 
-    private get statusView(): StatusView {
+    /**
+     * Exposed for testing purposes
+     */
+    public get statusView(): StatusView {
         return this._statusView;
     }
 
-    // Exposed for testing purposes
+    /**
+     * Exposed for testing purposes
+     */
+    public set statusView(value: StatusView) {
+        this._statusView = value;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get connectionStore(): ConnectionStore {
+        return this._connectionStore;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public set connectionStore(value: ConnectionStore) {
+        this._connectionStore = value;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
     public get connectionCount(): number {
         return Object.keys(this._connections).length;
     }
@@ -164,7 +196,10 @@ export default class ConnectionManager {
         };
     }
 
-    private handleConnectionCompleteNotification(): NotificationHandler<ConnectionContracts.ConnectionCompleteParams> {
+    /**
+     * Public for testing purposes only.
+     */
+    public handleConnectionCompleteNotification(): NotificationHandler<ConnectionContracts.ConnectionCompleteParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
         return (result: ConnectionContracts.ConnectionCompleteParams): void => {
@@ -367,6 +402,15 @@ export default class ConnectionManager {
             this._connections[fileUri] = connectionInfo;
             self.statusView.connecting(fileUri, connectionCreds);
 
+            // Setup the handler for the connection complete notification to call
+            connectionInfo.connectHandler = ((connectResult, error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(connectResult);
+                }
+            });
+
             // package connection details for request message
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
             let connectParams = new ConnectionContracts.ConnectParams();
@@ -377,16 +421,7 @@ export default class ConnectionManager {
 
             // send connection request message to service host
             self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams).then((result) => {
-                if (result) {
-                    // Wait for the connection complete notification before resolving
-                    connectionInfo.connectHandler = ((connectResult, error) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(connectResult);
-                        }
-                    });
-                } else {
+                if (!result) {
                     // Failed to process connect request
                     resolve(false);
                 }
