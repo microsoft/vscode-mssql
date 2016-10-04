@@ -6,6 +6,7 @@ import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryLis
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
+import {ISlickRange} from './slickgrid/SelectionModel';
 import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
@@ -15,6 +16,7 @@ import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
 import { FieldType } from './slickgrid/EngineAPI';
 import { IGridBatchMetaData, ISelectionData } from './../interfaces';
+
 
 enum SelectedTab {
     Results = 0,
@@ -163,21 +165,22 @@ export class AppComponent implements OnInit {
     /**
      * Send save result set request to service
      */
-    handleContextClick(event: {type: string, batchId: number, resultId: number}): void {
+    handleContextClick(event: {type: string, batchId: number, resultId: number, selection: ISlickRange[]}): void {
         switch (event.type) {
             case 'csv':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv', event.selection);
                 break;
             case 'json':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json', event.selection);
                 break;
             default:
                 break;
         }
     }
 
-    openContextMenu(event: {x: number, y: number}, batchId, resultId): void {
-        this.contextMenu.show(event.x, event.y, batchId, resultId);
+    openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
+        let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+        this.contextMenu.show(event.x, event.y, batchId, resultId, selection);
     }
 
     /**
