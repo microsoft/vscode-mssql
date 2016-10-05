@@ -12,6 +12,7 @@ import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
+import * as Constants from './../constants';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
@@ -96,7 +97,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
-        this.messages.push({messages: ['Executing query...'], hasError: false, selection: undefined});
+        this.messages.push({messages: [Constants.executeQueryLabel], hasError: false, selection: undefined});
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
                 let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
