@@ -63,7 +63,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private dataSets: IGridDataSet[] = [];
     private renderedDataSets: IGridDataSet[] = [];
     private messages: IMessages[] = [];
-    private scrollTimeOut;
+    private scrollTimeOut: number;
     private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;
@@ -77,15 +77,24 @@ export class AppComponent implements OnInit, AfterViewChecked {
         {
             icon: '/images/u32.png',
             hoverText: 'Save as CSV',
-            functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: undefined});
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
             }
         },
         {
             icon: '/images/u26.png',
             hoverText: 'Save as JSON',
-            functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: undefined});
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
+            }
+        },
+        {
+            icon: '/images/glass.svg',
+            hoverText: 'Magnify/Reset',
+            functionality: (batchId, resultId, index) => {
+                this.magnify(index);
             }
         }
     ];
@@ -173,9 +182,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+<<<<<<< HEAD
                             let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
                             undefinedDataSet.dataRows = undefined;
                             self.renderedDataSets.push(undefinedDataSet);
+=======
+                            self.renderedDataSets.push(dataSet);
+>>>>>>> dev
                             self.messagesAdded = true;
                             self.onScroll(0);
                         });
@@ -310,7 +323,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Sets up the resize bar
+     * Sets up the resize for the messages/results panes bar
      */
     setupResizeBind(): void {
         const self = this;
@@ -327,6 +340,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
         $resizeHandle.bind('dragend', (e, dd) => {
             self.resizing = false;
+            // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
             self.cd.detectChanges();
         });
@@ -338,5 +352,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
     scrollMessages(): void {
         let messagesDiv = document.getElementById('messages');
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    /**
+     * Makes a resultset take up the full result height if this is not already true
+     * Otherwise rerenders the result sets from default
+     */
+    magnify(index: number): void {
+        if (this.renderedDataSets.length > 1) {
+            this.renderedDataSets = [this.dataSets[index]];
+        } else {
+            this.renderedDataSets = this.dataSets;
+        }
     }
 }

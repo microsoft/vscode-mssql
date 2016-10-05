@@ -31,11 +31,17 @@ export class ConnectionUI {
         return this._connectionManager;
     }
 
-    private get vscodeWrapper(): VscodeWrapper {
+    /**
+     * Exposed for testing purposes
+     */
+    public get vscodeWrapper(): VscodeWrapper {
         return this._vscodeWrapper;
     }
 
-    private set vscodeWrapper(wrapper: VscodeWrapper) {
+    /**
+     * Exposed for testing purposes
+     */
+    public set vscodeWrapper(wrapper: VscodeWrapper) {
         this._vscodeWrapper = wrapper;
     }
 
@@ -107,6 +113,25 @@ export class ConnectionUI {
             let timer: Timer = new Timer();
             timer.start();
             self.waitForLanguageModeToBeSqlHelper(resolve, timer);
+        });
+    }
+
+    /**
+     * Prompt the user if they would like to cancel connecting.
+     */
+    public promptToCancelConnection(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: Constants.msgPromptCancelConnect,
+                message: Constants.msgPromptCancelConnect
+            };
+            self._prompter.promptSingle(question).then(result => {
+                resolve(result ? true : false);
+            }).catch(err => {
+                resolve(false);
+            });
         });
     }
 

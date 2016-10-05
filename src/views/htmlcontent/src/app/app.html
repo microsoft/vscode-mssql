@@ -18,9 +18,9 @@
             <span class="boxCol content vertBox">
                 <div class="boxRow content gridIcon maxHeight" *ngFor="let icon of dataIcons">
                     <a href="#"
-                    (click)="icon.functionality()"
+                    (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
                     [title]="icon.hoverText">
-                        <img [src]="icon.icon" (alt)="icon.hoverText">
+                        <img width="16" height="15" [src]="icon.icon" (alt)="icon.hoverText">
                     </a>
                 </div>
             </span>
