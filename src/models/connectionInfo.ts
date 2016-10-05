@@ -123,6 +123,13 @@ export function getConnectionDisplayString(creds: Interfaces.IConnectionCredenti
     }
     let user: string = getUserNameOrDomainLogin(creds);
     text = appendIfNotEmpty(text, user);
+
+    // Limit the maximum length of displayed text
+    if (text.length > Constants.maxDisplayedStatusTextLength) {
+        text = text.substr(0, Constants.maxDisplayedStatusTextLength);
+        text += ' \u2026'; // ...
+    }
+
     return text;
 }
 

@@ -36,6 +36,8 @@ export const defaultPortNumber = 1433;
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 
+export const maxDisplayedStatusTextLength = 50;
+
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
 export const outputContentTypeResultsetMeta = 'resultsetsMeta';
