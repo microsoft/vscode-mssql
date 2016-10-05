@@ -122,33 +122,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
             let linkType: string = req.body.type;
-            let tempFileName = self.getXmlTempFileName(columnName, linkType);
-            let tempFilePath = path.join(os.tmpdir(), tempFileName );
-            let uri = vscode.Uri.parse('untitled:' + tempFilePath);
-            if ( linkType === 'xml') {
-                content = pd.xml(content);
-            } else {
-                let jsonContent: string = undefined;
-                try {
-                    jsonContent = JSON.parse(content);
-                } catch (e) {
-                    Utils.logDebug('Error parsing json');
-                }
-                if (jsonContent) {
-                    content = JSON.stringify(JSON.parse(content), undefined, 4);
-                }
-            }
-
-            vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
-                    vscode.window.showTextDocument(doc, 1, false).then(editor => {
-                        editor.edit( edit => {
-                            edit.insert( new vscode.Position(0, 0), content);
-                        });
-                    });
-             }, (error: any) => {
-                 self._vscodeWrapper.showErrorMessage(error);
-             });
-
+            self.openLink(content, columnName, linkType);
             res.status = 200;
             res.send();
         });
@@ -325,6 +299,40 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         </html>`;
     }
 
+    public openLink(content: string, columnName: string, linkType: string): void {
+        const self = this;
+        let tempFileName = self.getXmlTempFileName(columnName, linkType);
+        let tempFilePath = path.join(os.tmpdir(), tempFileName);
+        let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+        if (linkType === 'xml') {
+            try {
+                content = pd.xml(content);
+            } catch (e) {
+                Utils.logDebug('Error parsing xml');
+            }
+        } else {
+            let jsonContent: string = undefined;
+            try {
+                jsonContent = JSON.parse(content);
+            } catch (e) {
+                Utils.logDebug('Error parsing json');
+            }
+            if (jsonContent) {
+                content = JSON.stringify(JSON.parse(content), undefined, 4);
+            }
+        }
+
+        vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+            vscode.window.showTextDocument(doc, 1, false).then(editor => {
+                editor.edit(edit => {
+                    edit.insert(new vscode.Position(0, 0), content);
+                });
+            });
+        }, (error: any) => {
+            self._vscodeWrapper.showErrorMessage(error);
+        });
+    }
+
     // PRIVATE HELPERS /////////////////////////////////////////////////////
 
     /**
@@ -353,4 +361,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
         return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
     }
+
+    /**
+     * Open
+     */
 }
