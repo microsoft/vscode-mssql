@@ -134,7 +134,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
     @Input() showHeader: boolean = false;
     @Input() showDataTypeIcon: boolean = true;
     @Input() enableColumnReorder: boolean = false;
-    @Input() enableAyncPostRender: boolean = true;
+    @Input() enableAsyncPostRender: boolean = true;
 
     @Output() loadFinished: EventEmitter<void> = new EventEmitter<void>();
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
@@ -397,7 +397,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
             rowHeight: this._rowHeight,
             defaultColumnWidth: 120,
             editable: true,
-            enableAsyncPostRender: this.enableAyncPostRender,
+            enableAsyncPostRender: this.enableAsyncPostRender,
             editorFactory: {
                 getEditor: this.getColumnEditor
             },

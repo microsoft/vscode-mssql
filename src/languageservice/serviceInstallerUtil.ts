@@ -7,8 +7,9 @@ import {Platform} from '../models/platform';
 import Config from  '../configurations/config';
 import ServiceDownloadProvider from './download';
 import ServerProvider from './server';
+import {IExtensionWrapper, ILogger, IStatusView} from './interfaces';
 
-class StubStatusView {
+class StubStatusView implements IStatusView {
     installingService(fileUri: string): void {
         console.log('Installing service');
     }
@@ -20,13 +21,13 @@ class StubStatusView {
     }
 }
 
-class StubLogger {
+class StubLogger implements ILogger {
     logDebug(message: string): void {
         console.log(message);
     }
 }
 
-class StubVsCode {
+class StubVsCode implements IExtensionWrapper {
     getActiveTextEditorUri(): string {
         return '';
     }
@@ -59,7 +60,9 @@ export function getServiceInstallDirectory(platform: Platform): string {
 */
 export function getServiceInstallDirectoryRoot(): string {
     let downloadProvider = new ServiceDownloadProvider(config, logger);
-    return downloadProvider.getInstallDirectoryRoot();
+    let directoryPath: string = downloadProvider.getInstallDirectoryRoot();
+    directoryPath = directoryPath.replace('\\{#version#}\\{#platform#}', '');
+    return directoryPath;
 }
 
 

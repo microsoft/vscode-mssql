@@ -2,20 +2,19 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, EventEmitter,
-    ElementRef} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
+    EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
+import {ISlickRange} from './slickgrid/SelectionModel';
 import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
-import { ScrollEvent } from './tab';
+import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
-import { IGridBatchMetaData, ISelectionData } from './../interfaces';
 
 enum SelectedTab {
     Results = 0,
@@ -32,54 +31,92 @@ interface IGridDataSet {
 }
 
 interface IMessages {
-    messages: string[];
+    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
 }
+
+declare let $;
 
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, Tab, ContextMenu],
+    directives: [SlickGrid, ContextMenu],
     templateUrl: 'app/app.html',
     providers: [DataService],
     styles: [`
     .errorMessage {
-        color: red;
+        color: var(--color-error);
     }`
     ]
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewChecked {
     // Constants
-    private scrollTimeOutTime = 200;
+    // private scrollTimeOutTime = 200;
     private windowSize = 50;
     private c_key = 67;
+    private renderTimeoutTime = 100;
 
     // fields
     private dataSets: IGridDataSet[] = [];
     private renderedDataSets: IGridDataSet[] = [];
     private messages: IMessages[] = [];
-    private selected: SelectedTab;
-    private scrollTimeOut;
-    public SelectedTab = SelectedTab;
+    // private scrollTimeOut;
+    private renderTimeout;
+    private messagesAdded = false;
+    private resizing = false;
+    private resizeHandleTop = 0;
+    // tslint:disable-next-line:no-unused-variable
+    private resultActive = true;
+    // tslint:disable-next-line:no-unused-variable
+    private messageActive = true;
+    // tslint:disable-next-line:no-unused-variable
+    private dataIcons: IGridIcon[] = [
+        {
+            icon: '/images/u32.png',
+            hoverText: 'Save as CSV',
+            functionality: (batchId, resultId) => {
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: undefined});
+            }
+        },
+        {
+            icon: '/images/u26.png',
+            hoverText: 'Save as JSON',
+            functionality: (batchId, resultId) => {
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: undefined});
+            }
+        }
+    ];
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
-                @Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {}
+                @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
+                @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
 
     /**
      * Called by Angular when the object is initialized
      */
     ngOnInit(): void {
         const self = this;
+        this.setupResizeBind();
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
-                let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
+                let messages: IMessages = {
+                    messages: [],
+                    hasError: batch.hasError,
+                    selection: batch.selection
+                };
+                for (let message of batch.messages) {
+                    let date = new Date(message.time);
+                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    messages.messages.push({time: timeString, message: message.message});
+                }
                 self.messages.push(messages);
+                self.messagesAdded = true;
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
@@ -137,18 +174,20 @@ export class AppComponent implements OnInit {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
-                            let undefinedDataSet: IGridDataSet = JSON.parse(JSON.stringify(dataSet));
-                            undefinedDataSet.dataRows = undefined;
-                            self.renderedDataSets.push(undefinedDataSet);
-                            self.selected = SelectedTab.Results;
-                            setTimeout(() => {
-                                self.onGridScroll({scrollTop: 0});
-                            });
+                            self.messagesAdded = true;
+                            self.gridRenderTimeOut();
                         });
                     }
                 });
             }
         });
+    }
+
+    ngAfterViewChecked(): void {
+        if (this.messagesAdded) {
+            this.messagesAdded = false;
+            this.scrollMessages();
+        }
     }
 
     /**
@@ -176,29 +215,22 @@ export class AppComponent implements OnInit {
     /**
      * Send save result set request to service
      */
-    handleContextClick(event: {type: string, batchId: number, resultId: number}): void {
+    handleContextClick(event: {type: string, batchId: number, resultId: number, selection: ISlickRange[]}): void {
         switch (event.type) {
             case 'csv':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv', event.selection);
                 break;
             case 'json':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json', event.selection);
                 break;
             default:
                 break;
         }
     }
 
-    openContextMenu(event: {x: number, y: number}, batchId, resultId): void {
-        this.contextMenu.show(event.x, event.y, batchId, resultId);
-    }
-
-    /**
-     * Updates the internal state for what tab is selected; propogates down to the tab classes
-     * @param to The tab was the selected
-     */
-    tabChange(to: SelectedTab): void {
-        this.selected = to;
+    openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
+        let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+        this.contextMenu.show(event.x, event.y, batchId, resultId, selection);
     }
 
     /**
@@ -239,33 +271,72 @@ export class AppComponent implements OnInit {
         }
     }
 
-    onGridScroll(event: ScrollEvent): void {
+    gridRenderTimeOut(): void {
         const self = this;
-        clearTimeout(self.scrollTimeOut);
-        this.scrollTimeOut = setTimeout(() => {
-            let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
-            let tabHeight = self._el.nativeElement.getElementsByTagName('tab')[0].offsetHeight;
-            let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
-                + ((event.scrollTop % gridHeight) / gridHeight));
-            let min = Math.floor(event.scrollTop / gridHeight);
-            let max = min + numOfVisibleGrids;
-            for (let i = 0; i < self.renderedDataSets.length; i++) {
-                if ( i >= min && i < max) {
-                    if (self.renderedDataSets[i].dataRows === undefined) {
-                        self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
-                    }
-                } else if (self.renderedDataSets[i].dataRows !== undefined) {
-                    self.renderedDataSets[i].dataRows = undefined;
-                }
-            }
-        }, self.scrollTimeOutTime);
-
+        clearTimeout(self.renderTimeout);
+        this.renderTimeout = setTimeout(() => {
+            this.renderedDataSets = this.dataSets;
+        }, this.renderTimeoutTime);
     }
+
+    // onGridScroll(event: ScrollEvent): void {
+    //     const self = this;
+    //     clearTimeout(self.scrollTimeOut);
+    //     this.scrollTimeOut = setTimeout(() => {
+    //         let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+    //         let tabHeight = self._el.nativeElement.getElementsByTagName('tab')[0].offsetHeight;
+    //         let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
+    //             + ((event.scrollTop % gridHeight) / gridHeight));
+    //         let min = Math.floor(event.scrollTop / gridHeight);
+    //         let max = min + numOfVisibleGrids;
+    //         for (let i = 0; i < self.renderedDataSets.length; i++) {
+    //             if ( i >= min && i < max) {
+    //                 if (self.renderedDataSets[i].dataRows === undefined) {
+    //                     self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
+    //                 }
+    //             } else if (self.renderedDataSets[i].dataRows !== undefined) {
+    //                 self.renderedDataSets[i].dataRows = undefined;
+    //             }
+    //         }
+    //     }, self.scrollTimeOutTime);
+
+    // }
 
     /**
      * Binded to mouse click on messages
      */
     editorSelection(selection: ISelectionData): void {
         this.dataService.setEditorSelection(selection);
+    }
+
+    /**
+     * Sets up the resize bar
+     */
+    setupResizeBind(): void {
+        const self = this;
+        let $resizeHandle = $(document.getElementById('messageResizeHandle'));
+        let $messagePane = $(document.getElementById('messages'));
+        $resizeHandle.bind('dragstart', (e, dd) => {
+            self.resizing = true;
+            self.resizeHandleTop = e.pageY;
+        });
+
+        $resizeHandle.bind('drag', (e, dd) => {
+            self.resizeHandleTop = e.pageY;
+        });
+
+        $resizeHandle.bind('dragend', (e, dd) => {
+            self.resizing = false;
+            $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
+            self.cd.detectChanges();
+        });
+    }
+
+    /**
+     * Ensures the messages tab is scrolled to the bottom
+     */
+    scrollMessages(): void {
+        let messagesDiv = document.getElementById('messages');
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 }
