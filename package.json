@@ -107,17 +107,17 @@
     "commands": [
       {
         "command": "extension.runQuery",
-        "title": "Run T-SQL query",
+        "title": "Execute Query",
         "category": "MS SQL"
       },
       {
         "command": "extension.connect",
-        "title": "Connect to a Database",
+        "title": "Connect",
         "category": "MS SQL"
       },
       {
         "command": "extension.disconnect",
-        "title": "Disconnect Active Connection",
+        "title": "Disconnect",
         "category": "MS SQL"
       },
       {
@@ -132,7 +132,7 @@
       },
       {
         "command": "extension.chooseDatabase",
-        "title": "Change Database on Current Server",
+        "title": "Use Database",
         "category": "MS SQL"
       },
       {
@@ -142,7 +142,7 @@
       },
       {
         "command": "extension.cancelConnect",
-        "title": "Cancel Connecting",
+        "title": "Cancel Connection",
         "category": "MS SQL"
       },
       {
@@ -154,8 +154,8 @@
     "keybindings": [
       {
         "command": "extension.runQuery",
-        "key": "ctrl+shift+e",
-        "mac": "cmd+shift+e",
+        "key": "ctrl+enter",
+        "mac": "cmd+enter",
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
@@ -171,9 +171,9 @@
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
-        "command": "extension.createprofile",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r",
+        "command": "extension.chooseDatabase",
+        "key": "ctrl+shift+u",
+        "mac": "cmd+shift+u",
         "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],
