@@ -299,6 +299,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         </html>`;
     }
 
+    /**
+     * Open a xml/json link - Opens the content in a new editor pane
+     */
     public openLink(content: string, columnName: string, linkType: string): void {
         const self = this;
         let tempFileName = self.getXmlTempFileName(columnName, linkType);
@@ -361,8 +364,4 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
         return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
     }
-
-    /**
-     * Open
-     */
 }
