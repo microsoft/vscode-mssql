@@ -19,16 +19,13 @@ export class ContextMenu {
     private batchId: number;
     private resultId: number;
     private selection: ISlickRange[];
+    private isDisabled: boolean;
 
     show(x: number, y: number, batchId: number, resultId: number, selection: ISlickRange[]): void {
         this.batchId = batchId;
         this.resultId = resultId;
         this.selection = selection;
-        if (selection.length > 1) {
-            this.disable();
-        } else {
-            this.enable();
-        }
+        this.isDisabled = (selection.length > 1);
         $('.contextMenu').css('top', y).css('left', x).show();
         $('body').one('click', () => {
             $('.contextMenu').hide();
@@ -39,18 +36,9 @@ export class ContextMenu {
         $('.contextMenu').hide();
     }
 
-    disable(): void {
-         $('ul.contextMenu li').addClass('disabled');
-    }
-
-    enable(): void {
-        $('ul.contextMenu li').removeClass('disabled');
-    }
-
     handleContextActionClick( type: string ): void {
         if (!($('ul.contextMenu li').hasClass('disabled'))) {
             this.clickEvent.emit({'type': type, 'batchId': this.batchId, 'resultId': this.resultId, 'selection': this.selection});
         }
     }
-
 }
