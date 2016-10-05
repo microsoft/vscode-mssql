@@ -8,7 +8,7 @@ import * as events from 'events';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
 import Utils = require('../models/utils');
-import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import SqlToolsServerClient from '../languageservice/serviceclient';
