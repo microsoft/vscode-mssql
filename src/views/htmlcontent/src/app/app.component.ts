@@ -43,7 +43,6 @@ declare let $;
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, ContextMenu],
     templateUrl: 'app/app.html',
     providers: [DataService],
     styles: [`
@@ -55,20 +54,20 @@ declare let $;
 
 export class AppComponent implements OnInit, AfterViewChecked {
     // Constants
-    // private scrollTimeOutTime = 200;
+    private scrollTimeOutTime = 200;
     private windowSize = 50;
     private c_key = 67;
-    private renderTimeoutTime = 100;
+    private maxScrollGrids = 8;
 
     // fields
     private dataSets: IGridDataSet[] = [];
     private renderedDataSets: IGridDataSet[] = [];
     private messages: IMessages[] = [];
-    // private scrollTimeOut;
-    private renderTimeout;
+    private scrollTimeOut;
     private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;
+    private scrollEnabled = true;
     // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
     // tslint:disable-next-line:no-unused-variable
@@ -174,8 +173,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
+                            undefinedDataSet.dataRows = undefined;
+                            self.renderedDataSets.push(undefinedDataSet);
                             self.messagesAdded = true;
-                            self.gridRenderTimeOut();
+                            self.onScroll(0);
                         });
                     }
                 });
@@ -271,36 +273,34 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
     }
 
-    gridRenderTimeOut(): void {
+    onScroll(scrollTop): void {
         const self = this;
-        clearTimeout(self.renderTimeout);
-        this.renderTimeout = setTimeout(() => {
-            this.renderedDataSets = this.dataSets;
-        }, this.renderTimeoutTime);
+        clearTimeout(self.scrollTimeOut);
+        this.scrollTimeOut = setTimeout(() => {
+            if (self.slickgrids.length < self.maxScrollGrids) {
+                self.scrollEnabled = false;
+                for (let i = 0; i < self.renderedDataSets.length; i++) {
+                    self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
+                }
+            } else {
+                let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+                let tabHeight = document.getElementById('results').offsetHeight;
+                let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
+                    + ((scrollTop % gridHeight) / gridHeight));
+                let min = Math.floor(scrollTop / gridHeight);
+                let max = min + numOfVisibleGrids;
+                for (let i = 0; i < self.renderedDataSets.length; i++) {
+                    if (i >= min && i < max) {
+                        if (self.renderedDataSets[i].dataRows === undefined) {
+                            self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
+                        }
+                    } else if (self.renderedDataSets[i].dataRows !== undefined) {
+                        self.renderedDataSets[i].dataRows = undefined;
+                    }
+                }
+            }
+        }, self.scrollTimeOutTime);
     }
-
-    // onGridScroll(event: ScrollEvent): void {
-    //     const self = this;
-    //     clearTimeout(self.scrollTimeOut);
-    //     this.scrollTimeOut = setTimeout(() => {
-    //         let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
-    //         let tabHeight = self._el.nativeElement.getElementsByTagName('tab')[0].offsetHeight;
-    //         let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
-    //             + ((event.scrollTop % gridHeight) / gridHeight));
-    //         let min = Math.floor(event.scrollTop / gridHeight);
-    //         let max = min + numOfVisibleGrids;
-    //         for (let i = 0; i < self.renderedDataSets.length; i++) {
-    //             if ( i >= min && i < max) {
-    //                 if (self.renderedDataSets[i].dataRows === undefined) {
-    //                     self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
-    //                 }
-    //             } else if (self.renderedDataSets[i].dataRows !== undefined) {
-    //                 self.renderedDataSets[i].dataRows = undefined;
-    //             }
-    //         }
-    //     }, self.scrollTimeOutTime);
-
-    // }
 
     /**
      * Binded to mouse click on messages
