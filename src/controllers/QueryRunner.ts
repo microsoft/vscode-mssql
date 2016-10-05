@@ -1,6 +1,6 @@
 'use strict';
 
-import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';

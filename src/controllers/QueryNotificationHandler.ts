@@ -2,7 +2,7 @@
 *  Class for handler and distributing notification coming from the
 *  service layer
 */
-import QueryRunner from './queryRunner';
+import QueryRunner from './QueryRunner';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import {QueryExecuteCompleteNotification} from '../models/contracts/queryExecute';
 import {NotificationHandler} from 'vscode-languageclient';

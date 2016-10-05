@@ -6,7 +6,7 @@ import Constants = require('./constants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
-import QueryRunner from '../controllers/queryRunner';
+import QueryRunner from '../controllers/QueryRunner';
 import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
