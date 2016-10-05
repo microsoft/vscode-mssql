@@ -100,7 +100,7 @@
             }
         }
 
-        function handleKeyDown(e, args) {
+        function handleKeyDown(e) {
             var activeCell = _grid.getActiveCell();
             // ctrl + a
             if((e.metaKey || e.ctrlKey) && e.which == a_key) {
