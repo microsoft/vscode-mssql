@@ -111,7 +111,7 @@
             // do we have a context to navigate on
             else if (activeCell) {
                 // arrow keys
-                if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40) {
+                if (e.which == left_arrow || e.which == up_arrow || e.which == right_arrow || e.which == down_arrow) {
                     e.stopImmediatePropagation();
                     // left arrow
                     if (e.which == left_arrow) {
