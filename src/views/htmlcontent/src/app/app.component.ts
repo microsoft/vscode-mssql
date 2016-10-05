@@ -16,7 +16,7 @@ import * as Constants from './../constants';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon, IGridBatchMetaData, ISelectionData } from './../interfaces';
+import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
 
 enum SelectedTab {
@@ -25,7 +25,7 @@ enum SelectedTab {
 }
 
 interface IMessages {
-    messages: string[];
+    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
 }
@@ -54,6 +54,12 @@ export class AppComponent implements OnInit, AfterViewChecked {
         totalRows: number,
         batchId: number,
         resultId: number}[] = [];
+    private renderedDataSets: {
+        dataRows: IObservableCollection<IGridDataRow>,
+        columnDefinitions: IColumnDefinition[],
+        totalRows: number,
+        batchId: number,
+        resultId: number}[] = [];
     private messages: IMessages[] = [];
     private messagesAdded = false;
     private selected: SelectedTab;
@@ -71,15 +77,24 @@ export class AppComponent implements OnInit, AfterViewChecked {
         {
             icon: '/images/u32.png',
             hoverText: 'Save as CSV',
-            functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: undefined});
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
             }
         },
         {
             icon: '/images/u26.png',
             hoverText: 'Save as JSON',
-            functionality: (batchId, resultId) => {
-                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: undefined});
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
+            }
+        },
+        {
+            icon: '/images/glass.svg',
+            hoverText: 'Magnify/Reset',
+            functionality: (batchId, resultId, index) => {
+                this.magnify(index);
             }
         }
     ];
@@ -97,10 +112,26 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
-        this.messages.push({messages: [Constants.executeQueryLabel], hasError: false, selection: undefined});
+        let startDate = new Date();
+        this.messages.push(
+            {
+                messages: [{message: Constants.executeQueryLabel, time: startDate.getHours() + ':' + startDate.getMinutes() + ':' + startDate.getSeconds()}],
+                hasError: false,
+                selection: undefined
+            }
+        );
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
-                let messages: IMessages = {messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
+                let messages: IMessages = {
+                    messages: [],
+                    hasError: batch.hasError,
+                    selection: batch.selection
+                };
+                for (let message of batch.messages) {
+                    let date = new Date(message.time);
+                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    messages.messages.push({time: timeString, message: message.message});
+                }
                 self.messages.push(messages);
                 self.messagesAdded = true;
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
@@ -164,6 +195,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
                             self.dataSets.push(dataSet);
+                            self.renderedDataSets.push(dataSet);
                             self.messagesAdded = true;
                             self.selected = SelectedTab.Results;
                         });
@@ -277,7 +309,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Sets up the resize bar
+     * Sets up the resize for the messages/results panes bar
      */
     setupResizeBind(): void {
         const self = this;
@@ -294,6 +326,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
         $resizeHandle.bind('dragend', (e, dd) => {
             self.resizing = false;
+            // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
             self.cd.detectChanges();
         });
@@ -305,5 +338,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
     scrollMessages(): void {
         let messagesDiv = document.getElementById('messages');
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    /**
+     * Makes a resultset take up the full result height if this is not already true
+     * Otherwise rerenders the result sets from default
+     */
+    magnify(index: number): void {
+        if (this.renderedDataSets.length > 1) {
+            this.renderedDataSets = [this.dataSets[index]];
+        } else {
+            this.renderedDataSets = this.dataSets;
+        }
     }
 }

@@ -119,7 +119,13 @@ export default class QueryRunner {
                 self._statusView.executedQuery(self.uri);
                 self._isExecuting = false;
                 self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
-                self.batchSets = [{hasError: true, id: 0, selection: undefined, messages: [result.messages], resultSetSummaries: undefined}];
+                self.batchSets = [{
+                        hasError: true,
+                        id: 0,
+                        selection: undefined,
+                        messages: [{message: result.messages, time: undefined}],
+                        resultSetSummaries: undefined
+                    }];
                 self.dataResolveReject.resolve();
             } else {
                 // register with the Notification Handler

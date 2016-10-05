@@ -22,12 +22,7 @@ enum SelectedTab {
         padding: 1em;
         }`],
     template: `
-        <div class="boxRow header collapsible" [class.collapsed]="!active" (click)="active = !active">
-            <span> {{title}} </span>
-        </div>
-        <div class="boxRow content vertBox scrollable" style="min-Height: 20%">
-            <ng-content></ng-content>
-        </div>`
+        <ng-content></ng-content>`
 })
 export class Tab implements OnInit {
     @Input('tabTitle') title: string;
