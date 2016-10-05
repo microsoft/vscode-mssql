@@ -15,7 +15,7 @@ suite('ServiceDownloadProvider Tests', () => {
 
     test('getInstallDirectory should return the exact value from config if the path is absolute', (done) => {
         return new Promise((resolve, reject) => {
-            let expectedPathFromConfig = 'C:/test';
+            let expectedPathFromConfig = __dirname;
             let expectedVersionFromConfig = '0.0.4';
             let expected = expectedPathFromConfig;
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
@@ -29,9 +29,9 @@ suite('ServiceDownloadProvider Tests', () => {
 
     test('getInstallDirectory should add the version to the path given the path with the version template key', (done) => {
         return new Promise((resolve, reject) => {
-            let expectedPathFromConfig = 'C:/service/{#version#}';
+            let expectedPathFromConfig = __dirname + '/{#version#}';
             let expectedVersionFromConfig = '0.0.4';
-            let expected = 'C:/service/0.0.4';
+            let expected =  __dirname + '/0.0.4';
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
             let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
@@ -43,9 +43,9 @@ suite('ServiceDownloadProvider Tests', () => {
 
     test('getInstallDirectory should add the platform to the path given the path with the platform template key', (done) => {
         return new Promise((resolve, reject) => {
-            let expectedPathFromConfig = 'C:/service/{#version#}/{#platform#}';
+            let expectedPathFromConfig = __dirname + '/{#version#}/{#platform#}';
             let expectedVersionFromConfig = '0.0.4';
-            let expected = 'C:/service/0.0.4/OSX';
+            let expected = __dirname + '/0.0.4/OSX';
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
             let downloadProvider = new ServiceDownloadProvider(config.object, undefined);

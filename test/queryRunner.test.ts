@@ -1,8 +1,8 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
-import QueryRunner from './../src/controllers/queryRunner';
+import QueryRunner from './../src/controllers/QueryRunner';
 import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
-import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from './../src/models/SqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { QueryExecuteParams, QueryExecuteCompleteNotificationResult } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
@@ -108,7 +108,7 @@ suite('Query Runner tests', () => {
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-                messages: ['6 affects rows'],
+                messages: [{time: '', message: '6 affects rows'}],
                 resultSetSummaries: []
             }]
         };
