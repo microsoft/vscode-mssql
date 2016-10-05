@@ -311,14 +311,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             try {
                 content = pd.xml(content);
             } catch (e) {
-                Utils.logDebug('Error parsing xml');
+                // If Xml fails to parse, fall back on original Xml content
             }
-        } else {
+        } else if (linkType === 'json') {
             let jsonContent: string = undefined;
             try {
                 jsonContent = JSON.parse(content);
             } catch (e) {
-                Utils.logDebug('Error parsing json');
+                // If Json fails to parse, fall back on original Json content
             }
             if (jsonContent) {
                 content = JSON.stringify(JSON.parse(content), undefined, 4);
@@ -350,7 +350,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     /**
-     * Return temp file name for a XML link
+     * Return temp file name for opening a link
      */
     private getXmlTempFileName(columnName: string, linkType: string): string {
         let baseFileName = columnName + '_';

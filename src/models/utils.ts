@@ -217,8 +217,8 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
  */
 export function isFileExisting(filePath: string): boolean {
         try {
+            // tslint:disable-next-line:no-unused-variable
             let stats = fs.statSync(filePath);
-            logDebug(stats);
             return true;
         } catch (err) {
             return false;
