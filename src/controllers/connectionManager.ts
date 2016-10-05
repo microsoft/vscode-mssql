@@ -498,6 +498,13 @@ export default class ConnectionManager {
         this.disconnect(docUri);
     }
 
+    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
+        let uri = doc.uri.toString();
+        if (doc.languageId === 'sql' && typeof(this._connections[uri]) === 'undefined') {
+            this.statusView.notConnected(uri);
+        }
+    }
+
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(untitledUri) || this.isConnected(savedUri)) {

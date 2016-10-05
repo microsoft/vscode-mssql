@@ -83,6 +83,13 @@ export default class VscodeWrapper {
     }
 
     /**
+     * An event that is emitted when a [text document](#TextDocument) is opened.
+     */
+    public get onDidOpenTextDocument(): vscode.Event<vscode.TextDocument> {
+        return vscode.workspace.onDidOpenTextDocument;
+    }
+
+    /**
      * An event that is emitted when a [text document](#TextDocument) is saved to disk.
      */
     public get onDidSaveTextDocument(): vscode.Event<vscode.TextDocument> {
