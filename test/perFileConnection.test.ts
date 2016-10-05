@@ -407,7 +407,7 @@ suite('Per File Connection Tests', () => {
 
         let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         let actualDbName = undefined;
-        statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .callback((fileUri, creds: IConnectionCredentials) => {
             actualDbName = creds.database;
         });
@@ -465,7 +465,7 @@ suite('Per File Connection Tests', () => {
 
         let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         let actualDbName = undefined;
-        statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .callback((fileUri, creds: IConnectionCredentials) => {
             actualDbName = creds.database;
         });

@@ -181,7 +181,7 @@ export default class ConnectionManager {
                 connectionInfo.credentials.database = event.connection.databaseName;
                 connectionInfo.credentials.user = event.connection.userName;
 
-                self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials);
+                self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials, connectionInfo.serverInfo);
 
                 let logMessage = Utils.formatString(Constants.msgChangedDatabaseContext, event.connection.databaseName, event.ownerUri);
 
@@ -231,7 +231,7 @@ export default class ConnectionManager {
         connection.serverInfo = result.serverInfo;
         connection.credentials = newCredentials;
 
-        this.statusView.connectSuccess(fileUri, newCredentials);
+        this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
 
         this._vscodeWrapper.logToOutputChannel(
             Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
