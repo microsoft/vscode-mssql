@@ -191,12 +191,28 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
         let resultsUri = this.getResultsUri(uri).toString();
-        let queryRunner: QueryRunner = this._queryResultsMap.has(resultsUri)
-            ? this._queryResultsMap.get(resultsUri)
-            : new QueryRunner(uri, title, statusView, this);
+        let queryRunner: QueryRunner;
+        if (this._queryResultsMap.has(resultsUri)) {
+            let existingRunner: QueryRunner = this._queryResultsMap.get(resultsUri);
+
+            // If the query is already in progress, don't attempt to send it
+            if (existingRunner.isExecutingQuery) {
+                this._vscodeWrapper.showInformationMessage(Constants.msgRunQueryInProgress);
+                return;
+            }
+
+            // If the query is not in progress, we can reuse the query runner
+            queryRunner = existingRunner;
+        } else {
+            // We do not have a query runner for this editor, so create a new one
+            queryRunner = new QueryRunner(uri, title, statusView, this);
+        }
 
         // Execute the query
         queryRunner.runQuery(selection);
+
+        // Map the query runner to the results uri
+        this._queryResultsMap.set(resultsUri.toString(), queryRunner);
     }
 
     public cancelQuery(uri: string): void {
@@ -214,11 +230,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     public updateContent(queryRunner: QueryRunner): string {
-        // Map the query runner to the results uri
-        let uri = this.getResultsUri(queryRunner.uri).toString();
-        this._queryResultsMap.set(uri.toString(), queryRunner);
-
         // Show the results pane
+        let uri = this.getResultsUri(queryRunner.uri).toString();
         let title = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, title);
         this.onContentUpdated();
