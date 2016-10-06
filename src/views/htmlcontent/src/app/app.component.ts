@@ -59,6 +59,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
         totalRows: number,
         batchId: number,
         resultId: number}[] = [];
+    // private timeStampOptions = {
+    //     hour: '2-digit', minute: '2-digit'
+    // };
     private messages: IMessages[] = [];
     private messagesAdded = false;
     private selected: SelectedTab;
@@ -120,7 +123,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 };
                 for (let message of batch.messages) {
                     let date = new Date(message.time);
-                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    let timeString = date.toLocaleTimeString();
                     messages.messages.push({time: timeString, message: message.message});
                 }
                 self.messages.push(messages);
