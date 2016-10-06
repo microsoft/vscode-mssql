@@ -59,9 +59,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         totalRows: number,
         batchId: number,
         resultId: number}[] = [];
-    // private timeStampOptions = {
-    //     hour: '2-digit', minute: '2-digit'
-    // };
     private messages: IMessages[] = [];
     private messagesAdded = false;
     private selected: SelectedTab;
