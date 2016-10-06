@@ -121,20 +121,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
-            let tempFileName = self.getXmlTempFileName(columnName);
-            let tempFilePath = path.join(os.tmpdir(), tempFileName );
-            let uri = vscode.Uri.parse('untitled:' + tempFilePath);
-            let xml = pd.xml(content);
-            vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
-                    vscode.window.showTextDocument(doc, 1, false).then(editor => {
-                        editor.edit( edit => {
-                            edit.insert( new vscode.Position(0, 0), xml);
-                        });
-                    });
-             }, (error: any) => {
-                 self._vscodeWrapper.showErrorMessage(error);
-             });
-
+            let linkType: string = req.body.type;
+            self.openLink(content, columnName, linkType);
             res.status = 200;
             res.send();
         });
@@ -311,6 +299,44 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         </html>`;
     }
 
+    /**
+     * Open a xml/json link - Opens the content in a new editor pane
+     */
+    public openLink(content: string, columnName: string, linkType: string): void {
+        const self = this;
+        let tempFileName = self.getXmlTempFileName(columnName, linkType);
+        let tempFilePath = path.join(os.tmpdir(), tempFileName);
+        let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+        if (linkType === 'xml') {
+            try {
+                content = pd.xml(content);
+            } catch (e) {
+                // If Xml fails to parse, fall back on original Xml content
+            }
+        } else if (linkType === 'json') {
+            let jsonContent: string = undefined;
+            try {
+                jsonContent = JSON.parse(content);
+            } catch (e) {
+                // If Json fails to parse, fall back on original Json content
+            }
+            if (jsonContent) {
+                // If Json content was valid and parsed, pretty print content to a string
+                content = JSON.stringify(jsonContent, undefined, 4);
+            }
+        }
+
+        vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+            vscode.window.showTextDocument(doc, 1, false).then(editor => {
+                editor.edit(edit => {
+                    edit.insert(new vscode.Position(0, 0), content);
+                });
+            });
+        }, (error: any) => {
+            self._vscodeWrapper.showErrorMessage(error);
+        });
+    }
+
     // PRIVATE HELPERS /////////////////////////////////////////////////////
 
     /**
@@ -325,18 +351,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     /**
-     * Return temp file name for a XML link
+     * Return temp file name for opening a link
      */
-    private getXmlTempFileName(columnName: string): string {
+    private getXmlTempFileName(columnName: string, linkType: string): string {
         let baseFileName = columnName + '_';
-        let retryCount: number = 5;
+        let retryCount: number = 200;
         for (let i = 0; i < retryCount; i++) {
-            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.xml');
+            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
             SqlOutputContentProvider.tempFileCount++;
             if (!Utils.isFileExisting(tempFileName)) {
                 return tempFileName;
             }
         }
-        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
     }
 }

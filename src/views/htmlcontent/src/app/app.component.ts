@@ -147,12 +147,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             let columnDefinitions = [];
 
                             for (let i = 0; i < columnData.length; i++) {
-                                if (columnData[i].isXml) {
+                                if (columnData[i].isXml || columnData[i].isJson) {
+                                    let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
                                         id: columnData[i].columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
-                                        asyncPostRender: self.xmlLinkHandler
+                                        asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
@@ -261,8 +262,31 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.field);
+            self.dataService.openLink(value, colDef.field, 'xml');
         });
+    }
+
+    /**
+     * Add handler for clicking on json link
+     */
+    jsonLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        const self = this;
+        let value = dataContext[colDef.field];
+        $(cellRef).children('.xmlLink').click(function(): void {
+            self.dataService.openLink(value, colDef.field, 'json');
+        });
+    }
+
+    /**
+     * Return asyncPostRender handler based on type
+     */
+    public linkHandler(type: string): Function {
+        if (type === 'xml') {
+            return this.xmlLinkHandler;
+        } else if (type === 'json') {
+            return this.jsonLinkHandler;
+        }
+
     }
 
     /**
