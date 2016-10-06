@@ -128,7 +128,7 @@ export function getConnectionDisplayString(creds: Interfaces.IConnectionCredenti
     // Limit the maximum length of displayed text
     if (text.length > Constants.maxDisplayedStatusTextLength) {
         text = text.substr(0, Constants.maxDisplayedStatusTextLength);
-        text += ' \u2026'; // ...
+        text += ' \u2026'; // Ellipsis character (...)
     }
 
     return text;
