@@ -321,7 +321,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 // If Json fails to parse, fall back on original Json content
             }
             if (jsonContent) {
-                content = JSON.stringify(JSON.parse(content), undefined, 4);
+                // If Json content was valid and parse, prettu print content to a string
+                content = JSON.stringify(jsonContent, undefined, 4);
             }
         }
 
@@ -354,7 +355,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     private getXmlTempFileName(columnName: string, linkType: string): string {
         let baseFileName = columnName + '_';
-        let retryCount: number = 5;
+        let retryCount: number = 200;
         for (let i = 0; i < retryCount; i++) {
             let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
             SqlOutputContentProvider.tempFileCount++;
