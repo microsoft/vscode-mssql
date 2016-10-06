@@ -321,7 +321,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 // If Json fails to parse, fall back on original Json content
             }
             if (jsonContent) {
-                // If Json content was valid and parse, prettu print content to a string
+                // If Json content was valid and parsed, pretty print content to a string
                 content = JSON.stringify(jsonContent, undefined, 4);
             }
         }
