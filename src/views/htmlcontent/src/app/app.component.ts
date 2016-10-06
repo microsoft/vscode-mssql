@@ -115,7 +115,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let startDate = new Date();
         this.messages.push(
             {
-                messages: [{message: Constants.executeQueryLabel, time: startDate.getHours() + ':' + startDate.getMinutes() + ':' + startDate.getSeconds()}],
+                messages: [{message: Constants.executeQueryLabel, time: startDate.toLocaleTimeString()}],
                 hasError: false,
                 selection: undefined
             }
