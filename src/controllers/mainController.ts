@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------------------------
+﻿/*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -8,7 +8,7 @@ import * as events from 'events';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
 import Utils = require('../models/utils');
-import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -31,6 +31,8 @@ export default class MainController implements vscode.Disposable {
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
     private _initialized: boolean = false;
+    private _lastSavedUri: string;
+    private _lastSavedTimer: Utils.Timer;
 
     /**
      * The main controller constructor
@@ -97,10 +99,16 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
         this.registerCommand(Constants.cmdOpenConnectionSettings);
         this._event.on(Constants.cmdOpenConnectionSettings, () => { self.onOpenConnectionSettings(); } );
+        this.registerCommand(Constants.cmdCancelConnect);
+        this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
         this.registerCommand(Constants.cmdShowReleaseNotes);
         this._event.on(Constants.cmdShowReleaseNotes, () => { self.launchReleaseNotesPage(); } );
 
         this._vscodeWrapper = new VscodeWrapper();
+
+        // Add handlers for VS Code generated commands
+        this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
+        this._vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
 
         return this.initialize(activationTimer);
     }
@@ -174,6 +182,13 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Cancels the current connection attempt
+     */
+    public onCancelConnect(): void {
+        return this._connectionMgr.onCancelConnect();
+    }
+
+    /**
      * get the T-SQL query from the editor, run it and show output
      */
     public onRunQuery(): void {
@@ -211,7 +226,7 @@ export default class MainController implements vscode.Disposable {
                     endColumn: selection.end.character
                 };
             }
-            this._outputContentProvider.runQuery(this._connectionMgr, this._statusview, uri, querySelection, title);
+            this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
         }
     }
 
@@ -309,5 +324,50 @@ export default class MainController implements vscode.Disposable {
             }
             return false;
         }
+    }
+
+    /**
+     * Called by VS Code when a text document closes. This will dispatch calls to other
+     * controllers as needed. Determines if this was a closed file or if it was an instance
+     * where a file was saved to disk after being an untitled file.
+     * @param doc The document that was closed
+     */
+    private onDidCloseTextDocument(doc: vscode.TextDocument): void {
+        let closedDocumentUri: string = doc.uri.toString();
+        let closedDocumentUriScheme: string = doc.uri.scheme;
+
+        // Did we save a document before this close event? Was it an untitled document?
+        if (this._lastSavedUri && this._lastSavedTimer && closedDocumentUriScheme === Constants.untitledScheme) {
+            // Stop the save timer
+            this._lastSavedTimer.end();
+
+            // Check that we saved a document *just* before this close event
+            // If so, then we saved an untitled document and need to update where necessary
+            if (this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
+                this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
+            }
+
+            // Reset the save timer
+            this._lastSavedTimer = undefined;
+            this._lastSavedUri = undefined;
+        } else {
+            // Pass along the close event to the other handlers
+            this._connectionMgr.onDidCloseTextDocument(doc);
+            this._outputContentProvider.onDidCloseTextDocument(doc);
+        }
+    }
+
+    /**
+     * Called by VS Code when a text document is saved. Will trigger a timer to
+     * help determine if the file was a file saved from an untitled file.
+     * @param doc The document that was saved
+     */
+    private onDidSaveTextDocument(doc: vscode.TextDocument): void {
+        let savedDocumentUri: string = doc.uri.toString();
+
+        // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
+        this._lastSavedTimer = new Utils.Timer();
+        this._lastSavedTimer.start();
+        this._lastSavedUri = savedDocumentUri;
     }
 }

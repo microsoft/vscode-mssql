@@ -1,7 +1,8 @@
 'use strict';
 import Constants = require('./constants');
 import { ConnectionDetails } from './contracts/connection';
-import { IConnectionCredentials, AuthenticationTypes } from './interfaces';
+import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 
@@ -78,12 +79,47 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static ensureRequiredPropertiesSet(
         credentials: IConnectionCredentials,
+        isProfile: boolean,
         isPasswordRequired: boolean,
-        prompter: IPrompter): Promise<IConnectionCredentials> {
+        wasPasswordEmptyInConfigFile: boolean,
+        prompter: IPrompter,
+        connectionStore: ConnectionStore): Promise<IConnectionCredentials> {
 
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
+
+        if (isProfile) {
+            let profile: IConnectionProfile = <IConnectionProfile>credentials;
+
+            // Add an additional question to save password if it is undefined for a profile
+            questions.push(
+                {
+                    type: QuestionTypes.confirm,
+                    name: Constants.msgSavePassword,
+                    message: Constants.msgSavePassword,
+                    shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile) && typeof(profile.savePassword) === 'undefined',
+                    onAnswered: (value) => {
+                        profile.savePassword = value;
+                        connectionStore.removeProfile(profile).then(() => {
+                            connectionStore.saveProfile(profile);
+                        });
+                    }
+                }
+            );
+        }
+
         return prompter.prompt(questions).then(answers => {
             if (answers) {
+                if (isProfile) {
+                    let profile: IConnectionProfile = <IConnectionProfile>credentials;
+
+                    // If this is a profile, and the user has set save password to true and stored the password in the config file,
+                    // then transfer the password to the credential store
+                    if (profile.savePassword && !wasPasswordEmptyInConfigFile) {
+                        connectionStore.removeProfile(profile).then(() => {
+                            connectionStore.saveProfile(profile);
+                        });
+                    }
+                }
                 return credentials;
             } else {
                 return undefined;

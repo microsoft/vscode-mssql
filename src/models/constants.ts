@@ -17,7 +17,9 @@ export const defaultConnectionSettingsFileJson = {
 };
 
 export const cmdRunQuery = 'extension.runQuery';
+export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
+export const cmdCancelConnect = 'extension.cancelConnect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
@@ -68,6 +70,8 @@ export const msgRunQueryConnectionActive = 'runQuery: active connection is conne
 export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 
+export const msgCancelQueryFailed = 'Failed to cancel query: {0}';
+
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
 export const msgContentProviderOnRootEndpoint = 'LocalWebService: Root end-point called';
@@ -86,6 +90,8 @@ export const msgConnectionError = 'Error {0}: {1}';
 export const msgConnectionError2 = 'Failed to connect: {0}';
 export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
+
+export const msgPromptCancelConnect = 'Cancel connecting?';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
@@ -150,11 +156,7 @@ export const connectErrorLabel = 'Connection error!';
 export const connectErrorTooltip = 'Error connecting to: ';
 export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
-export const executeQueryLabel = 'Executing query ';
-export const executeQueryErrorLabel = 'Query completed with errors';
-export const executeQuerySuccessLabel = 'Query executed successfully';
-export const executeQueryRowsAffected = ' row(s) affected';
-export const executeQueryCommandCompleted = 'Command(s) completed successfully.';
+export const executeQueryLabel = 'Launching query ';
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
@@ -179,3 +181,12 @@ export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \
 export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check that the file is formatted correctly.';
 export const msgNewConfigFileHelpInfo = 'Save connections.json to enable autocomplete while editing connection profile settings.';
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
+
+
+export const sqlToolsServiceConfigKey = 'service';
+export const sqlToolsServiceInstallDirConfigKey = 'installDir';
+export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
+export const sqlToolsServiceVersionConfigKey = 'version';
+export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
+
+export const titleResultsPane = 'SQL Query Results: {0}';
