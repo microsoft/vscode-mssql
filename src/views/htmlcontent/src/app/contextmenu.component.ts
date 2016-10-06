@@ -37,7 +37,7 @@ export class ContextMenu {
     }
 
     handleContextActionClick( type: string ): void {
-        if (!($('ul.contextMenu li').hasClass('disabled'))) {
+        if (!this.isDisabled) {
             this.clickEvent.emit({'type': type, 'batchId': this.batchId, 'resultId': this.resultId, 'selection': this.selection});
         }
     }
