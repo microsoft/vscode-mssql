@@ -18,7 +18,11 @@ body {
 }
 
 .vertBox .boxRow.content {
-    flex: 100 0 0;
+    flex: 1 1 0;
+}
+
+.results {
+    flex: 100 1 0;
 }
 
 .scrollable {
@@ -36,10 +40,6 @@ body {
 
 .minHeight {
     min-height: fit-content;
-}
-
-.slickgrid {
-    min-height: 232;
 }
 
 /* horizontal box style */
