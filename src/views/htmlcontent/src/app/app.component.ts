@@ -78,7 +78,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: 'Save as CSV',
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
+                if (selection.length === 1) {
+                    this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
+                }
             }
         },
         {
@@ -86,7 +88,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: 'Save as JSON',
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
+                if (selection.length === 1) {
+                    this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
+                }
             }
         },
         {
