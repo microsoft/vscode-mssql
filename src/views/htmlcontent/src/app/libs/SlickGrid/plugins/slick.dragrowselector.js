@@ -208,7 +208,7 @@
                 if(cell.cell !== 0) {
                     _ranges = [new Slick.Range(cell.row, cell.cell-1, cell.row, cell.cell-1)];
                     setSelectedRanges(_ranges);
-                    _grid.setActiveCell(cell.row, cell.cell);;
+                    _grid.setActiveCell(cell.row, cell.cell);
                     return true;
                 } else {
                     _ranges = [new Slick.Range(cell.row, 0, cell.row, _grid.getColumns().length - 1)]
