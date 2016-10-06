@@ -19,6 +19,7 @@ export const defaultConnectionSettingsFileJson = {
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
+export const cmdCancelConnect = 'extension.cancelConnect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
@@ -90,6 +91,8 @@ export const msgConnectionError2 = 'Failed to connect: {0}';
 export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
 
+export const msgPromptCancelConnect = 'Cancel connecting?';
+
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
 export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
@@ -153,7 +156,7 @@ export const connectErrorLabel = 'Connection error!';
 export const connectErrorTooltip = 'Error connecting to: ';
 export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
-export const executeQueryLabel = 'Launching query ';
+export const executeQueryLabel = 'Executing query ';
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';

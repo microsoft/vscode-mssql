@@ -8,7 +8,7 @@ import * as events from 'events';
 import vscode = require('vscode');
 import Constants = require('../models/constants');
 import Utils = require('../models/utils');
-import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -99,6 +99,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
         this.registerCommand(Constants.cmdOpenConnectionSettings);
         this._event.on(Constants.cmdOpenConnectionSettings, () => { self.onOpenConnectionSettings(); } );
+        this.registerCommand(Constants.cmdCancelConnect);
+        this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
         this.registerCommand(Constants.cmdShowReleaseNotes);
         this._event.on(Constants.cmdShowReleaseNotes, () => { self.launchReleaseNotesPage(); } );
 
@@ -177,6 +179,13 @@ export default class MainController implements vscode.Disposable {
      */
     public onNewConnection(): Promise<boolean> {
         return this._connectionMgr.onNewConnection();
+    }
+
+    /**
+     * Cancels the current connection attempt
+     */
+    public onCancelConnect(): void {
+        return this._connectionMgr.onCancelConnect();
     }
 
     /**
