@@ -217,8 +217,7 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
  */
 export function isFileExisting(filePath: string): boolean {
         try {
-            let stats = fs.statSync(filePath);
-            logDebug(stats);
+            fs.statSync(filePath);
             return true;
         } catch (err) {
             return false;
