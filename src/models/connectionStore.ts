@@ -166,8 +166,8 @@ export class ConnectionStore {
             }).then(resolved => {
                 // Add necessary default properties before returning
                 // this is needed to support immediate connections
-                ConnInfo.fixupConnectionCredentials(savedProfile);
-                resolve(savedProfile);
+                ConnInfo.fixupConnectionCredentials(profile);
+                resolve(profile);
             }, err => {
                 reject(err);
             });

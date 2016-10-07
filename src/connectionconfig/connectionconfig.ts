@@ -44,6 +44,12 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public addConnection(profile: IConnectionProfile): Promise<void> {
         let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
+
+        // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
+        if (!parsedSettingsFile) {
+            return Promise.reject(undefined);
+        }
+
         let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
 
         // Remove the profile if already set
@@ -96,6 +102,12 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public removeConnection(profile: IConnectionProfile): Promise<boolean> {
         let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
+
+        // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
+        if (!parsedSettingsFile) {
+            return Promise.resolve(false);
+        }
+
         let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
 
         // Remove the profile if already set
@@ -184,7 +196,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * Parse the vscode settings file into an object, preserving comments.
      * This is public for testing only.
      * @param filename the name of the file to read from
-     * @returns undefined if the settings file does not exist or could not be read.
+     * @returns undefined if the settings file could not be read, or an empty object if the file did not exist/was empty
      */
     public readAndParseSettingsFile(filename: string): any {
         if (!filename) {
@@ -201,11 +213,15 @@ export class ConnectionConfig implements IConnectionConfig {
                     } catch (e) { // Error parsing JSON
                         this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
                     }
+                } else {
+                    return {};
                 }
             }
         } catch (e) { // Error reading the file
             if (e.code !== 'ENOENT') { // Ignore error if the file doesn't exist
                 this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
+            } else {
+                return {};
             }
         }
 
@@ -235,11 +251,6 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param profiles the set of profiles to insert into the settings file.
      */
     private writeProfilesToSettingsFile(parsedSettingsFile: any, profiles: IConnectionProfile[]): Promise<void> {
-        // Create an empty object if the settings file was empty
-        if (!parsedSettingsFile) {
-            parsedSettingsFile = {};
-        }
-
         if (profiles.length !== 0) {
             // Insert the new set of profiles
             parsedSettingsFile[Constants.connectionsArrayName] = profiles;
