@@ -69,8 +69,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // FIELDS
     // All datasets
     private dataSets: IGridDataSet[] = [];
+    // Place holder data sets to buffer between data sets and rendered data sets
+    private placeHolderDataSets: IGridDataSet[] = [];
     // Datasets currently being rendered on the DOM
-    private renderedDataSets: IGridDataSet[] = [];
+    private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
     private messages: IMessages[] = [];
     private scrollTimeOut: number;
     private messagesAdded = false;
@@ -210,7 +212,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             // Create a dataSet to render without rows to reduce DOM size
                             let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
                             undefinedDataSet.dataRows = undefined;
-                            self.renderedDataSets.push(undefinedDataSet);
+                            undefinedDataSet.resized = new EventEmitter();
+                            self.placeHolderDataSets.push(undefinedDataSet);
                             self.messagesAdded = true;
                             self.onScroll(0);
                         });
@@ -331,14 +334,19 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
     }
 
+    /**
+     * Handles rendering the results to the DOM that are currently being shown
+     * and destroying any results that have moved out of view
+     * @param scrollTop The scrolltop value, if not called by the scroll event should be 0
+     */
     onScroll(scrollTop): void {
         const self = this;
         clearTimeout(self.scrollTimeOut);
         this.scrollTimeOut = setTimeout(() => {
-            if (self.slickgrids.length < self.maxScrollGrids) {
+            if (self.dataSets.length < self.maxScrollGrids) {
                 self.scrollEnabled = false;
-                for (let i = 0; i < self.renderedDataSets.length; i++) {
-                    self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
+                for (let i = 0; i < self.placeHolderDataSets.length; i++) {
+                    self.placeHolderDataSets[i].dataRows = self.dataSets[i].dataRows;
                 }
             } else {
                 let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
@@ -347,13 +355,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     + ((scrollTop % gridHeight) / gridHeight));
                 let min = Math.floor(scrollTop / gridHeight);
                 let max = min + numOfVisibleGrids;
-                for (let i = 0; i < self.renderedDataSets.length; i++) {
+                for (let i = 0; i < self.placeHolderDataSets.length; i++) {
                     if (i >= min && i < max) {
-                        if (self.renderedDataSets[i].dataRows === undefined) {
-                            self.renderedDataSets[i].dataRows = self.dataSets[i].dataRows;
+                        if (self.placeHolderDataSets[i].dataRows === undefined) {
+                            self.placeHolderDataSets[i].dataRows = self.dataSets[i].dataRows;
+                            self.placeHolderDataSets[i].resized.emit();
                         }
-                    } else if (self.renderedDataSets[i].dataRows !== undefined) {
-                        self.renderedDataSets[i].dataRows = undefined;
+                    } else if (self.placeHolderDataSets[i].dataRows !== undefined) {
+                        self.placeHolderDataSets[i].dataRows = undefined;
                     }
                 }
             }
@@ -407,7 +416,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         if (this.renderedDataSets.length > 1) {
             this.renderedDataSets = [this.dataSets[index]];
         } else {
-            this.renderedDataSets = this.dataSets;
+            this.renderedDataSets = this.placeHolderDataSets;
+            this.onScroll(0);
         }
     }
 }
