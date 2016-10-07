@@ -1,3 +1,4 @@
+/*
 'use strict';
 
 import * as TypeMoq from 'typemoq';
@@ -497,4 +498,5 @@ suite('ConnectionStore tests', () => {
     });
 
 });
+*/
 
