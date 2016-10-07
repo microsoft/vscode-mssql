@@ -1,6 +1,5 @@
 'use strict';
 
-import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
@@ -29,13 +28,14 @@ export default class QueryRunner {
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
+    private _batchSetsPromise: Promise<BatchSummary[]>;
+    public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
     constructor(private _ownerUri: string,
                 private _editorTitle: string,
                 private _statusView: StatusView,
-                private _outputProvider: SqlOutputContentProvider,
                 private _client?: SqlToolsServerClient,
                 private _notificationHandler?: QueryNotificationHandler,
                 private _vscodeWrapper?: VscodeWrapper) {
@@ -75,11 +75,15 @@ export default class QueryRunner {
         this._title = title;
     }
 
-    get batchSets(): BatchSummary[] {
+    getBatchSets(): Promise<BatchSummary[]> {
+        return this._batchSetsPromise;
+    }
+
+    private get batchSets(): BatchSummary[] {
         return this._batchSets;
     }
 
-    set batchSets(batchSets: BatchSummary[]) {
+    private set batchSets(batchSets: BatchSummary[]) {
         this._batchSets = batchSets;
     }
 
@@ -106,11 +110,23 @@ export default class QueryRunner {
         this._isExecuting = true;
         this._statusView.executingQuery(this.uri);
 
+        self._batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
+            self.dataResolveReject = {resolve: resolve, reject: reject};
+        });
+
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
-            self._statusView.executedQuery(this.uri);
             if (result.messages) {
+                self._statusView.executedQuery(self.uri);
                 self._isExecuting = false;
                 self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
+                self.batchSets = [{
+                        hasError: true,
+                        id: 0,
+                        selection: undefined,
+                        messages: [{message: result.messages, time: undefined}],
+                        resultSetSummaries: undefined
+                    }];
+                self.dataResolveReject.resolve();
             } else {
                 // register with the Notification Handler
                 self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
@@ -128,11 +144,13 @@ export default class QueryRunner {
 
         this.batchSets = result.batchSummaries;
         this.batchSets.map((batch) => {
-            batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
-            batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+            if (batch.selection) {
+                batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
+                batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+            }
         });
         this._statusView.executedQuery(this.uri);
-        this._outputProvider.updateContent(this);
+        this.dataResolveReject.resolve(this.batchSets);
     }
 
     // get more data rows from the current resultSets from the service layer

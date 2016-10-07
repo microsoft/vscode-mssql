@@ -98,25 +98,4 @@
   width: 100%;
   color: #000000;
 }
-.contextMenu {
-  position: absolute;
-  background: #007ACC;
-  color: white;
-  border: 1px solid gray;
-  padding: 2px;
-  display: inline-block;
-  min-width: 100px;
-  -moz-box-shadow: 2px 2px 2px silver;
-  -webkit-box-shadow: 2px 2px 2px silver;
-  z-index: 99999;
-}
-.contextMenu li {
-  padding: 4px 4px 4px 14px;
-  list-style: none;
-  cursor: pointer;
-}
-.contextMenu li:hover {
-  background-color: white;
-  color: #007ACC;
-  text-decoration: underline;
-}
+

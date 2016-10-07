@@ -19,11 +19,13 @@ export class ContextMenu {
     private batchId: number;
     private resultId: number;
     private selection: ISlickRange[];
+    private isDisabled: boolean;
 
     show(x: number, y: number, batchId: number, resultId: number, selection: ISlickRange[]): void {
         this.batchId = batchId;
         this.resultId = resultId;
         this.selection = selection;
+        this.isDisabled = (selection.length > 1);
         $('.contextMenu').css('top', y).css('left', x).show();
         $('body').one('click', () => {
             $('.contextMenu').hide();
@@ -34,4 +36,9 @@ export class ContextMenu {
         $('.contextMenu').hide();
     }
 
+    handleContextActionClick( type: string ): void {
+        if (!this.isDisabled) {
+            this.clickEvent.emit({'type': type, 'batchId': this.batchId, 'resultId': this.resultId, 'selection': this.selection});
+        }
+    }
 }

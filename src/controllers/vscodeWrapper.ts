@@ -2,6 +2,7 @@ import vscode = require('vscode');
 
 
 import * as Constants from './../models/constants';
+import * as Utils from '../models/utils';
 
 export import TextEditor = vscode.TextEditor;
 
@@ -83,6 +84,13 @@ export default class VscodeWrapper {
     }
 
     /**
+     * An event that is emitted when a [text document](#TextDocument) is opened.
+     */
+    public get onDidOpenTextDocument(): vscode.Event<vscode.TextDocument> {
+        return vscode.workspace.onDidOpenTextDocument;
+    }
+
+    /**
      * An event that is emitted when a [text document](#TextDocument) is saved to disk.
      */
     public get onDidSaveTextDocument(): vscode.Event<vscode.TextDocument> {
@@ -114,10 +122,10 @@ export default class VscodeWrapper {
     public logToOutputChannel(msg: any): void {
         if (msg instanceof Array) {
             msg.forEach(element => {
-                VscodeWrapper._outputChannel.appendLine(element.toString());
+                VscodeWrapper._outputChannel.appendLine(Utils.getTimestampString() + ' ' + element.toString());
             });
         } else {
-            VscodeWrapper._outputChannel.appendLine(msg.toString());
+            VscodeWrapper._outputChannel.appendLine(Utils.getTimestampString() + ' ' + msg.toString());
         }
     }
 

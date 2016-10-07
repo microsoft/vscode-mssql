@@ -224,13 +224,11 @@
                     _ranges = [new Slick.Range(cell.row, cell.cell-1, cell.row, cell.cell-1)];
                     setSelectedRanges(_ranges);
                     _grid.setActiveCell(cell.row, cell.cell);
-                    e.stopImmediatePropagation();
                     return true;
                 } else {
                     _ranges = [new Slick.Range(cell.row, 0, cell.row, _grid.getColumns().length - 1)]
                     setSelectedRanges(_ranges);
                     _grid.setActiveCell(cell.row, 1);
-                    e.stopImmediatePropagation();
                     return true;
                 }
             }
@@ -260,7 +258,6 @@
             }
 
             setSelectedRanges(_ranges);
-            e.stopImmediatePropagation();
 
             return true;
         }

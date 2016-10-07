@@ -181,7 +181,7 @@ export default class ConnectionManager {
                 connectionInfo.credentials.database = event.connection.databaseName;
                 connectionInfo.credentials.user = event.connection.userName;
 
-                self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials);
+                self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials, connectionInfo.serverInfo);
 
                 let logMessage = Utils.formatString(Constants.msgChangedDatabaseContext, event.connection.databaseName, event.ownerUri);
 
@@ -231,7 +231,7 @@ export default class ConnectionManager {
         connection.serverInfo = result.serverInfo;
         connection.credentials = newCredentials;
 
-        this.statusView.connectSuccess(fileUri, newCredentials);
+        this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
 
         this._vscodeWrapper.logToOutputChannel(
             Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
@@ -264,6 +264,9 @@ export default class ConnectionManager {
             Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
         }
         this.statusView.connectError(fileUri, connection.credentials, result);
+        this.vscodeWrapper.logToOutputChannel(
+            Utils.formatString(Constants.msgConnectionFailed, connection.credentials.server, result.errorMessage ? result.errorMessage : result.messages)
+        );
     }
 
     private tryAddMruConnection(connection: ConnectionInfo, newConnection: Interfaces.IConnectionCredentials): void {
@@ -299,8 +302,15 @@ export default class ConnectionManager {
                 // Then let the user select a new database to connect to
                 self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials, result.databaseNames).then( newDatabaseCredentials => {
                     if (newDatabaseCredentials) {
+                        self.vscodeWrapper.logToOutputChannel(
+                            Utils.formatString(Constants.msgChangingDatabase, newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
+                        );
+
                         self.disconnect(fileUri).then( () => {
                             self.connect(fileUri, newDatabaseCredentials).then( () => {
+                                self.vscodeWrapper.logToOutputChannel(
+                                    Utils.formatString(Constants.msgChangedDatabase, newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
+                                );
                                 resolve(true);
                             }).catch(err => {
                                 reject(err);
@@ -331,6 +341,12 @@ export default class ConnectionManager {
 
                 self.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams).then((result) => {
                     self.statusView.notConnected(fileUri);
+                    if (result) {
+                        self.vscodeWrapper.logToOutputChannel(
+                            Utils.formatString(Constants.msgDisconnected, fileUri)
+                        );
+                    }
+
                     delete self._connections[fileUri];
 
                     resolve(result);
@@ -404,7 +420,11 @@ export default class ConnectionManager {
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.credentials = connectionCreds;
             this._connections[fileUri] = connectionInfo;
+
             self.statusView.connecting(fileUri, connectionCreds);
+            self.vscodeWrapper.logToOutputChannel(
+                Utils.formatString(Constants.msgConnecting, connectionCreds.server, fileUri)
+            );
 
             // Setup the handler for the connection complete notification to call
             connectionInfo.connectHandler = ((connectResult, error) => {
@@ -496,6 +516,13 @@ export default class ConnectionManager {
 
         // Disconnect the document's connection when we close it
         this.disconnect(docUri);
+    }
+
+    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
+        let uri = doc.uri.toString();
+        if (doc.languageId === 'sql' && typeof(this._connections[uri]) === 'undefined') {
+            this.statusView.notConnected(uri);
+        }
     }
 
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
