@@ -107,48 +107,48 @@
     "commands": [
       {
         "command": "extension.runQuery",
-        "title": "Run T-SQL query",
-        "category": "MSSQL"
+        "title": "Execute Query",
+        "category": "MS SQL"
       },
       {
         "command": "extension.connect",
-        "title": "Connect to a database",
-        "category": "MSSQL"
+        "title": "Connect",
+        "category": "MS SQL"
       },
       {
         "command": "extension.disconnect",
-        "title": "Disconnect active connection",
-        "category": "MSSQL"
+        "title": "Disconnect",
+        "category": "MS SQL"
       },
       {
         "command": "extension.createprofile",
         "title": "Create Connection Profile",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.removeprofile",
         "title": "Remove Connection Profile",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.chooseDatabase",
-        "title": "Switch database on current server",
-        "category": "MSSQL"
+        "title": "Use Database",
+        "category": "MS SQL"
       },
       {
         "command": "extension.openConnectionSettingsFile",
         "title": "Open Connection Profile Settings",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.cancelConnect",
-        "title": "Cancel Connecting",
-        "category": "MSSQL"
+        "title": "Cancel Connection",
+        "category": "MS SQL"
       },
       {
         "command": "extension.showReleaseNotes",
         "title": "Getting Started Guide",
-        "category": "MSSQL"
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -171,9 +171,9 @@
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
-        "command": "extension.createprofile",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r",
+        "command": "extension.chooseDatabase",
+        "key": "ctrl+shift+u",
+        "mac": "cmd+shift+u",
         "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],

@@ -108,6 +108,7 @@ export default class MainController implements vscode.Disposable {
 
         // Add handlers for VS Code generated commands
         this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
+        this._vscodeWrapper.onDidOpenTextDocument(params => this.onDidOpenTextDocument(params));
         this._vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
 
         return this.initialize(activationTimer);
@@ -355,6 +356,14 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr.onDidCloseTextDocument(doc);
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
+    }
+
+    /**
+     * Called by VS Code when a text document is opened. Checks if a SQL file was opened
+     * to enable features of our extension for the document.
+     */
+    private onDidOpenTextDocument(doc: vscode.TextDocument): void {
+        this._connectionMgr.onDidOpenTextDocument(doc);
     }
 
     /**

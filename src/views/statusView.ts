@@ -99,11 +99,11 @@ export default class StatusView implements vscode.Disposable {
         this.showProgress(fileUri, Constants.connectingLabel, bar.statusConnection);
     }
 
-    public connectSuccess(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
+    public connectSuccess(fileUri: string, connCreds: Interfaces.IConnectionCredentials, serverInfo: ConnectionContracts.ServerInfo): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdChooseDatabase;
         bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
-        bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds);
+        bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
