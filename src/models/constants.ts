@@ -25,6 +25,8 @@ export const defaultPortNumber = 1433;
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 
+export const maxDisplayedStatusTextLength = 50;
+
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
 export const outputContentTypeResultsetMeta = 'resultsetsMeta';
@@ -141,11 +143,11 @@ export const notConnectedTooltip = 'Click to connect to a database';
 export const connectingLabel = 'Connecting';
 export const connectingTooltip = 'Connecting to: ';
 export const connectedLabel = 'Connected.';
-export const connectErrorLabel = 'Connection error!';
+export const connectErrorLabel = 'Connection error';
 export const connectErrorTooltip = 'Error connecting to: ';
 export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
-export const executeQueryLabel = 'Launching query ';
+export const executeQueryLabel = 'Executing query ';
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
@@ -165,7 +167,12 @@ export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" fo
 
 export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the profile information provided. Retry profile creation?';
 
+export const msgConnecting = 'Connecting to server \"{0}\" on document \"{1}\".';
 export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';
+export const msgConnectionFailed = 'Error connecting to server \"{0}\". Details: {1}';
+export const msgChangingDatabase = 'Changing database context to \"{0}\" on server \"{1}\" on document \"{2}\".';
+export const msgChangedDatabase = 'Changed database context to \"{0}\" on server \"{1}\" on document \"{2}\".';
+export const msgDisconnected = 'Disconnected on document \"{0}\"';
 
 export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check that the file is formatted correctly.';
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
