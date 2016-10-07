@@ -120,7 +120,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 };
                 for (let message of batch.messages) {
                     let date = new Date(message.time);
-                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    let timeString = date.toLocaleTimeString();
                     messages.messages.push({time: timeString, message: message.message});
                 }
                 self.messages.push(messages);
