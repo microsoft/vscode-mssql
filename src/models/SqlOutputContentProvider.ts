@@ -36,7 +36,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
-            let uri: string = req.query.uri;
+            let uri: string = decodeURIComponent(req.query.uri);
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
@@ -58,36 +58,43 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
-            let batchSets: Interfaces.IGridBatchMetaData[] = [];
-            let uri: string = req.query.uri;
-            for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
-                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
-                for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
-                    let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-                    let encodedUri = encodeURIComponent(uri);
-                    let columnsUri = Utils.formatString(uriFormat, Constants.outputContentTypeColumns, batchIndex, resultIndex, encodedUri);
-                    let rowsUri = Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri);
+            let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
+            let uri: string = decodeURIComponent(req.query.uri);
+            self._queryResultsMap.get(uri).getBatchSets().then((batchSets) => {
+                for (let [batchIndex, batch] of batchSets.entries()) {
+                    let tempBatch: Interfaces.IGridBatchMetaData = {
+                        resultSets: [],
+                        messages: batch.messages,
+                        hasError: batch.hasError,
+                        selection: batch.selection
+                    };
+                    for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
+                        let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
+                        let encodedUri = encodeURIComponent(uri);
 
-                    tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                        columnsUri: columnsUri,
-                        rowsUri: rowsUri,
-                        numberOfRows: result.rowCount
-                    });
+                        tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
+                            columnsUri: Utils.formatString(uriFormat, Constants.outputContentTypeColumns, batchIndex, resultIndex, encodedUri),
+                            rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
+                            numberOfRows: result.rowCount
+                        });
+                    }
+                    tempBatchSets.push(tempBatch);
                 }
-                batchSets.push(tempBatch);
-            }
-            let json = JSON.stringify(batchSets);
-            res.send(json);
+                let json = JSON.stringify(tempBatchSets);
+                res.send(json);
+            });
         });
 
         // add http handler for '/columns' - return column metadata as a JSON string
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
-            let uri: string = req.query.uri;
-            let columnMetadata = self._queryResultsMap.get(uri).batchSets[batchId].resultSetSummaries[resultId].columnInfo;
-            let json = JSON.stringify(columnMetadata);
-            res.send(json);
+            let uri: string = decodeURIComponent(req.query.uri);
+            self._queryResultsMap.get(uri).getBatchSets().then((data) => {
+                let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
+                let json = JSON.stringify(columnMetadata);
+                res.send(json);
+            });
         });
 
         // add http handler for '/rows' - return rows end-point for a specific resultset
@@ -96,7 +103,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchId = req.query.batchId;
             let rowStart = req.query.rowStart;
             let numberOfRows = req.query.numberOfRows;
-            let uri: string = req.query.uri;
+            let uri: string = decodeURIComponent(req.query.uri);
             self._queryResultsMap.get(uri).getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
@@ -179,11 +186,17 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
         let resultsUri = this.getResultsUri(uri).toString();
-        let queryRunner: QueryRunner = this._queryResultsMap.has(resultsUri)
-            ? this._queryResultsMap.get(resultsUri)
-            : new QueryRunner(uri, title, statusView, this);
+        let queryRunner: QueryRunner;
+        if (this._queryResultsMap.has(resultsUri)) {
+            queryRunner = this._queryResultsMap.get(resultsUri);
+        } else {
+            queryRunner = new QueryRunner(uri, title, statusView);
+            this._queryResultsMap.set(resultsUri, queryRunner);
+        }
 
         // Execute the query
+        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
         queryRunner.runQuery(selection);
     }
 
@@ -199,18 +212,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
         });
-    }
-
-    public updateContent(queryRunner: QueryRunner): string {
-        // Map the query runner to the results uri
-        let uri = this.getResultsUri(queryRunner.uri).toString();
-        this._queryResultsMap.set(uri.toString(), queryRunner);
-
-        // Show the results pane
-        let title = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
-        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, title);
-        this.onContentUpdated();
-        return uri;
     }
 
     /**
@@ -347,7 +348,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     private getResultsUri(srcUri: string): string {
         // NOTE: The results uri will be encoded when we parse it to a uri
-        return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
+        return SqlOutputContentProvider.providerUri + srcUri;
     }
 
     /**

@@ -33,7 +33,10 @@
     <div id="messages" class="scrollable messages" [class.hidden]="!messageActive">
         <table id="messageTable">
             <div *ngFor="let imessage of messages">
-                <tr><td></td><td><a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></td></tr>
+                <tr *ngIf="imessage.selection">
+                    <td></td>
+                    <td><a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}} Column {{imessage.selection.startColumn + 1}}</a></td>
+                </tr>
                 <tr *ngFor="let message of imessage.messages">
                     <td>[{{message.time}}]</td>
                     <td [class.errorMessage]="imessage.hasError">
