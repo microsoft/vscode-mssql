@@ -48,10 +48,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // Remove the profile if already set
         profiles = profiles.filter(value => !Utils.isSameProfile(value, profile));
-
-        // Add the profile to the saved list, taking care to clear out the password field
-        let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
-        profiles.push(savedProfile);
+        profiles.push(profile);
 
         return this.writeProfilesToSettingsFile(parsedSettingsFile, profiles);
     }

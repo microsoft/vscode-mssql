@@ -154,7 +154,9 @@ export class ConnectionStore {
     public saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
-            self._connectionConfig.addConnection(profile)
+            // Add the profile to the saved list, taking care to clear out the password field
+            let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
+            self._connectionConfig.addConnection(savedProfile)
             .then(() => {
                 // Only save if we successfully added the profile
                 return self.saveProfilePasswordIfNeeded(profile);
@@ -164,8 +166,8 @@ export class ConnectionStore {
             }).then(resolved => {
                 // Add necessary default properties before returning
                 // this is needed to support immediate connections
-                ConnInfo.fixupConnectionCredentials(profile);
-                resolve(profile);
+                ConnInfo.fixupConnectionCredentials(savedProfile);
+                resolve(savedProfile);
             }, err => {
                 reject(err);
             });
