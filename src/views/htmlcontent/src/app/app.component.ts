@@ -52,18 +52,26 @@ export class AppComponent implements OnInit, AfterViewChecked {
         columnDefinitions: IColumnDefinition[],
         totalRows: number,
         batchId: number,
-        resultId: number}[] = [];
+        resultId: number,
+        maxHeight: number | string,
+        minHeight: number | string}[] = [];
     private renderedDataSets: {
         dataRows: IObservableCollection<IGridDataRow>,
         columnDefinitions: IColumnDefinition[],
         totalRows: number,
         batchId: number,
-        resultId: number}[] = [];
+        resultId: number,
+        maxHeight: number | string,
+        minHeight: number | string}[] = [];
     private messages: IMessages[] = [];
     private messagesAdded = false;
     private selected: SelectedTab;
     private windowSize = 50;
     private c_key = 67;
+    // tslint:disable-next-line:no-unused-variable
+    private _rowHeight = 29;
+    // tslint:disable-next-line:no-unused-variable
+    private _defaultNumShowingRows = 8;
     public SelectedTab = SelectedTab;
     private resizing = false;
     private resizeHandleTop = 0;
@@ -135,12 +143,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                 columnDefinitions: IColumnDefinition[],
                                 totalRows: number,
                                 batchId: number,
-                                resultId: number} = {
+                                resultId: number,
+                                maxHeight: number | string,
+                                minHeight: number | string} = {
                                     dataRows: undefined,
                                     columnDefinitions: undefined,
                                     totalRows: undefined,
                                     batchId: batchId,
-                                    resultId: resultId
+                                    resultId: resultId,
+                                    maxHeight: undefined,
+                                    minHeight: undefined
                                 };
                             let totalRows = data[0];
                             let columnData = data[1];
@@ -186,6 +198,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.columnDefinitions = columnDefinitions;
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
+                            // calculate min and max height
+                            dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
+                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * (15 + 10)) + 10 : 'inherit';
+                            dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
+                                                (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
                             self.dataSets.push(dataSet);
                             self.renderedDataSets.push(dataSet);
                             self.messagesAdded = true;
