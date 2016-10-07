@@ -178,12 +178,6 @@
         "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],
-    "jsonValidation": [
-      {
-        "fileMatch" : "connections.json",
-        "url": "./connections.schema.json"
-      }
-    ],
     "configuration": {
       "type": "object",
       "title": "MSSQL configuration",
