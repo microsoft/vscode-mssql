@@ -12,6 +12,7 @@ import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
+import * as Constants from './../constants';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
@@ -28,6 +29,8 @@ interface IGridDataSet {
     totalRows: number;
     batchId: number;
     resultId: number;
+    maxHeight: number | string;
+    minHeight: number | string;
 }
 
 interface IMessages {
@@ -53,14 +56,20 @@ declare let $;
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {
-    // Constants
+    // CONSTANTS
     private scrollTimeOutTime = 200;
     private windowSize = 50;
     private c_key = 67;
     private maxScrollGrids = 8;
+    // tslint:disable-next-line:no-unused-variable
+    private _rowHeight = 29;
+    // tslint:disable-next-line:no-unused-variable
+    private _defaultNumShowingRows = 8;
 
-    // fields
+    // FIELDS
+    // All datasets
     private dataSets: IGridDataSet[] = [];
+    // Datasets currently being rendered on the DOM
     private renderedDataSets: IGridDataSet[] = [];
     private messages: IMessages[] = [];
     private scrollTimeOut: number;
@@ -111,6 +120,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
+        let startDate = new Date();
+        this.messages.push(
+            {
+                messages: [{message: Constants.executeQueryLabel, time: startDate.toLocaleTimeString()}],
+                hasError: false,
+                selection: undefined
+            }
+        );
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
                 let messages: IMessages = {
@@ -120,7 +137,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 };
                 for (let message of batch.messages) {
                     let date = new Date(message.time);
-                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    let timeString = date.toLocaleTimeString();
                     messages.messages.push({time: timeString, message: message.message});
                 }
                 self.messages.push(messages);
@@ -136,19 +153,22 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                     totalRows: undefined,
                                     resized: undefined,
                                     batchId: batchId,
-                                    resultId: resultId
+                                    resultId: resultId,
+                                    maxHeight: undefined,
+                                    minHeight: undefined
                                 };
                             let totalRows = data[0];
                             let columnData = data[1];
                             let columnDefinitions = [];
 
                             for (let i = 0; i < columnData.length; i++) {
-                                if (columnData[i].isXml) {
+                                if (columnData[i].isXml || columnData[i].isJson) {
+                                    let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
                                         id: columnData[i].columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
-                                        asyncPostRender: self.xmlLinkHandler
+                                        asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
@@ -181,14 +201,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.columnDefinitions = columnDefinitions;
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
+                            // calculate min and max height
+                            dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
+                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * (15 + 10)) + 10 : 'inherit';
+                            dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
+                                                (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
                             self.dataSets.push(dataSet);
-<<<<<<< HEAD
+                            // Create a dataSet to render without rows to reduce DOM size
                             let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
                             undefinedDataSet.dataRows = undefined;
                             self.renderedDataSets.push(undefinedDataSet);
-=======
-                            self.renderedDataSets.push(dataSet);
->>>>>>> dev
                             self.messagesAdded = true;
                             self.onScroll(0);
                         });
@@ -255,8 +277,31 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.field);
+            self.dataService.openLink(value, colDef.field, 'xml');
         });
+    }
+
+    /**
+     * Add handler for clicking on json link
+     */
+    jsonLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        const self = this;
+        let value = dataContext[colDef.field];
+        $(cellRef).children('.xmlLink').click(function(): void {
+            self.dataService.openLink(value, colDef.field, 'json');
+        });
+    }
+
+    /**
+     * Return asyncPostRender handler based on type
+     */
+    public linkHandler(type: string): Function {
+        if (type === 'xml') {
+            return this.xmlLinkHandler;
+        } else if (type === 'json') {
+            return this.jsonLinkHandler;
+        }
+
     }
 
     /**
