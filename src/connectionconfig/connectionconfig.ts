@@ -187,6 +187,9 @@ export class ConnectionConfig implements IConnectionConfig {
      * @returns undefined if the settings file does not exist or could not be read.
      */
     public readAndParseSettingsFile(filename: string): any {
+        if (!filename) {
+            return undefined;
+        }
         try {
             let fileBuffer: Buffer = this._fs.readFileSync(filename);
             if (fileBuffer) {
@@ -196,13 +199,13 @@ export class ConnectionConfig implements IConnectionConfig {
                         let fileObject: any = json.parse(fileContents);
                         return fileObject;
                     } catch (e) { // Error parsing JSON
-                        this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
+                        this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
                     }
                 }
             }
         } catch (e) { // Error reading the file
             if (e.code !== 'ENOENT') { // Ignore error if the file doesn't exist
-                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
+                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
             }
         }
 
