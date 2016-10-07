@@ -3,6 +3,35 @@
   padding-top: 5px;
   padding-bottom: 5px;
 }
+.contextMenu {
+  position: absolute;
+  padding: 2px;
+  display: inline-block;
+  min-width: 100px;
+  z-index: 99999;
+  border: 1px;
+  outline: 0;
+  color: black;
+  background-color: white;
+  border-color: var(--border-color-default);
+  font-family: var(--font-family);
+}
+.contextMenu li {
+  padding: 4px 14px 4px 14px;
+  list-style: none;
+  cursor: default;
+}
+.contextMenu li:hover:not(.disabled) {
+  background-color: #007ACC;
+  color: black;
+}
+
+.contextMenu li.disabled {
+  color: #777;
+  text-decoration: none;
+  background-color: transparent;
+  opacity: 0.4;
+}
 
 table {
   font-weight: inherit;

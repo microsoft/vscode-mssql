@@ -258,11 +258,11 @@ export class DataService {
     /**
      * send request to open content in new editor
      */
-    openLink(content: string, columnName: string): void {
+    openLink(content: string, columnName: string, linkType: string): void {
         const self = this;
         let headers = new Headers();
         headers.append('Content-Type', 'application/json');
-        self.http.post('/openLink', JSON.stringify({ 'content': content , 'columnName': columnName}), { headers : headers }).subscribe();
+        self.http.post('/openLink', JSON.stringify({ 'content': content , 'columnName': columnName, 'type': linkType}), { headers : headers }).subscribe();
     }
 
     /**
