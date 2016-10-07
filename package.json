@@ -154,8 +154,8 @@
     "keybindings": [
       {
         "command": "extension.runQuery",
-        "key": "ctrl+enter",
-        "mac": "cmd+enter",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
