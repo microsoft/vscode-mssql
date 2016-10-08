@@ -6,6 +6,7 @@
 export interface IStatusView {
     installingService(fileUri: string): void;
     serviceInstalled(fileUri: string): void;
+    serviceInstallationFailed(fileUri: string): void;
 }
 
 export interface IConfig {
@@ -14,7 +15,9 @@ export interface IConfig {
     getSqlToolsInstallDirectory(): string;
     getSqlToolsExecutableFiles(): string[];
     getSqlToolsPackageVersion(): string;
-    getConfig(key: string, defaultValue?: any): any;
+    getExtensionConfig(key: string, defaultValue?: any): any;
+    getWorkspaceConfig(key: string, defaultValue?: any): any;
+    getSqlToolsConfigValue(configKey: string): any;
 }
 
 export interface IExtensionWrapper {

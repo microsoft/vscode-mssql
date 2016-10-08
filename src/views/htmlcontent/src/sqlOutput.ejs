@@ -24,7 +24,7 @@
       System.import('app').catch(function(err){ console.error(err); });
     </script>
     <link rel="stylesheet" type="text/css" href="app/flexbox.css"/>
-    <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
+    <link rel="stylesheet" type="text/css" href="node_modules/bootstrap/dist/css/bootstrap.min.css"/>
     <style>
       :root {
         --background-color: <%=backgroundcolor%>;
@@ -51,6 +51,6 @@
   <!-- 3. Display the application -->
   <body>
     <div style="display: none;" id="uri"><%=uri%></div>
-    <my-app>Loading...</my-app>
+    <my-app></my-app>
   </body>
 </html>

@@ -1,4 +1,92 @@
+
 .nav > li > a {
   padding-top: 5px;
   padding-bottom: 5px;
+}
+.contextMenu {
+  position: absolute;
+  padding: 2px;
+  display: inline-block;
+  min-width: 100px;
+  z-index: 99999;
+  border: 1px;
+  outline: 0;
+  color: black;
+  background-color: white;
+  border-color: var(--border-color-default);
+  font-family: var(--font-family);
+}
+.contextMenu li {
+  padding: 4px 14px 4px 14px;
+  list-style: none;
+  cursor: default;
+}
+.contextMenu li:hover:not(.disabled) {
+  background-color: #007ACC;
+  color: black;
+}
+
+.contextMenu li.disabled {
+  color: #777;
+  text-decoration: none;
+  background-color: transparent;
+  opacity: 0.4;
+}
+
+table {
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+#messageTable td {
+  padding-right: 20px;
+}
+
+#messageTable tbody tr:last-child > td {
+  padding-bottom: 2em;
+}
+
+.boxRow.content.padded {
+    padding: 15px
+}
+
+.header {
+    height: auto;
+    overflow: hidden;
+    height: 22px;
+    padding-left: 20px;
+    line-height: 22px;
+}
+
+.header > span {
+    float: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.gridIcon {
+    margin: 5px 5px;
+}
+
+.resizableHandle {
+    font-size: 0.1px;
+    display: block;
+    float: right;
+    position: absolute;
+    cursor: row-resize;
+    top: 0;
+    height: 4px;
+    width: 100%;
+    z-index: 1;
+}
+
+#resizeHandle {
+    font-size: 0.1px;
+    position: absolute;
+    cursor: row-resize;
+    height: 4px;
+    width: 100%;
+    z-index: 2;
+    background-color: var(--color-bg-content-light);
 }

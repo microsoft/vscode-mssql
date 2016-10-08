@@ -7,26 +7,64 @@ body {
 .fullsize {
     height: 100%;
 }
-
-.box {
+/* vertical box styles */
+.vertBox {
     display: flex;
     flex-flow: column;
-    overflow: auto;
 }
 
-.box .boxRow.header {
+.vertBox .boxRow.header {
     flex: 0 0 auto;
 }
 
-.box .boxRow.content {
-    flex: 1 1 1%;
-    overflow: auto;
+.vertBox .boxRow.content {
+    flex: 1 1 0;
 }
 
-.box .boxRow.content .slickgrid {
-    min-height: 232
+.results {
+    flex: 100 1 0;
+}
+
+.scrollable {
+    overflow: scroll;
+}
+
+.maxHeight {
+    max-height: fit-content;
+}
+
+.messages {
+    flex: 1 100 0;
+    min-height: 15%;
+}
+
+.minHeight {
+    min-height: fit-content;
+}
+
+/* horizontal box style */
+.horzBox {
+    display: flex;
+    flex-flow: row;
+}
+
+.horzBox .boxCol.content {
+    flex: 1 1 1%;
+    overflow: auto;
+    max-width: fit-content;
 }
 
 .hidden {
     display: none;
 }
+
+/* testing
+
+.vertBox {
+    border: 1px solid green;
+}
+
+.horzBox {
+    border: 1px solid red;
+}
+*/

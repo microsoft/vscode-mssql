@@ -14,15 +14,7 @@ import {IColumnDefinition} from './ModelInterfaces';
 import {LocalizationService} from './LocalizationService';
 import {GridSyncService} from './GridSyncService';
 import {ISlickRange} from './SelectionModel';
-
-enum FieldType {
-    String = 0,
-    Boolean = 1,
-    Integer = 2,
-    Decimal = 3,
-    Date = 4,
-    Unknown = 5,
-}
+import {FieldType} from './EngineAPI';
 
 declare let System;
 // noinspection JSUnusedAssignment
@@ -142,6 +134,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     @Input() showHeader: boolean = false;
     @Input() showDataTypeIcon: boolean = true;
     @Input() enableColumnReorder: boolean = false;
+    @Input() enableAsyncPostRender: boolean = true;
 
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
@@ -407,6 +400,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
             rowHeight: this._rowHeight,
             defaultColumnWidth: 120,
             editable: true,
+            enableAsyncPostRender: this.enableAsyncPostRender,
             editorFactory: {
                 getEditor: this.getColumnEditor
             },
@@ -500,6 +494,10 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
                 column.asyncPostRender = c.asyncPostRender;
             }
 
+            if (c.formatter) {
+                column.formatter = c.formatter;
+            }
+
             if (this._gridSyncService) {
                 let columnWidth = this._gridSyncService.columnWidthPXs[i];
                 column.width = columnWidth ? columnWidth : undefined;
@@ -584,4 +582,5 @@ interface ISlickGridColumn {
     minWidth?: number;
     width?: number;
     asyncPostRender?: (cellRef: string, row: number, dataContext: JSON, colDef: any) => void;
+    formatter?: (row: number, cell: any, value: any, columnDef: any, dataContext: any) => string;
 }

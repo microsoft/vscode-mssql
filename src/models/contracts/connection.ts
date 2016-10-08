@@ -4,7 +4,7 @@ import {NotificationType, RequestType} from 'vscode-languageclient';
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
-     export const type: RequestType<ConnectParams, ConnectionResult, void> = { get method(): string { return 'connection/connect'; } };
+     export const type: RequestType<ConnectParams, boolean, void> = { get method(): string { return 'connection/connect'; } };
 }
 
 /**
@@ -145,13 +145,30 @@ export class ConnectionDetails {
     public typeSystemVersion: string;
 }
 
-// Connection request message format
+/**
+ * Connection request message format
+ */
 export class ConnectParams {
-    // URI identifying the owner of the connection
+    /**
+     * URI identifying the owner of the connection
+     */
     public ownerUri: string;
 
-    // Details for creating the connection
+    /**
+     * Details for creating the connection
+     */
     public connection: ConnectionDetails;
+}
+
+// ------------------------------- </ Connect Request > ---------------------------------------------
+
+// ------------------------------- < Connection Complete Event > ------------------------------------
+
+/**
+ * Connection complete event callback declaration.
+ */
+export namespace ConnectionCompleteNotification {
+    export const type: NotificationType<ConnectionCompleteParams> = { get method(): string { return 'connection/complete'; } };
 }
 
 /**
@@ -212,7 +229,12 @@ export class ServerInfo {
 /**
  * Connection response format.
  */
-export class ConnectionResult {
+export class ConnectionCompleteParams {
+    /**
+     * URI identifying the owner of the connection
+     */
+    public ownerUri: string;
+
     /**
      * connection id returned from service host.
      */
@@ -222,6 +244,16 @@ export class ConnectionResult {
      * any diagnostic messages return from the service host.
      */
     public messages: string;
+
+    /**
+     * Error message returned from the engine, if any.
+     */
+    public errorMessage: string;
+
+    /**
+     * Error number returned from the engine, if any.
+     */
+    public errorNumber: number;
 
     /**
      * Information about the connected server.
@@ -234,7 +266,33 @@ export class ConnectionResult {
     public connectionSummary: ConnectionSummary;
 }
 
-// ------------------------------- </ Connect Request > ---------------------------------------------
+// ------------------------------- </ Connection Complete Event > -----------------------------------
+
+// ------------------------------- < Cancel Connect Request > ---------------------------------------
+
+/**
+ * Cancel connect request message callback declaration
+ */
+export namespace CancelConnectRequest {
+    export const type: RequestType<CancelConnectParams, CancelConnectResult, void> = { get method(): string { return 'connection/cancelconnect'; } };
+}
+
+/**
+ * Cancel connect request message format
+ */
+export class CancelConnectParams {
+    /**
+     * URI identifying the owner of the connection
+     */
+    public ownerUri: string;
+}
+
+/**
+ * Cancel connect response format.
+ */
+export type CancelConnectResult = boolean;
+
+// ------------------------------- </ Cancel Connect Request > --------------------------------------
 
 // ------------------------------- < Connection Changed Event > -------------------------------------
 

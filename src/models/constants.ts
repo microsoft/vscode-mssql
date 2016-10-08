@@ -17,12 +17,15 @@ export const defaultConnectionSettingsFileJson = {
 };
 
 export const cmdRunQuery = 'extension.runQuery';
+export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
+export const cmdCancelConnect = 'extension.cancelConnect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdOpenConnectionSettings = 'extension.openConnectionSettingsFile';
+export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
@@ -30,13 +33,20 @@ export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
 export const defaultPortNumber = 1433;
 
+export const errorPasswordExpired = 18487;
+export const errorPasswordNeedsReset = 18488;
+
+export const maxDisplayedStatusTextLength = 50;
+
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
 export const outputContentTypeResultsetMeta = 'resultsetsMeta';
 export const outputContentTypeColumns = 'columns';
 export const outputContentTypeRows = 'rows';
 export const outputContentTypeSaveResults = 'saveResults';
+export const outputContentTypeOpenLink = 'openLink';
 export const outputContentTypeCopy = 'copyResults';
+export const outputContentTypeEditorSelection = 'setEditorSelection';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 
@@ -62,6 +72,8 @@ export const msgRunQueryConnectionActive = 'runQuery: active connection is conne
 export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 
+export const msgCancelQueryFailed = 'Failed to cancel query: {0}';
+
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
 export const msgContentProviderOnRootEndpoint = 'LocalWebService: Root end-point called';
@@ -76,8 +88,12 @@ export const msgContentProviderProvideContent = 'Content provider: provideTextDo
 export const msgChooseDatabaseNotConnected = 'Not connected. Please connect to a server first.';
 export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
-export const msgConnectionError = 'Connection failed. See output window for details.';
+export const msgConnectionError = 'Error {0}: {1}';
+export const msgConnectionError2 = 'Failed to connect: {0}';
+export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
+
+export const msgPromptCancelConnect = 'Cancel connecting?';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
@@ -112,6 +128,9 @@ export const profileNamePlaceholder = 'optional - enter a name for this profile'
 
 export const filepathPrompt = 'File path';
 export const filepathPlaceholder = 'Enter full path or simply file name';
+export const filepathMessage = 'Enter full path or simply file name';
+export const overwritePrompt = 'The file already exists. Would you like to overwrite?';
+export const overwritePlaceholder = 'The file already exists';
 
 export const msgSelectProfile = 'Select Connection Profile';
 export const msgSelectProfileToRemove = 'Select profile to remove';
@@ -135,20 +154,19 @@ export const notConnectedTooltip = 'Click to connect to a database';
 export const connectingLabel = 'Connecting';
 export const connectingTooltip = 'Connecting to: ';
 export const connectedLabel = 'Connected.';
-export const connectErrorLabel = 'Connection error!';
+export const connectErrorLabel = 'Connection error';
 export const connectErrorTooltip = 'Error connecting to: ';
 export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
 export const executeQueryLabel = 'Executing query ';
-export const executeQueryErrorLabel = 'Query completed with errors';
-export const executeQuerySuccessLabel = 'Query executed successfully';
-export const executeQueryRowsAffected = ' row(s) affected';
-export const executeQueryCommandCompleted = 'Command(s) completed successfully.';
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
 export const serviceInstalling = 'Installing Sql Tools Service';
 export const serviceInstalled = 'Sql Tools Service installed';
+export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
+export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
+export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
 
 export const untitledScheme = 'untitled';
 export const untitledSaveTimeThreshold = 10.0;
@@ -160,8 +178,22 @@ export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" fo
 
 export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the profile information provided. Retry profile creation?';
 
+export const msgConnecting = 'Connecting to server \"{0}\" on document \"{1}\".';
 export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';
+export const msgConnectionFailed = 'Error connecting to server \"{0}\". Details: {1}';
+export const msgChangingDatabase = 'Changing database context to \"{0}\" on server \"{1}\" on document \"{2}\".';
+export const msgChangedDatabase = 'Changed database context to \"{0}\" on server \"{1}\" on document \"{2}\".';
+export const msgDisconnected = 'Disconnected on document \"{0}\"';
 
 export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check that the file is formatted correctly.';
 export const msgNewConfigFileHelpInfo = 'Save connections.json to enable autocomplete while editing connection profile settings.';
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
+
+
+export const sqlToolsServiceConfigKey = 'service';
+export const sqlToolsServiceInstallDirConfigKey = 'installDir';
+export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
+export const sqlToolsServiceVersionConfigKey = 'version';
+export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
+
+export const titleResultsPane = 'SQL Query Results: {0}';

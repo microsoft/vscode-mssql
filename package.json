@@ -1,9 +1,9 @@
 {
   "name": "vscode-mssql",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "displayname": "MSSQL support in VS Code",
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
-  "publisher": "microsoft",
+  "publisher": "Microsoft",
   "license": "SEE LICENSE IN LICENSE.txt",
   "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
   "icon": "images/sqlserver.png",
@@ -67,12 +67,13 @@
     "getmac": "1.2.1",
     "http-proxy-agent": "^1.0.0",
     "https-proxy-agent": "^1.0.0",
+    "pretty-data": "^0.40.0",
     "request": "^2.73.0",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.0.5",
     "applicationinsights": "^0.15.0",
-    "vscode-languageclient": "^2.0.0"
+    "vscode-languageclient": "^2.5.0"
   },
   "contributes": {
     "languages": [
@@ -106,38 +107,48 @@
     "commands": [
       {
         "command": "extension.runQuery",
-        "title": "Run T-SQL query",
-        "category": "MSSQL"
+        "title": "Execute Query",
+        "category": "MS SQL"
       },
       {
         "command": "extension.connect",
-        "title": "Connect to a database",
-        "category": "MSSQL"
+        "title": "Connect",
+        "category": "MS SQL"
       },
       {
         "command": "extension.disconnect",
-        "title": "Disconnect active connection",
-        "category": "MSSQL"
+        "title": "Disconnect",
+        "category": "MS SQL"
       },
       {
         "command": "extension.createprofile",
         "title": "Create Connection Profile",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.removeprofile",
         "title": "Remove Connection Profile",
-        "category": "MSSQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.chooseDatabase",
-        "title": "Switch database on current server",
-        "category": "MSSQL"
+        "title": "Use Database",
+        "category": "MS SQL"
       },
       {
         "command": "extension.openConnectionSettingsFile",
         "title": "Open Connection Profile Settings",
-        "category": "MSSQL"
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.cancelConnect",
+        "title": "Cancel Connection",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.showReleaseNotes",
+        "title": "Getting Started Guide",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -160,9 +171,9 @@
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
-        "command": "extension.createprofile",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r",
+        "command": "extension.chooseDatabase",
+        "key": "ctrl+shift+u",
+        "mac": "cmd+shift+u",
         "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],
@@ -346,6 +357,10 @@
               },
               "profileName": {
                 "type": "string",
+                "description": "[Optional]"
+              },
+              "savePassword": {
+                "type": "boolean",
                 "description": "[Optional]"
               }
             }

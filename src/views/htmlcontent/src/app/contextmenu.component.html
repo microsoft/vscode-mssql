@@ -1,5 +1,4 @@
 <ul class="contextMenu" style="display:none;position:absolute">
-    <b>Save Results As:</b>
-    <li id="csv" (click)="clickEvent.emit({type: 'csv', batchId: batchId, resultId: resultId})">CSV</li>
-    <li id="json" (click)="clickEvent.emit({type: 'json', batchId: batchId, resultId: resultId})">JSON</li>
+    <li id="csv" (click)="handleContextActionClick('csv')" [class.disabled]="isDisabled"> Save as CSV</li>
+    <li id="json" (click)="handleContextActionClick('json')" [class.disabled]="isDisabled"> Save as JSON</li>
 </ul>

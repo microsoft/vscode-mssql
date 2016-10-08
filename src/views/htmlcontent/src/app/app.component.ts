@@ -2,31 +2,35 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList} from '@angular/core';
+import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
+    ChangeDetectorRef, AfterViewChecked} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
+import {ISlickRange} from './slickgrid/SelectionModel';
 import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
+import * as Constants from './../constants';
 import { Tabs } from './tabs';
 import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
-
-enum FieldType {
-    String = 0,
-    Boolean = 1,
-    Integer = 2,
-    Decimal = 3,
-    Date = 4,
-    Unknown = 5,
-}
+import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
+import { FieldType } from './slickgrid/EngineAPI';
 
 enum SelectedTab {
     Results = 0,
     Messages = 1,
 }
+
+interface IMessages {
+    messages: IResultMessage[];
+    hasError: boolean;
+    selection: ISelectionData;
+}
+
+declare let $;
 
 /**
  * Top level app component which runs and controls the SlickGrid implementation
@@ -35,37 +39,109 @@ enum SelectedTab {
     selector: 'my-app',
     directives: [SlickGrid, Tabs, Tab, ContextMenu],
     templateUrl: 'app/app.html',
-    providers: [DataService]
+    providers: [DataService],
+    styles: [`
+    .errorMessage {
+        color: var(--color-error);
+    }`
+    ]
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewChecked {
     private dataSets: {
         dataRows: IObservableCollection<IGridDataRow>,
         columnDefinitions: IColumnDefinition[],
         totalRows: number,
         batchId: number,
-        resultId: number}[] = [];
-    private messages: string[] = [];
+        resultId: number,
+        maxHeight: number | string,
+        minHeight: number | string}[] = [];
+    private renderedDataSets: {
+        dataRows: IObservableCollection<IGridDataRow>,
+        columnDefinitions: IColumnDefinition[],
+        totalRows: number,
+        batchId: number,
+        resultId: number,
+        maxHeight: number | string,
+        minHeight: number | string}[] = [];
+    private messages: IMessages[] = [];
+    private messagesAdded = false;
     private selected: SelectedTab;
     private windowSize = 50;
     private c_key = 67;
+    // tslint:disable-next-line:no-unused-variable
+    private _rowHeight = 29;
+    // tslint:disable-next-line:no-unused-variable
+    private _defaultNumShowingRows = 8;
     public SelectedTab = SelectedTab;
+    private resizing = false;
+    private resizeHandleTop = 0;
+    // tslint:disable-next-line:no-unused-variable
+    private resultActive = true;
+    // tslint:disable-next-line:no-unused-variable
+    private messageActive = true;
+    // tslint:disable-next-line:no-unused-variable
+    private dataIcons: IGridIcon[] = [
+        {
+            icon: '/images/u32.png',
+            hoverText: 'Save as CSV',
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
+            }
+        },
+        {
+            icon: '/images/u26.png',
+            hoverText: 'Save as JSON',
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
+            }
+        },
+        {
+            icon: '/images/glass.svg',
+            hoverText: 'Magnify/Reset',
+            functionality: (batchId, resultId, index) => {
+                this.magnify(index);
+            }
+        }
+    ];
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
-    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {}
+
+    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
+                @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
+                @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
 
     /**
      * Called by Angular when the object is initialized
      */
     ngOnInit(): void {
         const self = this;
-        this.dataService.numberOfBatchSets().then((numberOfBatches: number) => {
-            for (let batchId = 0; batchId < numberOfBatches; batchId++) {
-                self.dataService.getMessages(batchId).then(data => {
-                    self.messages = self.messages.concat(data);
-                    self.selected = SelectedTab.Messages;
-                });
+        this.setupResizeBind();
+        let startDate = new Date();
+        this.messages.push(
+            {
+                messages: [{message: Constants.executeQueryLabel, time: startDate.toLocaleTimeString()}],
+                hasError: false,
+                selection: undefined
+            }
+        );
+        this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
+            for (let [batchId, batch] of batchs.entries()) {
+                let messages: IMessages = {
+                    messages: [],
+                    hasError: batch.hasError,
+                    selection: batch.selection
+                };
+                for (let message of batch.messages) {
+                    let date = new Date(message.time);
+                    let timeString = date.toLocaleTimeString();
+                    messages.messages.push({time: timeString, message: message.message});
+                }
+                self.messages.push(messages);
+                self.messagesAdded = true;
                 self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
                     for (let resultId = 0; resultId < numberOfResults; resultId++) {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
@@ -76,21 +152,37 @@ export class AppComponent implements OnInit {
                                 columnDefinitions: IColumnDefinition[],
                                 totalRows: number,
                                 batchId: number,
-                                resultId: number} = {
+                                resultId: number,
+                                maxHeight: number | string,
+                                minHeight: number | string} = {
                                     dataRows: undefined,
                                     columnDefinitions: undefined,
                                     totalRows: undefined,
                                     batchId: batchId,
-                                    resultId: resultId
+                                    resultId: resultId,
+                                    maxHeight: undefined,
+                                    minHeight: undefined
                                 };
                             let totalRows = data[0];
                             let columnData = data[1];
                             let columnDefinitions = [];
+
                             for (let i = 0; i < columnData.length; i++) {
-                                columnDefinitions.push({
-                                    id: columnData[i].columnName,
-                                    type: self.stringToFieldType('string')
-                                });
+                                if (columnData[i].isXml || columnData[i].isJson) {
+                                    let linkType = columnData[i].isXml ? 'xml' : 'json';
+                                    columnDefinitions.push({
+                                        id: columnData[i].columnName,
+                                        type: self.stringToFieldType('string'),
+                                        formatter: self.hyperLinkFormatter,
+                                        asyncPostRender: self.linkHandler(linkType)
+                                    });
+                                } else {
+                                    columnDefinitions.push({
+                                        id: columnData[i].columnName,
+                                        type: self.stringToFieldType('string')
+                                    });
+                                }
+
                             }
                             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                                 return new Promise<IGridDataRow[]>((resolve, reject) => {
@@ -115,13 +207,27 @@ export class AppComponent implements OnInit {
                             dataSet.columnDefinitions = columnDefinitions;
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
+                            // calculate min and max height
+                            dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
+                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * (15 + 10)) + 10 : 'inherit';
+                            dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
+                                                (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
                             self.dataSets.push(dataSet);
+                            self.renderedDataSets.push(dataSet);
+                            self.messagesAdded = true;
                             self.selected = SelectedTab.Results;
                         });
                     }
                 });
             }
         });
+    }
+
+    ngAfterViewChecked(): void {
+        if (this.messagesAdded) {
+            this.messagesAdded = false;
+            this.scrollMessages();
+        }
     }
 
     /**
@@ -146,25 +252,25 @@ export class AppComponent implements OnInit {
         return fieldtype;
     }
 
-
     /**
      * Send save result set request to service
      */
-    handleContextClick(event: {type: string, batchId: number, resultId: number}): void {
+    handleContextClick(event: {type: string, batchId: number, resultId: number, selection: ISlickRange[]}): void {
         switch (event.type) {
             case 'csv':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv', event.selection);
                 break;
             case 'json':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json');
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json', event.selection);
                 break;
             default:
                 break;
         }
     }
 
-    openContextMenu(event: {x: number, y: number}, batchId, resultId): void {
-        this.contextMenu.show(event.x, event.y, batchId, resultId);
+    openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
+        let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+        this.contextMenu.show(event.x, event.y, batchId, resultId, selection);
     }
 
     /**
@@ -176,12 +282,114 @@ export class AppComponent implements OnInit {
     }
 
     /**
+     * Add handler for clicking on xml link
+     */
+    xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        const self = this;
+        let value = dataContext[colDef.field];
+        $(cellRef).children('.xmlLink').click(function(): void {
+            self.dataService.openLink(value, colDef.field, 'xml');
+        });
+    }
+
+    /**
+     * Add handler for clicking on json link
+     */
+    jsonLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        const self = this;
+        let value = dataContext[colDef.field];
+        $(cellRef).children('.xmlLink').click(function(): void {
+            self.dataService.openLink(value, colDef.field, 'json');
+        });
+    }
+
+    /**
+     * Return asyncPostRender handler based on type
+     */
+    public linkHandler(type: string): Function {
+        if (type === 'xml') {
+            return this.xmlLinkHandler;
+        } else if (type === 'json') {
+            return this.jsonLinkHandler;
+        }
+
+    }
+
+    /**
+     * Format xml field into a hyperlink
+     */
+    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+        let valueToDisplay = (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let cellClasses = 'grid-cell-value-container';
+        if (value) {
+            cellClasses += ' xmlLink';
+            return '<a class="' + cellClasses + '" href="#" >'
+                + valueToDisplay
+                + '</a>';
+        } else {
+            cellClasses += ' missing-value';
+            return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+        }
+    }
+
+    /**
      * Handles keyboard events on angular, currently only needed for copy-paste
      */
     onKey(e: any, batchId: number, resultId: number, index: number): void {
         if ((e.ctrlKey || e.metaKey) && e.which === this.c_key) {
             let selection = this.slickgrids.toArray()[index].getSelectedRanges();
             this.dataService.copyResults(selection, batchId, resultId);
+        }
+    }
+
+    /**
+     * Binded to mouse click on messages
+     */
+    editorSelection(selection: ISelectionData): void {
+        this.dataService.setEditorSelection(selection);
+    }
+
+    /**
+     * Sets up the resize for the messages/results panes bar
+     */
+    setupResizeBind(): void {
+        const self = this;
+        let $resizeHandle = $(document.getElementById('messageResizeHandle'));
+        let $messagePane = $(document.getElementById('messages'));
+        $resizeHandle.bind('dragstart', (e, dd) => {
+            self.resizing = true;
+            self.resizeHandleTop = e.pageY;
+        });
+
+        $resizeHandle.bind('drag', (e, dd) => {
+            self.resizeHandleTop = e.pageY;
+        });
+
+        $resizeHandle.bind('dragend', (e, dd) => {
+            self.resizing = false;
+            // redefine the min size for the messages based on the final position
+            $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
+            self.cd.detectChanges();
+        });
+    }
+
+    /**
+     * Ensures the messages tab is scrolled to the bottom
+     */
+    scrollMessages(): void {
+        let messagesDiv = document.getElementById('messages');
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    /**
+     * Makes a resultset take up the full result height if this is not already true
+     * Otherwise rerenders the result sets from default
+     */
+    magnify(index: number): void {
+        if (this.renderedDataSets.length > 1) {
+            this.renderedDataSets = [this.dataSets[index]];
+        } else {
+            this.renderedDataSets = this.dataSets;
         }
     }
 }

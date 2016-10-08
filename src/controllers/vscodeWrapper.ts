@@ -1,5 +1,10 @@
 import vscode = require('vscode');
+
+
 import * as Constants from './../models/constants';
+import * as Utils from '../models/utils';
+
+export import TextEditor = vscode.TextEditor;
 
 export default class VscodeWrapper {
 
@@ -22,6 +27,13 @@ export default class VscodeWrapper {
      */
     public get activeTextEditor(): vscode.TextEditor {
         return vscode.window.activeTextEditor;
+    }
+
+    /**
+     * Parse uri
+     */
+    public parseUri(uri: string): vscode.Uri {
+        return vscode.Uri.parse(uri);
     }
 
     /**
@@ -72,6 +84,13 @@ export default class VscodeWrapper {
     }
 
     /**
+     * An event that is emitted when a [text document](#TextDocument) is opened.
+     */
+    public get onDidOpenTextDocument(): vscode.Event<vscode.TextDocument> {
+        return vscode.workspace.onDidOpenTextDocument;
+    }
+
+    /**
      * An event that is emitted when a [text document](#TextDocument) is saved to disk.
      */
     public get onDidSaveTextDocument(): vscode.Event<vscode.TextDocument> {
@@ -103,10 +122,10 @@ export default class VscodeWrapper {
     public logToOutputChannel(msg: any): void {
         if (msg instanceof Array) {
             msg.forEach(element => {
-                VscodeWrapper._outputChannel.appendLine(element.toString());
+                VscodeWrapper._outputChannel.appendLine(Utils.getTimestampString() + ' ' + element.toString());
             });
         } else {
-            VscodeWrapper._outputChannel.appendLine(msg.toString());
+            VscodeWrapper._outputChannel.appendLine(Utils.getTimestampString() + ' ' + msg.toString());
         }
     }
 
@@ -120,6 +139,24 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Create a vscode.Position object
+     * @param line The line for the position
+     * @param column The column for the position
+     */
+    public position(line: number, column: number): vscode.Position {
+        return new vscode.Position(line, column);
+    }
+
+    /**
+     * Create a vscode.Selection object
+     * @param start The start postion of the selection
+     * @param end The end position of the selection
+     */
+    public selection(start: vscode.Position, end: vscode.Position): vscode.Selection {
+        return new vscode.Selection(start, end);
+    }
+
+    /**
      * Formats and shows a vscode error message
      */
     public showErrorMessage(msg: string): Thenable<string> {
@@ -129,8 +166,8 @@ export default class VscodeWrapper {
     /**
      * Formats and shows a vscode information message
      */
-    public showInformationMessage(msg: string): Thenable<string> {
-        return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg );
+    public showInformationMessage(msg: string, ...items: string[]): Thenable<string> {
+        return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg, ...items);
     }
 
     /**
@@ -163,6 +200,13 @@ export default class VscodeWrapper {
      */
     public showWarningMessage(msg: string): Thenable<string> {
         return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
+    }
+
+    /**
+     * Returns a array of the text editors currently visible in the window
+     */
+    public get visibleEditors(): vscode.TextEditor[] {
+        return vscode.window.visibleTextEditors;
     }
 
     /**

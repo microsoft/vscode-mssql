@@ -45,7 +45,27 @@ export interface IGridResultSet {
     numberOfRows: number;
 }
 
+export interface ISelectionData {
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+}
+
+export interface IResultMessage {
+    time: string;
+    message: string;
+}
+
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
-    messages: string[];
+    messages: IResultMessage[];
+    hasError: boolean;
+    selection: ISelectionData;
+}
+
+export interface IGridIcon {
+    icon: string;
+    hoverText: string;
+    functionality: (batchId: number, resultId: number, index: number) => void;
 }

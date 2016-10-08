@@ -6,6 +6,7 @@ import vscode = require('vscode');
 import Constants = require('./constants');
 import * as interfaces from './interfaces';
 import {ExtensionContext} from 'vscode';
+import fs = require('fs');
 
 // Interface for package.json information
 export interface IPackageInfo {
@@ -167,6 +168,17 @@ export function formatString(str: string, ...args: any[]): string {
     return result;
 }
 
+/**
+ * Get a timestamp string for the current time.
+ */
+export function getTimestampString(): string {
+    let date = new Date();
+    let hours: string = date.getHours() > 9 ? date.getHours().toString(10) : '0' + date.getHours();
+    let minutes: string = date.getMinutes() > 9 ? date.getMinutes().toString(10) : '0' + date.getMinutes();
+    let seconds: string = date.getSeconds() > 9 ? date.getSeconds().toString(10) : '0' + date.getSeconds();
+    let timestamp: string = '[' + hours + ':' + minutes + ':' + seconds + ']';
+    return timestamp;
+}
 
 /**
  * Compares 2 profiles to see if they match. Logic for matching:
@@ -210,6 +222,18 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
         && expectedConn.authenticationType === conn.authenticationType
         && expectedConn.user === conn.user;
 }
+
+/**
+ * Check if a file exists on disk
+ */
+export function isFileExisting(filePath: string): boolean {
+        try {
+            fs.statSync(filePath);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
 
 
 // One-time use timer for performance testing
