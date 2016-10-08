@@ -185,7 +185,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
-        let resultsUri = this.getResultsUri(uri).toString();
+        let resultsUri = decodeURIComponent(this.getResultsUri(uri));
         let queryRunner: QueryRunner;
         if (this._queryResultsMap.has(resultsUri)) {
             queryRunner = this._queryResultsMap.get(resultsUri);
@@ -223,7 +223,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
         // If we don't have any query runners mapped to this uri, don't do anything
-        let untitledResultsUri = this.getResultsUri(untitledUri);
+        let untitledResultsUri = decodeURIComponent(this.getResultsUri(untitledUri));
         if (!this._queryResultsMap.has(untitledResultsUri)) {
             return;
         }
@@ -232,7 +232,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // the old uri. As long as we make requests to the service against that uri, we'll be good.
 
         // Remap the query runner in the map
-        let savedResultUri = this.getResultsUri(savedUri);
+        let savedResultUri = decodeURIComponent(this.getResultsUri(savedUri));
         this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
         this._queryResultsMap.delete(untitledResultsUri);
     }
