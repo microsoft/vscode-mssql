@@ -13,6 +13,7 @@ import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
+import {Platform, getCurrentPlatform} from '../models/platform';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -261,7 +262,13 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError, result.errorNumber, result.errorMessage));
             }
         } else {
-            Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
+            let platform: Platform = getCurrentPlatform();
+            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native')) {
+                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2,
+                Constants.macOpenSslErrorMessage));
+            } else {
+                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
+            }
         }
         this.statusView.connectError(fileUri, connection.credentials, result);
         this.vscodeWrapper.logToOutputChannel(

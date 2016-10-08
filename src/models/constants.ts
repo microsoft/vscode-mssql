@@ -197,3 +197,6 @@ export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 
 export const titleResultsPane = 'SQL Query Results: {0}';
+
+export const macOpenSslErrorMessage = `Please make sure OpenSSL version >=1.0.1 is installed.`;
+
