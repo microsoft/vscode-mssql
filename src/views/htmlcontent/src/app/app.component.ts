@@ -66,6 +66,24 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private _rowHeight = 29;
     // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
+    private keyCodes = {
+        37: 'left',
+        38: 'up',
+        39: 'right',
+        40: 'down'
+    };
+    private functionality = {
+        'event.toggleResultPane': () => {
+            this.resultActive = !this.resultActive;
+        },
+        'event.toggleMessagePane': () => {
+            this.messageActive = !this.messageActive;
+        }
+    };
+    private shortCuts = {
+        'ctrl+alt+r': 'event.toggleResultPane',
+        'ctrl+alt+t': 'event.toggleMessagePane'
+    };
 
     // FIELDS
     // All datasets
@@ -110,18 +128,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
-    private functionality = {
-        'event.toggleResultPane': () => {
-            this.resultActive = !this.resultActive;
-        },
-        'event.toggleMessagePane': () => {
-            this.messageActive = !this.messageActive;
-        }
-    };
-    private shortCuts = {
-        'ctrl+alt+r': 'event.toggleResultPane',
-        'ctrl+alt+t': 'event.toggleMessagePane'
-    };
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
@@ -436,6 +442,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     keyEvent(e): void {
         let eString = this.buildEventString(e);
+        console.log(eString);
         if (this.shortCuts[eString]) {
             this.functionality[this.shortCuts[eString]]();
         }
@@ -451,7 +458,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         resString += (e.ctrlKey || e.metaKey) ? 'ctrl+' : '';
         resString += e.altKey ? 'alt+' : '';
         resString += e.shiftKey ? 'shift+' : '';
-        resString += String.fromCharCode(e.which).toLowerCase();
+        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : this.keyCodes[e.which];
         return resString;
     }
 }
