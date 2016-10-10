@@ -36,7 +36,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
-            let uri: string = decodeURIComponent(req.query.uri);
+            let uri: string = req.query.uri;
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
@@ -59,7 +59,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
             let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
-            let uri: string = decodeURIComponent(req.query.uri);
+            let uri: string = req.query.uri;
             self._queryResultsMap.get(uri).getBatchSets().then((batchSets) => {
                 for (let [batchIndex, batch] of batchSets.entries()) {
                     let tempBatch: Interfaces.IGridBatchMetaData = {
@@ -89,7 +89,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
-            let uri: string = decodeURIComponent(req.query.uri);
+            let uri: string = req.query.uri;
             self._queryResultsMap.get(uri).getBatchSets().then((data) => {
                 let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
                 let json = JSON.stringify(columnMetadata);
@@ -103,7 +103,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchId = req.query.batchId;
             let rowStart = req.query.rowStart;
             let numberOfRows = req.query.numberOfRows;
-            let uri: string = decodeURIComponent(req.query.uri);
+            let uri: string = req.query.uri;
             self._queryResultsMap.get(uri).getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
@@ -112,7 +112,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/saveResults' - return success message as JSON
         this._service.addPostHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = req.query.uri;
             let queryUri = self._queryResultsMap.get(uri).uri;
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
@@ -136,7 +136,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http post handler for copying results
         this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
-            let uri = req.query.uri.toString();
+            let uri = req.query.uri;
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let selection: Interfaces.ISlickRange[] = req.body;
@@ -148,7 +148,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http post handler for setting the selection in the editor
         this._service.addPostHandler(Interfaces.ContentType.EditorSelection, function(req, res): void {
-            let uri = req.query.uri.toString();
+            let uri = req.query.uri;
             let selection: ISelectionData = req.body;
             self._queryResultsMap.get(uri).setEditorSelection(selection).then(() => {
                 res.status = 200;
@@ -203,11 +203,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public cancelQuery(uri: string): void {
         let self = this;
 
-        // Cancel the query
+        // If there isn't a query for this uri, then return an info message
         let resultsUri = this.getResultsUri(uri).toString();
-        this._queryResultsMap.get(resultsUri).cancel().then(success => {
+        let queryRunner = this._queryResultsMap.get(resultsUri);
+        if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
+            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQueryNotRunning);
+            return;
+        }
+
+        // Cancel the query
+        queryRunner.cancel().then(success => {
             // On success, dispose of the query runner
-            self._queryResultsMap.delete(resultsUri);
+            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQuerySuccess);
         }, error => {
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
@@ -348,7 +355,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     private getResultsUri(srcUri: string): string {
         // NOTE: The results uri will be encoded when we parse it to a uri
-        return SqlOutputContentProvider.providerUri + srcUri;
+        return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
     }
 
     /**

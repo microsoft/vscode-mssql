@@ -73,6 +73,8 @@ export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 
 export const msgCancelQueryFailed = 'Failed to cancel query: {0}';
+export const msgCancelQueryNotRunning = 'You can only cancel a query that is executing';
+export const msgCancelQuerySuccess = 'Query successfully cancelled';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';

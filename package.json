@@ -111,6 +111,11 @@
         "category": "MS SQL"
       },
       {
+        "command": "extension.cancelQuery",
+        "title": "Cancel executing T-SQL query",
+        "category": "MS SQL"
+      },
+      {
         "command": "extension.connect",
         "title": "Connect",
         "category": "MS SQL"
@@ -157,6 +162,12 @@
         "key": "ctrl+shift+e",
         "mac": "cmd+shift+e",
         "when": "editorTextFocus && editorLangId == 'sql'"
+      },
+      {
+        "command": "extension.cancelQuery",
+        "key": "ctrl+pausebreak",
+        "mac": "cmd+pausebreak",
+        "when": "editorTextFocus"
       },
       {
         "command": "extension.connect",
