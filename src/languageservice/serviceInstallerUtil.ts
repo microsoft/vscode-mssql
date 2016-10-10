@@ -62,6 +62,7 @@ export function getServiceInstallDirectoryRoot(): string {
     let downloadProvider = new ServiceDownloadProvider(config, logger);
     let directoryPath: string = downloadProvider.getInstallDirectoryRoot();
     directoryPath = directoryPath.replace('\\{#version#}\\{#platform#}', '');
+    directoryPath = directoryPath.replace('/{#version#}/{#platform#}', '');
     return directoryPath;
 }
 
