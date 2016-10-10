@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
-    ChangeDetectorRef, AfterViewChecked} from '@angular/core';
+    EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -13,8 +13,6 @@ import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import * as Constants from './../constants';
-import { Tabs } from './tabs';
-import { Tab } from './tab';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
@@ -22,6 +20,17 @@ import { FieldType } from './slickgrid/EngineAPI';
 enum SelectedTab {
     Results = 0,
     Messages = 1,
+}
+
+interface IGridDataSet {
+    dataRows: IObservableCollection<IGridDataRow>;
+    columnDefinitions: IColumnDefinition[];
+    resized: EventEmitter<any>;
+    totalRows: number;
+    batchId: number;
+    resultId: number;
+    maxHeight: number | string;
+    minHeight: number | string;
 }
 
 interface IMessages {
@@ -37,7 +46,6 @@ declare let $;
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, Tabs, Tab, ContextMenu],
     templateUrl: 'app/app.html',
     providers: [DataService],
     styles: [`
@@ -48,34 +56,29 @@ declare let $;
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {
-    private dataSets: {
-        dataRows: IObservableCollection<IGridDataRow>,
-        columnDefinitions: IColumnDefinition[],
-        totalRows: number,
-        batchId: number,
-        resultId: number,
-        maxHeight: number | string,
-        minHeight: number | string}[] = [];
-    private renderedDataSets: {
-        dataRows: IObservableCollection<IGridDataRow>,
-        columnDefinitions: IColumnDefinition[],
-        totalRows: number,
-        batchId: number,
-        resultId: number,
-        maxHeight: number | string,
-        minHeight: number | string}[] = [];
-    private messages: IMessages[] = [];
-    private messagesAdded = false;
-    private selected: SelectedTab;
+    // CONSTANTS
+    private scrollTimeOutTime = 200;
     private windowSize = 50;
     private c_key = 67;
+    private maxScrollGrids = 8;
     // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
     // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
-    public SelectedTab = SelectedTab;
+
+    // FIELDS
+    // All datasets
+    private dataSets: IGridDataSet[] = [];
+    // Place holder data sets to buffer between data sets and rendered data sets
+    private placeHolderDataSets: IGridDataSet[] = [];
+    // Datasets currently being rendered on the DOM
+    private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
+    private messages: IMessages[] = [];
+    private scrollTimeOut: number;
+    private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;
+    private scrollEnabled = true;
     // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
     // tslint:disable-next-line:no-unused-variable
@@ -108,7 +111,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ];
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
-
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
@@ -147,17 +149,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
                         let columnDefinitionsObs = self.dataService.getColumns(batchId, resultId);
                         Observable.forkJoin([totalRowsObs, columnDefinitionsObs]).subscribe((data: any[]) => {
-                            let dataSet: {
-                                dataRows: IObservableCollection<IGridDataRow>,
-                                columnDefinitions: IColumnDefinition[],
-                                totalRows: number,
-                                batchId: number,
-                                resultId: number,
-                                maxHeight: number | string,
-                                minHeight: number | string} = {
+                            let dataSet: IGridDataSet = {
                                     dataRows: undefined,
                                     columnDefinitions: undefined,
                                     totalRows: undefined,
+                                    resized: undefined,
                                     batchId: batchId,
                                     resultId: resultId,
                                     maxHeight: undefined,
@@ -213,9 +209,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
                                                 (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
                             self.dataSets.push(dataSet);
-                            self.renderedDataSets.push(dataSet);
+                            // Create a dataSet to render without rows to reduce DOM size
+                            let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
+                            undefinedDataSet.dataRows = undefined;
+                            undefinedDataSet.resized = new EventEmitter();
+                            self.placeHolderDataSets.push(undefinedDataSet);
                             self.messagesAdded = true;
-                            self.selected = SelectedTab.Results;
+                            self.onScroll(0);
                         });
                     }
                 });
@@ -271,14 +271,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
         this.contextMenu.show(event.x, event.y, batchId, resultId, selection);
-    }
-
-    /**
-     * Updates the internal state for what tab is selected; propogates down to the tab classes
-     * @param to The tab was the selected
-     */
-    tabChange(to: SelectedTab): void {
-        this.selected = to;
     }
 
     /**
@@ -343,6 +335,41 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
+     * Handles rendering the results to the DOM that are currently being shown
+     * and destroying any results that have moved out of view
+     * @param scrollTop The scrolltop value, if not called by the scroll event should be 0
+     */
+    onScroll(scrollTop): void {
+        const self = this;
+        clearTimeout(self.scrollTimeOut);
+        this.scrollTimeOut = setTimeout(() => {
+            if (self.dataSets.length < self.maxScrollGrids) {
+                self.scrollEnabled = false;
+                for (let i = 0; i < self.placeHolderDataSets.length; i++) {
+                    self.placeHolderDataSets[i].dataRows = self.dataSets[i].dataRows;
+                }
+            } else {
+                let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+                let tabHeight = document.getElementById('results').offsetHeight;
+                let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
+                    + ((scrollTop % gridHeight) / gridHeight));
+                let min = Math.floor(scrollTop / gridHeight);
+                let max = min + numOfVisibleGrids;
+                for (let i = 0; i < self.placeHolderDataSets.length; i++) {
+                    if (i >= min && i < max) {
+                        if (self.placeHolderDataSets[i].dataRows === undefined) {
+                            self.placeHolderDataSets[i].dataRows = self.dataSets[i].dataRows;
+                            self.placeHolderDataSets[i].resized.emit();
+                        }
+                    } else if (self.placeHolderDataSets[i].dataRows !== undefined) {
+                        self.placeHolderDataSets[i].dataRows = undefined;
+                    }
+                }
+            }
+        }, self.scrollTimeOutTime);
+    }
+
+    /**
      * Binded to mouse click on messages
      */
     editorSelection(selection: ISelectionData): void {
@@ -389,7 +416,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         if (this.renderedDataSets.length > 1) {
             this.renderedDataSets = [this.dataSets[index]];
         } else {
-            this.renderedDataSets = this.dataSets;
+            this.renderedDataSets = this.placeHolderDataSets;
+            this.onScroll(0);
         }
     }
 }

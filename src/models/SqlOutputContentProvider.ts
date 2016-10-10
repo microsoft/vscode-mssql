@@ -73,7 +73,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         let encodedUri = encodeURIComponent(uri);
 
                         tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                            columnsUri: Utils.formatString(uriFormat, Constants.outputContentTypeColumns, batchIndex, resultIndex, encodedUri),
+                            columns: result.columnInfo,
                             rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
                             numberOfRows: result.rowCount
                         });

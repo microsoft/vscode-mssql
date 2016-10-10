@@ -40,7 +40,7 @@ export class ResultSetSubset {
 }
 
 export interface IGridResultSet {
-    columnsUri: string;
+    columns: IDbColumn[];
     rowsUri: string;
     numberOfRows: number;
 }
