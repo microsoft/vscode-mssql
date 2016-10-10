@@ -185,7 +185,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
-        let resultsUri = decodeURIComponent(this.getResultsUri(uri));
+        let resultsUri = this.getResultsUri(uri);
         let queryRunner: QueryRunner;
         if (this._queryResultsMap.has(resultsUri)) {
             let existingRunner: QueryRunner = this._queryResultsMap.get(resultsUri);
