@@ -71,6 +71,7 @@ export const msgRunQueryAddBatchError = 'runQuery: adding error message for batc
 export const msgRunQueryConnectionActive = 'runQuery: active connection is connected, using it to run query';
 export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
+export const msgRunQueryInProgress = 'A query is already executing for this editor session. Please cancel this query or wait for its completion.';
 
 export const msgCancelQueryFailed = 'Failed to cancel query: {0}';
 
