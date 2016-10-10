@@ -17,6 +17,7 @@ import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import { ISelectionData } from './../models/interfaces';
+import * as path from 'path';
 import fs = require('fs');
 
 /**
@@ -215,7 +216,7 @@ export default class MainController implements vscode.Disposable {
         } else {
             let editor = this._vscodeWrapper.activeTextEditor;
             let uri = this._vscodeWrapper.activeTextEditorUri;
-            let title = editor.document.fileName;
+            let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
 
             if (!editor.selection.isEmpty) {
