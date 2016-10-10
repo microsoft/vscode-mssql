@@ -47,6 +47,7 @@ declare let $;
 @Component({
     selector: 'my-app',
     templateUrl: 'app/app.html',
+    directives: [ContextMenu, SlickGrid],
     providers: [DataService],
     styles: [`
     .errorMessage {
