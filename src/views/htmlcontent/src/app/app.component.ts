@@ -84,24 +84,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         'ctrl+alt+r': 'event.toggleResultPane',
         'ctrl+alt+t': 'event.toggleMessagePane'
     };
-
-    // FIELDS
-    // All datasets
-    private dataSets: IGridDataSet[] = [];
-    // Place holder data sets to buffer between data sets and rendered data sets
-    private placeHolderDataSets: IGridDataSet[] = [];
-    // Datasets currently being rendered on the DOM
-    private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
-    private messages: IMessages[] = [];
-    private scrollTimeOut: number;
-    private messagesAdded = false;
-    private resizing = false;
-    private resizeHandleTop = 0;
-    private scrollEnabled = true;
-    // tslint:disable-next-line:no-unused-variable
-    private resultActive = true;
-    // tslint:disable-next-line:no-unused-variable
-    private messageActive = true;
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
         {
@@ -128,6 +110,25 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
+
+    // FIELDS
+    // All datasets
+    private dataSets: IGridDataSet[] = [];
+    // Place holder data sets to buffer between data sets and rendered data sets
+    private placeHolderDataSets: IGridDataSet[] = [];
+    // Datasets currently being rendered on the DOM
+    private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
+    private messages: IMessages[] = [];
+    private scrollTimeOut: number;
+    private messagesAdded = false;
+    private resizing = false;
+    private resizeHandleTop = 0;
+    private scrollEnabled = true;
+    // tslint:disable-next-line:no-unused-variable
+    private resultActive = true;
+    // tslint:disable-next-line:no-unused-variable
+    private messageActive = true;
+    private firstRender = true;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
@@ -384,6 +385,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         self.placeHolderDataSets[i].dataRows = undefined;
                     }
                 }
+            }
+
+            if (this.firstRender) {
+                this.firstRender = false;
+                setTimeout(() => {
+                    this.slickgrids.toArray()[0].setActive();
+                });
             }
         }, self.scrollTimeOutTime);
     }
