@@ -37,6 +37,7 @@ declare let $;
  */
 @Component({
     selector: 'my-app',
+    host: { '(window:keydown)': 'keyEvent($event)' },
     directives: [SlickGrid, Tabs, Tab, ContextMenu],
     templateUrl: 'app/app.html',
     providers: [DataService],
@@ -106,9 +107,20 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
+    private functionality = {
+        'event.toggleResultPane': () => {
+            this.resultActive = !this.resultActive;
+        },
+        'event.toggleMessagePane': () => {
+            this.messageActive = !this.messageActive;
+        }
+    };
+    private shortCuts = {
+        'ctrl+alt+r': 'event.toggleResultPane',
+        'ctrl+alt+t': 'event.toggleMessagePane'
+    };
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
-
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
@@ -333,7 +345,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Handles keyboard events on angular, currently only needed for copy-paste
+     * Handles keyboard events on angular component, currently only needed for copy-paste
      */
     onKey(e: any, batchId: number, resultId: number, index: number): void {
         if ((e.ctrlKey || e.metaKey) && e.which === this.c_key) {
@@ -391,5 +403,26 @@ export class AppComponent implements OnInit, AfterViewChecked {
         } else {
             this.renderedDataSets = this.dataSets;
         }
+    }
+
+    keyEvent(e): void {
+        let eString = this.buildEventString(e);
+        if (this.shortCuts[eString]) {
+            this.functionality[this.shortCuts[eString]]();
+        }
+    }
+
+    /**
+     * Builds a event string of ctrl, shift, alt, and a-z + up, down, left, right
+     * based on a passed Jquery event object, i.e 'ctrl+alt+t'
+     * @param e The Jquery event object to build the string from
+     */
+    buildEventString(e): string {
+        let resString = '';
+        resString += (e.ctrlKey || e.metaKey) ? 'ctrl+' : '';
+        resString += e.altKey ? 'alt+' : '';
+        resString += e.shiftKey ? 'shift+' : '';
+        resString += String.fromCharCode(e.which).toLowerCase();
+        return resString;
     }
 }
