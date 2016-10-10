@@ -12,7 +12,7 @@ import { IConnectionProfile } from '../models/interfaces';
 import { IConnectionConfig } from './iconnectionconfig';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
-const json = require('comment-json');
+const commentJson = require('comment-json');
 
 /**
  * Implements connection profile file storage.
@@ -47,7 +47,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
         if (!parsedSettingsFile) {
-            return Promise.reject(undefined);
+            return Promise.reject(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
         }
 
         let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
@@ -208,7 +208,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 let fileContents: string = fileBuffer.toString();
                 if (!Utils.isEmpty(fileContents)) {
                     try {
-                        let fileObject: any = json.parse(fileContents);
+                        let fileObject: any = commentJson.parse(fileContents);
                         return fileObject;
                     } catch (e) { // Error parsing JSON
                         this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
@@ -261,7 +261,7 @@ export class ConnectionConfig implements IConnectionConfig {
         return new Promise<void>((resolve, reject) => {
             self.createConfigFileDirectory().then(() => {
                 // Format the file using 4 spaces as indentation
-                self._fs.writeFile(ConnectionConfig.configFilePath, json.stringify(parsedSettingsFile, undefined, 4), err => {
+                self._fs.writeFile(ConnectionConfig.configFilePath, commentJson.stringify(parsedSettingsFile, undefined, 4), err => {
                     if (err) {
                         reject(err);
                     }
