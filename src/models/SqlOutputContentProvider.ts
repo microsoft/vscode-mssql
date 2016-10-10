@@ -185,11 +185,22 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
-        let resultsUri = this.getResultsUri(uri).toString();
+        let resultsUri = decodeURIComponent(this.getResultsUri(uri));
         let queryRunner: QueryRunner;
         if (this._queryResultsMap.has(resultsUri)) {
-            queryRunner = this._queryResultsMap.get(resultsUri);
+            let existingRunner: QueryRunner = this._queryResultsMap.get(resultsUri);
+
+            // If the query is already in progress, don't attempt to send it
+            if (existingRunner.isExecutingQuery) {
+                this._vscodeWrapper.showInformationMessage(Constants.msgRunQueryInProgress);
+                return;
+            }
+
+            // If the query is not in progress, we can reuse the query runner
+            queryRunner = existingRunner;
         } else {
+            // We do not have a query runner for this editor, so create a new one
+            // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
             this._queryResultsMap.set(resultsUri, queryRunner);
         }
@@ -230,7 +241,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
         // If we don't have any query runners mapped to this uri, don't do anything
-        let untitledResultsUri = this.getResultsUri(untitledUri);
+        let untitledResultsUri = decodeURIComponent(this.getResultsUri(untitledUri));
         if (!this._queryResultsMap.has(untitledResultsUri)) {
             return;
         }
@@ -239,7 +250,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // the old uri. As long as we make requests to the service against that uri, we'll be good.
 
         // Remap the query runner in the map
-        let savedResultUri = this.getResultsUri(savedUri);
+        let savedResultUri = decodeURIComponent(this.getResultsUri(savedUri));
         this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
         this._queryResultsMap.delete(untitledResultsUri);
     }

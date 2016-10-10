@@ -66,7 +66,7 @@ export default class ResultsSerializer {
             }
         ];
         return this._prompter.prompt(questions).then(answers => {
-            if (answers[Constants.filepathPrompt] ) {
+            if (answers && answers[Constants.filepathPrompt] ) {
                 // return filename if file does not exist or if user opted to overwrite file
                 if (!prompted || (prompted && answers[Constants.overwritePrompt])) {
                      return answers[Constants.filepathPrompt];
@@ -244,8 +244,9 @@ export default class ResultsSerializer {
 
         // prompt for filepath
         return self.promptForFilepath().then(function(filePath): void {
-            self.sendRequestToService( filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
-
+            if (!Utils.isEmpty(filePath)) {
+                self.sendRequestToService(filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
+            }
         });
     }
 
