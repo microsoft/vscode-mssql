@@ -220,6 +220,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             self.dataSets.push(dataSet);
                             // Create a dataSet to render without rows to reduce DOM size
                             let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
+                            undefinedDataSet.columnDefinitions = dataSet.columnDefinitions;
                             undefinedDataSet.dataRows = undefined;
                             undefinedDataSet.resized = new EventEmitter();
                             self.placeHolderDataSets.push(undefinedDataSet);
