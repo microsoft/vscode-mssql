@@ -222,11 +222,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             return;
         }
 
+        // Switch the spinner to cancelling, which will be reset when the query execute sends back its completed event
+        this._statusView.cancellingQuery(queryRunner.uri);
+
         // Cancel the query
-        queryRunner.cancel().then(success => {
-            // On success, dispose of the query runner
-            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQuerySuccess);
-        }, error => {
+        queryRunner.cancel().then(undefined,
+        error => {
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
         });

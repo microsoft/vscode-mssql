@@ -151,6 +151,7 @@ export const connectErrorTooltip = 'Error connecting to: ';
 export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
 export const executeQueryLabel = 'Executing query ';
+export const cancellingQueryLabel = 'Cancelling query ';
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
