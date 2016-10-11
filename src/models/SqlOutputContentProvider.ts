@@ -58,26 +58,31 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
         this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
-            let batchSets: Interfaces.IGridBatchMetaData[] = [];
+            let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = req.query.uri;
-            for (let [batchIndex, batch] of self._queryResultsMap.get(uri).batchSets.entries()) {
-                let tempBatch: Interfaces.IGridBatchMetaData = {resultSets: [], messages: batch.messages, hasError: batch.hasError, selection: batch.selection};
-                for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
-                    let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-                    let encodedUri = encodeURIComponent(uri);
-                    let columnsUri = Utils.formatString(uriFormat, Constants.outputContentTypeColumns, batchIndex, resultIndex, encodedUri);
-                    let rowsUri = Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri);
+            self._queryResultsMap.get(uri).getBatchSets().then((batchSets) => {
+                for (let [batchIndex, batch] of batchSets.entries()) {
+                    let tempBatch: Interfaces.IGridBatchMetaData = {
+                        resultSets: [],
+                        messages: batch.messages,
+                        hasError: batch.hasError,
+                        selection: batch.selection
+                    };
+                    for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
+                        let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
+                        let encodedUri = encodeURIComponent(uri);
 
-                    tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                        columnsUri: columnsUri,
-                        rowsUri: rowsUri,
-                        numberOfRows: result.rowCount
-                    });
+                        tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
+                            columns: result.columnInfo,
+                            rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
+                            numberOfRows: result.rowCount
+                        });
+                    }
+                    tempBatchSets.push(tempBatch);
                 }
-                batchSets.push(tempBatch);
-            }
-            let json = JSON.stringify(batchSets);
-            res.send(json);
+                let json = JSON.stringify(tempBatchSets);
+                res.send(json);
+            });
         });
 
         // add http handler for '/columns' - return column metadata as a JSON string
@@ -85,9 +90,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let uri: string = req.query.uri;
-            let columnMetadata = self._queryResultsMap.get(uri).batchSets[batchId].resultSetSummaries[resultId].columnInfo;
-            let json = JSON.stringify(columnMetadata);
-            res.send(json);
+            self._queryResultsMap.get(uri).getBatchSets().then((data) => {
+                let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
+                let json = JSON.stringify(columnMetadata);
+                res.send(json);
+            });
         });
 
         // add http handler for '/rows' - return rows end-point for a specific resultset
@@ -105,7 +112,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http handler for '/saveResults' - return success message as JSON
         this._service.addPostHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
-            let uri: string = decodeURI(req.query.uri);
+            let uri: string = req.query.uri;
             let queryUri = self._queryResultsMap.get(uri).uri;
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
@@ -121,27 +128,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
-            let tempFileName = self.getXmlTempFileName(columnName);
-            let tempFilePath = path.join(os.tmpdir(), tempFileName );
-            let uri = vscode.Uri.parse('untitled:' + tempFilePath);
-            let xml = pd.xml(content);
-            vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
-                    vscode.window.showTextDocument(doc, 1, false).then(editor => {
-                        editor.edit( edit => {
-                            edit.insert( new vscode.Position(0, 0), xml);
-                        });
-                    });
-             }, (error: any) => {
-                 self._vscodeWrapper.showErrorMessage(error);
-             });
-
+            let linkType: string = req.body.type;
+            self.openLink(content, columnName, linkType);
             res.status = 200;
             res.send();
         });
 
         // add http post handler for copying results
         this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
-            let uri = req.query.uri.toString();
+            let uri = req.query.uri;
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let selection: Interfaces.ISlickRange[] = req.body;
@@ -153,7 +148,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // add http post handler for setting the selection in the editor
         this._service.addPostHandler(Interfaces.ContentType.EditorSelection, function(req, res): void {
-            let uri = req.query.uri.toString();
+            let uri = req.query.uri;
             let selection: ISelectionData = req.body;
             self._queryResultsMap.get(uri).setEditorSelection(selection).then(() => {
                 res.status = 200;
@@ -208,12 +203,29 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
-        let resultsUri = this.getResultsUri(uri).toString();
-        let queryRunner: QueryRunner = this._queryResultsMap.has(resultsUri)
-            ? this._queryResultsMap.get(resultsUri)
-            : new QueryRunner(uri, title, statusView, this);
+        let resultsUri = this.getResultsUri(uri);
+        let queryRunner: QueryRunner;
+        if (this._queryResultsMap.has(resultsUri)) {
+            let existingRunner: QueryRunner = this._queryResultsMap.get(resultsUri);
+
+            // If the query is already in progress, don't attempt to send it
+            if (existingRunner.isExecutingQuery) {
+                this._vscodeWrapper.showInformationMessage(Constants.msgRunQueryInProgress);
+                return;
+            }
+
+            // If the query is not in progress, we can reuse the query runner
+            queryRunner = existingRunner;
+        } else {
+            // We do not have a query runner for this editor, so create a new one
+            // and map it to the results uri
+            queryRunner = new QueryRunner(uri, title, statusView);
+            this._queryResultsMap.set(resultsUri, queryRunner);
+        }
 
         // Execute the query
+        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
         queryRunner.runQuery(selection);
     }
 
@@ -231,18 +243,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
     }
 
-    public updateContent(queryRunner: QueryRunner): string {
-        // Map the query runner to the results uri
-        let uri = this.getResultsUri(queryRunner.uri).toString();
-        this._queryResultsMap.set(uri.toString(), queryRunner);
-
-        // Show the results pane
-        let title = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
-        vscode.commands.executeCommand('vscode.previewHtml', uri, vscode.ViewColumn.Two, title);
-        this.onContentUpdated();
-        return uri;
-    }
-
     /**
      * Executed from the MainController when an untitled text document was saved to the disk. If
      * any queries were executed from the untitled document, the queryrunner will be remapped to
@@ -252,7 +252,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
         // If we don't have any query runners mapped to this uri, don't do anything
-        let untitledResultsUri = this.getResultsUri(untitledUri);
+        let untitledResultsUri = decodeURIComponent(this.getResultsUri(untitledUri));
         if (!this._queryResultsMap.has(untitledResultsUri)) {
             return;
         }
@@ -261,7 +261,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // the old uri. As long as we make requests to the service against that uri, we'll be good.
 
         // Remap the query runner in the map
-        let savedResultUri = this.getResultsUri(savedUri);
+        let savedResultUri = decodeURIComponent(this.getResultsUri(savedUri));
         this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
         this._queryResultsMap.delete(untitledResultsUri);
     }
@@ -329,6 +329,44 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         </html>`;
     }
 
+    /**
+     * Open a xml/json link - Opens the content in a new editor pane
+     */
+    public openLink(content: string, columnName: string, linkType: string): void {
+        const self = this;
+        let tempFileName = self.getXmlTempFileName(columnName, linkType);
+        let tempFilePath = path.join(os.tmpdir(), tempFileName);
+        let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+        if (linkType === 'xml') {
+            try {
+                content = pd.xml(content);
+            } catch (e) {
+                // If Xml fails to parse, fall back on original Xml content
+            }
+        } else if (linkType === 'json') {
+            let jsonContent: string = undefined;
+            try {
+                jsonContent = JSON.parse(content);
+            } catch (e) {
+                // If Json fails to parse, fall back on original Json content
+            }
+            if (jsonContent) {
+                // If Json content was valid and parsed, pretty print content to a string
+                content = JSON.stringify(jsonContent, undefined, 4);
+            }
+        }
+
+        vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+            vscode.window.showTextDocument(doc, 1, false).then(editor => {
+                editor.edit(edit => {
+                    edit.insert(new vscode.Position(0, 0), content);
+                });
+            });
+        }, (error: any) => {
+            self._vscodeWrapper.showErrorMessage(error);
+        });
+    }
+
     // PRIVATE HELPERS /////////////////////////////////////////////////////
 
     /**
@@ -343,18 +381,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     /**
-     * Return temp file name for a XML link
+     * Return temp file name for opening a link
      */
-    private getXmlTempFileName(columnName: string): string {
+    private getXmlTempFileName(columnName: string, linkType: string): string {
         let baseFileName = columnName + '_';
-        let retryCount: number = 5;
+        let retryCount: number = 200;
         for (let i = 0; i < retryCount; i++) {
-            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.xml');
+            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
             SqlOutputContentProvider.tempFileCount++;
             if (!Utils.isFileExisting(tempFileName)) {
                 return tempFileName;
             }
         }
-        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.xml';
+        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
     }
 }

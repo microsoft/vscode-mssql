@@ -8,9 +8,11 @@ import fs = require('fs');
 import os = require('os');
 import * as Constants from '../models/constants';
 import * as Utils from '../models/utils';
-import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
+import { IConnectionProfile } from '../models/interfaces';
 import { IConnectionConfig } from './iconnectionconfig';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+
+const commentJson = require('comment-json');
 
 /**
  * Implements connection profile file storage.
@@ -38,54 +40,91 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Read connection profiles stored in connection json file, if it exists.
+     * Add a new connection to the connection config.
      */
-    public readConnectionsFromConfigFile(): IConnectionProfile[] {
-        let profiles: IConnectionProfile[] = [];
+    public addConnection(profile: IConnectionProfile): Promise<void> {
+        let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
 
-        try {
-            let fileBuffer: Buffer = this._fs.readFileSync(ConnectionConfig.configFilePath);
-            if (fileBuffer) {
-                let fileContents: string = fileBuffer.toString();
-                if (!Utils.isEmpty(fileContents)) {
-                    try {
-                        let json: any = JSON.parse(fileContents);
-                        if (json && json.hasOwnProperty(Constants.connectionsArrayName)) {
-                            profiles = json[Constants.connectionsArrayName];
-                        } else {
-                            this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
-                        }
-                    } catch (e) { // Error parsing JSON
-                        this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
-                    }
-                }
-            }
-        } catch (e) { // Error reading the file
-            if (e.code !== 'ENOENT') { // Ignore error if the file doesn't exist
-                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
-            }
+        // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
+        if (!parsedSettingsFile) {
+            return Promise.reject(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
+        }
+
+        let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+
+        // Remove the profile if already set
+        profiles = profiles.filter(value => !Utils.isSameProfile(value, profile));
+        profiles.push(profile);
+
+        return this.writeProfilesToSettingsFile(parsedSettingsFile, profiles);
+    }
+
+    /**
+     * Get a list of all connections in the connection config. Connections returned
+     * are sorted first by whether they were found in the user/workspace settings,
+     * and next alphabetically by profile/server name.
+     */
+    public getConnections(getWorkspaceConnections: boolean): IConnectionProfile[] {
+        let profiles = [];
+        let compareProfileFunc = (a, b) => {
+            // Sort by profile name if available, otherwise fall back to server name
+            let nameA = a.profileName ? a.profileName : a.server;
+            let nameB = b.profileName ? b.profileName : b.server;
+            return nameA.localeCompare(nameB);
+        };
+
+        // Read from user settings
+        let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
+        let userProfiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+        userProfiles.sort(compareProfileFunc);
+        profiles = profiles.concat(userProfiles);
+
+        if (getWorkspaceConnections) {
+            // Read from workspace settings
+            parsedSettingsFile = this.readAndParseSettingsFile(this.workspaceSettingsFilePath);
+            let workspaceProfiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+            workspaceProfiles.sort(compareProfileFunc);
+            profiles = profiles.concat(workspaceProfiles);
+        }
+
+        if (profiles.length > 0) {
+            profiles = profiles.filter(conn => {
+                // filter any connection missing a server name or the sample that's shown by default
+                return !!(conn.server) && conn.server !== Constants.SampleServerName;
+            });
         }
 
         return profiles;
     }
 
     /**
-     * Write connection profiles to the configuration json file.
+     * Remove an existing connection from the connection config.
      */
-    public writeConnectionsToConfigFile(connections: IConnectionCredentials[]): Promise<void> {
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            self.createConfigFileDirectory().then(() => {
-                let connectionsObject = {};
-                connectionsObject[Constants.connectionsArrayName] = connections;
+    public removeConnection(profile: IConnectionProfile): Promise<boolean> {
+        let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
 
-                // Format the file using 4 spaces as indentation
-                self._fs.writeFile(ConnectionConfig.configFilePath, JSON.stringify(connectionsObject, undefined, 4), err => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve();
-                });
+        // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
+        if (!parsedSettingsFile) {
+            return Promise.resolve(false);
+        }
+
+        let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+
+        // Remove the profile if already set
+        let found: boolean = false;
+        profiles = profiles.filter(value => {
+            if (Utils.isSameProfile(value, profile)) {
+                // remove just this profile
+                found = true;
+                return false;
+            } else {
+                return true;
+            }
+        });
+
+        return new Promise<boolean>((resolve, reject) => {
+            this.writeProfilesToSettingsFile(parsedSettingsFile, profiles).then(() => {
+                resolve(found);
             }).catch(err => {
                 reject(err);
             });
@@ -97,20 +136,45 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     private static get configFileDirectory(): string {
         if (os.platform() === 'win32') {
-            // On Windows, we store connection configurations in %APPDATA%\<extension name>\
-            return process.env['APPDATA'] + '\\' + Constants.extensionName + '\\';
+            // On Windows, settings are located in %APPDATA%\Code\User\
+            return process.env['APPDATA'] + '\\Code\\User\\';
+        } else if (os.platform() === 'darwin') {
+            // On OSX, settings are located in $HOME/Library/Application Support/Code/User/
+            return process.env['HOME'] + '/Library/Application Support/Code/User/';
         } else {
-            // On OSX/Linux, we store connection configurations in ~/.config/<extension name>/
-            return process.env['HOME'] + '/.config/' + Constants.extensionName + '/';
+            // On Linux, settings are located in $HOME/.config/Code/User/
+            return process.env['HOME'] + '/.config/Code/User/';
+        }
+    }
+
+    /**
+     * Get the path of the file containing workspace settings.
+     */
+    private get workspaceSettingsFilePath(): string {
+        let workspacePath = this.vscodeWrapper.workspaceRootPath;
+        const vscodeSettingsDir = '.vscode';
+
+        let dirSeparator = '/';
+        if (os.platform() === 'win32') {
+            dirSeparator = '\\';
+        }
+
+        if (workspacePath) {
+            return this.vscodeWrapper.workspaceRootPath + dirSeparator +
+                vscodeSettingsDir + dirSeparator +
+                Constants.connectionConfigFilename;
+        } else {
+            return undefined;
         }
     }
 
     /**
      * Get the full path of the connection config filename.
      */
-    public static get configFilePath(): string {
+    private static get configFilePath(): string {
         return this.configFileDirectory + Constants.connectionConfigFilename;
     }
+
     /**
      * Public for testing purposes.
      */
@@ -124,6 +188,87 @@ export class ConnectionConfig implements IConnectionConfig {
                     reject(err);
                 }
                 resolve();
+            });
+        });
+    }
+
+    /**
+     * Parse the vscode settings file into an object, preserving comments.
+     * This is public for testing only.
+     * @param filename the name of the file to read from
+     * @returns undefined if the settings file could not be read, or an empty object if the file did not exist/was empty
+     */
+    public readAndParseSettingsFile(filename: string): any {
+        if (!filename) {
+            return undefined;
+        }
+        try {
+            let fileBuffer: Buffer = this._fs.readFileSync(filename);
+            if (fileBuffer) {
+                let fileContents: string = fileBuffer.toString();
+                if (!Utils.isEmpty(fileContents)) {
+                    try {
+                        let fileObject: any = commentJson.parse(fileContents);
+                        return fileObject;
+                    } catch (e) { // Error parsing JSON
+                        this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
+                    }
+                } else {
+                    return {};
+                }
+            }
+        } catch (e) { // Error reading the file
+            if (e.code !== 'ENOENT') { // Ignore error if the file doesn't exist
+                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
+            } else {
+                return {};
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Get all profiles from the parsed settings file.
+     * This is public for testing only.
+     * @param parsedSettingsFile an object representing the parsed contents of the settings file.
+     * @returns the set of connection profiles found in the parsed settings file.
+     */
+    public getProfilesFromParsedSettingsFile(parsedSettingsFile: any): IConnectionProfile[] {
+        let profiles: IConnectionProfile[] = [];
+
+        // Find the profiles object in the parsed settings file
+        if (parsedSettingsFile && parsedSettingsFile.hasOwnProperty(Constants.connectionsArrayName)) {
+            profiles = parsedSettingsFile[Constants.connectionsArrayName];
+        }
+
+        return profiles;
+    }
+
+    /**
+     * Replace existing profiles in the settings file with a new set of profiles.
+     * @param parsedSettingsFile an object representing the parsed contents of the settings file.
+     * @param profiles the set of profiles to insert into the settings file.
+     */
+    private writeProfilesToSettingsFile(parsedSettingsFile: any, profiles: IConnectionProfile[]): Promise<void> {
+        if (profiles.length !== 0) {
+            // Insert the new set of profiles
+            parsedSettingsFile[Constants.connectionsArrayName] = profiles;
+        }
+
+        // Save the file
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            self.createConfigFileDirectory().then(() => {
+                // Format the file using 4 spaces as indentation
+                self._fs.writeFile(ConnectionConfig.configFilePath, commentJson.stringify(parsedSettingsFile, undefined, 4), err => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve();
+                });
+            }).catch(err => {
+                reject(err);
             });
         });
     }

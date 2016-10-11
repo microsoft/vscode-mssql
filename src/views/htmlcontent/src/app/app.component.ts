@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
-    ChangeDetectorRef, AfterViewChecked} from '@angular/core';
+    EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
 import {IColumnDefinition} from './slickgrid/ModelInterfaces';
 import {IObservableCollection} from './slickgrid/BaseLibrary';
 import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
@@ -12,8 +12,7 @@ import {SlickGrid} from './slickgrid/SlickGrid';
 import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import { Tabs } from './tabs';
-import { Tab } from './tab';
+import * as Constants from './../constants';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
@@ -21,6 +20,17 @@ import { FieldType } from './slickgrid/EngineAPI';
 enum SelectedTab {
     Results = 0,
     Messages = 1,
+}
+
+interface IGridDataSet {
+    dataRows: IObservableCollection<IGridDataRow>;
+    columnDefinitions: IColumnDefinition[];
+    resized: EventEmitter<any>;
+    totalRows: number;
+    batchId: number;
+    resultId: number;
+    maxHeight: number | string;
+    minHeight: number | string;
 }
 
 interface IMessages {
@@ -36,8 +46,8 @@ declare let $;
  */
 @Component({
     selector: 'my-app',
-    directives: [SlickGrid, Tabs, Tab, ContextMenu],
     templateUrl: 'app/app.html',
+    directives: [ContextMenu, SlickGrid],
     providers: [DataService],
     styles: [`
     .errorMessage {
@@ -47,26 +57,29 @@ declare let $;
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {
-    private dataSets: {
-        dataRows: IObservableCollection<IGridDataRow>,
-        columnDefinitions: IColumnDefinition[],
-        totalRows: number,
-        batchId: number,
-        resultId: number}[] = [];
-    private renderedDataSets: {
-        dataRows: IObservableCollection<IGridDataRow>,
-        columnDefinitions: IColumnDefinition[],
-        totalRows: number,
-        batchId: number,
-        resultId: number}[] = [];
-    private messages: IMessages[] = [];
-    private messagesAdded = false;
-    private selected: SelectedTab;
+    // CONSTANTS
+    private scrollTimeOutTime = 200;
     private windowSize = 50;
     private c_key = 67;
-    public SelectedTab = SelectedTab;
+    private maxScrollGrids = 8;
+    // tslint:disable-next-line:no-unused-variable
+    private _rowHeight = 29;
+    // tslint:disable-next-line:no-unused-variable
+    private _defaultNumShowingRows = 8;
+
+    // FIELDS
+    // All datasets
+    private dataSets: IGridDataSet[] = [];
+    // Place holder data sets to buffer between data sets and rendered data sets
+    private placeHolderDataSets: IGridDataSet[] = [];
+    // Datasets currently being rendered on the DOM
+    private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
+    private messages: IMessages[] = [];
+    private scrollTimeOut: number;
+    private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;
+    private scrollEnabled = true;
     // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
     // tslint:disable-next-line:no-unused-variable
@@ -108,7 +121,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
-
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
                 @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
@@ -119,6 +131,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
+        let startDate = new Date();
+        this.messages.push(
+            {
+                messages: [{message: Constants.executeQueryLabel, time: startDate.toLocaleTimeString()}],
+                hasError: false,
+                selection: undefined
+            }
+        );
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             for (let [batchId, batch] of batchs.entries()) {
                 let messages: IMessages = {
@@ -128,7 +148,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 };
                 for (let message of batch.messages) {
                     let date = new Date(message.time);
-                    let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    let timeString = date.toLocaleTimeString();
                     messages.messages.push({time: timeString, message: message.message});
                 }
                 self.messages.push(messages);
@@ -138,29 +158,28 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
                         let columnDefinitionsObs = self.dataService.getColumns(batchId, resultId);
                         Observable.forkJoin([totalRowsObs, columnDefinitionsObs]).subscribe((data: any[]) => {
-                            let dataSet: {
-                                dataRows: IObservableCollection<IGridDataRow>,
-                                columnDefinitions: IColumnDefinition[],
-                                totalRows: number,
-                                batchId: number,
-                                resultId: number} = {
+                            let dataSet: IGridDataSet = {
                                     dataRows: undefined,
                                     columnDefinitions: undefined,
                                     totalRows: undefined,
+                                    resized: undefined,
                                     batchId: batchId,
-                                    resultId: resultId
+                                    resultId: resultId,
+                                    maxHeight: undefined,
+                                    minHeight: undefined
                                 };
                             let totalRows = data[0];
                             let columnData = data[1];
                             let columnDefinitions = [];
 
                             for (let i = 0; i < columnData.length; i++) {
-                                if (columnData[i].isXml) {
+                                if (columnData[i].isXml || columnData[i].isJson) {
+                                    let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
                                         id: columnData[i].columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
-                                        asyncPostRender: self.xmlLinkHandler
+                                        asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
@@ -193,10 +212,19 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.columnDefinitions = columnDefinitions;
                             dataSet.totalRows = totalRows;
                             dataSet.dataRows = virtualizedCollection;
+                            // calculate min and max height
+                            dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
+                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * (15 + 10)) + 10 : 'inherit';
+                            dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
+                                                (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
                             self.dataSets.push(dataSet);
-                            self.renderedDataSets.push(dataSet);
+                            // Create a dataSet to render without rows to reduce DOM size
+                            let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
+                            undefinedDataSet.dataRows = undefined;
+                            undefinedDataSet.resized = new EventEmitter();
+                            self.placeHolderDataSets.push(undefinedDataSet);
                             self.messagesAdded = true;
-                            self.selected = SelectedTab.Results;
+                            self.onScroll(0);
                         });
                     }
                 });
@@ -255,22 +283,37 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Updates the internal state for what tab is selected; propogates down to the tab classes
-     * @param to The tab was the selected
-     */
-    tabChange(to: SelectedTab): void {
-        this.selected = to;
-    }
-
-    /**
      * Add handler for clicking on xml link
      */
     xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.field);
+            self.dataService.openLink(value, colDef.field, 'xml');
         });
+    }
+
+    /**
+     * Add handler for clicking on json link
+     */
+    jsonLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        const self = this;
+        let value = dataContext[colDef.field];
+        $(cellRef).children('.xmlLink').click(function(): void {
+            self.dataService.openLink(value, colDef.field, 'json');
+        });
+    }
+
+    /**
+     * Return asyncPostRender handler based on type
+     */
+    public linkHandler(type: string): Function {
+        if (type === 'xml') {
+            return this.xmlLinkHandler;
+        } else if (type === 'json') {
+            return this.jsonLinkHandler;
+        }
+
     }
 
     /**
@@ -298,6 +341,41 @@ export class AppComponent implements OnInit, AfterViewChecked {
             let selection = this.slickgrids.toArray()[index].getSelectedRanges();
             this.dataService.copyResults(selection, batchId, resultId);
         }
+    }
+
+    /**
+     * Handles rendering the results to the DOM that are currently being shown
+     * and destroying any results that have moved out of view
+     * @param scrollTop The scrolltop value, if not called by the scroll event should be 0
+     */
+    onScroll(scrollTop): void {
+        const self = this;
+        clearTimeout(self.scrollTimeOut);
+        this.scrollTimeOut = setTimeout(() => {
+            if (self.dataSets.length < self.maxScrollGrids) {
+                self.scrollEnabled = false;
+                for (let i = 0; i < self.placeHolderDataSets.length; i++) {
+                    self.placeHolderDataSets[i].dataRows = self.dataSets[i].dataRows;
+                }
+            } else {
+                let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+                let tabHeight = document.getElementById('results').offsetHeight;
+                let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
+                    + ((scrollTop % gridHeight) / gridHeight));
+                let min = Math.floor(scrollTop / gridHeight);
+                let max = min + numOfVisibleGrids;
+                for (let i = 0; i < self.placeHolderDataSets.length; i++) {
+                    if (i >= min && i < max) {
+                        if (self.placeHolderDataSets[i].dataRows === undefined) {
+                            self.placeHolderDataSets[i].dataRows = self.dataSets[i].dataRows;
+                            self.placeHolderDataSets[i].resized.emit();
+                        }
+                    } else if (self.placeHolderDataSets[i].dataRows !== undefined) {
+                        self.placeHolderDataSets[i].dataRows = undefined;
+                    }
+                }
+            }
+        }, self.scrollTimeOutTime);
     }
 
     /**
@@ -347,7 +425,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         if (this.renderedDataSets.length > 1) {
             this.renderedDataSets = [this.dataSets[index]];
         } else {
-            this.renderedDataSets = this.dataSets;
+            this.renderedDataSets = this.placeHolderDataSets;
+            this.onScroll(0);
         }
     }
 }

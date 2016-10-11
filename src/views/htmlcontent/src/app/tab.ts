@@ -2,13 +2,18 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, Input, ContentChildren, ElementRef, forwardRef, Inject, OnInit, QueryList } from '@angular/core';
-import { SlickGrid } from './slickgrid/SlickGrid';
+import { Component, Input, ElementRef, forwardRef, Inject, EventEmitter, OnInit,
+     Output } from '@angular/core';
+import { Observable } from 'rxjs/RX';
 import { IGridIcon } from './../interfaces';
 
 enum SelectedTab {
     Results = 0,
     Messages = 1,
+}
+
+export class ScrollEvent {
+    scrollTop: number;
 }
 
 /**
@@ -29,11 +34,17 @@ export class Tab implements OnInit {
     @Input() id: SelectedTab;
     @Input() show: boolean;
     @Input() icons: IGridIcon[];
-    @ContentChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
+    @Output() onScroll: EventEmitter<ScrollEvent> = new EventEmitter<ScrollEvent>();
 
     private _active = true;
 
-    constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {};
+    constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {
+        Observable.fromEvent(this._el.nativeElement, 'scroll').subscribe((event) => {
+            this.onScroll.emit({
+                scrollTop: this._el.nativeElement.scrollTop
+            });
+        });
+    };
 
     ngOnInit(): void {
         this.updateActive();

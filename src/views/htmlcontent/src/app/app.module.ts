@@ -10,8 +10,7 @@ import { AppComponent }  from './app.component';
 import { SlickGrid } from './slickgrid/SlickGrid';
 import { NavigatorComponent } from './navigation.component';
 import { HttpModule, JsonpModule } from '@angular/http';
-import { Tab } from './tab';
-import { Tabs } from './tabs';
+import { ScrollDirective } from './scroll.directive';
 
 /**
  * Top level angular module, no actual content here
@@ -24,7 +23,7 @@ import { Tabs } from './tabs';
               JsonpModule,
               FormsModule
            ],
-  declarations: [ AppComponent, SlickGrid, NavigatorComponent, Tab, Tabs ],
+  declarations: [ AppComponent, SlickGrid, NavigatorComponent, ScrollDirective],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }
