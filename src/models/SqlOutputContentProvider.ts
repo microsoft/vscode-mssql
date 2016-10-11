@@ -208,6 +208,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Execute the query
         let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+
+        // HACK to workaround a bug in VS Code 1.6 that brakes the query results views
+        // See issue status at https://github.com/Microsoft/vscode/issues/13454
+        // and delete these commands once resolved
+        vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+
         queryRunner.runQuery(selection);
     }
 
