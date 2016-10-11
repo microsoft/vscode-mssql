@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
+import { IConnectionProfile } from '../models/interfaces';
 
 /**
  * Interface for a configuration file that stores connection profiles.
@@ -13,6 +13,7 @@ import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces
  * @interface IConnectionConfig
  */
 export interface IConnectionConfig {
-    readConnectionsFromConfigFile(): IConnectionProfile[];
-    writeConnectionsToConfigFile(connections: IConnectionCredentials[]): Promise<void>;
+    addConnection(profile: IConnectionProfile): Promise<void>;
+    getConnections(getWorkspaceConnections: boolean): IConnectionProfile[];
+    removeConnection(profile: IConnectionProfile): Promise<boolean>;
 }

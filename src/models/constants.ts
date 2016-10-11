@@ -3,18 +3,8 @@ export const languageId = 'sql';
 export const extensionName = 'vscode-mssql';
 export const outputChannelName = 'MSSQL';
 
-export const connectionConfigFilename = 'connections.json';
+export const connectionConfigFilename = 'settings.json';
 export const connectionsArrayName = 'vscode-mssql.connections';
-export const defaultConnectionSettingsFileJson = {
-    'vscode-mssql.connections': [
-        {
-            'server': '{{put-server-name-here}}',
-            'database': '{{put-database-name-here}}',
-            'user': '{{put-username-here}}',
-            'password': '{{put-password-here}}'
-        }
-    ]
-};
 
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdCancelQuery = 'extension.cancelQuery';
@@ -24,7 +14,6 @@ export const cmdDisconnect = 'extension.disconnect';
 export const cmdCreateProfile = 'extension.createprofile';
 export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
-export const cmdOpenConnectionSettings = 'extension.openConnectionSettingsFile';
 export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 
 export const sqlDbPrefix = '.database.windows.net';
@@ -187,7 +176,6 @@ export const msgChangedDatabase = 'Changed database context to \"{0}\" on server
 export const msgDisconnected = 'Disconnected on document \"{0}\"';
 
 export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check that the file is formatted correctly.';
-export const msgNewConfigFileHelpInfo = 'Save connections.json to enable autocomplete while editing connection profile settings.';
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
 
 
