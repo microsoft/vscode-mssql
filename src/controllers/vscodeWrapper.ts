@@ -232,4 +232,15 @@ export default class VscodeWrapper {
     public uriParse(value: string): vscode.Uri {
         return vscode.Uri.parse(value);
     }
+
+    /**
+     * The folder that is open in VS Code. `undefined` when no folder
+     * has been opened.
+     *
+     * @readonly
+     * @see vscode.workspace.rootPath
+     */
+    public get workspaceRootPath(): string {
+        return vscode.workspace.rootPath;
+    }
 }
