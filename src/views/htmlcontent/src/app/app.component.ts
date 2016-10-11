@@ -80,6 +80,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length === 1) {
                     this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
+                } else {
+                    this.dataService.showWarning('Cannot save with multiple selections');
                 }
             }
         },
@@ -90,6 +92,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length === 1) {
                     this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
+                } else {
+                    this.dataService.showWarning('Cannot save with multiple selections');
                 }
             }
         },

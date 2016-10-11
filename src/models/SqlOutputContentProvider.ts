@@ -161,6 +161,24 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             });
         });
 
+        // add http post handler for showing errors to user
+        this._service.addPostHandler(Interfaces.ContentType.ShowError, function(req, res): void {
+            let message: string = req.body.message;
+            self._vscodeWrapper.showErrorMessage(message);
+            // not attached to show function callback, since callback returns only after user closes message
+            res.status = 200;
+            res.send();
+        });
+
+        // add http post handler for showing warning to user
+        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, function(req, res): void {
+            let message: string = req.body.message;
+            self._vscodeWrapper.showWarningMessage(message);
+            // not attached to show function callback, since callback returns only after user closes message
+            res.status = 200;
+            res.send();
+        });
+
         // start express server on localhost and listen on a random port
         try {
             this._service.start();

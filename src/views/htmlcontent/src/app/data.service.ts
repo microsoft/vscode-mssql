@@ -257,6 +257,8 @@ export class DataService {
 
     /**
      * send request to open content in new editor
+     * @param content The content to be opened
+     * @param columnName The column name of the content
      */
     openLink(content: string, columnName: string): void {
         const self = this;
@@ -287,5 +289,21 @@ export class DataService {
         let headers = new Headers();
         let url = '/setEditorSelection?' + '&uri=' + self.uri;
         self.http.post(url, selection, { headers: headers }).subscribe();
+    }
+
+    showWarning(message: string): void {
+        const self = this;
+        let url = '/showWarning?' + '&uri=' + self.uri;
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
+    }
+
+    showError(message: string): void {
+        const self = this;
+        let url = '/showError?' + '&uri=' + self.uri;
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
     }
 }
