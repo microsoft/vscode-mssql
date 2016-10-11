@@ -157,6 +157,7 @@ export const serviceInstalled = 'Sql Tools Service installed';
 export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
 export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
 export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
+export const extensionNotInitializedError = 'Unable to execute the command while the extension is initializing. Please try again later.';
 
 export const untitledScheme = 'untitled';
 export const untitledSaveTimeThreshold = 10.0;

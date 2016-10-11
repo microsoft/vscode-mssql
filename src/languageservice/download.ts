@@ -49,10 +49,6 @@ export default class ServiceDownloadProvider {
     }
 
     private download(urlString: string, proxy?: string, strictSSL?: boolean): Promise<stream.Readable> {
-        process.on('uncaughtException', function (err): void {
-            console.log(err);
-        });
-
         let url = parse(urlString);
 
         const agent = getProxyAgent(url, proxy, strictSSL);
@@ -76,6 +72,14 @@ export default class ServiceDownloadProvider {
         }
 
         return new Promise<stream.Readable>((resolve, reject) => {
+            process.on('uncaughtException', function (err): void {
+                // When server DNS address is not valid the http client doens't return any error code,
+                // So the promise never returns any reject or resolve. The only way to fix it was to handle the process exception
+                // and check for that specific error message
+                if (err !== undefined && err.message !== undefined && (<string>err.message).lastIndexOf('getaddrinfo') >= 0) {
+                    reject(err);
+                }
+            });
             return client.get(options, res => {
                 // handle redirection
                 if (res.statusCode === 302) {
