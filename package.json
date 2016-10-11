@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "body-parser": "^1.15.2",
+    "comment-json": "^1.1.3",
     "copy-paste": "^1.3.0",
     "decompress": "^4.0.0",
     "ejs": "^2.4.2",
@@ -175,12 +176,6 @@
         "key": "ctrl+shift+u",
         "mac": "cmd+shift+u",
         "when": "editorTextFocus && editorLangId == 'sql'"
-      }
-    ],
-    "jsonValidation": [
-      {
-        "fileMatch" : "connections.json",
-        "url": "./connections.schema.json"
       }
     ],
     "configuration": {

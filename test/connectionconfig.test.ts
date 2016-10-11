@@ -35,18 +35,6 @@ const validJson =
 }
 `;
 
-const arrayTitleMissingJson =
-`
-[
-    {
-        "server": "my-server",
-        "database": "my_db",
-        "user": "sa",
-        "password": "12345678"
-    }
-]
-`;
-
 suite('ConnectionConfig tests', () => {
     test('error message is shown when reading corrupt config file', () => {
         let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
@@ -59,7 +47,7 @@ suite('ConnectionConfig tests', () => {
 
         // Given a connection config object that reads a corrupt json file
         let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
-        config.readConnectionsFromConfigFile();
+        config.readAndParseSettingsFile('settings.json');
 
         // Verify that an error message was displayed to the user
         vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
@@ -76,7 +64,8 @@ suite('ConnectionConfig tests', () => {
 
         // Given a connection config object that reads a valid json file
         let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
-        let profiles: IConnectionProfile[] = config.readConnectionsFromConfigFile();
+        let parseResult = config.readAndParseSettingsFile('settings.json');
+        let profiles: IConnectionProfile[] = config.getProfilesFromParsedSettingsFile(parseResult);
 
         // Verify that the profiles were read correctly
         assert.strictEqual(profiles.length, 2);
@@ -91,23 +80,6 @@ suite('ConnectionConfig tests', () => {
 
         // Verify that no error message was displayed to the user
         vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.never());
-    });
-
-    test('error message is shown when config file is missing array title', () => {
-        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
-        bufferMock.setup(x => x.toString()).returns(() => arrayTitleMissingJson);
-
-        let fsMock = TypeMoq.Mock.ofInstance(fs);
-        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
-
-        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-
-        // Given a connection config object that reads a json file with the array title missing
-        let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
-        config.readConnectionsFromConfigFile();
-
-        // Verify that an error message was shown to the user
-        vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
     test('error is thrown when config directory cannot be created', done => {

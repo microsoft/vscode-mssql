@@ -6,7 +6,7 @@
 
 /// <reference path="../../../typings/underscore.d.ts" />
 import {Component, Input, Output, Inject, forwardRef, OnChanges, OnInit, OnDestroy, ElementRef, SimpleChange, EventEmitter,
-    ViewEncapsulation, Optional, HostListener, DoCheck} from '@angular/core';
+    ViewEncapsulation, Optional, HostListener, AfterViewInit } from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
 import {IObservableCollection, CollectionChange} from './BaseLibrary';
 import {IGridDataRow} from './SharedControlInterfaces';
@@ -121,7 +121,7 @@ function getOverridableTextEditorClass(grid: SlickGrid): any {
     providers: [LocalizationService, GridSyncService],
     encapsulation: ViewEncapsulation.None
 })
-export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
+export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
     @Input() columnDefinitions: IColumnDefinition[];
     @Input() dataRows: IObservableCollection<IGridDataRow>;
     @Input() resized: Observable<any>;
@@ -136,6 +136,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     @Input() enableColumnReorder: boolean = false;
     @Input() enableAsyncPostRender: boolean = true;
 
+    @Output() loadFinished: EventEmitter<void> = new EventEmitter<void>();
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
     @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
@@ -159,7 +160,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     private _topRow: number = 0;
     private _leftPx: number = 0;
     private _finishGridEditingFn: (e: any, args: any) => void;
-    private divSize: number = 0;
 
     private static getDataWithSchema(data: IGridDataRow, columns: ISlickGridColumn[]): any {
         let dataWithSchema = {};
@@ -290,11 +290,8 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
         this.subscribeToContextMenu();
     }
 
-    ngDoCheck(): void {
-        if (this.divSize !== this._el.nativeElement.offsetHeight) {
-            this.divSize = this._el.nativeElement.offsetHeight;
-            this.onResize();
-        }
+    ngAfterViewInit(): void {
+        this.loadFinished.emit();
     }
 
     ngOnDestroy(): void {

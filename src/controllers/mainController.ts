@@ -17,6 +17,7 @@ import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import { ISelectionData } from './../models/interfaces';
+import * as path from 'path';
 import fs = require('fs');
 
 /**
@@ -97,8 +98,6 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
-        this.registerCommand(Constants.cmdOpenConnectionSettings);
-        this._event.on(Constants.cmdOpenConnectionSettings, () => { self.onOpenConnectionSettings(); } );
         this.registerCommand(Constants.cmdCancelConnect);
         this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
         this.registerCommand(Constants.cmdShowReleaseNotes);
@@ -215,7 +214,7 @@ export default class MainController implements vscode.Disposable {
         } else {
             let editor = this._vscodeWrapper.activeTextEditor;
             let uri = this._vscodeWrapper.activeTextEditorUri;
-            let title = editor.document.fileName;
+            let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
 
             if (!editor.selection.isEmpty) {
@@ -243,13 +242,6 @@ export default class MainController implements vscode.Disposable {
      */
     public onRemoveProfile(): Promise<boolean> {
         return this._connectionMgr.onRemoveProfile();
-    }
-
-    /**
-     * Opens the settings file where connection profiles are stored.
-     */
-    public onOpenConnectionSettings(): void {
-        this._connectionMgr.connectionUI.openConnectionProfileConfigFile();
     }
 
     /**

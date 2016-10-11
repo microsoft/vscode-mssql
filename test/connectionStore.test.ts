@@ -3,6 +3,7 @@
 import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
+import fs = require('fs');
 import * as utils from '../src/models/utils';
 import * as connectionInfo from '../src/models/connectionInfo';
 import * as Constants from '../src/models/constants';
@@ -124,9 +125,9 @@ suite('ConnectionStore tests', () => {
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
 
         let credsToSave: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                credsToSave = profiles;
+        connectionConfig.setup(x => x.addConnection(TypeMoq.It.isAny()))
+             .returns((profile: interfaces.IConnectionProfile) => {
+                credsToSave = [profile];
                 return Promise.resolve();
             });
 
@@ -136,7 +137,7 @@ suite('ConnectionStore tests', () => {
         let profile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: false });
         return connectionStore.saveProfile(profile)
             .then(savedProfile => {
-        // Then expect password not saved in either the context object or the credential store
+                // Then expect password not saved in either the context object or the credential store
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
                 assert.ok(utils.isEmpty(credsToSave[0].password));
 
@@ -150,9 +151,9 @@ suite('ConnectionStore tests', () => {
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
 
         let credsToSave: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                credsToSave = profiles;
+        connectionConfig.setup(x => x.addConnection(TypeMoq.It.isAny()))
+             .returns((profile: interfaces.IConnectionProfile) => {
+                credsToSave = [profile];
                 return Promise.resolve();
             });
 
@@ -175,7 +176,7 @@ suite('ConnectionStore tests', () => {
 
         connectionStore.saveProfile(profile)
             .then(savedProfile => {
-        // Then expect password saved in the credential store
+                // Then expect password saved in the credential store
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
                 assert.ok(utils.isEmpty(credsToSave[0].password));
 
@@ -194,14 +195,7 @@ suite('ConnectionStore tests', () => {
             server: 'otherServer',
             savePassword: true
         });
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => [defaultNamedProfile, profile]);
-
-        let updatedCredentials: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                updatedCredentials = profiles;
-                return Promise.resolve();
-            });
+        connectionConfig.setup(x => x.removeConnection(TypeMoq.It.isAny())).returns(p => Promise.resolve(p));
 
         let capturedCreds: any;
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
@@ -220,11 +214,8 @@ suite('ConnectionStore tests', () => {
 
         connectionStore.removeProfile(profile)
             .then(success => {
-        // Then expect that profile to be removed from the store
+                // Then expect that profile's password to be removed from the credential store
                 assert.ok(success);
-                assert.strictEqual(1, updatedCredentials.length);
-                assert.strictEqual(updatedCredentials[0].server, defaultNamedProfile.server, 'Expect only defaultProfile left');
-
                 credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
 
                 assert.strictEqual(capturedCreds.credentialId, expectedCredFormat, 'Expect profiles password to have been removed');
@@ -242,19 +233,30 @@ suite('ConnectionStore tests', () => {
         let namedProfile = Object.assign(new ConnectionProfile(), unnamedProfile, {
             profileName: 'named'
         });
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => [defaultNamedProfile, unnamedProfile, namedProfile]);
+
+        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
+        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'vscode-mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
 
         let updatedCredentials: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                updatedCredentials = profiles;
-                return Promise.resolve();
+
+        let fsMock = TypeMoq.Mock.ofInstance(fs);
+        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
+        fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((path, text, handler) => {
+                updatedCredentials = (JSON.parse(text))['vscode-mssql.connections'];
+                handler.call(undefined, undefined);
             });
+        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((name, handler) => {
+                handler.call(undefined, undefined);
+            });
+
+        let config = new ConnectionConfig(fsMock.object, vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
 
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, config);
         // When RemoveProfile is called for the profile
         connectionStore.removeProfile(unnamedProfile)
             .then(success => {
@@ -277,19 +279,30 @@ suite('ConnectionStore tests', () => {
         let namedProfile = Object.assign(new ConnectionProfile(), unnamedProfile, {
             profileName: 'named'
         });
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => [defaultNamedProfile, unnamedProfile, namedProfile]);
+
+        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
+        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'vscode-mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
 
         let updatedCredentials: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                updatedCredentials = profiles;
-                return Promise.resolve();
+
+        let fsMock = TypeMoq.Mock.ofInstance(fs);
+        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
+        fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((path, text, handler) => {
+                updatedCredentials = (JSON.parse(text))['vscode-mssql.connections'];
+                handler.call(undefined, undefined);
             });
+        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((name, handler) => {
+                handler.call(undefined, undefined);
+            });
+
+        let config = new ConnectionConfig(fsMock.object, vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
 
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, config);
         // When RemoveProfile is called for the profile
         connectionStore.removeProfile(namedProfile)
             .then(success => {
@@ -465,7 +478,7 @@ suite('ConnectionStore tests', () => {
         globalstate.setup(x => x.get(Constants.configRecentConnections)).returns(key => recentlyUsed);
 
         let profiles: interfaces.IConnectionProfile[] = [defaultNamedProfile, defaultUnnamedProfile];
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => profiles);
+        connectionConfig.setup(x => x.getConnections(TypeMoq.It.isAny())).returns(() => profiles);
 
         // When we get the list of available connection items
 

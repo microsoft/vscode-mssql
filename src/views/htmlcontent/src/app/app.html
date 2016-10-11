@@ -2,7 +2,8 @@
     <div *ngIf="dataSets.length > 0" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
         <span> Results </span>
     </div>
-    <div *ngIf="dataSets.length > 0" class="results vertBox scrollable" [class.hidden]="!resultActive">
+    <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+         myScroll (onScroll)="onScroll($event)"  [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
             <slick-grid [columnDefinitions]="dataSet.columnDefinitions"
@@ -11,6 +12,7 @@
                         enableAsyncPostRender="true"
                         showDataTypeIcon="false"
                         showHeader="true"
+                        [resized]="dataSet.resized"
                         (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
                         class="boxCol content vertBox slickgrid">
             </slick-grid>

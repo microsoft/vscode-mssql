@@ -172,34 +172,25 @@ export class DataService {
         if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(() => {
-                    if (self.batchSets[resultId].resultSets.length > 0) {
-                        self.http.get(self.batchSets[batchId].resultSets[resultId].columnsUri)
-                            .map(res => {
-                                return res.json();
-                            })
-                            .subscribe(data => {
-                                observer.next(data);
-                                observer.complete();
-                            });
+                    if (self.batchSets[batchId].resultSets.length > 0) {
+                        observer.next(self.batchSets[batchId].resultSets[resultId].columns);
+                        observer.complete();
                     } else {
                         observer.next(undefined);
                         observer.complete();
                     }
-
                 });
             });
         } else {
-            if (this.batchSets[batchId].resultSets.length > 0) {
-                return this.http.get(this.batchSets[batchId].resultSets[resultId].columnsUri)
-                            .map(res => {
-                                return res.json();
-                            });
-            } else {
-                return Observable.create(observer => {
+            return Observable.create(observer => {
+                if (self.batchSets[batchId].resultSets.length > 0) {
+                    observer.next(self.batchSets[batchId].resultSets[resultId].columns);
+                    observer.complete();
+                } else {
                     observer.next(undefined);
                     observer.complete();
-                });
-            }
+                }
+            });
         }
     }
 
