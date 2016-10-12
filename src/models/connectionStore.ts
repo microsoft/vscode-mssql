@@ -209,7 +209,7 @@ export class ConnectionStore {
             let maxConnections = self.getMaxRecentConnectionsCount();
 
             // Remove the connection from the list if it already exists
-            configValues = configValues.filter(value => !Utils.isSameConnection(value, conn));
+            configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, <IConnectionProfile>conn));
 
             // Add the connection to the front of the list, taking care to clear out the password field
             let savedConn: IConnectionCredentials = Object.assign({}, conn, { password: '' });
