@@ -121,8 +121,7 @@ export class ConnectionStore {
         let self = this;
         return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
             if (typeof(credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
-                (typeof(credentialsItem.connectionCreds['savePassword']) !== 'undefined' &&
-                credentialsItem.connectionCreds['savePassword'] === false)) {
+                credentialsItem.connectionCreds['savePassword'] === false) {
                 // Don't try to lookup a saved password if savePassword is set to false for the credential
                 resolve(credentialsItem);
             } else if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)

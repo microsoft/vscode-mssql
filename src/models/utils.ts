@@ -177,7 +177,7 @@ function isSameDatabase(currentDatabase: string, expectedDatabase: string): bool
         currentDatabase = Constants.defaultDatabase;
     }
     if (isEmpty(expectedDatabase)) {
-        currentDatabase = Constants.defaultDatabase;
+        expectedDatabase = Constants.defaultDatabase;
     }
     return currentDatabase === expectedDatabase;
 }
