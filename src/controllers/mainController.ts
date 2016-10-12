@@ -92,14 +92,10 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
-        this.registerCommand(Constants.cmdCreateProfile);
-        this._event.on(Constants.cmdCreateProfile, () => { self.runAndLogErrors(self.onCreateProfile()); });
-        this.registerCommand(Constants.cmdRemoveProfile);
-        this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
+        this.registerCommand(Constants.cmdManageConnectionProfiles);
+        this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
-        this.registerCommand(Constants.cmdCancelConnect);
-        this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
         this.registerCommand(Constants.cmdShowReleaseNotes);
         this._event.on(Constants.cmdShowReleaseNotes, () => { self.launchReleaseNotesPage(); } );
 
@@ -158,7 +154,7 @@ export default class MainController implements vscode.Disposable {
                 resolve(true);
             });
         });
-   }
+    }
 
     /**
      * Choose a new database from the current server
@@ -179,20 +175,20 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Manage connection profiles (create, edit, remove).
+     */
+    private onManageProfiles(): Promise<boolean> {
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onManageProfiles();
+        }
+    }
+
+    /**
      * Let users pick from a list of connections
      */
     public onNewConnection(): Promise<boolean> {
         if (this.CanRunCommand()) {
             return this._connectionMgr.onNewConnection();
-        }
-    }
-
-    /**
-     * Cancels the current connection attempt
-     */
-    public onCancelConnect(): void {
-        if (this.CanRunCommand()) {
-            return this._connectionMgr.onCancelConnect();
         }
     }
 
@@ -238,24 +234,6 @@ export default class MainController implements vscode.Disposable {
                 };
             }
             this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
-        }
-    }
-
-    /**
-     * Prompts to create a new SQL connection profile
-     */
-    public onCreateProfile(): Promise<boolean> {
-        if (this.CanRunCommand()) {
-             return this._connectionMgr.onCreateProfile();
-        }
-    }
-
-    /**
-     * Prompts to remove a registered SQL connection profile
-     */
-    public onRemoveProfile(): Promise<boolean> {
-        if (this.CanRunCommand()) {
-            return this._connectionMgr.onRemoveProfile();
         }
     }
 
