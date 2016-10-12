@@ -72,17 +72,25 @@ export class AppComponent implements OnInit, AfterViewChecked {
         39: 'right',
         40: 'down'
     };
-    private functionality = {
+    private shortcutfunc = {
         'event.toggleResultPane': () => {
             this.resultActive = !this.resultActive;
         },
         'event.toggleMessagePane': () => {
             this.messageActive = !this.messageActive;
+        },
+        'event.nextGrid': () => {
+
+        },
+        'event.prevGrid': () => {
+
         }
     };
-    private shortCuts = {
+    private shortcuts = {
         'ctrl+alt+r': 'event.toggleResultPane',
-        'ctrl+alt+t': 'event.toggleMessagePane'
+        'ctrl+alt+t': 'event.toggleMessagePane',
+        'ctrl+up': 'event.prevGrid',
+        'ctrl+down': 'event.nextGrid'
     };
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
@@ -129,6 +137,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // tslint:disable-next-line:no-unused-variable
     private messageActive = true;
     private firstRender = true;
+    private activeGrid: SlickGrid;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
@@ -451,8 +460,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     keyEvent(e): void {
         let eString = this.buildEventString(e);
         console.log(eString);
-        if (this.shortCuts[eString]) {
-            this.functionality[this.shortCuts[eString]]();
+        if (this.shortcuts[eString]) {
+            this.shortcutfunc[this.shortcuts[eString]]();
         }
     }
 
