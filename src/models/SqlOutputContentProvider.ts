@@ -286,36 +286,46 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public provideTextDocumentContent(uri: vscode.Uri): string {
         // URI needs to be encoded as a component for proper inclusion in a url
         let encodedUri = encodeURIComponent(uri.toString());
-
-        // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `
-        <html>
-        <head>
-        </head>
-        <body></body>
-        <script type="text/javascript">
-            var doc = document.documentElement;
-            var styles = window.getComputedStyle(doc);
-            var backgroundcolor = styles.getPropertyValue('--background-color');
-            var color = styles.getPropertyValue('--color');
-            var fontfamily = styles.getPropertyValue('--font-family');
-            var fontweight = styles.getPropertyValue('--font-weight');
-            var fontsize = styles.getPropertyValue('--font-size');
-            var theme = document.body.className;
-            window.onload = function(event) {
-                event.stopPropagation(true);
-                var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
-                          "uri=${encodedUri}" +
-                          "&theme=" + theme +
-                          "&backgroundcolor=" + backgroundcolor +
-                          "&color=" + color +
-                          "&fontfamily=" + fontfamily +
-                          "&fontweight=" + fontweight +
-                          "&fontsize=" + fontsize;
-                window.location.href = url
-            };
-        </script>
-        </html>`;
+            <html>
+            <head>
+            </head>
+            <body style="margin: 0; padding: 0; height: 100%; overflow: hidden;">
+            <iframe width="100%" height="100%" frameborder="0" style="position:absolute; left: 0; right: 0; bottom: 0; top: 0px;"
+                src="${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${encodedUri}"/>
+            </body>
+            </html>
+            `;
+
+        // // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
+        // return `
+        // <html>
+        // <head>
+        // </head>
+        // <body></body>
+        // <script type="text/javascript">
+        //     var doc = document.documentElement;
+        //     var styles = window.getComputedStyle(doc);
+        //     var backgroundcolor = styles.getPropertyValue('--background-color');
+        //     var color = styles.getPropertyValue('--color');
+        //     var fontfamily = styles.getPropertyValue('--font-family');
+        //     var fontweight = styles.getPropertyValue('--font-weight');
+        //     var fontsize = styles.getPropertyValue('--font-size');
+        //     var theme = document.body.className;
+        //     window.onload = function(event) {
+        //         event.stopPropagation(true);
+        //         var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
+        //                   "uri=${encodedUri}" +
+        //                   "&theme=" + theme +
+        //                   "&backgroundcolor=" + backgroundcolor +
+        //                   "&color=" + color +
+        //                   "&fontfamily=" + fontfamily +
+        //                   "&fontweight=" + fontweight +
+        //                   "&fontsize=" + fontsize;
+        //         window.location.href = url
+        //     };
+        // </script>
+        // </html>`;
     }
 
     /**
