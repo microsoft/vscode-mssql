@@ -98,8 +98,6 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
-        this.registerCommand(Constants.cmdOpenConnectionSettings);
-        this._event.on(Constants.cmdOpenConnectionSettings, () => { self.onOpenConnectionSettings(); } );
         this.registerCommand(Constants.cmdCancelConnect);
         this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
         this.registerCommand(Constants.cmdShowReleaseNotes);
@@ -166,34 +164,45 @@ export default class MainController implements vscode.Disposable {
      * Choose a new database from the current server
      */
     private onChooseDatabase(): Promise<boolean> {
-        return this._connectionMgr.onChooseDatabase();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onChooseDatabase();
+        }
     }
 
     /**
      * Close active connection, if any
      */
     private onDisconnect(): Promise<any> {
-        return this._connectionMgr.onDisconnect();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onDisconnect();
+        }
     }
 
     /**
      * Let users pick from a list of connections
      */
     public onNewConnection(): Promise<boolean> {
-        return this._connectionMgr.onNewConnection();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onNewConnection();
+        }
     }
 
     /**
      * Cancels the current connection attempt
      */
     public onCancelConnect(): void {
-        return this._connectionMgr.onCancelConnect();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onCancelConnect();
+        }
     }
 
     /**
      * get the T-SQL query from the editor, run it and show output
      */
     public onRunQuery(): void {
+        if (!this.CanRunCommand()) {
+            return;
+        }
         const self = this;
         if (!this._vscodeWrapper.isEditingSqlFile) {
             // Prompt the user to change the language mode to SQL before running a query
@@ -236,21 +245,18 @@ export default class MainController implements vscode.Disposable {
      * Prompts to create a new SQL connection profile
      */
     public onCreateProfile(): Promise<boolean> {
-        return this._connectionMgr.onCreateProfile();
+        if (this.CanRunCommand()) {
+             return this._connectionMgr.onCreateProfile();
+        }
     }
 
     /**
      * Prompts to remove a registered SQL connection profile
      */
     public onRemoveProfile(): Promise<boolean> {
-        return this._connectionMgr.onRemoveProfile();
-    }
-
-    /**
-     * Opens the settings file where connection profiles are stored.
-     */
-    public onOpenConnectionSettings(): void {
-        this._connectionMgr.connectionUI.openConnectionProfileConfigFile();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onRemoveProfile();
+        }
     }
 
     /**
@@ -268,6 +274,17 @@ export default class MainController implements vscode.Disposable {
      */
     public get connectionManager(): ConnectionManager {
         return this._connectionMgr;
+    }
+
+    /**
+     * Verifies the extension is initilized and if not shows an error message
+     */
+    private CanRunCommand(): boolean {
+        if (this._connectionMgr === undefined) {
+            Utils.showErrorMsg(Constants.extensionNotInitializedError);
+            return false;
+        }
+        return true;
     }
 
     /**

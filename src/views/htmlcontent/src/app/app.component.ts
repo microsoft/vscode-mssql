@@ -48,6 +48,7 @@ declare let $;
     selector: 'my-app',
     host: { '(window:keydown)': 'keyEvent($event)' },
     templateUrl: 'app/app.html',
+    directives: [ContextMenu, SlickGrid],
     providers: [DataService],
     styles: [`
     .errorMessage {
@@ -376,6 +377,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 self.scrollEnabled = false;
                 for (let i = 0; i < self.placeHolderDataSets.length; i++) {
                     self.placeHolderDataSets[i].dataRows = self.dataSets[i].dataRows;
+                    self.placeHolderDataSets[i].resized.emit();
                 }
             } else {
                 let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;

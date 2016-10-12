@@ -118,8 +118,8 @@ export class ConnectionStore {
      *
      * @returns {IConnectionCredentialsQuickPickItem[]}
      */
-    public getProfilePickListItems(): IConnectionCredentialsQuickPickItem[] {
-        return this.loadProfiles();
+    public getProfilePickListItems(getWorkspaceProfiles: boolean): IConnectionCredentialsQuickPickItem[] {
+        return this.loadProfiles(getWorkspaceProfiles);
     }
 
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
@@ -154,16 +154,9 @@ export class ConnectionStore {
     public saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
-            // Get all profiles
-            let configValues = self.getConnectionsFromConfigFile();
-
-            // Remove the profile if already set
-            configValues = configValues.filter(value => !Utils.isSameProfile(value, profile));
-
             // Add the profile to the saved list, taking care to clear out the password field
             let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
-            configValues.push(savedProfile);
-            self._connectionConfig.writeConnectionsToConfigFile(configValues)
+            self._connectionConfig.addConnection(savedProfile)
             .then(() => {
                 // Only save if we successfully added the profile
                 return self.saveProfilePasswordIfNeeded(profile);
@@ -174,7 +167,6 @@ export class ConnectionStore {
                 // Add necessary default properties before returning
                 // this is needed to support immediate connections
                 ConnInfo.fixupConnectionCredentials(profile);
-                self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreated);
                 resolve(profile);
             }, err => {
                 reject(err);
@@ -270,24 +262,11 @@ export class ConnectionStore {
     public removeProfile(profile: IConnectionProfile): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
-            // Get all profiles
-            let configValues = self.getConnectionsFromConfigFile();
-
-            // Remove the profile if already set
-            let found: boolean = false;
-            configValues = configValues.filter(value => {
-                if (Utils.isSameProfile(value, profile)) {
-                    // remove just this profile
-                    found = true;
-                    return false;
-                } else {
-                    return true;
-                }
+            this._connectionConfig.removeConnection(profile).then(profileFound => {
+                resolve(profileFound);
+            }).catch(err => {
+                reject(err);
             });
-
-            self._connectionConfig.writeConnectionsToConfigFile(configValues).then(() => {
-                resolve(found);
-            }, err => reject(err));
         }).then(profileFound => {
             // Now remove password from credential store. Currently do not care about status unless an error occurred
             if (profile.savePassword === true) {
@@ -320,13 +299,9 @@ export class ConnectionStore {
 
         // Load connections from user preferences
         // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
-        // Settings defined in workspace scope overwrite the settings defined in user scope
-        let profilesInConfiguration = this.getConnectionsFromConfig<IConnectionCredentials>(Constants.configMyConnections);
+        // Connections defined in workspace scope are unioned with the Connections defined in user scope
+        let profilesInConfiguration = this._connectionConfig.getConnections(true);
         quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(profilesInConfiguration, CredentialsQuickPickItemType.Profile));
-
-        // next read from the profiles saved in the user-editable config file
-        let profiles = this.loadProfiles();
-        quickPickItems = quickPickItems.concat(profiles);
 
         // Return all connections
         return quickPickItems;
@@ -340,36 +315,12 @@ export class ConnectionStore {
         return connections;
     }
 
-    private getConnectionsFromConfigFile<T extends IConnectionProfile>(): T[] {
-        let connections: T[] = [];
-        // read from the config file
-        let configValues = this._connectionConfig.readConnectionsFromConfigFile();
-        this.addConnections(connections, configValues);
-        return connections;
-    }
-
-    private getConnectionsFromConfig<T extends IConnectionCredentials>(configName: string): T[] {
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionName);
-        // we do not want the default value returned since it's used for helping users only
-        let configValues = config.get(configName, undefined);
-        if (configValues) {
-            configValues = configValues.filter(conn => {
-                // filter any connection missing a server name or the sample that's shown by default
-                return !!(conn.server) && conn.server !== Constants.SampleServerName;
-            });
-        } else {
-            configValues = [];
-        }
-        return configValues;
-    }
-
-
     private mapToQuickPickItems(connections: IConnectionCredentials[], itemType: CredentialsQuickPickItemType): IConnectionCredentialsQuickPickItem[] {
         return connections.map(c => this.createQuickPickItem(c, itemType));
     }
 
-    private loadProfiles(): IConnectionCredentialsQuickPickItem[] {
-        let connections: IConnectionProfile[] = this.getConnectionsFromConfigFile<IConnectionProfile>();
+    private loadProfiles(loadWorkspaceProfiles: boolean): IConnectionCredentialsQuickPickItem[] {
+        let connections: IConnectionProfile[] = this._connectionConfig.getConnections(loadWorkspaceProfiles);
         let quickPickItems = connections.map(c => this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile));
         return quickPickItems;
     }
