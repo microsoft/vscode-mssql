@@ -148,13 +148,20 @@ export class ConnectionStore {
      * Password values are stored to a separate credential store if the "savePassword" option is true
      *
      * @param {IConnectionProfile} profile the profile to save
+     * @param {forceWritePlaintextPassword} whether the plaintext password should be written to the settings file
      * @returns {Promise<IConnectionProfile>} a Promise that returns the original profile, for help in chaining calls
      */
-    public saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+    public saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
-            // Add the profile to the saved list, taking care to clear out the password field
-            let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
+            // Add the profile to the saved list, taking care to clear out the password field if necessary
+            let savedProfile: IConnectionProfile;
+            if (forceWritePlaintextPassword) {
+                savedProfile = Object.assign({}, profile);
+            } else {
+                savedProfile = Object.assign({}, profile, { password: '' });
+            }
+
             self._connectionConfig.addConnection(savedProfile)
             .then(() => {
                 // Only save if we successfully added the profile

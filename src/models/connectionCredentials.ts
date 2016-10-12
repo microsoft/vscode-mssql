@@ -115,11 +115,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
                     // If this is a profile, and the user has set save password to true and stored the password in the config file,
                     // then transfer the password to the credential store
-                    // Or, if the user changed the profile in any way, be sure to save it
-                    if ((profile.savePassword && !wasPasswordEmptyInConfigFile) ||
-                        (profile.authenticationType !== unprocessedCredentials.authenticationType)) {
+                    if (profile.savePassword && !wasPasswordEmptyInConfigFile) {
                         connectionStore.removeProfile(profile).then(() => {
                             connectionStore.saveProfile(profile);
+                        });
+                    // Or, if the user answered any additional questions for the profile, be sure to save it
+                    } else if (profile.authenticationType !== unprocessedCredentials.authenticationType) {
+                        connectionStore.removeProfile(profile).then(() => {
+                            connectionStore.saveProfile(profile, !wasPasswordEmptyInConfigFile);
                         });
                     }
                 }
