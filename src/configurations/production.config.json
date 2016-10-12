@@ -1,7 +1,18 @@
 {
     "service": {
-        "downloadUrl": "http://dtnuget:8080/download/microsoft.sqltools.servicelayer",
+        "downloadUrl": "https://download.microsoft.com/download/A/5/E/A5EDE0D5-3C2C-44F7-9EDB-0E2F8593ACEC/microsoft.sqltools.servicelayer-{#fileName#}",
         "version": "0.0.25",
+        "downloadFileNames": {
+            "Windows": "win-x64-netcoreapp1.0.zip",
+            "OSX": "osx-x64-netcoreapp1.0.tar.gz",
+            "CentOS": "centos-x64-netcoreapp1.0.tar.gz",
+            "Debian": "debian-x64-netcoreapp1.0.tar.gz",
+            "Fedora": "fedora-x64-netcoreapp1.0.tar.gz",
+            "OpenSUSE": "opensuse-x64-netcoreapp1.0.tar.gz",
+            "RHEL": "rhel-x64-netcoreapp1.0.tar.gz",
+            "Ubuntu14": "ubuntu14-x64-netcoreapp1.0.tar.gz",
+            "Ubuntu16": "ubuntu16-x64-netcoreapp1.0.tar.gz"
+        },
         "installDir": "../sqltoolsservice/{#version#}/{#platform#}",
         "executableFiles": ["Microsoft.SqlTools.ServiceLayer.exe", "Microsoft.SqlTools.ServiceLayer", "Microsoft.SqlTools.ServiceLayer.dll"]
     }

@@ -171,8 +171,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return this._onDidChange.event;
     }
 
-    public onContentUpdated(): void {
-        this._onDidChange.fire(SqlOutputContentProvider.providerUri);
+    public update(uri: vscode.Uri): void {
+        this._onDidChange.fire(uri);
     }
 
     // PUBLIC METHODS //////////////////////////////////////////////////////
@@ -197,18 +197,17 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
 
             // If the query is not in progress, we can reuse the query runner
-            queryRunner = existingRunner;
+            existingRunner.runQuery(selection);
+            this.update(vscode.Uri.parse(resultsUri));
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
             this._queryResultsMap.set(resultsUri, queryRunner);
+            let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+            queryRunner.runQuery(selection);
         }
-
-        // Execute the query
-        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
-        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
-        queryRunner.runQuery(selection);
     }
 
     public cancelQuery(uri: string): void {
@@ -284,30 +283,31 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return `
         <html>
         <head>
+            <script type="text/javascript">
+                window.onload = function(event) {
+                    var doc = document.documentElement;
+                    var styles = window.getComputedStyle(doc);
+                    var backgroundcolor = styles.getPropertyValue('--background-color');
+                    var color = styles.getPropertyValue('--color');
+                    var fontfamily = styles.getPropertyValue('--font-family');
+                    var fontweight = styles.getPropertyValue('--font-weight');
+                    var fontsize = styles.getPropertyValue('--font-size');
+                    var theme = document.body.className;
+                    var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
+                            "uri=${encodedUri}" +
+                            "&theme=" + theme +
+                            "&backgroundcolor=" + backgroundcolor +
+                            "&color=" + color +
+                            "&fontfamily=" + fontfamily +
+                            "&fontweight=" + fontweight +
+                            "&fontsize=" + fontsize;
+                    document.getElementById('frame').src = url;
+                };
+            </script>
         </head>
-        <body></body>
-        <script type="text/javascript">
-            var doc = document.documentElement;
-            var styles = window.getComputedStyle(doc);
-            var backgroundcolor = styles.getPropertyValue('--background-color');
-            var color = styles.getPropertyValue('--color');
-            var fontfamily = styles.getPropertyValue('--font-family');
-            var fontweight = styles.getPropertyValue('--font-weight');
-            var fontsize = styles.getPropertyValue('--font-size');
-            var theme = document.body.className;
-            window.onload = function(event) {
-                event.stopPropagation(true);
-                var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
-                          "uri=${encodedUri}" +
-                          "&theme=" + theme +
-                          "&backgroundcolor=" + backgroundcolor +
-                          "&color=" + color +
-                          "&fontfamily=" + fontfamily +
-                          "&fontweight=" + fontweight +
-                          "&fontsize=" + fontsize;
-                window.location.href = url
-            };
-        </script>
+        <body style="margin: 0; padding: 0; height: 100%; overflow: hidden;">
+            <iframe id="frame" width="100%" height="100%" frameborder="0" style="position:absolute; left: 0; right: 0; bottom: 0; top: 0px;"/>
+        </body>
         </html>`;
     }
 
