@@ -302,8 +302,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                             "&fontweight=" + fontweight +
                             "&fontsize=" + fontsize;
                     document.getElementById('frame').src = url;
-                    console.log(url);
-                    console.log(document.getElementById('frame'));
                 };
             </script>
         </head>
