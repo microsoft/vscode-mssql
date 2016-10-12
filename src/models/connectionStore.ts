@@ -333,12 +333,14 @@ export class ConnectionStore {
         let profilesInConfiguration = this._connectionConfig.getConnections(true);
 
         // Remove any duplicates that are in both recent connections and the user settings
+        let profilesInRecentConnectionsList: number[] = [];
         profilesInConfiguration = profilesInConfiguration.filter(profile => {
             for (let index = 0; index < recentConnections.length; index++) {
                 if (Utils.isSameProfile(profile, <IConnectionProfile>recentConnections[index])) {
                     if (Utils.isSameConnection(profile, recentConnections[index])) {
                         // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
                         recentConnections[index] = Object.assign({}, profile);
+                        profilesInRecentConnectionsList.push(index);
                     }
                     return false;
                 }
@@ -346,7 +348,13 @@ export class ConnectionStore {
             return true;
         });
 
-        quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(recentConnections, CredentialsQuickPickItemType.Mru));
+        // Ensure that MRU items which are actually profiles are labeled as such
+        let recentConnectionsItems = this.mapToQuickPickItems(recentConnections, CredentialsQuickPickItemType.Mru);
+        for (let index of profilesInRecentConnectionsList) {
+            recentConnectionsItems[index].quickPickItemType = CredentialsQuickPickItemType.Profile;
+        }
+
+        quickPickItems = quickPickItems.concat(recentConnectionsItems);
         quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(profilesInConfiguration, CredentialsQuickPickItemType.Profile));
 
         // Return all connections

@@ -86,6 +86,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         connectionStore: ConnectionStore): Promise<IConnectionCredentials> {
 
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
+        let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
 
         if (isProfile) {
             let profile: IConnectionProfile = <IConnectionProfile>credentials;
@@ -114,7 +115,9 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
                     // If this is a profile, and the user has set save password to true and stored the password in the config file,
                     // then transfer the password to the credential store
-                    if (profile.savePassword && !wasPasswordEmptyInConfigFile) {
+                    // Or, if the user changed the profile in any way, be sure to save it
+                    if ((profile.savePassword && !wasPasswordEmptyInConfigFile) ||
+                        (profile.authenticationType !== unprocessedCredentials.authenticationType)) {
                         connectionStore.removeProfile(profile).then(() => {
                             connectionStore.saveProfile(profile);
                         });
