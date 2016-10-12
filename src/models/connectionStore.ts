@@ -120,7 +120,9 @@ export class ConnectionStore {
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
         let self = this;
         return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
-            if (credentialsItem.connectionCreds['savePassword'] && credentialsItem.connectionCreds['savePassword'] === false) {
+            if (typeof(credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
+                (typeof(credentialsItem.connectionCreds['savePassword']) !== 'undefined' &&
+                credentialsItem.connectionCreds['savePassword'] === false)) {
                 // Don't try to lookup a saved password if savePassword is set to false for the credential
                 resolve(credentialsItem);
             } else if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
@@ -337,7 +339,7 @@ export class ConnectionStore {
                 if (Utils.isSameProfile(profile, <IConnectionProfile>recentConnections[index])) {
                     if (Utils.isSameConnection(profile, recentConnections[index])) {
                         // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
-                        recentConnections[index] = profile;
+                        recentConnections[index] = Object.assign({}, profile);
                     }
                     return false;
                 }
