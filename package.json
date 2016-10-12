@@ -165,12 +165,6 @@
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
-        "command": "extension.cancelQuery",
-        "key": "ctrl+pausebreak",
-        "mac": "cmd+pausebreak",
-        "when": "editorTextFocus"
-      },
-      {
         "command": "extension.connect",
         "key": "ctrl+shift+c",
         "mac": "cmd+shift+c",
