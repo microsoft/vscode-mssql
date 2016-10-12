@@ -104,11 +104,6 @@ export class ConnectionStore {
      */
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections();
-        pickListItems.push(<IConnectionCredentialsQuickPickItem> {
-            label: Constants.CreateProfileLabel,
-            connectionCreds: undefined,
-            quickPickItemType: CredentialsQuickPickItemType.NewConnection
-        });
         return pickListItems;
     }
 
@@ -125,7 +120,10 @@ export class ConnectionStore {
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
         let self = this;
         return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
-            if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
+            if (credentialsItem.connectionCreds['savePassword'] && credentialsItem.connectionCreds['savePassword'] === false) {
+                // Don't try to lookup a saved password if savePassword is set to false for the credential
+                resolve(credentialsItem);
+            } else if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
                     && Utils.isEmpty(credentialsItem.connectionCreds.password)) {
 
                 let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
@@ -226,6 +224,29 @@ export class ConnectionStore {
         });
     }
 
+    /**
+     * Remove a connection profile from the recently used list.
+     */
+    private removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            // Get all profiles
+            let configValues = self.getRecentlyUsedConnections();
+
+            // Remove the connection from the list if it already exists
+            configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, conn));
+
+            // Update the MRU list
+            self._context.globalState.update(Constants.configRecentConnections, configValues)
+            .then(() => {
+                // And resolve / reject at the end of the process
+                resolve(undefined);
+            }, err => {
+                reject(err);
+            });
+        });
+    }
+
     private saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
         if (!profile.savePassword) {
             return Promise.resolve(true);
@@ -262,10 +283,19 @@ export class ConnectionStore {
     public removeProfile(profile: IConnectionProfile): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
-            this._connectionConfig.removeConnection(profile).then(profileFound => {
+            self._connectionConfig.removeConnection(profile).then(profileFound => {
                 resolve(profileFound);
             }).catch(err => {
                 reject(err);
+            });
+        }).then(profileFound => {
+            // Remove the profile from the recently used list if necessary
+            return new Promise<boolean>((resolve, reject) => {
+                self.removeRecentlyUsed(profile).then(() => {
+                    resolve(profileFound);
+                }).catch(err => {
+                    reject(err);
+                });
             });
         }).then(profileFound => {
             // Now remove password from credential store. Currently do not care about status unless an error occurred
@@ -295,12 +325,27 @@ export class ConnectionStore {
 
         // Read recently used items from a memento
         let recentConnections = this.getConnectionsFromGlobalState(Constants.configRecentConnections);
-        quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(recentConnections, CredentialsQuickPickItemType.Mru));
 
         // Load connections from user preferences
         // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
         // Connections defined in workspace scope are unioned with the Connections defined in user scope
         let profilesInConfiguration = this._connectionConfig.getConnections(true);
+
+        // Remove any duplicates that are in both recent connections and the user settings
+        profilesInConfiguration = profilesInConfiguration.filter(profile => {
+            for (let index = 0; index < recentConnections.length; index++) {
+                if (Utils.isSameProfile(profile, <IConnectionProfile>recentConnections[index])) {
+                    if (Utils.isSameConnection(profile, recentConnections[index])) {
+                        // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
+                        recentConnections[index] = profile;
+                    }
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(recentConnections, CredentialsQuickPickItemType.Mru));
         quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(profilesInConfiguration, CredentialsQuickPickItemType.Profile));
 
         // Return all connections
