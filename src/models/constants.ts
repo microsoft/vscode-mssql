@@ -83,7 +83,7 @@ export const msgConnectionError2 = 'Failed to connect: {0}';
 export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
 
-export const msgPromptCancelConnect = 'Cancel connecting?';
+export const msgPromptCancelConnect = 'Confirm to cancel connection in progress';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
