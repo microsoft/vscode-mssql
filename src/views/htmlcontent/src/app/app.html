@@ -21,7 +21,7 @@
                     <div *ngIf="icon.showCondition()" class=gridIcon>
                         <a class="icon" href="#"
                         (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
-                        [title]="icon.hoverText" [ngClass]="icon.icon()">
+                        [title]="icon.hoverText()" [ngClass]="icon.icon()">
                         </a>
                     </div>
                 </div>

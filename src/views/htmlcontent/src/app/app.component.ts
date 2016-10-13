@@ -93,7 +93,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     ? 'exitFullScreen'
                     : 'extendFullScreen';
             },
-            hoverText: 'Magnify/Reset',
+            hoverText: () => {
+                return this.renderedDataSets.length === 1
+                    ? Constants.restoreLabel
+                    : Constants.maximizeLabel;
+            },
             functionality: (batchId, resultId, index) => {
                 this.magnify(index);
             }
@@ -101,7 +105,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         {
             showCondition: () => { return true; },
             icon: () => { return 'saveCsv'; },
-            hoverText: 'Save as CSV',
+            hoverText: () => { return Constants.saveCSVLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
@@ -110,7 +114,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         {
             showCondition: () => { return true; },
             icon: () => { return 'saveJson'; },
-            hoverText: 'Save as JSON',
+            hoverText: () => { return Constants.saveJSONLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
