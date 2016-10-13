@@ -95,6 +95,7 @@ export const recentConnectionsPlaceholder = 'Choose a connection from the list b
 export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
 export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
+export const CreateProfileFromConnectionsListLabel = 'Create Connection Profile';
 export const CreateProfileLabel = 'Create';
 export const EditProfilesLabel = 'Edit';
 export const RemoveProfileLabel = 'Remove';

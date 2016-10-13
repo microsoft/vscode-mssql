@@ -480,7 +480,7 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
 
         let items: interfaces.IConnectionCredentialsQuickPickItem[] = connectionStore.getPickListItems();
-        let expectedCount = recentlyUsed.length + profiles.length - 1; // -1 for the shared item between recently used and profiles
+        let expectedCount = recentlyUsed.length + profiles.length;
         assert.equal(items.length, expectedCount);
 
         // Then expect recent items first
@@ -499,6 +499,8 @@ suite('ConnectionStore tests', () => {
             assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Profile);
             i++;
         }
+        // then new connection
+        assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.NewConnection);
 
         // Then test is complete
         done();
