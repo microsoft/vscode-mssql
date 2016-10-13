@@ -9,10 +9,11 @@
   --color-inactive: #808387;
   --color-error: #E81123;
   --color-success: #7CD300;
-  --color-bg-header: hsla(0,0%,50%,.2);
+  --color-bg-header: hsla(0,0%,50%,.2); /* used for pane toolbars */
   --color-bg-content: #333333;
   --color-bg-content-light: #4d4d4d;
   --color-bg-content-dark: #1a1a1a;
+  --color-bg-content-header: rgb(100, 100, 100); /* used for color of grid headers */
   --color-toolbar: #FAFAFA;
   --color-bg-toolbar: #31708F;
   --color-toolbar-border: #FAFAFA;
@@ -53,6 +54,10 @@ a:hover {
   color: #ff8033;
 }
 
+.boxRow.content.horzBox.slickgrid {
+  border: solid 1px grey;
+}
+
 slick-grid {
   border-style: solid;
   border-color: grey;
@@ -61,6 +66,22 @@ slick-grid {
 
 slick-grid:last-of-type {
   border-width: 0 0 0 0;
+}
+
+.icon.extendFullScreen {
+  background-image: url('images/ExtendToFullScreen_16x_vscode_inverse.svg');
+}
+
+.icon.exitFullScreen {
+  background-image: url('images/ExitFullScreen_16x_vscode_inverse.svg');
+}
+
+.icon.saveJson {
+  background-image: url('images/ResultToJSON_16x_vscode_inverse.svg');
+}
+
+.icon.saveCsv {
+  background-image: url('images/ResultToCSV_16x_vscode_inverse.svg');
 }
 
 /* headers */

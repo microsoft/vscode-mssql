@@ -1,4 +1,4 @@
 <ul class="contextMenu" style="display:none;position:absolute">
-    <li id="csv" (click)="handleContextActionClick('csv')" [class.disabled]="isDisabled"> Save as CSV</li>
-    <li id="json" (click)="handleContextActionClick('json')" [class.disabled]="isDisabled"> Save as JSON</li>
+    <li id="csv" (click)="handleContextActionClick('csv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}</li>
+    <li id="json" (click)="handleContextActionClick('json')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}</li>
 </ul>
