@@ -46,7 +46,7 @@ declare let $;
  */
 @Component({
     selector: 'my-app',
-    host: { '(window:keydown)': 'keyEvent($event)' },
+    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
     templateUrl: 'app/app.html',
     directives: [ContextMenu, SlickGrid],
     providers: [DataService],
@@ -81,10 +81,33 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.messageActive = !this.messageActive;
         },
         'event.nextGrid': () => {
-
+            let activeGrid = this.getActiveGridIndex();
+            if (activeGrid < this.slickgrids.length - 1) {
+                this.slickgrids.toArray()[activeGrid + 1].setActive();
+                // scroll to grid logic
+                let resultsWindow = $('#results');
+                let scrollTop = resultsWindow.scrollTop();
+                let scrollBottom = scrollTop + resultsWindow.height();
+                let gridHeight = this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+                if (scrollBottom < gridHeight * (activeGrid + 2)) {
+                    scrollTop += (gridHeight * (activeGrid + 2)) - scrollBottom;
+                    resultsWindow.scrollTop(scrollTop);
+                }
+            }
         },
         'event.prevGrid': () => {
-
+            let activeGrid = this.getActiveGridIndex();
+            if (activeGrid > 0) {
+                this.slickgrids.toArray()[activeGrid - 1].setActive();
+                // scroll to grid logic
+                let resultsWindow = $('#results');
+                let scrollTop = resultsWindow.scrollTop();
+                let gridHeight = this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+                if (scrollTop > gridHeight * (activeGrid - 1)) {
+                    scrollTop = (gridHeight * (activeGrid - 1));
+                    resultsWindow.scrollTop(scrollTop);
+                }
+            }
         }
     };
     private shortcuts = {
@@ -138,7 +161,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // tslint:disable-next-line:no-unused-variable
     private messageActive = true;
     private firstRender = true;
-    private activeGrid: SlickGrid;
+    // tslint:disable-next-line:no-unused-variable
+    private resultsScrollTop: number = 0;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
@@ -460,6 +484,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     keyEvent(e): void {
+        if (e.detail) {
+            e.which = e.detail.which;
+            e.ctrlKey = e.detail.ctrlKey;
+            e.metaKey = e.detail.metaKey;
+            e.altKey = e.detail.altKey;
+            e.shiftKey = e.detail.shiftKey;
+        }
         let eString = this.buildEventString(e);
         console.log(eString);
         if (this.shortcuts[eString]) {
@@ -479,5 +510,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
         resString += e.shiftKey ? 'shift+' : '';
         resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : this.keyCodes[e.which];
         return resString;
+    }
+
+    /**
+     * Obtains the index in the slickgrids array which is currently focused
+     * @returns The index in the local slickgrids array that is currently focused
+     */
+    getActiveGridIndex(): number {
+        return parseInt($(document.activeElement).parent().parent().attr('id').split('_')[1], 10);
     }
 }
