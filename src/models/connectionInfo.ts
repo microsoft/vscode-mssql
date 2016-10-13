@@ -1,9 +1,7 @@
 'use strict';
 import Constants = require('./constants');
 import Interfaces = require('./interfaces');
-const figures = require('figures');
 import * as ConnectionContracts from '../models/contracts/connection';
-import * as symbols from '../utils/symbol';
 import * as Utils from './utils';
 
 /**
@@ -73,12 +71,10 @@ function isAzureDatabase(server: string): boolean {
 export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials, itemType: Interfaces.CredentialsQuickPickItemType): string {
     let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
 
-    let icon: string = itemType === Interfaces.CredentialsQuickPickItemType.Mru ? figures.play : symbols.star;
-
     if (profile.profileName) {
-        return `${icon} ${profile.profileName}`;
+        return profile.profileName;
     } else {
-        return `${icon} ${connCreds.server}`;
+        return connCreds.server;
     }
 }
 

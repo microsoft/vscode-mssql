@@ -111,15 +111,6 @@ suite('ConnectionStore tests', () => {
         assert.ok(label.endsWith(namedProfile.profileName));
     });
 
-    test('getPickListLabel has different symbols for Profiles vs Recently Used', () => {
-        let profileLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, interfaces.CredentialsQuickPickItemType.Profile);
-        let mruLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, interfaces.CredentialsQuickPickItemType.Mru);
-
-        assert.ok(mruLabel, 'expect value for label');
-        assert.ok(profileLabel, 'expect value for label');
-        assert.notEqual(profileLabel, mruLabel, 'expect different symbols for Profile vs MRU');
-    });
-
     test('SaveProfile should not save password if SavePassword is false', done => {
         // Given
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
@@ -208,6 +199,7 @@ suite('ConnectionStore tests', () => {
 
         let expectedCredFormat: string = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user);
 
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
 
         // When RemoveProfile is called for once profile
@@ -256,6 +248,7 @@ suite('ConnectionStore tests', () => {
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
 
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, config);
         // When RemoveProfile is called for the profile
         connectionStore.removeProfile(unnamedProfile)
@@ -302,6 +295,7 @@ suite('ConnectionStore tests', () => {
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
 
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, config);
         // When RemoveProfile is called for the profile
         connectionStore.removeProfile(namedProfile)
@@ -469,7 +463,7 @@ suite('ConnectionStore tests', () => {
         }).then(() => done(), err => done(err));
     });
 
-    test('getPickListItems should display Recently Used then Profiles then New Connection', (done) => {
+    test('getPickListItems should display Recently Used then Profiles', (done) => {
         // Given 3 items in MRU and 2 in Profile list
         let recentlyUsed: interfaces.IConnectionCredentials[] = [];
         for (let i = 0; i < 3; i++) {
@@ -482,11 +476,11 @@ suite('ConnectionStore tests', () => {
 
         // When we get the list of available connection items
 
-        // Then expect MRU items first, then profile items, then a new connection item
+        // Then expect MRU items first, then profile items
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
 
         let items: interfaces.IConnectionCredentialsQuickPickItem[] = connectionStore.getPickListItems();
-        let expectedCount = recentlyUsed.length + profiles.length + 1;
+        let expectedCount = recentlyUsed.length + profiles.length - 1; // -1 for the shared item between recently used and profiles
         assert.equal(items.length, expectedCount);
 
         // Then expect recent items first
@@ -496,14 +490,15 @@ suite('ConnectionStore tests', () => {
             assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Mru);
             i++;
         }
-        // Then profile items
+        // Then profile items (that aren't already in MRU)
         for (let profile of profiles) {
+            if (profile.profileName === defaultNamedProfile.profileName) {
+                continue;
+            }
             assert.equal(items[i].connectionCreds, profile);
             assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Profile);
             i++;
         }
-        // then new connection
-        assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.NewConnection);
 
         // Then test is complete
         done();
