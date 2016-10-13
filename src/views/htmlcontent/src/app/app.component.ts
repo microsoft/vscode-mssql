@@ -72,7 +72,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         39: 'right',
         40: 'down'
     };
-    // the function implementations of keyboard avaiable events
+    // the function implementations of keyboard available events
     private shortcutfunc = {
         'event.toggleResultPane': () => {
             this.resultActive = !this.resultActive;
