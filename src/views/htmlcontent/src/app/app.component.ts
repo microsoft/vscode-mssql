@@ -61,7 +61,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
     private scrollTimeOutTime = 200;
     private windowSize = 50;
-    private c_key = 67;
     private maxScrollGrids = 8;
     // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
@@ -73,6 +72,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         39: 'right',
         40: 'down'
     };
+    // the function implementations of keyboard avaiable events
     private shortcutfunc = {
         'event.toggleResultPane': () => {
             this.resultActive = !this.resultActive;
@@ -108,13 +108,21 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     resultsWindow.scrollTop(scrollTop);
                 }
             }
+        },
+        'event.copySelection': () => {
+            let activeGrid = this.getActiveGridIndex();
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
         }
     };
+    // object that defines shortcuts for certain actions
+    // must follow the format ctrl+alt+shift+key
     private shortcuts = {
         'ctrl+alt+r': 'event.toggleResultPane',
         'ctrl+alt+t': 'event.toggleMessagePane',
         'ctrl+up': 'event.prevGrid',
-        'ctrl+down': 'event.nextGrid'
+        'ctrl+down': 'event.nextGrid',
+        'ctrl+c': 'event.copySelection'
     };
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
@@ -379,16 +387,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Handles keyboard events on angular component, currently only needed for copy-paste
-     */
-    onKey(e: any, batchId: number, resultId: number, index: number): void {
-        if ((e.ctrlKey || e.metaKey) && e.which === this.c_key) {
-            let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-            this.dataService.copyResults(selection, batchId, resultId);
-        }
-    }
-
-    /**
      * Handles rendering the results to the DOM that are currently being shown
      * and destroying any results that have moved out of view
      * @param scrollTop The scrolltop value, if not called by the scroll event should be 0
@@ -483,6 +481,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
     }
 
+    /**
+     *
+     */
     keyEvent(e): void {
         if (e.detail) {
             e.which = e.detail.which;
@@ -492,9 +493,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
             e.shiftKey = e.detail.shiftKey;
         }
         let eString = this.buildEventString(e);
-        console.log(eString);
         if (this.shortcuts[eString]) {
             this.shortcutfunc[this.shortcuts[eString]]();
+            e.stopImmediatePropagation();
         }
     }
 
