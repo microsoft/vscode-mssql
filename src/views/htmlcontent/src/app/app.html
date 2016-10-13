@@ -17,12 +17,13 @@
                         class="boxCol content vertBox slickgrid">
             </slick-grid>
             <span class="boxCol content vertBox">
-                <div class="boxRow content gridIcon maxHeight" *ngFor="let icon of dataIcons">
-                    <a href="#"
-                    (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
-                    [title]="icon.hoverText">
-                        <img width="16" height="15" [src]="icon.icon" (alt)="icon.hoverText">
-                    </a>
+                <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
+                    <div *ngIf="icon.showCondition()" class=gridIcon>
+                        <a class="icon" href="#"
+                        (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
+                        [title]="icon.hoverText" [ngClass]="icon.icon()">
+                        </a>
+                    </div>
                 </div>
             </span>
         </div>

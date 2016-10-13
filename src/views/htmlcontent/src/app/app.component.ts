@@ -87,7 +87,20 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
         {
-            icon: '/images/u32.png',
+            showCondition: () => { return this.dataSets.length > 1; },
+            icon: () => {
+                return this.renderedDataSets.length === 1
+                    ? 'exitFullScreen'
+                    : 'extendFullScreen';
+            },
+            hoverText: 'Magnify/Reset',
+            functionality: (batchId, resultId, index) => {
+                this.magnify(index);
+            }
+        },
+        {
+            showCondition: () => { return true; },
+            icon: () => { return 'saveCsv'; },
             hoverText: 'Save as CSV',
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
@@ -95,18 +108,12 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         },
         {
-            icon: '/images/u26.png',
+            showCondition: () => { return true; },
+            icon: () => { return 'saveJson'; },
             hoverText: 'Save as JSON',
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
-            }
-        },
-        {
-            icon: '/images/glass.svg',
-            hoverText: 'Magnify/Reset',
-            functionality: (batchId, resultId, index) => {
-                this.magnify(index);
             }
         }
     ];

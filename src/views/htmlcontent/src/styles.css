@@ -1,8 +1,8 @@
-
 .nav > li > a {
   padding-top: 5px;
   padding-bottom: 5px;
 }
+
 .contextMenu {
   position: absolute;
   padding: 2px;
@@ -16,14 +16,30 @@
   border-color: var(--border-color-default);
   font-family: var(--font-family);
 }
+
 .contextMenu li {
   padding: 4px 14px 4px 14px;
   list-style: none;
   cursor: default;
 }
+
+.boxRow.content.horzBox.slickgrid {
+  margin-bottom: 5px;
+}
+
+.boxRow.content.horzBox.slickgrid:last-child {
+  margin-bottom: 0px;
+}
+
 .contextMenu li:hover:not(.disabled) {
   background-color: #007ACC;
   color: black;
+}
+
+.icon {
+  padding: 8px;
+  background-repeat: no-repeat;
+  background-position: 0px;
 }
 
 .contextMenu li.disabled {
