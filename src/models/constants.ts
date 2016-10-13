@@ -9,18 +9,18 @@ export const connectionsArrayName = 'vscode-mssql.connections';
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
-export const cmdCancelConnect = 'extension.cancelConnect';
 export const cmdDisconnect = 'extension.disconnect';
-export const cmdCreateProfile = 'extension.createprofile';
-export const cmdRemoveProfile = 'extension.removeprofile';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
+export const cmdManageConnectionProfiles = 'extension.manageProfiles';
 
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
 export const defaultPortNumber = 1433;
+export const sqlAuthentication = 'SqlLogin';
+export const defaultDatabase = 'master';
 
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
@@ -85,7 +85,7 @@ export const msgConnectionError2 = 'Failed to connect: {0}';
 export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
 
-export const msgPromptCancelConnect = 'Cancel connecting?';
+export const msgPromptCancelConnect = 'Confirm to cancel connection in progress';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
@@ -97,8 +97,10 @@ export const recentConnectionsPlaceholder = 'Choose a connection from the list b
 export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
 export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
-export const CreateProfileLabel = 'Create Connection Profile';
-export const RemoveProfileLabel = 'Remove Connection Profile';
+export const CreateProfileLabel = 'Create';
+export const EditProfilesLabel = 'Edit';
+export const RemoveProfileLabel = 'Remove';
+export const ManageProfilesPrompt = 'Manage Connection Profiles';
 export const SampleServerName = '{{put-server-name-here}}';
 
 export const serverPrompt = 'Server name';
@@ -160,6 +162,7 @@ export const serviceInstalled = 'Sql Tools Service installed';
 export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
 export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
 export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
+export const extensionNotInitializedError = 'Unable to execute the command while the extension is initializing. Please try again later.';
 
 export const untitledScheme = 'untitled';
 export const untitledSaveTimeThreshold = 10.0;

@@ -198,7 +198,6 @@ export enum CredentialsQuickPickItemType {
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
     quickPickItemType: CredentialsQuickPickItemType;
-
 };
 
 // Obtained from an active connection to show in the status bar

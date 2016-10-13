@@ -92,14 +92,10 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
-        this.registerCommand(Constants.cmdCreateProfile);
-        this._event.on(Constants.cmdCreateProfile, () => { self.runAndLogErrors(self.onCreateProfile()); });
-        this.registerCommand(Constants.cmdRemoveProfile);
-        this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
+        this.registerCommand(Constants.cmdManageConnectionProfiles);
+        this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles()); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
-        this.registerCommand(Constants.cmdCancelConnect);
-        this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
         this.registerCommand(Constants.cmdShowReleaseNotes);
         this._event.on(Constants.cmdShowReleaseNotes, () => { self.launchReleaseNotesPage(); } );
         this.registerCommand(Constants.cmdCancelQuery);
@@ -174,34 +170,45 @@ export default class MainController implements vscode.Disposable {
      * Choose a new database from the current server
      */
     private onChooseDatabase(): Promise<boolean> {
-        return this._connectionMgr.onChooseDatabase();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onChooseDatabase();
+        }
     }
 
     /**
      * Close active connection, if any
      */
     private onDisconnect(): Promise<any> {
-        return this._connectionMgr.onDisconnect();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onDisconnect();
+        }
+    }
+
+    /**
+     * Manage connection profiles (create, edit, remove).
+     */
+    private onManageProfiles(): Promise<boolean> {
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onManageProfiles();
+        }
     }
 
     /**
      * Let users pick from a list of connections
      */
     public onNewConnection(): Promise<boolean> {
-        return this._connectionMgr.onNewConnection();
-    }
-
-    /**
-     * Cancels the current connection attempt
-     */
-    public onCancelConnect(): void {
-        return this._connectionMgr.onCancelConnect();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onNewConnection();
+        }
     }
 
     /**
      * get the T-SQL query from the editor, run it and show output
      */
     public onRunQuery(): void {
+        if (!this.CanRunCommand()) {
+            return;
+        }
         const self = this;
         if (!this._vscodeWrapper.isEditingSqlFile) {
             // Prompt the user to change the language mode to SQL before running a query
@@ -241,20 +248,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Prompts to create a new SQL connection profile
-     */
-    public onCreateProfile(): Promise<boolean> {
-        return this._connectionMgr.onCreateProfile();
-    }
-
-    /**
-     * Prompts to remove a registered SQL connection profile
-     */
-    public onRemoveProfile(): Promise<boolean> {
-        return this._connectionMgr.onRemoveProfile();
-    }
-
-    /**
      * Executes a callback and logs any errors raised
      */
     private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
@@ -269,6 +262,17 @@ export default class MainController implements vscode.Disposable {
      */
     public get connectionManager(): ConnectionManager {
         return this._connectionMgr;
+    }
+
+    /**
+     * Verifies the extension is initilized and if not shows an error message
+     */
+    private CanRunCommand(): boolean {
+        if (this._connectionMgr === undefined) {
+            Utils.showErrorMsg(Constants.extensionNotInitializedError);
+            return false;
+        }
+        return true;
     }
 
     /**

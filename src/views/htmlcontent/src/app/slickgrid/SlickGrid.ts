@@ -229,6 +229,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
             || (changes['columnsLoading'] && !_.isEqual(changes['columnsLoading'].currentValue, changes['columnsLoading'].previousValue))) {
             this.setCallbackOnDataRowsChanged();
             this._grid.updateRowCount();
+            this._grid.setColumns(this._grid.getColumns());
             this._grid.invalidateAllRows();
             this._grid.render();
             if (this._gridSyncService) {

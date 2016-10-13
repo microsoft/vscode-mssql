@@ -48,6 +48,11 @@ export class ConnectionInfo {
      * Timer for tracking service connection time.
      */
     public serviceTimer: Utils.Timer;
+
+    /**
+     * Whether the connection is in the process of connecting.
+     */
+    public connecting: boolean;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -162,6 +167,10 @@ export default class ConnectionManager {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
 
+    private isConnecting(fileUri: string): boolean {
+        return (fileUri in this._connections && this._connections[fileUri].connecting);
+    }
+
     /**
      * Exposed for testing purposes.
      */
@@ -201,8 +210,9 @@ export default class ConnectionManager {
             let fileUri = result.ownerUri;
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
+            connection.connecting = false;
 
-            let newConnection: Interfaces.IConnectionCredentials;
+            let mruConnection: Interfaces.IConnectionCredentials = <any>{};
 
             if (Utils.isNotEmpty(result.connectionId)) {
                 // We have a valid connection
@@ -214,13 +224,13 @@ export default class ConnectionManager {
                 }
 
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
-                newConnection = newCredentials;
+                mruConnection = connection.credentials;
             } else {
                 self.handleConnectionErrors(fileUri, connection, result);
-                newConnection = undefined;
+                mruConnection = undefined;
             }
 
-            self.tryAddMruConnection(connection, newConnection);
+            self.tryAddMruConnection(connection, mruConnection);
         };
     }
 
@@ -358,9 +368,9 @@ export default class ConnectionManager {
 
                     resolve(result);
                 });
-            } else if (self.getConnectionInfo(fileUri)) {
-                // Send a cancel connect request
-                self.cancelConnect();
+            } else if (self.isConnecting(fileUri)) {
+                // Prompt the user to cancel connecting
+                self.onCancelConnect();
                 resolve(true);
             } else {
                 resolve(true);
@@ -426,6 +436,7 @@ export default class ConnectionManager {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.credentials = connectionCreds;
+            connectionInfo.connecting = true;
             this._connections[fileUri] = connectionInfo;
 
             self.statusView.connecting(fileUri, connectionCreds);
@@ -486,6 +497,14 @@ export default class ConnectionManager {
                 self.statusView.notConnected(fileUri);
             }
         });
+    }
+
+    /**
+     * Called when the 'Manage Connection Profiles' command is issued.
+     */
+    public onManageProfiles(): Promise<boolean> {
+        // Show quick pick to create, edit, or remove profiles
+        return this._connectionUI.promptToManageProfiles();
     }
 
     public onCreateProfile(): Promise<boolean> {

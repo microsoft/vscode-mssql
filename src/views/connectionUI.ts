@@ -6,11 +6,20 @@ import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
-import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
+import { INameValueChoice, IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+
+/**
+ * The different tasks for managing connection profiles.
+ */
+enum ManageProfileTask {
+    Create = 1,
+    Edit,
+    Remove
+}
 
 export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
@@ -57,9 +66,10 @@ export class ConnectionUI {
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
             if (picklist.length === 0) {
-                // No recent connections - prompt to open user settings or workspace settings to add a connection
-                self.openUserOrWorkspaceSettings();
-                resolve(undefined);
+                // No connections - go to the create profile workflow
+                self.createAndSaveProfile().then(resolvedProfile => {
+                    resolve(resolvedProfile);
+                });
             } else {
                 // We have recent connections - show them in a picklist
                 self.promptItemChoice({
@@ -169,6 +179,9 @@ export class ConnectionUI {
             const pickListItems = databaseNames.map(name => {
                 let newCredentials: Interfaces.IConnectionCredentials = <any>{};
                 Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
+                if (newCredentials['profileName']) {
+                    delete newCredentials['profileName'];
+                }
                 newCredentials.database = name;
 
                 return <Interfaces.IConnectionCredentialsQuickPickItem> {
@@ -195,28 +208,6 @@ export class ConnectionUI {
         });
     }
 
-    // Helper to prompt user to open VS Code user settings or workspace settings
-    private openUserOrWorkspaceSettings(): void {
-        let openGlobalSettingsItem: vscode.MessageItem = {
-            'title': Constants.labelOpenGlobalSettings
-        };
-
-        let openWorkspaceSettingsItem: vscode.MessageItem = {
-            'title': Constants.labelOpenWorkspaceSettings
-        };
-
-        vscode.window.showWarningMessage(Constants.extensionName
-                                         + ': '
-                                         + Constants.msgNoConnectionsInSettings, openGlobalSettingsItem, openWorkspaceSettingsItem)
-        .then((selectedItem: vscode.MessageItem) => {
-            if (selectedItem === openGlobalSettingsItem) {
-                vscode.commands.executeCommand('workbench.action.openGlobalSettings');
-            } else if (selectedItem === openWorkspaceSettingsItem) {
-                vscode.commands.executeCommand('workbench.action.openWorkspaceSettings');
-            }
-        });
-    }
-
     private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
@@ -239,6 +230,49 @@ export class ConnectionUI {
             } else {
                 resolve(undefined);
             }
+        });
+    }
+
+    public promptToManageProfiles(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            // Create, edit, or remove profile?
+            let choices: INameValueChoice[] = [
+                { name: Constants.CreateProfileLabel, value: ManageProfileTask.Create },
+                { name: Constants.EditProfilesLabel, value: ManageProfileTask.Edit},
+                { name: Constants.RemoveProfileLabel, value: ManageProfileTask.Remove}
+            ];
+
+            let question: IQuestion = {
+                type: QuestionTypes.expand,
+                name: Constants.ManageProfilesPrompt,
+                message: Constants.ManageProfilesPrompt,
+                choices: choices,
+                onAnswered: (value) => {
+                    switch (value) {
+                        case ManageProfileTask.Create:
+                            self.connectionManager.onCreateProfile().then(result => {
+                                resolve(result);
+                            });
+                            break;
+                        case ManageProfileTask.Edit:
+                            self.vscodeWrapper.executeCommand('workbench.action.openGlobalSettings').then( () => {
+                                resolve(true);
+                            });
+                            break;
+                        case ManageProfileTask.Remove:
+                            self.connectionManager.onRemoveProfile().then(result => {
+                                resolve(result);
+                            });
+                            break;
+                        default:
+                            resolve(false);
+                            break;
+                    }
+                }
+            };
+
+            this._prompter.promptSingle(question);
         });
     }
 
