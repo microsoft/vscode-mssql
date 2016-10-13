@@ -342,7 +342,7 @@ suite('ConnectionStore tests', () => {
 
         let promise = Promise.resolve();
         for (let i = 0; i < numCreds; i++) {
-            let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + i});
+            let cred = Object.assign({}, defaultNamedProfile, { profileName: defaultNamedProfile.profileName + i});
             promise = promise.then(() => {
                 return connectionStore.addRecentlyUsed(cred);
             }).then(() => {
@@ -384,7 +384,7 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, undefined, vscodeWrapper.object);
 
         let promise = Promise.resolve();
-        let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + 1});
+        let cred = Object.assign({}, defaultNamedProfile, { profileName: defaultNamedProfile.profileName + 1});
         promise = promise.then(() => {
             return connectionStore.addRecentlyUsed(defaultNamedProfile);
         }).then(() => {
@@ -425,11 +425,13 @@ suite('ConnectionStore tests', () => {
             server: defaultNamedProfile.server + 'Integrated',
             authenticationType: interfaces.AuthenticationTypes[interfaces.AuthenticationTypes.Integrated],
             user: '',
-            password: ''
+            password: '',
+            profileName: 'integrated'
         });
         let noPwdCred = Object.assign({}, defaultNamedProfile, {
             server: defaultNamedProfile.server + 'NoPwd',
-            password: ''
+            password: '',
+            profileName: 'noPwd'
         });
 
         let expectedCredCount = 0;
