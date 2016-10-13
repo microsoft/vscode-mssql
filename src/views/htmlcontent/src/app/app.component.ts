@@ -66,6 +66,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private _rowHeight = 29;
     // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
+    // tslint:disable-next-line:no-unused-variable
+    private Constants = Constants;
 
     // FIELDS
     // All datasets
