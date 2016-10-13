@@ -222,12 +222,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             return;
         }
 
-        // Switch the spinner to cancelling, which will be reset when the query execute sends back its completed event
-        this._statusView.cancellingQuery(queryRunner.uri);
+        // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
+        this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query
-        queryRunner.cancel().then(undefined,
-        error => {
+        queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
         });
@@ -258,7 +257,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     /**
      * Executed from the MainController when a text document (that already exists on disk) was
-     * closed. If the query is in progress, it will be cancelled. If there is a query at all,
+     * closed. If the query is in progress, it will be canceled. If there is a query at all,
      * the query will be disposed.
      * @param doc   The document that was closed
      */

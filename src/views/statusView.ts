@@ -135,14 +135,14 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.hide();
     }
 
-    public cancellingQuery(fileUri: string): void {
+    public cancelingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusQuery.hide();
 
         bar.statusQuery.command = undefined;
-        bar.statusQuery.tooltip = Constants.cancellingQueryLabel;
+        bar.statusQuery.tooltip = Constants.cancelingQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(fileUri, Constants.cancellingQueryLabel, bar.statusQuery);
+        this.showProgress(fileUri, Constants.cancelingQueryLabel, bar.statusQuery);
     }
 
     public installingService(fileUri: string): void {
