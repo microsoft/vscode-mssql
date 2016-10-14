@@ -88,23 +88,6 @@ export class ConnectionCredentials implements IConnectionCredentials {
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
         let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
 
-        if (isProfile) {
-            let profile: IConnectionProfile = <IConnectionProfile>credentials;
-
-            // Add an additional question to save password if it is undefined for a profile
-            questions.push(
-                {
-                    type: QuestionTypes.confirm,
-                    name: Constants.msgSavePassword,
-                    message: Constants.msgSavePassword,
-                    shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile) && typeof(profile.savePassword) === 'undefined',
-                    onAnswered: (value) => {
-                        profile.savePassword = value;
-                    }
-                }
-            );
-        }
-
         return prompter.prompt(questions).then(answers => {
             if (answers) {
                 if (isProfile) {
@@ -213,7 +196,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static isPasswordBasedCredential(credentials: IConnectionCredentials): boolean {
         // TODO consider enum based verification and handling of AD auth here in the future
-        return credentials.authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        let authenticationType = credentials.authenticationType;
+        if (typeof credentials.authenticationType === 'undefined') {
+            authenticationType = utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        }
+        return authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
     }
 
     // Validates a string is not empty, returning undefined if true and an error message if not

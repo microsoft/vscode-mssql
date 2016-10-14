@@ -273,7 +273,7 @@ export default class ConnectionManager {
             }
         } else {
             let platform: Platform = getCurrentPlatform();
-            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native')) {
+            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native') !== -1) {
                 Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2,
                 Constants.macOpenSslErrorMessage));
             } else {
