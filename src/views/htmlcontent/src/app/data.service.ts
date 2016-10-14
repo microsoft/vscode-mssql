@@ -244,11 +244,7 @@ export class DataService {
                         + '&batchIndex=' + batchIndex
                         + '&resultSetNo=' + resultSetNumber ;
         self.http.post(url, selection, { headers: headers })
-            .subscribe(data => {
-                if (data.status >= 400) {
-                    self.showError(data.statusText);
-                }
-            }, err => {
+            .subscribe(undefined, err => {
                 self.showError(err.statusText);
             });
     }
@@ -263,11 +259,7 @@ export class DataService {
         let headers = new Headers();
         headers.append('Content-Type', 'application/json');
         self.http.post('/openLink', JSON.stringify({ 'content': content , 'columnName': columnName, 'type': linkType}), { headers : headers })
-            .subscribe(data => {
-                if (data.status >= 400) {
-                    self.showError(data.statusText);
-                }
-            }, err => {
+            .subscribe(undefined, err => {
                 self.showError(err.statusText);
             });
     }

@@ -362,7 +362,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 }).then(result => {
                     if (!result) {
                         self._vscodeWrapper.showErrorMessage('Content could not be opened');
-                }});
+                    }
+                });
             }, (error: any) => {
                 self._vscodeWrapper.showErrorMessage(error);
             });
