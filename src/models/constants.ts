@@ -133,7 +133,8 @@ export const msgSelectProfileToRemove = 'Select profile to remove';
 export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
 export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';
-export const msgProfileCreated = 'Profile created and connected';
+export const msgProfileCreated = 'Profile created successfully';
+export const msgProfileCreatedAndConnected = 'Profile created and connected';
 export const msgClearedRecentConnections = 'Recent connections list cleared';
 
 export const msgSelectionIsRequired = 'Selection is required.';

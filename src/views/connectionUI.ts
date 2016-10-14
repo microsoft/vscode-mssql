@@ -306,17 +306,34 @@ export class ConnectionUI {
         });
     }
 
-    // Calls the create profile workflow
-    // Returns undefined if profile creation failed
-    public createAndSaveProfile(): Promise<IConnectionProfile> {
+    /**
+     * Calls the create profile workflow
+     * @param validate whether the profile should be connected to and validated before saving
+     * @returns undefined if profile creation failed
+     */
+    public createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
         let self = this;
         return self.promptForCreateProfile()
             .then(profile => {
                 if (profile) {
-                    // Validate the profile before saving
-                    return self.validateAndSaveProfile(profile);
+                    if (validate) {
+                        // Validate the profile before saving
+                        return self.validateAndSaveProfile(profile);
+                    } else {
+                        // Save the profile without validation
+                        return self.saveProfile(profile);
+                    }
                 }
                 return undefined;
+            }).then(savedProfile => {
+                if (savedProfile) {
+                    if (validate) {
+                        self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreatedAndConnected);
+                    } else {
+                        self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreated);
+                    }
+                }
+                return savedProfile;
             });
     }
 
@@ -346,11 +363,7 @@ export class ConnectionUI {
      * Save a connection profile using the connection store.
      */
     private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
-        const self = this;
-        return this._connectionStore.saveProfile(profile).then(savedProfile => {
-            self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreated);
-            return savedProfile;
-        });
+        return this._connectionStore.saveProfile(profile);
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
