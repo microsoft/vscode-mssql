@@ -508,5 +508,36 @@ suite('ConnectionStore tests', () => {
         done();
     });
 
+    test('can clear recent connections list', (done) => {
+        // Given 3 items in MRU
+        let recentlyUsed: interfaces.IConnectionCredentials[] = [];
+        for (let i = 0; i < 3; i++) {
+            recentlyUsed.push( Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + i}) );
+        }
+        globalstate.setup(x => x.get(Constants.configRecentConnections)).returns(key => recentlyUsed);
+        globalstate.setup(x => x.update(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((key, value) => {
+                recentlyUsed = value;
+                return Promise.resolve();
+            });
+
+        connectionConfig.setup(x => x.getConnections(TypeMoq.It.isAny())).returns(() => []);
+
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
+
+        // When we clear the connections list and get the list of available connection items
+        connectionStore.clearRecentlyUsed().then(() => {
+            // Expect no connection items
+            let items: interfaces.IConnectionCredentialsQuickPickItem[] = connectionStore.getPickListItems();
+            let expectedCount = 1; // 1 for create connection profile
+            assert.equal(items.length, expectedCount);
+
+            // Then test is complete
+            done();
+        }, err => {
+            done(err);
+        });
+    });
+
 });
 

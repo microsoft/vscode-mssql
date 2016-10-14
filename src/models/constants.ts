@@ -84,6 +84,7 @@ export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as
 export const connectionErrorChannelName = 'Connection Errors';
 
 export const msgPromptCancelConnect = 'Confirm to cancel connection in progress';
+export const msgPromptClearRecentConnections = 'Confirm to clear recent connections list';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
@@ -97,6 +98,7 @@ export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
 export const CreateProfileFromConnectionsListLabel = 'Create Connection Profile';
 export const CreateProfileLabel = 'Create';
+export const ClearRecentlyUsedLabel = 'Clear Recent Connections List';
 export const EditProfilesLabel = 'Edit';
 export const RemoveProfileLabel = 'Remove';
 export const ManageProfilesPrompt = 'Manage Connection Profiles';
@@ -133,6 +135,7 @@ export const msgNoProfilesSaved = 'No connection profiles are currently saved';
 export const msgProfileRemoved = 'Profile removed successfully';
 export const msgProfileCreated = 'Profile created successfully';
 export const msgProfileCreatedAndConnected = 'Profile created and connected';
+export const msgClearedRecentConnections = 'Recent connections list cleared';
 
 export const msgSelectionIsRequired = 'Selection is required.';
 export const msgIsRequired = ' is required.';
@@ -190,7 +193,7 @@ export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
 export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 
-export const titleResultsPane = 'SQL Query Results: {0}';
+export const titleResultsPane = 'Results: {0}';
 
 export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required for connecting.`;
 

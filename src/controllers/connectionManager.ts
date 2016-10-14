@@ -300,6 +300,13 @@ export default class ConnectionManager {
         }
     }
 
+    /**
+     * Clear the recently used connections list in the connection store
+     */
+    public clearRecentConnectionsList(): Promise<void> {
+        return this.connectionStore.clearRecentlyUsed();
+    }
+
     // choose database to use on current server
     public onChooseDatabase(): Promise<boolean> {
         const self = this;
