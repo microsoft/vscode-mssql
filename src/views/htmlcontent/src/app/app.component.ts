@@ -13,6 +13,7 @@ import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import * as Constants from './../constants';
+import * as Utils from './../Utils';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
@@ -68,6 +69,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private _defaultNumShowingRows = 8;
     // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
+    // tslint:disable-next-line:no-unused-variable
+    private Utils = Utils;
     private keyCodes = {
         37: 'left',
         38: 'up',
@@ -206,6 +209,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         );
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
+            self.messages = [];
             for (let [batchId, batch] of batchs.entries()) {
                 let messages: IMessages = {
                     messages: [],
@@ -280,7 +284,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             dataSet.dataRows = virtualizedCollection;
                             // calculate min and max height
                             dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
-                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * (15 + 10)) + 10 : 'inherit';
+                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * 30) + 10 : 'inherit';
                             dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
                                                 (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
                             self.dataSets.push(dataSet);
