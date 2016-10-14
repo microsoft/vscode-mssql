@@ -51,7 +51,6 @@ export default class LocalWebService {
 
     start(): void {
         const port = this.app.listen(0).address().port; // 0 = listen on a random port
-        console.log(port);
         Utils.logDebug(Constants.msgLocalWebserviceStarted + port);
         LocalWebService._servicePort = port.toString();
     }

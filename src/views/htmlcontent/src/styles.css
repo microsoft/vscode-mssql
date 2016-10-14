@@ -52,6 +52,13 @@
 table {
   font-weight: inherit;
   font-size: inherit;
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.wide {
+  width: 100px;
 }
 
 #messageTable td {
