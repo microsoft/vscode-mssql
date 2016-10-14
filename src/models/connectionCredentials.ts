@@ -88,6 +88,20 @@ export class ConnectionCredentials implements IConnectionCredentials {
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
         let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
 
+        // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
+        if (!isProfile) {
+            questions.push({
+                type: QuestionTypes.confirm,
+                name: Constants.msgSavePassword,
+                message: Constants.msgSavePassword,
+                shouldPrompt: (answers) =>
+                    ConnectionCredentials.isPasswordBasedCredential(credentials) && typeof((<IConnectionProfile>credentials).savePassword) === 'undefined',
+                onAnswered: (value) => {
+                    (<IConnectionProfile>credentials).savePassword = value;
+                }
+            });
+        }
+
         return prompter.prompt(questions).then(answers => {
             if (answers) {
                 if (isProfile) {
