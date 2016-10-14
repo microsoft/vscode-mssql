@@ -88,19 +88,27 @@ export class ConnectionCredentials implements IConnectionCredentials {
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
         let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
 
-        // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
-        if (!isProfile) {
-            questions.push({
-                type: QuestionTypes.confirm,
-                name: Constants.msgSavePassword,
-                message: Constants.msgSavePassword,
-                shouldPrompt: (answers) =>
-                    ConnectionCredentials.isPasswordBasedCredential(credentials) && typeof((<IConnectionProfile>credentials).savePassword) === 'undefined',
-                onAnswered: (value) => {
-                    (<IConnectionProfile>credentials).savePassword = value;
+        // Potentially ask to save password
+        questions.push({
+            type: QuestionTypes.confirm,
+            name: Constants.msgSavePassword,
+            message: Constants.msgSavePassword,
+            shouldPrompt: (answers) => {
+                if (isProfile) {
+                    // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
+                    return ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                            typeof((<IConnectionProfile>credentials).savePassword) === 'undefined' &&
+                            wasPasswordEmptyInConfigFile;
+                } else {
+                    // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
+                    return ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                            typeof((<IConnectionProfile>credentials).savePassword) === 'undefined';
                 }
-            });
-        }
+            },
+            onAnswered: (value) => {
+                (<IConnectionProfile>credentials).savePassword = value;
+            }
+        });
 
         return prompter.prompt(questions).then(answers => {
             if (answers) {
