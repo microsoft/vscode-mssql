@@ -113,6 +113,19 @@
                 // arrow keys
                 if (e.which == left_arrow || e.which == up_arrow || e.which == right_arrow || e.which == down_arrow) {
                     e.stopImmediatePropagation();
+                    if (e.ctrlKey || e.metaKey) {
+                        var event = new CustomEvent('gridnav',{
+                            detail: {
+                                which: e.which,
+                                ctrlKey: e.ctrlKey,
+                                metaKey: e.metaKey,
+                                shiftKey: e.shiftKey,
+                                altKey: e.altKey
+                            }
+                        })
+                        window.dispatchEvent(event);
+                        return;
+                    }
                     // left arrow
                     if (e.which == left_arrow) {
                         // column resize

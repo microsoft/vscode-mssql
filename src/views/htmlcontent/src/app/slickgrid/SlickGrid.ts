@@ -229,6 +229,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
             || (changes['columnsLoading'] && !_.isEqual(changes['columnsLoading'].currentValue, changes['columnsLoading'].previousValue))) {
             this.setCallbackOnDataRowsChanged();
             this._grid.updateRowCount();
+            this._grid.setColumns(this._grid.getColumns());
             this._grid.invalidateAllRows();
             this._grid.render();
             if (this._gridSyncService) {
@@ -312,6 +313,11 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
 
     public getSelectedRanges(): ISlickRange[] {
         return this._gridSyncService.selectionModel.getSelectedRanges();
+    }
+
+    public setActive(): void {
+        this._grid.setActiveCell(0, 1);
+        this._gridSyncService.selectionModel.setSelectedRanges([new Slick.Range(0, 0, 0, 0)]);
     }
 
     /* tslint:disable:member-ordering */

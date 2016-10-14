@@ -169,15 +169,31 @@ export function formatString(str: string, ...args: any[]): string {
 }
 
 /**
- * Get a timestamp string for the current time.
+ * Compares 2 database names to see if they are the same.
+ * If either is undefined or empty, it is assumed to be 'master'
  */
-export function getTimestampString(): string {
-    let date = new Date();
-    let hours: string = date.getHours() > 9 ? date.getHours().toString(10) : '0' + date.getHours();
-    let minutes: string = date.getMinutes() > 9 ? date.getMinutes().toString(10) : '0' + date.getMinutes();
-    let seconds: string = date.getSeconds() > 9 ? date.getSeconds().toString(10) : '0' + date.getSeconds();
-    let timestamp: string = '[' + hours + ':' + minutes + ':' + seconds + ']';
-    return timestamp;
+function isSameDatabase(currentDatabase: string, expectedDatabase: string): boolean {
+    if (isEmpty(currentDatabase)) {
+        currentDatabase = Constants.defaultDatabase;
+    }
+    if (isEmpty(expectedDatabase)) {
+        expectedDatabase = Constants.defaultDatabase;
+    }
+    return currentDatabase === expectedDatabase;
+}
+
+/**
+ * Compares 2 authentication type strings to see if they are the same.
+ * If either is undefined or empty, then it is assumed to be SQL authentication by default.
+ */
+function isSameAuthenticationType(currentAuthenticationType: string, expectedAuthenticationType: string): boolean {
+    if (isEmpty(currentAuthenticationType)) {
+        currentAuthenticationType = Constants.sqlAuthentication;
+    }
+    if (isEmpty(expectedAuthenticationType)) {
+        expectedAuthenticationType = Constants.sqlAuthentication;
+    }
+    return currentAuthenticationType === expectedAuthenticationType;
 }
 
 /**
@@ -202,8 +218,8 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
         return false;
     }
     return expectedProfile.server === currentProfile.server
-        && expectedProfile.database === currentProfile.database
-        && expectedProfile.authenticationType === currentProfile.authenticationType
+        && isSameDatabase(expectedProfile.database, currentProfile.database)
+        && isSameAuthenticationType(expectedProfile.authenticationType, currentProfile.authenticationType)
         && expectedProfile.user === currentProfile.user;
 }
 
@@ -218,8 +234,8 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
  */
 export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
     return expectedConn.server === conn.server
-        && expectedConn.database === conn.database
-        && expectedConn.authenticationType === conn.authenticationType
+        && isSameDatabase(expectedConn.database, conn.database)
+        && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
         && expectedConn.user === conn.user;
 }
 

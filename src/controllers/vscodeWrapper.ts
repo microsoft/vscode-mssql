@@ -2,7 +2,6 @@ import vscode = require('vscode');
 
 
 import * as Constants from './../models/constants';
-import * as Utils from '../models/utils';
 
 export import TextEditor = vscode.TextEditor;
 
@@ -52,6 +51,25 @@ export default class VscodeWrapper {
      */
     public createOutputChannel(channelName: string): vscode.OutputChannel {
         return vscode.window.createOutputChannel(channelName);
+    }
+
+    /**
+     * Executes the command denoted by the given command identifier.
+     *
+     * When executing an editor command not all types are allowed to
+     * be passed as arguments. Allowed are the primitive types `string`, `boolean`,
+     * `number`, `undefined`, and `null`, as well as classes defined in this API.
+     * There are no restrictions when executing commands that have been contributed
+     * by extensions.
+     *
+     * @param command Identifier of the command to execute.
+     * @param rest Parameters passed to the command function.
+     * @return A thenable that resolves to the returned value of the given command. `undefined` when
+     * the command handler function doesn't return anything.
+     * @see vscode.commands.executeCommand
+     */
+    public executeCommand<T>(command: string, ...rest: any[]): Thenable<T> {
+        return vscode.commands.executeCommand<T>(command, ...rest);
     }
 
     /**
@@ -120,12 +138,13 @@ export default class VscodeWrapper {
      * Helper to log messages to "MSSQL" output channel.
      */
     public logToOutputChannel(msg: any): void {
+        let date: Date = new Date();
         if (msg instanceof Array) {
             msg.forEach(element => {
-                VscodeWrapper._outputChannel.appendLine(Utils.getTimestampString() + ' ' + element.toString());
+                VscodeWrapper._outputChannel.appendLine('[' + date.toLocaleTimeString() + '] ' + element.toString());
             });
         } else {
-            VscodeWrapper._outputChannel.appendLine(Utils.getTimestampString() + ' ' + msg.toString());
+            VscodeWrapper._outputChannel.appendLine('[' + date.toLocaleTimeString() + '] ' + msg.toString());
         }
     }
 

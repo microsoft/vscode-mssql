@@ -251,10 +251,8 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param profiles the set of profiles to insert into the settings file.
      */
     private writeProfilesToSettingsFile(parsedSettingsFile: any, profiles: IConnectionProfile[]): Promise<void> {
-        if (profiles.length !== 0) {
-            // Insert the new set of profiles
-            parsedSettingsFile[Constants.connectionsArrayName] = profiles;
-        }
+        // Insert the new set of profiles
+        parsedSettingsFile[Constants.connectionsArrayName] = profiles;
 
         // Save the file
         const self = this;
