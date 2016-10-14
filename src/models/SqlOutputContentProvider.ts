@@ -187,6 +187,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Reuse existing query runner if it exists
         let resultsUri = this.getResultsUri(uri);
         let queryRunner: QueryRunner;
+
         if (this._queryResultsMap.has(resultsUri)) {
             let existingRunner: QueryRunner = this._queryResultsMap.get(resultsUri);
 
@@ -197,17 +198,21 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
 
             // If the query is not in progress, we can reuse the query runner
-            existingRunner.runQuery(selection);
+            queryRunner = existingRunner;
+
+            // update the open pane assuming its open (if its not its a bug covered by the previewhtml command later)
             this.update(vscode.Uri.parse(resultsUri));
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
             this._queryResultsMap.set(resultsUri, queryRunner);
-            let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
-            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
-            queryRunner.runQuery(selection);
         }
+
+        queryRunner.runQuery(selection);
+        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        // Always run this command even if just updating to avoid a bug - tfs 8686842
+        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
     }
 
     public cancelQuery(uri: string): void {

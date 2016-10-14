@@ -24,7 +24,7 @@
   border-right-color: #ACACAC;
   border-right-style: dotted;
   padding: 0.5em 0.8em 0.4em;
-  background-color: var(--background-color);
+  background-color: var( --color-bg-content-header);
   border-bottom-color: #ACACAC;
 }
 .grid .slick-cell {

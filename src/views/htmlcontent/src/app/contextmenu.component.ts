@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter } from '@angular/core';
 import {ISlickRange} from './slickgrid/SelectionModel';
+import * as Constants from './../constants';
 /**
  * The component that acts as the contextMenu for slick grid
  */
@@ -20,6 +21,8 @@ export class ContextMenu {
     private resultId: number;
     private selection: ISlickRange[];
     private isDisabled: boolean;
+    // tslint:disable-next-line:no-unused-variable
+    private Constants = Constants;
 
     show(x: number, y: number, batchId: number, resultId: number, selection: ISlickRange[]): void {
         this.batchId = batchId;
