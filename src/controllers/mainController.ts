@@ -224,6 +224,8 @@ export default class MainController implements vscode.Disposable {
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
 
+            // Calculate the selection if we have a selection, otherwise we'll use null to indicate
+            // the entire document is the selection
             if (!editor.selection.isEmpty) {
                 let selection = editor.selection;
                 querySelection = {
@@ -233,6 +235,12 @@ export default class MainController implements vscode.Disposable {
                     endColumn: selection.end.character
                 };
             }
+
+            // Trim down the selection. If it is empty after selecting, then we don't execute
+            if (editor.document.getText(editor.selection).trim().length === 0) {
+                return;
+            }
+
             this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
         }
     }
