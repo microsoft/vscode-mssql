@@ -46,6 +46,7 @@ declare let $;
  */
 @Component({
     selector: 'my-app',
+    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
     templateUrl: 'app/app.html',
     directives: [ContextMenu, SlickGrid],
     providers: [DataService],
@@ -60,30 +61,69 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
     private scrollTimeOutTime = 200;
     private windowSize = 50;
-    private c_key = 67;
     private maxScrollGrids = 8;
     // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
     // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
-
-    // FIELDS
-    // All datasets
-    private dataSets: IGridDataSet[] = [];
-    // Place holder data sets to buffer between data sets and rendered data sets
-    private placeHolderDataSets: IGridDataSet[] = [];
-    // Datasets currently being rendered on the DOM
-    private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
-    private messages: IMessages[] = [];
-    private scrollTimeOut: number;
-    private messagesAdded = false;
-    private resizing = false;
-    private resizeHandleTop = 0;
-    private scrollEnabled = true;
-    // tslint:disable-next-line:no-unused-variable
-    private resultActive = true;
-    // tslint:disable-next-line:no-unused-variable
-    private messageActive = true;
+    private keyCodes = {
+        37: 'left',
+        38: 'up',
+        39: 'right',
+        40: 'down'
+    };
+    // the function implementations of keyboard available events
+    private shortcutfunc = {
+        'event.toggleResultPane': () => {
+            this.resultActive = !this.resultActive;
+        },
+        'event.toggleMessagePane': () => {
+            this.messageActive = !this.messageActive;
+        },
+        'event.nextGrid': () => {
+            let activeGrid = this.getActiveGridIndex();
+            if (activeGrid < this.slickgrids.length - 1) {
+                this.slickgrids.toArray()[activeGrid + 1].setActive();
+                // scroll to grid logic
+                let resultsWindow = $('#results');
+                let scrollTop = resultsWindow.scrollTop();
+                let scrollBottom = scrollTop + resultsWindow.height();
+                let gridHeight = this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+                if (scrollBottom < gridHeight * (activeGrid + 2)) {
+                    scrollTop += (gridHeight * (activeGrid + 2)) - scrollBottom;
+                    resultsWindow.scrollTop(scrollTop);
+                }
+            }
+        },
+        'event.prevGrid': () => {
+            let activeGrid = this.getActiveGridIndex();
+            if (activeGrid > 0) {
+                this.slickgrids.toArray()[activeGrid - 1].setActive();
+                // scroll to grid logic
+                let resultsWindow = $('#results');
+                let scrollTop = resultsWindow.scrollTop();
+                let gridHeight = this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
+                if (scrollTop > gridHeight * (activeGrid - 1)) {
+                    scrollTop = (gridHeight * (activeGrid - 1));
+                    resultsWindow.scrollTop(scrollTop);
+                }
+            }
+        },
+        'event.copySelection': () => {
+            let activeGrid = this.getActiveGridIndex();
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+        }
+    };
+    // object that defines shortcuts for certain actions
+    // must follow the format ctrl+alt+shift+key
+    private shortcuts = {
+        'ctrl+alt+r': 'event.toggleResultPane',
+        'ctrl+alt+t': 'event.toggleMessagePane',
+        'ctrl+up': 'event.prevGrid',
+        'ctrl+down': 'event.nextGrid',
+        'ctrl+c': 'event.copySelection'
+    };
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
         {
@@ -110,6 +150,27 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
+
+    // FIELDS
+    // All datasets
+    private dataSets: IGridDataSet[] = [];
+    // Place holder data sets to buffer between data sets and rendered data sets
+    private placeHolderDataSets: IGridDataSet[] = [];
+    // Datasets currently being rendered on the DOM
+    private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
+    private messages: IMessages[] = [];
+    private scrollTimeOut: number;
+    private messagesAdded = false;
+    private resizing = false;
+    private resizeHandleTop = 0;
+    private scrollEnabled = true;
+    // tslint:disable-next-line:no-unused-variable
+    private resultActive = true;
+    // tslint:disable-next-line:no-unused-variable
+    private messageActive = true;
+    private firstRender = true;
+    // tslint:disable-next-line:no-unused-variable
+    private resultsScrollTop: number = 0;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
@@ -326,16 +387,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Handles keyboard events on angular, currently only needed for copy-paste
-     */
-    onKey(e: any, batchId: number, resultId: number, index: number): void {
-        if ((e.ctrlKey || e.metaKey) && e.which === this.c_key) {
-            let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-            this.dataService.copyResults(selection, batchId, resultId);
-        }
-    }
-
-    /**
      * Handles rendering the results to the DOM that are currently being shown
      * and destroying any results that have moved out of view
      * @param scrollTop The scrolltop value, if not called by the scroll event should be 0
@@ -367,6 +418,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         self.placeHolderDataSets[i].dataRows = undefined;
                     }
                 }
+            }
+
+            if (this.firstRender) {
+                this.firstRender = false;
+                setTimeout(() => {
+                    this.slickgrids.toArray()[0].setActive();
+                });
             }
         }, self.scrollTimeOutTime);
     }
@@ -421,5 +479,45 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.renderedDataSets = this.placeHolderDataSets;
             this.onScroll(0);
         }
+    }
+
+    /**
+     *
+     */
+    keyEvent(e): void {
+        if (e.detail) {
+            e.which = e.detail.which;
+            e.ctrlKey = e.detail.ctrlKey;
+            e.metaKey = e.detail.metaKey;
+            e.altKey = e.detail.altKey;
+            e.shiftKey = e.detail.shiftKey;
+        }
+        let eString = this.buildEventString(e);
+        if (this.shortcuts[eString]) {
+            this.shortcutfunc[this.shortcuts[eString]]();
+            e.stopImmediatePropagation();
+        }
+    }
+
+    /**
+     * Builds a event string of ctrl, shift, alt, and a-z + up, down, left, right
+     * based on a passed Jquery event object, i.e 'ctrl+alt+t'
+     * @param e The Jquery event object to build the string from
+     */
+    buildEventString(e): string {
+        let resString = '';
+        resString += (e.ctrlKey || e.metaKey) ? 'ctrl+' : '';
+        resString += e.altKey ? 'alt+' : '';
+        resString += e.shiftKey ? 'shift+' : '';
+        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : this.keyCodes[e.which];
+        return resString;
+    }
+
+    /**
+     * Obtains the index in the slickgrids array which is currently focused
+     * @returns The index in the local slickgrids array that is currently focused
+     */
+    getActiveGridIndex(): number {
+        return parseInt($(document.activeElement).parent().parent().attr('id').split('_')[1], 10);
     }
 }

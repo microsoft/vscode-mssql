@@ -3,17 +3,16 @@
         <span> Results </span>
     </div>
     <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
-         myScroll (onScroll)="onScroll($event)"  [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
+         myScroll (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
-            <slick-grid [columnDefinitions]="dataSet.columnDefinitions"
+            <slick-grid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
                         enableAsyncPostRender="true"
                         showDataTypeIcon="false"
                         showHeader="true"
                         [resized]="dataSet.resized"
-                        (keydown)="onKey($event, dataSet.batchId, dataSet.resultId, i)"
                         class="boxCol content vertBox slickgrid">
             </slick-grid>
             <span class="boxCol content vertBox">
