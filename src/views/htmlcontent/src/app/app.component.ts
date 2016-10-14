@@ -13,6 +13,7 @@ import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
 import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
 import * as Constants from './../constants';
+import * as Utils from './../Utils';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
@@ -68,6 +69,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private _defaultNumShowingRows = 8;
     // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
+    // tslint:disable-next-line:no-unused-variable
+    private Utils = Utils;
 
     // FIELDS
     // All datasets

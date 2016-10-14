@@ -39,7 +39,7 @@
             <div *ngFor="let imessage of messages">
                 <tr *ngIf="imessage.selection">
                     <td>[{{imessage.messages[0].time}}]</td>
-                    <td><b>Started executing query at <a href="#" (click)="editorSelection(imessage.selection)">Line {{imessage.selection.startLine + 1}}</a></b></td>
+                    <td><b>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></b></td>
                 </tr>
                 <tr *ngFor="let message of imessage.messages">
                     <td></td>
@@ -49,7 +49,7 @@
                 </tr>
                 <tr *ngIf="imessage.selection">
                     <td>[{{imessage.messages[imessage.messages.length - 1].time}}]</td>
-                    <td><b>Completed</b></td>
+                    <td><b>{{Constants.messageEndLabel}}</b></td>
                 </tr>
             </div>
         </table>
