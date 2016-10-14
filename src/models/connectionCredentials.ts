@@ -100,9 +100,6 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile) && typeof(profile.savePassword) === 'undefined',
                     onAnswered: (value) => {
                         profile.savePassword = value;
-                        connectionStore.removeProfile(profile).then(() => {
-                            connectionStore.saveProfile(profile);
-                        });
                     }
                 }
             );
@@ -120,7 +117,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
                             connectionStore.saveProfile(profile);
                         });
                     // Or, if the user answered any additional questions for the profile, be sure to save it
-                    } else if (profile.authenticationType !== unprocessedCredentials.authenticationType) {
+                    } else if (profile.authenticationType !== unprocessedCredentials.authenticationType ||
+                               profile.savePassword !== (<IConnectionProfile>unprocessedCredentials).savePassword) {
                         connectionStore.removeProfile(profile).then(() => {
                             connectionStore.saveProfile(profile, !wasPasswordEmptyInConfigFile);
                         });

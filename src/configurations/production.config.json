@@ -1,7 +1,9 @@
 {
     "service": {
-        "downloadUrl": "https://download.microsoft.com/download/A/5/E/A5EDE0D5-3C2C-44F7-9EDB-0E2F8593ACEC/microsoft.sqltools.servicelayer-{#fileName#}",
-        "version": "0.0.25",
+        // disable download center link until we go into master so we can bump service without uploading bits
+        //"downloadUrl": "https://download.microsoft.com/download/A/5/E/A5EDE0D5-3C2C-44F7-9EDB-0E2F8593ACEC/microsoft.sqltools.servicelayer-{#fileName#}",
+        "downloadUrl": "http://dtnuget:8080/download/microsoft.sqltools.servicelayer/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
+        "version": "0.0.26",
         "downloadFileNames": {
             "Windows": "win-x64-netcoreapp1.0.zip",
             "OSX": "osx-x64-netcoreapp1.0.tar.gz",

@@ -104,6 +104,11 @@ export class ConnectionStore {
      */
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections();
+        pickListItems.push(<IConnectionCredentialsQuickPickItem> {
+            label: Constants.CreateProfileFromConnectionsListLabel,
+            connectionCreds: undefined,
+            quickPickItemType: CredentialsQuickPickItemType.NewConnection
+        });
         return pickListItems;
     }
 
