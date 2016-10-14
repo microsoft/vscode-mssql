@@ -517,21 +517,8 @@ export default class ConnectionManager {
     public onCreateProfile(): Promise<boolean> {
         let self = this;
         return new Promise<boolean>((resolve, reject) => {
-            // Ensure we are in SQL mode before creating a profile and connecting
-            if (!self.vscodeWrapper.isEditingSqlFile) {
-                self.connectionUI.promptToChangeLanguageMode()
-                .then( result => {
-                    if (result) {
-                        self.connectionUI.createAndSaveProfile()
-                            .then(profile => resolve(profile ? true : false));
-                    } else {
-                        resolve(false);
-                    }
-                });
-            } else {
-                self.connectionUI.createAndSaveProfile()
-                    .then(profile => resolve(profile ? true : false));
-            }
+            self.connectionUI.createAndSaveProfile(self.vscodeWrapper.isEditingSqlFile)
+                .then(profile => resolve(profile ? true : false));
         });
     }
 
