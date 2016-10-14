@@ -18,7 +18,7 @@ export default class LocalWebService {
         LocalWebService._vscodeExtensionPath = extensionPath;
         LocalWebService._staticContentPath = path.join(extensionPath, LocalWebService._htmlContentLocation);
         this.app.use(express.static(LocalWebService.staticContentPath));
-        this.app.use( bodyParser.json() );
+        this.app.use(bodyParser.json({limit: '50mb', type: 'application/json'}));
         this.app.set('view engine', 'ejs');
         Utils.logDebug(Constants.msgLocalWebserviceStaticContent + LocalWebService.staticContentPath);
     }

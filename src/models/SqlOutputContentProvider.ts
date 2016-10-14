@@ -156,6 +156,24 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             });
         });
 
+        // add http post handler for showing errors to user
+        this._service.addPostHandler(Interfaces.ContentType.ShowError, function(req, res): void {
+            let message: string = req.body.message;
+            self._vscodeWrapper.showErrorMessage(message);
+            // not attached to show function callback, since callback returns only after user closes message
+            res.status = 200;
+            res.send();
+        });
+
+        // add http post handler for showing warning to user
+        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, function(req, res): void {
+            let message: string = req.body.message;
+            self._vscodeWrapper.showWarningMessage(message);
+            // not attached to show function callback, since callback returns only after user closes message
+            res.status = 200;
+            res.send();
+        });
+
         // start express server on localhost and listen on a random port
         try {
             this._service.start();
@@ -322,8 +340,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public openLink(content: string, columnName: string, linkType: string): void {
         const self = this;
         let tempFileName = self.getXmlTempFileName(columnName, linkType);
-        let tempFilePath = path.join(os.tmpdir(), tempFileName);
-        let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+        let uri = vscode.Uri.parse('untitled:' + tempFileName);
         if (linkType === 'xml') {
             try {
                 content = pd.xml(content);
@@ -347,7 +364,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             vscode.window.showTextDocument(doc, 1, false).then(editor => {
                 editor.edit(edit => {
                     edit.insert(new vscode.Position(0, 0), content);
+                }).then(result => {
+                    if (!result) {
+                        self._vscodeWrapper.showErrorMessage('Content could not be opened');
+                    }
                 });
+            }, (error: any) => {
+                self._vscodeWrapper.showErrorMessage(error);
             });
         }, (error: any) => {
             self._vscodeWrapper.showErrorMessage(error);
@@ -380,6 +403,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 return tempFileName;
             }
         }
-        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
+        return path.join(os.tmpdir(), columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType);
     }
 }

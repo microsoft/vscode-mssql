@@ -36,6 +36,8 @@ export const outputContentTypeSaveResults = 'saveResults';
 export const outputContentTypeOpenLink = 'openLink';
 export const outputContentTypeCopy = 'copyResults';
 export const outputContentTypeEditorSelection = 'setEditorSelection';
+export const outputContentTypeShowError = 'showError';
+export const outputContentTypeShowWarning = 'showWarning';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
 
