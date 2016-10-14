@@ -17,6 +17,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
  */
 enum ManageProfileTask {
     Create = 1,
+    ClearRecentlyUsed,
     Edit,
     Remove
 }
@@ -233,12 +234,29 @@ export class ConnectionUI {
         });
     }
 
+    private promptToClearRecentConnectionsList(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: Constants.msgPromptClearRecentConnections,
+                message: Constants.msgPromptClearRecentConnections
+            };
+            self._prompter.promptSingle(question).then(result => {
+                resolve(result ? true : false);
+            }).catch(err => {
+                resolve(false);
+            });
+        });
+    }
+
     public promptToManageProfiles(): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
-            // Create, edit, or remove profile?
+            // Create profile, clear recent connections, edit profiles, or remove profile?
             let choices: INameValueChoice[] = [
                 { name: Constants.CreateProfileLabel, value: ManageProfileTask.Create },
+                { name: Constants.ClearRecentlyUsedLabel, value: ManageProfileTask.ClearRecentlyUsed},
                 { name: Constants.EditProfilesLabel, value: ManageProfileTask.Edit},
                 { name: Constants.RemoveProfileLabel, value: ManageProfileTask.Remove}
             ];
@@ -253,6 +271,18 @@ export class ConnectionUI {
                         case ManageProfileTask.Create:
                             self.connectionManager.onCreateProfile().then(result => {
                                 resolve(result);
+                            });
+                            break;
+                        case ManageProfileTask.ClearRecentlyUsed:
+                            self.promptToClearRecentConnectionsList().then(result => {
+                                if (result) {
+                                    self.connectionManager.clearRecentConnectionsList().then(() => {
+                                        self.vscodeWrapper.showInformationMessage(Constants.msgClearedRecentConnections);
+                                        resolve(true);
+                                    });
+                                } else {
+                                    resolve(false);
+                                }
                             });
                             break;
                         case ManageProfileTask.Edit:

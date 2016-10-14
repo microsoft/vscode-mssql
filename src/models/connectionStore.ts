@@ -238,6 +238,23 @@ export class ConnectionStore {
     }
 
     /**
+     * Clear all recently used connections from the MRU list.
+     */
+    public clearRecentlyUsed(): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            // Update the MRU list to be empty
+            self._context.globalState.update(Constants.configRecentConnections, [])
+            .then(() => {
+                // And resolve / reject at the end of the process
+                resolve(undefined);
+            }, err => {
+                reject(err);
+            });
+        });
+    }
+
+    /**
      * Remove a connection profile from the recently used list.
      */
     private removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
