@@ -67,7 +67,7 @@ export class ConnectionUI {
             let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
             if (picklist.length === 0) {
                 // No connections - go to the create profile workflow
-                self.createAndSaveProfile(true).then(resolvedProfile => {
+                self.createAndSaveProfile().then(resolvedProfile => {
                     resolve(resolvedProfile);
                 });
             } else {
@@ -215,7 +215,7 @@ export class ConnectionUI {
                 let connectFunc: Promise<IConnectionCredentials>;
                 if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
                     // call the workflow to create a new connection
-                    connectFunc = self.createAndSaveProfile(true);
+                    connectFunc = self.createAndSaveProfile();
                 } else {
                     // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
                     connectFunc = self.fillOrPromptForMissingInfo(selection);
