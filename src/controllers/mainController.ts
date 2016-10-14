@@ -237,9 +237,9 @@ export default class MainController implements vscode.Disposable {
             }
 
             // Trim down the selection. If it is empty after selecting, then we don't execute
-            if (editor.document.getText(editor.selection).trim().length === 0) {
-                return;
-            }
+            // if (editor.document.getText(editor.selection).trim().length === 0) {
+            //     return;
+            // }
 
             this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
         }

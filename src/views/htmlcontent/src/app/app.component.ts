@@ -66,6 +66,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private _rowHeight = 29;
     // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
+    // tslint:disable-next-line:no-unused-variable
+    private Constants = Constants;
     private keyCodes = {
         37: 'left',
         38: 'up',
@@ -127,26 +129,37 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
         {
-            icon: '/images/u32.png',
-            hoverText: 'Save as CSV',
+            showCondition: () => { return this.dataSets.length > 1; },
+            icon: () => {
+                return this.renderedDataSets.length === 1
+                    ? 'exitFullScreen'
+                    : 'extendFullScreen';
+            },
+            hoverText: () => {
+                return this.renderedDataSets.length === 1
+                    ? Constants.restoreLabel
+                    : Constants.maximizeLabel;
+            },
+            functionality: (batchId, resultId, index) => {
+                this.magnify(index);
+            }
+        },
+        {
+            showCondition: () => { return true; },
+            icon: () => { return 'saveCsv'; },
+            hoverText: () => { return Constants.saveCSVLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
             }
         },
         {
-            icon: '/images/u26.png',
-            hoverText: 'Save as JSON',
+            showCondition: () => { return true; },
+            icon: () => { return 'saveJson'; },
+            hoverText: () => { return Constants.saveJSONLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
-            }
-        },
-        {
-            icon: '/images/glass.svg',
-            hoverText: 'Magnify/Reset',
-            functionality: (batchId, resultId, index) => {
-                this.magnify(index);
             }
         }
     ];
