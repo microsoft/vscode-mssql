@@ -130,16 +130,7 @@ slick-grid:last-of-type {
   background: transparent;
 }
 .contextMenu {
-  position: absolute;
-  padding: 2px;
-  display: inline-block;
-  min-width: 100px;
-  z-index: 99999;
-  border: 1px;
-  outline: 0;
-  color: black;
-  background-color: white;
+  border: 1px solid silver;
   box-shadow: 2px 2px 2px silver;
   border-color: silver;
-  font-family: var(--font-family);
 }
