@@ -64,7 +64,7 @@ export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 export const msgRunQueryInProgress = 'A query is already executing for this editor session. Please cancel this query or wait for its completion.';
 
-export const msgCancelQueryFailed = 'Failed to cancel query: {0}';
+export const msgCancelQueryFailed = 'Failed to cancel query execution: {0}';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
@@ -94,8 +94,8 @@ export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
                                 'Change editor language to "SQL" -or- ' +
                                 'Select some T-SQL text in the active SQL editor.';
 
-export const recentConnectionsPlaceholder = 'Choose a connection from the list below';
-export const msgNoConnectionsInSettings = 'To use this command, add connection information to VS Code User or Workspace settings.';
+export const recentConnectionsPlaceholder = 'Choose a connection profile from the list below';
+export const msgNoConnectionsInSettings = 'To use this command, add connection profile to User Settings.';
 export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
 export const CreateProfileFromConnectionsListLabel = 'Create Connection Profile';
@@ -109,31 +109,31 @@ export const SampleServerName = '{{put-server-name-here}}';
 export const serverPrompt = 'Server name';
 export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
 export const databasePrompt = 'Database name';
-export const databasePlaceholder = 'optional database to connect to (default depends on server configuration, typically "master")';
+export const databasePlaceholder = '[Optional] Database to connect (default depends on server configuration, typically "master")';
 export const databaseDefaultValue = 'master';
 export const authTypePrompt = 'Authentication Type';
 export const authTypeIntegrated = 'Integrated';
 export const authTypeSql = 'SQL Authentication';
 export const authTypeAdUniversal = 'Active Directory Universal';
-export const usernamePrompt = 'Username';
-export const usernamePlaceholder = 'username (SQL Authentication)';
+export const usernamePrompt = 'User name';
+export const usernamePlaceholder = 'User name (SQL Login)';
 export const passwordPrompt = 'Password';
-export const passwordPlaceholder = 'Password (SQL Authentication)';
+export const passwordPlaceholder = 'Password (SQL Login)';
 export const msgSavePassword = 'Save Password? If \'No\', password will be required each time you connect';
 export const profileNamePrompt = 'Profile Name';
-export const profileNamePlaceholder = 'optional - enter a name for this profile';
+export const profileNamePlaceholder = '[Optional] Enter a name for this profile';
 
 export const filepathPrompt = 'File path';
-export const filepathPlaceholder = 'Enter full path or simply file name';
-export const filepathMessage = 'Enter full path or simply file name';
-export const overwritePrompt = 'The file already exists. Would you like to overwrite?';
+export const filepathPlaceholder = 'Enter full file path or file name to save in the current folder.';
+export const filepathMessage = 'Enter full file path or file name to save in the current folder.';
+export const overwritePrompt = 'The file already exists. Do you want to replace the existing file?';
 export const overwritePlaceholder = 'The file already exists';
 
 export const msgSelectProfile = 'Select Connection Profile';
 export const msgSelectProfileToRemove = 'Select profile to remove';
 
-export const confirmRemoveProfilePrompt = 'Are you sure you want to remove this profile?';
-export const msgNoProfilesSaved = 'No connection profiles are currently saved';
+export const confirmRemoveProfilePrompt = 'Confirm to remove this profile.';
+export const msgNoProfilesSaved = 'No connection profile to remove.';
 export const msgProfileRemoved = 'Profile removed successfully';
 export const msgProfileCreated = 'Profile created successfully';
 export const msgProfileCreatedAndConnected = 'Profile created and connected';
@@ -171,12 +171,12 @@ export const extensionNotInitializedError = 'Unable to execute the command while
 export const untitledScheme = 'untitled';
 export const untitledSaveTimeThreshold = 10.0;
 
-export const msgChangeLanguageMode = 'To use this command, you must set the language to \"SQL\". Change language mode?';
+export const msgChangeLanguageMode = 'To use this command, you must set the language to \"SQL\". Confirm to change language mode.';
 export const timeToWaitForLanguageModeChange = 10000.0;
 
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
 
-export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the profile information provided. Retry profile creation?';
+export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the connection information provided. Retry profile creation?';
 
 export const msgConnecting = 'Connecting to server \"{0}\" on document \"{1}\".';
 export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';
@@ -185,7 +185,7 @@ export const msgChangingDatabase = 'Changing database context to \"{0}\" on serv
 export const msgChangedDatabase = 'Changed database context to \"{0}\" on server \"{1}\" on document \"{2}\".';
 export const msgDisconnected = 'Disconnected on document \"{0}\"';
 
-export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check that the file is formatted correctly.';
+export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.';
 export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
 
 
@@ -197,5 +197,5 @@ export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 
 export const titleResultsPane = 'Results: {0}';
 
-export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required for connecting.`;
+export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to connect.`;
 
