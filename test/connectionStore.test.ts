@@ -74,7 +74,7 @@ suite('ConnectionStore tests', () => {
         let serverName = 'myServer';
         let dbName = 'someDB';
         let userName = 'aUser';
-        let profileType = 'profile';
+        let profileType = 'Profile';
 
         assert.strictEqual(ConnectionStore.formatCredentialId(serverName), `Microsoft.SqlTools|itemtype:${profileType}|server:${serverName}`);
         assert.strictEqual(ConnectionStore.formatCredentialId(serverName, dbName),
