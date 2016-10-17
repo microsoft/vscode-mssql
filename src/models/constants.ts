@@ -65,6 +65,8 @@ export const msgRunQueryNoConnection = 'runQuery: no active connection - prompti
 export const msgRunQueryInProgress = 'A query is already executing for this editor session. Please cancel this query or wait for its completion.';
 
 export const msgCancelQueryFailed = 'Failed to cancel query: {0}';
+export const msgCancelQueryNotRunning = 'Cannot cancel query, no query is executing';
+export const msgCancelQuerySuccess = 'Query successfully canceled';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
@@ -158,6 +160,7 @@ export const connectErrorTooltip = 'Error connecting to: ';
 export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
 export const executeQueryLabel = 'Executing query ';
+export const cancelingQueryLabel = 'Canceling query ';
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
