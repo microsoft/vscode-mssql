@@ -33,7 +33,7 @@
 
 .contextMenu li:hover:not(.disabled) {
   background-color: #007ACC;
-  color: black;
+  color: white;
 }
 
 .icon {
