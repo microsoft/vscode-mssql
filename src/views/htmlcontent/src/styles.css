@@ -26,6 +26,7 @@
 .contextMenu li+li {
   border-top: 0.5px solid #E4E4E4;
 }
+
 .boxRow.content.horzBox.slickgrid {
   margin-bottom: 5px;
 }
