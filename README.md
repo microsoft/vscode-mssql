@@ -172,7 +172,7 @@ in workspace settings (`File->Preferences->Workspace Settings`).
     // The maximum number of recently used connections to store in the connection list
     "vscode-mssql.maxRecentConnections": 5,
 
-    
+
     "vscode-mssql.connections": [
         {
             "server": "localhost",
@@ -187,135 +187,135 @@ in workspace settings (`File->Preferences->Workspace Settings`).
         }
     ],
 
-    // Turn off all IntelliSense features 
+    // Turn off all IntelliSense features
 	"sqlTools.enableIntelliSense": "true",
-    
+
     // Turn off diagnostic error indicators
 	"sqlTools.intelliSense.enableDiagnostics": "true",
-    
+
     // Turn off autocomplete suggestions
 	"sqlTools.intelliSense.enableSuggestions": "true",
-    
+
     // Turn off quick info hover suggestions
 	"sqlTools.intelliSense.enableQuickInfo": "true",
-    
+
     // Provide lower-case autocomplete suggestions
     "sqlTools.intelliSense.lowerCaseSuggestions": "false"
 }
 ```
 
-The following is a list of advanced connection options that can be set on connections by editing 
+The following is a list of advanced connection options that can be set on connections by editing
 the settings file.
 
 ```javascript
-  
- 
+
+
     "vscode-mssql.connections": [
         {
-            // [Required] Server to connect to. Use 'hostname\\instance' 
+            // [Required] Server to connect to. Use 'hostname\\instance'
             //            or '<server>.database.windows.net'.
             "server": "ServerName",
-            
-            // [Required] Server to connect to. Use 'hostname\\instance' 
+
+            // [Required] Server to connect to. Use 'hostname\\instance'
             //            or '<server>.database.windows.net'.
             "database": "DatabaseName",
-            
-            // [Optional] User name for SQL authentication. If this is empty, 
+
+            // [Optional] User name for SQL authentication. If this is empty,
             //            you are prompted when you connect.
             "user": "UserName",
-            
-            // [Optional] Password for SQL authentication. If this is empty, 
+
+            // [Optional] Password for SQL authentication. If this is empty,
             //            you are prompted when you connect.
-            //            Setting "savePassword" to true will cause this value 
-            //            to be stored securely outside the settings file. 
+            //            Setting "savePassword" to true will cause this value
+            //            to be stored securely outside the settings file.
             "password": "",
-            
+
             // [Optional] Specifies the method of authenticating with SQL Server.
             //            Possible values: "Integrated" or "SqlLogin"
             "authenticationType": "SqlLogin",
-                  
+
             // [Optional] Specify the port number to connect to.
             "port": 1433,
-            
-            // [Optional] Specify if the connection will be encrypted. Always set 
+
+            // [Optional] Specify if the connection will be encrypted. Always set
             //            to 'true' for Azure SQL DB and loaded from here otherwise.
             "encrypt": false,
-            
+
             // [Optional]
             "trustServerCertificate": false,
-            
+
             // [Optional]
             "persistSecurityInfo": false,
-            
-            // [Optional] The length of time in seconds to wait for a 
-            //            connection to the server before terminating 
+
+            // [Optional] The length of time in seconds to wait for a
+            //            connection to the server before terminating
             //            the attempt and generating error.
-            "connectTimeout": 15, 
-            
+            "connectTimeout": 15,
+
             // [Optional] Number of attempts to restore connection.
             "connectRetryCount": 1,
-            
+
             // [Optional] Delay between attempts to restore connection.
             "connectRetryInterval": 10,
-            
-            // [Optional] Application name used for SQL server logging 
+
+            // [Optional] Application name used for SQL server logging
             //            (default: 'vscode-mssql').
-            "applicationName": "vscode-mssql", 
-            
+            "applicationName": "vscode-mssql",
+
             // [Optional] The name of the workstation connecting to SQL Server.
             "workstationId": "",
-            
+
             // [Optional] Possible values "ReadWrite" or "ReadOnly"
             "applicationIntent": "ReadWrite",
-            
+
             // [Optional]
             "currentLanguage": "",
-            
+
             // [Optional]
             "pooling": false,
-            
+
             // [Optional]
             "maxPoolSize": 100,
-            
+
             // [Optional]
             "minPoolSize": 0,
-            
+
             // [Optional]
             "loadBalanceTimeout": 0,
-            
+
             // [Optional]
             "replication": true,
-            
+
             // [Optional]
             "type": true,
-            
+
             // [Optional]
             "attachDbFilename": "",
-            
+
             // [Optional]
             "failoverPartner": "",
-            
+
             // [Optional]
             "multiSubnetFailover": true,
-            
+
             // [Optional]
-            "multipleActiveResultSets": false,       
-            
+            "multipleActiveResultSets": false,
+
             // [Optional]
-            "packetSize": 8192,           
-            
+            "packetSize": 8192,
+
             // [Optional]
             "typeSystemVersion": "Latest",
-            
+
             // [Optional]
             "profileName": "",
-                      
-            // [Optional] Password should be stored securely in external 
-            //            platform-specfic settings store.  If password is 
-            //            entered directly in settings file it will be moved 
+
+            // [Optional] Password should be stored securely in external
+            //            platform-specfic settings store.  If password is
+            //            entered directly in settings file it will be moved
             //            to the secure settings store on next connection
             "savePassword": true
-            
+
         }
     ]
 ```
@@ -334,6 +334,7 @@ the settings file.
 
 ## Acknowledgements
 The extension uses several open source components including:
+
 - [Twitter Bootstrap](https://github.com/twbs/bootstrap) for CSS styling and tab navigation
 - [express](https://github.com/expressjs/express) to serve dynamic SQL output
 - [SlickGrid](https://github.com) to render SQL results in a grid
