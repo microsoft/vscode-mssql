@@ -320,6 +320,11 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
         this._gridSyncService.selectionModel.setSelectedRanges([new Slick.Range(0, 0, 0, 0)]);
     }
 
+    public resetActive(): void {
+        this._grid.setActiveCell();
+        this._gridSyncService.selectionModel.setSelectedRanges([]);
+    }
+
     /* tslint:disable:member-ordering */
     private getColumnEditor = (column: any): any => {
         let columnId = column.id;
