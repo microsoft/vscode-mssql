@@ -45,9 +45,7 @@
                 </tr>
                 <tr *ngFor="let message of imessage.messages">
                     <td></td>
-                    <td [class.errorMessage]="imessage.hasError" style="padding-left: 20px">
-                        {{message.message}}
-                    </td>
+                    <td [class.errorMessage]="imessage.hasError" [innerHTML]="message.message | nl2br" style="padding-left: 20px"></td>
                 </tr>
                 <tr *ngIf="imessage.selection">
                     <td>[{{imessage.messages[imessage.messages.length - 1].time}}]</td>
