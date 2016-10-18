@@ -417,7 +417,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Format all text to replace /n with spaces
      */
     textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        return value.replace(/\n/g, ' ');
+        if (typeof value === 'string') {
+            return value.replace(/\n/g, ' ');
+        } else {
+            return value;
+        }
     }
 
     /**
