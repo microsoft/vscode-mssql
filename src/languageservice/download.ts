@@ -16,6 +16,7 @@ import {IConfig, ILogger} from './interfaces';
 
 let tmp = require('tmp');
 let fs = require('fs');
+let fse = require('fs-extra');
 const decompress = require('decompress');
 
 tmp.setGracefulCleanup();
@@ -33,52 +34,21 @@ export default class ServiceDownloadProvider {
     * Returns the download url for given platfotm
     */
     public getDownloadFileName(platform: Platform): string {
-        let fileName = 'microsoft.sqltools.servicelayer-';
+        let fileNamesJson = this._config.getSqlToolsConfigValue('downloadFileNames');
+        let fileName = fileNamesJson[platform.toString()];
 
-        switch (platform) {
-                case Platform.Windows:
-                    fileName += 'win-x64-netcoreapp1.0.zip';
-                    break;
-                case Platform.OSX:
-                    fileName += 'osx-x64-netcoreapp1.0.tar.gz';
-                    break;
-                case Platform.CentOS:
-                    fileName += 'centos-x64-netcoreapp1.0.tar.gz';
-                    break;
-                case Platform.Debian:
-                    fileName += 'debian-x64-netcoreapp1.0.tar.gz';
-                    break;
-                case Platform.Fedora:
-                    fileName += 'fedora-x64-netcoreapp1.0.tar.gz';
-                    break;
-                case Platform.OpenSUSE:
-                    fileName += 'opensuse-x64-netcoreapp1.0.tar.gz';
-                    break;
-                case Platform.RHEL:
-                    fileName += 'rhel-x64-netcoreapp1.0.tar.gz';
-                    break;
-                case Platform.Ubuntu14:
-                    fileName += 'ubuntu14-x64-netcoreapp1.0.tar.gz';
-                    break;
-                case Platform.Ubuntu16:
-                    fileName += 'ubuntu16-x64-netcoreapp1.0.tar.gz';
-                    break;
-                default:
-                    if (process.platform === 'linux') {
-                        throw new Error('Unsupported linux distribution');
-                    } else {
-                        throw new Error(`Unsupported platform: ${process.platform}`);
-                    }
+        if (fileName === undefined) {
+            if (process.platform === 'linux') {
+                throw new Error('Unsupported linux distribution');
+            } else {
+                throw new Error(`Unsupported platform: ${process.platform}`);
+            }
         }
 
         return fileName;
     }
 
     private download(urlString: string, proxy?: string, strictSSL?: boolean): Promise<stream.Readable> {
-        process.on('uncaughtException', function (err): void {
-            console.log(err);
-        });
-
         let url = parse(urlString);
 
         const agent = getProxyAgent(url, proxy, strictSSL);
@@ -102,6 +72,14 @@ export default class ServiceDownloadProvider {
         }
 
         return new Promise<stream.Readable>((resolve, reject) => {
+            process.on('uncaughtException', function (err): void {
+                // When server DNS address is not valid the http client doesn't return any error code,
+                // So the promise never returns any reject or resolve. The only way to fix it was to handle the process exception
+                // and check for that specific error message
+                if (err !== undefined && err.message !== undefined && (<string>err.message).lastIndexOf('getaddrinfo') >= 0) {
+                    reject(err);
+                }
+            });
             return client.get(options, res => {
                 // handle redirection
                 if (res.statusCode === 302) {
@@ -122,10 +100,11 @@ export default class ServiceDownloadProvider {
         if (platform === undefined) {
             platform = getCurrentPlatform();
         }
-        let root = this.getInstallDirectoryRoot();
+        let basePath = this.getInstallDirectoryRoot();
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
-        let basePath = this.getInstallDirectoryPart(root, versionFromConfig);
-        basePath = this.getInstallDirectoryPart(basePath, platform.toString());
+        basePath = basePath.replace('{#version#}', versionFromConfig);
+        basePath = basePath.replace('{#platform#}', platform.toString());
+        fse.mkdirsSync(basePath);
         return basePath;
     }
 
@@ -134,25 +113,30 @@ export default class ServiceDownloadProvider {
     */
     public getInstallDirectoryRoot(): string {
         let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        // The path from config is relative to the out folder
-        let basePath = this.getInstallDirectoryPart(__dirname, '../../' + installDirFromConfig);
+        let basePath: string;
+        if (path.isAbsolute(installDirFromConfig)) {
+            basePath = installDirFromConfig;
+        } else {
+            // The path from config is relative to the out folder
+            basePath = path.join(__dirname, '../../' + installDirFromConfig);
+        }
         return basePath;
     }
 
-    private getInstallDirectoryPart(dirName: string, suffix: string): string {
-        let basePath = path.join(dirName, suffix);
-        if (!fs.existsSync(basePath)) {
-            fs.mkdirSync(basePath);
-        }
-        return basePath;
+    private getGetDownloadUrl(fileName: string): string {
+        let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
+        let version = this._config.getSqlToolsPackageVersion();
+        baseDownloadUrl = baseDownloadUrl.replace('{#version#}', version);
+        baseDownloadUrl = baseDownloadUrl.replace('{#fileName#}', fileName);
+        return baseDownloadUrl;
     }
 
    /**
     * Downloads the SQL tools service and decompress it in the install folder.
     */
     public go(platform?: Platform): Promise<boolean> {
-        const proxy = <string>this._config.getConfig('http.proxy');
-        const strictSSL = this._config.getConfig('http.proxyStrictSSL', true);
+        const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
+        const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
         if (platform === undefined) {
             platform = getCurrentPlatform();
         }
@@ -162,10 +146,9 @@ export default class ServiceDownloadProvider {
             const installDirectory = this.getInstallDirectory(platform);
 
             this._logger.logDebug(`Installing sql tools service to ${installDirectory}`);
-            let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
-            const urlString = baseDownloadUrl + '/' + fileName;
+            const urlString = this.getGetDownloadUrl(fileName);
 
-            this._logger.logDebug(`Attempting to download ${fileName}`);
+            this._logger.logDebug(`Attempting to download ${urlString}`);
 
             return this.download(urlString, proxy, strictSSL)
                 .then(inStream => {

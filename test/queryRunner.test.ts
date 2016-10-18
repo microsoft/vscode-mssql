@@ -1,8 +1,8 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
-import QueryRunner from './../src/controllers/queryRunner';
+import QueryRunner from './../src/controllers/QueryRunner';
 import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
-import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from './../src/models/SqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { QueryExecuteParams, QueryExecuteCompleteNotificationResult } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
@@ -30,9 +30,9 @@ suite('Query Runner tests', () => {
 
     test('Constructs properly', () => {
 
-        let queryRunner = new QueryRunner(undefined,
+        let queryRunner = new QueryRunner('',
+                                          '',
                                           testStatusView.object,
-                                          testSqlOutputContentProvider.object,
                                             testSqlToolsServerClient.object,
                                             testQueryNotificationHandler.object,
                                             testVscodeWrapper.object);
@@ -43,26 +43,30 @@ suite('Query Runner tests', () => {
         let testuri = 'uri';
         let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
         let testtitle = 'title';
-        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
-                                                          TypeMoq.It.isAny())).callback((type, details: QueryExecuteParams) => {
-                                                              assert.equal(details.ownerUri, testuri);
-                                                              assert.equal(details.querySelection, testSelection);
-                                                          })
-                                .returns(() => { return Promise.resolve({messages: undefined}); });
-        testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(),
-                                                                 TypeMoq.It.isAnyString())).callback((queryRunner, uri: string) => {
-                                                                     assert.equal(uri, testuri);
-                                                                 });
+
+        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .callback((type, details: QueryExecuteParams) => {
+                assert.equal(details.ownerUri, testuri);
+                assert.equal(details.querySelection, testSelection);
+            })
+            .returns(() => { return Promise.resolve({ messages: undefined }); });
+        testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
+            .callback((queryRunner, uri: string) => {
+                assert.equal(uri, testuri);
+            });
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
+
         let queryRunner = new QueryRunner(
-            undefined,
+            testuri,
+            testtitle,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
-        return queryRunner.runQuery(testuri, testSelection, testtitle).then(() => {
+
+        return queryRunner.runQuery(testSelection).then(() => {
             testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
 
@@ -80,45 +84,50 @@ suite('Query Runner tests', () => {
                                 .returns(() => { return Promise.resolve({messages: 'failed'}); });
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
         let queryRunner = new QueryRunner(
-                    undefined,
+                    testuri,
+                    testtitle,
                     testStatusView.object,
-                    testSqlOutputContentProvider.object,
                     testSqlToolsServerClient.object,
                     testQueryNotificationHandler.object,
                     testVscodeWrapper.object
                 );
-        return queryRunner.runQuery(testuri, testSelection, testtitle).then(() => {
+        return queryRunner.runQuery(testSelection).then(() => {
             testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
     });
 
     test('Handles result correctly', () => {
+        let resolveRan = false;
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: 'uri',
             batchSummaries: [{
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-                messages: ['6 affects rows'],
+                messages: [{time: '', message: '6 affects rows'}],
                 resultSetSummaries: []
             }]
         };
 
-        testSqlOutputContentProvider.setup(x => x.updateContent(TypeMoq.It.isAny()));
+        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
         let queryRunner = new QueryRunner(
-            undefined,
+            '',
+            '',
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
         queryRunner.uri = '';
+        queryRunner.dataResolveReject = {resolve: () => {
+            resolveRan = true;
+        }};
         queryRunner.handleResult(result);
-        testSqlOutputContentProvider.verify(x => x.updateContent(TypeMoq.It.isAny()), TypeMoq.Times.once());
         testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        assert.equal(resolveRan, true);
     });
 
     test('Correctly handles subset', () => {
@@ -142,9 +151,9 @@ suite('Query Runner tests', () => {
                                                           }).returns(() => { return Promise.resolve(testresult); });
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         let queryRunner = new QueryRunner(
-            undefined,
+            testuri,
+            testuri,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
@@ -166,9 +175,9 @@ suite('Query Runner tests', () => {
                                                           }).returns(() => { return Promise.resolve(testresult); });
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
         let queryRunner = new QueryRunner(
-            undefined,
+            testuri,
+            testuri,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
@@ -208,9 +217,9 @@ suite('Query Runner tests', () => {
                                                           }).returns(() => { return Promise.resolve(testresult); });
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         let queryRunner = new QueryRunner(
-            undefined,
+            testuri,
+            testuri,
             testStatusView.object,
-            testSqlOutputContentProvider.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object

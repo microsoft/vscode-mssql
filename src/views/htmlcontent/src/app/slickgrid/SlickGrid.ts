@@ -6,7 +6,7 @@
 
 /// <reference path="../../../typings/underscore.d.ts" />
 import {Component, Input, Output, Inject, forwardRef, OnChanges, OnInit, OnDestroy, ElementRef, SimpleChange, EventEmitter,
-    ViewEncapsulation, Optional, HostListener, DoCheck} from '@angular/core';
+    ViewEncapsulation, Optional, HostListener, AfterViewInit } from '@angular/core';
 import {Observable, Subscription} from 'rxjs/Rx';
 import {IObservableCollection, CollectionChange} from './BaseLibrary';
 import {IGridDataRow} from './SharedControlInterfaces';
@@ -121,7 +121,7 @@ function getOverridableTextEditorClass(grid: SlickGrid): any {
     providers: [LocalizationService, GridSyncService],
     encapsulation: ViewEncapsulation.None
 })
-export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
+export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
     @Input() columnDefinitions: IColumnDefinition[];
     @Input() dataRows: IObservableCollection<IGridDataRow>;
     @Input() resized: Observable<any>;
@@ -134,8 +134,9 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     @Input() showHeader: boolean = false;
     @Input() showDataTypeIcon: boolean = true;
     @Input() enableColumnReorder: boolean = false;
-    @Input() enableAyncPostRender: boolean = true;
+    @Input() enableAsyncPostRender: boolean = true;
 
+    @Output() loadFinished: EventEmitter<void> = new EventEmitter<void>();
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
     @Output() editingFinished: EventEmitter<any> = new EventEmitter();
     @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
@@ -159,7 +160,6 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
     private _topRow: number = 0;
     private _leftPx: number = 0;
     private _finishGridEditingFn: (e: any, args: any) => void;
-    private divSize: number = 0;
 
     private static getDataWithSchema(data: IGridDataRow, columns: ISlickGridColumn[]): any {
         let dataWithSchema = {};
@@ -229,6 +229,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
             || (changes['columnsLoading'] && !_.isEqual(changes['columnsLoading'].currentValue, changes['columnsLoading'].previousValue))) {
             this.setCallbackOnDataRowsChanged();
             this._grid.updateRowCount();
+            this._grid.setColumns(this._grid.getColumns());
             this._grid.invalidateAllRows();
             this._grid.render();
             if (this._gridSyncService) {
@@ -290,11 +291,8 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
         this.subscribeToContextMenu();
     }
 
-    ngDoCheck(): void {
-        if (this.divSize !== this._el.nativeElement.offsetHeight) {
-            this.divSize = this._el.nativeElement.offsetHeight;
-            this.onResize();
-        }
+    ngAfterViewInit(): void {
+        this.loadFinished.emit();
     }
 
     ngOnDestroy(): void {
@@ -315,6 +313,11 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
 
     public getSelectedRanges(): ISlickRange[] {
         return this._gridSyncService.selectionModel.getSelectedRanges();
+    }
+
+    public setActive(): void {
+        this._grid.setActiveCell(0, 1);
+        this._gridSyncService.selectionModel.setSelectedRanges([new Slick.Range(0, 0, 0, 0)]);
     }
 
     /* tslint:disable:member-ordering */
@@ -400,7 +403,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, DoCheck {
             rowHeight: this._rowHeight,
             defaultColumnWidth: 120,
             editable: true,
-            enableAsyncPostRender: this.enableAyncPostRender,
+            enableAsyncPostRender: this.enableAsyncPostRender,
             editorFactory: {
                 getEditor: this.getColumnEditor
             },

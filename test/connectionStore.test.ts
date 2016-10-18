@@ -3,6 +3,7 @@
 import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
+import fs = require('fs');
 import * as utils from '../src/models/utils';
 import * as connectionInfo from '../src/models/connectionInfo';
 import * as Constants from '../src/models/constants';
@@ -73,7 +74,7 @@ suite('ConnectionStore tests', () => {
         let serverName = 'myServer';
         let dbName = 'someDB';
         let userName = 'aUser';
-        let profileType = 'profile';
+        let profileType = 'Profile';
 
         assert.strictEqual(ConnectionStore.formatCredentialId(serverName), `Microsoft.SqlTools|itemtype:${profileType}|server:${serverName}`);
         assert.strictEqual(ConnectionStore.formatCredentialId(serverName, dbName),
@@ -110,23 +111,14 @@ suite('ConnectionStore tests', () => {
         assert.ok(label.endsWith(namedProfile.profileName));
     });
 
-    test('getPickListLabel has different symbols for Profiles vs Recently Used', () => {
-        let profileLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, interfaces.CredentialsQuickPickItemType.Profile);
-        let mruLabel: string = connectionInfo.getPicklistLabel(defaultNamedProfile, interfaces.CredentialsQuickPickItemType.Mru);
-
-        assert.ok(mruLabel, 'expect value for label');
-        assert.ok(profileLabel, 'expect value for label');
-        assert.notEqual(profileLabel, mruLabel, 'expect different symbols for Profile vs MRU');
-    });
-
     test('SaveProfile should not save password if SavePassword is false', done => {
         // Given
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
 
         let credsToSave: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                credsToSave = profiles;
+        connectionConfig.setup(x => x.addConnection(TypeMoq.It.isAny()))
+             .returns((profile: interfaces.IConnectionProfile) => {
+                credsToSave = [profile];
                 return Promise.resolve();
             });
 
@@ -136,7 +128,7 @@ suite('ConnectionStore tests', () => {
         let profile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: false });
         return connectionStore.saveProfile(profile)
             .then(savedProfile => {
-        // Then expect password not saved in either the context object or the credential store
+                // Then expect password not saved in either the context object or the credential store
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
                 assert.ok(utils.isEmpty(credsToSave[0].password));
 
@@ -150,9 +142,9 @@ suite('ConnectionStore tests', () => {
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
 
         let credsToSave: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                credsToSave = profiles;
+        connectionConfig.setup(x => x.addConnection(TypeMoq.It.isAny()))
+             .returns((profile: interfaces.IConnectionProfile) => {
+                credsToSave = [profile];
                 return Promise.resolve();
             });
 
@@ -175,7 +167,7 @@ suite('ConnectionStore tests', () => {
 
         connectionStore.saveProfile(profile)
             .then(savedProfile => {
-        // Then expect password saved in the credential store
+                // Then expect password saved in the credential store
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
                 assert.ok(utils.isEmpty(credsToSave[0].password));
 
@@ -194,14 +186,7 @@ suite('ConnectionStore tests', () => {
             server: 'otherServer',
             savePassword: true
         });
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => [defaultNamedProfile, profile]);
-
-        let updatedCredentials: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                updatedCredentials = profiles;
-                return Promise.resolve();
-            });
+        connectionConfig.setup(x => x.removeConnection(TypeMoq.It.isAny())).returns(p => Promise.resolve(p));
 
         let capturedCreds: any;
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
@@ -214,17 +199,15 @@ suite('ConnectionStore tests', () => {
 
         let expectedCredFormat: string = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user);
 
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
 
         // When RemoveProfile is called for once profile
 
         connectionStore.removeProfile(profile)
             .then(success => {
-        // Then expect that profile to be removed from the store
+                // Then expect that profile's password to be removed from the credential store
                 assert.ok(success);
-                assert.strictEqual(1, updatedCredentials.length);
-                assert.strictEqual(updatedCredentials[0].server, defaultNamedProfile.server, 'Expect only defaultProfile left');
-
                 credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
 
                 assert.strictEqual(capturedCreds.credentialId, expectedCredFormat, 'Expect profiles password to have been removed');
@@ -242,19 +225,31 @@ suite('ConnectionStore tests', () => {
         let namedProfile = Object.assign(new ConnectionProfile(), unnamedProfile, {
             profileName: 'named'
         });
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => [defaultNamedProfile, unnamedProfile, namedProfile]);
+
+        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
+        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'vscode-mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
 
         let updatedCredentials: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                updatedCredentials = profiles;
-                return Promise.resolve();
+
+        let fsMock = TypeMoq.Mock.ofInstance(fs);
+        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
+        fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((path, text, handler) => {
+                updatedCredentials = (JSON.parse(text))['vscode-mssql.connections'];
+                handler.call(undefined, undefined);
             });
+        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((name, handler) => {
+                handler.call(undefined, undefined);
+            });
+
+        let config = new ConnectionConfig(fsMock.object, vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
 
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, config);
         // When RemoveProfile is called for the profile
         connectionStore.removeProfile(unnamedProfile)
             .then(success => {
@@ -277,19 +272,31 @@ suite('ConnectionStore tests', () => {
         let namedProfile = Object.assign(new ConnectionProfile(), unnamedProfile, {
             profileName: 'named'
         });
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => [defaultNamedProfile, unnamedProfile, namedProfile]);
+
+        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
+        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'vscode-mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
 
         let updatedCredentials: interfaces.IConnectionProfile[];
-        connectionConfig.setup(x => x.writeConnectionsToConfigFile(TypeMoq.It.isAnyObject(Array)))
-             .returns((profiles: interfaces.IConnectionProfile[]) => {
-                updatedCredentials = profiles;
-                return Promise.resolve();
+
+        let fsMock = TypeMoq.Mock.ofInstance(fs);
+        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
+        fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((path, text, handler) => {
+                updatedCredentials = (JSON.parse(text))['vscode-mssql.connections'];
+                handler.call(undefined, undefined);
             });
+        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((name, handler) => {
+                handler.call(undefined, undefined);
+            });
+
+        let config = new ConnectionConfig(fsMock.object, vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
 
-        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, config);
         // When RemoveProfile is called for the profile
         connectionStore.removeProfile(namedProfile)
             .then(success => {
@@ -335,7 +342,7 @@ suite('ConnectionStore tests', () => {
 
         let promise = Promise.resolve();
         for (let i = 0; i < numCreds; i++) {
-            let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + i});
+            let cred = Object.assign({}, defaultNamedProfile, { profileName: defaultNamedProfile.profileName + i});
             promise = promise.then(() => {
                 return connectionStore.addRecentlyUsed(cred);
             }).then(() => {
@@ -377,7 +384,7 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, undefined, vscodeWrapper.object);
 
         let promise = Promise.resolve();
-        let cred = Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + 1});
+        let cred = Object.assign({}, defaultNamedProfile, { profileName: defaultNamedProfile.profileName + 1});
         promise = promise.then(() => {
             return connectionStore.addRecentlyUsed(defaultNamedProfile);
         }).then(() => {
@@ -418,11 +425,13 @@ suite('ConnectionStore tests', () => {
             server: defaultNamedProfile.server + 'Integrated',
             authenticationType: interfaces.AuthenticationTypes[interfaces.AuthenticationTypes.Integrated],
             user: '',
-            password: ''
+            password: '',
+            profileName: 'integrated'
         });
         let noPwdCred = Object.assign({}, defaultNamedProfile, {
             server: defaultNamedProfile.server + 'NoPwd',
-            password: ''
+            password: '',
+            profileName: 'noPwd'
         });
 
         let expectedCredCount = 0;
@@ -456,7 +465,7 @@ suite('ConnectionStore tests', () => {
         }).then(() => done(), err => done(err));
     });
 
-    test('getPickListItems should display Recently Used then Profiles then New Connection', (done) => {
+    test('getPickListItems should display Recently Used then Profiles', (done) => {
         // Given 3 items in MRU and 2 in Profile list
         let recentlyUsed: interfaces.IConnectionCredentials[] = [];
         for (let i = 0; i < 3; i++) {
@@ -465,15 +474,15 @@ suite('ConnectionStore tests', () => {
         globalstate.setup(x => x.get(Constants.configRecentConnections)).returns(key => recentlyUsed);
 
         let profiles: interfaces.IConnectionProfile[] = [defaultNamedProfile, defaultUnnamedProfile];
-        connectionConfig.setup(x => x.readConnectionsFromConfigFile()).returns(() => profiles);
+        connectionConfig.setup(x => x.getConnections(TypeMoq.It.isAny())).returns(() => profiles);
 
         // When we get the list of available connection items
 
-        // Then expect MRU items first, then profile items, then a new connection item
+        // Then expect MRU items first, then profile items
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
 
         let items: interfaces.IConnectionCredentialsQuickPickItem[] = connectionStore.getPickListItems();
-        let expectedCount = recentlyUsed.length + profiles.length + 1;
+        let expectedCount = recentlyUsed.length + profiles.length;
         assert.equal(items.length, expectedCount);
 
         // Then expect recent items first
@@ -483,8 +492,11 @@ suite('ConnectionStore tests', () => {
             assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Mru);
             i++;
         }
-        // Then profile items
+        // Then profile items (that aren't already in MRU)
         for (let profile of profiles) {
+            if (profile.profileName === defaultNamedProfile.profileName) {
+                continue;
+            }
             assert.equal(items[i].connectionCreds, profile);
             assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Profile);
             i++;
@@ -494,6 +506,37 @@ suite('ConnectionStore tests', () => {
 
         // Then test is complete
         done();
+    });
+
+    test('can clear recent connections list', (done) => {
+        // Given 3 items in MRU
+        let recentlyUsed: interfaces.IConnectionCredentials[] = [];
+        for (let i = 0; i < 3; i++) {
+            recentlyUsed.push( Object.assign({}, defaultNamedProfile, { server: defaultNamedProfile.server + i}) );
+        }
+        globalstate.setup(x => x.get(Constants.configRecentConnections)).returns(key => recentlyUsed);
+        globalstate.setup(x => x.update(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns((key, value) => {
+                recentlyUsed = value;
+                return Promise.resolve();
+            });
+
+        connectionConfig.setup(x => x.getConnections(TypeMoq.It.isAny())).returns(() => []);
+
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
+
+        // When we clear the connections list and get the list of available connection items
+        connectionStore.clearRecentlyUsed().then(() => {
+            // Expect no connection items
+            let items: interfaces.IConnectionCredentialsQuickPickItem[] = connectionStore.getPickListItems();
+            let expectedCount = 1; // 1 for create connection profile
+            assert.equal(items.length, expectedCount);
+
+            // Then test is complete
+            done();
+        }, err => {
+            done(err);
+        });
     });
 
 });

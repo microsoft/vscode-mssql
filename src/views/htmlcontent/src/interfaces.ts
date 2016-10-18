@@ -40,7 +40,7 @@ export class ResultSetSubset {
 }
 
 export interface IGridResultSet {
-    columnsUri: string;
+    columns: IDbColumn[];
     rowsUri: string;
     numberOfRows: number;
 }
@@ -52,9 +52,21 @@ export interface ISelectionData {
     endColumn: number;
 }
 
+export interface IResultMessage {
+    time: string;
+    message: string;
+}
+
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
-    messages: string[];
+    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
+}
+
+export interface IGridIcon {
+    showCondition: () => boolean;
+    icon: () => string;
+    hoverText: () => string;
+    functionality: (batchId: number, resultId: number, index: number) => void;
 }

@@ -1,4 +1,6 @@
 import vscode = require('vscode');
+
+
 import * as Constants from './../models/constants';
 
 export import TextEditor = vscode.TextEditor;
@@ -52,6 +54,25 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Executes the command denoted by the given command identifier.
+     *
+     * When executing an editor command not all types are allowed to
+     * be passed as arguments. Allowed are the primitive types `string`, `boolean`,
+     * `number`, `undefined`, and `null`, as well as classes defined in this API.
+     * There are no restrictions when executing commands that have been contributed
+     * by extensions.
+     *
+     * @param command Identifier of the command to execute.
+     * @param rest Parameters passed to the command function.
+     * @return A thenable that resolves to the returned value of the given command. `undefined` when
+     * the command handler function doesn't return anything.
+     * @see vscode.commands.executeCommand
+     */
+    public executeCommand<T>(command: string, ...rest: any[]): Thenable<T> {
+        return vscode.commands.executeCommand<T>(command, ...rest);
+    }
+
+    /**
      * Get the configuration for a extensionName; NOT YET IMPLEMENTED
      * @param extensionName The string name of the extension to get the configuration for
      */
@@ -78,6 +99,13 @@ export default class VscodeWrapper {
      */
     public get onDidCloseTextDocument(): vscode.Event<vscode.TextDocument> {
         return vscode.workspace.onDidCloseTextDocument;
+    }
+
+    /**
+     * An event that is emitted when a [text document](#TextDocument) is opened.
+     */
+    public get onDidOpenTextDocument(): vscode.Event<vscode.TextDocument> {
+        return vscode.workspace.onDidOpenTextDocument;
     }
 
     /**
@@ -110,12 +138,13 @@ export default class VscodeWrapper {
      * Helper to log messages to "MSSQL" output channel.
      */
     public logToOutputChannel(msg: any): void {
+        let date: Date = new Date();
         if (msg instanceof Array) {
             msg.forEach(element => {
-                VscodeWrapper._outputChannel.appendLine(element.toString());
+                VscodeWrapper._outputChannel.appendLine('[' + date.toLocaleTimeString() + '] ' + element.toString());
             });
         } else {
-            VscodeWrapper._outputChannel.appendLine(msg.toString());
+            VscodeWrapper._outputChannel.appendLine('[' + date.toLocaleTimeString() + '] ' + msg.toString());
         }
     }
 
@@ -156,8 +185,8 @@ export default class VscodeWrapper {
     /**
      * Formats and shows a vscode information message
      */
-    public showInformationMessage(msg: string): Thenable<string> {
-        return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg );
+    public showInformationMessage(msg: string, ...items: string[]): Thenable<string> {
+        return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg, ...items);
     }
 
     /**
@@ -221,5 +250,16 @@ export default class VscodeWrapper {
      */
     public uriParse(value: string): vscode.Uri {
         return vscode.Uri.parse(value);
+    }
+
+    /**
+     * The folder that is open in VS Code. `undefined` when no folder
+     * has been opened.
+     *
+     * @readonly
+     * @see vscode.workspace.rootPath
+     */
+    public get workspaceRootPath(): string {
+        return vscode.workspace.rootPath;
     }
 }

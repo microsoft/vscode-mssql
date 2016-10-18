@@ -6,6 +6,7 @@ import vscode = require('vscode');
 import Constants = require('./constants');
 import * as interfaces from './interfaces';
 import {ExtensionContext} from 'vscode';
+import fs = require('fs');
 
 // Interface for package.json information
 export interface IPackageInfo {
@@ -167,6 +168,33 @@ export function formatString(str: string, ...args: any[]): string {
     return result;
 }
 
+/**
+ * Compares 2 database names to see if they are the same.
+ * If either is undefined or empty, it is assumed to be 'master'
+ */
+function isSameDatabase(currentDatabase: string, expectedDatabase: string): boolean {
+    if (isEmpty(currentDatabase)) {
+        currentDatabase = Constants.defaultDatabase;
+    }
+    if (isEmpty(expectedDatabase)) {
+        expectedDatabase = Constants.defaultDatabase;
+    }
+    return currentDatabase === expectedDatabase;
+}
+
+/**
+ * Compares 2 authentication type strings to see if they are the same.
+ * If either is undefined or empty, then it is assumed to be SQL authentication by default.
+ */
+function isSameAuthenticationType(currentAuthenticationType: string, expectedAuthenticationType: string): boolean {
+    if (isEmpty(currentAuthenticationType)) {
+        currentAuthenticationType = Constants.sqlAuthentication;
+    }
+    if (isEmpty(expectedAuthenticationType)) {
+        expectedAuthenticationType = Constants.sqlAuthentication;
+    }
+    return currentAuthenticationType === expectedAuthenticationType;
+}
 
 /**
  * Compares 2 profiles to see if they match. Logic for matching:
@@ -190,8 +218,8 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
         return false;
     }
     return expectedProfile.server === currentProfile.server
-        && expectedProfile.database === currentProfile.database
-        && expectedProfile.authenticationType === currentProfile.authenticationType
+        && isSameDatabase(expectedProfile.database, currentProfile.database)
+        && isSameAuthenticationType(expectedProfile.authenticationType, currentProfile.authenticationType)
         && expectedProfile.user === currentProfile.user;
 }
 
@@ -206,10 +234,22 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
  */
 export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
     return expectedConn.server === conn.server
-        && expectedConn.database === conn.database
-        && expectedConn.authenticationType === conn.authenticationType
+        && isSameDatabase(expectedConn.database, conn.database)
+        && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
         && expectedConn.user === conn.user;
 }
+
+/**
+ * Check if a file exists on disk
+ */
+export function isFileExisting(filePath: string): boolean {
+        try {
+            fs.statSync(filePath);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
 
 
 // One-time use timer for performance testing

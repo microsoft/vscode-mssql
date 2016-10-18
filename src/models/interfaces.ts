@@ -12,7 +12,9 @@ export enum ContentType {
     SaveResults = 5,
     Copy = 6,
     EditorSelection = 7,
-    OpenLink = 8
+    OpenLink = 8,
+    ShowError = 9,
+    ShowWarning = 10
 };
 
 export interface ISlickRange {
@@ -37,7 +39,9 @@ export const ContentTypes = [
     Constants.outputContentTypeSaveResults,
     Constants.outputContentTypeCopy,
     Constants.outputContentTypeEditorSelection,
-    Constants.outputContentTypeOpenLink
+    Constants.outputContentTypeOpenLink,
+    Constants.outputContentTypeShowError,
+    Constants.outputContentTypeShowWarning
     ];
 
 /**
@@ -198,7 +202,6 @@ export enum CredentialsQuickPickItemType {
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
     quickPickItemType: CredentialsQuickPickItemType;
-
 };
 
 // Obtained from an active connection to show in the status bar
@@ -208,8 +211,33 @@ export interface IConnectionProperties {
     currentDatabase: string;
 };
 
+export interface IDbColumn {
+    allowDBNull?: boolean;
+    baseCatalogName: string;
+    baseColumnName: string;
+    baseSchemaName: string;
+    baseServerName: string;
+    baseTableName: string;
+    columnName: string;
+    columnOrdinal?: number;
+    columnSize?: number;
+    isAliased?: boolean;
+    isAutoIncrement?: boolean;
+    isExpression?: boolean;
+    isHidden?: boolean;
+    isIdentity?: boolean;
+    isKey?: boolean;
+    isLong?: boolean;
+    isReadOnly?: boolean;
+    isUnique?: boolean;
+    numericPrecision?: number;
+    numericScale?: number;
+    udtAssemblyQualifiedName: string;
+    dataTypeName: string;
+}
+
 export interface IGridResultSet {
-    columnsUri: string;
+    columns: IDbColumn[];
     rowsUri: string;
     numberOfRows: number;
 }
@@ -221,9 +249,14 @@ export interface ISelectionData {
     endColumn: number;
 }
 
+export interface IResultMessage {
+    time: string;
+    message: string;
+}
+
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
-    messages: string[];
+    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
 }

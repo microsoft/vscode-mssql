@@ -1,18 +1,26 @@
 'use strict';
 import vscode = require('vscode');
-import fs = require('fs');
 import Constants = require('../models/constants');
-import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
-import { IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
+import { INameValueChoice, IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+
+/**
+ * The different tasks for managing connection profiles.
+ */
+enum ManageProfileTask {
+    Create = 1,
+    ClearRecentlyUsed,
+    Edit,
+    Remove
+}
 
 export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
@@ -31,11 +39,17 @@ export class ConnectionUI {
         return this._connectionManager;
     }
 
-    private get vscodeWrapper(): VscodeWrapper {
+    /**
+     * Exposed for testing purposes
+     */
+    public get vscodeWrapper(): VscodeWrapper {
         return this._vscodeWrapper;
     }
 
-    private set vscodeWrapper(wrapper: VscodeWrapper) {
+    /**
+     * Exposed for testing purposes
+     */
+    public set vscodeWrapper(wrapper: VscodeWrapper) {
         this._vscodeWrapper = wrapper;
     }
 
@@ -53,9 +67,10 @@ export class ConnectionUI {
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
             if (picklist.length === 0) {
-                // No recent connections - prompt to open user settings or workspace settings to add a connection
-                self.openUserOrWorkspaceSettings();
-                resolve(undefined);
+                // No connections - go to the create profile workflow
+                self.createAndSaveProfile().then(resolvedProfile => {
+                    resolve(resolvedProfile);
+                });
             } else {
                 // We have recent connections - show them in a picklist
                 self.promptItemChoice({
@@ -111,6 +126,25 @@ export class ConnectionUI {
     }
 
     /**
+     * Prompt the user if they would like to cancel connecting.
+     */
+    public promptToCancelConnection(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: Constants.msgPromptCancelConnect,
+                message: Constants.msgPromptCancelConnect
+            };
+            self._prompter.promptSingle(question).then(result => {
+                resolve(result ? true : false);
+            }).catch(err => {
+                resolve(false);
+            });
+        });
+    }
+
+    /**
      * Prompt the user to change language mode to SQL.
      * @returns resolves to true if the user changed the language mode to SQL.
      */
@@ -146,6 +180,9 @@ export class ConnectionUI {
             const pickListItems = databaseNames.map(name => {
                 let newCredentials: Interfaces.IConnectionCredentials = <any>{};
                 Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
+                if (newCredentials['profileName']) {
+                    delete newCredentials['profileName'];
+                }
                 newCredentials.database = name;
 
                 return <Interfaces.IConnectionCredentialsQuickPickItem> {
@@ -169,28 +206,6 @@ export class ConnectionUI {
                     resolve(undefined);
                 }
             });
-        });
-    }
-
-    // Helper to prompt user to open VS Code user settings or workspace settings
-    private openUserOrWorkspaceSettings(): void {
-        let openGlobalSettingsItem: vscode.MessageItem = {
-            'title': Constants.labelOpenGlobalSettings
-        };
-
-        let openWorkspaceSettingsItem: vscode.MessageItem = {
-            'title': Constants.labelOpenWorkspaceSettings
-        };
-
-        vscode.window.showWarningMessage(Constants.extensionName
-                                         + ': '
-                                         + Constants.msgNoConnectionsInSettings, openGlobalSettingsItem, openWorkspaceSettingsItem)
-        .then((selectedItem: vscode.MessageItem) => {
-            if (selectedItem === openGlobalSettingsItem) {
-                vscode.commands.executeCommand('workbench.action.openGlobalSettings');
-            } else if (selectedItem === openWorkspaceSettingsItem) {
-                vscode.commands.executeCommand('workbench.action.openWorkspaceSettings');
-            }
         });
     }
 
@@ -219,17 +234,106 @@ export class ConnectionUI {
         });
     }
 
-    // Calls the create profile workflow
-    // Returns undefined if profile creation failed
-    public createAndSaveProfile(): Promise<IConnectionProfile> {
+    private promptToClearRecentConnectionsList(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: Constants.msgPromptClearRecentConnections,
+                message: Constants.msgPromptClearRecentConnections
+            };
+            self._prompter.promptSingle(question).then(result => {
+                resolve(result ? true : false);
+            }).catch(err => {
+                resolve(false);
+            });
+        });
+    }
+
+    public promptToManageProfiles(): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            // Create profile, clear recent connections, edit profiles, or remove profile?
+            let choices: INameValueChoice[] = [
+                { name: Constants.CreateProfileLabel, value: ManageProfileTask.Create },
+                { name: Constants.ClearRecentlyUsedLabel, value: ManageProfileTask.ClearRecentlyUsed},
+                { name: Constants.EditProfilesLabel, value: ManageProfileTask.Edit},
+                { name: Constants.RemoveProfileLabel, value: ManageProfileTask.Remove}
+            ];
+
+            let question: IQuestion = {
+                type: QuestionTypes.expand,
+                name: Constants.ManageProfilesPrompt,
+                message: Constants.ManageProfilesPrompt,
+                choices: choices,
+                onAnswered: (value) => {
+                    switch (value) {
+                        case ManageProfileTask.Create:
+                            self.connectionManager.onCreateProfile().then(result => {
+                                resolve(result);
+                            });
+                            break;
+                        case ManageProfileTask.ClearRecentlyUsed:
+                            self.promptToClearRecentConnectionsList().then(result => {
+                                if (result) {
+                                    self.connectionManager.clearRecentConnectionsList().then(() => {
+                                        self.vscodeWrapper.showInformationMessage(Constants.msgClearedRecentConnections);
+                                        resolve(true);
+                                    });
+                                } else {
+                                    resolve(false);
+                                }
+                            });
+                            break;
+                        case ManageProfileTask.Edit:
+                            self.vscodeWrapper.executeCommand('workbench.action.openGlobalSettings').then( () => {
+                                resolve(true);
+                            });
+                            break;
+                        case ManageProfileTask.Remove:
+                            self.connectionManager.onRemoveProfile().then(result => {
+                                resolve(result);
+                            });
+                            break;
+                        default:
+                            resolve(false);
+                            break;
+                    }
+                }
+            };
+
+            this._prompter.promptSingle(question);
+        });
+    }
+
+    /**
+     * Calls the create profile workflow
+     * @param validate whether the profile should be connected to and validated before saving
+     * @returns undefined if profile creation failed
+     */
+    public createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
         let self = this;
         return self.promptForCreateProfile()
             .then(profile => {
                 if (profile) {
-                    // Validate the profile before saving
-                    return self.validateAndSaveProfile(profile);
+                    if (validate) {
+                        // Validate the profile before saving
+                        return self.validateAndSaveProfile(profile);
+                    } else {
+                        // Save the profile without validation
+                        return self.saveProfile(profile);
+                    }
                 }
                 return undefined;
+            }).then(savedProfile => {
+                if (savedProfile) {
+                    if (validate) {
+                        self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreatedAndConnected);
+                    } else {
+                        self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreated);
+                    }
+                }
+                return savedProfile;
             });
     }
 
@@ -283,9 +387,16 @@ export class ConnectionUI {
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+        const passwordEmptyInConfigFile: boolean = Utils.isEmpty(selection.connectionCreds.password);
         return this._connectionStore.addSavedPassword(selection)
         .then(sel => {
-            return ConnectionCredentials.ensureRequiredPropertiesSet(sel.connectionCreds, false, this._prompter);
+            return ConnectionCredentials.ensureRequiredPropertiesSet(
+                sel.connectionCreds,
+                selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
+                false,
+                passwordEmptyInConfigFile,
+                this._prompter,
+                this._connectionStore);
         });
     }
 
@@ -294,7 +405,7 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = self._connectionStore.getProfilePickListItems();
+        let profiles = self._connectionStore.getProfilePickListItems(false);
         return self.selectProfileForRemoval(profiles)
         .then(profile => {
             if (profile) {
@@ -345,50 +456,6 @@ export class ConnectionUI {
                 return profilePickItem.connectionCreds;
             } else {
                 return undefined;
-            }
-        });
-    }
-
-    /**
-     * Open the configuration file that stores the connection profiles.
-     */
-    public openConnectionProfileConfigFile(): void {
-        const self = this;
-        this.vscodeWrapper.openTextDocument(this.vscodeWrapper.uriFile(ConnectionConfig.configFilePath))
-        .then(doc => {
-            self.vscodeWrapper.showTextDocument(doc);
-        }, error => {
-            // Check if the file doesn't exist
-            let fileExists = true;
-            try {
-                fs.accessSync(ConnectionConfig.configFilePath);
-            } catch (err) {
-                if (err.code === 'ENOENT') {
-                    fileExists = false;
-                }
-            }
-
-            if (!fileExists) {
-                // Open an untitled file to be saved at the proper path if it doesn't exist
-                self.vscodeWrapper.openTextDocument(self.vscodeWrapper.uriParse(Constants.untitledScheme + ':' + ConnectionConfig.configFilePath))
-                .then(doc => {
-                    self.vscodeWrapper.showTextDocument(doc).then(editor => {
-                        if (Utils.isEmpty(editor.document.getText())) {
-                            // Insert the template for a new connection into the file
-                            editor.edit(builder => {
-                                let position: vscode.Position = new vscode.Position(0, 0);
-                                builder.insert(position, JSON.stringify(Constants.defaultConnectionSettingsFileJson, undefined, 4));
-                            });
-                        }
-
-                        // Remind the user to save if they would like auto-completion enabled while editing the new file
-                        self._vscodeWrapper.showInformationMessage(Constants.msgNewConfigFileHelpInfo);
-                    });
-                }, err => {
-                    self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
-                });
-            } else { // Unable to access the file
-                self._vscodeWrapper.showErrorMessage(Constants.msgErrorOpeningConfigFile);
             }
         });
     }

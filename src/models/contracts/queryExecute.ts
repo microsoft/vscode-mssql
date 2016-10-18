@@ -1,5 +1,5 @@
 import {RequestType, NotificationType} from 'vscode-languageclient';
-import { ISelectionData } from './../interfaces';
+import { IDbColumn, ISelectionData, IResultMessage } from './../interfaces';
 
 // ------------------------------- < Query Dispose Request > ----------------------------------------
 export namespace QueryDisposeRequest {
@@ -28,31 +28,6 @@ export namespace QueryExecuteCompleteNotification {
                                                                                   };
 }
 
-export interface IDbColumn {
-    allowDBNull?: boolean;
-    baseCatalogName: string;
-    baseColumnName: string;
-    baseSchemaName: string;
-    baseServerName: string;
-    baseTableName: string;
-    columnName: string;
-    columnOrdinal?: number;
-    columnSize?: number;
-    isAliased?: boolean;
-    isAutoIncrement?: boolean;
-    isExpression?: boolean;
-    isHidden?: boolean;
-    isIdentity?: boolean;
-    isKey?: boolean;
-    isLong?: boolean;
-    isReadOnly?: boolean;
-    isUnique?: boolean;
-    numericPrecision?: number;
-    numericScale?: number;
-    udtAssemblyQualifiedName: string;
-    dataTypeName: string;
-}
-
 export class ResultSetSummary {
     id: number;
     rowCount: number;
@@ -63,7 +38,7 @@ export class BatchSummary {
     hasError: boolean;
     id: number;
     selection: ISelectionData;
-    messages: string[];
+    messages: IResultMessage[];
     resultSetSummaries: ResultSetSummary[];
 }
 

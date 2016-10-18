@@ -1,8 +1,7 @@
 'use strict';
 import Constants = require('./constants');
 import Interfaces = require('./interfaces');
-const figures = require('figures');
-import * as symbols from '../utils/symbol';
+import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from './utils';
 
 /**
@@ -72,12 +71,10 @@ function isAzureDatabase(server: string): boolean {
 export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials, itemType: Interfaces.CredentialsQuickPickItemType): string {
     let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
 
-    let icon: string = itemType === Interfaces.CredentialsQuickPickItemType.Mru ? figures.play : symbols.star;
-
     if (profile.profileName) {
-        return `${icon} ${profile.profileName}`;
+        return profile.profileName;
     } else {
-        return `${icon} ${connCreds.server}`;
+        return connCreds.server;
     }
 }
 
@@ -123,6 +120,13 @@ export function getConnectionDisplayString(creds: Interfaces.IConnectionCredenti
     }
     let user: string = getUserNameOrDomainLogin(creds);
     text = appendIfNotEmpty(text, user);
+
+    // Limit the maximum length of displayed text
+    if (text.length > Constants.maxDisplayedStatusTextLength) {
+        text = text.substr(0, Constants.maxDisplayedStatusTextLength);
+        text += ' \u2026'; // Ellipsis character (...)
+    }
+
     return text;
 }
 
@@ -153,17 +157,6 @@ export function getUserNameOrDomainLogin(creds: Interfaces.IConnectionCredential
     }
 }
 
-function addTooltipItem(creds: Interfaces.IConnectionCredentials, property: string): string {
-    let value: any = creds[property];
-    if (typeof value === 'undefined') {
-        return '';
-    } else if (typeof value === 'boolean') {
-        return property + ': ' + (value ? 'true' : 'false') + '\r\n';
-    } else {
-        return property + ': ' + value + '\r\n';
-    }
-}
-
 /**
  * Gets a detailed tooltip with information about a connection
  *
@@ -171,35 +164,15 @@ function addTooltipItem(creds: Interfaces.IConnectionCredentials, property: stri
  * @param {Interfaces.IConnectionCredentials} connCreds connection
  * @returns {string} tooltip
  */
-export function getTooltip(connCreds: Interfaces.IConnectionCredentials): string {
+export function getTooltip(connCreds: Interfaces.IConnectionCredentials, serverInfo?: ConnectionContracts.ServerInfo): string {
     let tooltip: string =
-           'server: ' + connCreds.server + '\r\n' +
-           'database: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
-           'username: ' + connCreds.user + '\r\n' +
-           'encrypt connection: ' + (connCreds.encrypt ? 'true' : 'false') + '\r\n' +
-           'connection timeout: ' + connCreds.connectTimeout + ' s\r\n';
-
-    tooltip += addTooltipItem(connCreds, 'port');
-    tooltip += addTooltipItem(connCreds, 'applicationName');
-    tooltip += addTooltipItem(connCreds, 'applicationIntent');
-    tooltip += addTooltipItem(connCreds, 'attachDbFilename');
-    tooltip += addTooltipItem(connCreds, 'authenticationType');
-    tooltip += addTooltipItem(connCreds, 'connectRetryCount');
-    tooltip += addTooltipItem(connCreds, 'connectRetryInterval');
-    tooltip += addTooltipItem(connCreds, 'currentLanguage');
-    tooltip += addTooltipItem(connCreds, 'failoverPartner');
-    tooltip += addTooltipItem(connCreds, 'loadBalanceTimeout');
-    tooltip += addTooltipItem(connCreds, 'maxPoolSize');
-    tooltip += addTooltipItem(connCreds, 'minPoolSize');
-    tooltip += addTooltipItem(connCreds, 'multipleActiveResultSets');
-    tooltip += addTooltipItem(connCreds, 'multiSubnetFailover');
-    tooltip += addTooltipItem(connCreds, 'packetSize');
-    tooltip += addTooltipItem(connCreds, 'persistSecurityInfo');
-    tooltip += addTooltipItem(connCreds, 'pooling');
-    tooltip += addTooltipItem(connCreds, 'replication');
-    tooltip += addTooltipItem(connCreds, 'trustServerCertificate');
-    tooltip += addTooltipItem(connCreds, 'typeSystemVersion');
-    tooltip += addTooltipItem(connCreds, 'workstationId');
+           'Server name: ' + connCreds.server + '\r\n' +
+           'Database name: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
+           'Login name: ' + connCreds.user + '\r\n' +
+           'Connection encryption: ' + (connCreds.encrypt ? 'Encrypted' : 'Not encrypted') + '\r\n';
+    if (serverInfo && serverInfo.serverVersion) {
+        tooltip += 'Server version: ' + serverInfo.serverVersion + '\r\n';
+    }
 
     return tooltip;
 }

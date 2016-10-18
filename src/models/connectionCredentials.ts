@@ -1,7 +1,8 @@
 'use strict';
 import Constants = require('./constants');
 import { ConnectionDetails } from './contracts/connection';
-import { IConnectionCredentials, AuthenticationTypes } from './interfaces';
+import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 
@@ -78,12 +79,56 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static ensureRequiredPropertiesSet(
         credentials: IConnectionCredentials,
+        isProfile: boolean,
         isPasswordRequired: boolean,
-        prompter: IPrompter): Promise<IConnectionCredentials> {
+        wasPasswordEmptyInConfigFile: boolean,
+        prompter: IPrompter,
+        connectionStore: ConnectionStore): Promise<IConnectionCredentials> {
 
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
+        let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
+
+        // Potentially ask to save password
+        questions.push({
+            type: QuestionTypes.confirm,
+            name: Constants.msgSavePassword,
+            message: Constants.msgSavePassword,
+            shouldPrompt: (answers) => {
+                if (isProfile) {
+                    // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
+                    return ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                            typeof((<IConnectionProfile>credentials).savePassword) === 'undefined' &&
+                            wasPasswordEmptyInConfigFile;
+                } else {
+                    // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
+                    return ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                            typeof((<IConnectionProfile>credentials).savePassword) === 'undefined';
+                }
+            },
+            onAnswered: (value) => {
+                (<IConnectionProfile>credentials).savePassword = value;
+            }
+        });
+
         return prompter.prompt(questions).then(answers => {
             if (answers) {
+                if (isProfile) {
+                    let profile: IConnectionProfile = <IConnectionProfile>credentials;
+
+                    // If this is a profile, and the user has set save password to true and stored the password in the config file,
+                    // then transfer the password to the credential store
+                    if (profile.savePassword && !wasPasswordEmptyInConfigFile) {
+                        connectionStore.removeProfile(profile).then(() => {
+                            connectionStore.saveProfile(profile);
+                        });
+                    // Or, if the user answered any additional questions for the profile, be sure to save it
+                    } else if (profile.authenticationType !== unprocessedCredentials.authenticationType ||
+                               profile.savePassword !== (<IConnectionProfile>unprocessedCredentials).savePassword) {
+                        connectionStore.removeProfile(profile).then(() => {
+                            connectionStore.saveProfile(profile, !wasPasswordEmptyInConfigFile);
+                        });
+                    }
+                }
                 return credentials;
             } else {
                 return undefined;
@@ -173,7 +218,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static isPasswordBasedCredential(credentials: IConnectionCredentials): boolean {
         // TODO consider enum based verification and handling of AD auth here in the future
-        return credentials.authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        let authenticationType = credentials.authenticationType;
+        if (typeof credentials.authenticationType === 'undefined') {
+            authenticationType = utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        }
+        return authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
     }
 
     // Validates a string is not empty, returning undefined if true and an error message if not

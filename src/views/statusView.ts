@@ -93,30 +93,30 @@ export default class StatusView implements vscode.Disposable {
 
     public connecting(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.command = undefined;
+        bar.statusConnection.command = Constants.cmdDisconnect;
         bar.statusConnection.tooltip = Constants.connectingTooltip + ConnInfo.getTooltip(connCreds);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showProgress(fileUri, Constants.connectingLabel, bar.statusConnection);
     }
 
-    public connectSuccess(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
+    public connectSuccess(fileUri: string, connCreds: Interfaces.IConnectionCredentials, serverInfo: ConnectionContracts.ServerInfo): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.command = Constants.cmdConnect;
+        bar.statusConnection.command = Constants.cmdChooseDatabase;
         bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
-        bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds);
+        bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public connectError(fileUri: string, connCreds: Interfaces.IConnectionCredentials, error: ConnectionContracts.ConnectionResult): void {
+    public connectError(fileUri: string, credentials: Interfaces.IConnectionCredentials, error: ConnectionContracts.ConnectionCompleteParams): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
         bar.statusConnection.text = Constants.connectErrorLabel;
         if (error.errorNumber && error.errorMessage && !Utils.isEmpty(error.errorMessage)) {
-            bar.statusConnection.tooltip = Constants.connectErrorTooltip + connCreds.server + '\n' +
+            bar.statusConnection.tooltip = Constants.connectErrorTooltip + credentials.server + '\n' +
                                         Constants.connectErrorCode + error.errorNumber + '\n' +
                                         Constants.connectErrorMessage + error.errorMessage;
         } else {
-            bar.statusConnection.tooltip = Constants.connectErrorTooltip + connCreds.server + '\n' +
+            bar.statusConnection.tooltip = Constants.connectErrorTooltip + credentials.server + '\n' +
                                         Constants.connectErrorMessage + error.messages;
         }
         this.showStatusBarItem(fileUri, bar.statusConnection);
@@ -133,6 +133,16 @@ export default class StatusView implements vscode.Disposable {
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusQuery.hide();
+    }
+
+    public cancelingQuery(fileUri: string): void {
+        let bar = this.getStatusBar(fileUri);
+        bar.statusQuery.hide();
+
+        bar.statusQuery.command = undefined;
+        bar.statusQuery.tooltip = Constants.cancelingQueryLabel;
+        this.showStatusBarItem(fileUri, bar.statusQuery);
+        this.showProgress(fileUri, Constants.cancelingQueryLabel, bar.statusQuery);
     }
 
     public installingService(fileUri: string): void {

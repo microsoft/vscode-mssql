@@ -5,7 +5,7 @@
 import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
-import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData } from './../interfaces';
+import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { ISlickRange } from './SlickGrid/SelectionModel';
 
 /**
@@ -81,9 +81,9 @@ export class DataService {
      * Get the messages for a batch
      * @param batchId The batchId for which batch to return messages for
      */
-    getMessages(batchId: number): Promise<string[]> {
+    getMessages(batchId: number): Promise<IResultMessage[]> {
         const self = this;
-        return new Promise<string[]>((resolve, reject) => {
+        return new Promise<IResultMessage[]>((resolve, reject) => {
             if (!self.batchSets) {
                 self.getMetaData().then(() => {
                     resolve(self.batchSets[batchId].messages);
@@ -172,34 +172,25 @@ export class DataService {
         if (!this.batchSets) {
             return Observable.create(observer => {
                 self.getMetaData().then(() => {
-                    if (self.batchSets[resultId].resultSets.length > 0) {
-                        self.http.get(self.batchSets[batchId].resultSets[resultId].columnsUri)
-                            .map(res => {
-                                return res.json();
-                            })
-                            .subscribe(data => {
-                                observer.next(data);
-                                observer.complete();
-                            });
+                    if (self.batchSets[batchId].resultSets.length > 0) {
+                        observer.next(self.batchSets[batchId].resultSets[resultId].columns);
+                        observer.complete();
                     } else {
                         observer.next(undefined);
                         observer.complete();
                     }
-
                 });
             });
         } else {
-            if (this.batchSets[batchId].resultSets.length > 0) {
-                return this.http.get(this.batchSets[batchId].resultSets[resultId].columnsUri)
-                            .map(res => {
-                                return res.json();
-                            });
-            } else {
-                return Observable.create(observer => {
+            return Observable.create(observer => {
+                if (self.batchSets[batchId].resultSets.length > 0) {
+                    observer.next(self.batchSets[batchId].resultSets[resultId].columns);
+                    observer.complete();
+                } else {
                     observer.next(undefined);
                     observer.complete();
-                });
-            }
+                }
+            });
         }
     }
 
@@ -244,20 +235,33 @@ export class DataService {
      * @param batchId The batch id of the batch with the result to save
      * @param resultId The id of the result to save as csv
      */
-    sendSaveRequest(batchIndex: number, resultSetNumber: number, format: string): void {
+    sendSaveRequest(batchIndex: number, resultSetNumber: number, format: string, selection: ISlickRange[]): void {
         const self = this;
-        self.http.get('/saveResults?'
-                             + '&uri=' + self.uri + '&format=' + format + '&batchIndex=' + batchIndex + '&resultSetNo=' + resultSetNumber).subscribe();
+        let headers = new Headers();
+        let url = '/saveResults?'
+                        + '&uri=' + self.uri
+                        + '&format=' + format
+                        + '&batchIndex=' + batchIndex
+                        + '&resultSetNo=' + resultSetNumber ;
+        self.http.post(url, selection, { headers: headers })
+            .subscribe(undefined, err => {
+                self.showError(err.statusText);
+            });
     }
 
     /**
      * send request to open content in new editor
+     * @param content The content to be opened
+     * @param columnName The column name of the content
      */
-    openLink(content: string, columnName: string): void {
+    openLink(content: string, columnName: string, linkType: string): void {
         const self = this;
         let headers = new Headers();
         headers.append('Content-Type', 'application/json');
-        self.http.post('/openLink', JSON.stringify({ 'content': content , 'columnName': columnName}), { headers : headers }).subscribe();
+        self.http.post('/openLink', JSON.stringify({ 'content': content , 'columnName': columnName, 'type': linkType}), { headers : headers })
+            .subscribe(undefined, err => {
+                self.showError(err.statusText);
+            });
     }
 
     /**
@@ -282,5 +286,21 @@ export class DataService {
         let headers = new Headers();
         let url = '/setEditorSelection?' + '&uri=' + self.uri;
         self.http.post(url, selection, { headers: headers }).subscribe();
+    }
+
+    showWarning(message: string): void {
+        const self = this;
+        let url = '/showWarning?' + '&uri=' + self.uri;
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
+    }
+
+    showError(message: string): void {
+        const self = this;
+        let url = '/showError?' + '&uri=' + self.uri;
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
     }
 }
