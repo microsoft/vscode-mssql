@@ -1,3 +1,5 @@
+// Adapted from https://github.com/naresh-n/slickgrid-column-data-autosize/blob/master/src/slick.autocolumnsize.js
+
 (function($) {
 
     $.extend(true, window, {
@@ -53,8 +55,9 @@
             var rowEl = createRow(columnDef);
             var data = grid.getData();
             var numOfCol = grid.getColumns().length - 1;
-            for (var i = 1; i < data.getLength() + 1; i++) {
-                texts.push(data.getItem(i)[columnDef]);
+            var viewPort = grid.getViewport();
+            for (var i = viewPort.top; i < viewPort.bottom + 1; i++) {
+                texts.push(data.getItem(i)[columnDef.field]);
             }
             var template = getMaxTextTemplate(texts, columnDef, colIndex, data, rowEl);
             var width = getTemplateWidth(rowEl, template);
