@@ -66,7 +66,7 @@ export const msgRunQueryInProgress = 'A query is already executing for this edit
 
 export const msgCancelQueryFailed = 'Failed to cancel query execution: {0}';
 export const msgCancelQueryNotRunning = 'Cannot cancel query, no query is executing';
-export const msgCancelQuerySuccess = 'Query successfully canceled';
+export const msgCancelQuerySuccess = 'Successfully canceled query execution';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
