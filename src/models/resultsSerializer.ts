@@ -109,14 +109,8 @@ export default class ResultsSerializer {
 
         // if user entered config, set options
         if (saveConfig) {
-            if (saveConfig.encoding) {
-                saveResultsParams.fileEncoding  = saveConfig.encoding;
-            }
             if (saveConfig.includeHeaders) {
                 saveResultsParams.includeHeaders = saveConfig.includeHeaders;
-            }
-            if (saveConfig.valueInQuotes) {
-                saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
             }
         }
         return saveResultsParams;
@@ -221,6 +215,8 @@ export default class ResultsSerializer {
         } else if (format === 'json') {
             type = Contracts.SaveResultsAsJsonRequest.type;
         }
+
+        self._vscodeWrapper.logToOutputChannel('Starting save results to ' + this._filePath);
 
         // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
         return self._client.sendRequest( type, saveResultsParams).then(result => {

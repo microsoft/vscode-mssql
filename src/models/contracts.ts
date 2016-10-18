@@ -66,9 +66,7 @@ export class SaveResultsRequestParams {
 }
 
 export class SaveResultsAsCsvRequestParams extends SaveResultsRequestParams {
-        fileEncoding: string = 'utf-8';
         includeHeaders: boolean = true;
-        valueInQuotes: boolean = false;
 }
 
 export class SaveResultsAsJsonRequestParams extends SaveResultsRequestParams {
