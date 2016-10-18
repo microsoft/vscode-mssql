@@ -105,6 +105,14 @@
         "path": "./snippets/mssql.json"
       }
     ],
+     "menus": {
+        "editor/context": [
+         {
+           "command": "extension.runQuery",
+            "when": "editorLangId == sql"
+         }
+       ]
+     },
     "commands": [
       {
         "command": "extension.runQuery",
