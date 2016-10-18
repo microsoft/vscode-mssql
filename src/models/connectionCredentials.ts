@@ -88,22 +88,27 @@ export class ConnectionCredentials implements IConnectionCredentials {
         let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired);
         let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
 
-        if (isProfile) {
-            let profile: IConnectionProfile = <IConnectionProfile>credentials;
-
-            // Add an additional question to save password if it is undefined for a profile
-            questions.push(
-                {
-                    type: QuestionTypes.confirm,
-                    name: Constants.msgSavePassword,
-                    message: Constants.msgSavePassword,
-                    shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile) && typeof(profile.savePassword) === 'undefined',
-                    onAnswered: (value) => {
-                        profile.savePassword = value;
-                    }
+        // Potentially ask to save password
+        questions.push({
+            type: QuestionTypes.confirm,
+            name: Constants.msgSavePassword,
+            message: Constants.msgSavePassword,
+            shouldPrompt: (answers) => {
+                if (isProfile) {
+                    // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
+                    return ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                            typeof((<IConnectionProfile>credentials).savePassword) === 'undefined' &&
+                            wasPasswordEmptyInConfigFile;
+                } else {
+                    // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
+                    return ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+                            typeof((<IConnectionProfile>credentials).savePassword) === 'undefined';
                 }
-            );
-        }
+            },
+            onAnswered: (value) => {
+                (<IConnectionProfile>credentials).savePassword = value;
+            }
+        });
 
         return prompter.prompt(questions).then(answers => {
             if (answers) {
@@ -213,7 +218,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static isPasswordBasedCredential(credentials: IConnectionCredentials): boolean {
         // TODO consider enum based verification and handling of AD auth here in the future
-        return credentials.authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        let authenticationType = credentials.authenticationType;
+        if (typeof credentials.authenticationType === 'undefined') {
+            authenticationType = utils.authTypeToString(AuthenticationTypes.SqlLogin);
+        }
+        return authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
     }
 
     // Validates a string is not empty, returning undefined if true and an error message if not

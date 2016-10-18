@@ -98,6 +98,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
         this.registerCommand(Constants.cmdShowReleaseNotes);
         this._event.on(Constants.cmdShowReleaseNotes, () => { self.launchReleaseNotesPage(); } );
+        this.registerCommand(Constants.cmdCancelQuery);
+        this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
 
         this._vscodeWrapper = new VscodeWrapper();
 
@@ -154,6 +156,14 @@ export default class MainController implements vscode.Disposable {
                 resolve(true);
             });
         });
+    }
+
+    /**
+     * Handles the command to cancel queries
+     */
+    private onCancelQuery(): void {
+        let uri = this._vscodeWrapper.activeTextEditorUri;
+        this._outputContentProvider.cancelQuery(uri);
     }
 
     /**

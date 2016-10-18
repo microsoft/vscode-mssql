@@ -112,6 +112,11 @@
         "category": "SQL"
       },
       {
+        "command": "extension.cancelQuery",
+        "title": "Cancel executing T-SQL query",
+        "category": "SQL"
+      },
+      {
         "command": "extension.connect",
         "title": "Connect",
         "category": "SQL"

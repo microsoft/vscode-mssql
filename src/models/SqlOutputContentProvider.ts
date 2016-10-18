@@ -236,12 +236,19 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public cancelQuery(uri: string): void {
         let self = this;
 
-        // Cancel the query
+        // If there isn't a query for this uri, then return an info message
         let resultsUri = this.getResultsUri(uri).toString();
-        this._queryResultsMap.get(resultsUri).cancel().then(success => {
-            // On success, dispose of the query runner
-            self._queryResultsMap.delete(resultsUri);
-        }, error => {
+        let queryRunner = this._queryResultsMap.get(resultsUri);
+        if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
+            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQueryNotRunning);
+            return;
+        }
+
+        // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
+        this._statusView.cancelingQuery(queryRunner.uri);
+
+        // Cancel the query
+        queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
         });
@@ -272,7 +279,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     /**
      * Executed from the MainController when a text document (that already exists on disk) was
-     * closed. If the query is in progress, it will be cancelled. If there is a query at all,
+     * closed. If the query is in progress, it will be canceled. If there is a query at all,
      * the query will be disposed.
      * @param doc   The document that was closed
      */
