@@ -174,6 +174,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
+    // tslint:disable-next-line:no-unused-variable
+    private startString = new Date().toLocaleTimeString();
 
     // FIELDS
     // All datasets
@@ -208,14 +210,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
-        let startDate = new Date();
-        this.messages.push(
-            {
-                messages: [{message: Constants.executeQueryLabel, time: startDate.toLocaleTimeString()}],
-                hasError: false,
-                selection: undefined
-            }
-        );
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             self.messages = [];
             for (let [batchId, batch] of batchs.entries()) {
