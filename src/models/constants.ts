@@ -126,8 +126,8 @@ export const profileNamePrompt = 'Profile Name';
 export const profileNamePlaceholder = '[Optional] Enter a name for this profile';
 
 export const filepathPrompt = 'File path';
-export const filepathPlaceholder = 'Enter full file path or file name to save in the current folder.';
-export const filepathMessage = 'Enter full file path or file name to save in the current folder.';
+export const filepathPlaceholder = 'File name';
+export const filepathMessage = 'File name';
 export const overwritePrompt = 'The file already exists. Do you want to replace the existing file?';
 export const overwritePlaceholder = 'The file already exists';
 
