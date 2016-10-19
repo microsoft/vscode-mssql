@@ -113,7 +113,7 @@
       },
       {
         "command": "extension.cancelQuery",
-        "title": "Cancel Executing Query",
+        "title": "Cancel Query",
         "category": "MS SQL"
       },
       {

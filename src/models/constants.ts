@@ -163,7 +163,7 @@ export const executeQueryLabel = 'Executing query ';
 export const cancelingQueryLabel = 'Canceling query ';
 
 export const serviceCompatibleVersion = '1.0.0';
-export const serviceNotCompatibleError = 'Client is not compatiable with the service layer';
+export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
 export const serviceInstalling = 'Installing Sql Tools Service';
 export const serviceInstalled = 'Sql Tools Service installed';
 export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
