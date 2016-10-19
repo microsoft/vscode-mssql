@@ -117,37 +117,37 @@
       {
         "command": "extension.runQuery",
         "title": "Execute Query",
-        "category": "SQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.cancelQuery",
-        "title": "Cancel executing T-SQL query",
-        "category": "SQL"
+        "title": "Cancel Query",
+        "category": "MS SQL"
       },
       {
         "command": "extension.connect",
         "title": "Connect",
-        "category": "SQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.disconnect",
         "title": "Disconnect",
-        "category": "SQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.manageProfiles",
         "title": "Manage Connection Profiles",
-        "category": "SQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.chooseDatabase",
         "title": "Use Database",
-        "category": "SQL"
+        "category": "MS SQL"
       },
       {
         "command": "extension.showReleaseNotes",
         "title": "Getting Started Guide",
-        "category": "SQL"
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -200,29 +200,29 @@
               "password": "{{put-password-here}}"
             }
           ],
-          "description": "Connections placed here are shown in the connections picklist across VS Code sessions.",
+          "description": "Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.",
           "items": {
             "type": "object",
             "properties": {
               "server": {
                 "type": "string",
                 "default": "{{put-server-name-here}}",
-                "description": "[Required] Server to connect to. Use 'hostname\\instance' or '<server>.database.windows.net'."
+                "description": "[Required] Server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database."
               },
               "database": {
                 "type": "string",
                 "default": "{{put-database-name-here}}",
-                "description": "[Optional] Database to connect to. If this is empty, default depends on server configuration, typically 'master'."
+                "description": "[Optional] Database name to connect to. If database is not specified, the default user database setting is used, typically 'master'."
               },
               "user": {
                 "type": "string",
                 "default": "{{put-username-here}}",
-                "description": "[Optional] User name for SQL authentication. If this is empty, you are prompted when you connect."
+                "description": "[Optional] User name for SQL authentication. If user name is not specified, mssql extension will ask it when you connect."
               },
               "password": {
                 "type": "string",
                 "default": "{{put-password-here}}",
-                "description": "[Optional] Password for SQL authentication. If this is empty, you are prompted when you connect."
+                "description": "[Optional] Password for SQL authentication. If password is not specified or already saved, mssql extension will ask it when you connect."
               },
               "authenticationType": {
                 "type": "string",
@@ -231,7 +231,7 @@
                   "Integrated",
                   "SqlLogin"
                 ],
-                "description": "[Optional] Specifies the method of authenticating with SQL Server."
+                "description": "[Optional] Specify the method of authenticating with SQL Server."
               },
               "port": {
                 "type": "number",
@@ -241,21 +241,22 @@
               "encrypt": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] Specify if the connection will be encrypted. Always set to 'true' for Azure SQL DB and loaded from here otherwise."
+                "description": "[Optional] When true, SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. Set 'true' for Azure SQL Database connection."
               },
               "trustServerCertificate": {
                 "type": "boolean",
-                "description": "[Optional]"
+                "default": false,
+                "description": "[Optional] When 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection."
               },
               "persistSecurityInfo": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional]"
+                "description": "[Optional] When false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has evever been in an open state."
               },
               "connectTimeout": {
                 "type": "number",
                 "default": 15,
-                "description": "[Optional] The length of time in seconds to wait for a connection to the server before terminating the attempt and generating error."
+                "description": "[Optional] The length of time in seconds to wait for a connection to the server before terminating the attempt and generating error. The default timeout value for Azure SQL Database is 30."
               },
               "connectRetryCount": {
                 "type": "number",
@@ -270,7 +271,7 @@
               "applicationName": {
                 "type": "string",
                 "default": "vscode-mssql",
-                "description": "[Optional] Application name used for SQL server logging (default: 'vscode-mssql')."
+                "description": "[Optional] The name of the application used for SQL Server to log (default: 'vscode-mssql')."
               },
               "workstationId": {
                 "type": "string",
@@ -284,77 +285,77 @@
                   "ReadWrite",
                   "ReadOnly"
                 ],
-                "description": "[Optional]"
+                "description": "[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail."
               },
               "currentLanguage": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional]"
+                "description": "[Optional] The SQL Server language record name."
               },
               "pooling": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional]"
+                "description": "[Optional] When true, the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool."
               },
               "maxPoolSize": {
                 "type": "number",
                 "default": 100,
-                "description": "[Optional]"
+                "description": "[Optional] The maximum number of connections allowed in the pool."
               },
               "minPoolSize": {
                 "type": "number",
                 "default": 0,
-                "description": "[Optional]"
+                "description": "[Optional] The minimum number of connections allowed in the pool."
               },
               "loadBalanceTimeout": {
                 "type": "number",
                 "default": 0,
-                "description": "[Optional]"
+                "description": "[Optional] The minimum amount of time in seconds for this connection to live in the pool before being destroyed."
               },
               "replication": {
                 "type": "boolean",
                 "default": true,
-                "description": "[Optional]"
+                "description": "[Optional] Used by SQL Server in replication."
               },
               "attachDbFilename": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional]"
+                "description": "[Optional] The name of the primary file, including the full path name, of an attachable database."
               },
               "failoverPartner": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional]"
+                "description": "[Optional] The name or network address of the instance of SQL Server that acts as a failover partner."
               },
               "multiSubnetFailover": {
                 "type": "boolean",
                 "default": true,
-                "description": "[Optional]"
+                "description": "[Optional] When true, the detection and connection to the active server is faster if AlwasyOn Availability Group is configured on different subnets."
               },
               "multipleActiveResultSets": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional]"
+                "description": "[Optional] When true, multiple result sets can be returned and read from on connection."
               },
               "packetSize": {
                 "type": "number",
                 "default": 8192,
-                "description": "[Optional]"
+                "description": "[Optional] Size in bytes of the network packets to communicate with SQL Server."
               },
               "typeSystemVersion": {
                 "type": "string",
                 "enum": [
                   "Latest"
                 ],
-                "description": "[Optional]"
+                "description": "[Optional] Indicates which server type the provider will expose through the DataReader."
               },
               "profileName": {
                 "type": "string",
-                "description": "[Optional]"
+                "description": "[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code."
               },
               "savePassword": {
                 "type": "boolean",
-                "description": "[Optional]"
+                "description": "[Optional] When true, the password for SQL Login Authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows."
               }
             }
           }
