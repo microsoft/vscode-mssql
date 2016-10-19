@@ -129,3 +129,9 @@ slick-grid:last-of-type {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+.contextMenu {
+  border: 1px solid silver;
+  box-shadow: 2px 2px 2px silver;
+  border-color: silver;
+}
