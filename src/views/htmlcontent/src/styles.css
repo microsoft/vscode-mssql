@@ -69,7 +69,7 @@ table {
   padding-bottom: 1em;
 }
 
-#messageTable td.messageValue {
+.messageValue {
   white-space: pre-line;
 }
 
