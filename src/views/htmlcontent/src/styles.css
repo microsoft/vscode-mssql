@@ -69,6 +69,10 @@ table {
   padding-bottom: 1em;
 }
 
+#messageTable td.messageValue {
+  white-space: pre-line;
+}
+
 .boxRow.content.padded {
     padding: 15px
 }
