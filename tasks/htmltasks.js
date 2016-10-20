@@ -51,6 +51,7 @@ gulp.task('html:copy-src', () => {
                         config.paths.html.root + '/src/**/*.js',
                         config.paths.html.root + '/src/**/*.css',
                         config.paths.html.root + '/src/**/*.svg',
+                        config.paths.html.root + '/src/**/*.gif',
                         config.paths.html.root + '/src/**/*.json'
                     ])
                 .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/'))

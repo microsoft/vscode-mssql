@@ -40,22 +40,30 @@
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
-            <template ngFor let-imessage [ngForOf]="messages">
-                <tr *ngIf="imessage.selection">
-                    <td>[{{imessage.messages[0].time}}]</td>
-                    <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
+            <tbody *ngIf="messages.length > 0">
+                <template ngFor let-imessage [ngForOf]="messages">
+                    <tr *ngIf="imessage.selection">
+                        <td>[{{imessage.messages[0].time}}]</td>
+                        <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
+                    </tr>
+                    <tr *ngFor="let message of imessage.messages">
+                        <td></td>
+                        <td [class.errorMessage]="imessage.hasError" style="padding-left: 20px">
+                            {{message.message}}
+                        </td>
+                    </tr>
+                    <tr *ngIf="imessage.selection">
+                        <td>[{{imessage.messages[imessage.messages.length - 1].time}}]</td>
+                        <td>{{Constants.messageEndLabel}}</td>
+                    </tr>
+                </template>
+            </tbody>
+            <tbody *ngIf="messages.length === 0">
+                <tr>
+                    <td>[{{startString}}]</td>
+                    <td><img src="images/progress_36x_animation.gif" height="18px"> <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
                 </tr>
-                <tr *ngFor="let message of imessage.messages">
-                    <td></td>
-                    <td [class.errorMessage]="imessage.hasError" style="padding-left: 20px">
-                        {{message.message}}
-                    </td>
-                </tr>
-                <tr *ngIf="imessage.selection">
-                    <td>[{{imessage.messages[imessage.messages.length - 1].time}}]</td>
-                    <td>{{Constants.messageEndLabel}}</td>
-                </tr>
-            </template>
+            </tbody>
         </table>
     </div>
     <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
