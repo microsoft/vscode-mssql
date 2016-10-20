@@ -366,7 +366,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     edit.insert(new vscode.Position(0, 0), content);
                 }).then(result => {
                     if (!result) {
-                        self._vscodeWrapper.showErrorMessage('Content could not be opened');
+                        self._vscodeWrapper.showErrorMessage(Constants.msgCannotOpenContent);
                     }
                 });
             }, (error: any) => {
@@ -394,7 +394,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      * Return temp file name for opening a link
      */
     private getXmlTempFileName(columnName: string, linkType: string): string {
-        let baseFileName = columnName + '_';
+        if (columnName === 'Microsoft SQL Server 2005 XML Showplan') {
+            columnName = 'Showplan';
+        }
+        let baseFileName = columnName + '-';
         let retryCount: number = 200;
         for (let i = 0; i < retryCount; i++) {
             let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
