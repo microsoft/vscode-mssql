@@ -83,17 +83,14 @@ export default class ResultsSerializer {
         const self = this;
         // resolve filepath
         if (!path.isAbsolute(filePath)) {
-
             filePath = self.resolveFilePath(this._uri, filePath);
         }
-
         if (self._isTempFile) {
             return false;
         }
         // check if file already exists on disk
         try {
-            let stats = fs.statSync(filePath);
-            self._vscodeWrapper.logToOutputChannel('File already exists ' + stats);
+            fs.statSync(filePath);
             return true;
         } catch (err) {
             return false;
@@ -109,14 +106,8 @@ export default class ResultsSerializer {
 
         // if user entered config, set options
         if (saveConfig) {
-            if (saveConfig.encoding) {
-                saveResultsParams.fileEncoding  = saveConfig.encoding;
-            }
             if (saveConfig.includeHeaders) {
                 saveResultsParams.includeHeaders = saveConfig.includeHeaders;
-            }
-            if (saveConfig.valueInQuotes) {
-                saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
             }
         }
         return saveResultsParams;
@@ -222,16 +213,20 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsJsonRequest.type;
         }
 
+        self._vscodeWrapper.logToOutputChannel(Constants.msgSaveStarted + this._filePath);
+
         // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
         return self._client.sendRequest( type, saveResultsParams).then(result => {
                 if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage(result.messages);
+                    self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + result.messages);
+                    self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + result.messages);
                 } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this._filePath);
+                    self._vscodeWrapper.showInformationMessage(Constants.msgSaveSucceeded + this._filePath);
                     self.openSavedFile(self._filePath);
                 }
             }, error => {
-                self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
+                self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + error);
+                self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + error);
         });
     }
 
@@ -260,7 +255,7 @@ export default class ResultsSerializer {
             // Show open document and set focus
             self._vscodeWrapper.showTextDocument(doc, 1, false).then(editor => {
                 // write message to output tab
-                self._vscodeWrapper.logToOutputChannel('Results saved to ' + filePath);
+                self._vscodeWrapper.logToOutputChannel(Constants.msgSaveSucceeded + filePath);
             }, (error: any) => {
                 self._vscodeWrapper.showErrorMessage(error);
             });
