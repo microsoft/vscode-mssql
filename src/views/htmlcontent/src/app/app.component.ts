@@ -251,21 +251,23 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             let columnDefinitions = [];
 
                             for (let i = 0; i < columnData.length; i++) {
+                                // Fix column name for showplan queries
+                                let columnName = (columnData[i].columnName === 'Microsoft SQL Server 2005 XML Showplan') ?
+                                                         'XML Showplan' : columnData[i].columnName;
                                 if (columnData[i].isXml || columnData[i].isJson) {
                                     let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
-                                        id: columnData[i].columnName,
+                                        id: columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
                                         asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
-                                        id: columnData[i].columnName,
+                                        id: columnName,
                                         type: self.stringToFieldType('string')
                                     });
                                 }
-
                             }
                             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                                 return new Promise<IGridDataRow[]>((resolve, reject) => {

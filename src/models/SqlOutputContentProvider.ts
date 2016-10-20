@@ -394,7 +394,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      * Return temp file name for opening a link
      */
     private getXmlTempFileName(columnName: string, linkType: string): string {
-        if (columnName === 'Microsoft SQL Server 2005 XML Showplan') {
+        if (columnName === 'XML Showplan') {
             columnName = 'Showplan';
         }
         let baseFileName = columnName + '-';
