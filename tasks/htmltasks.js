@@ -47,11 +47,11 @@ gulp.task('html:copy-node-modules', () => {
 gulp.task('html:copy-src', () => {
     return gulp.src([
                         config.paths.html.root + '/src/**/*.html',
-                        config.paths.html.root + '/src/**/*.png',
                         config.paths.html.root + '/src/**/*.ejs',
                         config.paths.html.root + '/src/**/*.js',
                         config.paths.html.root + '/src/**/*.css',
-                        config.paths.html.root + '/src/**/*.svg'
+                        config.paths.html.root + '/src/**/*.svg',
+                        config.paths.html.root + '/src/**/*.json'
                     ])
                 .pipe(gulp.dest(config.paths.project.root + '/out/src/views/htmlcontent/src/'))
 })

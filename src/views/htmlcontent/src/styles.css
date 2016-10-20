@@ -28,7 +28,7 @@
 }
 
 .boxRow.content.horzBox.slickgrid {
-  margin-bottom: 5px;
+  margin-bottom: 1px;
 }
 
 .boxRow.content.horzBox.slickgrid:last-child {
@@ -62,7 +62,7 @@ table {
 }
 
 .wide {
-  width: 130px;
+  width: 110px;
 }
 
 #messageTable td {

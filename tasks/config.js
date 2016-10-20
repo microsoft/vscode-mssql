@@ -29,7 +29,8 @@ var config = {
                 htmlcontentRoot + '/node_modules/rxjs/**/*',
                 htmlcontentRoot + '/node_modules/angular2-in-memory-web-api/**/*',
                 htmlcontentRoot + '/node_modules/bootstrap/dist/css/bootstrap.min.css',
-                htmlcontentRoot + '/node_modules/bootstrap/dist/fonts/**/*'
+                htmlcontentRoot + '/node_modules/bootstrap/dist/fonts/**/*',
+                htmlcontentRoot + '/node_modules/systemjs-plugin-json/json.js'
             ]
         }
     }

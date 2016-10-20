@@ -11,6 +11,7 @@ import { SlickGrid } from './slickgrid/SlickGrid';
 import { NavigatorComponent } from './navigation.component';
 import { HttpModule, JsonpModule } from '@angular/http';
 import { ScrollDirective } from './scroll.directive';
+import { MouseDownDirective } from './mousedown.directive';
 
 /**
  * Top level angular module, no actual content here
@@ -23,7 +24,7 @@ import { ScrollDirective } from './scroll.directive';
               JsonpModule,
               FormsModule
            ],
-  declarations: [ AppComponent, SlickGrid, NavigatorComponent, ScrollDirective],
+  declarations: [ AppComponent, SlickGrid, NavigatorComponent, ScrollDirective, MouseDownDirective],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }
