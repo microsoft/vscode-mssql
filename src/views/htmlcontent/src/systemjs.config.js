@@ -9,7 +9,8 @@
     '@angular':                   'node_modules/@angular',
     'angular2-in-memory-web-api': 'node_modules/angular2-in-memory-web-api',
     'rxjs':                       'node_modules/rxjs',
-    'moment':                     'node_modules/moment/moment.js'
+    'moment':                     'node_modules/moment/moment.js',
+    'json':                       'node_modules/systemjs-plugin-json/json.js'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
@@ -30,6 +31,11 @@
     'router-deprecated',
     'upgrade',
   ];
+  var meta = {
+    '**/*.json' : {
+      loader: 'json'
+    }
+  }
   // Individual files (~300 requests):
   function packIndex(pkgName) {
     packages['@angular/'+pkgName] = { main: 'index.js', defaultExtension: 'js' };
@@ -44,7 +50,8 @@
   ngPackageNames.forEach(setPackageConfig);
   var config = {
     map: map,
-    packages: packages
+    packages: packages,
+    meta: meta
   };
   System.config(config);
 })(this);

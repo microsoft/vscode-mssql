@@ -5,7 +5,7 @@
 
 .contextMenu {
   position: absolute;
-  padding: 2px;
+  padding: 0px;
   display: inline-block;
   min-width: 100px;
   z-index: 99999;
@@ -23,8 +23,12 @@
   cursor: default;
 }
 
+.contextMenu li+li {
+  border-top: 0.5px solid #E4E4E4;
+}
+
 .boxRow.content.horzBox.slickgrid {
-  margin-bottom: 5px;
+  margin-bottom: 1px;
 }
 
 .boxRow.content.horzBox.slickgrid:last-child {
@@ -33,7 +37,7 @@
 
 .contextMenu li:hover:not(.disabled) {
   background-color: #007ACC;
-  color: black;
+  color: white;
 }
 
 .icon {
@@ -58,7 +62,7 @@ table {
 }
 
 .wide {
-  width: 130px;
+  width: 110px;
 }
 
 #messageTable td {

@@ -44,11 +44,11 @@
   background-color: var(--color-grid-selected);
   color: var(--color-content);
 }
-.grid .slick-cell.selected.active {
+.grid .slick-cell.active {
   background-color: var(--background-color, #FFFFFF);
   color: var(--color-content);
-  border-style: solid;
-  border-color: var(--color-border-grid-active);
+  /*border-style: solid;
+  border-color: var(--color-border-grid-active);*/
 }
 .grid .slick-cell.selected .grid-cell-value-container.missing-value {
   color: var(--color-content-disabled);

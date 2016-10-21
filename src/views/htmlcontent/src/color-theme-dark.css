@@ -13,7 +13,7 @@
   --color-bg-content: #333333;
   --color-bg-content-light: #4d4d4d;
   --color-bg-content-dark: #1a1a1a;
-  --color-bg-content-header: rgb(100, 100, 100); /* used for color of grid headers */
+  --color-bg-content-header: #333334; /* used for color of grid headers */
   --color-toolbar: #FAFAFA;
   --color-bg-toolbar: #31708F;
   --color-toolbar-border: #FAFAFA;
@@ -34,8 +34,12 @@
   --color-chart-bg-tooltip: #FFFFFF;
   --color-chart-line: #000000;
   --color-chart-bar-border: #404040;
-  --color-grid-selected: rgba(0, 111, 148, 0.2);
-  --color-border-grid-active: #FF6000;
+  --color-bg-grid-selected: rgb(38, 79, 120);
+  --color-bg-active-grid-selected: rgb(38, 79, 120);
+  --color-fg-grid-selected: #F1F1F1;
+  --color-fg-active-grid-selected: #FFFFFF;
+  --color-border-grid-active: white;
+  --color-border-active-grid-active: rgb(63, 63, 70);
   --color-start-page-primary-bg: #E7E8E8;
   --color-start-page-primary-text: #E5E5E5;
   --color-start-page-primary-text-light: #ffffff;
@@ -54,6 +58,24 @@ a:hover {
   color: #ff8033;
 }
 
+/* grid styling */
+
+slick-grid.active .grid .slick-cell.active {
+  border: dotted 1px white;
+}
+
+slick-grid.active .grid .slick-cell.selected {
+  background-color: var(--color-bg-active-grid-selected);
+}
+
+slick-grid .grid .slick-cell.active {
+  background-color: var(--color-bg-grid-selected);
+}
+
+slick-grid .grid .slick-cell.selected {
+  background-color: var(--color-bg-grid-active);
+}
+
 .boxRow.content.horzBox.slickgrid {
   border: solid 1px grey;
 }
@@ -68,6 +90,7 @@ slick-grid:last-of-type {
   border-width: 0 0 0 0;
 }
 
+/* icons */
 .icon.extendFullScreen {
   background-image: url('images/ExtendToFullScreen_16x_vscode_inverse.svg');
 }

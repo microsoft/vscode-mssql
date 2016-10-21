@@ -6,7 +6,7 @@ export const saveJSONLabel = 'Save as JSON';
 export const resultPaneLabel = 'Results';
 
 /** Messages Pane Labels */
-export const executeQueryLabel = 'Executing Query...';
+export const executeQueryLabel = 'Executing query...';
 export const messagePaneLabel = 'Messages';
 export const messageStartLabel = 'Started executing query at ';
 export const lineSelectorFormatted = 'Line {0}';

@@ -18,6 +18,9 @@ import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 import { FieldType } from './slickgrid/EngineAPI';
 
+const shortcuts = require('./shortcuts.json!');
+const keycodes = require('./keycodes.json!');
+
 enum SelectedTab {
     Results = 0,
     Messages = 1,
@@ -39,8 +42,6 @@ interface IMessages {
     hasError: boolean;
     selection: ISelectionData;
 }
-
-declare let $;
 
 /**
  * Top level app component which runs and controls the SlickGrid implementation
@@ -71,12 +72,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private Constants = Constants;
     // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
-    private keyCodes = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
-    };
     // the function implementations of keyboard available events
     private shortcutfunc = {
         'event.toggleResultPane': () => {
@@ -86,48 +81,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.messageActive = !this.messageActive;
         },
         'event.nextGrid': () => {
-            let activeGrid = this.getActiveGridIndex();
-            if (activeGrid < this.slickgrids.length - 1) {
-                this.slickgrids.toArray()[activeGrid + 1].setActive();
-                // scroll to grid logic
-                let resultsWindow = $('#results');
-                let scrollTop = resultsWindow.scrollTop();
-                let scrollBottom = scrollTop + resultsWindow.height();
-                let gridHeight = this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
-                if (scrollBottom < gridHeight * (activeGrid + 2)) {
-                    scrollTop += (gridHeight * (activeGrid + 2)) - scrollBottom;
-                    resultsWindow.scrollTop(scrollTop);
-                }
-            }
+            this.navigateToGrid(this.activeGrid + 1);
         },
         'event.prevGrid': () => {
-            let activeGrid = this.getActiveGridIndex();
-            if (activeGrid > 0) {
-                this.slickgrids.toArray()[activeGrid - 1].setActive();
-                // scroll to grid logic
-                let resultsWindow = $('#results');
-                let scrollTop = resultsWindow.scrollTop();
-                let gridHeight = this._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
-                if (scrollTop > gridHeight * (activeGrid - 1)) {
-                    scrollTop = (gridHeight * (activeGrid - 1));
-                    resultsWindow.scrollTop(scrollTop);
-                }
-            }
+            this.navigateToGrid(this.activeGrid - 1);
         },
         'event.copySelection': () => {
-            let activeGrid = this.getActiveGridIndex();
+            let activeGrid = this.activeGrid;
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
         }
-    };
-    // object that defines shortcuts for certain actions
-    // must follow the format ctrl+alt+shift+key
-    private shortcuts = {
-        'ctrl+alt+r': 'event.toggleResultPane',
-        'ctrl+alt+t': 'event.toggleMessagePane',
-        'ctrl+up': 'event.prevGrid',
-        'ctrl+down': 'event.nextGrid',
-        'ctrl+c': 'event.copySelection'
     };
     // tslint:disable-next-line:no-unused-variable
     private dataIcons: IGridIcon[] = [
@@ -153,7 +116,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: () => { return Constants.saveCSVLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                if (selection.length === 1) {
+                if (selection.length <= 1) {
                     this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
                 } else {
                     this.dataService.showWarning('Cannot save with multiple selections');
@@ -166,7 +129,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: () => { return Constants.saveJSONLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                if (selection.length === 1) {
+                if (selection.length <= 1) {
                     this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
                 } else {
                     this.dataService.showWarning('Cannot save with multiple selections');
@@ -174,6 +137,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
+    // tslint:disable-next-line:no-unused-variable
+    private startString = new Date().toLocaleTimeString();
 
     // FIELDS
     // All datasets
@@ -194,7 +159,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private messageActive = true;
     private firstRender = true;
     // tslint:disable-next-line:no-unused-variable
-    private resultsScrollTop: number = 0;
+    private resultsScrollTop = 0;
+    // tslint:disable-next-line:no-unused-variable
+    private activeGrid = 0;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
@@ -208,14 +175,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
-        let startDate = new Date();
-        this.messages.push(
-            {
-                messages: [{message: Constants.executeQueryLabel, time: startDate.toLocaleTimeString()}],
-                hasError: false,
-                selection: undefined
-            }
-        );
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             self.messages = [];
             for (let [batchId, batch] of batchs.entries()) {
@@ -251,21 +210,23 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             let columnDefinitions = [];
 
                             for (let i = 0; i < columnData.length; i++) {
+                                // Fix column name for showplan queries
+                                let columnName = (columnData[i].columnName === 'Microsoft SQL Server 2005 XML Showplan') ?
+                                                         'XML Showplan' : columnData[i].columnName;
                                 if (columnData[i].isXml || columnData[i].isJson) {
                                     let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
-                                        id: columnData[i].columnName,
+                                        id: columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
                                         asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
-                                        id: columnData[i].columnName,
+                                        id: columnName,
                                         type: self.stringToFieldType('string')
                                     });
                                 }
-
                             }
                             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                                 return new Promise<IGridDataRow[]>((resolve, reject) => {
@@ -469,16 +430,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         let $resizeHandle = $(document.getElementById('messageResizeHandle'));
         let $messagePane = $(document.getElementById('messages'));
-        $resizeHandle.bind('dragstart', (e, dd) => {
+        $resizeHandle.bind('dragstart', (e) => {
             self.resizing = true;
             self.resizeHandleTop = e.pageY;
+            return true;
         });
 
-        $resizeHandle.bind('drag', (e, dd) => {
+        $resizeHandle.bind('drag', (e) => {
             self.resizeHandleTop = e.pageY;
         });
 
-        $resizeHandle.bind('dragend', (e, dd) => {
+        $resizeHandle.bind('dragend', (e) => {
             self.resizing = false;
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
@@ -519,8 +481,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
             e.shiftKey = e.detail.shiftKey;
         }
         let eString = this.buildEventString(e);
-        if (this.shortcuts[eString]) {
-            this.shortcutfunc[this.shortcuts[eString]]();
+        if (shortcuts[eString]) {
+            this.shortcutfunc[shortcuts[eString]]();
             e.stopImmediatePropagation();
         }
     }
@@ -535,7 +497,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         resString += (e.ctrlKey || e.metaKey) ? 'ctrl+' : '';
         resString += e.altKey ? 'alt+' : '';
         resString += e.shiftKey ? 'shift+' : '';
-        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : this.keyCodes[e.which];
+        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : keycodes[e.which];
         return resString;
     }
 
@@ -545,5 +507,42 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     getActiveGridIndex(): number {
         return parseInt($(document.activeElement).parent().parent().attr('id').split('_')[1], 10);
+    }
+
+    /**
+     * Handles rendering and unrendering necessary resources in order to properly
+     * navigate from one grid another. Should be called any time grid navigation is performed
+     * @param targetIndex The index in the renderedDataSets to navigate to
+     * @returns A boolean representing if the navigation was successful
+     */
+    navigateToGrid(targetIndex: number): boolean {
+        // check if the target index is valid
+        if (targetIndex >= this.renderedDataSets.length || targetIndex < 0) {
+            return false;
+        }
+
+        // check if you are actually trying to change navigation
+        if (this.activeGrid === targetIndex) {
+            return false;
+        }
+
+        this.slickgrids.toArray()[this.activeGrid].resetActive();
+        this.slickgrids.toArray()[targetIndex].setActive();
+        this.activeGrid = targetIndex;
+
+        // scrolling logic
+        let resultsWindow = $('#results');
+        let scrollTop = resultsWindow.scrollTop();
+        let scrollBottom = scrollTop + resultsWindow.height();
+        let gridHeight = $(this._el.nativeElement).find('slick-grid').height();
+        if (scrollBottom < gridHeight * (targetIndex + 1)) {
+            scrollTop += (gridHeight * (targetIndex + 1)) - scrollBottom;
+            resultsWindow.scrollTop(scrollTop);
+        }
+        if (scrollTop > gridHeight * targetIndex) {
+            scrollTop = (gridHeight * targetIndex);
+            resultsWindow.scrollTop(scrollTop);
+        }
+        return true;
     }
 }
