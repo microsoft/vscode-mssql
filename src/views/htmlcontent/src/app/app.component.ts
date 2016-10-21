@@ -224,7 +224,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                 } else {
                                     columnDefinitions.push({
                                         id: columnName,
-                                        type: self.stringToFieldType('string')
+                                        type: self.stringToFieldType('string'),
+                                        formatter: self.textFormatter
                                     });
                                 }
                             }
@@ -370,6 +371,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
         } else {
             cellClasses += ' missing-value';
             return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+        }
+    }
+
+    /**
+     * Format all text to replace /n with spaces
+     */
+    textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
+        if (typeof value === 'string') {
+            return value.replace(/\n/g, ' ');
+        } else {
+            return value;
         }
     }
 
