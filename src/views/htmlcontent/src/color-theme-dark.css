@@ -77,7 +77,7 @@ slick-grid .grid .slick-cell.selected {
 }
 
 .boxRow.content.horzBox.slickgrid {
-  border: solid 1px grey;
+  border: solid 1px #2D2D30;
 }
 
 slick-grid {

@@ -71,12 +71,7 @@ slick-grid .grid .slick-cell.selected {
 }
 
 .boxRow.content.horzBox.slickgrid {
-  border: solid 1px grey;
-  margin-bottom: 2px;
-}
-
-.boxRow.content.horzBox.slickgrid:last-child {
-  margin-bottom: 0px;
+  border: solid 1px #EEEEF2;
 }
 
 a:hover {
