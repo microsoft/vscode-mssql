@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import { ExtensionContext } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
     TransportKind, RequestType, NotificationType, NotificationHandler } from 'vscode-languageclient';
 import * as Utils from '../models/utils';
@@ -70,6 +70,16 @@ export default class SqlToolsServiceClient {
                     serverArgs = [serverPath];
                     serverCommand = 'dotnet';
                 }
+
+                // Enable diagnostic logging in the service if it is configured
+                let config = workspace.getConfiguration(Constants.extensionName);
+                if (config) {
+                    let logDebugInfo = config[Constants.configLogDebugInfo];
+                    if (logDebugInfo) {
+                        serverArgs.push('--enable-logging');
+                    }
+                }
+
                 // run the service host using dotnet.exe from the path
                 let serverOptions: ServerOptions = {  command: serverCommand, args: serverArgs, transport: TransportKind.stdio  };
 

@@ -29,7 +29,7 @@ export class SelectionModel implements ISlickSelectionModel {
     }
 
     setSelectedRanges(ranges: ISlickRange[]): void {
-        this.updateSelectedRanges(ranges);
+        this._rowSelectionModel.setSelectedRanges(ranges);
     }
 
     getSelectedRanges(): ISlickRange[] {
@@ -113,7 +113,7 @@ export class SelectionModel implements ISlickSelectionModel {
     clearSelection(): void {
         this._lastSelectedColumnIndexSequence = [];
         this._grid.resetActiveCell();
-        this.updateSelectedRanges([]);
+        this._rowSelectionModel.setSelectedRanges([]);
     }
 
     private _grid: ISlickGrid;
