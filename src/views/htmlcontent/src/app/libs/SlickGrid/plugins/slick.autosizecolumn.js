@@ -38,7 +38,12 @@
 
             var headerWidth = getElementWidth(headerEl[0]);
             var colIndex = grid.getColumnIndex(columnDef.id);
-            var allColumns = JSON.parse(JSON.stringify(grid.getColumns()));
+            var origCols = grid.getColumns();
+            var allColumns = JSON.parse(JSON.stringify(origCols));
+            for (let [index, col] of allColumns.entries()) {
+                col.formatter = origCols[index].formatter;
+                col.asyncPostRender = origCols[index].asyncPostRender;
+            }
             var column = allColumns[colIndex];
 
             var autoSizeWidth = Math.max(headerWidth, getMaxColumnTextWidth(columnDef, colIndex)) + 1;
@@ -56,7 +61,9 @@
             var data = grid.getData();
             var numOfCol = grid.getColumns().length - 1;
             var viewPort = grid.getViewport();
-            for (var i = viewPort.top; i < viewPort.bottom + 1; i++) {
+            var start = Math.max(0, viewPort.top + 1);
+            var end = Math.min(data.getLength(), viewPort.bottom);
+            for (var i = start; i < end; i++) {
                 texts.push(data.getItem(i)[columnDef.field]);
             }
             var template = getMaxTextTemplate(texts, columnDef, colIndex, data, rowEl);
