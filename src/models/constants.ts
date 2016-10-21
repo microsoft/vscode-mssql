@@ -132,7 +132,7 @@ export const overwritePrompt = 'The file already exists. Do you want to replace 
 export const overwritePlaceholder = 'The file already exists';
 
 export const msgSaveResultInProgress = 'A save request is already executing. Please wait for its completion.';
-export const msgCannotOpenContent = 'Error occured opening content in editor';
+export const msgCannotOpenContent = 'Error occured opening content in editor.';
 export const msgSaveStarted = 'Started saving results to ';
 export const msgSaveFailed = 'Failed to save results. ';
 export const msgSaveSucceeded = 'Successfully saved results to ';
