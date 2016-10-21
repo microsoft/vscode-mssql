@@ -13,13 +13,15 @@ import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData } from './interfaces';
 const pd = require('pretty-data').pd;
 
-const deletionTimeoutTime = 200; // in ms, currently 30 minutes
+const deletionTimeoutTime = 1000; // in ms, currently 30 minutes
 
 // holds information about the state of a query runner
 class QueryRunnerState {
     timeout: number;
     flaggedForDeletion: boolean;
-    constructor (public queryRunner: QueryRunner) {}
+    constructor (public queryRunner: QueryRunner) {
+        this.flaggedForDeletion = false;
+    }
 }
 
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
@@ -46,15 +48,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
             let uri: string = req.query.uri;
+            if (self._queryResultsMap.has(uri)) {
+                clearTimeout(self._queryResultsMap.get(uri).timeout);
+            }
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
             let fontfamily: string = decodeURI(req.query.fontfamily);
             let fontsize: string = req.query.fontsize;
             let fontweight: string = req.query.fontweight;
-            if (self._queryResultsMap.has(uri)) {
-                self._queryResultsMap.get(uri).flaggedForDeletion = false;
-            }
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
                 {
                     uri: uri,
@@ -318,12 +320,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         for (let [key, value] of this._queryResultsMap.entries()) {
+            // closed text document related to a results window we are holding
             if (doc.uri.toString() === value.queryRunner.uri) {
-                value.timeout = this.setRunnerDeletionTimeout(key);
+                value.flaggedForDeletion = true;
             }
 
+            // "closed" a results window we are holding
             if (doc.uri.toString() === key) {
-                value.flaggedForDeletion = true;
+                value.timeout = this.setRunnerDeletionTimeout(key);
             }
         }
     }
