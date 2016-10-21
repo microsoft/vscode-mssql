@@ -80,16 +80,6 @@ slick-grid .grid .slick-cell.selected {
   border: solid 1px #2D2D30;
 }
 
-slick-grid {
-  border-style: solid;
-  border-color: grey;
-  border-width: 0 0 3 0;
-}
-
-slick-grid:last-of-type {
-  border-width: 0 0 0 0;
-}
-
 /* icons */
 .icon.extendFullScreen {
   background-image: url('images/ExtendToFullScreen_16x_vscode_inverse.svg');

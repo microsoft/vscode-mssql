@@ -48,8 +48,13 @@
   --color-start-page-secondary-text-dark: #bfbfbf;
   --color-grid-cell-preview-bg: #f3f3f3;
 }
+
 a {
   color: #0078D7;
+}
+
+a:hover {
+  color: #0b93ff;
 }
 
 /* grid styling */
@@ -72,27 +77,6 @@ slick-grid .grid .slick-cell.selected {
 
 .boxRow.content.horzBox.slickgrid {
   border: solid 1px #EEEEF2;
-}
-
-a:hover {
-  color: #0b93ff;
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsla(0,0%,39%,.7);
-}
-::-webkit-scrollbar-track {
-  background: var(--background-color);
-}
-
-slick-grid {
-  border-style: solid;
-  border-color: grey;
-  border-width: 0 0 3 0;
-}
-
-slick-grid:last-of-type {
-  border-width: 0 0 0 0;
 }
 
 /* icons */
@@ -132,6 +116,7 @@ slick-grid:last-of-type {
 }
 
 /* scroll bar */
+
 ::-webkit-scrollbar {
   width: 14px;
   height: 10px;
@@ -153,6 +138,7 @@ slick-grid:last-of-type {
   background: transparent;
 }
 
+/* context menu */
 .contextMenu {
   border: 1px solid silver;
   box-shadow: 2px 2px 2px silver;
