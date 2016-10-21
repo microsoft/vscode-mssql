@@ -559,14 +559,22 @@ export class AppComponent implements OnInit, AfterViewChecked {
         return true;
     }
 
+    /**
+     * determines the platform away shortcut string for an event for display purposes
+     * @param eventString The exact event string of the keycode you require (e.g event.toggleMessagePane)
+     */
     stringCodeFor(eventString: string): string {
+        // iterate through all the known shortcuts
         for (let shortcut in shortcuts) {
             if (shortcuts.hasOwnProperty(shortcut)) {
+                // if it matches the requested event
                 if (shortcuts[shortcut] === eventString) {
                     let keyString = shortcut;
                     let platString = window.navigator.platform;
 
+                    // find the current platform
                     if (platString.match(/win/i)) {
+                        // iterate through the display replacement that are defined
                         for (let key in displayCodes['windows']) {
                             if (displayCodes['windows'].hasOwnProperty(key)) {
                                 keyString = keyString.replace(key, displayCodes['windows'][key]);
