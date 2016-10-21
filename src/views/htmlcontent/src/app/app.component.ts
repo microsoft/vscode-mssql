@@ -20,6 +20,7 @@ import { FieldType } from './slickgrid/EngineAPI';
 
 const shortcuts = require('./shortcuts.json!');
 const keycodes = require('./keycodes.json!');
+const displayCodes = require('./displayCodes.json!');
 
 enum SelectedTab {
     Results = 0,
@@ -556,5 +557,37 @@ export class AppComponent implements OnInit, AfterViewChecked {
             resultsWindow.scrollTop(scrollTop);
         }
         return true;
+    }
+
+    stringCodeFor(eventString: string): string {
+        for (let shortcut in shortcuts) {
+            if (shortcuts.hasOwnProperty(shortcut)) {
+                if (shortcuts[shortcut] === eventString) {
+                    let keyString = shortcut;
+                    let platString = window.navigator.platform;
+
+                    if (platString.match(/win/i)) {
+                        for (let key in displayCodes['windows']) {
+                            if (displayCodes['windows'].hasOwnProperty(key)) {
+                                keyString = keyString.replace(key, displayCodes['windows'][key]);
+                            }
+                        }
+                    } else if (platString.match(/linux/i)) {
+                        for (let key in displayCodes['linux']) {
+                            if (displayCodes['linux'].hasOwnProperty(key)) {
+                                keyString = keyString.replace(key, displayCodes['linux'][key]);
+                            }
+                        }
+                    } else if (platString.match(/mac/i)) {
+                        for (let key in displayCodes['mac']) {
+                            if (displayCodes['mac'].hasOwnProperty(key)) {
+                                keyString = keyString.replace(key, displayCodes['mac'][key]);
+                            }
+                        }
+                    }
+                    return keyString;
+                }
+            }
+        }
     }
 }
