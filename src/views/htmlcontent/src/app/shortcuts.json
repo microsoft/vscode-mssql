@@ -1,6 +1,6 @@
 {
     "ctrl+alt+r": "event.toggleResultPane",
-    "ctrl+alt+t": "event.toggleMessagePane",
+    "ctrl+alt+y": "event.toggleMessagePane",
     "ctrl+up": "event.prevGrid",
     "ctrl+down": "event.nextGrid",
     "ctrl+c": "event.copySelection"
