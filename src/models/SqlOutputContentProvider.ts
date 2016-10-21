@@ -13,7 +13,7 @@ import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData } from './interfaces';
 const pd = require('pretty-data').pd;
 
-const deletionTimeoutTime = 1000; // in ms, currently 30 minutes
+const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
 
 // holds information about the state of a query runner
 class QueryRunnerState {
