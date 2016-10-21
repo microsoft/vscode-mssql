@@ -222,6 +222,7 @@ export default class ResultsSerializer {
                     self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + result.messages);
                 } else {
                     self._vscodeWrapper.showInformationMessage(Constants.msgSaveSucceeded + this._filePath);
+                    self._vscodeWrapper.logToOutputChannel(Constants.msgSaveSucceeded + filePath);
                     self.openSavedFile(self._filePath);
                 }
             }, error => {
@@ -253,10 +254,7 @@ export default class ResultsSerializer {
         let uri = vscode.Uri.file(filePath);
         self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
             // Show open document and set focus
-            self._vscodeWrapper.showTextDocument(doc, 1, false).then(editor => {
-                // write message to output tab
-                self._vscodeWrapper.logToOutputChannel(Constants.msgSaveSucceeded + filePath);
-            }, (error: any) => {
+            self._vscodeWrapper.showTextDocument(doc, 1, false).then(undefined, (error: any) => {
                 self._vscodeWrapper.showErrorMessage(error);
             });
         }, (error: any) => {

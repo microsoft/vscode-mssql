@@ -119,7 +119,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
                 } else {
-                    this.dataService.showWarning('Cannot save with multiple selections');
+                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
             }
         },
@@ -132,7 +132,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
                 } else {
-                    this.dataService.showWarning('Cannot save with multiple selections');
+                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
             }
         }

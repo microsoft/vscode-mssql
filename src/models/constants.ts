@@ -132,10 +132,10 @@ export const overwritePrompt = 'The file already exists. Do you want to replace 
 export const overwritePlaceholder = 'The file already exists';
 
 export const msgSaveResultInProgress = 'A save request is already executing. Please wait for its completion.';
-export const msgCannotOpenContent = 'Error occured opening content in editor';
-export const msgSaveStarted = 'Starting save results to ';
-export const msgSaveFailed = 'Saving results failed: ';
-export const msgSaveSucceeded = 'Results saved to ';
+export const msgCannotOpenContent = 'Error occured opening content in editor.';
+export const msgSaveStarted = 'Started saving results to ';
+export const msgSaveFailed = 'Failed to save results. ';
+export const msgSaveSucceeded = 'Successfully saved results to ';
 
 export const msgSelectProfile = 'Select Connection Profile';
 export const msgSelectProfileToRemove = 'Select profile to remove';
