@@ -80,6 +80,9 @@ table {
 #messageTable tbody tr:last-child > td {
   padding-bottom: 1em;
 }
+.messageValue {
+  white-space: pre-line;
+}
 
 /* headers */
 .header {
