@@ -163,3 +163,7 @@ slick-grid:last-of-type {
   box-shadow: 2px 2px 2px silver;
   border-color: silver;
 }
+
+.shortCut {
+  color: grey;
+}

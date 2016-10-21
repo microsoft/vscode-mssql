@@ -146,3 +146,7 @@ slick-grid:last-of-type {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+.shortCut {
+  color: grey;
+}

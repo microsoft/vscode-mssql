@@ -121,3 +121,8 @@ table {
     z-index: 2;
     background-color: var(--color-bg-content-light);
 }
+
+.header > span.shortCut {
+  float: right;
+  padding-right: 5px;
+}
