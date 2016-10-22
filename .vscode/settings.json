@@ -12,5 +12,8 @@
     "files.watcherExclude": {
         "**/.git/objects/**": true,
         "**/out/*" : true
-    }
+    },
+
+    "lcov.path": ["out/coverage/lcov.info"],
+    "lcov.sourceMaps": true
 }
