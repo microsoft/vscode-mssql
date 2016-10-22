@@ -116,10 +116,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: () => { return Constants.saveCSVLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                if (selection.length === 1) {
+                if (selection.length <= 1) {
                     this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
                 } else {
-                    this.dataService.showWarning('Cannot save with multiple selections');
+                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
             }
         },
@@ -129,10 +129,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: () => { return Constants.saveJSONLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                if (selection.length === 1) {
+                if (selection.length <= 1) {
                     this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
                 } else {
-                    this.dataService.showWarning('Cannot save with multiple selections');
+                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
             }
         }
@@ -210,21 +210,24 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             let columnDefinitions = [];
 
                             for (let i = 0; i < columnData.length; i++) {
+                                // Fix column name for showplan queries
+                                let columnName = (columnData[i].columnName === 'Microsoft SQL Server 2005 XML Showplan') ?
+                                                         'XML Showplan' : columnData[i].columnName;
                                 if (columnData[i].isXml || columnData[i].isJson) {
                                     let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
-                                        id: columnData[i].columnName,
+                                        id: columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
                                         asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
-                                        id: columnData[i].columnName,
-                                        type: self.stringToFieldType('string')
+                                        id: columnName,
+                                        type: self.stringToFieldType('string'),
+                                        formatter: self.textFormatter
                                     });
                                 }
-
                             }
                             let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                                 return new Promise<IGridDataRow[]>((resolve, reject) => {
@@ -368,6 +371,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
         } else {
             cellClasses += ' missing-value';
             return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+        }
+    }
+
+    /**
+     * Format all text to replace /n with spaces
+     */
+    textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
+        if (typeof value === 'string') {
+            return value.replace(/\n/g, ' ');
+        } else {
+            return value;
         }
     }
 

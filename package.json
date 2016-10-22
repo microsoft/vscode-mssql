@@ -1,7 +1,8 @@
 {
+
   "name": "mssql",
-  "version": "0.0.8",
   "displayName": "mssql",
+  "version": "0.0.11",
   "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
   "publisher": "Microsoft",
   "preview": "true",
