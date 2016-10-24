@@ -4,8 +4,10 @@ var ts = require('gulp-typescript');
 var concat = require('gulp-concat');
 var del = require('del');
 var srcmap = require('gulp-sourcemaps');
-var config = require('./config')
+var config = require('./config');
+var uglifyjs = require('uglify-js');
 var less = require('gulp-less');
+var minifier = require('gulp-uglify/minifier');
 var tsProject = ts.createProject(config.paths.html.root + '/tsconfig.json');
 var sysBuilder = require('systemjs-builder');
 
@@ -42,6 +44,12 @@ gulp.task('html:bundle:app', function() {
     });
 });
 
+gulp.task('html:min-js', function() {
+    return gulp.src(config.paths.html.out + '/dist/js/app.min.js')
+            // .pipe(minifier({}, uglifyjs))
+            .pipe(gulp.dest(config.paths.html.out + '/dist/js'))
+})
+
 // Copy and bundle dependencies into one file (vendor/vendors.js)
 // system.config.js can also bundled for convenience
 gulp.task('html:vendor', () => {
@@ -72,6 +80,7 @@ gulp.task('html:vendor', () => {
     config.paths.html.root + '/systemjs.config.js',
   ])
     .pipe(concat('vendors.min.js'))
+    .pipe(minifier({}, uglifyjs))
     .pipe(gulp.dest(config.paths.html.out + '/lib/js'));
 
   // copy source maps
@@ -114,7 +123,7 @@ gulp.task('html:copy:assets', () => {
 
 gulp.task('html:compile', gulp.series('html:compile-src'))
 
-gulp.task('html:app', gulp.series(['html:compile', 'html:bundle:app']));
+gulp.task('html:app', gulp.series(['html:compile', 'html:bundle:app', 'html:min-js']));
 
 gulp.task('html:bundle:all', () => {
     return gulp.src([
