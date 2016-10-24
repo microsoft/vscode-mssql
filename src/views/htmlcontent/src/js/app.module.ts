@@ -5,13 +5,13 @@
 import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule }   from '@angular/forms';
-
-import { AppComponent }  from './app.component';
-import { SlickGrid } from './slickgrid/SlickGrid';
-import { NavigatorComponent } from './navigation.component';
 import { HttpModule, JsonpModule } from '@angular/http';
-import { ScrollDirective } from './scroll.directive';
-import { MouseDownDirective } from './mousedown.directive';
+
+import { SlickGrid } from './slickgrid/SlickGrid';
+
+import { AppComponent }  from './components/app.component';
+import { ScrollDirective } from './directives/scroll.directive';
+import { MouseDownDirective } from './directives/mousedown.directive';
 
 /**
  * Top level angular module, no actual content here
@@ -24,7 +24,7 @@ import { MouseDownDirective } from './mousedown.directive';
               JsonpModule,
               FormsModule
            ],
-  declarations: [ AppComponent, SlickGrid, NavigatorComponent, ScrollDirective, MouseDownDirective],
+  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }
