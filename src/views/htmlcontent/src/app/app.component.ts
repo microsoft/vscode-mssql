@@ -473,13 +473,20 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Otherwise rerenders the result sets from default
      */
     magnify(index: number): void {
+        const self = this;
         if (this.renderedDataSets.length > 1) {
-            this.renderedDataSets = [this.dataSets[index]];
+            this.renderedDataSets = [this.placeHolderDataSets[index]];
         } else {
             this.renderedDataSets = this.placeHolderDataSets;
             this.onScroll(0);
         }
-    }
+        setTimeout(() => {
+            for (let grid of self.renderedDataSets) {
+                grid.resized.emit();
+            }
+            self.slickgrids.toArray()[0].setActive();
+        });
+}
 
     /**
      *
