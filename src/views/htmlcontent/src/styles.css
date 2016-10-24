@@ -1,8 +1,4 @@
-.nav > li > a {
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
+/* context menu */
 .contextMenu {
   position: absolute;
   padding: 0px;
@@ -27,8 +23,17 @@
   border-top: 0.5px solid #E4E4E4;
 }
 
+.contextMenu li.disabled {
+  color: #777;
+  text-decoration: none;
+  background-color: transparent;
+  opacity: 0.4;
+}
+
+/* slick grid */
+
 .boxRow.content.horzBox.slickgrid {
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 }
 
 .boxRow.content.horzBox.slickgrid:last-child {
@@ -40,19 +45,22 @@
   color: white;
 }
 
+.boxRow.content.padded {
+    padding: 15px
+}
+
+/* icon */
 .icon {
   padding: 8px;
   background-repeat: no-repeat;
   background-position: 0px;
 }
 
-.contextMenu li.disabled {
-  color: #777;
-  text-decoration: none;
-  background-color: transparent;
-  opacity: 0.4;
+.gridIcon {
+    margin: 5px 5px;
 }
 
+/* messages */
 table {
   font-weight: inherit;
   font-size: inherit;
@@ -72,15 +80,11 @@ table {
 #messageTable tbody tr:last-child > td {
   padding-bottom: 1em;
 }
-
 .messageValue {
   white-space: pre-line;
 }
 
-.boxRow.content.padded {
-    padding: 15px
-}
-
+/* headers */
 .header {
     height: auto;
     overflow: hidden;
@@ -94,10 +98,6 @@ table {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-}
-
-.gridIcon {
-    margin: 5px 5px;
 }
 
 .resizableHandle {

@@ -1,103 +1,35 @@
 * {
-  --color-h1: #5C2E91;
-  --color-h2: #48525D;
   --color-content: #101010;
   --color-content-disabled: #a9a9a9;
-  --color-content-light: #2a2a2a;
-  --color-active: #0078D7;
-  --color-blank: #FFFFFF;
-  --color-inactive: #808387;
   --color-error: #E81123;
   --color-success: #7CD300;
-  --color-bg-content: #E9E9E9;
-  --color-bg-content-light: #ffffff;
-  --color-bg-content-dark: #d0d0d0;
   --color-bg-header: hsla(0,0%,50%,.2);
+  --color-bg-content-light: #ffffff;
   --color-bg-content-header: #F5F5F5; /* used for color of grid headers */
-  --color-toolbar: #000000;
-  --color-bg-toolbar: #F4F4F4;
-  --color-toolbar-border: #C8C8C8;
-  --color-icon-default: #363636;
-  --color-icon-hover: #101010;
-  --color-border-default: #767676;
-  --color-border-light: #838383;
-  --color-border-active: #0078D7;
-  --color-chart-bar: #8ad4eb;
-  --color-chart-bar-hover: #aae0f0;
-  --color-chart-bar-selected: #6eaabc;
-  --color-chart-bar-selected-hover: #7cbfd3;
-  --color-chart-axis-dark: #888888;
-  --color-chart-axis-light: #EAEAEA;
-  --color-chart-old-data: #C8C8C8;
-  --color-chart-label: #000000;
-  --color-chart-tooltip-border: #000000;
-  --color-chart-bg-tooltip: #FFFFFF;
-  --color-chart-line: #000000;
-  --color-chart-bar-border: #404040;
-  --color-bg-grid-selected: rgb(173, 214, 255);
-  --color-bg-active-grid-selected: rgb(173, 214, 255);
-  --color-fg-grid-selected: #F1F1F1;
-  --color-fg-active-grid-selected: #FFFFFF;
-  --color-border-grid-active: #0078D7;
-  --color-border-active-grid-active: #E6E7ED;
-  --color-start-page-primary-bg: #E7E8E8;
-  --color-start-page-primary-text: #101010;
-  --color-start-page-primary-text-light: #505050;
-  --color-start-page-secondary-bg: #596675;
-  --color-start-page-secondary-text: #FFFFFF;
-  --color-start-page-secondary-text-dark: #bfbfbf;
-  --color-grid-cell-preview-bg: #f3f3f3;
+  --color-cell-border-active: grey;
+  --color-cell-bg-grid-selected: rgb(173, 214, 255);
 }
+
 a {
   color: #0078D7;
-}
-
-/* grid styling */
-
-slick-grid.active .grid .slick-cell.active {
-  border: dotted 1px grey;
-}
-
-slick-grid.active .grid .slick-cell.selected {
-  background-color: var(--color-bg-active-grid-selected);
-}
-
-slick-grid .grid .slick-cell.active {
-  background-color: var(--color-bg-grid-selected);
-}
-
-slick-grid .grid .slick-cell.selected {
-  background-color: var(--color-bg-grid-active);
-}
-
-.boxRow.content.horzBox.slickgrid {
-  border: solid 1px grey;
-  margin-bottom: 2px;
-}
-
-.boxRow.content.horzBox.slickgrid:last-child {
-  margin-bottom: 0px;
 }
 
 a:hover {
   color: #0b93ff;
 }
 
-::-webkit-scrollbar-thumb {
-  background: hsla(0,0%,39%,.7);
-}
-::-webkit-scrollbar-track {
-  background: var(--background-color);
+/* grid styling */
+
+slick-grid.active .grid .slick-cell.active {
+  border: dotted 1px var(--color-cell-border-active);
 }
 
-slick-grid {
-  border-style: solid;
-  border-color: grey;
-  border-width: 0 0 3 0;
+slick-grid.active .grid .slick-cell.selected {
+  background-color: var(--color-cell-bg-grid-selected);
 }
 
-slick-grid:last-of-type {
-  border-width: 0 0 0 0;
+.boxRow.content.horzBox.slickgrid {
+  border: solid 1px #EEEEF2;
 }
 
 /* icons */
@@ -137,6 +69,7 @@ slick-grid:last-of-type {
 }
 
 /* scroll bar */
+
 ::-webkit-scrollbar {
   width: 14px;
   height: 10px;
@@ -158,6 +91,7 @@ slick-grid:last-of-type {
   background: transparent;
 }
 
+/* context menu */
 .contextMenu {
   border: 1px solid silver;
   box-shadow: 2px 2px 2px silver;
