@@ -143,11 +143,6 @@
         "command": "extension.chooseDatabase",
         "title": "Use Database",
         "category": "MS SQL"
-      },
-      {
-        "command": "extension.showReleaseNotes",
-        "title": "Getting Started Guide",
-        "category": "MS SQL"
       }
     ],
     "keybindings": [
