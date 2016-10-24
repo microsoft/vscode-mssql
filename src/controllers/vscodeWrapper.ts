@@ -29,6 +29,13 @@ export default class VscodeWrapper {
     }
 
     /**
+     * get the current textDocument; any that are open?
+     */
+    public get textDocuments(): vscode.TextDocument[] {
+        return vscode.workspace.textDocuments;
+    }
+
+    /**
      * Parse uri
      */
     public parseUri(uri: string): vscode.Uri {
