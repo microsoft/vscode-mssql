@@ -1,7 +1,9 @@
 {
+    "_comment": "Short cuts must follow the format (ctrl)+(shift)+(alt)+(key)",
     "ctrl+alt+r": "event.toggleResultPane",
     "ctrl+alt+y": "event.toggleMessagePane",
     "ctrl+up": "event.prevGrid",
     "ctrl+down": "event.nextGrid",
-    "ctrl+c": "event.copySelection"
+    "ctrl+c": "event.copySelection",
+    "undefined": "event.toggleMagnifyCurrent"
 }
