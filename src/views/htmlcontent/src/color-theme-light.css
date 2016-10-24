@@ -97,3 +97,7 @@ slick-grid.active .grid .slick-cell.selected {
   box-shadow: 2px 2px 2px silver;
   border-color: silver;
 }
+
+.shortCut {
+  color: grey;
+}
