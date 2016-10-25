@@ -15,18 +15,20 @@ import * as Constants from './../constants';
 })
 
 export class ContextMenu {
-    @Output() clickEvent: EventEmitter<{type: string, batchId: number, resultId: number, selection: ISlickRange[]}>
-        = new EventEmitter<{type: string, batchId: number, resultId: number, selection: ISlickRange[]}>();
+    @Output() clickEvent: EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>
+        = new EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>();
     private batchId: number;
     private resultId: number;
+    private index: number;
     private selection: ISlickRange[];
     private isDisabled: boolean;
     // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
 
-    show(x: number, y: number, batchId: number, resultId: number, selection: ISlickRange[]): void {
+    show(x: number, y: number, batchId: number, resultId: number, index: number, selection: ISlickRange[]): void {
         this.batchId = batchId;
         this.resultId = resultId;
+        this.index = index;
         this.selection = selection;
         this.isDisabled = (selection.length > 1);
         $('.contextMenu').css('top', y).css('left', x).show();
@@ -41,7 +43,7 @@ export class ContextMenu {
 
     handleContextActionClick( type: string ): void {
         if (!this.isDisabled) {
-            this.clickEvent.emit({'type': type, 'batchId': this.batchId, 'resultId': this.resultId, 'selection': this.selection});
+            this.clickEvent.emit({'type': type, 'batchId': this.batchId, 'resultId': this.resultId, 'selection': this.selection, 'index': this.index});
         }
     }
 }
