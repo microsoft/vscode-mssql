@@ -59,7 +59,7 @@ export namespace Telemetry {
         // Initialize the telemetry reporter if necessary
         let packageInfo = Utils.getPackageInfo(context);
         if (typeof reporter === 'undefined') {
-            reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+            reporter = new TelemetryReporter('vscode-mssql', packageInfo.version, packageInfo.aiKey);
         }
 
         // Augment the properties structure with additional common properties before sending

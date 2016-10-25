@@ -9,6 +9,7 @@ import { TestPrompter } from './stubs';
 import { ConnectionUI } from '../src/views/connectionUI';
 import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
+import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 import Constants = require('../src/models/constants');
 import assert = require('assert');
@@ -233,7 +234,10 @@ suite('Connection Profile tests', () => {
                     return Promise.resolve(answers);
                 });
 
-        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object);
+        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
+
+        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object, vscodeWrapperMock.object);
 
         // create a new connection profile
         connectionUI.createAndSaveProfile().then(profile => {
@@ -274,7 +278,10 @@ suite('Connection Profile tests', () => {
                 });
         prompter.setup(x => x.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
 
-        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object);
+        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
+
+        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object, vscodeWrapperMock.object);
 
         // create a new connection profile
         connectionUI.createAndSaveProfile().then(profile => {
