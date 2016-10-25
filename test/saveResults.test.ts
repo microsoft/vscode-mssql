@@ -1,12 +1,13 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
+import { ExtensionContext } from 'vscode';
 import Constants = require('../src/models/constants');
 import Interfaces = require('../src/models/interfaces');
 import ResultsSerializer  from './../src/models/resultsSerializer';
 import { SaveResultsAsCsvRequestParams } from './../src/models/contracts';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import { IQuestion, IPrompter } from '../src/prompts/question';
-import { TestPrompter } from './stubs';
+import { TestExtensionContext, TestPrompter } from './stubs';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import os = require('os');
 
@@ -17,12 +18,13 @@ suite('save results tests', () => {
     let serverClient: TypeMoq.Mock<SqlToolsServerClient>;
     let prompter: TypeMoq.Mock<IPrompter>;
     let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
-
+    let context: TypeMoq.Mock<ExtensionContext>;
     setup(() => {
 
         serverClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Strict);
         prompter = TypeMoq.Mock.ofType(TestPrompter);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        context = TypeMoq.Mock.ofType(TestExtensionContext);
         if (os.platform() === 'win32') {
             filePath = 'c:\\test.csv';
         } else {
@@ -54,7 +56,7 @@ suite('save results tests', () => {
                                             return Promise.resolve({messages: 'failure'});
                                         });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
 
         saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
             assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
@@ -87,7 +89,7 @@ suite('save results tests', () => {
                                             return Promise.resolve({messages: 'failure'});
                                         });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
 
         saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
             assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
@@ -119,7 +121,7 @@ suite('save results tests', () => {
                                         // This will come back as null from the service layer, but tslinter doesn't like that
                                         return Promise.resolve({messages: 'failure'});
                                     });
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
                                     // check if filename is resolved to full path
                                     // resolvedpath = current directory + filename
@@ -149,7 +151,7 @@ suite('save results tests', () => {
                                         return Promise.resolve({messages: undefined});
                                     });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
@@ -170,7 +172,7 @@ suite('save results tests', () => {
                                     return Promise.resolve({messages: 'failure'});
                                 });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
@@ -198,7 +200,7 @@ suite('save results tests', () => {
                                         return Promise.resolve({messages: undefined});
                                     });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
@@ -219,7 +221,7 @@ suite('save results tests', () => {
                                     return Promise.resolve({messages: 'failure'});
                                 });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
                     // check if error message was displayed
                     vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
@@ -261,7 +263,7 @@ suite('save results tests', () => {
                                         return Promise.resolve({messages: 'failure'});
                                     });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
     });
 
@@ -302,7 +304,7 @@ suite('save results tests', () => {
                                         return Promise.resolve({messages: 'failure'});
                                     });
 
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(context.object, serverClient.object, prompter.object, vscodeWrapper.object);
         return saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
     });
 });

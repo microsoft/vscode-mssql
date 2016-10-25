@@ -35,12 +35,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private _vscodeWrapper: VscodeWrapper;
+    private _context: vscode.ExtensionContext;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(context: vscode.ExtensionContext, private _statusView: StatusView) {
         const self = this;
 
         this._vscodeWrapper = new VscodeWrapper();
+        this._context = context;
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
@@ -148,7 +150,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let batchIndex: number = Number(req.query.batchIndex);
             let format: string = req.query.format;
             let selection: Interfaces.ISlickRange[] = req.body;
-            let saveResults = new ResultsSerializer();
+            let saveResults = new ResultsSerializer(self._context);
             saveResults.onSaveResults(queryUri, batchIndex, selectedResultSetNo, format, selection);
             res.status = 200;
             res.send();
