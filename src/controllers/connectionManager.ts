@@ -250,7 +250,7 @@ export default class ConnectionManager {
 
         connection.extensionTimer.end();
 
-        Telemetry.sendTelemetryEvent(this._context, 'DatabaseConnected', {
+        Telemetry.sendTelemetryEvent('DatabaseConnected', {
             connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
             serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
             serverOs: connection.serverInfo ? connection.serverInfo.osVersion : ''
