@@ -37,6 +37,22 @@ export namespace Telemetry {
         disabled = true;
     }
 
+    // Send a telemetry event for an exception
+    export function sendTelemetryEventForException(
+        context: vscode.ExtensionContext,
+        err: any): void {
+        try {
+            let errorMessage: string = '';
+            if (err !== undefined) {
+                errorMessage = err.message;
+            }
+            Telemetry.sendTelemetryEvent(context, 'Exception', {error: errorMessage});
+        } catch (err) {
+            // If sending telemetly event fail ignore it so it won't break the extension
+            Utils.logDebug('Failed to send telemetry event. error: ' + err );
+        }
+    }
+
     // Send a telemetry event using application insights
     export function sendTelemetryEvent(
         context: vscode.ExtensionContext,

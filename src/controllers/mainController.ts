@@ -261,6 +261,7 @@ export default class MainController implements vscode.Disposable {
         let self = this;
         return promise.catch(err => {
             self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            Telemetry.sendTelemetryEventForException(self._context, err);
         });
     }
 
