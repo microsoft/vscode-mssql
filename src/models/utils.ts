@@ -114,7 +114,7 @@ export function logToOutputChannel(msg: any): void {
 
 // Helper to log debug messages
 export function logDebug(msg: any): void {
-    let config = vscode.workspace.getConfiguration(Constants.extensionName);
+    let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
     let logDebugInfo = config[Constants.configLogDebugInfo];
     if (logDebugInfo === true) {
         let currentTime = new Date().toLocaleTimeString();

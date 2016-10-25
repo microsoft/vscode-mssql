@@ -72,7 +72,7 @@ export default class SqlToolsServiceClient {
                 }
 
                 // Enable diagnostic logging in the service if it is configured
-                let config = workspace.getConfiguration(Constants.extensionName);
+                let config = workspace.getConfiguration(Constants.extensionConfigSectionName);
                 if (config) {
                     let logDebugInfo = config[Constants.configLogDebugInfo];
                     if (logDebugInfo) {
@@ -87,7 +87,7 @@ export default class SqlToolsServiceClient {
                 let clientOptions: LanguageClientOptions = {
                     documentSelector: ['sql'],
                     synchronize: {
-                        configurationSection: 'sqlTools'
+                        configurationSection: 'mssql'
                     }
                 };
 
