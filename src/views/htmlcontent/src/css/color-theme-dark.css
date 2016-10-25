@@ -88,3 +88,7 @@ slick-grid.active .grid .slick-cell.selected {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+.shortCut {
+  color: grey;
+}

@@ -25,8 +25,9 @@ import * as Utils from './../Utils';
 import {enableProdMode} from '@angular/core';
 enableProdMode();
 
-const shortcuts = require('./../shortcuts.json!');
-const keycodes = require('./../keycodes.json!');
+const shortcuts = require('./shortcuts.json!');
+const keycodes = require('./keycodes.json!');
+const displayCodes = require('./displayCodes.json!');
 
 enum SelectedTab {
     Results = 0,
@@ -97,6 +98,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
             let activeGrid = this.activeGrid;
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+        },
+        'event.toggleMagnifyCurrent': () => {
+            this.magnify(this.activeGrid);
         }
     };
     // tslint:disable-next-line:no-unused-variable
@@ -570,5 +574,45 @@ export class AppComponent implements OnInit, AfterViewChecked {
             resultsWindow.scrollTop(scrollTop);
         }
         return true;
+    }
+
+    /**
+     * determines the platform away shortcut string for an event for display purposes
+     * @param eventString The exact event string of the keycode you require (e.g event.toggleMessagePane)
+     */
+    stringCodeFor(eventString: string): string {
+        // iterate through all the known shortcuts
+        for (let shortcut in shortcuts) {
+            if (shortcuts.hasOwnProperty(shortcut)) {
+                // if it matches the requested event
+                if (shortcuts[shortcut] === eventString) {
+                    let keyString = shortcut;
+                    let platString = window.navigator.platform;
+
+                    // find the current platform
+                    if (platString.match(/win/i)) {
+                        // iterate through the display replacement that are defined
+                        for (let key in displayCodes['windows']) {
+                            if (displayCodes['windows'].hasOwnProperty(key)) {
+                                keyString = keyString.replace(key, displayCodes['windows'][key]);
+                            }
+                        }
+                    } else if (platString.match(/linux/i)) {
+                        for (let key in displayCodes['linux']) {
+                            if (displayCodes['linux'].hasOwnProperty(key)) {
+                                keyString = keyString.replace(key, displayCodes['linux'][key]);
+                            }
+                        }
+                    } else if (platString.match(/mac/i)) {
+                        for (let key in displayCodes['mac']) {
+                            if (displayCodes['mac'].hasOwnProperty(key)) {
+                                keyString = keyString.replace(key, displayCodes['mac'][key]);
+                            }
+                        }
+                    }
+                    return keyString;
+                }
+            }
+        }
     }
 }
