@@ -382,11 +382,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Format all text to replace /n with spaces
      */
     textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        if (typeof value === 'string') {
-            return value.replace(/\n/g, ' ');
+        let valueToDisplay = value;
+        let cellClasses = 'grid-cell-value-container';
+        if (value) {
+            valueToDisplay = value.replace(/\n/g, ' ');
         } else {
-            return value;
+            cellClasses += ' missing-value';
         }
+
+        return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
     }
 
     /**
