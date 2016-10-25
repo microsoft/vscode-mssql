@@ -6,7 +6,7 @@ import ConnectionManager from '../src/controllers/connectionManager';
 import MainController from '../src/controllers/mainController';
 import Telemetry from '../src/models/telemetry';
 
-export function ensureExtensionIsActive(): Promise<any> {
+function ensureExtensionIsActive(): Promise<any> {
     return new Promise((resolve, reject) => {
         waitForExtensionToBeActive(resolve);
     });
