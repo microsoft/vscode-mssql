@@ -6,7 +6,6 @@ var del = require('del');
 var srcmap = require('gulp-sourcemaps');
 var config = require('./config');
 var uglifyjs = require('uglify-js');
-var less = require('gulp-less');
 var minifier = require('gulp-uglify/minifier');
 var tsProject = ts.createProject(config.paths.html.root + '/tsconfig.json');
 var sysBuilder = require('systemjs-builder');
@@ -123,18 +122,15 @@ gulp.task('html:copy:assets', () => {
 
 gulp.task('html:compile', gulp.series('html:compile-src'))
 
-gulp.task('html:app', gulp.series(['html:compile', 'html:bundle:app', 'html:min-js']));
+gulp.task('html:app', gulp.series(['html:compile', 'html:copy:assets', 'html:bundle:app']));
 
-gulp.task('html:bundle:all', () => {
+gulp.task('html:bundle', () => {
     return gulp.src([
         config.paths.html.out + '/lib/js/vendors.min.js',
         config.paths.html.out + '/dist/js/app.min.js'
         ])
     .pipe(concat('app.bundle.js'))
     .pipe(gulp.dest(config.paths.html.out + '/dist/js'));
-})
+});
 
-// Bundle dependencies and app into one file (app.bundle.js)
-gulp.task('html:bundle', gulp.series(['html:vendor', 'html:copy:assets', 'html:app', 'html:bundle:all']));
-
-gulp.task('html:build', gulp.series('html:lint', 'html:bundle'));
+gulp.task('html:build', gulp.series('html:lint', 'html:vendor', 'html:app', 'html:bundle'));
