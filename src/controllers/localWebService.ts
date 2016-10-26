@@ -10,7 +10,7 @@ export default class LocalWebService {
     private app = express();
     static _servicePort: string;
     static _vscodeExtensionPath: string;
-    static _htmlContentLocation = 'out/src/views/htmlcontent/src';
+    static _htmlContentLocation = 'out/src/views/htmlcontent';
     static _staticContentPath: string;
 
     constructor(extensionPath: string) {

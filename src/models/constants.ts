@@ -40,7 +40,7 @@ export const outputContentTypeEditorSelection = 'setEditorSelection';
 export const outputContentTypeShowError = 'showError';
 export const outputContentTypeShowWarning = 'showWarning';
 export const outputServiceLocalhost = 'http://localhost:';
-export const msgContentProviderSqlOutputHtml = 'sqlOutput.ejs';
+export const msgContentProviderSqlOutputHtml = 'dist/html/sqlOutput.ejs';
 
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
