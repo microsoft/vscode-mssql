@@ -124,7 +124,10 @@ export default class QueryRunner {
                         id: 0,
                         selection: undefined,
                         messages: [{message: result.messages, time: undefined}],
-                        resultSetSummaries: undefined
+                        resultSetSummaries: undefined,
+                        executionElapsed: undefined,
+                        executionEnd: undefined,
+                        executionStart: undefined
                     }];
                 self.dataResolveReject.resolve();
             } else {
@@ -141,8 +144,8 @@ export default class QueryRunner {
     // handle the result of the notification
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
         this._isExecuting = false;
-
         this.batchSets = result.batchSummaries;
+
         this.batchSets.map((batch) => {
             if (batch.selection) {
                 batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;

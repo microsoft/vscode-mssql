@@ -42,6 +42,8 @@ interface IMessages {
     messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
+    startTime: string;
+    endTime: string;
 }
 
 /**
@@ -166,6 +168,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resultsScrollTop = 0;
     // tslint:disable-next-line:no-unused-variable
     private activeGrid = 0;
+    private totalElapseExecution: number;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
 
@@ -178,14 +181,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     ngOnInit(): void {
         const self = this;
+        this.totalElapseExecution = 0;
         this.setupResizeBind();
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             self.messages = [];
             for (let [batchId, batch] of batchs.entries()) {
+                this.totalElapseExecution += Utils.parseTimeString(batch.totalTime);
                 let messages: IMessages = {
                     messages: [],
                     hasError: batch.hasError,
-                    selection: batch.selection
+                    selection: batch.selection,
+                    startTime: new Date(batch.startTime).toLocaleTimeString(),
+                    endTime: new Date(batch.endTime).toLocaleTimeString()
                 };
                 for (let message of batch.messages) {
                     let date = new Date(message.time);

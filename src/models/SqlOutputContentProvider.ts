@@ -81,7 +81,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                             resultSets: [],
                             messages: batch.messages,
                             hasError: batch.hasError,
-                            selection: batch.selection
+                            selection: batch.selection,
+                            startTime: batch.executionStart,
+                            endTime: batch.executionEnd,
+                            totalTime: batch.executionElapsed
                         };
                         for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
                             let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
@@ -107,7 +110,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         message: Constants.unfoundResult
                     }],
                     hasError: undefined,
-                    selection: undefined
+                    selection: undefined,
+                    startTime: undefined,
+                    endTime: undefined,
+                    totalTime: undefined
                 };
                 tempBatchSets.push(tempBatch);
                 let json = JSON.stringify(tempBatchSets);
