@@ -423,7 +423,7 @@ export class ConnectionStore {
     }
 
     private getMaxRecentConnectionsCount(): number {
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
 
         let maxConnections: number = config[Constants.configMaxRecentConnections];
         if (typeof(maxConnections) !== 'number' || maxConnections <= 0) {
