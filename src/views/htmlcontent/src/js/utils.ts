@@ -1,5 +1,5 @@
-const shortcuts = require('./app/shortcuts.json!');
-const displayCodes = require('./app/displayCodes.json!');
+const shortcuts = require('./shortcuts.json!');
+const displayCodes = require('./displayCodes.json!');
 
 export function formatString(str: string, ...args: any[]): string {
     // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js

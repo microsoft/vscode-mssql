@@ -27,7 +27,6 @@ enableProdMode();
 
 const shortcuts = require('./../shortcuts.json!');
 const keycodes = require('./../keycodes.json!');
-const displayCodes = require('./../displayCodes.json!');
 
 enum SelectedTab {
     Results = 0,
