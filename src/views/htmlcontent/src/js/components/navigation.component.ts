@@ -10,7 +10,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
     selector: 'navigator',
-    templateUrl: 'app/navigation.component.html'
+    templateUrl: 'dist/html/navigation.component.html'
 })
 
 export class NavigatorComponent {
