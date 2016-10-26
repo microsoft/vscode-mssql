@@ -5,6 +5,7 @@
 import { Component, Input, ElementRef, forwardRef, Inject, EventEmitter, OnInit,
      Output } from '@angular/core';
 import { Observable } from 'rxjs/RX';
+
 import { IGridIcon } from './../interfaces';
 
 enum SelectedTab {

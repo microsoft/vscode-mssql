@@ -227,7 +227,7 @@ suite('ConnectionStore tests', () => {
         });
 
         let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
-        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'vscode-mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
+        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
 
         let updatedCredentials: interfaces.IConnectionProfile[];
 
@@ -235,7 +235,7 @@ suite('ConnectionStore tests', () => {
         fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
         fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((path, text, handler) => {
-                updatedCredentials = (JSON.parse(text))['vscode-mssql.connections'];
+                updatedCredentials = (JSON.parse(text))['mssql.connections'];
                 handler.call(undefined, undefined);
             });
         fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -274,7 +274,7 @@ suite('ConnectionStore tests', () => {
         });
 
         let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
-        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'vscode-mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
+        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
 
         let updatedCredentials: interfaces.IConnectionProfile[];
 
@@ -282,7 +282,7 @@ suite('ConnectionStore tests', () => {
         fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
         fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((path, text, handler) => {
-                updatedCredentials = (JSON.parse(text))['vscode-mssql.connections'];
+                updatedCredentials = (JSON.parse(text))['mssql.connections'];
                 handler.call(undefined, undefined);
             });
         fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))

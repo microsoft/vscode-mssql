@@ -3,7 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter } from '@angular/core';
-import {ISlickRange} from './slickgrid/SelectionModel';
+
+import {ISlickRange} from './../slickgrid/SelectionModel';
+
 import * as Constants from './../constants';
 import * as Utils from './../utils';
 /**
@@ -12,7 +14,7 @@ import * as Utils from './../utils';
 
 @Component({
     selector: 'context-menu',
-    templateUrl: 'app/contextmenu.component.html'
+    templateUrl: 'dist/html/contextmenu.component.html'
 })
 
 export class ContextMenu {

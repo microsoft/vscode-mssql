@@ -116,8 +116,8 @@ function getOverridableTextEditorClass(grid: SlickGrid): any {
 
 @Component({
     selector: 'slick-grid',
-    templateUrl: 'app/slickgrid/SlickGrid.html',
-    styleUrls: ['app/libs/SlickGrid/slick.grid.css', 'app/slickgrid/SlickGrid.css'],
+    templateUrl: 'dist/html/SlickGrid.html',
+    styleUrls: ['dist/css/slick.grid.css', 'dist/css/SlickGrid.css'],
     providers: [LocalizationService, GridSyncService],
     encapsulation: ViewEncapsulation.None
 })
