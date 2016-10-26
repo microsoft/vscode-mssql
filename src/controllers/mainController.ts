@@ -178,7 +178,7 @@ export default class MainController implements vscode.Disposable {
      */
     private onDisconnect(): Promise<any> {
         if (this.CanRunCommand()) {
-            return this._connectionMgr.onDisconnect();
+            return this._connectionMgr.onDisconnect(this._outputContentProvider);
         }
     }
 

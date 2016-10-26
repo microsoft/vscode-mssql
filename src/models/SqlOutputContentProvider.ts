@@ -433,6 +433,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
     }
 
+    /**
+     * Return the query for a file uri
+     */
+    public getQueryRunner(uri: string): QueryRunner {
+        let resultsUri = this.getResultsUri(uri).toString();
+        return  this._queryResultsMap.get(resultsUri).queryRunner;
+    }
+
     // PRIVATE HELPERS /////////////////////////////////////////////////////
 
     /**

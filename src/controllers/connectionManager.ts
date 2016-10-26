@@ -8,6 +8,7 @@ import Interfaces = require('../models/interfaces');
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
+import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
@@ -351,8 +352,13 @@ export default class ConnectionManager {
     }
 
     // close active connection, if any
-    public onDisconnect(): Promise<boolean> {
-        return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
+    public onDisconnect(sqlOutputContentProvider: SqlOutputContentProvider): Promise<boolean> {
+        // cancel any query if executing
+        let fileUri = this.vscodeWrapper.activeTextEditorUri;
+        if (sqlOutputContentProvider.getQueryRunner(fileUri).isExecutingQuery) {
+            sqlOutputContentProvider.cancelQuery(fileUri);
+        }
+        return this.disconnect(fileUri);
     }
 
     public disconnect(fileUri: string): Promise<boolean> {
