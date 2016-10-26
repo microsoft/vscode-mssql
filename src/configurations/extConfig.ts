@@ -22,7 +22,7 @@ export default class ExtConfig implements IConfig {
             this._config = new Config();
         }
         if (this._extensionConfig === undefined) {
-            this._extensionConfig = workspace.getConfiguration(Constants.extensionName);
+            this._extensionConfig = workspace.getConfiguration(Constants.extensionConfigSectionName);
         }
         if (this._workspaceConfig === undefined) {
             this._workspaceConfig = workspace.getConfiguration();

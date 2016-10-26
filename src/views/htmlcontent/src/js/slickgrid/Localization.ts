@@ -28,7 +28,7 @@ enum RunStatus {
     InError = 7,
 }
 
-class Localization {
+export class Localization {
     strings = {
         addDataSource: 'Add Data Source',
         dataSourcePreviewFailed: 'Unable to load preview.',
@@ -408,5 +408,3 @@ class Localization {
         activate: 'Activate'
     };
 }
-
-export = Localization;

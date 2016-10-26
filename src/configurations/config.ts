@@ -50,7 +50,7 @@ export default class Config implements IConfig {
 
     public getExtensionConfig(key: string, defaultValue?: any): any {
        let json = Config.configJsonContent;
-       let extensionConfig = json[Constants.extensionName];
+       let extensionConfig = json[Constants.extensionConfigSectionName];
        let configValue = extensionConfig[key];
        if (!configValue) {
            configValue = defaultValue;
