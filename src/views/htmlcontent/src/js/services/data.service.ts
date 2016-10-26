@@ -5,8 +5,10 @@
 import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
+
+import { ISlickRange } from './../slickGrid/SelectionModel';
+
 import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
-import { ISlickRange } from './SlickGrid/SelectionModel';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.

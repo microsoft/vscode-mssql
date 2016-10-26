@@ -34,19 +34,19 @@ slick-grid.active .grid .slick-cell.selected {
 
 /* icons */
 .icon.extendFullScreen {
-  background-image: url('images/ExtendToFullScreen_16x_vscode_inverse.svg');
+  background-image: url('/dist/images/ExtendToFullScreen_16x_vscode_inverse.svg');
 }
 
 .icon.exitFullScreen {
-  background-image: url('images/ExitFullScreen_16x_vscode_inverse.svg');
+  background-image: url('/dist/images/ExitFullScreen_16x_vscode_inverse.svg');
 }
 
 .icon.saveJson {
-  background-image: url('images/ResultToJSON_16x_vscode_inverse.svg');
+  background-image: url('/dist/images/ResultToJSON_16x_vscode_inverse.svg');
 }
 
 .icon.saveCsv {
-  background-image: url('images/ResultToCSV_16x_vscode_inverse.svg');
+  background-image: url('/dist/images/ResultToCSV_16x_vscode_inverse.svg');
 }
 
 /* headers */
