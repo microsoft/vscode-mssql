@@ -4,23 +4,30 @@
  * ------------------------------------------------------------------------------------------ */
 import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
-import {IColumnDefinition} from './slickgrid/ModelInterfaces';
-import {IObservableCollection} from './slickgrid/BaseLibrary';
-import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
-import {ISlickRange} from './slickgrid/SelectionModel';
-import {SlickGrid} from './slickgrid/SlickGrid';
-import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
-import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import * as Constants from './../constants';
-import * as Utils from './../utils';
+
+import {IColumnDefinition} from './../slickgrid/ModelInterfaces';
+import {IObservableCollection} from './../slickgrid/BaseLibrary';
+import {IGridDataRow} from './../slickgrid/SharedControlInterfaces';
+import {ISlickRange} from './../slickgrid/SelectionModel';
+import {SlickGrid} from './../slickgrid/SlickGrid';
+import {VirtualizedCollection} from './../slickgrid/VirtualizedCollection';
+import { FieldType } from './../slickgrid/EngineAPI';
+
+import {DataService} from './../services/data.service';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
-import { FieldType } from './slickgrid/EngineAPI';
 
-const shortcuts = require('./shortcuts.json!');
-const keycodes = require('./keycodes.json!');
-const displayCodes = require('./displayCodes.json!');
+import * as Constants from './../constants';
+import * as Utils from './../Utils';
+
+/** enableProdMode */
+import {enableProdMode} from '@angular/core';
+enableProdMode();
+
+const shortcuts = require('./../shortcuts.json!');
+const keycodes = require('./../keycodes.json!');
+const displayCodes = require('./../displayCodes.json!');
 
 enum SelectedTab {
     Results = 0,
@@ -50,7 +57,7 @@ interface IMessages {
 @Component({
     selector: 'my-app',
     host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
-    templateUrl: 'app/app.html',
+    templateUrl: 'dist/html/app.html',
     directives: [ContextMenu, SlickGrid],
     providers: [DataService],
     styles: [`

@@ -2,9 +2,11 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, ContentChildren, QueryList, AfterContentInit, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { Tab } from './tab';
-import { TabFilter } from './tab.filter';
+import { Component, ContentChildren, QueryList, AfterContentInit, Input, OnChanges,
+    SimpleChanges, Output, EventEmitter } from '@angular/core';
+
+import { Tab } from './tab.component';
+import { TabFilter } from './../filters/tab.filter';
 
 enum SelectedTab {
     Results = 0,
