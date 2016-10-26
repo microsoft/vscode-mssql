@@ -178,17 +178,17 @@
       "type": "object",
       "title": "MSSQL configuration",
       "properties": {
-        "vscode-mssql.logDebugInfo": {
+        "mssql.logDebugInfo": {
           "type": "boolean",
           "default": false,
           "description": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)"
         },
-        "vscode-mssql.maxRecentConnections": {
+        "mssql.maxRecentConnections": {
           "type": "number",
           "default": 5,
           "description": "The maximum number of recently used connections to store in the connection list"
         },
-        "vscode-mssql.connections": {
+        "mssql.connections": {
           "type": "array",
           "default": [
             {
