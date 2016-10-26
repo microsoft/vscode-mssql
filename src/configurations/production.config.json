@@ -1,6 +1,5 @@
 {
     "service": {
-        // this should be changed to an FWLink
         "downloadUrl": "http://download.microsoft.com/download/E/D/A/EDA521A8-30A6-4C5C-AE90-1707EB2EFC1E/microsoft.sqltools.servicelayer-{#fileName#}",
         "version": "0.0.32",
         "downloadFileNames": {
