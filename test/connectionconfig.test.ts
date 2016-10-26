@@ -9,7 +9,7 @@ import fs = require('fs');
 
 const corruptJson =
 `{
-    vscode-mssql.connections: [
+    mssql.connections: [
         {}
         corrupt!@#$%
     ]
@@ -18,7 +18,7 @@ const corruptJson =
 const validJson =
 `
 {
-    "vscode-mssql.connections": [
+    "mssql.connections": [
         {
             "server": "my-server",
             "database": "my_db",

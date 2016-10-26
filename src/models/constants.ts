@@ -1,10 +1,11 @@
 // constants
 export const languageId = 'sql';
 export const extensionName = 'vscode-mssql';
+export const extensionConfigSectionName = 'mssql';
 export const outputChannelName = 'MSSQL';
 
 export const connectionConfigFilename = 'settings.json';
-export const connectionsArrayName = 'vscode-mssql.connections';
+export const connectionsArrayName = 'mssql.connections';
 
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdCancelQuery = 'extension.cancelQuery';
