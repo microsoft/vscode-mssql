@@ -140,10 +140,13 @@ export default class MainController implements vscode.Disposable {
                 // Init connection manager and connection MRU
                 self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
+                // Initialize telemetry
+                Telemetry.initialize(self._context);
+
                 activationTimer.end();
 
                 // telemetry for activation
-                Telemetry.sendTelemetryEvent(self._context, 'ExtensionActivated', {},
+                Telemetry.sendTelemetryEvent('ExtensionActivated', {},
                     { activationTime: activationTimer.getDuration() }
                 );
 
@@ -261,7 +264,7 @@ export default class MainController implements vscode.Disposable {
         let self = this;
         return promise.catch(err => {
             self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
-            Telemetry.sendTelemetryEventForException(self._context, err);
+            Telemetry.sendTelemetryEventForException(err);
         });
     }
 
