@@ -31,7 +31,7 @@ testRunner.configure(
 {
     relativeSourcePath: '../src',
     relativeCoverageDir: '../coverage',
-    ignorePatterns: ['**/node_modules/**'] // , '/slickgrid/', '/libs/']
+    ignorePatterns: ['**/node_modules/**', '**/libs/**'] // , '/slickgrid/', '/libs/']
 });
 
 module.exports = testRunner;

@@ -42,6 +42,9 @@ function run(testsRoot, clb): any {
     require('source-map-support').install();
 
     let coverageVar = '$$cov_' + new Date().getTime() + '$$';
+    let transformer: any = undefined;
+    let matchFn: any = undefined;
+    let instrumenter: any = undefined;
 
     if (coverOptions) {
         // Set up Code Coverage, hooking require so that instrumented code is returned
@@ -49,7 +52,7 @@ function run(testsRoot, clb): any {
             return clb('Error - relativeSourcePath must be defined for code coverage to work');
         }
 
-        let instrumenter = new istanbul.Instrumenter({ coverageVariable: coverageVar });
+        instrumenter = new istanbul.Instrumenter({ coverageVariable: coverageVar });
         let sourceRoot = paths.join(testsRoot, coverOptions.relativeSourcePath);
         // Glob source files
         let srcFiles = glob.sync('**/**.js', {
@@ -66,13 +69,13 @@ function run(testsRoot, clb): any {
             fileMap[fullPath] = true;
         });
 
-        let matchFn: any = function (file): boolean { return fileMap[file]; };
+        matchFn = function (file): boolean { return fileMap[file]; };
         matchFn.files = Object.keys(fileMap);
 
         // Hook up to the Require function so that when this is called, if any of our source files
         // are required, the instrumented version is pulled in instead. These instrumented versions
         // write to a global coverage variable with hit counts whenever they are accessed
-        let transformer = instrumenter.instrumentSync.bind(instrumenter);
+        transformer = instrumenter.instrumentSync.bind(instrumenter);
         let hookOpts = { verbose: false, extensions: ['.js']};
 
         istanbul.hook.hookRequire(matchFn, transformer, hookOpts);
@@ -108,6 +111,24 @@ function run(testsRoot, clb): any {
                     } else {
                         cov = global[coverageVar];
                     }
+
+                    // TODO consider putting this under a conditional flag
+                    // Files that are not touched by code ran by the test runner is manually instrumented, to
+                    // illustrate the missing coverage.
+                    matchFn.files.forEach(file => {
+                        if (!cov[file]) {
+                            transformer(fs.readFileSync(file, 'utf-8'), file);
+
+                            // When instrumenting the code, istanbul will give each FunctionDeclaration a value of 1 in coverState.s,
+                            // presumably to compensate for function hoisting. We need to reset this, as the function was not hoisted,
+                            // as it was never loaded.
+                            Object.keys(instrumenter.coverState.s).forEach(key => {
+                                instrumenter.coverState.s[key] = 0;
+                            });
+
+                            cov[file] = instrumenter.coverState;
+                        }
+                    });
 
                     // TODO Allow config of reporting directory with
                     let reportingDir = paths.join(testsRoot, coverOptions.relativeCoverageDir);
