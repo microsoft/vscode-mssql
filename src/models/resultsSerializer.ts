@@ -11,6 +11,7 @@ import * as Utils from '../models/utils';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import Telemetry from '../models/telemetry';
 
 /**
  *  Handles save results request from the context menu of slickGrid
@@ -25,6 +26,7 @@ export default class ResultsSerializer {
 
 
     constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
+
         if (client) {
             this._client = client;
         } else {
@@ -225,6 +227,9 @@ export default class ResultsSerializer {
                     self._vscodeWrapper.logToOutputChannel(Constants.msgSaveSucceeded + filePath);
                     self.openSavedFile(self._filePath);
                 }
+                // telemetry for save results
+                Telemetry.sendTelemetryEvent('SavedResults', { 'type': format });
+
             }, error => {
                 self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + error);
                 self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + error);
