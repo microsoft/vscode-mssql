@@ -18,7 +18,6 @@ import Telemetry from '../models/telemetry';
  */
 export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
-    private _context: vscode.ExtensionContext;
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
@@ -26,9 +25,8 @@ export default class ResultsSerializer {
     private _isTempFile: boolean;
 
 
-    constructor(context: vscode.ExtensionContext, client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
+    constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
 
-        this._context = context;
         if (client) {
             this._client = client;
         } else {
@@ -230,7 +228,7 @@ export default class ResultsSerializer {
                     self.openSavedFile(self._filePath);
                 }
                 // telemetry for save results
-                Telemetry.sendTelemetryEvent(self._context, 'SavedResults', { 'type': format });
+                Telemetry.sendTelemetryEvent('SavedResults', { 'type': format });
 
             }, error => {
                 self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + error);
