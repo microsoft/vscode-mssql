@@ -167,7 +167,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
     // tslint:disable-next-line:no-unused-variable
-    private messageActive = true;
+    private _messageActive = true;
     private firstRender = true;
     // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
@@ -175,6 +175,19 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private activeGrid = 0;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
+
+    set messageActive(input: boolean) {
+        this._messageActive = input;
+        setTimeout(() => {
+            for (let grid of this.renderedDataSets) {
+                grid.resized.emit();
+            }
+        });
+    }
+
+    get messageActive(): boolean {
+        return this._messageActive;
+    }
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
