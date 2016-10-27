@@ -320,10 +320,12 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
         this._gridSyncService.selectionModel.setSelectedRanges([new Slick.Range(0, 0, 0, 0)]);
     }
 
-    set selection(range: ISlickRange[] | boolean) {
+    public set selection(range: ISlickRange[] | boolean) {
         if (typeof range === 'boolean') {
             if (range) {
-                this._gridSyncService.selectionModel.setSelectedRanges([new Slick.Range(0, 0, this._grid.getDataLength() - 1, this._grid.getColumns().length)]);
+                this._gridSyncService.selectionModel.setSelectedRanges(
+                    [new Slick.Range(0, 0, this._grid.getDataLength() - 1, this._grid.getColumns().length - 1)]
+                );
             } else {
                 this._gridSyncService.selectionModel.clearSelection();
             }
