@@ -193,7 +193,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             self.messages = [];
             for (let [batchId, batch] of batchs.entries()) {
-                this.totalElapseExecution += Utils.parseTimeString(batch.totalTime);
+                let exeTime = Utils.parseTimeString(batch.totalTime);
+                if (exeTime) {
+                    this.totalElapseExecution += <number> exeTime;
+                }
                 let messages: IMessages = {
                     messages: [],
                     hasError: batch.hasError,
