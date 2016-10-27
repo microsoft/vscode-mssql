@@ -53,21 +53,13 @@ export namespace Telemetry {
      * Send a telemetry event for an exception
      */
     export function sendTelemetryEventForException(
-        err: any): void {
+        err: any, methodName: string): void {
         try {
-            let errorMessage: string = '';
-            if (err !== undefined) {
-                if (err.message !== undefined) {
-                    errorMessage = err.message;
-                } else {
-                    errorMessage = <string>err;
-                }
-            }
-
-            Telemetry.sendTelemetryEvent('Exception', {error: errorMessage});
-        } catch (err) {
+            Telemetry.sendTelemetryEvent('Exception', {methodName: methodName});
+            Utils.logDebug('Unhandled Exception occurred. error: ' + err + ' method: ' + methodName );
+        } catch (telemetryErr) {
             // If sending telemetly event fails ignore it so it won't break the extension
-            Utils.logDebug('Failed to send telemetry event. error: ' + err );
+            Utils.logDebug('Failed to send telemetry event. error: ' + telemetryErr );
         }
     }
 
