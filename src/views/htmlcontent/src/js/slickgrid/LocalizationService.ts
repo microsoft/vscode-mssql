@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import Localization = require('./Localization');
+import {Localization} from './Localization';
 
 @Injectable()
 export class LocalizationService {

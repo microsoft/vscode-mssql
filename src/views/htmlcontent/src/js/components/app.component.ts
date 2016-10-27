@@ -4,23 +4,30 @@
  * ------------------------------------------------------------------------------------------ */
 import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
-import {IColumnDefinition} from './slickgrid/ModelInterfaces';
-import {IObservableCollection} from './slickgrid/BaseLibrary';
-import {IGridDataRow} from './slickgrid/SharedControlInterfaces';
-import {ISlickRange} from './slickgrid/SelectionModel';
-import {SlickGrid} from './slickgrid/SlickGrid';
-import {DataService} from './data.service';
 import {Observable} from 'rxjs/Rx';
-import {VirtualizedCollection} from './slickgrid/VirtualizedCollection';
-import * as Constants from './../constants';
-import * as Utils from './../utils';
+
+import {IColumnDefinition} from './../slickgrid/ModelInterfaces';
+import {IObservableCollection} from './../slickgrid/BaseLibrary';
+import {IGridDataRow} from './../slickgrid/SharedControlInterfaces';
+import {ISlickRange} from './../slickgrid/SelectionModel';
+import {SlickGrid} from './../slickgrid/SlickGrid';
+import {VirtualizedCollection} from './../slickgrid/VirtualizedCollection';
+import { FieldType } from './../slickgrid/EngineAPI';
+
+import {DataService} from './../services/data.service';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
-import { FieldType } from './slickgrid/EngineAPI';
 
-const shortcuts = require('./shortcuts.json!');
-const keycodes = require('./keycodes.json!');
-const displayCodes = require('./displayCodes.json!');
+import * as Constants from './../constants';
+import * as Utils from './../Utils';
+
+/** enableProdMode */
+import {enableProdMode} from '@angular/core';
+enableProdMode();
+
+const shortcuts = require('./../shortcuts.json!');
+const keycodes = require('./../keycodes.json!');
+const displayCodes = require('./../displayCodes.json!');
 
 enum SelectedTab {
     Results = 0,
@@ -50,7 +57,7 @@ interface IMessages {
 @Component({
     selector: 'my-app',
     host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
-    templateUrl: 'app/app.html',
+    templateUrl: 'dist/html/app.html',
     directives: [ContextMenu, SlickGrid],
     providers: [DataService],
     styles: [`
@@ -160,7 +167,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
     // tslint:disable-next-line:no-unused-variable
-    private messageActive = true;
+    private _messageActive = true;
     private firstRender = true;
     // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
@@ -168,6 +175,19 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private activeGrid = 0;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
+
+    set messageActive(input: boolean) {
+        this._messageActive = input;
+        setTimeout(() => {
+            for (let grid of this.renderedDataSets) {
+                grid.resized.emit();
+            }
+        });
+    }
+
+    get messageActive(): boolean {
+        return this._messageActive;
+    }
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
@@ -382,11 +402,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Format all text to replace /n with spaces
      */
     textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        if (typeof value === 'string') {
-            return value.replace(/\n/g, ' ');
+        let valueToDisplay = value;
+        let cellClasses = 'grid-cell-value-container';
+        if (value) {
+            valueToDisplay = value.replace(/\n/g, ' ');
         } else {
-            return value;
+            cellClasses += ' missing-value';
         }
+
+        return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
     }
 
     /**
