@@ -10,6 +10,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryDisposeRequest } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
+import Constants = require('../models/constants');
+import * as Utils from './../models/utils';
 
 const ncp = require('copy-paste');
 
@@ -101,6 +103,7 @@ export default class QueryRunner {
 
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(selection: ISelectionData): Thenable<void> {
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
         const self = this;
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
@@ -143,6 +146,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgFinishedExecute, this._uri));
         this._isExecuting = false;
         this.batchSets = result.batchSummaries;
 

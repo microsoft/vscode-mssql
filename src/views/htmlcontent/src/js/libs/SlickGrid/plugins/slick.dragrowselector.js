@@ -102,14 +102,8 @@
 
         function handleKeyDown(e) {
             var activeCell = _grid.getActiveCell();
-            // ctrl + a
-            if((e.metaKey || e.ctrlKey) && e.which == a_key) {
-                _ranges = [new Slick.Range(0, 0, _grid.getDataLength() - 1, _grid.getColumns().length)]
-                setSelectedRanges(_ranges);
-                e.stopImmediatePropagation();
-            }
-            // do we have a context to navigate on
-            else if (activeCell) {
+
+            if (activeCell) {
                 // arrow keys
                 if (e.which == left_arrow || e.which == up_arrow || e.which == right_arrow || e.which == down_arrow) {
                     e.stopImmediatePropagation();

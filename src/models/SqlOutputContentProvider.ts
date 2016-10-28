@@ -275,7 +275,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         if (typeof input === 'string') {
             let resultsUri = this.getResultsUri(input).toString();
-            queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
+            if (this._queryResultsMap.has(resultsUri)) {
+                queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
+            }
         } else {
             queryRunner = input;
         }
@@ -437,6 +439,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }, (error: any) => {
             self._vscodeWrapper.showErrorMessage(error);
         });
+    }
+
+    /**
+     * Return the query for a file uri
+     */
+    public getQueryRunner(uri: string): QueryRunner {
+        let resultsUri = this.getResultsUri(uri).toString();
+        if (this._queryResultsMap.has(resultsUri)) {
+            return  this._queryResultsMap.get(resultsUri).queryRunner;
+        } else {
+            return undefined;
+        }
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////

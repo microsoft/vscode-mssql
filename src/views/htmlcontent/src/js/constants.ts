@@ -4,6 +4,7 @@ export const restoreLabel = 'Restore';
 export const saveCSVLabel = 'Save as CSV';
 export const saveJSONLabel = 'Save as JSON';
 export const resultPaneLabel = 'Results';
+export const selectAll = 'Select all';
 
 /** Messages Pane Labels */
 export const executeQueryLabel = 'Executing query...';
