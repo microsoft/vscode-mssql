@@ -181,6 +181,11 @@ export default class MainController implements vscode.Disposable {
      */
     private onDisconnect(): Promise<any> {
         if (this.CanRunCommand()) {
+            let fileUri = this._vscodeWrapper.activeTextEditorUri;
+            let queryRunner = this._outputContentProvider.getQueryRunner(fileUri);
+            if (queryRunner && queryRunner.isExecutingQuery) {
+                this._outputContentProvider.cancelQuery(fileUri);
+            }
             return this._connectionMgr.onDisconnect();
         }
     }
