@@ -45,18 +45,18 @@
             <tbody *ngIf="messages.length > 0">
                 <template ngFor let-imessage [ngForOf]="messages">
                     <tr *ngIf="imessage.selection">
-                        <td>[{{imessage.messages[0].time}}]</td>
+                        <td>[{{imessage.startTime}}]</td>
                         <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
                     </tr>
                     <tr *ngFor="let message of imessage.messages">
                         <td></td>
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
-                    <tr *ngIf="imessage.selection">
-                        <td>[{{imessage.messages[imessage.messages.length - 1].time}}]</td>
-                        <td>{{Constants.messageEndLabel}}</td>
-                    </tr>
                 </template>
+                <tr>
+                    <td></td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapseExecution))}}</td>
+                </tr>
             </tbody>
             <tbody *ngIf="messages.length === 0">
                 <tr>
