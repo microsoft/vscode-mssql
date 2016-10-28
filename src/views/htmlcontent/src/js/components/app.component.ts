@@ -35,7 +35,6 @@ const shortcuts = {
     'undefined': 'event.toggleMagnifyCurrent'
 };
 const keycodes = require('./../keycodes.json!');
-const displayCodes = require('./../displayCodes.json!');
 
 enum SelectedTab {
     Results = 0,
@@ -107,8 +106,25 @@ export class AppComponent implements OnInit, AfterViewChecked {
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
         },
-        'event.toggleMagnifyCurrent': () => {
+        'event.toggleMagnify': () => {
             this.magnify(this.activeGrid);
+        },
+        'event.selectAll': () => {
+            this.slickgrids.toArray()[this.activeGrid].selection = true;
+        },
+        'event.saveAsCSV': () => {
+            let activeGrid = this.activeGrid;
+            let batchId = this.renderedDataSets[activeGrid].batchId;
+            let resultId = this.renderedDataSets[activeGrid].resultId;
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            this.dataService.sendSaveRequest(batchId, resultId, 'csv', selection);
+        },
+        'event.saveAsJSON': () => {
+            let activeGrid = this.activeGrid;
+            let batchId = this.renderedDataSets[activeGrid].batchId;
+            let resultId = this.renderedDataSets[activeGrid].resultId;
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            this.dataService.sendSaveRequest(batchId, resultId, 'json', selection);
         }
     };
     // tslint:disable-next-line:no-unused-variable
@@ -136,7 +152,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
-                    this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, selection: selection});
+                    this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -149,7 +165,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
-                    this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, selection: selection});
+                    this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -337,14 +353,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Send save result set request to service
      */
-    handleContextClick(event: {type: string, batchId: number, resultId: number, selection: ISlickRange[]}): void {
+    handleContextClick(event: {type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}): void {
         switch (event.type) {
-            case 'csv':
+            case 'savecsv':
                 this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv', event.selection);
                 break;
-            case 'json':
+            case 'savejson':
                 this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json', event.selection);
                 break;
+            case 'selectall':
+                this.activeGrid = event.index;
+                this.shortcutfunc['event.selectAll']();
             default:
                 break;
         }
@@ -352,7 +371,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-        this.contextMenu.show(event.x, event.y, batchId, resultId, selection);
+        this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
     }
 
     /**
@@ -581,7 +600,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             return false;
         }
 
-        this.slickgrids.toArray()[this.activeGrid].resetActive();
+        this.slickgrids.toArray()[this.activeGrid].selection = false;
         this.slickgrids.toArray()[targetIndex].setActive();
         this.activeGrid = targetIndex;
 
@@ -599,45 +618,5 @@ export class AppComponent implements OnInit, AfterViewChecked {
             resultsWindow.scrollTop(scrollTop);
         }
         return true;
-    }
-
-    /**
-     * determines the platform away shortcut string for an event for display purposes
-     * @param eventString The exact event string of the keycode you require (e.g event.toggleMessagePane)
-     */
-    stringCodeFor(eventString: string): string {
-        // iterate through all the known shortcuts
-        for (let shortcut in shortcuts) {
-            if (shortcuts.hasOwnProperty(shortcut)) {
-                // if it matches the requested event
-                if (shortcuts[shortcut] === eventString) {
-                    let keyString = shortcut;
-                    let platString = window.navigator.platform;
-
-                    // find the current platform
-                    if (platString.match(/win/i)) {
-                        // iterate through the display replacement that are defined
-                        for (let key in displayCodes['windows']) {
-                            if (displayCodes['windows'].hasOwnProperty(key)) {
-                                keyString = keyString.replace(key, displayCodes['windows'][key]);
-                            }
-                        }
-                    } else if (platString.match(/linux/i)) {
-                        for (let key in displayCodes['linux']) {
-                            if (displayCodes['linux'].hasOwnProperty(key)) {
-                                keyString = keyString.replace(key, displayCodes['linux'][key]);
-                            }
-                        }
-                    } else if (platString.match(/mac/i)) {
-                        for (let key in displayCodes['mac']) {
-                            if (displayCodes['mac'].hasOwnProperty(key)) {
-                                keyString = keyString.replace(key, displayCodes['mac'][key]);
-                            }
-                        }
-                    }
-                    return keyString;
-                }
-            }
-        }
     }
 }
