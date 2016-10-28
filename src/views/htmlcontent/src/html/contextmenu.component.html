@@ -1,4 +1,8 @@
 <ul class="contextMenu" style="display:none;position:absolute">
-    <li id="csv" (click)="handleContextActionClick('csv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}</li>
-    <li id="json" (click)="handleContextActionClick('json')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}</li>
+    <li id="savecsv" (click)="handleContextActionClick('savecsv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{Utils.stringCodeFor('event.saveAsCSV')}}</span></li>
+    <li id="savejson" (click)="handleContextActionClick('savejson')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{Utils.stringCodeFor('event.saveAsJSON')}}</span></li>
+    <li id="selectall" (click)="handleContextActionClick('selectall')" [class.disabled]="isDisabled"> {{Constants.selectAll}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{Utils.stringCodeFor('event.selectAll')}}</span></li>
 </ul>
