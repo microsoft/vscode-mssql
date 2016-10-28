@@ -20,7 +20,7 @@ import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 
 import * as Constants from './../constants';
-import * as Utils from './../Utils';
+import * as Utils from './../utils';
 
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
