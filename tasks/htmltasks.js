@@ -33,8 +33,6 @@ gulp.task('html:compile-src', function () {
 
 // Generate systemjs-based builds
 gulp.task('html:bundle:app', function() {
-    console.log(config.paths.html.out);
-    console.log(config.paths.html.root);
   var builder = new sysBuilder('./out/src/views/htmlcontent', './src/views/htmlcontent/systemjs.config.js');
   return builder.buildStatic('app', './out/src/views/htmlcontent/dist/js/app.min.js')
     .then(function () {
