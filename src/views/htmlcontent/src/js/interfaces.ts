@@ -70,3 +70,8 @@ export interface IGridIcon {
     hoverText: () => string;
     functionality: (batchId: number, resultId: number, index: number) => void;
 }
+
+export interface IResultsConfig {
+    shortcuts: { [key: string]: string };
+    messagesDefaultOpen: boolean;
+}

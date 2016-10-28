@@ -14,7 +14,8 @@ export enum ContentType {
     EditorSelection = 7,
     OpenLink = 8,
     ShowError = 9,
-    ShowWarning = 10
+    ShowWarning = 10,
+    Config = 11
 };
 
 export interface ISlickRange {
@@ -41,7 +42,8 @@ export const ContentTypes = [
     Constants.outputContentTypeEditorSelection,
     Constants.outputContentTypeOpenLink,
     Constants.outputContentTypeShowError,
-    Constants.outputContentTypeShowWarning
+    Constants.outputContentTypeShowWarning,
+    Constants.outputContentTypeConfig
     ];
 
 /**
@@ -261,3 +263,7 @@ export interface IGridBatchMetaData {
     selection: ISelectionData;
 }
 
+export interface IResultsConfig {
+    shortcuts: { [key: string]: string };
+    messagesDefaultOpen: boolean;
+}
