@@ -107,7 +107,10 @@ suite('Query Runner tests', () => {
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
                 messages: [{time: '', message: '6 affects rows'}],
-                resultSetSummaries: []
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionStart: new Date().toISOString(),
+                executionEnd: new Date().toISOString()
             }]
         };
 

@@ -1,3 +1,8 @@
+/** Constants */
+const msInH = 3.6e6;
+const msInM = 60000;
+const msInS = 1000;
+
 const shortcuts = require('./shortcuts.json!');
 const displayCodes = require('./displayCodes.json!');
 
@@ -14,6 +19,49 @@ export function formatString(str: string, ...args: any[]): string {
         });
     }
     return result;
+}
+
+/**
+ * Takes a string in the format of HH:MM:SS.MS and returns
+ * a number representing the time in miliseconds
+ */
+export function parseTimeString(value: string): number | boolean {
+    let tempVal = value.split('.');
+
+    if (tempVal.length !== 2) {
+        return false;
+    }
+
+    let ms = parseInt(tempVal[1].substring(0, 3), 10);
+    tempVal = tempVal[0].split(':');
+
+    if (tempVal.length !== 3) {
+        return false;
+    }
+
+    let h = parseInt(tempVal[0], 10);
+    let m = parseInt(tempVal[1], 10);
+    let s = parseInt(tempVal[2], 10);
+
+    return ms + (h * msInH) + (m * msInM) + (s * msInS);
+}
+
+export function parseNumAsTimeString(value: number): string {
+    let tempVal = value;
+    let h = Math.floor(tempVal / msInH);
+    tempVal %= msInH;
+    let m = Math.floor(tempVal / msInM);
+    tempVal %= msInM;
+    let s = Math.floor(tempVal / msInS);
+    tempVal %= msInS;
+
+    let hs = h < 10 ? '0' + h : '' + h;
+    let ms = m < 10 ? '0' + m : '' + m;
+    let ss = s < 10 ? '0' + s : '' + s;
+
+    let rs = hs + ':' + ms + ':' + ss;
+
+    return tempVal > 0 ? rs + '.' + tempVal : rs;
 }
 
 /**

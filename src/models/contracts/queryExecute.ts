@@ -40,6 +40,9 @@ export class BatchSummary {
     selection: ISelectionData;
     messages: IResultMessage[];
     resultSetSummaries: ResultSetSummary[];
+    executionElapsed: string;
+    executionEnd: string;
+    executionStart: string;
 }
 
 export class QueryExecuteCompleteNotificationResult {
