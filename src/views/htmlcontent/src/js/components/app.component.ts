@@ -19,13 +19,21 @@ import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 
 import * as Constants from './../constants';
-import * as Utils from './../Utils';
+import * as Utils from './../utils';
 
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
 enableProdMode();
 
-const shortcuts = require('./../shortcuts.json!');
+const shortcuts = {
+    '_comment': 'Short cuts must follow the format (ctrl)+(shift)+(alt)+(key)',
+    'ctrl+alt+r': 'event.toggleResultPane',
+    'ctrl+alt+y': 'event.toggleMessagePane',
+    'ctrl+up': 'event.prevGrid',
+    'ctrl+down': 'event.nextGrid',
+    'ctrl+c': 'event.copySelection',
+    'undefined': 'event.toggleMagnifyCurrent'
+};
 const keycodes = require('./../keycodes.json!');
 const displayCodes = require('./../displayCodes.json!');
 

@@ -33,10 +33,12 @@ gulp.task('html:compile-src', function () {
 
 // Generate systemjs-based builds
 gulp.task('html:bundle:app', function() {
-  var builder = new sysBuilder(config.paths.html.out, config.paths.html.root + '/systemjs.config.js');
-  return builder.buildStatic('app', config.paths.html.out + '/dist/js/app.min.js')
+    console.log(config.paths.html.out);
+    console.log(config.paths.html.root);
+  var builder = new sysBuilder('./out/src/views/htmlcontent', './src/views/htmlcontent/systemjs.config.js');
+  return builder.buildStatic('app', './out/src/views/htmlcontent/dist/js/app.min.js')
     .then(function () {
-      return del([config.paths.html.out + '/dist/js/**/*', '!' + config.paths.html.out + '/dist/js/app.min.js']);
+      return del(['./out/src/views/htmlcontent/dist/js/**/*', '!' + './out/src/views/htmlcontent/dist/js/app.min.js']);
     })
     .catch(function(err) {
       console.error('>>> [systemjs-builder] Bundling failed'.bold.green, err);
@@ -63,8 +65,8 @@ gulp.task('html:vendor', () => {
 
   // concatenate non-angular2 libs, shims & systemjs-config
   gulp.src([
-    config.paths.html.root + '/src/js/libs/Slickgrid/lib/jquery-1.7.min.js',
-    config.paths.html.root + '/src/js/libs/Slickgrid/lib/jquery.event.drag-2.2.js',
+    config.paths.html.root + '/src/js/libs/SlickGrid/lib/jquery-1.7.min.js',
+    config.paths.html.root + '/src/js/libs/SlickGrid/lib/jquery.event.drag-2.2.js',
     config.paths.html.root + '/src/js/libs/SlickGrid/lib/jquery-ui-1.8.16.custom.min.js',
     config.paths.html.root + '/src/js/libs/underscore-min.js',
     config.paths.html.root + '/src/js/libs/SlickGrid/slick.core.js',
