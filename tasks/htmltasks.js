@@ -9,6 +9,7 @@ var uglifyjs = require('uglify-js');
 var minifier = require('gulp-uglify/minifier');
 var tsProject = ts.createProject(config.paths.html.root + '/tsconfig.json');
 var sysBuilder = require('systemjs-builder');
+var cleanCSS = require('gulp-clean-css');
 
 gulp.task('html:lint', () => {
     return gulp.src([
@@ -45,8 +46,24 @@ gulp.task('html:bundle:app', function() {
 
 gulp.task('html:min-js', function() {
     return gulp.src(config.paths.html.out + '/dist/js/app.min.js')
-            // .pipe(minifier({}, uglifyjs))
+            .pipe(minifier({mangle: false}, uglifyjs))
             .pipe(gulp.dest(config.paths.html.out + '/dist/js'))
+})
+
+gulp.task('html:bundle:css', () => {
+    return new Promise((resolve, reject) => {
+        gulp.src([config.paths.html.out + '/dist/css/flexbox.css',
+                // config.paths.html.out + '/lib/css/bootstrap.min.css',
+                config.paths.html.out + '/dist/css/styles.css'])
+            .pipe(cleanCSS())
+            .pipe(concat('styles.min.css'))
+            .pipe(gulp.dest(config.paths.html.out + '/dist/css'))
+            .on('end', resolve);
+    }).then(() => {
+        return del([config.paths.html.out + '/dist/css/flexbox.css',
+                    // config.paths.html.out + '/lib/css/bootstrap.min.css',
+                    config.paths.html.out + '/dist/css/styles.css']);
+    })
 })
 
 // Copy and bundle dependencies into one file (vendor/vendors.js)
@@ -122,7 +139,7 @@ gulp.task('html:copy:assets', () => {
 
 gulp.task('html:compile', gulp.series('html:compile-src'))
 
-gulp.task('html:app', gulp.series(['html:compile', 'html:copy:assets', 'html:bundle:app']));
+gulp.task('html:app', gulp.series(['html:compile', 'html:copy:assets', 'html:bundle:app', 'html:min-js', 'html:bundle:css']));
 
 gulp.task('html:bundle', () => {
     return gulp.src([
