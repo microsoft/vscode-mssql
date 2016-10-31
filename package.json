@@ -359,6 +359,26 @@
               }
             }
           }
+        },
+        "mssql.shortcuts": {
+          "type": "object",
+          "description": "Shortcuts related to the results window",
+          "default": {
+            "_comment": "Short cuts must follow the format (ctrl)+(shift)+(alt)+[key]",
+            "event.toggleResultPane": "ctrl+alt+r",
+            "event.toggleMessagePane": "ctrl+alt+y",
+            "event.prevGrid": "ctrl+up",
+            "event.nextGrid": "ctrl+down",
+            "event.copySelection": "ctrl+c",
+            "event.toggleMagnify": "",
+            "event.selectAll": "",
+            "event.saveAsJSON": "",
+            "event.saveAsCSV": ""
+          }
+        },
+        "mssql.messagesDefaultOpen": {
+          "type": "boolean",
+          "description": "true for the messages pane to be open by default; false for closed"
         }
       }
     }
