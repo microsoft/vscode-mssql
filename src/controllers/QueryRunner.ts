@@ -127,7 +127,10 @@ export default class QueryRunner {
                         id: 0,
                         selection: undefined,
                         messages: [{message: result.messages, time: undefined}],
-                        resultSetSummaries: undefined
+                        resultSetSummaries: undefined,
+                        executionElapsed: undefined,
+                        executionEnd: undefined,
+                        executionStart: undefined
                     }];
                 self.dataResolveReject.resolve();
             } else {
@@ -145,8 +148,24 @@ export default class QueryRunner {
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
         this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgFinishedExecute, this._uri));
         this._isExecuting = false;
-
+        if (result.message) {
+            // Error occured during execution
+            this._statusView.executedQuery(this.uri);
+            this.batchSets = [{
+                hasError: true,
+                id: 0,
+                selection: undefined,
+                messages: [{ time: undefined, message: result.message }],
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionEnd: undefined,
+                executionStart: undefined
+            }];
+            this.dataResolveReject.resolve(this.batchSets);
+            return;
+        }
         this.batchSets = result.batchSummaries;
+
         this.batchSets.map((batch) => {
             if (batch.selection) {
                 batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;

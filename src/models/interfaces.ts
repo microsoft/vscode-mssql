@@ -261,6 +261,9 @@ export interface IGridBatchMetaData {
     messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
+    startTime: string;
+    endTime: string;
+    totalTime: string;
 }
 
 export interface IResultsConfig {
