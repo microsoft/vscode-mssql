@@ -81,7 +81,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                             resultSets: [],
                             messages: batch.messages,
                             hasError: batch.hasError,
-                            selection: batch.selection
+                            selection: batch.selection,
+                            startTime: batch.executionStart,
+                            endTime: batch.executionEnd,
+                            totalTime: batch.executionElapsed
                         };
                         for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
                             let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
@@ -107,7 +110,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                         message: Constants.unfoundResult
                     }],
                     hasError: undefined,
-                    selection: undefined
+                    selection: undefined,
+                    startTime: undefined,
+                    endTime: undefined,
+                    totalTime: undefined
                 };
                 tempBatchSets.push(tempBatch);
                 let json = JSON.stringify(tempBatchSets);
@@ -269,7 +275,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         if (typeof input === 'string') {
             let resultsUri = this.getResultsUri(input).toString();
-            queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
+            if (this._queryResultsMap.has(resultsUri)) {
+                queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
+            }
         } else {
             queryRunner = input;
         }
@@ -431,6 +439,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }, (error: any) => {
             self._vscodeWrapper.showErrorMessage(error);
         });
+    }
+
+    /**
+     * Return the query for a file uri
+     */
+    public getQueryRunner(uri: string): QueryRunner {
+        let resultsUri = this.getResultsUri(uri).toString();
+        if (this._queryResultsMap.has(resultsUri)) {
+            return  this._queryResultsMap.get(resultsUri).queryRunner;
+        } else {
+            return undefined;
+        }
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
