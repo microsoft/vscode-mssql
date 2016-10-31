@@ -8,7 +8,8 @@ import {Observable} from 'rxjs/Rx';
 
 import { ISlickRange } from './../slickGrid/SelectionModel';
 
-import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
+import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData,
+    IResultMessage, IResultsConfig } from './../interfaces';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.
@@ -18,6 +19,8 @@ import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData, IResult
 export class DataService {
     uri: string;
     private batchSets: IGridBatchMetaData[];
+    private _shortcuts;
+    private _config;
 
     constructor(@Inject(forwardRef(() => Http)) private http) {
         // grab the uri from the document for requests
@@ -304,5 +307,41 @@ export class DataService {
         let headers = new Headers();
         headers.append('Content-Type', 'application/json');
         self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
+    }
+
+    get config(): Promise<{[key: string]: string}> {
+        const self = this;
+        if (this._config) {
+            return Promise.resolve(this._config);
+        } else {
+            return new Promise<{[key: string]: string}>((resolve, reject) => {
+                self.http.get('/config').map((res): IResultsConfig => {
+                    return res.json();
+                }).subscribe((result) => {
+                    self._shortcuts = result.resultShortcuts;
+                    delete result.resultShortcuts;
+                    self._config = result;
+                    resolve(self._config);
+                });
+            });
+        }
+    }
+
+    get shortcuts(): Promise<any> {
+        const self = this;
+        if (this._shortcuts) {
+            return Promise.resolve(this._shortcuts);
+        } else {
+            return new Promise<any>((resolve, reject) => {
+                self.http.get('/config').map((res): IResultsConfig => {
+                    return res.json();
+                }).subscribe((result) => {
+                    self._shortcuts = result.shortcuts;
+                    delete result.resultShortcuts;
+                    self._config = result;
+                    resolve(self._shortcuts);
+                });
+            });
+        }
     }
 }

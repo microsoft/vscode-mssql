@@ -15,6 +15,7 @@ import {VirtualizedCollection} from './../slickgrid/VirtualizedCollection';
 import { FieldType } from './../slickgrid/EngineAPI';
 
 import {DataService} from './../services/data.service';
+import {ShortcutService} from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
 
@@ -24,17 +25,6 @@ import * as Utils from './../utils';
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
 enableProdMode();
-
-const shortcuts = {
-    '_comment': 'Short cuts must follow the format (ctrl)+(shift)+(alt)+(key)',
-    'ctrl+alt+r': 'event.toggleResultPane',
-    'ctrl+alt+y': 'event.toggleMessagePane',
-    'ctrl+up': 'event.prevGrid',
-    'ctrl+down': 'event.nextGrid',
-    'ctrl+c': 'event.copySelection',
-    'undefined': 'event.toggleMagnifyCurrent'
-};
-const keycodes = require('./../keycodes.json!');
 
 enum SelectedTab {
     Results = 0,
@@ -68,7 +58,7 @@ interface IMessages {
     host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
     templateUrl: 'dist/html/app.html',
     directives: [ContextMenu, SlickGrid],
-    providers: [DataService],
+    providers: [DataService, ShortcutService],
     styles: [`
     .errorMessage {
         color: var(--color-error);
@@ -176,6 +166,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ];
     // tslint:disable-next-line:no-unused-variable
     private startString = new Date().toLocaleTimeString();
+    private config;
 
     // FIELDS
     // All datasets
@@ -199,6 +190,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resultsScrollTop = 0;
     // tslint:disable-next-line:no-unused-variable
     private activeGrid = 0;
+    private messageShortcut;
+    private resultShortcut;
     private totalElapseExecution: number;
     @ViewChild(ContextMenu) contextMenu: ContextMenu;
     @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
@@ -217,6 +210,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
+                @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
                 @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
 
@@ -227,8 +221,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         this.totalElapseExecution = 0;
         this.setupResizeBind();
+        this.dataService.config.then((config) => {
+            this.config = config;
+            this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
+                self.messageShortcut = result;
+            });
+            this.shortcuts.stringCodeFor('event.toggleResultPane').then((result) => {
+                self.resultShortcut = result;
+            });
+        });
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             self.messages = [];
+            self._messageActive = self.config.showMessagesDefault;
             for (let [batchId, batch] of batchs.entries()) {
                 let exeTime = Utils.parseTimeString(batch.totalTime);
                 if (exeTime) {
@@ -241,6 +245,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     startTime: new Date(batch.startTime).toLocaleTimeString(),
                     endTime: new Date(batch.endTime).toLocaleTimeString()
                 };
+                if (batch.hasError) {
+                    self._messageActive = true;
+                }
                 for (let message of batch.messages) {
                     let date = new Date(message.time);
                     let timeString = date.toLocaleTimeString();
@@ -557,6 +564,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      *
      */
     keyEvent(e): void {
+        const self = this;
         if (e.detail) {
             e.which = e.detail.which;
             e.ctrlKey = e.detail.ctrlKey;
@@ -564,25 +572,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
             e.altKey = e.detail.altKey;
             e.shiftKey = e.detail.shiftKey;
         }
-        let eString = this.buildEventString(e);
-        if (shortcuts[eString]) {
-            this.shortcutfunc[shortcuts[eString]]();
-            e.stopImmediatePropagation();
-        }
-    }
-
-    /**
-     * Builds a event string of ctrl, shift, alt, and a-z + up, down, left, right
-     * based on a passed Jquery event object, i.e 'ctrl+alt+t'
-     * @param e The Jquery event object to build the string from
-     */
-    buildEventString(e): string {
-        let resString = '';
-        resString += (e.ctrlKey || e.metaKey) ? 'ctrl+' : '';
-        resString += e.altKey ? 'alt+' : '';
-        resString += e.shiftKey ? 'shift+' : '';
-        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : keycodes[e.which];
-        return resString;
+        let eString = this.shortcuts.buildEventString(e);
+        this.shortcuts.getEvent(eString).then((result) => {
+            if (result) {
+                self.shortcutfunc[<string> result]();
+                e.stopImmediatePropagation();
+            }
+        });
     }
 
     /**
