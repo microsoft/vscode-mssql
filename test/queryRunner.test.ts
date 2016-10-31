@@ -104,6 +104,7 @@ suite('Query Runner tests', () => {
         let resolveRan = false;
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: 'uri',
+            message: undefined,
             batchSummaries: [{
                 hasError: false,
                 id: 0,
