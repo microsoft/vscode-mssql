@@ -34,6 +34,9 @@ export function formatString(str: string, ...args: any[]): string {
  * a number representing the time in miliseconds
  */
 export function parseTimeString(value: string): number | boolean {
+    if (!value) {
+        return false;
+    }
     let tempVal = value.split('.');
 
     if (tempVal.length !== 2) {
