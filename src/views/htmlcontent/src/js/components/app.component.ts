@@ -198,11 +198,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     set messageActive(input: boolean) {
         this._messageActive = input;
-        setTimeout(() => {
-            for (let grid of this.renderedDataSets) {
-                grid.resized.emit();
-            }
-        });
+        if (this.resultActive) {
+            setTimeout(() => {
+                for (let grid of this.renderedDataSets) {
+                    grid.resized.emit();
+                }
+            });
+        }
     }
 
     get messageActive(): boolean {
