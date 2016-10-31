@@ -108,7 +108,7 @@ export default class ResultsSerializer {
 
         // if user entered config, set options
         if (saveConfig) {
-            if (saveConfig.includeHeaders) {
+            if (saveConfig.includeHeaders !== undefined) {
                 saveResultsParams.includeHeaders = saveConfig.includeHeaders;
             }
         }
