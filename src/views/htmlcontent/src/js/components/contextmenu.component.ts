@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter } from '@angular/core';
 
-import {ISlickRange} from './../slickgrid/SelectionModel';
+import {ISlickRange} from 'angular2_slickgrid';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
