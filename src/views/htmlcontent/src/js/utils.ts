@@ -3,7 +3,15 @@ const msInH = 3.6e6;
 const msInM = 60000;
 const msInS = 1000;
 
-const shortcuts = require('./shortcuts.json!');
+const shortcuts = {
+    '_comment': 'Short cuts must follow the format (ctrl)+(shift)+(alt)+(key)',
+    'ctrl+alt+r': 'event.toggleResultPane',
+    'ctrl+alt+y': 'event.toggleMessagePane',
+    'ctrl+up': 'event.prevGrid',
+    'ctrl+down': 'event.nextGrid',
+    'ctrl+c': 'event.copySelection',
+    'undefined': 'event.toggleMagnifyCurrent'
+};
 const displayCodes = require('./displayCodes.json!');
 
 export function formatString(str: string, ...args: any[]): string {
@@ -26,6 +34,9 @@ export function formatString(str: string, ...args: any[]): string {
  * a number representing the time in miliseconds
  */
 export function parseTimeString(value: string): number | boolean {
+    if (!value) {
+        return false;
+    }
     let tempVal = value.split('.');
 
     if (tempVal.length !== 2) {

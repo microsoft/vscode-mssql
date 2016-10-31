@@ -48,6 +48,7 @@ export class BatchSummary {
 export class QueryExecuteCompleteNotificationResult {
     ownerUri: string;
     batchSummaries: BatchSummary[];
+    message: string;
 }
 
 // -------------------------- </ Query Execution Complete Notification > -------------------------------

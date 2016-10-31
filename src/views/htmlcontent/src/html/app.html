@@ -1,7 +1,7 @@
 <div class="fullsize vertBox">
     <div *ngIf="dataSets.length > 0" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
-        <span class="shortCut"> {{Utils.stringCodeFor('event.toggleResultPane')}} </span>
+        <span class="shortCut"> {{resultShortcut}} </span>
     </div>
     <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
@@ -34,7 +34,7 @@
     <div class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
-        <span class="shortCut"> {{Utils.stringCodeFor('event.toggleMessagePane')}} </span>
+        <span class="shortCut"> {{messageShortcut}} </span>
     </div>
     <div id="messages" class="scrollable messages" [class.hidden]="!messageActive">
         <br>
