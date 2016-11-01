@@ -159,6 +159,7 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
     private _gridSyncSubscription: Subscription;
     private _topRow: number = 0;
     private _leftPx: number = 0;
+    /* andress: commented out 11/1/2016 due to minification issues */
     // private _finishGridEditingFn: (e: any, args: any) => void;
 
     private static getDataWithSchema(data: IGridDataRow, columns: ISlickGridColumn[]): any {
@@ -565,6 +566,8 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
         }
     }
 
+
+    /* andress: commented out 11/1/2016 due to minification issues */
     // private get finishGridEditingFn(): (e: any, args: any) => void {
     //     if (this._finishGridEditingFn === undefined) {
     //         this._finishGridEditingFn = ((e: any, args: any) => {
