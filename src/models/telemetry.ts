@@ -50,6 +50,30 @@ export namespace Telemetry {
     }
 
     /**
+     * Send a telemetry event for an exception
+     */
+    export function sendTelemetryEventForException(
+        err: any, methodName: string): void {
+        try {
+            let stackArray: string[];
+            let firstLine: string = '';
+            if ( err !== undefined && err.stack !== undefined) {
+                stackArray = err.stack.split('\n');
+                if (stackArray !== undefined && stackArray.length >= 2) {
+                    firstLine = stackArray[1]; // The fist line is the error message and we don't want to send that telemetry event
+                }
+            }
+
+            // Only adding the method name and the fist line of the stack strace. We don't add the error message because it might have PII
+            Telemetry.sendTelemetryEvent('Exception', {methodName: methodName, errorLine: firstLine});
+            Utils.logDebug('Unhandled Exception occurred. error: ' + err + ' method: ' + methodName );
+        } catch (telemetryErr) {
+            // If sending telemetly event fails ignore it so it won't break the extension
+            Utils.logDebug('Failed to send telemetry event. error: ' + telemetryErr );
+        }
+    }
+
+    /**
      * Send a telemetry event using application insights
      */
     export function sendTelemetryEvent(
