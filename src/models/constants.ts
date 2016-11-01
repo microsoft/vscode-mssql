@@ -33,6 +33,7 @@ export const outputContentTypeMessages = 'messages';
 export const outputContentTypeResultsetMeta = 'resultsetsMeta';
 export const outputContentTypeColumns = 'columns';
 export const outputContentTypeRows = 'rows';
+export const outputContentTypeConfig = 'config';
 export const outputContentTypeSaveResults = 'saveResults';
 export const outputContentTypeOpenLink = 'openLink';
 export const outputContentTypeCopy = 'copyResults';
@@ -207,6 +208,8 @@ export const sqlToolsServiceInstallDirConfigKey = 'installDir';
 export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
 export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
+
+export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
 
 export const titleResultsPane = 'Results: {0}';
 

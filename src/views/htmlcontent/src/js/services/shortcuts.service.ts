@@ -1,0 +1,110 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+import {Injectable, Inject, forwardRef} from '@angular/core';
+
+import { DataService } from './data.service';
+
+const keycodes = require('./../keycodes.json!');
+const displayCodes = require('./../displayCodes.json!');
+
+/**
+ * Service which performs the http requests to get the data resultsets from the server.
+ */
+
+@Injectable()
+export class ShortcutService {
+    shortcuts: { [key: string]: string };
+    private waitPromise: Promise<void>;
+
+    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {
+        this.waitPromise = this.dataService.shortcuts.then((result) => {
+            this.shortcuts = result;
+        });
+    }
+
+    /**
+     * determines the platform aware shortcut string for an event for display purposes
+     * @param eventString The exact event string of the keycode you require (e.g event.toggleMessagePane)
+     */
+    stringCodeFor(eventString: string): Promise<string> {
+        const self = this;
+        if (this.shortcuts) {
+            return Promise.resolve(this.stringCodeForInternal(eventString));
+        } else {
+            return new Promise<string>((resolve, reject) => {
+                self.waitPromise.then(() => {
+                    resolve(self.stringCodeForInternal(eventString));
+                });
+            });
+        }
+    }
+
+    private stringCodeForInternal(eventString: string): string {
+        let keyString = this.shortcuts[eventString];
+        if (keyString) {
+            let platString = window.navigator.platform;
+
+            // find the current platform
+            if (platString.match(/win/i)) {
+                // iterate through the display replacement that are defined
+                for (let key in displayCodes['windows']) {
+                    if (displayCodes['windows'].hasOwnProperty(key)) {
+                        keyString = keyString.replace(key, displayCodes['windows'][key]);
+                    }
+                }
+            } else if (platString.match(/linux/i)) {
+                for (let key in displayCodes['linux']) {
+                    if (displayCodes['linux'].hasOwnProperty(key)) {
+                        keyString = keyString.replace(key, displayCodes['linux'][key]);
+                    }
+                }
+            } else if (platString.match(/mac/i)) {
+                for (let key in displayCodes['mac']) {
+                    if (displayCodes['mac'].hasOwnProperty(key)) {
+                        keyString = keyString.replace(key, displayCodes['mac'][key]);
+                    }
+                }
+            }
+            return keyString;
+        }
+    }
+
+    getEvent(shortcut: string): Promise<string | boolean> {
+        const self = this;
+        if (this.shortcuts) {
+            return Promise.resolve(this.getEventInternal(shortcut));
+        } else {
+            return new Promise<string | boolean>((resolve, reject) => {
+                self.waitPromise.then(() => {
+                    resolve(self.getEventInternal(shortcut));
+                });
+            });
+        }
+    }
+
+    private getEventInternal(shortcut: string): string | boolean {
+        for (let event in this.shortcuts) {
+            if (this.shortcuts.hasOwnProperty(event)) {
+                if (this.shortcuts[event] === shortcut) {
+                    return event;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Builds a event string of ctrl, shift, alt, and a-z + up, down, left, right
+     * based on a passed Jquery event object, i.e 'ctrl+alt+t'
+     * @param e The Jquery event object to build the string from
+     */
+    buildEventString(e): string {
+        let resString = '';
+        resString += (e.ctrlKey || e.metaKey) ? 'ctrl+' : '';
+        resString += e.altKey ? 'alt+' : '';
+        resString += e.shiftKey ? 'shift+' : '';
+        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : keycodes[e.which];
+        return resString;
+    }
+}
