@@ -144,7 +144,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
-                    this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, index: index, selection: selection});
+                    this.handleContextClick({type: 'savecsv', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -157,7 +157,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
-                    this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, index: index, selection: selection});
+                    this.handleContextClick({type: 'savejson', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
