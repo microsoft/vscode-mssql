@@ -24,6 +24,11 @@ class QueryRunnerState {
     }
 }
 
+class ResultsConfig implements Interfaces.IResultsConfig {
+    shortcuts: { [key: string]: string };
+    messagesDefaultOpen: boolean;
+}
+
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     // CONSTANTS ///////////////////////////////////////////////////////////
     public static providerName = 'tsqloutput';
@@ -46,7 +51,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service = new LocalWebService(context.extensionPath);
 
         // add http handler for '/root'
-        this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.Root, (req, res): void => {
             let uri: string = req.query.uri;
             if (self._queryResultsMap.has(uri)) {
                 clearTimeout(self._queryResultsMap.get(uri).timeout);
@@ -71,7 +76,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
-        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, (req, res): void => {
             let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = req.query.uri;
             if  (self._queryResultsMap.has(uri)) {
@@ -122,7 +127,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/columns' - return column metadata as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.Columns, (req, res): void => {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let uri: string = req.query.uri;
@@ -134,7 +139,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/rows' - return rows end-point for a specific resultset
-        this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.Rows, (req, res): void => {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let rowStart = req.query.rowStart;
@@ -146,8 +151,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             });
         });
 
+        this._service.addHandler(Interfaces.ContentType.Config, (req, res): void => {
+            let extConfig = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+            let config = new ResultsConfig();
+            for (let key of Constants.extConfigResultKeys) {
+                config[key] = extConfig[key];
+            }
+            let json = JSON.stringify(config);
+            res.send(json);
+        });
+
         // add http handler for '/saveResults' - return success message as JSON
-        this._service.addPostHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.SaveResults, (req, res): void => {
             let uri: string = req.query.uri;
             let queryUri = self._queryResultsMap.get(uri).queryRunner.uri;
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
@@ -161,7 +176,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/openLink' - open content in a new vscode editor pane
-        this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.OpenLink, (req, res): void => {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
             let linkType: string = req.body.type;
@@ -171,7 +186,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http post handler for copying results
-        this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.Copy, (req, res): void => {
             let uri = req.query.uri;
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
@@ -183,7 +198,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http post handler for setting the selection in the editor
-        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, (req, res): void => {
             let uri = req.query.uri;
             let selection: ISelectionData = req.body;
             self._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
@@ -193,7 +208,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http post handler for showing errors to user
-        this._service.addPostHandler(Interfaces.ContentType.ShowError, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.ShowError, (req, res): void => {
             let message: string = req.body.message;
             self._vscodeWrapper.showErrorMessage(message);
             // not attached to show function callback, since callback returns only after user closes message
@@ -202,7 +217,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http post handler for showing warning to user
-        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, (req, res): void => {
             let message: string = req.body.message;
             self._vscodeWrapper.showWarningMessage(message);
             // not attached to show function callback, since callback returns only after user closes message

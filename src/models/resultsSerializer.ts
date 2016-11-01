@@ -108,7 +108,7 @@ export default class ResultsSerializer {
 
         // if user entered config, set options
         if (saveConfig) {
-            if (saveConfig.includeHeaders) {
+            if (saveConfig.includeHeaders !== undefined) {
                 saveResultsParams.includeHeaders = saveConfig.includeHeaders;
             }
         }
@@ -137,10 +137,11 @@ export default class ResultsSerializer {
         if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
         } else if (sqlUri.scheme === 'untitled') {
-            // if sql file is unsaved/untitled but a workspace is open
+            // if sql file is unsaved/untitled but a workspace is open use workspace root
             if (vscode.workspace.rootPath) {
                 currentDirectory = vscode.workspace.rootPath;
             } else {
+                // use temp directory
                 currentDirectory = os.tmpdir();
                 self._isTempFile = true;
             }
