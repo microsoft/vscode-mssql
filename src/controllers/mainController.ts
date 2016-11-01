@@ -165,6 +165,7 @@ export default class MainController implements vscode.Disposable {
     private onCancelQuery(): void {
         try {
             let uri = this._vscodeWrapper.activeTextEditorUri;
+            Telemetry.sendTelemetryEvent('CancelQuery');
             this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onCancelQuery');
@@ -199,6 +200,7 @@ export default class MainController implements vscode.Disposable {
      */
     private onManageProfiles(): Promise<boolean> {
         if (this.CanRunCommand()) {
+            Telemetry.sendTelemetryEvent('ManageProfiles');
             return this._connectionMgr.onManageProfiles();
         }
     }
@@ -262,6 +264,8 @@ export default class MainController implements vscode.Disposable {
                 if (editor.document.getText(selectionToTrim).trim().length === 0) {
                     return;
                 }
+
+                Telemetry.sendTelemetryEvent('RunQuery');
 
                 this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
             }
