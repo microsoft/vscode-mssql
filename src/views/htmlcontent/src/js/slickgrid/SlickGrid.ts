@@ -251,6 +251,8 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
             this._grid.editActiveCell();
         }
 
+
+        /* andress: commented out 11/1/2016 due to minification issues */
         // if (changes['editableColumnIds']) {
         //     let newValue = changes['editableColumnIds'].currentValue;
         //     if (!_.isEqual(newValue, changes['editableColumnIds'].previousValue)) {
