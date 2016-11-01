@@ -159,7 +159,8 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
     private _gridSyncSubscription: Subscription;
     private _topRow: number = 0;
     private _leftPx: number = 0;
-    private _finishGridEditingFn: (e: any, args: any) => void;
+    /* andress: commented out 11/1/2016 due to minification issues */
+    // private _finishGridEditingFn: (e: any, args: any) => void;
 
     private static getDataWithSchema(data: IGridDataRow, columns: ISlickGridColumn[]): any {
         let dataWithSchema = {};
@@ -250,18 +251,20 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
             this._grid.editActiveCell();
         }
 
-        if (changes['editableColumnIds']) {
-            let newValue = changes['editableColumnIds'].currentValue;
-            if (!_.isEqual(newValue, changes['editableColumnIds'].previousValue)) {
-                this._grid.onKeyDown.unsubscribe(this.finishGridEditingFn);
-                if (newValue && newValue.length > 0) {
-                    this._grid.onKeyDown.subscribe(this.finishGridEditingFn);
-                    let firstEditableColumn = this._grid.getColumnIndex(newValue[0]) + 1;
-                    let rowToFocus = activeCell ? activeCell.row : this._grid.getViewport().top;
-                    this._grid.gotoCell(rowToFocus, firstEditableColumn, true);
-                }
-            }
-        }
+
+        /* andress: commented out 11/1/2016 due to minification issues */
+        // if (changes['editableColumnIds']) {
+        //     let newValue = changes['editableColumnIds'].currentValue;
+        //     if (!_.isEqual(newValue, changes['editableColumnIds'].previousValue)) {
+        //         this._grid.onKeyDown.unsubscribe(this.finishGridEditingFn);
+        //         if (newValue && newValue.length > 0) {
+        //             this._grid.onKeyDown.subscribe(this.finishGridEditingFn);
+        //             let firstEditableColumn = this._grid.getColumnIndex(newValue[0]) + 1;
+        //             let rowToFocus = activeCell ? activeCell.row : this._grid.getViewport().top;
+        //             this._grid.gotoCell(rowToFocus, firstEditableColumn, true);
+        //         }
+        //     }
+        // }
     }
 
     private invalidateRange(start: number, end: number): void {
@@ -565,21 +568,23 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
         }
     }
 
-    private get finishGridEditingFn(): (e: any, args: any) => void {
-        if (this._finishGridEditingFn === undefined) {
-            this._finishGridEditingFn = ((e: any, args: any) => {
-                if (e.ctrlKey === true
-                    && e.keyCode === 13
-                    && this.editableColumnIds
-                    && this.editableColumnIds.find(id => id === args.columnDef.id)) {
-                    // pressed [Ctrl + Enter] in the editing area
-                    this.editingFinished.next(undefined);
-                }
-            }).bind(this);
-        }
 
-        return this._finishGridEditingFn;
-    }
+    /* andress: commented out 11/1/2016 due to minification issues */
+    // private get finishGridEditingFn(): (e: any, args: any) => void {
+    //     if (this._finishGridEditingFn === undefined) {
+    //         this._finishGridEditingFn = ((e: any, args: any) => {
+    //             if (e.ctrlKey === true
+    //                 && e.keyCode === 13
+    //                 && this.editableColumnIds
+    //                 && this.editableColumnIds.find(id => id === args.columnDef.id)) {
+    //                 // pressed [Ctrl + Enter] in the editing area
+    //                 this.editingFinished.next(undefined);
+    //             }
+    //         }).bind(this);
+    //     }
+
+    //     return this._finishGridEditingFn;
+    // }
 }
 
 interface ISlickGridData {

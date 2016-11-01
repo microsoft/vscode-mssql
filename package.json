@@ -44,6 +44,7 @@
   "devDependencies": {
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-clean-css": "^2.0.13",
     "gulp-concat": "^2.6.0",
     "gulp-install": "^0.6.0",
     "gulp-json-editor": "^2.2.1",
