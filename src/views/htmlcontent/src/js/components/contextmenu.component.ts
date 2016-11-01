@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter, Inject, forwardRef } from '@angular/core';
-import {ISlickRange} from 'angular2_slickgrid';
+import {ISlickRange} from 'angular2-slickgrid';
 
 import {ShortcutService} from './../services/shortcuts.service';
 

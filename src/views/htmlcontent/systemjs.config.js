@@ -9,7 +9,7 @@
     '@angular':                   'lib/js/@angular',
     'rxjs':                       'lib/js/rxjs',
     'json':                       'lib/js/json.js',
-    'angular2_slickgrid':         'lib/js/angular2_slickgrid'
+    'angular2-slickgrid':         'lib/js/angular2-slickgrid'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
@@ -17,7 +17,7 @@
     '':                           { main: 'constants.js', defaultExtension: 'js'},
     'rxjs':                       { main: 'Rx.js', defaultExtension: 'js' },
     'angular2-in-memory-web-api': { main: 'index.js', defaultExtension: 'js' },
-    'angular2_slickgrid':         { main: 'index.js', defaultExtension: 'js'}
+    'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'}
   };
   var ngPackageNames = [
     '@angular/common',

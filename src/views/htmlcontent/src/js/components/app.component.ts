@@ -6,7 +6,7 @@ import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryLis
     EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
-    VirtualizedCollection, FieldType } from 'angular2_slickgrid';
+    VirtualizedCollection, FieldType } from 'angular2-slickgrid';
 
 import {DataService} from './../services/data.service';
 import {ShortcutService} from './../services/shortcuts.service';
