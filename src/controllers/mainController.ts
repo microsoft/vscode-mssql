@@ -87,15 +87,15 @@ export default class MainController implements vscode.Disposable {
 
         // register VS Code commands
         this.registerCommand(Constants.cmdConnect);
-        this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection()); });
+        this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection(), 'onNewConnection'); });
         this.registerCommand(Constants.cmdDisconnect);
-        this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
+        this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect(), 'onDisconnect'); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
         this.registerCommand(Constants.cmdManageConnectionProfiles);
-        this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles()); });
+        this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
         this.registerCommand(Constants.cmdChooseDatabase);
-        this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
+        this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
         this.registerCommand(Constants.cmdCancelQuery);
         this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
 
@@ -163,8 +163,12 @@ export default class MainController implements vscode.Disposable {
      * Handles the command to cancel queries
      */
     private onCancelQuery(): void {
-        let uri = this._vscodeWrapper.activeTextEditorUri;
-        this._outputContentProvider.cancelQuery(uri);
+        try {
+            let uri = this._vscodeWrapper.activeTextEditorUri;
+            this._outputContentProvider.cancelQuery(uri);
+        } catch (err) {
+            Telemetry.sendTelemetryEventForException(err, 'onCancelQuery');
+        }
     }
 
     /**
@@ -212,63 +216,69 @@ export default class MainController implements vscode.Disposable {
      * get the T-SQL query from the editor, run it and show output
      */
     public onRunQuery(): void {
-        if (!this.CanRunCommand()) {
-            return;
-        }
-        const self = this;
-        if (!this._vscodeWrapper.isEditingSqlFile) {
-            // Prompt the user to change the language mode to SQL before running a query
-            this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
-                if (result) {
-                    self.onRunQuery();
-                }
-            }).catch(err => {
-                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
-            });
-        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
-            // If we are disconnected, prompt the user to choose a connection before executing
-            this.onNewConnection().then(result => {
-                if (result) {
-                    self.onRunQuery();
-                }
-            }).catch(err => {
-                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
-            });
-        } else {
-            let editor = this._vscodeWrapper.activeTextEditor;
-            let uri = this._vscodeWrapper.activeTextEditorUri;
-            let title = path.basename(editor.document.fileName);
-            let querySelection: ISelectionData;
-
-            // Calculate the selection if we have a selection, otherwise we'll use null to indicate
-            // the entire document is the selection
-            if (!editor.selection.isEmpty) {
-                let selection = editor.selection;
-                querySelection = {
-                    startLine: selection.start.line,
-                    startColumn: selection.start.character,
-                    endLine: selection.end.line,
-                    endColumn: selection.end.character
-                };
-            }
-
-            // Trim down the selection. If it is empty after selecting, then we don't execute
-            let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
-            if (editor.document.getText(selectionToTrim).trim().length === 0) {
+        try {
+            if (!this.CanRunCommand()) {
                 return;
             }
+            const self = this;
+            if (!this._vscodeWrapper.isEditingSqlFile) {
+                // Prompt the user to change the language mode to SQL before running a query
+                this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
+                    if (result) {
+                        self.onRunQuery();
+                    }
+                }).catch(err => {
+                    self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+                });
+            } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+                // If we are disconnected, prompt the user to choose a connection before executing
+                this.onNewConnection().then(result => {
+                    if (result) {
+                        self.onRunQuery();
+                    }
+                }).catch(err => {
+                    self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+                });
+            } else {
+                let editor = this._vscodeWrapper.activeTextEditor;
+                let uri = this._vscodeWrapper.activeTextEditorUri;
+                let title = path.basename(editor.document.fileName);
+                let querySelection: ISelectionData;
 
-            this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+                // Calculate the selection if we have a selection, otherwise we'll use null to indicate
+                // the entire document is the selection
+                if (!editor.selection.isEmpty) {
+                    let selection = editor.selection;
+                    querySelection = {
+                        startLine: selection.start.line,
+                        startColumn: selection.start.character,
+                        endLine: selection.end.line,
+                        endColumn: selection.end.character
+                    };
+                }
+
+                // Trim down the selection. If it is empty after selecting, then we don't execute
+                let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
+                if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                    return;
+                }
+
+                this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+            }
+        } catch (err) {
+            Telemetry.sendTelemetryEventForException(err, 'OnRunquery');
         }
+
     }
 
     /**
      * Executes a callback and logs any errors raised
      */
-    private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
+    private runAndLogErrors<T>(promise: Promise<T>, handlerName: string): Promise<T> {
         let self = this;
         return promise.catch(err => {
             self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            Telemetry.sendTelemetryEventForException(err, handlerName);
         });
     }
 
