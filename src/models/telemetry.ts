@@ -60,9 +60,11 @@ export namespace Telemetry {
             if ( err !== undefined && err.stack !== undefined) {
                 stackArray = err.stack.split('\n');
                 if (stackArray !== undefined && stackArray.length >= 2) {
-                    firstLine = stackArray[1];
+                    firstLine = stackArray[1]; // The fist line is the error message and we don't want to send that telemetry event
                 }
             }
+
+            // Only adding the method name and the fist line of the stack strace. We don't add the error message because it might have PII
             Telemetry.sendTelemetryEvent('Exception', {methodName: methodName, errorLine: firstLine});
             Utils.logDebug('Unhandled Exception occurred. error: ' + err + ' method: ' + methodName );
         } catch (telemetryErr) {
