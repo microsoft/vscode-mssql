@@ -253,6 +253,7 @@ export default class ConnectionManager {
         Telemetry.sendTelemetryEvent('DatabaseConnected', {
             connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
             serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
+            serverEdition: connection.serverInfo ? connection.serverInfo.serverEdition : '',
             serverOs: connection.serverInfo ? connection.serverInfo.osVersion : ''
         }, {
             isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
@@ -332,6 +333,8 @@ export default class ConnectionManager {
 
                         self.disconnect(fileUri).then( () => {
                             self.connect(fileUri, newDatabaseCredentials).then( () => {
+                                Telemetry.sendTelemetryEvent('UseDatabase');
+
                                 self.vscodeWrapper.logToOutputChannel(
                                     Utils.formatString(Constants.msgChangedDatabase, newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
                                 );
@@ -366,6 +369,8 @@ export default class ConnectionManager {
                 self.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams).then((result) => {
                     self.statusView.notConnected(fileUri);
                     if (result) {
+                        Telemetry.sendTelemetryEvent('DatabaseDisconnected');
+
                         self.vscodeWrapper.logToOutputChannel(
                             Utils.formatString(Constants.msgDisconnected, fileUri)
                         );
