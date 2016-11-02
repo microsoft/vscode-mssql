@@ -504,9 +504,9 @@ export class SlickGrid implements OnChanges, OnInit, OnDestroy, AfterViewInit {
 
         this._gridColumns = this.columnDefinitions.map((c, i) => {
             let column: ISlickGridColumn = {
-                name: c.id,
+                name: c.name,
                 field: c.id,
-                id: c.id,
+                id: c.id ? c.id : c.name,
                 icon: this.getImagePathForDataType(c.type),
                 resizable: true
             };
