@@ -188,7 +188,7 @@
         "mssql.maxRecentConnections": {
           "type": "number",
           "default": 5,
-          "description": "Specify connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette."
+          "description": "The maximum number of recently used connections to store in the connection list."
         },
         "mssql.connections": {
           "type": "array",
