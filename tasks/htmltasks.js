@@ -105,6 +105,11 @@ gulp.task('html:copy:assets', () => {
     .pipe(gulp.dest(config.paths.html.out + '/dist/html'));
 
     gulp.src([
+        config.paths.html.root + '/src/docs/*'
+    ])
+    .pipe(gulp.dest(config.paths.html.out + '/dist/docs'));
+
+    gulp.src([
         config.paths.html.root + '/src/css/**/*'
     ])
     .pipe(gulp.dest(config.paths.html.out + '/dist/css'));

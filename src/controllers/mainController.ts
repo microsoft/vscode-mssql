@@ -325,7 +325,7 @@ export default class MainController implements vscode.Disposable {
         // get the URI for the release notes page
         let docUri = vscode.Uri.file(
             this._context.asAbsolutePath(
-                'out/src/views/htmlcontent/src/docs/index.html'));
+                'out/src/views/htmlcontent/dist/docs/index.html'));
 
         // show the release notes page in the preview window
         vscode.commands.executeCommand(
