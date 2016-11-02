@@ -275,13 +275,16 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
+            queryRunner.batchResult.on('batch', (batch) => {
+                this._service.broadcast(resultsUri, 'batch', JSON.stringify(batch));
+            });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
 
         queryRunner.runQuery(selection);
         let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
-        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+        // vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
     }
 
     public cancelQuery(input: QueryRunner | string): void {

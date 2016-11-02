@@ -11,6 +11,8 @@ import { ISlickRange } from './../slickGrid/SelectionModel';
 import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData,
     IResultMessage, IResultsConfig } from './../interfaces';
 
+const WS_URL = 'ws://localhost:' + window.location.port + '/';
+
 /**
  * Service which performs the http requests to get the data resultsets from the server.
  */
@@ -19,12 +21,19 @@ import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData,
 export class DataService {
     uri: string;
     private batchSets: IGridBatchMetaData[];
+    private ws: WebSocket;
     private _shortcuts;
     private _config;
 
     constructor(@Inject(forwardRef(() => Http)) private http) {
         // grab the uri from the document for requests
         this.uri = encodeURI(document.getElementById('uri').innerText.trim());
+        console.log(WS_URL);
+        this.ws = new WebSocket(WS_URL + '?uri=' + this.uri);
+        this.ws.onmessage = (event) => {
+            console.log(event);
+            console.log(JSON.parse(event.data));
+        };
     }
 
     /**

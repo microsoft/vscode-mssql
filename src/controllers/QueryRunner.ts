@@ -1,4 +1,5 @@
 'use strict';
+import { EventEmitter } from 'events';
 
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -7,7 +8,7 @@ import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
-    QueryDisposeRequest } from '../models/contracts/queryExecute';
+    QueryDisposeRequest, QueryExecuteBatchCompleteNotificationResult } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../models/constants');
@@ -31,6 +32,7 @@ export default class QueryRunner {
     private _title: string;
     private _resultLineOffset: number;
     private _batchSetsPromise: Promise<BatchSummary[]>;
+    public batchResult: EventEmitter = new EventEmitter;
     public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
@@ -135,7 +137,8 @@ export default class QueryRunner {
                 self.dataResolveReject.resolve();
             } else {
                 // register with the Notification Handler
-                self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
+                self._notificationHandler.registerRunner(self, queryDetails.ownerUri, 'query/complete');
+                self._notificationHandler.registerRunner(self, queryDetails.ownerUri, 'query/batchComplete');
             }
         }, error => {
             self._statusView.executedQuery(self.uri);
@@ -174,6 +177,10 @@ export default class QueryRunner {
         });
         this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
+    }
+
+    public handleBatchResult(result: QueryExecuteBatchCompleteNotificationResult): void {
+        this.batchResult.emit('batch', result.batchSummary);
     }
 
     // get more data rows from the current resultSets from the service layer
