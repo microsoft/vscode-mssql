@@ -283,14 +283,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                 if (columnData[i].isXml || columnData[i].isJson) {
                                     let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
-                                        id: columnName,
+                                        id: i.toString(),
+                                        name: columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
                                         asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
-                                        id: columnName,
+                                        id: i.toString(),
+                                        name: columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.textFormatter
                                     });
