@@ -177,6 +177,7 @@ export default class QueryRunner {
         });
         this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
+        this.batchResult.emit('complete');
     }
 
     public handleBatchResult(result: QueryExecuteBatchCompleteNotificationResult): void {

@@ -11,7 +11,7 @@ import { ISlickRange } from './../slickGrid/SelectionModel';
 import * as Utils from './../utils';
 
 import { ResultSetSubset, ISelectionData,
-    IResultsConfig, BatchSummary } from './../interfaces';
+    IResultsConfig, WebSocketEvent } from './../interfaces';
 
 const WS_URL = 'ws://localhost:' + window.location.port + '/';
 
@@ -23,7 +23,7 @@ const WS_URL = 'ws://localhost:' + window.location.port + '/';
 export class DataService {
     uri: string;
     private ws: WebSocket;
-    public wsObserv: Subject<BatchSummary>;
+    public wsObserv: Subject<WebSocketEvent>;
     private _shortcuts;
     private _config;
 
@@ -51,7 +51,7 @@ export class DataService {
             }
         };
 
-        this.wsObserv = Subject.create(observer, observable).map((response: MessageEvent): BatchSummary => {
+        this.wsObserv = Subject.create(observer, observable).map((response: MessageEvent): WebSocketEvent => {
             let data = JSON.parse(response.data);
             return data;
         });

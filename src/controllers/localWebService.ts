@@ -56,9 +56,17 @@ export default class LocalWebService {
         return this.serviceUrl + '/' + Interfaces.ContentTypes[type];
     }
 
-    broadcast(uri: string, event: string, data: string): void {
+    broadcast(uri: string, event: string, data?: any): void {
+        let temp = {
+            type: event
+        };
+
+        if (data) {
+            temp['data'] = data;
+        }
+
         if (this.clientMap.has(uri)) {
-            this.clientMap.get(uri).send(data);
+            this.clientMap.get(uri).send(JSON.stringify(temp));
         }
     }
 

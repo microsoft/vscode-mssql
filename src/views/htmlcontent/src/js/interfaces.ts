@@ -97,3 +97,8 @@ export interface IResultsConfig {
     shortcuts: { [key: string]: string };
     messagesDefaultOpen: boolean;
 }
+
+export class WebSocketEvent {
+    type: string;
+    data: any;
+}

@@ -52,7 +52,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.newConnection.on('connection', (uri) => {
             if (this._queryResultsMap.has(uri)) {
                 for (let batch of this._queryResultsMap.get(uri).queryRunner.batchSets) {
-                    this._service.broadcast(uri, 'batch', JSON.stringify(batch));
+                    this._service.broadcast(uri, 'batch', batch);
+                }
+
+                if (!this._queryResultsMap.get(uri).queryRunner.isExecutingQuery) {
+                    this._service.broadcast(uri, 'complete');
                 }
             }
         });
@@ -283,7 +287,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
             queryRunner.batchResult.on('batch', (batch) => {
-                this._service.broadcast(resultsUri, 'batch', JSON.stringify(batch));
+                this._service.broadcast(resultsUri, 'batch', batch);
+            });
+            queryRunner.batchResult.on('complete', () => {
+                this._service.broadcast(resultsUri, 'complete');
             });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
