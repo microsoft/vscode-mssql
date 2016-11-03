@@ -49,6 +49,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
+        this._service.newConnection.on('connection', (uri) => {
+            if (this._queryResultsMap.has(uri)) {
+                for (let batch of this._queryResultsMap.get(uri).queryRunner.batchSets) {
+                    this._service.broadcast(uri, 'batch', JSON.stringify(batch));
+                }
+            }
+        });
 
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, (req, res): void => {
@@ -284,7 +291,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         queryRunner.runQuery(selection);
         let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
-        // vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
     }
 
     public cancelQuery(input: QueryRunner | string): void {

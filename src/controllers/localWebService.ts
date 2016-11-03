@@ -1,5 +1,6 @@
 'use strict';
 import path = require('path');
+import { EventEmitter } from 'events';
 import * as ws from 'ws';
 import url = require('url');
 import querystring = require('querystring');
@@ -16,6 +17,7 @@ export default class LocalWebService {
     private server = http.createServer();
     private wss = new WebSocketServer({ server: this.server});
     private clientMap = new Map<string, ws>();
+    public newConnection = new EventEmitter();
     static _servicePort: string;
     static _vscodeExtensionPath: string;
     static _htmlContentLocation = 'out/src/views/htmlcontent';
@@ -34,6 +36,7 @@ export default class LocalWebService {
         this.wss.on('connection', (ws) => {
             let parse = querystring.parse(url.parse(ws.upgradeReq.url).query);
             self.clientMap.set(parse.uri, ws);
+            self.newConnection.emit('connection', parse.uri);
         });
     }
 
