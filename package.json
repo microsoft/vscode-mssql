@@ -217,7 +217,7 @@
               "user": {
                 "type": "string",
                 "default": "{{put-username-here}}",
-                "description": "[Optional] Specify the uer name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again."
+                "description": "[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again."
                 },
               "password": {
                 "type": "string",
@@ -271,7 +271,7 @@
               "applicationName": {
                 "type": "string",
                 "default": "vscode-mssql",
-                "description": "[Optional] Speicfy the name of the application used for SQL Server to log (default: 'vscode-mssql')."
+                "description": "[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql')."
               },
               "workstationId": {
                 "type": "string",

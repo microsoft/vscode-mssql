@@ -66,7 +66,7 @@ export const msgRunQueryAddBatchError = 'runQuery: adding error message for batc
 export const msgRunQueryConnectionActive = 'runQuery: active connection is connected, using it to run query';
 export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
-export const msgRunQueryInProgress = 'A query is already running for this session. Please cancel this query or wait for its completion.';
+export const msgRunQueryInProgress = 'A query is already running for this editor session. Please cancel this query or wait for its completion.';
 
 export const msgCancelQueryFailed = 'Canceling the query failed: {0}';
 export const msgCancelQueryNotRunning = 'Cannot cancel query as no query is running.';
@@ -83,7 +83,7 @@ export const msgContentProviderOnClear = 'Content provider: clear called';
 export const msgContentProviderOnUpdateContent = 'Content provider: updateContent called';
 export const msgContentProviderProvideContent = 'Content provider: provideTextDocumentContent called: ';
 
-export const msgChooseDatabaseNotConnected = 'No connection is found. Please connect to a server first.';
+export const msgChooseDatabaseNotConnected = 'No connection was found. Please connect to a server first.';
 export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
 export const msgConnectionError = 'Error {0}: {1}';
@@ -91,7 +91,7 @@ export const msgConnectionError2 = 'Failed to connect: {0}';
 export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
 
-export const msgPromptCancelConnect = 'Server connection in progress. Confirm to cancel.';
+export const msgPromptCancelConnect = 'Server connection in progress. Are you sure to cancel?';
 export const msgPromptClearRecentConnections = 'Confirm to clear recent connections list';
 
 export const extensionActivated = 'activated.';
@@ -132,8 +132,8 @@ export const profileNamePlaceholder = '[Optional] Enter a name for this profile'
 export const filepathPrompt = 'File path';
 export const filepathPlaceholder = 'File name';
 export const filepathMessage = 'File name';
-export const overwritePrompt = 'The file with this name already exists. Do you want to replace the existing file?';
-export const overwritePlaceholder = 'The file with this name already exists';
+export const overwritePrompt = 'A file with this name already exists. Do you want to replace the existing file?';
+export const overwritePlaceholder = 'A file with this name already exists';
 
 export const msgSaveResultInProgress = 'A save request is already executing. Please wait for its completion.';
 export const msgCannotOpenContent = 'Error occured opening content in editor.';
