@@ -91,7 +91,7 @@ export const msgConnectionError2 = 'Failed to connect: {0}';
 export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
 
-export const msgPromptCancelConnect = 'Server connection in progress. Are you sure to cancel?';
+export const msgPromptCancelConnect = 'Server connection in progress. Do you want to cancel?';
 export const msgPromptClearRecentConnections = 'Confirm to clear recent connections list';
 
 export const extensionActivated = 'activated.';
