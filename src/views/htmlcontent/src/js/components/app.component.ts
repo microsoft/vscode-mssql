@@ -225,6 +225,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.setupResizeBind();
         this.dataService.config.then((config) => {
             this.config = config;
+            self._messageActive = self.config.messagesDefaultOpen;
             this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
                 self.messageShortcut = result;
             });
@@ -234,7 +235,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         });
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             self.messages = [];
-            self._messageActive = self.config.showMessagesDefault;
             for (let [batchId, batch] of batchs.entries()) {
                 let exeTime = Utils.parseTimeString(batch.totalTime);
                 if (exeTime) {
