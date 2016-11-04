@@ -10,8 +10,7 @@ import { NotificationHandler } from 'vscode-languageclient';
 
 export class QueryNotificationHandler {
     private static _instance: QueryNotificationHandler;
-    private _queryRunnersComplete = new Map<string, QueryRunner>();
-    private _queryRunnersBatchComplete = new Map<string, QueryRunner>();
+    private _queryRunners = new Map<string, QueryRunner>();
 
     static get instance(): QueryNotificationHandler {
         if (QueryNotificationHandler._instance) {
@@ -30,26 +29,16 @@ export class QueryNotificationHandler {
     }
 
     // registers queryRunners with their uris to distribute notifications
-    public registerRunner(runner: QueryRunner, uri: string, event: string): void {
-        switch (event) {
-            case 'query/complete':
-                this._queryRunnersComplete.set(uri, runner);
-                break;
-            case 'query/batchComplete':
-                this._queryRunnersBatchComplete.set(uri, runner);
-                break;
-            default:
-                break;
-        }
+    public registerRunner(runner: QueryRunner, uri: string): void {
+        this._queryRunners.set(uri, runner);
     }
 
     // handles distributing notifications to appropriate
     private handleCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
-            self._queryRunnersComplete.get(event.ownerUri).handleResult(event);
-            self._queryRunnersComplete.delete(event.ownerUri);
-            self._queryRunnersBatchComplete.delete(event.ownerUri);
+            self._queryRunners.get(event.ownerUri).handleResult(event);
+            self._queryRunners.delete(event.ownerUri);
         };
     }
 
@@ -57,7 +46,7 @@ export class QueryNotificationHandler {
     private handleBatchCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
-            self._queryRunnersBatchComplete.get(event.ownerUri).handleBatchResult(event);
+            self._queryRunners.get(event.ownerUri).handleBatchResult(event);
         };
     }
 }

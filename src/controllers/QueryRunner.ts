@@ -137,8 +137,7 @@ export default class QueryRunner {
                 self.dataResolveReject.resolve();
             } else {
                 // register with the Notification Handler
-                self._notificationHandler.registerRunner(self, queryDetails.ownerUri, 'query/complete');
-                self._notificationHandler.registerRunner(self, queryDetails.ownerUri, 'query/batchComplete');
+                self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
         }, error => {
             self._statusView.executedQuery(self.uri);
