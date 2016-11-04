@@ -395,7 +395,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     var fontweight = styles.getPropertyValue('--font-weight');
                     var fontsize = styles.getPropertyValue('--font-size');
                     var theme = document.body.className;
-                    console.log(fontfamily);
                     var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
                             "uri=${encodedUri}" +
                             "&theme=" + theme +
