@@ -44,6 +44,12 @@ export namespace Telemetry {
      */
     export function initialize(context: vscode.ExtensionContext): void {
         if (typeof reporter === 'undefined') {
+            // Check if the user has opted out of telemetry
+            if (!vscode.workspace.getConfiguration('telemetry').get<boolean>('enableTelemetry', true)) {
+                disable();
+                return;
+            }
+
             let packageInfo = Utils.getPackageInfo(context);
             reporter = new TelemetryReporter('vscode-mssql', packageInfo.version, packageInfo.aiKey);
         }
