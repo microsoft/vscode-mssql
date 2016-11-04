@@ -189,7 +189,7 @@
         "mssql.maxRecentConnections": {
           "type": "number",
           "default": 5,
-          "description": "The maximum number of recently used connections to store in the connection list"
+          "description": "The maximum number of recently used connections to store in the connection list."
         },
         "mssql.connections": {
           "type": "array",
@@ -208,22 +208,22 @@
               "server": {
                 "type": "string",
                 "default": "{{put-server-name-here}}",
-                "description": "[Required] Server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database."
+                "description": "[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database."
               },
               "database": {
                 "type": "string",
                 "default": "{{put-database-name-here}}",
-                "description": "[Optional] Database name to connect to. If database is not specified, the default user database setting is used, typically 'master'."
+                "description": "[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'."
               },
               "user": {
                 "type": "string",
                 "default": "{{put-username-here}}",
-                "description": "[Optional] User name for SQL authentication. If user name is not specified, mssql extension will ask it when you connect."
-              },
+                "description": "[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again."
+                },
               "password": {
                 "type": "string",
                 "default": "{{put-password-here}}",
-                "description": "[Optional] Password for SQL authentication. If password is not specified or already saved, mssql extension will ask it when you connect."
+                "description": "[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again."
               },
               "authenticationType": {
                 "type": "string",
@@ -232,7 +232,7 @@
                   "Integrated",
                   "SqlLogin"
                 ],
-                "description": "[Optional] Specify the method of authenticating with SQL Server."
+                "description": "[Optional] Specify the SQL Server authentication type."
               },
               "port": {
                 "type": "number",
@@ -242,42 +242,42 @@
               "encrypt": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When true, SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. Set 'true' for Azure SQL Database connection."
+                "description": "[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection."
               },
               "trustServerCertificate": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection."
+                "description": "[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection."
               },
               "persistSecurityInfo": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has evever been in an open state."
+                "description": "[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state."
               },
               "connectTimeout": {
                 "type": "number",
                 "default": 15,
-                "description": "[Optional] The length of time in seconds to wait for a connection to the server before terminating the attempt and generating error. The default timeout value for Azure SQL Database is 30."
+                "description": "[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30."
               },
               "connectRetryCount": {
                 "type": "number",
                 "default": 1,
-                "description": "[Optional] Number of attempts to restore connection."
+                "description": "[Optional] Specify the number of attempts to restore connection."
               },
               "connectRetryInterval": {
                 "type": "number",
                 "default": 10,
-                "description": "[Optional] Delay between attempts to restore connection."
+                "description": "[Optional] Specify the delay between attempts to restore connection."
               },
               "applicationName": {
                 "type": "string",
                 "default": "vscode-mssql",
-                "description": "[Optional] The name of the application used for SQL Server to log (default: 'vscode-mssql')."
+                "description": "[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql')."
               },
               "workstationId": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] The name of the workstation connecting to SQL Server."
+                "description": "[Optional] Specify the name of the workstation connecting to SQL Server."
               },
               "applicationIntent": {
                 "type": "string",
@@ -291,27 +291,27 @@
               "currentLanguage": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] The SQL Server language record name."
+                "description": "[Optional] Indicates the SQL Server language settings."
               },
               "pooling": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When true, the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool."
+                "description": "[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool."
               },
               "maxPoolSize": {
                 "type": "number",
                 "default": 100,
-                "description": "[Optional] The maximum number of connections allowed in the pool."
+                "description": "[Optional] Specify the maximum number of connections allowed in the pool."
               },
               "minPoolSize": {
                 "type": "number",
                 "default": 0,
-                "description": "[Optional] The minimum number of connections allowed in the pool."
+                "description": "[Optional] Specify the minimum number of connections allowed in the pool."
               },
               "loadBalanceTimeout": {
                 "type": "number",
                 "default": 0,
-                "description": "[Optional] The minimum amount of time in seconds for this connection to live in the pool before being destroyed."
+                "description": "[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted."
               },
               "replication": {
                 "type": "boolean",
@@ -321,27 +321,27 @@
               "attachDbFilename": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] The name of the primary file, including the full path name, of an attachable database."
+                "description": "[Optional] Specify the name of the primary file, including the full path name, of an attachable database."
               },
               "failoverPartner": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] The name or network address of the instance of SQL Server that acts as a failover partner."
+                "description": "[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner."
               },
               "multiSubnetFailover": {
                 "type": "boolean",
                 "default": true,
-                "description": "[Optional] When true, the detection and connection to the active server is faster if AlwasyOn Availability Group is configured on different subnets."
+                "description": "[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets."
               },
               "multipleActiveResultSets": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When true, multiple result sets can be returned and read from on connection."
+                "description": "[Optional] When set to 'true', multiple result sets can be returned and read from on connection."
               },
               "packetSize": {
                 "type": "number",
                 "default": 8192,
-                "description": "[Optional] Size in bytes of the network packets to communicate with SQL Server."
+                "description": "[Optional] Specify the size in bytes of the network packets to communicate with SQL Server."
               },
               "typeSystemVersion": {
                 "type": "string",
@@ -356,7 +356,7 @@
               },
               "savePassword": {
                 "type": "boolean",
-                "description": "[Optional] When true, the password for SQL Login Authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows."
+                "description": "[Optional] When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows."
               }
             }
           }

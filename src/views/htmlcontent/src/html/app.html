@@ -36,7 +36,7 @@
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive">
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length == 0">
         <br>
         <table id="messageTable">
             <colgroup>
