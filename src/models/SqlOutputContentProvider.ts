@@ -50,13 +50,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
         this._service.newConnection.on('connection', (uri) => {
-            if (this._queryResultsMap.has(uri)) {
-                for (let batch of this._queryResultsMap.get(uri).queryRunner.batchSets) {
-                    this._service.broadcast(uri, 'batch', batch);
+            if (self._queryResultsMap.has(uri)) {
+                for (let batch of self._queryResultsMap.get(uri).queryRunner.batchSets) {
+                    self._service.broadcast(uri, 'batch', batch);
                 }
 
-                if (!this._queryResultsMap.get(uri).queryRunner.isExecutingQuery) {
-                    this._service.broadcast(uri, 'complete');
+                if (!self._queryResultsMap.get(uri).queryRunner.isExecutingQuery) {
+                    self._service.broadcast(uri, 'complete');
                 }
             }
         });

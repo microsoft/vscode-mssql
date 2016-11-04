@@ -65,7 +65,7 @@ export default class LocalWebService {
             temp['data'] = data;
         }
 
-        if (this.clientMap.has(uri)) {
+        if (this.clientMap.has(uri) && this.clientMap.get(uri).readyState === ws.OPEN) {
             this.clientMap.get(uri).send(JSON.stringify(temp));
         }
     }

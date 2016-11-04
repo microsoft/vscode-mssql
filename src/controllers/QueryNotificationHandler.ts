@@ -49,6 +49,7 @@ export class QueryNotificationHandler {
         return (event) => {
             self._queryRunnersComplete.get(event.ownerUri).handleResult(event);
             self._queryRunnersComplete.delete(event.ownerUri);
+            self._queryRunnersBatchComplete.delete(event.ownerUri);
         };
     }
 

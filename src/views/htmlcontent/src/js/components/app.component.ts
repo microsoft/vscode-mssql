@@ -282,14 +282,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         if (columnData[i].isXml || columnData[i].isJson) {
                             let linkType = columnData[i].isXml ? 'xml' : 'json';
                             columnDefinitions.push({
-                                id: columnName,
+                                id: i.toString(),
+                                name: columnName,
                                 type: self.stringToFieldType('string'),
                                 formatter: self.hyperLinkFormatter,
                                 asyncPostRender: self.linkHandler(linkType)
                             });
                         } else {
                             columnDefinitions.push({
-                                id: columnName,
+                                id: i.toString(),
+                                name: columnName,
                                 type: self.stringToFieldType('string'),
                                 formatter: self.textFormatter
                             });
@@ -336,114 +338,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
 
         });
-        /*
-        this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
-            self.messages = [];
-            for (let [batchId, batch] of batchs.entries()) {
-                let exeTime = Utils.parseTimeString(batch.totalTime);
-                if (exeTime) {
-                    this.totalElapseExecution += <number> exeTime;
-                }
-                let messages: IMessages = {
-                    messages: [],
-                    hasError: batch.hasError,
-                    selection: batch.selection,
-                    startTime: new Date(batch.startTime).toLocaleTimeString(),
-                    endTime: new Date(batch.endTime).toLocaleTimeString()
-                };
-                if (batch.hasError) {
-                    self._messageActive = true;
-                }
-                for (let message of batch.messages) {
-                    let date = new Date(message.time);
-                    let timeString = date.toLocaleTimeString();
-                    messages.messages.push({time: timeString, message: message.message});
-                }
-                self.messages.push(messages);
-                self.messagesAdded = true;
-                self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
-                    for (let resultId = 0; resultId < numberOfResults; resultId++) {
-                        let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
-                        let columnDefinitionsObs = self.dataService.getColumns(batchId, resultId);
-                        Observable.forkJoin([totalRowsObs, columnDefinitionsObs]).subscribe((data: any[]) => {
-                            let dataSet: IGridDataSet = {
-                                    dataRows: undefined,
-                                    columnDefinitions: undefined,
-                                    totalRows: undefined,
-                                    resized: undefined,
-                                    batchId: batchId,
-                                    resultId: resultId,
-                                    maxHeight: undefined,
-                                    minHeight: undefined
-                                };
-                            let totalRows = data[0];
-                            let columnData = data[1];
-                            let columnDefinitions = [];
-
-                            for (let i = 0; i < columnData.length; i++) {
-                                // Fix column name for showplan queries
-                                let columnName = (columnData[i].columnName === 'Microsoft SQL Server 2005 XML Showplan') ?
-                                                         'XML Showplan' : columnData[i].columnName;
-                                if (columnData[i].isXml || columnData[i].isJson) {
-                                    let linkType = columnData[i].isXml ? 'xml' : 'json';
-                                    columnDefinitions.push({
-                                        id: i.toString(),
-                                        name: columnName,
-                                        type: self.stringToFieldType('string'),
-                                        formatter: self.hyperLinkFormatter,
-                                        asyncPostRender: self.linkHandler(linkType)
-                                    });
-                                } else {
-                                    columnDefinitions.push({
-                                        id: i.toString(),
-                                        name: columnName,
-                                        type: self.stringToFieldType('string'),
-                                        formatter: self.textFormatter
-                                    });
-                                }
-                            }
-                            let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
-                                return new Promise<IGridDataRow[]>((resolve, reject) => {
-                                    self.dataService.getRows(offset, count, batchId, resultId).subscribe(rows => {
-                                        let gridData: IGridDataRow[] = [];
-                                        for (let i = 0; i < rows.rows.length; i++) {
-                                            gridData.push({
-                                                values: rows.rows[i]
-                                            });
-                                        }
-                                        resolve(gridData);
-                                    });
-                                });
-                            };
-
-                            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(self.windowSize,
-                                                                                                totalRows,
-                                                                                                loadDataFunction,
-                                                                                                (index) => {
-                                                                                                    return { values: [] };
-                                                                                                });
-                            dataSet.columnDefinitions = columnDefinitions;
-                            dataSet.totalRows = totalRows;
-                            dataSet.dataRows = virtualizedCollection;
-                            // calculate min and max height
-                            dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
-                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * 30) + 10 : 'inherit';
-                            dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
-                                                (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
-                            self.dataSets.push(dataSet);
-                            // Create a dataSet to render without rows to reduce DOM size
-                            let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
-                            undefinedDataSet.columnDefinitions = dataSet.columnDefinitions;
-                            undefinedDataSet.dataRows = undefined;
-                            undefinedDataSet.resized = new EventEmitter();
-                            self.placeHolderDataSets.push(undefinedDataSet);
-                            self.messagesAdded = true;
-                            self.onScroll(0);
-                        });
-                    }
-                });
-            }
-        }); */
     }
 
     ngAfterViewChecked(): void {
@@ -612,7 +506,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Binded to mouse click on messages
      */
     editorSelection(selection: ISelectionData): void {
-        this.dataService.setEditorSelection(selection);
+        this.dataService.editorSelection = selection;
     }
 
     /**
