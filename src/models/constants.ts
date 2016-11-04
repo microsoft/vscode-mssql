@@ -66,11 +66,11 @@ export const msgRunQueryAddBatchError = 'runQuery: adding error message for batc
 export const msgRunQueryConnectionActive = 'runQuery: active connection is connected, using it to run query';
 export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
-export const msgRunQueryInProgress = 'A query is already executing for this editor session. Please cancel this query or wait for its completion.';
+export const msgRunQueryInProgress = 'A query is already running for this editor session. Please cancel this query or wait for its completion.';
 
-export const msgCancelQueryFailed = 'Failed to cancel query execution: {0}';
-export const msgCancelQueryNotRunning = 'Cannot cancel query, no query is executing';
-export const msgCancelQuerySuccess = 'Successfully canceled query execution';
+export const msgCancelQueryFailed = 'Canceling the query failed: {0}';
+export const msgCancelQueryNotRunning = 'Cannot cancel query as no query is running.';
+export const msgCancelQuerySuccess = 'Successfully canceled the query.';
 
 export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
 export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
@@ -83,7 +83,7 @@ export const msgContentProviderOnClear = 'Content provider: clear called';
 export const msgContentProviderOnUpdateContent = 'Content provider: updateContent called';
 export const msgContentProviderProvideContent = 'Content provider: provideTextDocumentContent called: ';
 
-export const msgChooseDatabaseNotConnected = 'Not connected. Please connect to a server first.';
+export const msgChooseDatabaseNotConnected = 'No connection was found. Please connect to a server first.';
 export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
 
 export const msgConnectionError = 'Error {0}: {1}';
@@ -91,14 +91,14 @@ export const msgConnectionError2 = 'Failed to connect: {0}';
 export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
 export const connectionErrorChannelName = 'Connection Errors';
 
-export const msgPromptCancelConnect = 'Confirm to cancel connection in progress';
+export const msgPromptCancelConnect = 'Server connection in progress. Do you want to cancel?';
 export const msgPromptClearRecentConnections = 'Confirm to clear recent connections list';
 
 export const extensionActivated = 'activated.';
 export const extensionDeactivated = 'de-activated.';
 export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
                                 'Change editor language to "SQL" -or- ' +
-                                'Select some T-SQL text in the active SQL editor.';
+                                'Select T-SQL text in the active SQL editor.';
 
 export const recentConnectionsPlaceholder = 'Choose a connection profile from the list below';
 export const msgNoConnectionsInSettings = 'To use this command, add connection profile to User Settings.';
@@ -132,8 +132,8 @@ export const profileNamePlaceholder = '[Optional] Enter a name for this profile'
 export const filepathPrompt = 'File path';
 export const filepathPlaceholder = 'File name';
 export const filepathMessage = 'File name';
-export const overwritePrompt = 'The file already exists. Do you want to replace the existing file?';
-export const overwritePlaceholder = 'The file already exists';
+export const overwritePrompt = 'A file with this name already exists. Do you want to replace the existing file?';
+export const overwritePlaceholder = 'A file with this name already exists';
 
 export const msgSaveResultInProgress = 'A save request is already executing. Please wait for its completion.';
 export const msgCannotOpenContent = 'Error occured opening content in editor.';
@@ -141,7 +141,7 @@ export const msgSaveStarted = 'Started saving results to ';
 export const msgSaveFailed = 'Failed to save results. ';
 export const msgSaveSucceeded = 'Successfully saved results to ';
 
-export const msgSelectProfile = 'Select Connection Profile';
+export const msgSelectProfile = 'Select connection profile';
 export const msgSelectProfileToRemove = 'Select profile to remove';
 
 export const confirmRemoveProfilePrompt = 'Confirm to remove this profile.';
