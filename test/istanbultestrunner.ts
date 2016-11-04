@@ -145,9 +145,7 @@ class CoverageRunner {
         // Hook the process exit event to handle reporting
         // Only report coverage if the process is exiting successfully
         process.on('exit', (code) => {
-            if (code === 0) {
-                self.reportCoverage();
-            }
+            self.reportCoverage();
         });
     }
 
