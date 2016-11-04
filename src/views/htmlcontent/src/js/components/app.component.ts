@@ -143,7 +143,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
-                    this.handleContextClick({type: 'csv', batchId: batchId, resultId: resultId, index: index, selection: selection});
+                    this.handleContextClick({type: 'savecsv', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -156,7 +156,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
-                    this.handleContextClick({type: 'json', batchId: batchId, resultId: resultId, index: index, selection: selection});
+                    this.handleContextClick({type: 'savejson', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -225,6 +225,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.setupResizeBind();
         this.dataService.config.then((config) => {
             this.config = config;
+            self._messageActive = self.config.messagesDefaultOpen;
             this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
                 self.messageShortcut = result;
             });
@@ -338,7 +339,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         /*
         this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
             self.messages = [];
-            self._messageActive = self.config.showMessagesDefault;
             for (let [batchId, batch] of batchs.entries()) {
                 let exeTime = Utils.parseTimeString(batch.totalTime);
                 if (exeTime) {
@@ -387,14 +387,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                 if (columnData[i].isXml || columnData[i].isJson) {
                                     let linkType = columnData[i].isXml ? 'xml' : 'json';
                                     columnDefinitions.push({
-                                        id: columnName,
+                                        id: i.toString(),
+                                        name: columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.hyperLinkFormatter,
                                         asyncPostRender: self.linkHandler(linkType)
                                     });
                                 } else {
                                     columnDefinitions.push({
-                                        id: columnName,
+                                        id: i.toString(),
+                                        name: columnName,
                                         type: self.stringToFieldType('string'),
                                         formatter: self.textFormatter
                                     });
