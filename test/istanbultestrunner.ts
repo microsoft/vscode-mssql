@@ -5,12 +5,13 @@
 
 'use strict';
 import paths = require('path');
-import fs = require('fs');
+const fs = require('fs');
 import Mocha = require('mocha');
 import istanbul = require('istanbul');
 
 let glob = require('glob');
 let remapIstanbul = require('remap-istanbul');
+
 // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
 // Since we are not running in a tty environment, we just implementt he method statically
 let tty = require('tty');
@@ -23,11 +24,11 @@ let mocha = new Mocha({
     useColors: true
 });
 
-let coverOptions: ITestRunnerOptions = undefined;
+let testOptions = undefined;
 
-function configure(mochaOpts, testRunnerOpts: ITestRunnerOptions): void {
+function configure(mochaOpts, testOpts): void {
     mocha = new Mocha(mochaOpts);
-    coverOptions = testRunnerOpts;
+    testOptions = testOpts;
 }
 exports.configure = configure;
 
@@ -37,14 +38,25 @@ function _mkDirIfExists(dir: string): void {
     }
 }
 
+function _readCoverOptions(testsRoot: string): ITestRunnerOptions {
+    let coverConfigPath = paths.join(testsRoot, testOptions.coverConfig);
+    let coverConfig = undefined;
+    if (fs.existsSync(coverConfigPath)) {
+        let configContent = fs.readFileSync(coverConfigPath);
+        coverConfig = JSON.parse(configContent);
+    }
+    return coverConfig;
+}
+
 function run(testsRoot, clb): any {
     // Enable source map support
     require('source-map-support').install();
 
-    // Setup coverage pre-test
-    let coverageRunner: CoverageRunner = undefined;
-    if (coverOptions) {
-        coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
+    // Read configuration for the coverage file
+    let coverOptions: ITestRunnerOptions = _readCoverOptions(testsRoot);
+    if (coverOptions && coverOptions.enabled) {
+        // Setup coverage pre-test, including post-test hook to report
+        let coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
         coverageRunner.setupCoverage();
     }
 
@@ -66,10 +78,6 @@ function run(testsRoot, clb): any {
                 failureCount++;
             })
             .on('end', function (): void {
-                // Report the results of code coverage if relevant
-                if (coverageRunner) {
-                    coverageRunner.reportCoverage(failureCount);
-                }
                 clb(undefined, failureCount);
             });
         } catch (error) {
@@ -77,8 +85,10 @@ function run(testsRoot, clb): any {
         }
     });
 }
+exports.run = run;
 
 interface ITestRunnerOptions {
+    enabled?: boolean;
     relativeCoverageDir: string;
     relativeSourcePath: string;
     ignorePatterns: string[];
@@ -131,9 +141,25 @@ class CoverageRunner {
 
         // initialize the global variable to stop mocha from complaining about leaks
         global[self.coverageVar] = {};
+
+        // Hook the process exit event to handle reporting
+        // Only report coverage if the process is exiting successfully
+        process.on('exit', (code) => {
+            if (code === 0) {
+                self.reportCoverage();
+            }
+        });
     }
 
-    public reportCoverage(failureCount: number): void {
+
+    /**
+     * Writes a coverage report. Note that as this is called in the process exit callback, all calls must be synchronous.
+     *
+     * @returns {void}
+     *
+     * @memberOf CoverageRunner
+     */
+    public reportCoverage(): void {
         let self = this;
         istanbul.hook.unhookRequire();
         let cov: any;
@@ -163,7 +189,7 @@ class CoverageRunner {
         });
 
         // TODO Allow config of reporting directory with
-        let reportingDir = paths.join(self.testsRoot, coverOptions.relativeCoverageDir);
+        let reportingDir = paths.join(self.testsRoot, self.options.relativeCoverageDir);
         let includePid = true;
         let pidExt = includePid ? ('-' + process.pid) : '',
         coverageFile = paths.resolve(reportingDir, 'coverage' + pidExt + '.json');
@@ -173,19 +199,18 @@ class CoverageRunner {
         fs.writeFileSync(coverageFile, JSON.stringify(cov), 'utf8');
 
         let remappedCollector: istanbul.Collector = remapIstanbul.remap(cov, {warn: warning => {
-            if (coverOptions.verbose) {
+            // We expect some warnings as any JS file without a typescript mapping will cause this.
+            // By default, we'll skip printing these to the console as it clutters it up
+            if (self.options.verbose) {
                 console.warn(warning);
             }
         }});
 
         let reporter = new istanbul.Reporter(undefined, reportingDir);
-        reporter.addAll(['lcov', 'html']);
-        let reportCount = 0;
+        reporter.addAll(['lcov']);
         reporter.write(remappedCollector, true, () => {
-            reportCount++;
+            console.log(`reports written to ${reportingDir}`);
         });
-        console.log(`report run ${reportCount} times`);
     }
 }
 
-exports.run = run;

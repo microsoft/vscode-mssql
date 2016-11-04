@@ -9,29 +9,27 @@
 // host can call to run the tests. The test runner is expected to use console.log
 // to report the results back to the caller. When the tests are finished, return
 // a possible error to the callback or null if none.
+
 import * as IstanbulTestRunner from './istanbultestrunner';
 
 let testRunner: any = IstanbulTestRunner;
 
-
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
 testRunner.configure(
-// Mocha Options
-{
-    ui: 'tdd', 		        // the TDD UI is being used in extension.test.ts (suite, test, etc.)
-    reporter: 'pm-mocha-jenkins-reporter',
-    reporterOptions: {
-        junit_report_name: 'Tests',
-        junit_report_stack: 1
-    },
-    useColors: true         // colored output from test results
-},
-// Cover options
-{
-    relativeSourcePath: '../src',
-    relativeCoverageDir: '../coverage',
-    ignorePatterns: ['**/node_modules/**', '**/libs/**'] // , '/slickgrid/', '/libs/']
-});
+    // Mocha Options
+    {
+        ui: 'tdd', 		        // the TDD UI is being used in extension.test.ts (suite, test, etc.)
+        reporter: 'pm-mocha-jenkins-reporter',
+        reporterOptions: {
+            junit_report_name: 'Tests',
+            junit_report_stack: 1
+        },
+        useColors: true         // colored output from test results
+    },
+    // Coverage configuration options
+    {
+        coverConfig: '../coverconfig.json'
+    });
 
 module.exports = testRunner;

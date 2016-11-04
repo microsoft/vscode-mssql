@@ -18,6 +18,7 @@ const path = require('path');
 
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
+require('./tasks/covertasks')
 
 gulp.task('ext:lint', () => {
     return gulp.src([
