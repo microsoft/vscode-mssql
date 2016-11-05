@@ -122,10 +122,19 @@ class CoverageRunner {
         });
 
         // Create a match function - taken from the run-with-cover.js in istanbul.
+        let decache = require('decache');
         let fileMap = {};
         srcFiles.forEach(file => {
             let fullPath = paths.join(sourceRoot, file);
             fileMap[fullPath] = true;
+
+            // On Windows, extension is loaded pre-test hooks and this mean we lose
+            // our chance to hook the Require call. In order to instrument the code
+            // we have to decache the JS file so on next load it gets instrumented.
+            // This doesn't impact tests, but is a concern if we had some integration
+            // tests that relied on VSCode accessing our module since there could be
+            // some shared global state that we lose.
+            decache(fullPath);
         });
 
         self.matchFn = function (file): boolean { return fileMap[file]; };
@@ -136,7 +145,6 @@ class CoverageRunner {
         // write to a global coverage variable with hit counts whenever they are accessed
         self.transformer = self.instrumenter.instrumentSync.bind(self.instrumenter);
         let hookOpts = { verbose: false, extensions: ['.js']};
-
         istanbul.hook.hookRequire(self.matchFn, self.transformer, hookOpts);
 
         // initialize the global variable to stop mocha from complaining about leaks
