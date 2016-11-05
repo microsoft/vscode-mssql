@@ -48,6 +48,11 @@ export class ConnectionInfo {
      * Timer for tracking service connection time.
      */
     public serviceTimer: Utils.Timer;
+
+    /**
+     * Whether the connection is in the process of connecting.
+     */
+    public connecting: boolean;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -162,6 +167,10 @@ export default class ConnectionManager {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
 
+    private isConnecting(fileUri: string): boolean {
+        return (fileUri in this._connections && this._connections[fileUri].connecting);
+    }
+
     /**
      * Exposed for testing purposes.
      */
@@ -201,8 +210,9 @@ export default class ConnectionManager {
             let fileUri = result.ownerUri;
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
+            connection.connecting = false;
 
-            let newConnection: Interfaces.IConnectionCredentials;
+            let mruConnection: Interfaces.IConnectionCredentials = <any>{};
 
             if (Utils.isNotEmpty(result.connectionId)) {
                 // We have a valid connection
@@ -214,13 +224,13 @@ export default class ConnectionManager {
                 }
 
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
-                newConnection = newCredentials;
+                mruConnection = connection.credentials;
             } else {
                 self.handleConnectionErrors(fileUri, connection, result);
-                newConnection = undefined;
+                mruConnection = undefined;
             }
 
-            self.tryAddMruConnection(connection, newConnection);
+            self.tryAddMruConnection(connection, mruConnection);
         };
     }
 
@@ -240,9 +250,10 @@ export default class ConnectionManager {
 
         connection.extensionTimer.end();
 
-        Telemetry.sendTelemetryEvent(this._context, 'DatabaseConnected', {
+        Telemetry.sendTelemetryEvent('DatabaseConnected', {
             connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
             serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
+            serverEdition: connection.serverInfo ? connection.serverInfo.serverEdition : '',
             serverOs: connection.serverInfo ? connection.serverInfo.osVersion : ''
         }, {
             isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
@@ -263,7 +274,7 @@ export default class ConnectionManager {
             }
         } else {
             let platform: Platform = getCurrentPlatform();
-            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native')) {
+            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native') !== -1) {
                 Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2,
                 Constants.macOpenSslErrorMessage));
             } else {
@@ -288,6 +299,13 @@ export default class ConnectionManager {
         } else {
             connection.connectHandler(false);
         }
+    }
+
+    /**
+     * Clear the recently used connections list in the connection store
+     */
+    public clearRecentConnectionsList(): Promise<void> {
+        return this.connectionStore.clearRecentlyUsed();
     }
 
     // choose database to use on current server
@@ -315,6 +333,8 @@ export default class ConnectionManager {
 
                         self.disconnect(fileUri).then( () => {
                             self.connect(fileUri, newDatabaseCredentials).then( () => {
+                                Telemetry.sendTelemetryEvent('UseDatabase');
+
                                 self.vscodeWrapper.logToOutputChannel(
                                     Utils.formatString(Constants.msgChangedDatabase, newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
                                 );
@@ -349,6 +369,8 @@ export default class ConnectionManager {
                 self.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams).then((result) => {
                     self.statusView.notConnected(fileUri);
                     if (result) {
+                        Telemetry.sendTelemetryEvent('DatabaseDisconnected');
+
                         self.vscodeWrapper.logToOutputChannel(
                             Utils.formatString(Constants.msgDisconnected, fileUri)
                         );
@@ -358,9 +380,9 @@ export default class ConnectionManager {
 
                     resolve(result);
                 });
-            } else if (self.getConnectionInfo(fileUri)) {
-                // Send a cancel connect request
-                self.cancelConnect();
+            } else if (self.isConnecting(fileUri)) {
+                // Prompt the user to cancel connecting
+                self.onCancelConnect();
                 resolve(true);
             } else {
                 resolve(true);
@@ -426,6 +448,7 @@ export default class ConnectionManager {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.credentials = connectionCreds;
+            connectionInfo.connecting = true;
             this._connections[fileUri] = connectionInfo;
 
             self.statusView.connecting(fileUri, connectionCreds);
@@ -488,24 +511,19 @@ export default class ConnectionManager {
         });
     }
 
+    /**
+     * Called when the 'Manage Connection Profiles' command is issued.
+     */
+    public onManageProfiles(): Promise<boolean> {
+        // Show quick pick to create, edit, or remove profiles
+        return this._connectionUI.promptToManageProfiles();
+    }
+
     public onCreateProfile(): Promise<boolean> {
         let self = this;
         return new Promise<boolean>((resolve, reject) => {
-            // Ensure we are in SQL mode before creating a profile and connecting
-            if (!self.vscodeWrapper.isEditingSqlFile) {
-                self.connectionUI.promptToChangeLanguageMode()
-                .then( result => {
-                    if (result) {
-                        self.connectionUI.createAndSaveProfile()
-                            .then(profile => resolve(profile ? true : false));
-                    } else {
-                        resolve(false);
-                    }
-                });
-            } else {
-                self.connectionUI.createAndSaveProfile()
-                    .then(profile => resolve(profile ? true : false));
-            }
+            self.connectionUI.createAndSaveProfile(self.vscodeWrapper.isEditingSqlFile)
+                .then(profile => resolve(profile ? true : false));
         });
     }
 

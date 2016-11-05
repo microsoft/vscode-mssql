@@ -13,6 +13,22 @@ import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData } from './interfaces';
 const pd = require('pretty-data').pd;
 
+const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
+
+// holds information about the state of a query runner
+class QueryRunnerState {
+    timeout: number;
+    flaggedForDeletion: boolean;
+    constructor (public queryRunner: QueryRunner) {
+        this.flaggedForDeletion = false;
+    }
+}
+
+class ResultsConfig implements Interfaces.IResultsConfig {
+    shortcuts: { [key: string]: string };
+    messagesDefaultOpen: boolean;
+}
+
 export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
     // CONSTANTS ///////////////////////////////////////////////////////////
     public static providerName = 'tsqloutput';
@@ -20,7 +36,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public static tempFileCount: number = 1;
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
-    private _queryResultsMap: Map<string, QueryRunner> = new Map<string, QueryRunner>();
+    private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private _vscodeWrapper: VscodeWrapper;
@@ -35,12 +51,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service = new LocalWebService(context.extensionPath);
 
         // add http handler for '/root'
-        this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.Root, (req, res): void => {
             let uri: string = req.query.uri;
+            if (self._queryResultsMap.has(uri)) {
+                clearTimeout(self._queryResultsMap.get(uri).timeout);
+            }
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
-            let fontfamily: string = decodeURI(req.query.fontfamily);
+            let fontfamily: string = decodeURI(req.query.fontfamily).split('\"').join('');
             let fontsize: string = req.query.fontsize;
             let fontweight: string = req.query.fontweight;
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
@@ -57,40 +76,62 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
-        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, (req, res): void => {
             let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
             let uri: string = req.query.uri;
-            self._queryResultsMap.get(uri).getBatchSets().then((batchSets) => {
-                for (let [batchIndex, batch] of batchSets.entries()) {
-                    let tempBatch: Interfaces.IGridBatchMetaData = {
-                        resultSets: [],
-                        messages: batch.messages,
-                        hasError: batch.hasError,
-                        selection: batch.selection
-                    };
-                    for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
-                        let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-                        let encodedUri = encodeURIComponent(uri);
+            if  (self._queryResultsMap.has(uri)) {
+                self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((batchSets) => {
+                    for (let [batchIndex, batch] of batchSets.entries()) {
+                        let tempBatch: Interfaces.IGridBatchMetaData = {
+                            resultSets: [],
+                            messages: batch.messages,
+                            hasError: batch.hasError,
+                            selection: batch.selection,
+                            startTime: batch.executionStart,
+                            endTime: batch.executionEnd,
+                            totalTime: batch.executionElapsed
+                        };
+                        for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
+                            let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
+                            let encodedUri = encodeURIComponent(uri);
 
-                        tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                            columns: result.columnInfo,
-                            rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
-                            numberOfRows: result.rowCount
-                        });
+                            tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
+                                columns: result.columnInfo,
+                                rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
+                                numberOfRows: result.rowCount
+                            });
+                        }
+                        tempBatchSets.push(tempBatch);
                     }
-                    tempBatchSets.push(tempBatch);
-                }
+                    let json = JSON.stringify(tempBatchSets);
+                    res.send(json);
+                });
+            } else {
+                // did not find query (most likely expired)
+                let tempBatch: Interfaces.IGridBatchMetaData = {
+                    resultSets: undefined,
+                    messages: [{
+                        time: undefined,
+                        message: Constants.unfoundResult
+                    }],
+                    hasError: undefined,
+                    selection: undefined,
+                    startTime: undefined,
+                    endTime: undefined,
+                    totalTime: undefined
+                };
+                tempBatchSets.push(tempBatch);
                 let json = JSON.stringify(tempBatchSets);
                 res.send(json);
-            });
+            }
         });
 
         // add http handler for '/columns' - return column metadata as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Columns, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.Columns, (req, res): void => {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let uri: string = req.query.uri;
-            self._queryResultsMap.get(uri).getBatchSets().then((data) => {
+            self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((data) => {
                 let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
                 let json = JSON.stringify(columnMetadata);
                 res.send(json);
@@ -98,22 +139,32 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/rows' - return rows end-point for a specific resultset
-        this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void {
+        this._service.addHandler(Interfaces.ContentType.Rows, (req, res): void => {
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let rowStart = req.query.rowStart;
             let numberOfRows = req.query.numberOfRows;
             let uri: string = req.query.uri;
-            self._queryResultsMap.get(uri).getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
+            self._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
                 let json = JSON.stringify(results.resultSubset);
                 res.send(json);
             });
         });
 
+        this._service.addHandler(Interfaces.ContentType.Config, (req, res): void => {
+            let extConfig = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+            let config = new ResultsConfig();
+            for (let key of Constants.extConfigResultKeys) {
+                config[key] = extConfig[key];
+            }
+            let json = JSON.stringify(config);
+            res.send(json);
+        });
+
         // add http handler for '/saveResults' - return success message as JSON
-        this._service.addPostHandler(Interfaces.ContentType.SaveResults, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.SaveResults, (req, res): void => {
             let uri: string = req.query.uri;
-            let queryUri = self._queryResultsMap.get(uri).uri;
+            let queryUri = self._queryResultsMap.get(uri).queryRunner.uri;
             let selectedResultSetNo: number = Number(req.query.resultSetNo);
             let batchIndex: number = Number(req.query.batchIndex);
             let format: string = req.query.format;
@@ -125,7 +176,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http handler for '/openLink' - open content in a new vscode editor pane
-        this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.OpenLink, (req, res): void => {
             let content: string = req.body.content;
             let columnName: string = req.body.columnName;
             let linkType: string = req.body.type;
@@ -135,25 +186,43 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         });
 
         // add http post handler for copying results
-        this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.Copy, (req, res): void => {
             let uri = req.query.uri;
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
             let selection: Interfaces.ISlickRange[] = req.body;
-            self._queryResultsMap.get(uri).copyResults(selection, batchId, resultId).then(() => {
+            self._queryResultsMap.get(uri).queryRunner.copyResults(selection, batchId, resultId).then(() => {
                 res.status = 200;
                 res.send();
             });
         });
 
         // add http post handler for setting the selection in the editor
-        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, function(req, res): void {
+        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, (req, res): void => {
             let uri = req.query.uri;
             let selection: ISelectionData = req.body;
-            self._queryResultsMap.get(uri).setEditorSelection(selection).then(() => {
+            self._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
                 res.status = 200;
                 res.send();
             });
+        });
+
+        // add http post handler for showing errors to user
+        this._service.addPostHandler(Interfaces.ContentType.ShowError, (req, res): void => {
+            let message: string = req.body.message;
+            self._vscodeWrapper.showErrorMessage(message);
+            // not attached to show function callback, since callback returns only after user closes message
+            res.status = 200;
+            res.send();
+        });
+
+        // add http post handler for showing warning to user
+        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, (req, res): void => {
+            let message: string = req.body.message;
+            self._vscodeWrapper.showWarningMessage(message);
+            // not attached to show function callback, since callback returns only after user closes message
+            res.status = 200;
+            res.send();
         });
 
         // start express server on localhost and listen on a random port
@@ -171,8 +240,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return this._onDidChange.event;
     }
 
-    public onContentUpdated(): void {
-        this._onDidChange.fire(SqlOutputContentProvider.providerUri);
+    public update(uri: vscode.Uri): void {
+        this._onDidChange.fire(uri);
     }
 
     // PUBLIC METHODS //////////////////////////////////////////////////////
@@ -180,15 +249,16 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public isRunningQuery(uri: string): boolean {
         return !this._queryResultsMap.has(uri)
             ? false
-            : this._queryResultsMap.get(uri).isExecutingQuery;
+            : this._queryResultsMap.get(uri).queryRunner.isExecutingQuery;
     }
 
     public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
         // Reuse existing query runner if it exists
         let resultsUri = this.getResultsUri(uri);
         let queryRunner: QueryRunner;
+
         if (this._queryResultsMap.has(resultsUri)) {
-            let existingRunner: QueryRunner = this._queryResultsMap.get(resultsUri);
+            let existingRunner: QueryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
@@ -198,28 +268,45 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             // If the query is not in progress, we can reuse the query runner
             queryRunner = existingRunner;
+
+            // update the open pane assuming its open (if its not its a bug covered by the previewhtml command later)
+            this.update(vscode.Uri.parse(resultsUri));
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
-            this._queryResultsMap.set(resultsUri, queryRunner);
+            this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
 
-        // Execute the query
-        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
-        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
         queryRunner.runQuery(selection);
+        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        // Always run this command even if just updating to avoid a bug - tfs 8686842
+        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
     }
 
-    public cancelQuery(uri: string): void {
+    public cancelQuery(input: QueryRunner | string): void {
         let self = this;
+        let queryRunner: QueryRunner;
+
+        if (typeof input === 'string') {
+            let resultsUri = this.getResultsUri(input).toString();
+            if (this._queryResultsMap.has(resultsUri)) {
+                queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
+            }
+        } else {
+            queryRunner = input;
+        }
+
+        if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
+            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQueryNotRunning);
+            return;
+        }
+
+        // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
+        this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query
-        let resultsUri = this.getResultsUri(uri).toString();
-        this._queryResultsMap.get(resultsUri).cancel().then(success => {
-            // On success, dispose of the query runner
-            self._queryResultsMap.delete(resultsUri);
-        }, error => {
+        queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
         });
@@ -250,29 +337,43 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     /**
      * Executed from the MainController when a text document (that already exists on disk) was
-     * closed. If the query is in progress, it will be cancelled. If there is a query at all,
+     * closed. If the query is in progress, it will be canceled. If there is a query at all,
      * the query will be disposed.
      * @param doc   The document that was closed
      */
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
-        // If there isn't a query runner for this uri, then nothing to do
-        let uri = doc.uri.toString();
-        if (!this._queryResultsMap.has(uri)) {
-            return;
-        }
+        for (let [key, value] of this._queryResultsMap.entries()) {
+            // closed text document related to a results window we are holding
+            if (doc.uri.toString() === value.queryRunner.uri) {
+                value.flaggedForDeletion = true;
+            }
 
-        // Is the query in progress
-        let queryRunner: QueryRunner = this._queryResultsMap.get(uri);
-        if (queryRunner.isExecutingQuery) {
-            // We need to cancel it, which will dispose it
-            this.cancelQuery(uri);
-        } else {
-            // We need to explicitly dispose the query
-            queryRunner.dispose();
+            // "closed" a results window we are holding
+            if (doc.uri.toString() === key) {
+                value.timeout = this.setRunnerDeletionTimeout(key);
+            }
         }
+    }
 
-        // Unmap the uri to the queryrunner
-        this._queryResultsMap.delete(uri);
+    private setRunnerDeletionTimeout(uri: string): number {
+        const self = this;
+        return setTimeout(() => {
+            let queryRunnerState = self._queryResultsMap.get(uri);
+            if (queryRunnerState.flaggedForDeletion) {
+                self._queryResultsMap.delete(uri);
+
+                if (queryRunnerState.queryRunner.isExecutingQuery) {
+                    // We need to cancel it, which will dispose it
+                    this.cancelQuery(queryRunnerState.queryRunner);
+                } else {
+                    // We need to explicitly dispose the query
+                    queryRunnerState.queryRunner.dispose();
+                }
+            } else {
+                queryRunnerState.timeout = this.setRunnerDeletionTimeout(uri);
+            }
+
+        }, deletionTimeoutTime);
     }
 
     // Called by VS Code exactly once to load html content in the preview window
@@ -284,30 +385,31 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return `
         <html>
         <head>
+            <script type="text/javascript">
+                window.onload = function(event) {
+                    var doc = document.documentElement;
+                    var styles = window.getComputedStyle(doc);
+                    var backgroundcolor = styles.getPropertyValue('--background-color');
+                    var color = styles.getPropertyValue('--color');
+                    var fontfamily = styles.getPropertyValue('--font-family');
+                    var fontweight = styles.getPropertyValue('--font-weight');
+                    var fontsize = styles.getPropertyValue('--font-size');
+                    var theme = document.body.className;
+                    var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
+                            "uri=${encodedUri}" +
+                            "&theme=" + theme +
+                            "&backgroundcolor=" + backgroundcolor +
+                            "&color=" + color +
+                            "&fontfamily=" + fontfamily +
+                            "&fontweight=" + fontweight +
+                            "&fontsize=" + fontsize;
+                    document.getElementById('frame').src = url;
+                };
+            </script>
         </head>
-        <body></body>
-        <script type="text/javascript">
-            var doc = document.documentElement;
-            var styles = window.getComputedStyle(doc);
-            var backgroundcolor = styles.getPropertyValue('--background-color');
-            var color = styles.getPropertyValue('--color');
-            var fontfamily = styles.getPropertyValue('--font-family');
-            var fontweight = styles.getPropertyValue('--font-weight');
-            var fontsize = styles.getPropertyValue('--font-size');
-            var theme = document.body.className;
-            window.onload = function(event) {
-                event.stopPropagation(true);
-                var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
-                          "uri=${encodedUri}" +
-                          "&theme=" + theme +
-                          "&backgroundcolor=" + backgroundcolor +
-                          "&color=" + color +
-                          "&fontfamily=" + fontfamily +
-                          "&fontweight=" + fontweight +
-                          "&fontsize=" + fontsize;
-                window.location.href = url
-            };
-        </script>
+        <body style="margin: 0; padding: 0; height: 100%; overflow: hidden;">
+            <iframe id="frame" width="100%" height="100%" frameborder="0" style="position:absolute; left: 0; right: 0; bottom: 0; top: 0px;"/>
+        </body>
         </html>`;
     }
 
@@ -317,8 +419,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public openLink(content: string, columnName: string, linkType: string): void {
         const self = this;
         let tempFileName = self.getXmlTempFileName(columnName, linkType);
-        let tempFilePath = path.join(os.tmpdir(), tempFileName);
-        let uri = vscode.Uri.parse('untitled:' + tempFilePath);
+        let uri = vscode.Uri.parse('untitled:' + tempFileName);
         if (linkType === 'xml') {
             try {
                 content = pd.xml(content);
@@ -342,11 +443,29 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             vscode.window.showTextDocument(doc, 1, false).then(editor => {
                 editor.edit(edit => {
                     edit.insert(new vscode.Position(0, 0), content);
+                }).then(result => {
+                    if (!result) {
+                        self._vscodeWrapper.showErrorMessage(Constants.msgCannotOpenContent);
+                    }
                 });
+            }, (error: any) => {
+                self._vscodeWrapper.showErrorMessage(error);
             });
         }, (error: any) => {
             self._vscodeWrapper.showErrorMessage(error);
         });
+    }
+
+    /**
+     * Return the query for a file uri
+     */
+    public getQueryRunner(uri: string): QueryRunner {
+        let resultsUri = this.getResultsUri(uri).toString();
+        if (this._queryResultsMap.has(resultsUri)) {
+            return  this._queryResultsMap.get(resultsUri).queryRunner;
+        } else {
+            return undefined;
+        }
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
@@ -366,7 +485,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      * Return temp file name for opening a link
      */
     private getXmlTempFileName(columnName: string, linkType: string): string {
-        let baseFileName = columnName + '_';
+        if (columnName === 'XML Showplan') {
+            columnName = 'Showplan';
+        }
+        let baseFileName = columnName + '-';
         let retryCount: number = 200;
         for (let i = 0; i < retryCount; i++) {
             let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
@@ -375,6 +497,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 return tempFileName;
             }
         }
-        return columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType;
+        return path.join(os.tmpdir(), columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType);
     }
 }

@@ -4,10 +4,12 @@ import vscode = require('vscode');
 suite('Telemetry Tests', () => {
     test('Correct version of applicationInsights is installed', () => {
         // Find the path of our extension
-        let ext = vscode.extensions.getExtension('Microsoft.vscode-mssql');
+        let ext = vscode.extensions.getExtension('Microsoft.mssql');
 
         // Open the applicationInsights node module package.json
-        const appInsightsPackage: any = require(ext.extensionPath + '/node_modules/vscode-extension-telemetry/node_modules/applicationinsights/package.json');
+        const appInsightsPackage: any = require(
+            ext.extensionPath + '/node_modules/vscode-extension-telemetry/node_modules/applicationinsights/package.json'
+        );
         assert.ok(appInsightsPackage);
 
         // Verify that it is at least version 0.15.19

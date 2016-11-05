@@ -12,7 +12,10 @@ export enum ContentType {
     SaveResults = 5,
     Copy = 6,
     EditorSelection = 7,
-    OpenLink = 8
+    OpenLink = 8,
+    ShowError = 9,
+    ShowWarning = 10,
+    Config = 11
 };
 
 export interface ISlickRange {
@@ -37,7 +40,10 @@ export const ContentTypes = [
     Constants.outputContentTypeSaveResults,
     Constants.outputContentTypeCopy,
     Constants.outputContentTypeEditorSelection,
-    Constants.outputContentTypeOpenLink
+    Constants.outputContentTypeOpenLink,
+    Constants.outputContentTypeShowError,
+    Constants.outputContentTypeShowWarning,
+    Constants.outputContentTypeConfig
     ];
 
 /**
@@ -198,7 +204,6 @@ export enum CredentialsQuickPickItemType {
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
     quickPickItemType: CredentialsQuickPickItemType;
-
 };
 
 // Obtained from an active connection to show in the status bar
@@ -256,5 +261,12 @@ export interface IGridBatchMetaData {
     messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
+    startTime: string;
+    endTime: string;
+    totalTime: string;
 }
 
+export interface IResultsConfig {
+    shortcuts: { [key: string]: string };
+    messagesDefaultOpen: boolean;
+}

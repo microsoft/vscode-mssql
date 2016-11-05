@@ -42,8 +42,8 @@ export class ConnectionStore {
     public static get CRED_DB_PREFIX(): string { return 'db:'; }
     public static get CRED_USER_PREFIX(): string { return 'user:'; }
     public static get CRED_ITEMTYPE_PREFIX(): string { return 'itemtype:'; }
-    public static get CRED_PROFILE_USER(): string { return 'profile'; };
-    public static get CRED_MRU_USER(): string { return 'mru'; };
+    public static get CRED_PROFILE_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Profile]; };
+    public static get CRED_MRU_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru]; };
 
     public static formatCredentialIdForCred(creds: IConnectionCredentials, itemType?: CredentialsQuickPickItemType): string {
         if (Utils.isEmpty(creds)) {
@@ -105,7 +105,7 @@ export class ConnectionStore {
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections();
         pickListItems.push(<IConnectionCredentialsQuickPickItem> {
-            label: Constants.CreateProfileLabel,
+            label: Constants.CreateProfileFromConnectionsListLabel,
             connectionCreds: undefined,
             quickPickItemType: CredentialsQuickPickItemType.NewConnection
         });
@@ -125,7 +125,11 @@ export class ConnectionStore {
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
         let self = this;
         return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
-            if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
+            if (typeof(credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
+                credentialsItem.connectionCreds['savePassword'] === false) {
+                // Don't try to lookup a saved password if savePassword is set to false for the credential
+                resolve(credentialsItem);
+            } else if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
                     && Utils.isEmpty(credentialsItem.connectionCreds.password)) {
 
                 let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
@@ -149,13 +153,20 @@ export class ConnectionStore {
      * Password values are stored to a separate credential store if the "savePassword" option is true
      *
      * @param {IConnectionProfile} profile the profile to save
+     * @param {forceWritePlaintextPassword} whether the plaintext password should be written to the settings file
      * @returns {Promise<IConnectionProfile>} a Promise that returns the original profile, for help in chaining calls
      */
-    public saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+    public saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
         const self = this;
         return new Promise<IConnectionProfile>((resolve, reject) => {
-            // Add the profile to the saved list, taking care to clear out the password field
-            let savedProfile: IConnectionProfile = Object.assign({}, profile, { password: '' });
+            // Add the profile to the saved list, taking care to clear out the password field if necessary
+            let savedProfile: IConnectionProfile;
+            if (forceWritePlaintextPassword) {
+                savedProfile = Object.assign({}, profile);
+            } else {
+                savedProfile = Object.assign({}, profile, { password: '' });
+            }
+
             self._connectionConfig.addConnection(savedProfile)
             .then(() => {
                 // Only save if we successfully added the profile
@@ -203,7 +214,7 @@ export class ConnectionStore {
             let maxConnections = self.getMaxRecentConnectionsCount();
 
             // Remove the connection from the list if it already exists
-            configValues = configValues.filter(value => !Utils.isSameConnection(value, conn));
+            configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, <IConnectionProfile>conn));
 
             // Add the connection to the front of the list, taking care to clear out the password field
             let savedConn: IConnectionCredentials = Object.assign({}, conn, { password: '' });
@@ -218,6 +229,46 @@ export class ConnectionStore {
             .then(() => {
                 // Only save if we successfully added the profile
                 self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                // And resolve / reject at the end of the process
+                resolve(undefined);
+            }, err => {
+                reject(err);
+            });
+        });
+    }
+
+    /**
+     * Clear all recently used connections from the MRU list.
+     */
+    public clearRecentlyUsed(): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            // Update the MRU list to be empty
+            self._context.globalState.update(Constants.configRecentConnections, [])
+            .then(() => {
+                // And resolve / reject at the end of the process
+                resolve(undefined);
+            }, err => {
+                reject(err);
+            });
+        });
+    }
+
+    /**
+     * Remove a connection profile from the recently used list.
+     */
+    private removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            // Get all profiles
+            let configValues = self.getRecentlyUsedConnections();
+
+            // Remove the connection from the list if it already exists
+            configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, conn));
+
+            // Update the MRU list
+            self._context.globalState.update(Constants.configRecentConnections, configValues)
+            .then(() => {
                 // And resolve / reject at the end of the process
                 resolve(undefined);
             }, err => {
@@ -262,10 +313,19 @@ export class ConnectionStore {
     public removeProfile(profile: IConnectionProfile): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
-            this._connectionConfig.removeConnection(profile).then(profileFound => {
+            self._connectionConfig.removeConnection(profile).then(profileFound => {
                 resolve(profileFound);
             }).catch(err => {
                 reject(err);
+            });
+        }).then(profileFound => {
+            // Remove the profile from the recently used list if necessary
+            return new Promise<boolean>((resolve, reject) => {
+                self.removeRecentlyUsed(profile).then(() => {
+                    resolve(profileFound);
+                }).catch(err => {
+                    reject(err);
+                });
             });
         }).then(profileFound => {
             // Now remove password from credential store. Currently do not care about status unless an error occurred
@@ -295,12 +355,35 @@ export class ConnectionStore {
 
         // Read recently used items from a memento
         let recentConnections = this.getConnectionsFromGlobalState(Constants.configRecentConnections);
-        quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(recentConnections, CredentialsQuickPickItemType.Mru));
 
         // Load connections from user preferences
         // Per this https://code.visualstudio.com/Docs/customization/userandworkspace
         // Connections defined in workspace scope are unioned with the Connections defined in user scope
         let profilesInConfiguration = this._connectionConfig.getConnections(true);
+
+        // Remove any duplicates that are in both recent connections and the user settings
+        let profilesInRecentConnectionsList: number[] = [];
+        profilesInConfiguration = profilesInConfiguration.filter(profile => {
+            for (let index = 0; index < recentConnections.length; index++) {
+                if (Utils.isSameProfile(profile, <IConnectionProfile>recentConnections[index])) {
+                    if (Utils.isSameConnection(profile, recentConnections[index])) {
+                        // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
+                        recentConnections[index] = Object.assign({}, profile);
+                        profilesInRecentConnectionsList.push(index);
+                    }
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        // Ensure that MRU items which are actually profiles are labeled as such
+        let recentConnectionsItems = this.mapToQuickPickItems(recentConnections, CredentialsQuickPickItemType.Mru);
+        for (let index of profilesInRecentConnectionsList) {
+            recentConnectionsItems[index].quickPickItemType = CredentialsQuickPickItemType.Profile;
+        }
+
+        quickPickItems = quickPickItems.concat(recentConnectionsItems);
         quickPickItems = quickPickItems.concat(this.mapToQuickPickItems(profilesInConfiguration, CredentialsQuickPickItemType.Profile));
 
         // Return all connections
@@ -340,7 +423,7 @@ export class ConnectionStore {
     }
 
     private getMaxRecentConnectionsCount(): number {
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
 
         let maxConnections: number = config[Constants.configMaxRecentConnections];
         if (typeof(maxConnections) !== 'number' || maxConnections <= 0) {

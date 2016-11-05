@@ -32,14 +32,57 @@ export namespace Telemetry {
         [key: string]: number;
     }
 
-    // Disable telemetry reporting
+    /**
+     * Disable telemetry reporting
+     */
     export function disable(): void {
         disabled = true;
     }
 
-    // Send a telemetry event using application insights
+    /**
+     * Initialize the telemetry reporter for use.
+     */
+    export function initialize(context: vscode.ExtensionContext): void {
+        if (typeof reporter === 'undefined') {
+            // Check if the user has opted out of telemetry
+            if (!vscode.workspace.getConfiguration('telemetry').get<boolean>('enableTelemetry', true)) {
+                disable();
+                return;
+            }
+
+            let packageInfo = Utils.getPackageInfo(context);
+            reporter = new TelemetryReporter('vscode-mssql', packageInfo.version, packageInfo.aiKey);
+        }
+    }
+
+    /**
+     * Send a telemetry event for an exception
+     */
+    export function sendTelemetryEventForException(
+        err: any, methodName: string): void {
+        try {
+            let stackArray: string[];
+            let firstLine: string = '';
+            if ( err !== undefined && err.stack !== undefined) {
+                stackArray = err.stack.split('\n');
+                if (stackArray !== undefined && stackArray.length >= 2) {
+                    firstLine = stackArray[1]; // The fist line is the error message and we don't want to send that telemetry event
+                }
+            }
+
+            // Only adding the method name and the fist line of the stack strace. We don't add the error message because it might have PII
+            Telemetry.sendTelemetryEvent('Exception', {methodName: methodName, errorLine: firstLine});
+            Utils.logDebug('Unhandled Exception occurred. error: ' + err + ' method: ' + methodName );
+        } catch (telemetryErr) {
+            // If sending telemetly event fails ignore it so it won't break the extension
+            Utils.logDebug('Failed to send telemetry event. error: ' + telemetryErr );
+        }
+    }
+
+    /**
+     * Send a telemetry event using application insights
+     */
     export function sendTelemetryEvent(
-        context: vscode.ExtensionContext,
         eventName: string,
         properties?: ITelemetryEventProperties,
         measures?: ITelemetryEventMeasures): void {
@@ -47,19 +90,13 @@ export namespace Telemetry {
         if (typeof disabled === 'undefined') {
             disabled = false;
         }
-        if (disabled) {
+        if (disabled || typeof(reporter) === 'undefined') {
             // Don't do anything if telemetry is disabled
             return;
         }
 
         if (typeof properties === 'undefined') {
             properties = {};
-        }
-
-        // Initialize the telemetry reporter if necessary
-        let packageInfo = Utils.getPackageInfo(context);
-        if (typeof reporter === 'undefined') {
-            reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
         }
 
         // Augment the properties structure with additional common properties before sending

@@ -11,6 +11,7 @@ import * as Utils from '../models/utils';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import Telemetry from '../models/telemetry';
 
 /**
  *  Handles save results request from the context menu of slickGrid
@@ -25,6 +26,7 @@ export default class ResultsSerializer {
 
 
     constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
+
         if (client) {
             this._client = client;
         } else {
@@ -83,17 +85,14 @@ export default class ResultsSerializer {
         const self = this;
         // resolve filepath
         if (!path.isAbsolute(filePath)) {
-
             filePath = self.resolveFilePath(this._uri, filePath);
         }
-
         if (self._isTempFile) {
             return false;
         }
         // check if file already exists on disk
         try {
-            let stats = fs.statSync(filePath);
-            self._vscodeWrapper.logToOutputChannel('File already exists ' + stats);
+            fs.statSync(filePath);
             return true;
         } catch (err) {
             return false;
@@ -103,20 +102,14 @@ export default class ResultsSerializer {
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
         // get save results config from vscode config
-        let config = vscode.workspace.getConfiguration(Constants.extensionName);
+        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
         let saveConfig = config[Constants.configSaveAsCsv];
         let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
 
         // if user entered config, set options
         if (saveConfig) {
-            if (saveConfig.encoding) {
-                saveResultsParams.fileEncoding  = saveConfig.encoding;
-            }
-            if (saveConfig.includeHeaders) {
+            if (saveConfig.includeHeaders !== undefined) {
                 saveResultsParams.includeHeaders = saveConfig.includeHeaders;
-            }
-            if (saveConfig.valueInQuotes) {
-                saveResultsParams.valueInQuotes = saveConfig.valueInQuotes;
             }
         }
         return saveResultsParams;
@@ -124,7 +117,7 @@ export default class ResultsSerializer {
 
     private getConfigForJson(): Contracts.SaveResultsAsJsonRequestParams {
         // get save results config from vscode config
-        let config = vscode.workspace.getConfiguration(Constants.extensionName);
+        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
         let saveConfig = config[Constants.configSaveAsJson];
         let saveResultsParams = new Contracts.SaveResultsAsJsonRequestParams();
 
@@ -144,10 +137,11 @@ export default class ResultsSerializer {
         if (sqlUri.scheme === 'file') {
             currentDirectory = path.dirname(sqlUri.fsPath);
         } else if (sqlUri.scheme === 'untitled') {
-            // if sql file is unsaved/untitled but a workspace is open
+            // if sql file is unsaved/untitled but a workspace is open use workspace root
             if (vscode.workspace.rootPath) {
                 currentDirectory = vscode.workspace.rootPath;
             } else {
+                // use temp directory
                 currentDirectory = os.tmpdir();
                 self._isTempFile = true;
             }
@@ -222,16 +216,24 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsJsonRequest.type;
         }
 
+        self._vscodeWrapper.logToOutputChannel(Constants.msgSaveStarted + this._filePath);
+
         // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
         return self._client.sendRequest( type, saveResultsParams).then(result => {
                 if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage(result.messages);
+                    self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + result.messages);
+                    self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + result.messages);
                 } else {
-                    self._vscodeWrapper.showInformationMessage('Results saved to ' + this._filePath);
+                    self._vscodeWrapper.showInformationMessage(Constants.msgSaveSucceeded + this._filePath);
+                    self._vscodeWrapper.logToOutputChannel(Constants.msgSaveSucceeded + filePath);
                     self.openSavedFile(self._filePath);
                 }
+                // telemetry for save results
+                Telemetry.sendTelemetryEvent('SavedResults', { 'type': format });
+
             }, error => {
-                self._vscodeWrapper.showErrorMessage('Saving results failed: ' + error);
+                self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + error);
+                self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + error);
         });
     }
 
@@ -258,10 +260,7 @@ export default class ResultsSerializer {
         let uri = vscode.Uri.file(filePath);
         self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
             // Show open document and set focus
-            self._vscodeWrapper.showTextDocument(doc, 1, false).then(editor => {
-                // write message to output tab
-                self._vscodeWrapper.logToOutputChannel('Results saved to ' + filePath);
-            }, (error: any) => {
+            self._vscodeWrapper.showTextDocument(doc, 1, false).then(undefined, (error: any) => {
                 self._vscodeWrapper.showErrorMessage(error);
             });
         }, (error: any) => {

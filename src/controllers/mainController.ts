@@ -87,21 +87,17 @@ export default class MainController implements vscode.Disposable {
 
         // register VS Code commands
         this.registerCommand(Constants.cmdConnect);
-        this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection()); });
+        this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection(), 'onNewConnection'); });
         this.registerCommand(Constants.cmdDisconnect);
-        this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
+        this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect(), 'onDisconnect'); });
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
-        this.registerCommand(Constants.cmdCreateProfile);
-        this._event.on(Constants.cmdCreateProfile, () => { self.runAndLogErrors(self.onCreateProfile()); });
-        this.registerCommand(Constants.cmdRemoveProfile);
-        this._event.on(Constants.cmdRemoveProfile, () => { self.runAndLogErrors(self.onRemoveProfile()); });
+        this.registerCommand(Constants.cmdManageConnectionProfiles);
+        this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
         this.registerCommand(Constants.cmdChooseDatabase);
-        this._event.on(Constants.cmdChooseDatabase, () => { self.onChooseDatabase(); } );
-        this.registerCommand(Constants.cmdCancelConnect);
-        this._event.on(Constants.cmdCancelConnect, () => { self.onCancelConnect(); } );
-        this.registerCommand(Constants.cmdShowReleaseNotes);
-        this._event.on(Constants.cmdShowReleaseNotes, () => { self.launchReleaseNotesPage(); } );
+        this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
+        this.registerCommand(Constants.cmdCancelQuery);
+        this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
 
         this._vscodeWrapper = new VscodeWrapper();
 
@@ -144,10 +140,13 @@ export default class MainController implements vscode.Disposable {
                 // Init connection manager and connection MRU
                 self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
+                // Initialize telemetry
+                Telemetry.initialize(self._context);
+
                 activationTimer.end();
 
                 // telemetry for activation
-                Telemetry.sendTelemetryEvent(self._context, 'ExtensionActivated', {},
+                Telemetry.sendTelemetryEvent('ExtensionActivated', {},
                     { activationTime: activationTimer.getDuration() }
                 );
 
@@ -158,99 +157,132 @@ export default class MainController implements vscode.Disposable {
                 resolve(true);
             });
         });
-   }
+    }
+
+    /**
+     * Handles the command to cancel queries
+     */
+    private onCancelQuery(): void {
+        try {
+            let uri = this._vscodeWrapper.activeTextEditorUri;
+            Telemetry.sendTelemetryEvent('CancelQuery');
+            this._outputContentProvider.cancelQuery(uri);
+        } catch (err) {
+            Telemetry.sendTelemetryEventForException(err, 'onCancelQuery');
+        }
+    }
 
     /**
      * Choose a new database from the current server
      */
     private onChooseDatabase(): Promise<boolean> {
-        return this._connectionMgr.onChooseDatabase();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onChooseDatabase();
+        }
     }
 
     /**
      * Close active connection, if any
      */
     private onDisconnect(): Promise<any> {
-        return this._connectionMgr.onDisconnect();
+        if (this.CanRunCommand()) {
+            let fileUri = this._vscodeWrapper.activeTextEditorUri;
+            let queryRunner = this._outputContentProvider.getQueryRunner(fileUri);
+            if (queryRunner && queryRunner.isExecutingQuery) {
+                this._outputContentProvider.cancelQuery(fileUri);
+            }
+            return this._connectionMgr.onDisconnect();
+        }
+    }
+
+    /**
+     * Manage connection profiles (create, edit, remove).
+     */
+    private onManageProfiles(): Promise<boolean> {
+        if (this.CanRunCommand()) {
+            Telemetry.sendTelemetryEvent('ManageProfiles');
+            return this._connectionMgr.onManageProfiles();
+        }
     }
 
     /**
      * Let users pick from a list of connections
      */
     public onNewConnection(): Promise<boolean> {
-        return this._connectionMgr.onNewConnection();
-    }
-
-    /**
-     * Cancels the current connection attempt
-     */
-    public onCancelConnect(): void {
-        return this._connectionMgr.onCancelConnect();
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onNewConnection();
+        }
     }
 
     /**
      * get the T-SQL query from the editor, run it and show output
      */
     public onRunQuery(): void {
-        const self = this;
-        if (!this._vscodeWrapper.isEditingSqlFile) {
-            // Prompt the user to change the language mode to SQL before running a query
-            this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
-                if (result) {
-                    self.onRunQuery();
-                }
-            }).catch(err => {
-                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
-            });
-        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
-            // If we are disconnected, prompt the user to choose a connection before executing
-            this.onNewConnection().then(result => {
-                if (result) {
-                    self.onRunQuery();
-                }
-            }).catch(err => {
-                self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
-            });
-        } else {
-            let editor = this._vscodeWrapper.activeTextEditor;
-            let uri = this._vscodeWrapper.activeTextEditorUri;
-            let title = path.basename(editor.document.fileName);
-            let querySelection: ISelectionData;
-
-            if (!editor.selection.isEmpty) {
-                let selection = editor.selection;
-                querySelection = {
-                    startLine: selection.start.line,
-                    startColumn: selection.start.character,
-                    endLine: selection.end.line,
-                    endColumn: selection.end.character
-                };
+        try {
+            if (!this.CanRunCommand()) {
+                return;
             }
-            this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+            const self = this;
+            if (!this._vscodeWrapper.isEditingSqlFile) {
+                // Prompt the user to change the language mode to SQL before running a query
+                this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
+                    if (result) {
+                        self.onRunQuery();
+                    }
+                }).catch(err => {
+                    self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+                });
+            } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+                // If we are disconnected, prompt the user to choose a connection before executing
+                this.onNewConnection().then(result => {
+                    if (result) {
+                        self.onRunQuery();
+                    }
+                }).catch(err => {
+                    self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+                });
+            } else {
+                let editor = this._vscodeWrapper.activeTextEditor;
+                let uri = this._vscodeWrapper.activeTextEditorUri;
+                let title = path.basename(editor.document.fileName);
+                let querySelection: ISelectionData;
+
+                // Calculate the selection if we have a selection, otherwise we'll use null to indicate
+                // the entire document is the selection
+                if (!editor.selection.isEmpty) {
+                    let selection = editor.selection;
+                    querySelection = {
+                        startLine: selection.start.line,
+                        startColumn: selection.start.character,
+                        endLine: selection.end.line,
+                        endColumn: selection.end.character
+                    };
+                }
+
+                // Trim down the selection. If it is empty after selecting, then we don't execute
+                let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
+                if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                    return;
+                }
+
+                Telemetry.sendTelemetryEvent('RunQuery');
+
+                this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+            }
+        } catch (err) {
+            Telemetry.sendTelemetryEventForException(err, 'OnRunquery');
         }
-    }
 
-    /**
-     * Prompts to create a new SQL connection profile
-     */
-    public onCreateProfile(): Promise<boolean> {
-        return this._connectionMgr.onCreateProfile();
-    }
-
-    /**
-     * Prompts to remove a registered SQL connection profile
-     */
-    public onRemoveProfile(): Promise<boolean> {
-        return this._connectionMgr.onRemoveProfile();
     }
 
     /**
      * Executes a callback and logs any errors raised
      */
-    private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
+    private runAndLogErrors<T>(promise: Promise<T>, handlerName: string): Promise<T> {
         let self = this;
         return promise.catch(err => {
             self._vscodeWrapper.showErrorMessage(Constants.msgError + err);
+            Telemetry.sendTelemetryEventForException(err, handlerName);
         });
     }
 
@@ -259,6 +291,17 @@ export default class MainController implements vscode.Disposable {
      */
     public get connectionManager(): ConnectionManager {
         return this._connectionMgr;
+    }
+
+    /**
+     * Verifies the extension is initilized and if not shows an error message
+     */
+    private CanRunCommand(): boolean {
+        if (this._connectionMgr === undefined) {
+            Utils.showErrorMsg(Constants.extensionNotInitializedError);
+            return false;
+        }
+        return true;
     }
 
     /**

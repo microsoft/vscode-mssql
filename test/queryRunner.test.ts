@@ -39,7 +39,7 @@ suite('Query Runner tests', () => {
         assert.equal(typeof queryRunner !== undefined, true);
     });
 
-    test('Runs Query Corrects', () => {
+    test('Runs Query Correctly', () => {
         let testuri = 'uri';
         let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
         let testtitle = 'title';
@@ -56,6 +56,7 @@ suite('Query Runner tests', () => {
             });
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
+        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
 
         let queryRunner = new QueryRunner(
             testuri,
@@ -83,6 +84,7 @@ suite('Query Runner tests', () => {
                                                           })
                                 .returns(() => { return Promise.resolve({messages: 'failed'}); });
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
         let queryRunner = new QueryRunner(
@@ -102,15 +104,20 @@ suite('Query Runner tests', () => {
         let resolveRan = false;
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: 'uri',
+            message: undefined,
             batchSummaries: [{
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
                 messages: [{time: '', message: '6 affects rows'}],
-                resultSetSummaries: []
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionStart: new Date().toISOString(),
+                executionEnd: new Date().toISOString()
             }]
         };
 
+        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
         let queryRunner = new QueryRunner(

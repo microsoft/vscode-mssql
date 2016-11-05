@@ -40,11 +40,15 @@ export class BatchSummary {
     selection: ISelectionData;
     messages: IResultMessage[];
     resultSetSummaries: ResultSetSummary[];
+    executionElapsed: string;
+    executionEnd: string;
+    executionStart: string;
 }
 
 export class QueryExecuteCompleteNotificationResult {
     ownerUri: string;
     batchSummaries: BatchSummary[];
+    message: string;
 }
 
 // -------------------------- </ Query Execution Complete Notification > -------------------------------

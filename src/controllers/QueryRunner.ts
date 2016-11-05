@@ -10,6 +10,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryDisposeRequest } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
+import Constants = require('../models/constants');
+import * as Utils from './../models/utils';
 
 const ncp = require('copy-paste');
 
@@ -101,6 +103,7 @@ export default class QueryRunner {
 
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(selection: ISelectionData): Thenable<void> {
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
         const self = this;
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
@@ -124,7 +127,10 @@ export default class QueryRunner {
                         id: 0,
                         selection: undefined,
                         messages: [{message: result.messages, time: undefined}],
-                        resultSetSummaries: undefined
+                        resultSetSummaries: undefined,
+                        executionElapsed: undefined,
+                        executionEnd: undefined,
+                        executionStart: undefined
                     }];
                 self.dataResolveReject.resolve();
             } else {
@@ -140,9 +146,26 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleResult(result: QueryExecuteCompleteNotificationResult): void {
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgFinishedExecute, this._uri));
         this._isExecuting = false;
-
+        if (result.message) {
+            // Error occured during execution
+            this._statusView.executedQuery(this.uri);
+            this.batchSets = [{
+                hasError: true,
+                id: 0,
+                selection: undefined,
+                messages: [{ time: undefined, message: result.message }],
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionEnd: undefined,
+                executionStart: undefined
+            }];
+            this.dataResolveReject.resolve(this.batchSets);
+            return;
+        }
         this.batchSets = result.batchSummaries;
+
         this.batchSets.map((batch) => {
             if (batch.selection) {
                 batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
