@@ -13,7 +13,7 @@ Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for
 * Customizable extension options including command shortcuts and more.
 
 ## Using
-[Read the Step-by-Step Tutorial](https://github.com/Microsoft/vscode-mssql/wiki/GettingStarted.md)
+[See the Step-by-Step Tutorial](https://github.com/Microsoft/vscode-mssql/wiki/GettingStarted.md)
 * First, install [Visual Studio Code](https://code.visualstudio.com/#alt-downloads) then install **mssql** extension by pressing ```F1``` or ```cmd+shift+p``` to open command palette, select ```Install Extenion``` and choose ```mssql```.
     * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instruction](https://www.microsoft.com/net/core#macos).
 * Open existing file with a .sql file extenion or open a new text file (```cmd+n```) and change the language mode to SQL by pressing ```cmd+k,m``` and select '```SQL```'. **mssql** commands and funtionalities are enabled in the 'SQL' language mode in Visual Studioc Code editor.
