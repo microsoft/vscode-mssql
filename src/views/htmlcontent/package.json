@@ -14,6 +14,7 @@
     "@angular/router-deprecated": "2.0.0-rc.2",
     "@angular/upgrade": "2.0.0-rc.5",
     "angular2-in-memory-web-api": "0.0.15",
+    "angular2-slickgrid": "github:microsoft/angular2-slickgrid",
     "bootstrap": "^3.3.6",
     "core-js": "^2.4.0",
     "moment": "^2.15.1",
@@ -21,13 +22,7 @@
     "rxjs": "5.0.0-beta.6",
     "systemjs": "0.19.27",
     "systemjs-plugin-json": "^0.2.0",
+    "underscore": "^1.8.3",
     "zone.js": "^0.6.12"
-  },
-  "devDependencies": {
-    "del": "^2.2.1",
-    "gulp": "github:gulpjs/gulp#4.0",
-    "gulp-sourcemaps": "^1.6.0",
-    "gulp-tslint": "^6.0.2",
-    "gulp-typescript": "^2.13.6"
   }
 }

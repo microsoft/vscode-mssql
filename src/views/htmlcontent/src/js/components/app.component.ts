@@ -5,14 +5,8 @@
 import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
-
-import {IColumnDefinition} from './../slickgrid/ModelInterfaces';
-import {IObservableCollection} from './../slickgrid/BaseLibrary';
-import {IGridDataRow} from './../slickgrid/SharedControlInterfaces';
-import {ISlickRange} from './../slickgrid/SelectionModel';
-import {SlickGrid} from './../slickgrid/SlickGrid';
-import {VirtualizedCollection} from './../slickgrid/VirtualizedCollection';
-import { FieldType } from './../slickgrid/EngineAPI';
+import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
+    VirtualizedCollection, FieldType } from 'angular2-slickgrid';
 
 import {DataService} from './../services/data.service';
 import {ShortcutService} from './../services/shortcuts.service';

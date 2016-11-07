@@ -7,7 +7,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule }   from '@angular/forms';
 import { HttpModule, JsonpModule } from '@angular/http';
 
-import { SlickGrid } from './slickgrid/SlickGrid';
+import { SlickGrid } from 'angular2-slickgrid';
 
 import { AppComponent }  from './components/app.component';
 import { ScrollDirective } from './directives/scroll.directive';
