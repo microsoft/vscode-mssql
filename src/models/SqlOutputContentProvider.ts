@@ -59,9 +59,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
-            let fontfamily: string = decodeURI(req.query.fontfamily).split('\"').join('');
-            let fontsize: string = req.query.fontsize;
-            let fontweight: string = req.query.fontweight;
+            // let fontfamily: string = decodeURI(req.query.fontfamily).split('\"').join('');
+            let fontfamily = self._vscodeWrapper.getConfiguration('editor').get<string>('fontFamily');
+            // let fontsize: string = req.query.fontsize;
+            let fontsize = self._vscodeWrapper.getConfiguration('editor').get<number>('fontSize') + 'px';
+            // let fontweight: string = req.query.fontweight;
+            let fontweight = self._vscodeWrapper.getConfiguration('editor').get<string>('fontWeight');
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
                 {
                     uri: uri,
