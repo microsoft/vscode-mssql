@@ -379,7 +379,16 @@
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
           "description": "true for the messages pane to be open by default; false for closed",
-          "default": true
+	  "default": true
+        },
+        "mssql.saveAsCsv": {
+          "type": "object",
+          "description": "[Optional] Configuration options for saving results as CSV",
+          "includeHeaders": {
+            "type": "boolean",
+            "default": true,
+            "description": "[Optional] When true, column headers are included in CSV"
+          }
         }
       }
     }
