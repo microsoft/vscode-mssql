@@ -378,7 +378,8 @@
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
-          "description": "true for the messages pane to be open by default; false for closed"
+          "description": "true for the messages pane to be open by default; false for closed",
+          "default": true
         }
       }
     }
