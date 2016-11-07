@@ -13,7 +13,7 @@ otherwise.
 4.  CredentialManagement (http://credentialmanagement.codeplex.com/)
 5.  Microsoft SQL Server VNEXT SHARED MANAGEMENT OBJECTS COMMUNITY TECHNOLOGY PREVIEW 1 (CTP1)
 
-%% Bower Package Manager for Visual Studio Code IDE NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+%% Bower Package Manager for Visual Studio Code NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
 The MIT License (MIT)
 
@@ -37,7 +37,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 =========================================
-END OF Application Insights for Node.js NOTICES, INFORMATION, AND LICENSE
+END OF Bower Package Manager for Visual Studio Code NOTICES, INFORMATION, AND LICENSE
 
 %% SlickGrid NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
