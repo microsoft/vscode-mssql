@@ -1,0 +1,7 @@
+{
+    "enabled": false,
+    "relativeSourcePath": "../src",
+    "relativeCoverageDir": "../../coverage",
+    "ignorePatterns": ["**/node_modules/**", "**/libs/**", "**/lib/**", "**/*.min.js", "**/*.bundle.js"],
+    "verbose": false
+}

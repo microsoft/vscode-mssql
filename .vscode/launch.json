@@ -10,7 +10,8 @@
             "args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
             "stopOnEntry": false,
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/src"
+            "outDir": "${workspaceRoot}/out/src",
+            "preLaunchTask": "cover:disable"
         },
         {
             "name": "Launch Tests",
@@ -20,7 +21,19 @@
             "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--extensionTestsPath=${workspaceRoot}/out/test"],
             "stopOnEntry": false,
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/test"
+            "outDir": "${workspaceRoot}/out/test",
+            "preLaunchTask": "cover:disable"
+        },
+        {
+            "name": "Launch Code Coverage",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--extensionTestsPath=${workspaceRoot}/out/test"],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/out/test",
+            "preLaunchTask": "cover:enable"
         }
     ]
 }

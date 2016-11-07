@@ -13,3 +13,4 @@ packages
 tools
 examples
 sqltoolsservice
+coverage/

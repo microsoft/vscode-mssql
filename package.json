@@ -42,6 +42,7 @@
     "vscode.sql"
   ],
   "devDependencies": {
+    "decache": "^4.1.0",
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-clean-css": "^2.0.13",
@@ -52,6 +53,8 @@
     "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^6.0.2",
     "gulp-typescript": "^2.13.6",
+    "istanbul": "^0.4.5",
+    "remap-istanbul": "^0.6.4",
     "gulp-uglify": "^2.0.0",
     "pm-mocha-jenkins-reporter": "^0.2.6",
     "systemjs-builder": "^0.15.32",
