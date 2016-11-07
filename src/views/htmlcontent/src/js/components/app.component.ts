@@ -193,11 +193,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     set messageActive(input: boolean) {
         this._messageActive = input;
         if (this.resultActive) {
-            setTimeout(() => {
-                for (let grid of this.renderedDataSets) {
-                    grid.resized.emit();
-                }
-            });
+            this.resizeGrids();
         }
     }
 
@@ -527,6 +523,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
             self.cd.detectChanges();
+            self.resizeGrids();
         });
     }
 
@@ -622,5 +619,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
             resultsWindow.scrollTop(scrollTop);
         }
         return true;
+    }
+
+    resizeGrids(): void {
+        const self = this;
+        setTimeout(() => {
+            for (let grid of self.renderedDataSets) {
+                    grid.resized.emit();
+                }
+        });
     }
 }
