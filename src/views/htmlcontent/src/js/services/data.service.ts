@@ -6,7 +6,7 @@ import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http, Headers} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
 
-import { ISlickRange } from './../slickGrid/SelectionModel';
+import { ISlickRange } from 'angular2-slickgrid';
 
 import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData,
     IResultMessage, IResultsConfig } from './../interfaces';
