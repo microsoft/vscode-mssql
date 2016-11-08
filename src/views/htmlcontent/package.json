@@ -14,7 +14,7 @@
     "@angular/router-deprecated": "2.0.0-rc.2",
     "@angular/upgrade": "2.0.0-rc.5",
     "angular2-in-memory-web-api": "0.0.15",
-    "angular2-slickgrid": "github:microsoft/angular2-slickgrid",
+    "angular2-slickgrid": "git+ssh://git@github.com:microsoft/angular2-slickgrid",
     "bootstrap": "^3.3.6",
     "core-js": "^2.4.0",
     "moment": "^2.15.1",
