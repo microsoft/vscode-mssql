@@ -15,6 +15,8 @@ import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 import {Platform, getCurrentPlatform} from '../models/platform';
 
+let opener = require('opener');
+
 /**
  * Information for a document's connection. Exported for testing purposes.
  */
@@ -274,9 +276,13 @@ export default class ConnectionManager {
             }
         } else {
             let platform: Platform = getCurrentPlatform();
-            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native') !== -1) {
-                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2,
-                Constants.macOpenSslErrorMessage));
+            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
+                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
+                Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(action => {
+                    if (action && action === Constants.macOpenSslHelpButton) {
+                        opener(Constants.macOpenSslHelpLink);
+                    }
+                });
             } else {
                 Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
             }

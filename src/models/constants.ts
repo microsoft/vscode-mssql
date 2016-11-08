@@ -215,4 +215,6 @@ export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
 export const titleResultsPane = 'Results: {0}';
 
 export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to connect.`;
+export const macOpenSslHelpButton = 'Help';
+export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 
