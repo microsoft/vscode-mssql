@@ -1,6 +1,6 @@
 // constants
 export const languageId = 'sql';
-export const extensionName = 'vscode-mssql';
+export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
 export const outputChannelName = 'MSSQL';
 
