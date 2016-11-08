@@ -40,7 +40,7 @@ function _mkDirIfExists(dir: string): void {
 
 function _readCoverOptions(testsRoot: string): ITestRunnerOptions {
     let coverConfigPath = paths.join(testsRoot, testOptions.coverConfig);
-    let coverConfig = undefined;
+    let coverConfig: ITestRunnerOptions = undefined;
     if (fs.existsSync(coverConfigPath)) {
         let configContent = fs.readFileSync(coverConfigPath);
         coverConfig = JSON.parse(configContent);
@@ -92,6 +92,8 @@ interface ITestRunnerOptions {
     relativeCoverageDir: string;
     relativeSourcePath: string;
     ignorePatterns: string[];
+    includePid?: boolean;
+    reports?: string[];
     verbose?: boolean;
 }
 
@@ -196,7 +198,7 @@ class CoverageRunner {
 
         // TODO Allow config of reporting directory with
         let reportingDir = paths.join(self.testsRoot, self.options.relativeCoverageDir);
-        let includePid = true;
+        let includePid = self.options.includePid;
         let pidExt = includePid ? ('-' + process.pid) : '',
         coverageFile = paths.resolve(reportingDir, 'coverage' + pidExt + '.json');
 
@@ -213,7 +215,8 @@ class CoverageRunner {
         }});
 
         let reporter = new istanbul.Reporter(undefined, reportingDir);
-        reporter.addAll(['lcov']);
+        let reportTypes = (self.options.reports instanceof Array) ? self.options.reports : ['lcov'];
+        reporter.addAll(reportTypes);
         reporter.write(remappedCollector, true, () => {
             console.log(`reports written to ${reportingDir}`);
         });
