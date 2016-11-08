@@ -374,7 +374,7 @@
             "event.prevGrid": "ctrl+up",
             "event.nextGrid": "ctrl+down",
             "event.copySelection": "ctrl+c",
-            "event.toggleMagnify": "",
+            "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",
             "event.saveAsCSV": ""
@@ -382,7 +382,8 @@
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
-          "description": "true for the messages pane to be open by default; false for closed"
+          "description": "true for the messages pane to be open by default; false for closed",
+          "default": true
         },
         "mssql.saveAsCsv": {
           "type": "object",
