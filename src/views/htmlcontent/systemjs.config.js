@@ -3,13 +3,16 @@
  * Adjust as necessary for your application needs.
  */
 (function(global) {
+  var paths = {
+    'npm:': 'lib/js/'
+  }
   // map tells the System loader where to look for things
   var map = {
     'app':                        'dist/js', // 'dist',
-    '@angular':                   'lib/js/@angular',
-    'rxjs':                       'lib/js/rxjs',
-    'json':                       'lib/js/json.js',
-    'angular2-slickgrid':         'lib/js/angular2-slickgrid'
+    '@angular':                   'npm:@angular',
+    'rxjs':                       'npm:rxjs',
+    'json':                       'npm:json.js',
+    'angular2-slickgrid':         'npm:angular2-slickgrid'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
@@ -41,6 +44,7 @@
     packages[pkgName] = { main: 'index.js', defaultExtension: 'js' };
   });
   var config = {
+    paths: paths,
     map: map,
     packages: packages,
     meta: meta

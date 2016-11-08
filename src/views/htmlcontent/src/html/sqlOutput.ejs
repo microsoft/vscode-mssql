@@ -33,8 +33,11 @@
     <div style="display: none;" id="uri"><%=uri%></div>
     <my-app></my-app>
   </body>
-
+    <% if (prod) { %>
     <script src="dist/js/app.bundle.js"></script>
+    <% else { %>
+    <script src="dist/js/app.bundle.js"></script>
+    <% } %>
     <script>
       System.import('app').catch(function(err){ console.error(err); });
     </script>
