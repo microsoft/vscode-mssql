@@ -368,6 +368,7 @@ export class ConnectionStore {
                 if (Utils.isSameProfile(profile, <IConnectionProfile>recentConnections[index])) {
                     if (Utils.isSameConnection(profile, recentConnections[index])) {
                         // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
+                        ConnInfo.fixupConnectionCredentials(profile);
                         recentConnections[index] = Object.assign({}, profile);
                         profilesInRecentConnectionsList.push(index);
                     }
