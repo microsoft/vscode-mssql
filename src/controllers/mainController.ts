@@ -315,7 +315,7 @@ export default class MainController implements vscode.Disposable {
             // ask the user to view a scenario document
             let confirmText = 'View Now';
             this._vscodeWrapper.showInformationMessage(
-                    'View MSSQL for Visual Studio Code release notes?', confirmText)
+                    'View mssql for Visual Studio Code release notes?', confirmText)
                 .then((choice) => {
                     if (choice === confirmText) {
                         self.launchReleaseNotesPage();
@@ -338,7 +338,7 @@ export default class MainController implements vscode.Disposable {
             'vscode.previewHtml',
             docUri,
             vscode.ViewColumn.One,
-            'MSSQL for VS Code Release Notes');
+            'mssql for VS Code Release Notes');
     }
 
      /**
@@ -356,7 +356,7 @@ export default class MainController implements vscode.Disposable {
             'vscode.previewHtml',
             docUri,
             vscode.ViewColumn.One,
-            'MSSQL for VS Code Getting Started');
+            'mssql for VS Code Getting Started');
     }
 
     /**
