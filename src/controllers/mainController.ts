@@ -98,6 +98,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
         this.registerCommand(Constants.cmdCancelQuery);
         this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
+        this.registerCommand(Constants.cmdShowGettingStarted);
+        this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
 
         this._vscodeWrapper = new VscodeWrapper();
 
@@ -336,7 +338,25 @@ export default class MainController implements vscode.Disposable {
             'vscode.previewHtml',
             docUri,
             vscode.ViewColumn.One,
-            'vscode-mssql Release Notes');
+            'MSSQL for VS Code Release Notes');
+    }
+
+     /**
+      * Shows the Getting Started page in the preview browser
+      */
+    private launchGettingStartedPage(): void {
+
+        // get the URI for the Getting Started page
+        let docUri = vscode.Uri.file(
+            this._context.asAbsolutePath(
+                'out/src/views/htmlcontent/dist/docs/getstarted.html'));
+
+        // show the Getting Started page in the preview window
+        vscode.commands.executeCommand(
+            'vscode.previewHtml',
+            docUri,
+            vscode.ViewColumn.One,
+            'MSSQL for VS Code Getting Started');
     }
 
     /**
