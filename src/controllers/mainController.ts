@@ -315,7 +315,7 @@ export default class MainController implements vscode.Disposable {
             // ask the user to view a scenario document
             let confirmText = 'View Now';
             this._vscodeWrapper.showInformationMessage(
-                    'View a walkthrough of common vscode-mssql scenarios?', confirmText)
+                    'View MSSQL for Visual Studio Code release notes?', confirmText)
                 .then((choice) => {
                     if (choice === confirmText) {
                         self.launchReleaseNotesPage();
