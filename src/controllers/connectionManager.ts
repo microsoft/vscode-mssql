@@ -1,5 +1,6 @@
 'use strict';
 import vscode = require('vscode');
+import opener = require('opener');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import Constants = require('../models/constants');
 import * as ConnectionContracts from '../models/contracts/connection';
@@ -275,8 +276,12 @@ export default class ConnectionManager {
         } else {
             let platform: Platform = getCurrentPlatform();
             if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native') !== -1) {
-                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2,
-                Constants.macOpenSslErrorMessage));
+                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
+                Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(result => {
+                    if (result && result === Constants.macOpenSslHelpButton) {
+                        opener('https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration');
+                    }
+                });
             } else {
                 Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
             }
