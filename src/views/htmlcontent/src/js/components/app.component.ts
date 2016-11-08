@@ -92,7 +92,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
         },
-        'event.toggleMagnify': () => {
+        'event.maximizeGrid': () => {
             this.magnify(this.activeGrid);
         },
         'event.selectAll': () => {
