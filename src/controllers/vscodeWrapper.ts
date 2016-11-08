@@ -185,8 +185,8 @@ export default class VscodeWrapper {
     /**
      * Formats and shows a vscode error message
      */
-    public showErrorMessage(msg: string): Thenable<string> {
-        return vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg );
+    public showErrorMessage(msg: string, ...items: string[]): Thenable<string> {
+        return vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg, ...items);
     }
 
     /**
