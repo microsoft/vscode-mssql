@@ -276,11 +276,11 @@ export default class ConnectionManager {
             }
         } else {
             let platform: Platform = getCurrentPlatform();
-            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native') !== -1) {
+            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
                 this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
                 Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(action => {
                     if (action && action === Constants.macOpenSslHelpButton) {
-                        opener('https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration');
+                        opener(Constants.macOpenSslHelpLink);
                     }
                 });
             } else {
