@@ -68,11 +68,10 @@
 			"-- Create the table in the specified schema",
 			"CREATE TABLE ${SchemaName}.${TableName}",
 			"(",
-			"	${TableName}Id INT NOT NULL, -- primary key column",
+			"	Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY, -- primary key column",
 			"	Column1 [NVARCHAR](50) NOT NULL,",
 			"	Column2 [NVARCHAR](50) NOT NULL",
 			"   -- specify more columns here",
-			"	CONSTRAINT PK_${TableName} PRIMARY KEY (${TableName}Id)",
 			");",
 			"GO"
 		],
