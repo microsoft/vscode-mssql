@@ -12,6 +12,7 @@ import { SlickGrid } from 'angular2-slickgrid';
 import { AppComponent }  from './components/app.component';
 import { ScrollDirective } from './directives/scroll.directive';
 import { MouseDownDirective } from './directives/mousedown.directive';
+import { ContextMenu } from './components/contextmenu.component';
 
 /**
  * Top level angular module, no actual content here
@@ -24,7 +25,7 @@ import { MouseDownDirective } from './directives/mousedown.directive';
               JsonpModule,
               FormsModule
            ],
-  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective],
+  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective, ContextMenu],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

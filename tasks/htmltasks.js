@@ -29,6 +29,7 @@ gulp.task('html:lint', () => {
 gulp.task('html:compile-src', () => {
   return gulp
     .src([config.paths.html.root + '/src/js/**/*.ts',
+        config.paths.html.root + '/node_modules/@types/**/*.ts',
         config.paths.html.root + '/typings/**/*'])
     .pipe(srcmap.init())
     .pipe(ts(tsProject))
@@ -65,7 +66,6 @@ gulp.task('html:min-js', (done) => {
 gulp.task('html:bundle:css', () => {
     return new Promise((resolve, reject) => {
         gulp.src([config.paths.html.out + '/dist/css/flexbox.css',
-                // config.paths.html.out + '/lib/css/bootstrap.min.css',
                 config.paths.html.out + '/dist/css/styles.css'])
             .pipe(cleanCSS())
             .pipe(concat('styles.min.css'))
@@ -73,7 +73,6 @@ gulp.task('html:bundle:css', () => {
             .on('end', resolve);
     }).then(() => {
         return del([config.paths.html.out + '/dist/css/flexbox.css',
-                    // config.paths.html.out + '/lib/css/bootstrap.min.css',
                     config.paths.html.out + '/dist/css/styles.css']);
     });
 });
@@ -84,11 +83,8 @@ gulp.task('html:vendor', (done) => {
     gulp.src([config.paths.html.root + '/node_modules/rxjs/**/*'])
     .pipe(gulp.dest(config.paths.html.out + '/lib/js/rxjs'));
 
-    gulp.src([config.paths.html.root + '/src/js/libs/slickgrid/*'])
-    .pipe(gulp.dest(config.paths.html.out + '/lib/js/slickgrid'));
-
-    gulp.src([config.paths.html.root + '/node_modules/angular2-in-memory-web-api/**/*'])
-        .pipe(gulp.dest(config.paths.html.out + '/lib/js/angular2-in-memory-web-api'));
+    gulp.src([config.paths.html.root + '/node_modules/angular-in-memory-web-api/**/*'])
+        .pipe(gulp.dest(config.paths.html.out + '/lib/js/angular-in-memory-web-api'));
 
     // concatenate non-angular2 libs, shims & systemjs-config
     if (min) {
@@ -123,12 +119,16 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/plugins/slick.dragrowselector.js',
             config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/plugins/slick.autosizecolumn.js',
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
-            config.paths.html.root + '/node_modules/zone.js/dist/zone.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
+            config.paths.html.root + '/node_modules/assert-plus/assert.js',
+            config.paths.html.root + '/systemjs.config.extras.js',
             config.paths.html.root + '/systemjs.config.js'
         ])
             .pipe(gulp.dest(config.paths.html.out + '/lib/js'));
+
+        gulp.src([config.paths.html.root + '/node_modules/zone.js/**/*'])
+        .pipe(gulp.dest(config.paths.html.out + '/lib/js/zone.js'));
     }
 
 
@@ -141,7 +141,6 @@ gulp.task('html:vendor', (done) => {
     ]).pipe(gulp.dest(config.paths.html.out + '/lib/js'));
 
     gulp.src([
-        config.paths.html.root + '/node_modules/bootstrap/dist/css/bootstrap.*',
         config.paths.html.root + '/node_modules/angular2-slickgrid/components/css/SlickGrid.css',
         config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/slick.grid.css'
     ]).pipe(gulp.dest(config.paths.html.out + '/lib/css'));

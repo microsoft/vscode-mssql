@@ -54,6 +54,7 @@ gulp.task('ext:compile-src', (done) => {
 gulp.task('ext:compile-tests', (done) => {
     return gulp.src([
                 config.paths.project.root + '/test/**/*.ts',
+                config.paths.project.root + '/node_modules/@types/**/*.ts',
                 config.paths.project.root + '/typings/**/*.ts'])
                 .pipe(srcmap.init())
                 .pipe(ts(tsProject))

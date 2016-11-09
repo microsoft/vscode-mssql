@@ -3,17 +3,20 @@ module.exports = function(config) {
 
   var appBase    = 'out/src/views/htmlcontent/dist/';       // transpiled app JS and map files
   var appSrcBase = 'src/views/htmlcontent/src/js/';       // app source TS files
-  var appAssets  = 'base/app/'; // component assets fetched by Angular's compiler
+  var appAssets  = 'base/out/src/views/htmlcontent/'; // component assets fetched by Angular's compiler
 
   var testBase    = 'out/test/angular/';       // transpiled test JS and map files
   var testSrcBase = 'test/angular/';       // test source TS files
 
   config.set({
     basePath: '',
-    frameworks: ['mocha'],
+    frameworks: ['jasmine'],
     plugins: [
-      require('karma-mocha'),
+      require('karma-coverage'),
+      require('karma-jasmine'),
       require('karma-chrome-launcher'),
+      require('karma-jasmine-html-reporter'), // click "Debug" in browser to see it
+      require('karma-htmlfile-reporter') // crashing w/ strange socket error
     ],
 
     customLaunchers: {
@@ -26,23 +29,43 @@ module.exports = function(config) {
     },
     files: [
       // System.js for module loading
-      'out/src/views/htmlcontent/lib/js/vendors.min.js',
+      'out/src/views/htmlcontent/lib/js/system.src.js',
+
+      // Polyfills
+      'out/src/views/htmlcontent/lib/js/shim.min.js',
+      'out/src/views/htmlcontent/lib/js/Reflect.js',
+
+      // zone.js
+      'out/src/views/htmlcontent/lib/js/zone.js/dist/zone.js',
+      'out/src/views/htmlcontent/lib/js/zone.js/dist/long-stack-trace-zone.js',
+      'out/src/views/htmlcontent/lib/js/zone.js/dist/proxy.js',
+      'out/src/views/htmlcontent/lib/js/zone.js/dist/sync-test.js',
+      'out/src/views/htmlcontent/lib/js/zone.js/dist/jasmine-patch.js',
+      'out/src/views/htmlcontent/lib/js/zone.js/dist/async-test.js',
+      'out/src/views/htmlcontent/lib/js/zone.js/dist/fake-async-test.js',
 
       // RxJs
       { pattern: 'out/src/views/htmlcontent/lib/js/rxjs/**/*.js', included: false, watched: false },
       { pattern: 'out/src/views/htmlcontent/lib/js/rxjs/**/*.js.map', included: false, watched: false },
+
+
+      { pattern: 'out/src/views/htmlcontent/lib/js/angular2-slickgrid/**/*.js', included: false, watched: false },
+      { pattern: 'out/src/views/htmlcontent/lib/js/angular2-slickgrid/**/*.js.map', included: false, watched: false },
+
+      { pattern: 'out/src/views/htmlcontent/lib/js/json.js', included: false, watched: false},
 
       // Paths loaded via module imports:
       // Angular itself
       { pattern: 'out/src/views/htmlcontent/lib/js/@angular/**/*.js', included: false, watched: false },
       { pattern: 'out/src/views/htmlcontent/lib/js/@angular/**/*.js.map', included: false, watched: false },
 
-      { pattern: 'systemjs.config.js', included: false, watched: false },
-      { pattern: 'systemjs.config.extras.js', included: false, watched: false },
+      { pattern: 'out/src/views/htmlcontent/lib/js/systemjs.config.js', included: false, watched: false },
+      { pattern: 'out/src/views/htmlcontent/lib/js/systemjs.config.extras.js', included: false, watched: false },
       'karma-test-shim.js',
 
       // transpiled application & spec code paths loaded via module imports
       { pattern: appBase + '**/*.js', included: false, watched: false },
+      { pattern: appBase + '**/*.json', included: false, watched: false },
       { pattern: testBase + '**/*.js', included: false, watched: false },
 
 
@@ -61,13 +84,15 @@ module.exports = function(config) {
     // Proxied base paths for loading assets
     proxies: {
       // required for component assets fetched by Angular's compiler
-      "/app/": appAssets
+      "/dist/": appAssets + '/dist/'
     },
 
     exclude: [],
-    preprocessors: {},
+    preprocessors: {
+      'out/src/views/htmlcontent/dist/**/*.js': 'coverage',
+    },
     // disabled HtmlReporter; suddenly crashing w/ strange socket error
-    // reporters: ['progress', 'kjhtml'],//'html'],
+    reporters: ['progress', 'kjhtml', 'coverage'],//'html'],
 
     // HtmlReporter configuration
     htmlReporter: {
@@ -77,6 +102,10 @@ module.exports = function(config) {
       // Optional
       pageTitle: 'Unit Tests',
       subPageTitle: __dirname
+    },
+    coverageReporter: {
+      type : 'html',
+      dir : 'coverage/'
     },
 
     port: 9876,

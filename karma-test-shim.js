@@ -3,11 +3,11 @@
 Error.stackTraceLimit = 0; // "No stacktrace"" is usually best for app testing.
 
 // Uncomment to get full stacktrace output. Sometimes helpful, usually not.
-// Error.stackTraceLimit = Infinity; //
+Error.stackTraceLimit = Infinity; //
 
-// jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
 
-var builtPath = '/base/app/';
+var builtPath = '/base/out/src/views/htmlcontent/dist/js/';
 
 __karma__.loaded = function () { };
 
@@ -24,36 +24,35 @@ function isBuiltFile(path) {
 }
 
 var allSpecFiles = Object.keys(window.__karma__.files)
-  .filter(isSpecFile)
-  .filter(isBuiltFile);
+  .filter(isSpecFile);
 
 System.config({
-  baseURL: 'base',
+  baseURL: 'base/out/src/views/htmlcontent',
   // Extend usual application package list with test folder
   packages: { 'testing': { main: 'index.js', defaultExtension: 'js' } },
 
   // Assume npm: is set in `paths` in systemjs.config
   // Map the angular testing umd bundles
   map: {
-    '@angular/core/testing': 'npm:@angular/core/bundles/core-testing.umd.js',
-    '@angular/common/testing': 'npm:@angular/common/bundles/common-testing.umd.js',
-    '@angular/compiler/testing': 'npm:@angular/compiler/bundles/compiler-testing.umd.js',
-    '@angular/platform-browser/testing': 'npm:@angular/platform-browser/bundles/platform-browser-testing.umd.js',
-    '@angular/platform-browser-dynamic/testing': 'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic-testing.umd.js',
-    '@angular/http/testing': 'npm:@angular/http/bundles/http-testing.umd.js',
-    '@angular/router/testing': 'npm:@angular/router/bundles/router-testing.umd.js',
-    '@angular/forms/testing': 'npm:@angular/forms/bundles/forms-testing.umd.js',
+    '@angular/core/testing': 'lib/js/@angular/core/bundles/core-testing.umd.js',
+    '@angular/common/testing': 'lib/js/@angular/common/bundles/common-testing.umd.js',
+    '@angular/compiler/testing': 'lib/js/@angular/compiler/bundles/compiler-testing.umd.js',
+    '@angular/platform-browser/testing': 'lib/js/@angular/platform-browser/bundles/platform-browser-testing.umd.js',
+    '@angular/platform-browser-dynamic/testing': 'lib/js/@angular/platform-browser-dynamic/bundles/platform-browser-dynamic-testing.umd.js',
+    '@angular/http/testing': 'lib/js/@angular/http/bundles/http-testing.umd.js',
+    '@angular/router/testing': 'lib/js/@angular/router/bundles/router-testing.umd.js',
+    '@angular/forms/testing': 'ib/js/@angular/forms/bundles/forms-testing.umd.js',
   },
 });
 
-System.import('systemjs.config.js')
+System.import('lib/js/systemjs.config.js')
   .then(importSystemJsExtras)
   .then(initTestBed)
   .then(initTesting);
 
 /** Optional SystemJS configuration extras. Keep going w/o it */
 function importSystemJsExtras(){
-  return System.import('systemjs.config.extras.js')
+  return System.import('lib/js/systemjs.config.extras.js')
   .catch(function(reason) {
     console.log(
       'Warning: System.import could not load the optional "systemjs.config.extras.js". Did you omit it by accident? Continuing without it.'

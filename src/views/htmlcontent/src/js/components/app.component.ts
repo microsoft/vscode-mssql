@@ -51,7 +51,6 @@ interface IMessages {
     selector: 'my-app',
     host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
     templateUrl: 'dist/html/app.html',
-    directives: [ContextMenu, SlickGrid],
     providers: [DataService, ShortcutService],
     styles: [`
     .errorMessage {

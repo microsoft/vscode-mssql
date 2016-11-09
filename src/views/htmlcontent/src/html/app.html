@@ -20,7 +20,7 @@
             </slick-grid>
             <span class="boxCol content vertBox">
                 <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
-                    <div *ngIf="icon.showCondition()" class=gridIcon>
+                    <div *ngIf="icon.showCondition()" class="gridIcon">
                         <a class="icon" href="#"
                         (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
                         [title]="icon.hoverText()" [ngClass]="icon.icon()">
