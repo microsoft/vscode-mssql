@@ -141,7 +141,7 @@
 			"VALUES",
 			"( -- first row: values for the columns in the list above",
 			" Column1_Value, Column2_Value, Column2_Value",
-			")",
+			"),",
 			"( -- second row: values for the columns in the list above",
 			" Column1_Value, Column2_Value, Column2_Value",
 			")",
