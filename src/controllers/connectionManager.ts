@@ -256,7 +256,7 @@ export default class ConnectionManager {
             connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
             serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
             serverEdition: connection.serverInfo ? connection.serverInfo.serverEdition : '',
-            serverOs: connection.serverInfo.osVersion ? this.getIsServerLinux(connection.serverInfo.osVersion) : ''
+            serverOs: connection.serverInfo ? this.getIsServerLinux(connection.serverInfo.osVersion) : ''
         }, {
             isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
             isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
