@@ -59,9 +59,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
-            let fontfamily: string = decodeURI(req.query.fontfamily).split('\"').join('');
-            let fontsize: string = req.query.fontsize;
-            let fontweight: string = req.query.fontweight;
+            let editorConfig = self._vscodeWrapper.getConfiguration('editor');
+            let fontfamily = editorConfig.get<string>('fontFamily');
+            let fontsize = editorConfig.get<number>('fontSize') + 'px';
+            let fontweight = editorConfig.get<string>('fontWeight');
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
                 {
                     uri: uri,
@@ -391,9 +392,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     var styles = window.getComputedStyle(doc);
                     var backgroundcolor = styles.getPropertyValue('--background-color');
                     var color = styles.getPropertyValue('--color');
-                    var fontfamily = styles.getPropertyValue('--font-family');
-                    var fontweight = styles.getPropertyValue('--font-weight');
-                    var fontsize = styles.getPropertyValue('--font-size');
                     var theme = document.body.className;
                     var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
                             "uri=${encodedUri}" +
