@@ -256,7 +256,7 @@ export default class ConnectionManager {
             connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
             serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
             serverEdition: connection.serverInfo ? connection.serverInfo.serverEdition : '',
-            serverOs: connection.serverInfo ? connection.serverInfo.osVersion : ''
+            serverOs: connection.serverInfo.osVersion ? this.getIsServerLinux(connection.serverInfo.osVersion) : ''
         }, {
             isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
             isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
@@ -569,5 +569,16 @@ export default class ConnectionManager {
                 this.disconnect(untitledUri);
             }
         });
+    }
+
+    private getIsServerLinux(osVersion: string): string {
+        if (osVersion) {
+            if (osVersion.indexOf('Linux') !== -1) {
+                return 'Linux';
+            } else {
+                return 'Windows';
+            }
+        }
+        return '';
     }
 }
