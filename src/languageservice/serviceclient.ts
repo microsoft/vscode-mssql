@@ -24,7 +24,6 @@ import {Platform, getCurrentPlatform} from '../models/platform';
 let opener = require('opener');
 
 /**
- *
  * @interface IMessage
  */
 interface IMessage {
@@ -34,7 +33,6 @@ interface IMessage {
 
 /**
  * Handle Language Service client errors
- *
  * @class LanguageClientErrorHandler
  */
 class LanguageClientErrorHandler {
@@ -43,7 +41,6 @@ class LanguageClientErrorHandler {
 
     /**
      * Creates an instance of LanguageClientErrorHandler.
-     *
      * @memberOf LanguageClientErrorHandler
      */
     constructor() {
@@ -54,7 +51,6 @@ class LanguageClientErrorHandler {
 
     /**
      * Show an error message prompt with a link to known issues wiki page
-     *
      * @memberOf LanguageClientErrorHandler
      */
     showOnErrorPrompt(): void {
