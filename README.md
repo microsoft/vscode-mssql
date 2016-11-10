@@ -79,6 +79,9 @@ Support for this extension is provided on our [GitHub Issue Tracker]. You can su
 ## Contributing to the Extension
 See the [developer documentation] for details on how to contribute to this extension.
 
+## Code of Conduct
+This project has adopted the [Microsoft Open Source Code of Conduct]. For more information see the [Code of Conduct FAQ] or contact [opencode@microsoft.com] with any additional questions or comments.
+
 ## Privacy Statement
 The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy statement of this software.
 
@@ -99,3 +102,6 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [Microsoft Enterprise and Developer Privacy Statement]:https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7
 [licensed under the MIT License]:./LICENSE.txt
 [third-party notices]:ThirdPartyNotices.txt
+[Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
+[Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
+[opencode@microsoft.com]:mailto:opencode@microsoft.com
