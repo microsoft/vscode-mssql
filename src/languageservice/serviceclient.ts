@@ -6,7 +6,10 @@
 
 import { ExtensionContext, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
-    TransportKind, RequestType, NotificationType, NotificationHandler } from 'vscode-languageclient';
+    TransportKind, RequestType, NotificationType, NotificationHandler,
+    ErrorAction, CloseAction } from 'vscode-languageclient';
+
+import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
 import {VersionRequest} from '../models/contracts';
 import Constants = require('../models/constants');
@@ -16,6 +19,42 @@ import {ExtensionWrapper, Logger} from './extUtil';
 import ExtConfig from  '../configurations/extConfig';
 import StatusView from '../views/statusView';
 import {Platform, getCurrentPlatform} from '../models/platform';
+import os = require('os');
+let opener = require('opener');
+
+interface IMessage {
+    jsonrpc: string;
+}
+
+class LanguageClientErrorHandler {
+
+    private vscodeWrapper: VscodeWrapper;
+
+    constructor() {
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
+    }
+
+    error(error: Error, message: IMessage, count: number): ErrorAction {
+        return ErrorAction.Shutdown;
+    }
+
+    closed(): CloseAction {
+
+        // Windows 8.1 build
+        let release = os.release();
+        if (release === '6.3.9600') {
+            this.vscodeWrapper.showErrorMessage('SQL Tools service component could not start.', 'View Known Issues').then(action => {
+                if (action && action === 'View Known Issues') {
+                    opener('http://www.bing.com');
+                }
+            });
+        }
+
+        return CloseAction.DoNotRestart;
+    }
+}
 
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
@@ -88,7 +127,8 @@ export default class SqlToolsServiceClient {
                     documentSelector: ['sql'],
                     synchronize: {
                         configurationSection: 'mssql'
-                    }
+                    },
+                    errorHandler: new LanguageClientErrorHandler()
                 };
 
                 // cache the client instance for later use
