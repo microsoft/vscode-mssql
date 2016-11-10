@@ -4,8 +4,9 @@
 */
 import QueryRunner from './QueryRunner';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
-import {QueryExecuteCompleteNotification} from '../models/contracts/queryExecute';
-import {NotificationHandler} from 'vscode-languageclient';
+import { QueryExecuteCompleteNotification,
+    QueryExecuteBatchCompleteNotification } from '../models/contracts/queryExecute';
+import { NotificationHandler } from 'vscode-languageclient';
 
 export class QueryNotificationHandler {
     private static _instance: QueryNotificationHandler;
@@ -23,7 +24,8 @@ export class QueryNotificationHandler {
 
     // register the handler to handle notifications for queries
     private initialize(): void {
-        SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleNotification());
+        SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleCompleteNotification());
+        SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchCompleteNotification.type, this.handleBatchCompleteNotification());
     }
 
     // registers queryRunners with their uris to distribute notifications
@@ -32,11 +34,19 @@ export class QueryNotificationHandler {
     }
 
     // handles distributing notifications to appropriate
-    private handleNotification(): NotificationHandler<any> {
+    private handleCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             self._queryRunners.get(event.ownerUri).handleResult(event);
             self._queryRunners.delete(event.ownerUri);
+        };
+    }
+
+    // handles distributing notifications to appropriate
+    private handleBatchCompleteNotification(): NotificationHandler<any> {
+        const self = this;
+        return (event) => {
+            self._queryRunners.get(event.ownerUri).handleBatchResult(event);
         };
     }
 }
