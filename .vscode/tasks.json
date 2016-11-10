@@ -18,6 +18,18 @@
                 "$tsc",
                 "$jshint"
             ]
+        },
+        {
+            "taskName": "cover:enable",
+            "args": [],
+            "isBuildCommand": false,
+            "isWatching": false
+        },
+        {
+            "taskName": "cover:disable",
+            "args": [],
+            "isBuildCommand": false,
+            "isWatching": false
         }
     ]
 }

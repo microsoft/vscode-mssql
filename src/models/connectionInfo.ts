@@ -40,7 +40,7 @@ export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCred
 
     // default value for appName
     if (!connCreds.applicationName) {
-        connCreds.applicationName = Constants.extensionName;
+        connCreds.applicationName = Constants.connectionApplicationName;
     }
 
     if (isAzureDatabase(connCreds.server)) {

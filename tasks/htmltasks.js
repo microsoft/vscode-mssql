@@ -80,20 +80,20 @@ gulp.task('html:vendor', () => {
 
   // concatenate non-angular2 libs, shims & systemjs-config
   gulp.src([
-    config.paths.html.root + '/src/js/libs/SlickGrid/lib/jquery-1.7.min.js',
-    config.paths.html.root + '/src/js/libs/SlickGrid/lib/jquery.event.drag-2.2.js',
-    config.paths.html.root + '/src/js/libs/SlickGrid/lib/jquery-ui-1.8.16.custom.min.js',
-    config.paths.html.root + '/src/js/libs/underscore-min.js',
-    config.paths.html.root + '/src/js/libs/SlickGrid/slick.core.js',
-    config.paths.html.root + '/src/js/libs/SlickGrid/slick.grid.js',
-    config.paths.html.root + '/src/js/libs/SlickGrid/slick.editors.js',
-    config.paths.html.root + '/src/js/libs/SlickGrid/plugins/slick.dragrowselector.js',
-    config.paths.html.root + '/src/js/libs/SlickGrid/plugins/slick.autosizecolumn.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/lib/jquery-1.7.min.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/lib/jquery.event.drag-2.2.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/lib/jquery-ui-1.8.16.custom.min.js',
+    config.paths.html.root + '/node_modules/underscore/underscore-min.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/slick.core.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/slick.grid.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/slick.editors.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/plugins/slick.dragrowselector.js',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/plugins/slick.autosizecolumn.js',
     config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
     config.paths.html.root + '/node_modules/zone.js/dist/zone.js',
     config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
     config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
-    config.paths.html.root + '/systemjs.config.js',
+    config.paths.html.root + '/systemjs.config.js'
   ])
     .pipe(concat('vendors.min.js'))
     .pipe(minifier({}, uglifyjs))
@@ -108,8 +108,15 @@ gulp.task('html:vendor', () => {
   ]).pipe(gulp.dest(config.paths.html.out + '/lib/js'));
 
   gulp.src([
-    config.paths.html.root + '/node_modules/bootstrap/dist/css/bootstrap.*'
+    config.paths.html.root + '/node_modules/bootstrap/dist/css/bootstrap.*',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/components/css/SlickGrid.css',
+    config.paths.html.root + '/node_modules/angular2-slickgrid/libs/SlickGrid/slick.grid.css'
   ]).pipe(gulp.dest(config.paths.html.out + '/lib/css'));
+
+  gulp.src([
+      config.paths.html.root + '/node_modules/angular2-slickgrid/index.js',
+      config.paths.html.root + '/node_modules/angular2-slickgrid/components/**/*.js'
+  ], { base: config.paths.html.root + '/node_modules/angular2-slickgrid' }).pipe(gulp.dest(config.paths.html.out + '/lib/js/angular2-slickgrid'))
 
   return gulp.src([config.paths.html.root + '/node_modules/@angular/**/*'])
     .pipe(gulp.dest(config.paths.html.out + '/lib/js/@angular'));

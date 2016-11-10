@@ -6,7 +6,7 @@ import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http, Headers} from '@angular/http';
 import { Observable, Subject, Observer } from 'rxjs/Rx';
 
-import { ISlickRange } from './../slickGrid/SelectionModel';
+import { ISlickRange } from 'angular2-slickgrid';
 
 import * as Utils from './../utils';
 
@@ -23,7 +23,7 @@ const WS_URL = 'ws://localhost:' + window.location.port + '/';
 export class DataService {
     uri: string;
     private ws: WebSocket;
-    public wsObserv: Subject<WebSocketEvent>;
+    public dataEventObs: Subject<WebSocketEvent>;
     private _shortcuts;
     private _config;
 
@@ -31,7 +31,6 @@ export class DataService {
         const self = this;
         // grab the uri from the document for requests
         this.uri = encodeURI(document.getElementById('uri').innerText.trim());
-        console.log(WS_URL);
         this.ws = new WebSocket(WS_URL + '?uri=' + this.uri);
         let observable = Observable.create(
             (obs: Observer<MessageEvent>) => {
@@ -51,7 +50,7 @@ export class DataService {
             }
         };
 
-        this.wsObserv = Subject.create(observer, observable).map((response: MessageEvent): WebSocketEvent => {
+        this.dataEventObs = Subject.create(observer, observable).map((response: MessageEvent): WebSocketEvent => {
             let data = JSON.parse(response.data);
             return data;
         });

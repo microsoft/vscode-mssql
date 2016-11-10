@@ -4,14 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
-
-import {IColumnDefinition} from './../slickgrid/ModelInterfaces';
-import {IObservableCollection} from './../slickgrid/BaseLibrary';
-import {IGridDataRow} from './../slickgrid/SharedControlInterfaces';
-import {ISlickRange} from './../slickgrid/SelectionModel';
-import {SlickGrid} from './../slickgrid/SlickGrid';
-import {VirtualizedCollection} from './../slickgrid/VirtualizedCollection';
-import { FieldType } from './../slickgrid/EngineAPI';
+import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
+    VirtualizedCollection, FieldType } from 'angular2-slickgrid';
 
 import {DataService} from './../services/data.service';
 import {ShortcutService} from './../services/shortcuts.service';
@@ -97,7 +91,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
         },
-        'event.toggleMagnify': () => {
+        'event.maximizeGrid': () => {
             this.magnify(this.activeGrid);
         },
         'event.selectAll': () => {
@@ -199,11 +193,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     set messageActive(input: boolean) {
         this._messageActive = input;
         if (this.resultActive) {
-            setTimeout(() => {
-                for (let grid of this.renderedDataSets) {
-                    grid.resized.emit();
-                }
-            });
+            this.resizeGrids();
         }
     }
 
@@ -233,7 +223,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 self.resultShortcut = result;
             });
         });
-        this.dataService.wsObserv.subscribe(event => {
+        this.dataService.dataEventObs.subscribe(event => {
             if (event.type === 'complete') {
                 self.complete = true;
             } else {
@@ -531,6 +521,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
             self.cd.detectChanges();
+            self.resizeGrids();
         });
     }
 
@@ -626,5 +617,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
             resultsWindow.scrollTop(scrollTop);
         }
         return true;
+    }
+
+    resizeGrids(): void {
+        const self = this;
+        setTimeout(() => {
+            for (let grid of self.renderedDataSets) {
+                    grid.resized.emit();
+                }
+        });
     }
 }
