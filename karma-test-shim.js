@@ -5,8 +5,6 @@ Error.stackTraceLimit = 0; // "No stacktrace"" is usually best for app testing.
 // Uncomment to get full stacktrace output. Sometimes helpful, usually not.
 Error.stackTraceLimit = Infinity; //
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
-
 var builtPath = '/base/out/src/views/htmlcontent/dist/js/';
 
 __karma__.loaded = function () { };
@@ -70,6 +68,8 @@ function initTestBed(){
   .then(function (providers) {
     var coreTesting    = providers[0];
     var browserTesting = providers[1];
+
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
     coreTesting.TestBed.initTestEnvironment(
       browserTesting.BrowserDynamicTestingModule,

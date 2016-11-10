@@ -1,4 +1,6 @@
 // #docregion
+const path = require('path');
+
 module.exports = function(config) {
 
   var appBase    = 'out/src/views/htmlcontent/dist/';       // transpiled app JS and map files
@@ -9,7 +11,7 @@ module.exports = function(config) {
   var testSrcBase = 'test/angular/';       // test source TS files
 
   config.set({
-    basePath: '',
+    basePath: path.join(__dirname),
     frameworks: ['jasmine'],
     plugins: [
       require('karma-coverage'),
@@ -28,6 +30,15 @@ module.exports = function(config) {
       }
     },
     files: [
+      'out/src/views/htmlcontent/lib/js/jquery-1.7.min.js',
+      'out/src/views/htmlcontent/lib/js/jquery.event.drag-2.2.js',
+      'out/src/views/htmlcontent/lib/js/jquery-ui-1.8.16.custom.min.js',
+      'out/src/views/htmlcontent/lib/js/underscore-min.js',
+      'out/src/views/htmlcontent/lib/js/slick.core.js',
+      'out/src/views/htmlcontent/lib/js/slick.grid.js',
+      'out/src/views/htmlcontent/lib/js/slick.editors.js',
+      'out/src/views/htmlcontent/lib/js/slick.autosizecolumn.js',
+      'out/src/views/htmlcontent/lib/js/slick.dragrowselector.js',
       // System.js for module loading
       'out/src/views/htmlcontent/lib/js/system.src.js',
 
@@ -84,7 +95,7 @@ module.exports = function(config) {
     // Proxied base paths for loading assets
     proxies: {
       // required for component assets fetched by Angular's compiler
-      "/dist/": appAssets + '/dist/'
+      "/dist/": 'base/out/src/views/htmlcontent/dist/'
     },
 
     exclude: [],
