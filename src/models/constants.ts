@@ -1,7 +1,8 @@
 // constants
 export const languageId = 'sql';
-export const extensionName = 'vscode-mssql';
+export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
+export const connectionApplicationName = 'vscode-mssql';
 export const outputChannelName = 'MSSQL';
 
 export const connectionConfigFilename = 'settings.json';
@@ -215,4 +216,6 @@ export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
 export const titleResultsPane = 'Results: {0}';
 
 export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to connect.`;
+export const macOpenSslHelpButton = 'Help';
+export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 

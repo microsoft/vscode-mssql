@@ -2,9 +2,9 @@
   "name": "mssql",
   "displayName": "mssql",
   "version": "0.1.1",
-  "description": "Connect to SQL Server and Azure SQL databases, run T-SQL queries and see results in a grid.",
+  "description": "Develop Microsoft SQL Server and Azure SQL databases everywhere",
   "publisher": "Microsoft",
-  "preview": "true",
+  "preview": true,
   "license": "SEE LICENSE IN LICENSE.txt",
   "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
   "icon": "images/sqlserver.png",
@@ -42,7 +42,7 @@
     "vscode.sql"
   ],
   "devDependencies": {
-    "@types/jasmine": "^2.5.36",
+    "decache": "^4.1.0",
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-clean-css": "^2.0.13",
@@ -53,6 +53,8 @@
     "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^6.0.2",
     "gulp-typescript": "^2.13.6",
+    "istanbul": "^0.4.5",
+    "remap-istanbul": "^0.6.4",
     "gulp-uglify": "^2.0.0",
     "jasmine-core": "~2.4.1",
     "karma": "^1.3.0",
@@ -84,12 +86,14 @@
     "getmac": "1.2.1",
     "http-proxy-agent": "^1.0.0",
     "https-proxy-agent": "^1.0.0",
+    "opener": "1.4.2",
     "pretty-data": "^0.40.0",
     "request": "^2.73.0",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.0.5",
-    "vscode-languageclient": "^2.5.0"
+    "vscode-languageclient": "^2.5.0",
+    "ws": "^1.1.1"
   },
   "contributes": {
     "languages": [
@@ -380,7 +384,7 @@
             "event.prevGrid": "ctrl+up",
             "event.nextGrid": "ctrl+down",
             "event.copySelection": "ctrl+c",
-            "event.toggleMagnify": "",
+            "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",
             "event.saveAsCSV": ""
@@ -388,7 +392,8 @@
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
-          "description": "true for the messages pane to be open by default; false for closed"
+          "description": "true for the messages pane to be open by default; false for closed",
+          "default": true
         },
         "mssql.saveAsCsv": {
           "type": "object",

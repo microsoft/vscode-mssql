@@ -50,6 +50,17 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
+        this._service.newConnection.on('connection', (uri) => {
+            if (self._queryResultsMap.has(uri)) {
+                for (let batch of self._queryResultsMap.get(uri).queryRunner.batchSets) {
+                    self._service.broadcast(uri, 'batch', batch);
+                }
+
+                if (!self._queryResultsMap.get(uri).queryRunner.isExecutingQuery) {
+                    self._service.broadcast(uri, 'complete');
+                }
+            }
+        });
 
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, (req, res): void => {
@@ -60,9 +71,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
-            let fontfamily: string = decodeURI(req.query.fontfamily).split('\"').join('');
-            let fontsize: string = req.query.fontsize;
-            let fontweight: string = req.query.fontweight;
             let prod;
             try {
                 fs.accessSync(path.join(LocalWebService.staticContentPath, Constants.contentProviderMinFile), fs.F_OK);
@@ -70,6 +78,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             } catch (e) {
                 prod = false;
             }
+            let editorConfig = self._vscodeWrapper.getConfiguration('editor');
+            let fontfamily = editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
+            let fontsize = editorConfig.get<number>('fontSize') + 'px';
+            let fontweight = editorConfig.get<string>('fontWeight');
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
                 {
                     uri: uri,
@@ -284,6 +296,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
+            queryRunner.batchResult.on('batch', (batch) => {
+                this._service.broadcast(resultsUri, 'batch', batch);
+            });
+            queryRunner.batchResult.on('complete', () => {
+                this._service.broadcast(resultsUri, 'complete');
+            });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
 
@@ -400,18 +418,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     var styles = window.getComputedStyle(doc);
                     var backgroundcolor = styles.getPropertyValue('--background-color');
                     var color = styles.getPropertyValue('--color');
-                    var fontfamily = styles.getPropertyValue('--font-family');
-                    var fontweight = styles.getPropertyValue('--font-weight');
-                    var fontsize = styles.getPropertyValue('--font-size');
                     var theme = document.body.className;
                     var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
                             "uri=${encodedUri}" +
                             "&theme=" + theme +
                             "&backgroundcolor=" + backgroundcolor +
-                            "&color=" + color +
-                            "&fontfamily=" + fontfamily +
-                            "&fontweight=" + fontweight +
-                            "&fontsize=" + fontsize;
+                            "&color=" + color;
                     document.getElementById('frame').src = url;
                 };
             </script>

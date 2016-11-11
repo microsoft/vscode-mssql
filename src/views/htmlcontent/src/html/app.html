@@ -36,7 +36,7 @@
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length == 0">
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0">
         <br>
         <table id="messageTable">
             <colgroup>
@@ -53,7 +53,7 @@
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
                 </template>
-                <tr>
+                <tr *ngIf="complete">
                     <td></td>
                     <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapseExecution))}}</td>
                 </tr>

@@ -25,6 +25,8 @@ export interface IDbColumn {
     isHidden?: boolean;
     isIdentity?: boolean;
     isKey?: boolean;
+    isXml?: boolean;
+    isJson?: boolean;
     isLong?: boolean;
     isReadOnly?: boolean;
     isUnique?: boolean;
@@ -37,6 +39,23 @@ export interface IDbColumn {
 export class ResultSetSubset {
     rowCount: number;
     rows: any[][];
+}
+
+export class ResultSetSummary {
+    id: number;
+    rowCount: number;
+    columnInfo: IDbColumn[];
+}
+
+export class BatchSummary {
+    hasError: boolean;
+    id: number;
+    selection: ISelectionData;
+    messages: IResultMessage[];
+    resultSetSummaries: ResultSetSummary[];
+    executionElapsed: string;
+    executionEnd: string;
+    executionStart: string;
 }
 
 export interface IGridResultSet {
@@ -77,4 +96,9 @@ export interface IGridIcon {
 export interface IResultsConfig {
     shortcuts: { [key: string]: string };
     messagesDefaultOpen: boolean;
+}
+
+export class WebSocketEvent {
+    type: string;
+    data: any;
 }
