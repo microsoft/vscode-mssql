@@ -12,8 +12,6 @@ Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for
 * Save the result to json or csv file format and view in the editor.
 * Customizable extension options including command shortcuts and more.
 
-    ![feature demo](images/mssql-demo.gif)
-
 ## Using
 See [the mssql extension tutorial] for the step by step guide.
 * First, install [Visual Studio Code] then install **mssql** extension by pressing **F1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
