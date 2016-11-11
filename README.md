@@ -58,15 +58,15 @@ See [customize options] and [manage connection profiles] for more details.
         "event.saveAsJSON": "",
         "event.saveAsCSV": ""
         }
-    "mssql.messagesDefaultOpen": false,
+    "mssql.messagesDefaultOpen": true,
     "mssql.logDebugInfo": false,
     "mssql.saveAsCSV": {
         "includeHeaders": true
         }
     "mssql.enableIntelliSense": true,
-	"mssql.intelliSense.enableErrorChecking": true,
-	"mssql.intelliSense.enableSuggestions": true,
-	"mssql.intelliSense.enableQuickInfo": true,
+    "mssql.intelliSense.enableErrorChecking": true,
+    "mssql.intelliSense.enableSuggestions": true,
+    "mssql.intelliSense.enableQuickInfo": true,
     "mssql.intelliSense.lowerCaseSuggestions": false
 }
 ```
