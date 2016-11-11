@@ -1,4 +1,5 @@
 'use strict';
+import { EventEmitter } from 'events';
 
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -7,7 +8,7 @@ import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
-    QueryDisposeRequest } from '../models/contracts/queryExecute';
+    QueryDisposeRequest, QueryExecuteBatchCompleteNotificationResult } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../models/constants');
@@ -25,12 +26,13 @@ export interface IResultSet {
 */
 export default class QueryRunner {
     // MEMBER VARIABLES ////////////////////////////////////////////////////
-    private _batchSets: BatchSummary[];
+    private _batchSets: BatchSummary[] = [];
     private _isExecuting: boolean;
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
     private _batchSetsPromise: Promise<BatchSummary[]>;
+    public batchResult: EventEmitter = new EventEmitter();
     public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
@@ -81,11 +83,11 @@ export default class QueryRunner {
         return this._batchSetsPromise;
     }
 
-    private get batchSets(): BatchSummary[] {
+    get batchSets(): BatchSummary[] {
         return this._batchSets;
     }
 
-    private set batchSets(batchSets: BatchSummary[]) {
+    set batchSets(batchSets: BatchSummary[]) {
         this._batchSets = batchSets;
     }
 
@@ -174,6 +176,17 @@ export default class QueryRunner {
         });
         this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
+        this.batchResult.emit('complete');
+    }
+
+    public handleBatchResult(result: QueryExecuteBatchCompleteNotificationResult): void {
+        let batch = result.batchSummary;
+        if (batch.selection) {
+            batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
+            batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+        }
+        this._batchSets.push(batch);
+        this.batchResult.emit('batch', batch);
     }
 
     // get more data rows from the current resultSets from the service layer

@@ -84,7 +84,8 @@
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.0.5",
-    "vscode-languageclient": "^2.5.0"
+    "vscode-languageclient": "^2.5.0",
+    "ws": "^1.1.1"
   },
   "contributes": {
     "languages": [

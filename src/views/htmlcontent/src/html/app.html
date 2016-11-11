@@ -53,7 +53,7 @@
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
                 </template>
-                <tr>
+                <tr *ngIf="complete">
                     <td></td>
                     <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapseExecution))}}</td>
                 </tr>
