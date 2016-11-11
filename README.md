@@ -4,7 +4,7 @@
 
 Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for developing Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere with a rich set of functionalities, including:
 
-* Connect to Microsoft SQL Server, Azure SQL databases and data warehouses.
+* Connect to Microsoft SQL Server, Azure SQL Database and SQL Data Warehouses.
 * Create and manage connection profiles and most recently used connections.
 * Write T-SQL script with IntelliSense, T-SQL snippets, syntax colorizations, T-SQL error validations and ```GO``` batch separator.
 * Execute the script.
@@ -16,7 +16,7 @@ Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for
 
 ## Using
 See [the mssql extension tutorial] for the step by step guide.
-* First, install [Visual Studio Code] then install **mssql** extension by pressing **f1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
+* First, install [Visual Studio Code] then install **mssql** extension by pressing **F1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
     * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instruction].
 * Open an existing file with a .sql file extenion or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**'. **mssql** commands and funtionalities are enabled in the 'SQL' language mode in Visual Studioc Code editor.
 * Create a new connection profile using command palette by pressing **F1**, type **sqlman** to run **MS SQL: Manage Connection Profile** command. Select **Create**. See [manage connection profiles] for more information about how to create and edit connection profiles in your User Settings (settings.json) file.
@@ -27,7 +27,7 @@ See [the mssql extension tutorial] for the step by step guide.
 
 ## Commands
 The extension provides several commands in the Command Palette for working with ```.sql``` files:
-* **MS SQL: Connect** to SQL Server, Azure SQL Databases or Data Warehouse using connection profiles or recent connections.
+* **MS SQL: Connect** to SQL Server, Azure SQL Database or SQL Data Warehouse using connection profiles or recent connections.
     * **Create Connection Profile** to create a new connection profile and connect.
 * **MS SQL: Disconnect** from SQL Server, Azure SQL Database or SQL Data Warehouse in the editor session.
 * **MS SQL: Use Database** to switch the database connection to another database within the same connected server in the editor session.
@@ -90,7 +90,7 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 
 [the mssql extension tutorial]:https://github.com/Microsoft/vscode-mssql/wiki/getting-started
 [Visual Studio Code]: https://code.visualstudio.com/#alt-downloads
-[DotNet Core instruction]:https://www.microsoft.com/net/core#macos
+[DotNet Core instruction]:https://www.microsoft.com/net/core
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
 [customize shortcuts]:https://github.com/Microsoft/vscode-mssql/wiki/customize-shortcuts
 [customize options]:https://github.com/Microsoft/vscode-mssql/wiki/customize-options
