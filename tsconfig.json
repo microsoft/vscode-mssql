@@ -7,10 +7,7 @@
         "sourceMap": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "rootDir": ".",
-        "typeRoots": [
-            "./node_modules/@types/"
-        ]
+        "rootDir": "."
     },
     "exclude": [
         "node_modules",

@@ -29,12 +29,11 @@ gulp.task('html:lint', () => {
 gulp.task('html:compile-src', () => {
   return gulp
     .src([config.paths.html.root + '/src/js/**/*.ts',
-        config.paths.html.root + '/node_modules/@types/**/*.ts',
         config.paths.html.root + '/typings/**/*'])
     .pipe(srcmap.init())
     .pipe(ts(tsProject))
     .pipe(srcmap.write('.', {
-        sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent/src/js'; }
+        sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent'; }
     }))
     .pipe(gulp.dest(config.paths.html.out + '/dist/js'));
 });
@@ -123,7 +122,6 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
-            config.paths.html.root + '/node_modules/assert-plus/assert.js',
             config.paths.html.root + '/systemjs.config.extras.js',
             config.paths.html.root + '/systemjs.config.js'
         ])

@@ -12,7 +12,6 @@
     "@angular/platform-browser-dynamic": "~2.1.2",
     "@angular/router": "~3.1.2",
     "@angular/upgrade": "~2.1.2",
-    "@types/jasmine": "^2.5.36",
     "angular-in-memory-web-api": "~0.1.13",
     "angular2-slickgrid": "git+ssh://git@github.com:microsoft/angular2-slickgrid",
     "core-js": "^2.4.1",
