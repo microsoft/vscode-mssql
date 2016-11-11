@@ -20,6 +20,8 @@ import { ISelectionData } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 
+let opener = require('opener');
+
 /**
  * The main controller class that initializes the extension
  */
@@ -345,18 +347,7 @@ export default class MainController implements vscode.Disposable {
       * Shows the Getting Started page in the preview browser
       */
     private launchGettingStartedPage(): void {
-
-        // get the URI for the Getting Started page
-        let docUri = vscode.Uri.file(
-            this._context.asAbsolutePath(
-                'out/src/views/htmlcontent/dist/docs/getstarted.html'));
-
-        // show the Getting Started page in the preview window
-        vscode.commands.executeCommand(
-            'vscode.previewHtml',
-            docUri,
-            vscode.ViewColumn.One,
-            'mssql for VS Code Getting Started');
+        opener(Constants.gettingStartedGuideLink);
     }
 
     /**
