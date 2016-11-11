@@ -27,6 +27,11 @@ export class DataService {
     private _shortcuts;
     private _config;
 
+    /* for testing purposes only */
+    public get webSocket(): WebSocket {
+        return this.ws;
+    }
+
     constructor(@Inject(forwardRef(() => Http)) private http) {
         const self = this;
         // grab the uri from the document for requests
@@ -51,6 +56,7 @@ export class DataService {
         };
 
         this.dataEventObs = Subject.create(observer, observable).map((response: MessageEvent): WebSocketEvent => {
+            console.log('response', response);
             let data = JSON.parse(response.data);
             return data;
         });

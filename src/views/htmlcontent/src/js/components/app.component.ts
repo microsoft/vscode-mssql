@@ -43,6 +43,7 @@ interface IMessages {
     endTime: string;
 }
 
+    // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
     <div *ngIf="dataSets.length > 0" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
@@ -114,7 +115,8 @@ const template = `
     </div>
     <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
 </div>
-`
+`;
+    // tslint:enable:max-line-length
 
 /**
  * Top level app component which runs and controls the SlickGrid implementation
@@ -273,7 +275,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         return this._messageActive;
     }
 
-    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
+    constructor(@Inject(forwardRef(() => DataService)) public dataService: DataService,
                 @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
                 @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
@@ -296,6 +298,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
             });
         });
         this.dataService.dataEventObs.subscribe(event => {
+            console.log('got event', event);
+            console.log('event data', event.data, event['data']);
             if (event.type === 'complete') {
                 self.complete = true;
             } else {
