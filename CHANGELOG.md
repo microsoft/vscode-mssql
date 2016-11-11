@@ -12,13 +12,13 @@ If you are new to VS Code and the mssql extension, see the [getting started tuto
 
 **Quick summary of the mssql extension features**
 
+This extension makes it easy to connect to, query and modify your SQL Server, Azure SQL Database, and Azure SQL Data Warehouse instances.
+
 * Create and manage your frequent connections to SQL Server, Azure SQL Database and Azure SQL Data Warehouse as a profile. The mssql extension keeps the recent history of your connection activities and save password in a secure store for easy connection experience. Explorer its sub tasks; Create, Edit, Remove and Clear Recent Connections List. See [manage connection profiles] for more details.
 
-* Easy connection experience to SQL Server databases, Azure SQL Database and SQL Data Warehouse.
+* Productive T-SQL editor features including IntelliSense with suggestions and auto-completion, syntax highlighting and the real-time T-SQL error checks and reporting.
 
-* Prodcutive TSQL editor features including IntelliSense with suggestions and auto-completion, syntax colorizations and the real-time TSQL error checks and reporting.
-
-* TSQL script execution and view results in a modern look and feel and functionality. Try out the new experience to view the query results in slick grids and messages.
+* Execute T-SQL scripts and view results, all with a native VS Code look and feel. View query results and related messages without needing to tab between them.
 
 * Save the query result in CSV and JSON.
 
@@ -30,24 +30,30 @@ If you are new to VS Code and the mssql extension, see the [getting started tuto
 
 * Top customer reported issues in [GitHub Issue Tracker].
 
-* Faster performance: Progressive query result. As soon as the SQL Server returns the first set of result, the mssql extension will start rendering.
+* Faster performance: Progressive query results. As soon as SQL Server returns results to the extension these should be shown to the user, even for large queries.
 
-* Devlivery of more TSQL editor features. For example Go To Definition and Find All References.
+* Delivery or additional T-SQL editor features, for example support for Go To Definition and Find All References.
 
 * More bugs fixes and fine tuning of features.
 
 ## Fixed Issues
 
-Report issues to [Github Issue Tracker] and provie your feedback.
+Report issues to [Github Issue Tracker] and provide your feedback.
 
 ## Known Issues
 
-* An mssql extension process may crash due to a bug in the prodcut. It requires to restart VS Code to recover. Before restarting VS Code, save your files.
+* The mssql extension process may crash due to a bug in the product. It requires to restart VS Code to recover. Before restarting VS Code, please save your files.
 
-* There are some DotNet Core dependencies on macOS and older version of Windows that requires user to install pre-requisites. See [OpenSSL requirement on macOS] and [Windows 10 Universal C Runtime requirement] for Windows 8.1, Windows Server 2012 or lower.
+* Installation Prerequisites: this extension requires the user to install some components needed by .Net Core applications, since this is used for connectivity to SQL Server.
+
+    * For Mac OS, see [OpenSSL requirement on macOS]
+
+    * For Windows 8.1, Windows Server 2012 or lower, see [Windows 10 Universal C Runtime requirement]
 
 [getting started tutorial]:https://aka.ms/mssql-getting-started
 [the mssql extension wiki]:https://github.com/Microsoft/vscode-mssql/wiki
 [contribute]:https://github.com/Microsoft/vscode-mssql/wiki/contributing
 [GitHub Issue Tracker]:https://github.com/Microsoft/vscode-mssql/issues
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
+[OpenSSL requirement on macOS]:https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration
+[Windows 10 Universal C Runtime requirement]:https://github.com/Microsoft/vscode-mssql/wiki/windows10-universal-c-runtime-requirement
