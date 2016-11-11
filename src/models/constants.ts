@@ -219,3 +219,6 @@ export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to co
 export const macOpenSslHelpButton = 'Help';
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 
+export const sqlToolsServiceCrashMessage = 'SQL Tools Service component could not start.';
+export const sqlToolsServiceCrashButton = 'View Known Issues';
+export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
