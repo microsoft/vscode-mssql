@@ -33,7 +33,9 @@ gulp.task('html:compile-src', () => {
         config.paths.html.root + '/typings/**/*'])
     .pipe(srcmap.init())
     .pipe(ts(tsProject))
-    .pipe(srcmap.write('.'))
+    .pipe(srcmap.write('.', {
+        sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent/src/js'; }
+    }))
     .pipe(gulp.dest(config.paths.html.out + '/dist/js'));
 });
 

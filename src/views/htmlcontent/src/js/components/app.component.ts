@@ -2,13 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
-    EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
+import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
+    EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
     VirtualizedCollection, FieldType } from 'angular2-slickgrid';
 
-import {DataService} from './../services/data.service';
-import {ShortcutService} from './../services/shortcuts.service';
+import { DataService } from './../services/data.service';
+import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, ISelectionData, IResultMessage } from './../interfaces';
 
@@ -298,8 +298,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             });
         });
         this.dataService.dataEventObs.subscribe(event => {
-            console.log('got event', event);
-            console.log('event data', event.data, event['data']);
             if (event.type === 'complete') {
                 self.complete = true;
             } else {

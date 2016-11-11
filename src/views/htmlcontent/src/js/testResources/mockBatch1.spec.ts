@@ -1,6 +1,6 @@
 import { WebSocketEvent } from './../interfaces';
 
-let batch: WebSocketEvent = {
+const batch: WebSocketEvent = {
   type: 'batch',
   data: {
   'executionElapsed': '00:00:00.1879820',
@@ -23,7 +23,7 @@ let batch: WebSocketEvent = {
   'resultSetSummaries': [
     {
       'id': 0,
-      'rowCount': 115,
+      'rowCount': 10,
       'columnInfo': [
         {
           'isBytes': false,

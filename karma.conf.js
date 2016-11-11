@@ -14,6 +14,7 @@ module.exports = function(config) {
     basePath: path.join(__dirname),
     frameworks: ['jasmine'],
     plugins: [
+      require('karma-remap-istanbul'),
       require('karma-coverage'),
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
@@ -75,7 +76,7 @@ module.exports = function(config) {
       'karma-test-shim.js',
 
       // transpiled application & spec code paths loaded via module imports
-      { pattern: appBase + '**/*.js', included: false, watched: false },
+      { pattern: appBase + '**/*.js', included: false, watched: true },
       { pattern: appBase + '**/*.json', included: false, watched: false },
       { pattern: testBase + '**/*.js', included: false, watched: false },
 
@@ -100,10 +101,10 @@ module.exports = function(config) {
 
     exclude: [],
     preprocessors: {
-      'out/src/views/htmlcontent/dist/**/*.js': 'coverage',
+      'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage',
     },
     // disabled HtmlReporter; suddenly crashing w/ strange socket error
-    reporters: ['progress', 'kjhtml', 'coverage'],//'html'],
+    reporters: ['progress', 'coverage', 'karma-remap-istanbul'],//'html'],
 
     // HtmlReporter configuration
     htmlReporter: {
@@ -115,8 +116,15 @@ module.exports = function(config) {
       subPageTitle: __dirname
     },
     coverageReporter: {
-      type : 'html',
-      dir : 'coverage/'
+      dir : 'coverage/',
+      reporters: [
+        {type: 'json'}
+      ]
+    },
+    remapIstanbulReporter: {
+      reports: {
+        json: 'coverage/coverage-html.json'
+      }
     },
 
     port: 9876,
@@ -124,6 +132,6 @@ module.exports = function(config) {
     logLevel: config.LOG_INFO,
     autoWatch: true,
     browsers: ['Chrome'],
-    singleRun: false
+    singleRun: true
   })
 }

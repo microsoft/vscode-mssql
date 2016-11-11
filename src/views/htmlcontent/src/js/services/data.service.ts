@@ -56,7 +56,6 @@ export class DataService {
         };
 
         this.dataEventObs = Subject.create(observer, observable).map((response: MessageEvent): WebSocketEvent => {
-            console.log('response', response);
             let data = JSON.parse(response.data);
             return data;
         });
