@@ -12,17 +12,15 @@ Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for
 * Save the result to json or csv file format and view in the editor.
 * Customizable extension options including command shortcuts and more.
 
-    <img src="./images/mssql-demo.gif" alt="feature demo" style="width: 640px;" />
-
 ## Using
 See [the mssql extension tutorial] for the step by step guide.
 * First, install [Visual Studio Code] then install **mssql** extension by pressing **F1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
-    * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instruction].
-* Open an existing file with a .sql file extenion or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**'. **mssql** commands and funtionalities are enabled in the 'SQL' language mode in Visual Studioc Code editor.
+    * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instructions].
+* Open an existing file with a .sql file extenion or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**. **mssql** commands and funtionalities are enabled in the SQL language mode in Visual Studioc Code editor.
 * Create a new connection profile using command palette by pressing **F1**, type **sqlman** to run **MS SQL: Manage Connection Profile** command. Select **Create**. See [manage connection profiles] for more information about how to create and edit connection profiles in your User Settings (settings.json) file.
 * Connect to a database by pressing **F1** and type **sqlcon** to run **MS SQL: Connnect** command, then select a connection profile. You can also use a shortcut (**ctrl+shift+c**).
 * Write T-SQL script in the editor using IntelliSense and Snippets. Type **sql** in the editor to list T-SQL Snippets.
-* Execute T-SQL script or selection of statements in the sciprt by pressing **F1** and type **sqlex** to run **MS SQL: Execute Query** command. You can also use a shortcut (**ctrl+shift+e**). See [customize shortcuts] to learn about change shortcut key bindings to **mssql** commands.
+* Execute T-SQL script or selection of statements in the script by pressing **F1** and type **sqlex** to run **MS SQL: Execute Query** command. You can also use a shortcut (**ctrl+shift+e**). See [customize shortcuts] to learn about change shortcut key bindings to **mssql** commands.
 * View the T-SQL script execution results and messages in result view.
 
 ## Commands
@@ -45,8 +43,8 @@ See [customize options] and [manage connection profiles] for more details.
 
 ```javascript
 {
-    "mssql.maxRecentConnections": 5```
-    "mssql.connections":[]
+    "mssql.maxRecentConnections": 5,
+    "mssql.connections":[],
     "mssql.shortcuts": {
         "event.toggleResultPane": "ctrl+alt+r",
         "event.toggleMessagePane": "ctrl+alt+y",
@@ -57,12 +55,12 @@ See [customize options] and [manage connection profiles] for more details.
         "event.selectAll": "",
         "event.saveAsJSON": "",
         "event.saveAsCSV": ""
-        }
+    },
     "mssql.messagesDefaultOpen": true,
     "mssql.logDebugInfo": false,
     "mssql.saveAsCSV": {
         "includeHeaders": true
-        }
+    },
     "mssql.enableIntelliSense": true,
     "mssql.intelliSense.enableErrorChecking": true,
     "mssql.intelliSense.enableSuggestions": true,
@@ -70,6 +68,7 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.intelliSense.lowerCaseSuggestions": false
 }
 ```
+
 ## Change Log
 The current version is ```0.1.5```. See the [change log] for more detail.
 
@@ -90,18 +89,18 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 
 [the mssql extension tutorial]:https://github.com/Microsoft/vscode-mssql/wiki/getting-started
 [Visual Studio Code]: https://code.visualstudio.com/#alt-downloads
-[DotNet Core instruction]:https://www.microsoft.com/net/core
+[DotNet Core instructions]:https://www.microsoft.com/net/core
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
 [customize shortcuts]:https://github.com/Microsoft/vscode-mssql/wiki/customize-shortcuts
 [customize options]:https://github.com/Microsoft/vscode-mssql/wiki/customize-options
-[change log]: ./ChangeLog.md
+[change log]: https://github.com/Microsoft/vscode-mssql/blob/master/CHANGELOG.md
 [GitHub Issue Tracker]:https://github.com/Microsoft/vscode-mssql/issues
 [bug report]:https://github.com/Microsoft/vscode-mssql/issues/new
 [feature suggestion]:https://github.com/Microsoft/vscode-mssql/issues/new
 [developer documentation]:https://github.com/Microsoft/vscode-mssql/wiki/contributing
 [Microsoft Enterprise and Developer Privacy Statement]:https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7
-[licensed under the MIT License]:./LICENSE.txt
-[third-party notices]:ThirdPartyNotices.txt
+[licensed under the MIT License]: https://github.com/Microsoft/vscode-mssql/blob/master/LICENSE.txt
+[third-party notices]: https://github.com/Microsoft/vscode-mssql/blob/master/ThirdPartyNotices.txt
 [Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
 [Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
 [opencode@microsoft.com]:mailto:opencode@microsoft.com
