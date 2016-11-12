@@ -372,17 +372,14 @@ export class ConnectionUI {
 
     private promptForRetryCreateProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         // Ask if the user would like to fix the profile
-        const retryPrompt: IQuestion = {
-            type: QuestionTypes.confirm,
-            name: Constants.msgPromptRetryCreateProfile,
-            message: Constants.msgPromptRetryCreateProfile
-        };
-        return this._prompter.promptSingle(retryPrompt).then(result => {
-            if (result) {
-                return ConnectionProfile.createProfile(this._prompter, profile);
-            } else {
-                return undefined;
-            }
+        return new Promise<IConnectionProfile>(resolve => {
+            this._vscodeWrapper.showErrorMessage(Constants.msgPromptRetryCreateProfile, Constants.retryLabel).then(result => {
+                if (result && result === Constants.retryLabel) {
+                    ConnectionProfile.createProfile(this._prompter, profile).then(createdProfile => resolve(createdProfile));
+                } else {
+                    resolve(undefined);
+                }
+            });
         });
     }
 
