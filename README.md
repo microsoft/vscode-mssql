@@ -51,7 +51,7 @@ See [customize options] and [manage connection profiles] for more details.
         "event.prevGrid": "ctrl+up",
         "event.nextGrid": "ctrl+down",
         "event.copySelection": "ctrl+c",
-        `"event.toggleMagnify": "",
+        "event.maximizeGrid": "",
         "event.selectAll": "",
         "event.saveAsJSON": "",
         "event.saveAsCSV": ""
