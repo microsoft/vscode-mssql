@@ -19,7 +19,8 @@ module.exports = function(config) {
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'), // click "Debug" in browser to see it
-      require('karma-htmlfile-reporter') // crashing w/ strange socket error
+      require('karma-htmlfile-reporter'), // crashing w/ strange socket error
+      require('karma-junit-reporter')
     ],
 
     customLaunchers: {
@@ -104,7 +105,7 @@ module.exports = function(config) {
       'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage',
     },
     // disabled HtmlReporter; suddenly crashing w/ strange socket error
-    reporters: ['progress', 'coverage', 'karma-remap-istanbul'],//'html'],
+    reporters: ['progress', 'coverage', 'karma-remap-istanbul', 'junit'],//'html'],
 
     // HtmlReporter configuration
     htmlReporter: {
@@ -125,6 +126,9 @@ module.exports = function(config) {
       reports: {
         json: 'coverage/coverage-html.json'
       }
+    },
+    junitReporter: {
+      outputDir: 'test-reports/'
     },
 
     port: 9876,

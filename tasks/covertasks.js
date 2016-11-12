@@ -41,11 +41,5 @@ gulp.task('cover:combine', () => {
     }));
 });
 
-gulp.task('cover:jenkins:ext', (done) => {
-    process.env.JUNIT_REPORT_PATH = process.env['WORKSPACE'] + '\\xunit.xml';
-    cproc.execSync('code --extensionDevelopmentPath="%WORKSPACE%" --extensionTestsPath="%WORKSPACE%/out/test" --verbose');
-    done();
-})
-
 // for running on the jenkins build system
-gulp.task('cover:jenkins', gulp.series('cover:clean', 'html:test', 'cover:enableconfig', 'cover:jenkins:ext', 'cover:combine'));
+gulp.task('cover:jenkins', gulp.series('cover:clean', 'html:test', 'cover:enableconfig', 'ext:test', 'cover:combine'));
