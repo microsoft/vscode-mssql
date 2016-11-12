@@ -12,6 +12,7 @@ var tsProject = ts.createProject(config.paths.html.root + '/tsconfig.json');
 var sysBuilder = require('systemjs-builder');
 var cleanCSS = require('gulp-clean-css');
 var argv = require('yargs').argv;
+var Server = require('karma').Server;
 
 var min = (argv.min === undefined) ? false : true;
 

@@ -1,8 +1,8 @@
 var gulp = require('gulp');
 var del = require('del');
 var jeditor = require("gulp-json-editor");
-var Server = require('karma').Server;
 var istanbulReport = require('gulp-istanbul-report');
+var shell = require('gulp-shell')
 
 gulp.task('cover:clean', function (done) {
     return del('coverage', done);
@@ -40,3 +40,15 @@ gulp.task('cover:combine', () => {
         ]
     }));
 });
+
+gulp.task('cover:jenkins:ext', shell.task([
+        'code --extensionDevelopmentPath="%WORKSPACE%" --extensionTestsPath="%WORKSPACE%/out/test" --verbose',
+    ],
+    {
+        env: {
+            JUNIT_REPORT_PATH: "%WORKSPACE%\\xunit.xml"
+        }
+    }))
+
+// for running on the jenkins build system
+gulp.task('cover:jenkins', gulp.series('cover:clean', 'html:test', 'cover:enableconfig', 'cover:jenkins:ext', 'cover:combine'));
