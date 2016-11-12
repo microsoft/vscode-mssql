@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var del = require('del');
 var jeditor = require("gulp-json-editor");
 var istanbulReport = require('gulp-istanbul-report');
-var shell = require('gulp-shell')
+var cproc = require('child_process');
 
 gulp.task('cover:clean', function (done) {
     return del('coverage', done);
@@ -41,14 +41,10 @@ gulp.task('cover:combine', () => {
     }));
 });
 
-gulp.task('cover:jenkins:ext', shell.task([
-        'code --extensionDevelopmentPath="%WORKSPACE%" --extensionTestsPath="%WORKSPACE%/out/test" --verbose',
-    ],
-    {
-        env: {
-            JUNIT_REPORT_PATH: "%WORKSPACE%\\xunit.xml"
-        }
-    }))
+gulp.task('cover:jenkins:ext', () => {
+    process.env.JUNIT_REPORT_PATH = "%WORKSPACE%\\xunit.xml";
+    return cproc.execSync('code --extensionDevelopmentPath="%WORKSPACE%" --extensionTestsPath="%WORKSPACE%/out/test" --verbose');
+})
 
 // for running on the jenkins build system
 gulp.task('cover:jenkins', gulp.series('cover:clean', 'html:test', 'cover:enableconfig', 'cover:jenkins:ext', 'cover:combine'));
