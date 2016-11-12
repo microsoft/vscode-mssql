@@ -18,7 +18,6 @@ const path = require('path');
 
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
-require('./tasks/covertasks')
 
 gulp.task('ext:lint', () => {
     return gulp.src([
@@ -124,6 +123,8 @@ gulp.task('ext:test', (done) => {
 });
 
 gulp.task('test', gulp.series('html:test', 'ext:test'));
+
+require('./tasks/covertasks');
 
 gulp.task('clean', function (done) {
     return del('out', done);
