@@ -203,6 +203,13 @@ gulp.task('html:copy:assets', (done) => {
     Promise.all(promises).then(() => done());
 });
 
+gulp.task('html:test', function (done) {
+  new Server({
+    configFile: __dirname + '/../karma.conf.js',
+    singleRun: true
+  }, done).start();
+});
+
 gulp.task('html:compile', gulp.series('html:compile-src'))
 
 gulp.task('html:app', gulp.series(['html:compile', 'html:copy:assets', 'html:bundle:app', 'html:min-js', 'html:bundle:css']));

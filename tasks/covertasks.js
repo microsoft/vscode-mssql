@@ -17,14 +17,7 @@ gulp.task('cover:enableconfig',() => {
     .pipe(gulp.dest("./out", {'overwrite':true}));
 });
 
-gulp.task('cover:html', function (done) {
-  new Server({
-    configFile: __dirname + '/../karma.conf.js',
-    singleRun: true
-  }, done).start();
-});
-
-gulp.task('cover:enable', gulp.series('cover:clean', 'cover:html', 'cover:enableconfig'));
+gulp.task('cover:enable', gulp.series('cover:clean', 'html:test', 'cover:enableconfig'));
 
 gulp.task('cover:disable', () => {
     return gulp.src("./coverconfig.json")
