@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "mssql",
-  "version": "0.1.1",
+  "version": "0.1.5",
   "description": "Develop Microsoft SQL Server and Azure SQL Database everywhere",
   "publisher": "Microsoft",
   "preview": true,
