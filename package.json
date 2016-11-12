@@ -1,8 +1,8 @@
 {
   "name": "mssql",
   "displayName": "mssql",
-  "version": "0.1.1",
-  "description": "Develop Microsoft SQL Server and Azure SQL databases everywhere",
+  "version": "0.1.5",
+  "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "Microsoft",
   "preview": true,
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -24,8 +24,7 @@
     "vscode": "^1.0.0"
   },
   "categories": [
-    "Languages",
-    "Productivity"
+    "Languages"
   ],
   "keywords": [
     "SQL",
