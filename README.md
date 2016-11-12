@@ -85,7 +85,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct]. For more i
 The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy statement of this software.
 
 ## License
-This extension is [licensed under the MIT License]. Please see the [third-party notices]file for additional copyright notices and license terms applicable to portions of the software.
+This extension is [licensed under the MIT License]. Please see the [third-party notices] file for additional copyright notices and license terms applicable to portions of the software.
 
 [the mssql extension tutorial]:https://github.com/Microsoft/vscode-mssql/wiki/getting-started
 [Visual Studio Code]: https://code.visualstudio.com/#alt-downloads
@@ -96,6 +96,7 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [change log]: https://github.com/Microsoft/vscode-mssql/blob/master/CHANGELOG.md
 [GitHub Issue Tracker]:https://github.com/Microsoft/vscode-mssql/issues
 [bug report]:https://github.com/Microsoft/vscode-mssql/issues/new
+[discussions]:https://gitter.im/Microsoft/mssql
 [feature suggestion]:https://github.com/Microsoft/vscode-mssql/issues/new
 [developer documentation]:https://github.com/Microsoft/vscode-mssql/wiki/contributing
 [Microsoft Enterprise and Developer Privacy Statement]:https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7
