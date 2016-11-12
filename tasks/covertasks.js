@@ -42,7 +42,7 @@ gulp.task('cover:combine', () => {
 });
 
 gulp.task('cover:jenkins:ext', (done) => {
-    process.env.JUNIT_REPORT_PATH = "%WORKSPACE%\\xunit.xml";
+    process.env.JUNIT_REPORT_PATH = process.env['WORKSPACE'] + '\\xunit.xml';
     cproc.execSync('code --extensionDevelopmentPath="%WORKSPACE%" --extensionTestsPath="%WORKSPACE%/out/test" --verbose');
     done();
 })
