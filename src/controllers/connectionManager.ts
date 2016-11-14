@@ -3,6 +3,7 @@ import vscode = require('vscode');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import Constants = require('../models/constants');
 import * as ConnectionContracts from '../models/contracts/connection';
+import * as LanguageServiceContracts from '../models/contracts/languageService';
 import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
 import { ConnectionStore } from '../models/connectionStore';
@@ -92,6 +93,7 @@ export default class ConnectionManager {
         if (this.client !== undefined) {
             this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
             this.client.onNotification(ConnectionContracts.ConnectionCompleteNotification.type, this.handleConnectionCompleteNotification());
+            this.client.onNotification(LanguageServiceContracts.UpdateNotification.type, this.handleLanguageServiceUpdateNotification());
         }
     }
 
@@ -180,6 +182,16 @@ export default class ConnectionManager {
         return this._connections[fileUri];
     }
 
+    private handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.UpdateParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+        const self = this;
+        return (event: LanguageServiceContracts.UpdateParams): void => {
+            if (self.isConnected(event.ownerUri)) {
+                self._statusView.languageServiceUpdated(event.ownerUri);
+            }
+        };
+    }
+
     /**
      * Public for testing purposes only.
      */
@@ -245,6 +257,7 @@ export default class ConnectionManager {
         connection.credentials = newCredentials;
 
         this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
+        this.statusView.languageServiceUpdating(fileUri);
 
         this._vscodeWrapper.logToOutputChannel(
             Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
