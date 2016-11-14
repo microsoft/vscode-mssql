@@ -370,16 +370,14 @@ export class ConnectionUI {
         return ConnectionProfile.createProfile(this._prompter);
     }
 
-    private promptForRetryCreateProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+    private promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
         // Ask if the user would like to fix the profile
-        return new Promise<IConnectionProfile>(resolve => {
-            this._vscodeWrapper.showErrorMessage(Constants.msgPromptRetryCreateProfile, Constants.retryLabel).then(result => {
-                if (result && result === Constants.retryLabel) {
-                    ConnectionProfile.createProfile(this._prompter, profile).then(createdProfile => resolve(createdProfile));
-                } else {
-                    resolve(undefined);
-                }
-            });
+        return this._vscodeWrapper.showErrorMessage(Constants.msgPromptRetryCreateProfile, Constants.retryLabel).then(result => {
+            if (result === Constants.retryLabel) {
+                return ConnectionProfile.createProfile(this._prompter, profile);
+            } else {
+                return undefined;
+            }
         });
     }
 
