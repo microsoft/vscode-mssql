@@ -182,7 +182,10 @@ export default class ConnectionManager {
         return this._connections[fileUri];
     }
 
-    private handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
+    /**
+     * Public for testing purposes only.
+     */
+    public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
