@@ -93,7 +93,7 @@ export default class ConnectionManager {
         if (this.client !== undefined) {
             this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
             this.client.onNotification(ConnectionContracts.ConnectionCompleteNotification.type, this.handleConnectionCompleteNotification());
-            this.client.onNotification(LanguageServiceContracts.UpdateNotification.type, this.handleLanguageServiceUpdateNotification());
+            this.client.onNotification(LanguageServiceContracts.IntelliSenseReadyNotification.type, this.handleLanguageServiceUpdateNotification());
         }
     }
 
@@ -182,13 +182,11 @@ export default class ConnectionManager {
         return this._connections[fileUri];
     }
 
-    private handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.UpdateParams> {
+    private handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
-        return (event: LanguageServiceContracts.UpdateParams): void => {
-            if (self.isConnected(event.ownerUri)) {
-                self._statusView.languageServiceUpdated(event.ownerUri);
-            }
+        return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
+            self._statusView.languageServiceUpdated(event.ownerUri);
         };
     }
 

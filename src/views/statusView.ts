@@ -184,8 +184,8 @@ export default class StatusView implements vscode.Disposable {
 
     public languageServiceUpdating(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        bar.statusLanguageService.text =  Constants.updatingIntelliSenseLabel;
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
-        this.showProgress(fileUri, 'Updating IntelliSense', bar.statusLanguageService);
     }
 
     public languageServiceUpdated(fileUri: string): void {
@@ -217,6 +217,7 @@ export default class StatusView implements vscode.Disposable {
         if (typeof this._lastShownStatusBar !== 'undefined') {
             this._lastShownStatusBar.statusConnection.hide();
             this._lastShownStatusBar.statusQuery.hide();
+            this._lastShownStatusBar.statusLanguageService.hide();
         }
     }
 
@@ -230,6 +231,7 @@ export default class StatusView implements vscode.Disposable {
             const bar = this._statusBars[fileUri];
             if (bar) {
                 this.showStatusBarItem(fileUri, bar.statusConnection);
+                this.showStatusBarItem(fileUri, bar.statusLanguageService);
             }
         }
     }

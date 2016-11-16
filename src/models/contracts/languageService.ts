@@ -1,22 +1,22 @@
 import {NotificationType} from 'vscode-languageclient';
 
-// ------------------------------- < Language Service Update Event > ------------------------------------
+// ------------------------------- < IntelliSense Ready Event > ------------------------------------
 
 /**
  * Event sent when the language service is finished updating after a connection
  */
-export namespace UpdateNotification {
-    export const type: NotificationType<UpdateParams> = { get method(): string { return 'textDocument/update'; } };
+export namespace IntelliSenseReadyNotification {
+    export const type: NotificationType<IntelliSenseReadyParams> = { get method(): string { return 'textDocument/intelliSenseReady'; } };
 }
 
 /**
  * Update event parameters
  */
-export class UpdateParams {
+export class IntelliSenseReadyParams {
     /**
      * URI identifying the text document
      */
     public ownerUri: string;
 }
 
-// ------------------------------- </ Language Service Update Event > ----------------------------------
+// ------------------------------- </ IntelliSense Ready Event > ----------------------------------
