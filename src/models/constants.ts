@@ -172,6 +172,7 @@ export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
 export const executeQueryLabel = 'Executing query ';
 export const cancelingQueryLabel = 'Canceling query ';
+export const updatingIntelliSenseLabel = 'Updating IntelliSense...';
 export const unfoundResult = 'Data was disposed when text editor was closed; to view data please reexecute query.';
 
 export const serviceCompatibleVersion = '1.0.0';
