@@ -1,18 +1,126 @@
-import { async, inject, ComponentFixture, TestBed } from '@angular/core/testing';
-import { Http, BaseRequestOptions, Response, ResponseOptions, RequestMethod } from '@angular/http';
-import { MockBackend, MockConnection } from '@angular/http/testing';
-import { SlickGrid } from 'angular2-slickgrid';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component, Directive, Input, Output, EventEmitter } from '@angular/core';
+import { ISlickRange, IColumnDefinition, IObservableCollection, IGridDataRow } from 'angular2-slickgrid';
+import { Observable, Subject, Observer } from 'rxjs/Rx';
 
-import { IResultsConfig } from './../interfaces';
-import { ScrollDirective } from './../directives/scroll.directive';
-import { MouseDownDirective } from './../directives/mousedown.directive';
-import { ContextMenu } from './contextmenu.component';
+import { WebSocketEvent } from './../interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { AppComponent } from './app.component';
 import * as Constants from './../constants';
 
-import MockBatch1 from './../testResources/mockBatch1.spec';
+import batch from './../testResources/mockBatch1.spec';
+
+// Mock Setup
+class MockDataService {
+    private _config = {
+        'mssql.messagesDefaultOpen': true
+    };
+    private ws: WebSocket;
+    public dataEventObs: Subject<WebSocketEvent>;
+
+    constructor() {
+        const self = this;
+        this.ws = new WebSocket('ws://mock');
+        let observable = Observable.create(
+            (obs: Observer<MessageEvent>) => {
+                self.ws.onmessage = obs.next.bind(obs);
+                self.ws.onerror = obs.error.bind(obs);
+                self.ws.onclose = obs.complete.bind(obs);
+
+                return self.ws.close.bind(self.ws);
+            }
+        );
+
+        let observer = {
+            next: (data: Object) => {
+                if (self.ws.readyState === WebSocket.OPEN) {
+                    self.ws.send(JSON.stringify(data));
+                }
+            }
+        };
+
+        this.dataEventObs = Subject.create(observer, observable).map((response: MessageEvent): WebSocketEvent => {
+            let data = JSON.parse(response.data);
+            return data;
+        });
+    }
+
+    get config(): Promise<{[key: string]: any}> {
+        return Promise.resolve(this._config);
+    }
+
+    public sendWSEvent(data: any): void {
+        this.ws.dispatchEvent(new MessageEvent('message', {
+            data: JSON.stringify(data)
+        }));
+    }
+}
+
+class MockShortcutService {
+    private _shortcuts = {
+        'event.toggleMessagePane': 'ctrl+alt+r',
+        'event.toggleResultPane': 'ctrl+alt+y'
+    };
+
+    stringCodeFor(event: string): Promise<string> {
+        return Promise.resolve(this._shortcuts[event]);
+    }
+}
+
+@Component({
+    selector: 'slick-grid',
+    template: ''
+})
+class MockSlickGrid {
+    @Input() columnDefinitions: IColumnDefinition[];
+    @Input() dataRows: IObservableCollection<IGridDataRow>;
+    @Input() resized: Observable<any>;
+    @Input() editableColumnIds: string[] = [];
+    @Input() highlightedCells: {row: number, column: number}[] = [];
+    @Input() blurredColumns: string[] = [];
+    @Input() contextColumns: string[] = [];
+    @Input() columnsLoading: string[] = [];
+    @Input() overrideCellFn: (rowNumber, columnId, value?, data?) => string;
+    @Input() showHeader: boolean = false;
+    @Input() showDataTypeIcon: boolean = true;
+    @Input() enableColumnReorder: boolean = false;
+    @Input() enableAsyncPostRender: boolean = true;
+
+    @Output() loadFinished: EventEmitter<void> = new EventEmitter<void>();
+    @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
+    @Output() editingFinished: EventEmitter<any> = new EventEmitter();
+    @Output() contextMenu: EventEmitter<{x: number, y: number}> = new EventEmitter<{x: number, y: number}>();
+
+    @Input() topRowNumber: number;
+    @Output() topRowNumberChange: EventEmitter<number> = new EventEmitter<number>();
+
+}
+
+@Component({
+    selector: 'context-menu',
+    template: ''
+})
+class MockContextMenu {
+    @Output() clickEvent: EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>
+        = new EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>();
+}
+
+@Directive({
+  selector: '[onScroll]'
+})
+class MockScrollDirective {
+    @Input() scrollEnabled: boolean = true;
+    @Output('onScroll') onScroll: EventEmitter<number> = new EventEmitter<number>();
+}
+
+@Directive({
+  selector: '[mousedown]'
+})
+class MockMouseDownDirective {
+    @Output('mousedown') onMouseDown: EventEmitter<void> = new EventEmitter<void>();
+}
+// End Mock Setup
 
 ////////  SPECS  /////////////
 describe('AppComponent', function (): void {
@@ -22,29 +130,31 @@ describe('AppComponent', function (): void {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective, ContextMenu],
-            providers: [
-                ShortcutService,
-                DataService,
-                MockBackend,
-                BaseRequestOptions,
-                {
-                    provide: Http,
-                    useFactory: (backend, options) => { return new Http(backend, options); },
-                    deps: [MockBackend, BaseRequestOptions]
-                }
-            ]
+            declarations: [ AppComponent, MockSlickGrid, MockContextMenu, MockScrollDirective, MockMouseDownDirective ]
+        }).overrideComponent(AppComponent, {
+            set: {
+                providers: [
+                    {
+                        provide: DataService,
+                        useClass: MockDataService
+                    },
+                    {
+                        provide: ShortcutService,
+                        useClass: MockShortcutService
+                    }
+                ]
+            }
         });
     }));
 
     describe('basic behaviors', () => {
 
-        beforeEach(() => {
+        beforeEach(async(() => {
             fixture = TestBed.createComponent<AppComponent>(AppComponent);
             fixture.detectChanges();
             comp = fixture.componentInstance;
             ele = fixture.nativeElement;
-        });
+        }));
 
         it('should create component', () => {
             expect(comp).toBeDefined();
@@ -66,54 +176,21 @@ describe('AppComponent', function (): void {
     });
 
     describe('full initialization', () => {
-        const mockConfig: IResultsConfig = {
-            shortcuts: {
 
-            },
-            messagesDefaultOpen: true
-        };
-
-        beforeEach(async(inject([MockBackend], (mockBackend: MockBackend) => {
-            mockBackend.connections.subscribe((conn: MockConnection) => {
-                let isGetConfig = conn.request.url &&
-                    conn.request.method === RequestMethod.Get &&
-                    conn.request.url.match(/\/config/) &&
-                    conn.request.url.match(/\/config/).length === 1 ? true : false;
-                let isGetRows = conn.request.url &&
-                    conn.request.method === RequestMethod.Get &&
-                    conn.request.url.match(/\/rows/) &&
-                    conn.request.url.match(/\/rows/).length === 1 ? true : false;
-                if (isGetConfig) {
-                    conn.mockRespond(new Response(new ResponseOptions({body: JSON.stringify(mockConfig)})));
-                } else if (isGetRows) {
-                    let parser = document.createElement('a');
-                    parser.href = conn.request.url;
-                    console.log(parser['rowStart']);
-                    console.log(parser['numberOfRows']);
-                }
-            });
-        })));
-
-        beforeEach(() => {
+        beforeEach(async(() => {
             fixture = TestBed.createComponent<AppComponent>(AppComponent);
             fixture.detectChanges();
             comp = fixture.componentInstance;
             ele = fixture.nativeElement;
-        });
-
-        beforeEach(() => {
-            comp.dataService.webSocket.dispatchEvent(new MessageEvent('message', {
-                data: JSON.stringify(MockBatch1)
-            }));
-        });
+        }));
 
         it('should have initilized the grids correctly', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(batch);
             fixture.detectChanges();
             let results = ele.querySelector('#results');
             expect(results).not.toBeNull('results pane is not visible');
             expect(results.getElementsByTagName('slick-grid').length).toEqual(1);
-            // let slickgrid = results.getElementsByTagName('slick-grid')[0];
-            // let viewport = slickgrid.firstElementChild.getElementsByClassName('slick-viewport')[0]
         });
     });
 });

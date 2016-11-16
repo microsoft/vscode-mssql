@@ -21,16 +21,11 @@ const WS_URL = 'ws://localhost:' + window.location.port + '/';
 
 @Injectable()
 export class DataService {
-    uri: string;
+    private uri: string;
     private ws: WebSocket;
     public dataEventObs: Subject<WebSocketEvent>;
     private _shortcuts;
     private _config;
-
-    /* for testing purposes only */
-    public get webSocket(): WebSocket {
-        return this.ws;
-    }
 
     constructor(@Inject(forwardRef(() => Http)) private http) {
         const self = this;
@@ -154,7 +149,7 @@ export class DataService {
         self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
     }
 
-    get config(): Promise<{[key: string]: string}> {
+    get config(): Promise<{[key: string]: any}> {
         const self = this;
         if (this._config) {
             return Promise.resolve(this._config);

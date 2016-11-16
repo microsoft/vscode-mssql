@@ -420,12 +420,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'string':
                 fieldtype = FieldType.String;
                 break;
-            case 'boolean':
-                fieldtype = FieldType.Boolean;
-                break;
-            case 'decimal':
-                fieldtype = FieldType.Decimal;
-                break;
             default:
                 fieldtype = FieldType.String;
                 break;

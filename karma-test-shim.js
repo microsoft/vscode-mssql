@@ -3,7 +3,7 @@
 Error.stackTraceLimit = 0; // "No stacktrace"" is usually best for app testing.
 
 // Uncomment to get full stacktrace output. Sometimes helpful, usually not.
-Error.stackTraceLimit = Infinity; //
+// Error.stackTraceLimit = Infinity; //
 
 var builtPath = '/base/out/src/views/htmlcontent/dist/js/';
 

@@ -124,7 +124,8 @@ module.exports = function(config) {
     },
     remapIstanbulReporter: {
       reports: {
-        json: 'coverage/coverage-html.json'
+        json: 'coverage/coverage-html.json',
+        html: 'coverage/htmlcoverage/'
       }
     },
     junitReporter: {
