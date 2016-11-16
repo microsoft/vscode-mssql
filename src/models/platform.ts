@@ -79,6 +79,7 @@ export function getCurrentPlatform(): Platform {
                 // Oracle Linux is binary compatible with CentOS
                 return Platform.CentOS;
             case 'elementary OS':
+            case 'elementary':
                 const eOSVersionId = getValue('VERSION_ID');
                 if (eOSVersionId.startsWith('0.3')) {
                     // Elementary OS 0.3 Freya is binary compatible with Ubuntu 14.04
