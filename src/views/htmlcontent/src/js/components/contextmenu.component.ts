@@ -21,7 +21,8 @@ const template = `
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsJSON']}}</span></li>
     <li id="selectall" (click)="handleContextActionClick('selectall')" [class.disabled]="isDisabled"> {{Constants.selectAll}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.selectAll']}}</span></li>
-</ul>`;
+</ul>
+`;
 
 @Component({
     selector: 'context-menu',

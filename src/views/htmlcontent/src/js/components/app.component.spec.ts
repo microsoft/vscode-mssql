@@ -8,7 +8,6 @@ import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { AppComponent } from './app.component';
 import * as Constants from './../constants';
-
 import batch1 from './../testResources/mockBatch1.spec';
 import batch2 from './../testResources/mockBatch2.spec';
 

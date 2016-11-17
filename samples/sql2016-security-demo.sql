@@ -1,5 +1,5 @@
 -- SaNagama, 2016
--- Simple Clinic DB demo presented at the Azure Cloud Roadshow in Bangalore, India.
+-- Simple Clinic DB demo presented at the Azure Cloud Roadshow in Bengaluru (Bangalore), India.
 
 USE [master]
 GO

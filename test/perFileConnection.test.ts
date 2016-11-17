@@ -8,6 +8,7 @@ import { IPrompter } from '../src/prompts/question';
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentials, AuthenticationTypes } from '../src/models/interfaces';
 import * as ConnectionContracts from '../src/models/contracts/connection';
+import * as LanguageServiceContracts from '../src/models/contracts/languageService';
 import MainController from '../src/controllers/mainController';
 import * as Interfaces from '../src/models/interfaces';
 import { ConnectionStore } from '../src/models/connectionStore';
@@ -489,6 +490,40 @@ suite('Per File Connection Tests', () => {
             connectionStoreMock.verify(x => x.addRecentlyUsed(TypeMoq.It.isAny()), TypeMoq.Times.once());
             assert.equal(savedConnection.database, expectedDbName, 'Expect actual DB name returned from connection to be saved');
             assert.equal(savedConnection.password, connectionCreds.password, 'Expect password to be saved');
+
+            done();
+        }).catch(err => {
+            done(err);
+        });
+    });
+
+    test('Status view shows updating intellisense after connecting and disappears after intellisense is updated', done => {
+        const testFile = 'file:///my/test/file.sql';
+
+        let manager: ConnectionManager = createTestConnectionManager();
+        let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
+        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                            .callback((type, params: ConnectionContracts.ConnectParams) => {
+                                manager.handleConnectionCompleteNotification().call(manager, createTestConnectionResult(params.ownerUri));
+                            })
+                            .returns(() => Promise.resolve(true));
+
+        manager.statusView = statusViewMock.object;
+        manager.client = serviceClientMock.object;
+
+        // Connect
+        manager.connect(testFile, createTestCredentials()).then(result => {
+            assert.equal(result, true);
+            statusViewMock.verify(x => x.languageServiceUpdating(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            statusViewMock.verify(x => x.languageServiceUpdated(TypeMoq.It.isAny()), TypeMoq.Times.never());
+
+            // Send a mock notification that the language service was updated
+            let langResult = new LanguageServiceContracts.IntelliSenseReadyParams();
+            langResult.ownerUri = testFile;
+            manager.handleLanguageServiceUpdateNotification().call(manager, langResult);
+
+            statusViewMock.verify(x => x.languageServiceUpdated(TypeMoq.It.isAny()), TypeMoq.Times.once());
 
             done();
         }).catch(err => {

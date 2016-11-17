@@ -276,10 +276,10 @@ suite('Connection Profile tests', () => {
                     }
                     return Promise.resolve(answers);
                 });
-        prompter.setup(x => x.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
 
         let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
+        vscodeWrapperMock.setup(x => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
         let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object, vscodeWrapperMock.object);
 

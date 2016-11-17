@@ -173,6 +173,7 @@ export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
 export const executeQueryLabel = 'Executing query ';
 export const cancelingQueryLabel = 'Canceling query ';
+export const updatingIntelliSenseLabel = 'Updating IntelliSense...';
 export const unfoundResult = 'Data was disposed when text editor was closed; to view data please reexecute query.';
 
 export const serviceCompatibleVersion = '1.0.0';
@@ -193,6 +194,7 @@ export const timeToWaitForLanguageModeChange = 10000.0;
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
 
 export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the connection information provided. Retry profile creation?';
+export const retryLabel = 'Retry';
 
 export const msgConnecting = 'Connecting to server \"{0}\" on document \"{1}\".';
 export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';

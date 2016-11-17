@@ -94,9 +94,7 @@ module.exports = function(config) {
     preprocessors: {
       'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage',
     },
-
     reporters: ['progress', 'coverage', 'karma-remap-istanbul', 'junit'],
-
     coverageReporter: {
       dir : 'coverage/',
       reporters: [
