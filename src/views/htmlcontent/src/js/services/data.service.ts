@@ -27,10 +27,15 @@ export class DataService {
     private _shortcuts;
     private _config;
 
+    /* for testing purposes only */
+    public get webSocket(): WebSocket {
+        return this.ws;
+    }
+
     constructor(@Inject(forwardRef(() => Http)) private http) {
         const self = this;
         // grab the uri from the document for requests
-        this.uri = encodeURI(document.getElementById('uri').innerText.trim());
+        this.uri = encodeURI(document.getElementById('uri') ? document.getElementById('uri').innerText.trim() : '');
         this.ws = new WebSocket(WS_URL + '?uri=' + this.uri);
         let observable = Observable.create(
             (obs: Observer<MessageEvent>) => {

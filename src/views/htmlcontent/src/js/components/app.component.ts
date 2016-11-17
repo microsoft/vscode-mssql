@@ -2,13 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
-    EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
+import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
+    EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
     VirtualizedCollection, FieldType } from 'angular2-slickgrid';
 
-import {DataService} from './../services/data.service';
-import {ShortcutService} from './../services/shortcuts.service';
+import { DataService } from './../services/data.service';
+import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
 import { IGridIcon, ISelectionData, IResultMessage } from './../interfaces';
 
@@ -43,14 +43,88 @@ interface IMessages {
     endTime: string;
 }
 
+    // tslint:disable:max-line-length
+const template = `
+<div class="fullsize vertBox">
+    <div *ngIf="dataSets.length > 0" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
+        <span> {{Constants.resultPaneLabel}} </span>
+        <span class="shortCut"> {{resultShortcut}} </span>
+    </div>
+    <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+         (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
+        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
+            [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
+            <slick-grid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+                        [ngClass]="i === activeGrid ? 'active' : ''"
+                        [dataRows]="dataSet.dataRows"
+                        (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
+                        enableAsyncPostRender="true"
+                        showDataTypeIcon="false"
+                        showHeader="true"
+                        [resized]="dataSet.resized"
+                        (mousedown)="navigateToGrid(i)"
+                        class="boxCol content vertBox slickgrid">
+            </slick-grid>
+            <span class="boxCol content vertBox">
+                <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
+                    <div *ngIf="icon.showCondition()" class="gridIcon">
+                        <a class="icon" href="#"
+                        (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
+                        [title]="icon.hoverText()" [ngClass]="icon.icon()">
+                        </a>
+                    </div>
+                </div>
+            </span>
+        </div>
+    </div>
+    <context-menu (clickEvent)="handleContextClick($event)"></context-menu>
+    <div class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
+        <div id="messageResizeHandle" class="resizableHandle"></div>
+        <span> {{Constants.messagePaneLabel}} </span>
+        <span class="shortCut"> {{messageShortcut}} </span>
+    </div>
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length == 0">
+        <br>
+        <table id="messageTable">
+            <colgroup>
+                <col span="1" class="wide">
+            </colgroup>
+            <tbody *ngIf="messages.length > 0">
+                <template ngFor let-imessage [ngForOf]="messages">
+                    <tr *ngIf="imessage.selection">
+                        <td>[{{imessage.startTime}}]</td>
+                        <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
+                    </tr>
+                    <tr *ngFor="let message of imessage.messages">
+                        <td></td>
+                        <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
+                    </tr>
+                </template>
+                <tr>
+                    <td></td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapseExecution))}}</td>
+                </tr>
+            </tbody>
+            <tbody *ngIf="messages.length === 0">
+                <tr>
+                    <td>[{{startString}}]</td>
+                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"> <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
+</div>
+`;
+    // tslint:enable:max-line-length
+
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
 @Component({
     selector: 'my-app',
     host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
-    templateUrl: 'dist/html/app.html',
-    directives: [ContextMenu, SlickGrid],
+    template: template,
     providers: [DataService, ShortcutService],
     styles: [`
     .errorMessage {
@@ -201,7 +275,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         return this._messageActive;
     }
 
-    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
+    constructor(@Inject(forwardRef(() => DataService)) public dataService: DataService,
                 @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
                 @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}

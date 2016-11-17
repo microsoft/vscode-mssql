@@ -2,8 +2,8 @@
     "enabled": false,
     "relativeSourcePath": "../src",
     "relativeCoverageDir": "../../coverage",
-    "ignorePatterns": ["**/node_modules/**", "**/libs/**", "**/lib/**", "**/*.min.js", "**/*.bundle.js"],
+    "ignorePatterns": ["**/node_modules/**", "**/libs/**", "**/lib/**", "**/htmlcontent/**/*.js", "**/*.bundle.js"],
     "includePid": false,
-    "reports": ["lcov", "cobertura"],
+    "reports": ["json"],
     "verbose": false
 }

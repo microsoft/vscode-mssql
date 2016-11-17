@@ -3,44 +3,40 @@
  * Adjust as necessary for your application needs.
  */
 (function(global) {
+  var paths = {
+    'npm:': 'lib/js/'
+  }
   // map tells the System loader where to look for things
   var map = {
     'app':                        'dist/js', // 'dist',
-    '@angular':                   'lib/js/@angular',
-    'rxjs':                       'lib/js/rxjs',
-    'json':                       'lib/js/json.js',
-    'angular2-slickgrid':         'lib/js/angular2-slickgrid'
+    '@angular':                   'npm:@angular',
+    'rxjs':                       'npm:rxjs',
+    'json':                       'npm:json.js',
+    'angular2-slickgrid':         'npm:angular2-slickgrid',
+    '@angular/common':            'npm:@angular/common/bundles/common.umd.js',
+    '@angular/compiler':          'npm:@angular/compiler/bundles/compiler.umd.js',
+    '@angular/core':              'npm:@angular/core/bundles/core.umd.js',
+    '@angular/forms':             'npm:@angular/forms/bundles/forms.umd.js',
+    '@angular/http':              'npm:@angular/http/bundles/http.umd.js',
+    '@angular/platform-browser':  'npm:@angular/platform-browser/bundles/platform-browser.umd.js',
+    '@angular/platform-browser-dynamic':  'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
+    '@angular/router':            'npm:@angular/router/bundles/router.umd.js',
+    '@angular/upgrade':           'npm:@angular/upgrade/bundles/upgrade.umd.js',
+    'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
     'app':                        { main: 'main.js',  defaultExtension: 'js' },
     '':                           { main: 'constants.js', defaultExtension: 'js'},
-    'rxjs':                       { main: 'Rx.js', defaultExtension: 'js' },
-    'angular2-in-memory-web-api': { main: 'index.js', defaultExtension: 'js' },
     'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'}
   };
-  var ngPackageNames = [
-    '@angular/common',
-    '@angular/compiler',
-    '@angular/core',
-    '@angular/forms',
-    '@angular/http',
-    '@angular/platform-browser',
-    '@angular/platform-browser-dynamic',
-    '@angular/router',
-    '@angular/testing',
-    '@angular/upgrade'
-  ];
   var meta = {
     '**/*.json' : {
       loader: 'json'
     }
   }
-  // add package entries for angular packages in the form '@angular/common': { main: 'index.js', defaultExtension: 'js' }
-  ngPackageNames.forEach(function(pkgName) {
-    packages[pkgName] = { main: 'index.js', defaultExtension: 'js' };
-  });
   var config = {
+    paths: paths,
     map: map,
     packages: packages,
     meta: meta

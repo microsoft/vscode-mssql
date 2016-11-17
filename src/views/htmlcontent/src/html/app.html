@@ -20,7 +20,7 @@
             </slick-grid>
             <span class="boxCol content vertBox">
                 <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
-                    <div *ngIf="icon.showCondition()" class=gridIcon>
+                    <div *ngIf="icon.showCondition()" class="gridIcon">
                         <a class="icon" href="#"
                         (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
                         [title]="icon.hoverText()" [ngClass]="icon.icon()">
@@ -61,7 +61,7 @@
             <tbody *ngIf="messages.length === 0">
                 <tr>
                     <td>[{{startString}}]</td>
-                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"> <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
+                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"><span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
                 </tr>
             </tbody>
         </table>

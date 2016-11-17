@@ -13,10 +13,20 @@ import * as Utils from './../utils';
  * The component that acts as the contextMenu for slick grid
  */
 
+const template = `
+<ul class="contextMenu" style="display:none;position:absolute">
+    <li id="savecsv" (click)="handleContextActionClick('savecsv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsCSV']}}</span></li>
+    <li id="savejson" (click)="handleContextActionClick('savejson')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsJSON']}}</span></li>
+    <li id="selectall" (click)="handleContextActionClick('selectall')" [class.disabled]="isDisabled"> {{Constants.selectAll}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.selectAll']}}</span></li>
+</ul>`;
+
 @Component({
     selector: 'context-menu',
     providers: [ShortcutService],
-    templateUrl: 'dist/html/contextmenu.component.html'
+    template: template
 })
 
 export class ContextMenu {

@@ -12,6 +12,7 @@ import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData } from './interfaces';
 const pd = require('pretty-data').pd;
+const fs = require('fs');
 
 const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
 
@@ -70,6 +71,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
+            let prod;
+            try {
+                fs.accessSync(path.join(LocalWebService.staticContentPath, Constants.contentProviderMinFile), fs.F_OK);
+                prod = true;
+            } catch (e) {
+                prod = false;
+            }
             let editorConfig = self._vscodeWrapper.getConfiguration('editor');
             let fontfamily = editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
             let fontsize = editorConfig.get<number>('fontSize') + 'px';
@@ -82,7 +90,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     color: color,
                     fontfamily: fontfamily,
                     fontsize: fontsize,
-                    fontweight: fontweight
+                    fontweight: fontweight,
+                    prod: prod
                 }
             );
         });

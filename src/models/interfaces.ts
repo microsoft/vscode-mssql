@@ -229,6 +229,11 @@ export interface IDbColumn {
     isHidden?: boolean;
     isIdentity?: boolean;
     isKey?: boolean;
+    isBytes?: boolean;
+    isChars?: boolean;
+    isSqlVariant?: boolean;
+    isUdt?: boolean;
+    dataType: string;
     isXml?: boolean;
     isJson?: boolean;
     isLong?: boolean;
