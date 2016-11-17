@@ -100,7 +100,7 @@ const template = `
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
                 </template>
-                <tr>
+                <tr *ngIf="complete">
                     <td></td>
                     <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapseExecution))}}</td>
                 </tr>
@@ -108,7 +108,7 @@ const template = `
             <tbody *ngIf="messages.length === 0">
                 <tr>
                     <td>[{{startString}}]</td>
-                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"> <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
+                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"><span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
                 </tr>
             </tbody>
         </table>
@@ -237,7 +237,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     // FIELDS
     // All datasets
-    public dataSets: IGridDataSet[] = [];
+    private dataSets: IGridDataSet[] = [];
     // Place holder data sets to buffer between data sets and rendered data sets
     private placeHolderDataSets: IGridDataSet[] = [];
     // Datasets currently being rendered on the DOM
