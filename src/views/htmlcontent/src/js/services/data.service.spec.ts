@@ -9,7 +9,7 @@ import mockGetRows1 from './../testResources/mockGetRows1.spec';
 import mockConfig1 from './../testResources/mockConfig1.spec';
 import mockBatch1 from './../testResources/mockBatch2.spec';
 
-function getParamsFromUrl(url: string) {
+function getParamsFromUrl(url: string): any {
     let paramString = url.split('?')[1];
     let params = paramString.split('&');
     let paramSplits = params.map<string[]>((param: string): string[] => {

@@ -651,5 +651,56 @@ describe('AppComponent', function (): void {
                 done();
             });
         });
+
+        it('event prev grid', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <ShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.prevGrid'));
+            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            comp.navigateToGrid(1);
+            let currentSlickGrid;
+            let targetSlickGrid;
+            targetSlickGrid = comp.slickgrids.toArray()[0];
+            currentSlickGrid = comp.slickgrids.toArray()[1];
+            spyOn(targetSlickGrid, 'setActive');
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(targetSlickGrid.setActive).toHaveBeenCalled();
+                expect(currentSlickGrid._selection).toBe(false);
+                done();
+            });
+        });
+
+        it('event select all', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let slickgrid;
+            slickgrid = comp.slickgrids.toArray()[0];
+            comp.handleContextClick({type: 'selectall', batchId: 0, resultId: 0, index: 0, selection: []});
+            fixture.detectChanges();
+            expect(slickgrid._selection).toBe(true);
+        });
     });
 });

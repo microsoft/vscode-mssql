@@ -534,7 +534,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 }
             } else {
                 let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
-                let tabHeight = document.getElementById('results').offsetHeight;
+                let tabHeight = self._el.nativeElement.querySelector('#results').offsetHeight;
                 let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
                     + ((scrollTop % gridHeight) / gridHeight));
                 let min = Math.floor(scrollTop / gridHeight);
@@ -572,8 +572,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     setupResizeBind(): void {
         const self = this;
-        let $resizeHandle = $(document.getElementById('messageResizeHandle'));
-        let $messagePane = $(document.getElementById('messages'));
+        let $resizeHandle = $(self._el.nativeElement.querySelector('#messageResizeHandle'));
+        let $messagePane = $(self._el.nativeElement.querySelector('#messages'));
         $resizeHandle.bind('dragstart', (e) => {
             self.resizing = true;
             self.resizeHandleTop = e.pageY;
@@ -597,7 +597,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Ensures the messages tab is scrolled to the bottom
      */
     scrollMessages(): void {
-        let messagesDiv = document.getElementById('messages');
+        let messagesDiv = this._el.nativeElement.querySelector('#messages');
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
