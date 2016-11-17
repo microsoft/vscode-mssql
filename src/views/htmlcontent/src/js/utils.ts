@@ -58,8 +58,9 @@ export function parseNumAsTimeString(value: number): string {
     let hs = h < 10 ? '0' + h : '' + h;
     let ms = m < 10 ? '0' + m : '' + m;
     let ss = s < 10 ? '0' + s : '' + s;
+    let mss = tempVal < 10 ? '00' + tempVal : tempVal < 100 ? '0' + tempVal : '' + tempVal;
 
     let rs = hs + ':' + ms + ':' + ss;
 
-    return tempVal > 0 ? rs + '.' + tempVal : rs;
+    return tempVal > 0 ? rs + '.' + mss : rs;
 }

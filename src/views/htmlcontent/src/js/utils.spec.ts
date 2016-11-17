@@ -23,4 +23,13 @@ describe('utils', () => {
             expect(Utils.parseTimeString('0:0:0.0')).toEqual(0);
         });
     });
+
+    describe('parseNumAsTimeString', () => {
+        it('returns the correct value', () => {
+            expect(Utils.parseNumAsTimeString(8010000)).toEqual('02:13:30');
+            expect(Utils.parseNumAsTimeString(220)).toEqual('00:00:00.220');
+            expect(Utils.parseNumAsTimeString(0)).toEqual('00:00:00');
+            expect(Utils.parseNumAsTimeString(5002)).toEqual('00:00:05.002');
+        });
+    });
 });
