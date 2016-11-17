@@ -22,7 +22,7 @@ const WS_URL = 'ws://localhost:' + window.location.port + '/';
 @Injectable()
 export class DataService {
     private uri: string;
-    private ws: WebSocket;
+    public ws: WebSocket;
     public dataEventObs: Subject<WebSocketEvent>;
     private _shortcuts;
     private _config;
@@ -157,9 +157,9 @@ export class DataService {
             return new Promise<{[key: string]: string}>((resolve, reject) => {
                 self.http.get('/config').map((res): IResultsConfig => {
                     return res.json();
-                }).subscribe((result) => {
-                    self._shortcuts = result.resultShortcuts;
-                    delete result.resultShortcuts;
+                }).subscribe((result: IResultsConfig) => {
+                    self._shortcuts = result.shortcuts;
+                    delete result.shortcuts;
                     self._config = result;
                     resolve(self._config);
                 });

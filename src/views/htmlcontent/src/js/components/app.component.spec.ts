@@ -3,18 +3,31 @@ import { Component, Directive, Input, Output, EventEmitter } from '@angular/core
 import { ISlickRange, IColumnDefinition, IObservableCollection, IGridDataRow } from 'angular2-slickgrid';
 import { Observable, Subject, Observer } from 'rxjs/Rx';
 
-import { WebSocketEvent } from './../interfaces';
+import { WebSocketEvent, ResultSetSubset } from './../interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { AppComponent } from './app.component';
 import * as Constants from './../constants';
 
-import batch from './../testResources/mockBatch1.spec';
+import batch1 from './../testResources/mockBatch1.spec';
+import batch2 from './../testResources/mockBatch2.spec';
+
+const completeEvent = {
+    type: 'complete'
+};
+
+function sendDataSets(ds: MockDataService, set: WebSocketEvent, count: number): void {
+    for (let i = 0; i < count; i++) {
+        let tempset = <WebSocketEvent> JSON.parse(JSON.stringify(set));
+        tempset.data.id = i;
+        ds.sendWSEvent(tempset);
+    }
+}
 
 // Mock Setup
 class MockDataService {
     private _config = {
-        'mssql.messagesDefaultOpen': true
+        'messagesDefaultOpen': true
     };
     private ws: WebSocket;
     public dataEventObs: Subject<WebSocketEvent>;
@@ -55,6 +68,23 @@ class MockDataService {
             data: JSON.stringify(data)
         }));
     }
+
+    public openLink(content: string, columnName: string, linkType: string): void {
+        // No op
+    }
+
+    public getRows(start: number, numberOfRows: number, batchId: number, resultId: number): Observable<ResultSetSubset> {
+        // no op
+        return undefined;
+    }
+
+    public sendSaveRequest(batchIndex: number, resultSetNumber: number, format: string, selection: ISlickRange[]): void {
+        // no op
+    }
+
+    public copyResults(selection: ISlickRange[], batchId: number, resultId: number): void {
+        // no op
+    }
 }
 
 class MockShortcutService {
@@ -66,8 +96,17 @@ class MockShortcutService {
     stringCodeFor(event: string): Promise<string> {
         return Promise.resolve(this._shortcuts[event]);
     }
+
+    getEvent(event: string): Promise<string> {
+        return;
+    }
+
+    buildEventString(event: string): string {
+        return;
+    }
 }
 
+// MockSlickgrid
 @Component({
     selector: 'slick-grid',
     template: ''
@@ -95,6 +134,20 @@ class MockSlickGrid {
     @Input() topRowNumber: number;
     @Output() topRowNumberChange: EventEmitter<number> = new EventEmitter<number>();
 
+    public _selection: ISlickRange[] | boolean;
+
+    public getSelectedRanges(): ISlickRange[] {
+        return [];
+    }
+
+    public setActive(): void {
+        return;
+    }
+
+    public set selection(input: ISlickRange[] | boolean) {
+        this._selection = input;
+    }
+
 }
 
 @Component({
@@ -104,6 +157,14 @@ class MockSlickGrid {
 class MockContextMenu {
     @Output() clickEvent: EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>
         = new EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>();
+
+    public emitEvent(event: {type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}): void {
+        this.clickEvent.emit(event);
+    }
+
+    public show(x: number, y: number, batchId: number, resultId: number, index: number, selection: ISlickRange[]): void {
+        // No op
+    }
 }
 
 @Directive({
@@ -126,7 +187,7 @@ class MockMouseDownDirective {
 describe('AppComponent', function (): void {
     let fixture: ComponentFixture<AppComponent>;
     let comp: AppComponent;
-    let ele: Element;
+    let ele: HTMLElement;
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
@@ -147,7 +208,7 @@ describe('AppComponent', function (): void {
         });
     }));
 
-    describe('basic behaviors', () => {
+    describe('basic startup', () => {
 
         beforeEach(async(() => {
             fixture = TestBed.createComponent<AppComponent>(AppComponent);
@@ -186,11 +247,409 @@ describe('AppComponent', function (): void {
 
         it('should have initilized the grids correctly', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batch);
+            dataService.sendWSEvent(batch2);
             fixture.detectChanges();
             let results = ele.querySelector('#results');
             expect(results).not.toBeNull('results pane is not visible');
             expect(results.getElementsByTagName('slick-grid').length).toEqual(1);
+        });
+    });
+
+    describe('basic behavior', () => {
+
+        beforeEach(async(() => {
+            fixture = TestBed.createComponent<AppComponent>(AppComponent);
+            fixture.detectChanges();
+            comp = fixture.componentInstance;
+            ele = fixture.nativeElement;
+        }));
+
+        it('should not hide message pane on click when there is no data', () => {
+            let messages = <HTMLElement> ele.querySelector('#messages');
+            expect(messages).not.toBeNull();
+            expect(messages.className.indexOf('hidden')).toEqual(-1, 'messages not visible');
+            messages.click();
+            fixture.detectChanges();
+            expect(messages.className.indexOf('hidden')).toEqual(-1, 'messages not visible');
+        });
+
+        it('should hide message pane on click when there is data', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let messages = <HTMLElement> ele.querySelector('#messages');
+            expect(messages).not.toBeNull();
+            expect(messages.className.indexOf('hidden')).toEqual(-1, 'messages not visible');
+            let messagePane = <HTMLElement> ele.querySelector('#messagepane');
+            messagePane.click();
+            fixture.detectChanges();
+            expect(messages.className.indexOf('hidden')).not.toEqual(-1);
+        });
+
+        it('should hide the results pane on click when there is data', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let results = <HTMLElement> ele.querySelector('#results');
+            expect(results).not.toBeNull('results pane is not visible');
+            expect(results.className.indexOf('hidden')).toEqual(-1);
+            let resultspane = <HTMLElement> ele.querySelector('#resultspane');
+            resultspane.click();
+            fixture.detectChanges();
+            expect(results.className.indexOf('hidden')).not.toEqual(-1);
+        });
+
+        it('should render all grids when there are alot but only subset of data', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            sendDataSets(dataService, batch1, 20);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let slickgrids = ele.querySelectorAll('slick-grid');
+            expect(slickgrids.length).toEqual(20);
+        });
+
+        it('should render all grids when there are alot but only subset of data', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            sendDataSets(dataService, batch1, 20);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let slickgrids = ele.querySelectorAll('slick-grid');
+            expect(slickgrids.length).toEqual(20);
+        });
+
+        it('should open context menu when event is fired', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let contextmenu = comp.contextMenu;
+            let slickgrid = comp.slickgrids.toArray()[0];
+            spyOn(contextmenu, 'show');
+            spyOn(slickgrid, 'getSelectedRanges').and.returnValue([]);
+            slickgrid.contextMenu.emit({x: 20, y: 20});
+            expect(slickgrid.getSelectedRanges).toHaveBeenCalled();
+            expect(contextmenu.show).toHaveBeenCalledWith(20, 20, 0, 0, 0, []);
+        });
+    });
+
+    describe('test icons', () => {
+        beforeEach(async(() => {
+            fixture = TestBed.createComponent<AppComponent>(AppComponent);
+            fixture.detectChanges();
+            comp = fixture.componentInstance;
+            ele = fixture.nativeElement;
+        }));
+
+        it('should send save requests when the icons are clicked', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            spyOn(dataService, 'sendSaveRequest');
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let icons = ele.querySelectorAll('.gridIcon');
+            expect(icons.length).toEqual(2);
+            let csvIcon = <HTMLElement> icons[0].firstElementChild;
+            csvIcon.click();
+            expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'csv', []);
+            let jsonIcon = <HTMLElement> icons[1].firstElementChild;
+            jsonIcon.click();
+            expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'json', []);
+        });
+
+        it('should have maximized the grid when the icon is clicked', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let slickgrids = ele.querySelectorAll('slick-grid');
+            expect(slickgrids.length).toEqual(2);
+            let icons = ele.querySelectorAll('.gridIcon');
+            let maximizeicon = <HTMLElement> icons[0].firstElementChild;
+            maximizeicon.click();
+            setTimeout(() => {
+                fixture.detectChanges();
+                slickgrids = ele.querySelectorAll('slick-grid');
+                expect(slickgrids.length).toEqual(1);
+                done();
+            }, 100);
+
+        });
+    });
+
+    describe('test events', () => {
+
+        beforeEach(async(() => {
+            fixture = TestBed.createComponent<AppComponent>(AppComponent);
+            fixture.detectChanges();
+            comp = fixture.componentInstance;
+            ele = fixture.nativeElement;
+        }));
+
+        it('correctly handles custom events', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleResultPane'));
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let results = <HTMLElement> ele.querySelector('#results');
+            let event = new CustomEvent('gridnav', {
+                            detail: {
+                                which: 70,
+                                ctrlKey: true,
+                                metaKey: true,
+                                shiftKey: true,
+                                altKey: true
+                            }
+                        });
+            window.dispatchEvent(event);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(results).not.toBeNull('message pane is not visible');
+                expect(results.className.indexOf('hidden')).not.toEqual(-1);
+                done();
+            }, 100);
+        });
+
+        it('event toggle result pane', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleResultPane'));
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let results = <HTMLElement> ele.querySelector('#results');
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(results).not.toBeNull('message pane is not visible');
+                expect(results.className.indexOf('hidden')).not.toEqual(-1);
+                done();
+            }, 100);
+        });
+
+        it('event toggle message pane', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleMessagePane'));
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let messages = <HTMLElement> ele.querySelector('#messages');
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(messages).not.toBeNull('message pane is not visible');
+                expect(messages.className.indexOf('hidden')).not.toEqual(-1);
+                done();
+            }, 100);
+        });
+
+        it('event copy selection', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copySelection'));
+            spyOn(dataService, 'copyResults');
+            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0);
+                done();
+            }, 100);
+        });
+
+        it('event maximize grid', (done) => {
+
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.maximizeGrid'));
+            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let slickgrids = ele.querySelectorAll('slick-grid');
+            expect(slickgrids.length).toEqual(2);
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                slickgrids = ele.querySelectorAll('slick-grid');
+                expect(slickgrids.length).toEqual(1);
+                done();
+            }, 100);
+        });
+
+        it('event save as json', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsJSON'));
+            spyOn(dataService, 'sendSaveRequest');
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'json', []);
+                done();
+            }, 100);
+        });
+
+        it('event save as csv', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsCSV'));
+            spyOn(dataService, 'sendSaveRequest');
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'csv', []);
+                done();
+            }, 100);
+        });
+
+        it('event next grid', (done) => {
+
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <ShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.nextGrid'));
+            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let currentSlickGrid;
+            let targetSlickGrid;
+            targetSlickGrid = comp.slickgrids.toArray()[1];
+            currentSlickGrid = comp.slickgrids.toArray()[0];
+            spyOn(targetSlickGrid, 'setActive');
+            let keyboardEvent = document.createEvent('KeyboardEvent');
+            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+            keyboardEvent[initMethod](
+                            'keydown', // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                false, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                40, // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+            ele.dispatchEvent(keyboardEvent);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(targetSlickGrid.setActive).toHaveBeenCalled();
+                expect(currentSlickGrid._selection).toBe(false);
+                done();
+            });
         });
     });
 });

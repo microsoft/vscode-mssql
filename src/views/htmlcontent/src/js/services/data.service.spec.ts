@@ -3,8 +3,11 @@ import { Http, BaseRequestOptions, RequestMethod, ResponseOptions, Response, Req
 import { MockBackend, MockConnection } from '@angular/http/testing';
 
 import { DataService } from './data.service';
+import { IResultsConfig } from './../interfaces';
 
 import mockGetRows1 from './../testResources/mockGetRows1.spec';
+import mockConfig1 from './../testResources/mockConfig1.spec';
+import mockBatch1 from './../testResources/mockBatch2.spec';
 
 function getParamsFromUrl(url: string) {
     let paramString = url.split('?')[1];
@@ -174,9 +177,46 @@ describe('data service', () => {
 
     describe('get config', () => {
         it('returns correct data on first request', (done) => {
+            let config = <IResultsConfig> JSON.parse(JSON.stringify(mockConfig1));
+            delete config.shortcuts;
             mockbackend.connections.subscribe((conn: MockConnection) => {
-
+                let isConfigRequest = urlMatch(conn.request, /\/config/, RequestMethod.Get);
+                expect(isConfigRequest).toBe(true);
+                conn.mockRespond(new Response(new ResponseOptions({body: JSON.stringify(mockConfig1)})));
             });
+
+            dataservice.config.then((result) => {
+                expect(result).toEqual(config);
+                done();
+            });
+        });
+    });
+
+    describe('get shortcuts', () => {
+        it('returns correct data on first request', (done) => {
+            mockbackend.connections.subscribe((conn: MockConnection) => {
+                let isConfigRequest = urlMatch(conn.request, /\/config/, RequestMethod.Get);
+                expect(isConfigRequest).toBe(true);
+                conn.mockRespond(new Response(new ResponseOptions({body: JSON.stringify(mockConfig1)})));
+            });
+
+            dataservice.shortcuts.then((result) => {
+                expect(result).toEqual(mockConfig1.shortcuts);
+                done();
+            });
+        });
+    });
+
+    describe('websocket', () => {
+        it('correctly sends event on websocket event', (done) => {
+            dataservice.dataEventObs.subscribe((result) => {
+                expect(result).toEqual(mockBatch1);
+                done();
+            });
+
+            dataservice.ws.dispatchEvent(new MessageEvent('message', {
+                data: JSON.stringify(mockBatch1)
+            }));
         });
     });
 });

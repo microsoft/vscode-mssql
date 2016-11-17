@@ -46,7 +46,7 @@ interface IMessages {
     // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
-    <div *ngIf="dataSets.length > 0" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
+    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
@@ -54,7 +54,7 @@ const template = `
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
-            <slick-grid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+            <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
@@ -77,13 +77,13 @@ const template = `
             </span>
         </div>
     </div>
-    <context-menu (clickEvent)="handleContextClick($event)"></context-menu>
-    <div class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
+    <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
+    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length == 0">
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0">
         <br>
         <table id="messageTable">
             <colgroup>
@@ -237,7 +237,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     // FIELDS
     // All datasets
-    private dataSets: IGridDataSet[] = [];
+    public dataSets: IGridDataSet[] = [];
     // Place holder data sets to buffer between data sets and rendered data sets
     private placeHolderDataSets: IGridDataSet[] = [];
     // Datasets currently being rendered on the DOM
@@ -261,8 +261,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resultShortcut;
     private totalElapseExecution: number;
     private complete = false;
-    @ViewChild(ContextMenu) contextMenu: ContextMenu;
-    @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
+    @ViewChild('contextmenu') contextMenu: ContextMenu;
+    @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
 
     set messageActive(input: boolean) {
         this._messageActive = input;
@@ -640,14 +640,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 e.stopImmediatePropagation();
             }
         });
-    }
-
-    /**
-     * Obtains the index in the slickgrids array which is currently focused
-     * @returns The index in the local slickgrids array that is currently focused
-     */
-    getActiveGridIndex(): number {
-        return parseInt($(document.activeElement).parent().parent().attr('id').split('_')[1], 10);
     }
 
     /**
