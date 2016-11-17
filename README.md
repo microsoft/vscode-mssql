@@ -12,10 +12,15 @@ Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for
 * Save the result to json or csv file format and view in the editor.
 * Customizable extension options including command shortcuts and more.
 
-    <img src="./images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+See [the mssql extension tutorial] for the step by step guide.
+
+See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
+
+<img src="./images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+
 
 ## Using
-See [the mssql extension tutorial] for the step by step guide.
+
 * First, install [Visual Studio Code] then install **mssql** extension by pressing **F1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
     * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instructions].
 * Open an existing file with a .sql file extenion or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**. **mssql** commands and funtionalities are enabled in the SQL language mode in Visual Studioc Code editor.
@@ -89,7 +94,8 @@ The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy
 ## License
 This extension is [licensed under the MIT License]. Please see the [third-party notices]file for additional copyright notices and license terms applicable to portions of the software.
 
-[the mssql extension tutorial]:https://github.com/Microsoft/vscode-mssql/wiki/getting-started
+[the mssql extension tutorial]:https://aka.ms/mssql-getting-started
+[the SQL Developer tutorial]: http://aka.ms/sqldev
 [Visual Studio Code]: https://code.visualstudio.com/#alt-downloads
 [DotNet Core instructions]:https://www.microsoft.com/net/core
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
