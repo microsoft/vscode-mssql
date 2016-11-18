@@ -3,13 +3,13 @@ import { Component, Directive, Input, Output, EventEmitter } from '@angular/core
 import { ISlickRange, IColumnDefinition, IObservableCollection, IGridDataRow } from 'angular2-slickgrid';
 import { Observable, Subject, Observer } from 'rxjs/Rx';
 
-import { WebSocketEvent, ResultSetSubset } from './../interfaces';
-import { DataService } from './../services/data.service';
-import { ShortcutService } from './../services/shortcuts.service';
-import { AppComponent } from './app.component';
-import * as Constants from './../constants';
-import batch1 from './../testResources/mockBatch1.spec';
-import batch2 from './../testResources/mockBatch2.spec';
+import { WebSocketEvent, ResultSetSubset } from './../src/js/interfaces';
+import { DataService } from './../src/js/services/data.service';
+import { ShortcutService } from './../src/js/services/shortcuts.service';
+import { AppComponent } from './../src/js/components/app.component';
+import * as Constants from './../src/js/constants';
+import batch1 from './testResources/mockBatch1.spec';
+import batch2 from './testResources/mockBatch2.spec';
 
 const completeEvent = {
     type: 'complete'
@@ -21,6 +21,26 @@ function sendDataSets(ds: MockDataService, set: WebSocketEvent, count: number): 
         tempset.data.id = i;
         ds.sendWSEvent(tempset);
     }
+}
+
+
+function triggerKeyEvent(key: number, ele: HTMLElement): void {
+    let keyboardEvent = document.createEvent('KeyboardEvent');
+    let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
+
+    keyboardEvent[initMethod](
+                    'keydown', // event type : keydown, keyup, keypress
+                        true, // bubbles
+                        true, // cancelable
+                        window, // viewArg: should be window
+                        false, // ctrlKeyArg
+                        false, // altKeyArg
+                        false, // shiftKeyArg
+                        false, // metaKeyArg
+                        key, // keyCodeArg : unsigned long the virtual key code, else 0
+                        0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+    );
+    ele.dispatchEvent(keyboardEvent);
 }
 
 // Mock Setup
@@ -423,22 +443,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let results = <HTMLElement> ele.querySelector('#results');
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(results).not.toBeNull('message pane is not visible');
@@ -456,22 +461,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let messages = <HTMLElement> ele.querySelector('#messages');
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(messages).not.toBeNull('message pane is not visible');
@@ -489,22 +479,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(batch1);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0);
@@ -524,22 +499,7 @@ describe('AppComponent', function (): void {
             fixture.detectChanges();
             let slickgrids = ele.querySelectorAll('slick-grid');
             expect(slickgrids.length).toEqual(2);
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 slickgrids = ele.querySelectorAll('slick-grid');
@@ -557,22 +517,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(batch2);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'json', []);
@@ -589,22 +534,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(batch2);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'csv', []);
@@ -627,22 +557,7 @@ describe('AppComponent', function (): void {
             targetSlickGrid = comp.slickgrids.toArray()[1];
             currentSlickGrid = comp.slickgrids.toArray()[0];
             spyOn(targetSlickGrid, 'setActive');
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(targetSlickGrid.setActive).toHaveBeenCalled();
@@ -666,22 +581,7 @@ describe('AppComponent', function (): void {
             targetSlickGrid = comp.slickgrids.toArray()[0];
             currentSlickGrid = comp.slickgrids.toArray()[1];
             spyOn(targetSlickGrid, 'setActive');
-            let keyboardEvent = document.createEvent('KeyboardEvent');
-            let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-            keyboardEvent[initMethod](
-                            'keydown', // event type : keydown, keyup, keypress
-                                true, // bubbles
-                                true, // cancelable
-                                window, // viewArg: should be window
-                                false, // ctrlKeyArg
-                                false, // altKeyArg
-                                false, // shiftKeyArg
-                                false, // metaKeyArg
-                                40, // keyCodeArg : unsigned long the virtual key code, else 0
-                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-            );
-            ele.dispatchEvent(keyboardEvent);
+            triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(targetSlickGrid.setActive).toHaveBeenCalled();

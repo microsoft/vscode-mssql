@@ -1,7 +1,7 @@
 import { TestBed, async } from '@angular/core/testing';
 import { ValueProvider } from '@angular/core';
-import { ShortcutService } from './shortcuts.service';
-import { DataService } from './data.service';
+import { ShortcutService } from './../src/js/services/shortcuts.service';
+import { DataService } from './../src/js/services/data.service';
 
 const WINDOW_PROVIDER: ValueProvider = {
     provide: Window,

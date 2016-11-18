@@ -1,6 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { ContextMenu } from './contextmenu.component';
-import { ShortcutService } from './../services/shortcuts.service';
+import { ContextMenu } from './../src/js/components/contextmenu.component';
+import { ShortcutService } from './../src/js/services/shortcuts.service';
 
 class MockShortCutService {
     private keyToString = {

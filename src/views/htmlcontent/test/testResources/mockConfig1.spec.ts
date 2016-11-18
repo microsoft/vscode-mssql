@@ -1,4 +1,4 @@
-import { IResultsConfig } from './../interfaces';
+import { IResultsConfig } from './../../src/js/interfaces';
 
 const config: IResultsConfig = {
     shortcuts: {

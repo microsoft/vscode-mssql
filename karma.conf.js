@@ -7,8 +7,8 @@ module.exports = function(config) {
   var appSrcBase = 'src/views/htmlcontent/src/js/';       // app source TS files
   var appAssets  = 'base/out/src/views/htmlcontent/'; // component assets fetched by Angular's compiler
 
-  var testBase    = 'out/test/angular/';       // transpiled test JS and map files
-  var testSrcBase = 'test/angular/';       // test source TS files
+  var testBase    = 'out/src/views/htmlcontent/test/';       // transpiled test JS and map files
+  var testSrcBase = 'src/views/htmlcontent/test/';       // test source TS files
 
   config.set({
     basePath: path.join(__dirname),
@@ -87,7 +87,8 @@ module.exports = function(config) {
     // Proxied base paths for loading assets
     proxies: {
       // required for component assets fetched by Angular's compiler
-      "/dist/": 'base/out/src/views/htmlcontent/dist/'
+      "/dist/": 'base/out/src/views/htmlcontent/dist/',
+      "/base/out/src/views/htmlcontent/src/": '/base/out/src/views/htmlcontent/dist/'
     },
 
     exclude: [],

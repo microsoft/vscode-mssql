@@ -1,4 +1,4 @@
-import { WebSocketEvent } from './../interfaces';
+import { WebSocketEvent } from './../../src/js/interfaces';
 
 const batch: WebSocketEvent = {
   type: 'batch',

@@ -1,4 +1,4 @@
-import * as Utils from './utils';
+import * as Utils from './../src/js/utils';
 
 describe('utils', () => {
     describe('parseTimeString', () => {
