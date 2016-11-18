@@ -84,7 +84,7 @@ export default class ServiceDownloadProvider {
                 // handle redirection
                 if (res.statusCode === 302) {
                     return this.download(res.headers.location).then(result => {
-                        return resolve(res);
+                        return resolve(result);
                     });
                 } else if (res.statusCode !== 200) {
                     return reject(Error(`Download failed with code ${res.statusCode}.`));
