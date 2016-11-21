@@ -2,12 +2,12 @@ import { TestBed, async } from '@angular/core/testing';
 import { Http, BaseRequestOptions, RequestMethod, ResponseOptions, Response, Request } from '@angular/http';
 import { MockBackend, MockConnection } from '@angular/http/testing';
 
-import { DataService } from './data.service';
-import { IResultsConfig } from './../interfaces';
+import { DataService } from './../src/js/services/data.service';
+import { IResultsConfig } from './../src/js/interfaces';
 
-import mockGetRows1 from './../testResources/mockGetRows1.spec';
-import mockConfig1 from './../testResources/mockConfig1.spec';
-import mockBatch1 from './../testResources/mockBatch2.spec';
+import mockGetRows1 from './testResources/mockGetRows1.spec';
+import mockConfig1 from './testResources/mockConfig1.spec';
+import mockBatch1 from './testResources/mockBatch2.spec';
 
 function getParamsFromUrl(url: string): any {
     let paramString = url.split('?')[1];

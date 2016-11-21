@@ -1,4 +1,4 @@
-import { ResultSetSubset } from './../interfaces';
+import { ResultSetSubset } from './../../src/js/interfaces';
 
 const rows: ResultSetSubset = {
     rowCount: 50,

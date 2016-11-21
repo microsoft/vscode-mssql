@@ -1,6 +1,6 @@
 {
     "service": {
-        "downloadUrl": "http://dtnuget:8080/download/microsoft.sqltools.servicelayer/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
+        "downloadUrl": "https://github.com/Microsoft/sqltoolsservice/releases/download/v{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
         "version": "0.1.4",
         "downloadFileNames": {
             "Windows": "win-x64-netcoreapp1.0.zip",
