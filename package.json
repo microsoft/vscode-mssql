@@ -185,12 +185,6 @@
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus && editorLangId == 'sql'"
-      },
-      {
-        "command": "extension.chooseDatabase",
-        "key": "ctrl+shift+u",
-        "mac": "cmd+shift+u",
-        "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],
     "configuration": {
