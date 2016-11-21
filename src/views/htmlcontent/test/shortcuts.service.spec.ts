@@ -68,13 +68,13 @@ describe('shortcut service', () => {
         it('should return correct stringCodes', (done) => {
             let testPromises = [];
             testPromises.push(shortcutService.stringCodeFor('event.toggleMessagePane').then((result) => {
-                expect(result).toMatch(/(Ctrl\+alt\+y)|(⌘\+⌥\+y)/g);
+                expect(result).toMatch(/(Ctrl\+Alt\+y)|(⌘\+⌥\+y)/g);
             }));
             testPromises.push(shortcutService.stringCodeFor('event.prevGrid').then((result) => {
                 expect(result).toMatch(/(Ctrl\+up)|(⌘\+up)/g);
             }));
             testPromises.push(shortcutService.stringCodeFor('event.maximizeGrid').then((result) => {
-                expect(result).toMatch(/(Ctrl\+shift\+alt\+y)|(⌘\+⇧\+⌥\+y)/g);
+                expect(result).toMatch(/(Ctrl\+Shift\+Alt\+y)|(⌘\+⇧\+⌥\+y)/g);
             }));
             testPromises.push(shortcutService.stringCodeFor('event.selectAll').then((result) => {
                 expect(result).toMatch(/(Alt\+y)|(⌥\+y)/g);
