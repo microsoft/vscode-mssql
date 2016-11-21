@@ -3,7 +3,7 @@ import * as TypeMoq from 'typemoq';
 import {IConfig} from '../src/languageservice/interfaces';
 import ServiceDownloadProvider from '../src/languageservice/download';
 import Config from  '../src/configurations/config';
-import {Platform} from '../src/models/platform';
+import * as Platform from '../src/models/platform';
 import * as path from 'path';
 
 suite('ServiceDownloadProvider Tests', () => {
@@ -21,7 +21,7 @@ suite('ServiceDownloadProvider Tests', () => {
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
             let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.OSX);
+            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
@@ -35,7 +35,7 @@ suite('ServiceDownloadProvider Tests', () => {
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
             let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.OSX);
+            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
@@ -49,7 +49,7 @@ suite('ServiceDownloadProvider Tests', () => {
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
             let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.OSX);
+            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
@@ -63,7 +63,7 @@ suite('ServiceDownloadProvider Tests', () => {
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
             let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.OSX);
+            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
