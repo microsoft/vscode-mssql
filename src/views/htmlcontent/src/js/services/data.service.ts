@@ -119,11 +119,15 @@ export class DataService {
      * @param selection The selection range to copy
      * @param batchId The batch id of the result to copy from
      * @param resultId The result id of the result to copy from
+     * @param includeHeaders [Optional]: Should column headers be included in the copy selection
      */
-    copyResults(selection: ISlickRange[], batchId: number, resultId: number): void {
+    copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): void {
         const self = this;
         let headers = new Headers();
         let url = '/copyResults?' + '&uri=' + self.uri + '&batchId=' + batchId + '&resultId=' + resultId;
+        if (includeHeaders !== undefined) {
+            url += '&includeHeaders=' + includeHeaders;
+        }
         self.http.post(url, selection, { headers: headers }).subscribe();
     }
 

@@ -211,8 +211,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let uri = req.query.uri;
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
+            let includeHeaders = req.query.includeHeaders;
             let selection: Interfaces.ISlickRange[] = req.body;
-            self._queryResultsMap.get(uri).queryRunner.copyResults(selection, batchId, resultId).then(() => {
+            self._queryResultsMap.get(uri).queryRunner.copyResults(selection, batchId, resultId, includeHeaders).then(() => {
                 res.status = 200;
                 res.send();
             });

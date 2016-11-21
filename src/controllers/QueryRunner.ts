@@ -249,8 +249,9 @@ export default class QueryRunner {
      * @param selection The selection range array to copy
      * @param batchId The id of the batch to copy from
      * @param resultId The id of the result to copy from
+     * @param includeHeaders [Optional]: Should column headers be included in the copy selection
      */
-    public copyResults(selection: ISlickRange[], batchId: number, resultId: number): Promise<void> {
+    public copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): Promise<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             let copyString = '';
@@ -259,7 +260,7 @@ export default class QueryRunner {
             let tasks = selection.map((range, i) => {
                 return () => {
                     return self.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId).then((result) => {
-                        if (self.shouldIncludeHeaders()) {
+                        if (self.shouldIncludeHeaders(includeHeaders)) {
                             let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
                             if (columnHeaders !== undefined) {
                                 for (let header of columnHeaders) {
@@ -293,11 +294,14 @@ export default class QueryRunner {
         });
     }
 
-    private shouldIncludeHeaders(): boolean {
-        // get config option from vscode config
-        // use truthy conversion to evaluate
+    private shouldIncludeHeaders(includeHeaders: boolean): boolean {
+        if (includeHeaders !== undefined) {
+            // Respect the value explicity passed into the method
+            return includeHeaders;
+        }
+        // else get config option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-        let includeHeaders = config[Constants.copyIncludeHeaders];
+        includeHeaders = config[Constants.copyIncludeHeaders];
         return !!includeHeaders;
     }
 
