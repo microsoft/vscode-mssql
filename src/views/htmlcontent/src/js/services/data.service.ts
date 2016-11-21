@@ -21,8 +21,8 @@ const WS_URL = 'ws://localhost:' + window.location.port + '/';
 
 @Injectable()
 export class DataService {
-    private uri: string;
-    public ws: WebSocket;
+    uri: string;
+    private ws: WebSocket;
     public dataEventObs: Subject<WebSocketEvent>;
     private _shortcuts;
     private _config;
@@ -154,7 +154,7 @@ export class DataService {
         self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
     }
 
-    get config(): Promise<{[key: string]: any}> {
+    get config(): Promise<{[key: string]: string}> {
         const self = this;
         if (this._config) {
             return Promise.resolve(this._config);
@@ -162,9 +162,9 @@ export class DataService {
             return new Promise<{[key: string]: string}>((resolve, reject) => {
                 self.http.get('/config').map((res): IResultsConfig => {
                     return res.json();
-                }).subscribe((result: IResultsConfig) => {
-                    self._shortcuts = result.shortcuts;
-                    delete result.shortcuts;
+                }).subscribe((result) => {
+                    self._shortcuts = result.resultShortcuts;
+                    delete result.resultShortcuts;
                     self._config = result;
                     resolve(self._config);
                 });
