@@ -9,7 +9,7 @@ import * as https from 'https';
 import * as http from 'http';
 import * as stream from 'stream';
 import {parse} from 'url';
-import {Runtime} from '../models/platform';
+import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import {getProxyAgent} from './proxy';
 import * as path from 'path';
 import {IConfig, ILogger} from './interfaces';
@@ -103,7 +103,7 @@ export default class ServiceDownloadProvider {
         let basePath = this.getInstallDirectoryRoot();
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
         basePath = basePath.replace('{#version#}', versionFromConfig);
-        basePath = basePath.replace('{#platform#}', platform.toString());
+        basePath = basePath.replace('{#platform#}', getRuntimeDisplayName(platform));
         fse.mkdirsSync(basePath);
         return basePath;
     }

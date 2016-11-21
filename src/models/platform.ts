@@ -26,6 +26,33 @@ export enum Runtime {
     Ubuntu_16 = <any>'Ubuntu_16'
 }
 
+export function getRuntimeDisplayName(runtime: Runtime): string {
+    switch (runtime) {
+        case Runtime.Windows_7_64:
+            return 'Windows';
+        case Runtime.Windows_7_86:
+            return 'Windows';
+        case Runtime.OSX_10_11_64:
+            return 'OSX';
+        case Runtime.CentOS_7:
+            return 'CentOS';
+        case Runtime.Debian_8:
+            return 'Debian';
+        case Runtime.Fedora_23:
+            return 'Fedora';
+        case Runtime.OpenSUSE_13_2:
+            return 'OpenSUSE';
+        case Runtime.RHEL_7:
+            return 'RHEL';
+        case Runtime.Ubuntu_14:
+            return 'Ubuntu14';
+        case Runtime.Ubuntu_16:
+            return 'Ubuntu16';
+        default:
+        return 'Unknown';
+    }
+}
+
 export class PlatformInformation {
     public runtimeId: Runtime;
 
