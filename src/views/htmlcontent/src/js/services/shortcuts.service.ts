@@ -18,8 +18,7 @@ export class ShortcutService {
     shortcuts: { [key: string]: string };
     private waitPromise: Promise<void>;
 
-    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
-                @Inject(forwardRef(() => Window)) private window: Window) {
+    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService) {
         this.waitPromise = this.dataService.shortcuts.then((result) => {
             this.shortcuts = result;
         });
@@ -45,7 +44,7 @@ export class ShortcutService {
     private stringCodeForInternal(eventString: string): string {
         let keyString = this.shortcuts[eventString];
         if (keyString) {
-            let platString = this.window.navigator.platform;
+            let platString = window.navigator.platform;
 
             // find the current platform
             if (platString.match(/win/i)) {
@@ -72,12 +71,12 @@ export class ShortcutService {
         }
     }
 
-    getEvent(shortcut: string): Promise<string> {
+    getEvent(shortcut: string): Promise<string | boolean> {
         const self = this;
         if (this.shortcuts) {
             return Promise.resolve(this.getEventInternal(shortcut));
         } else {
-            return new Promise<string>((resolve, reject) => {
+            return new Promise<string | boolean>((resolve, reject) => {
                 self.waitPromise.then(() => {
                     resolve(self.getEventInternal(shortcut));
                 });
@@ -85,7 +84,7 @@ export class ShortcutService {
         }
     }
 
-    private getEventInternal(shortcut: string): string {
+    private getEventInternal(shortcut: string): string | boolean {
         for (let event in this.shortcuts) {
             if (this.shortcuts.hasOwnProperty(event)) {
                 if (this.shortcuts[event] === shortcut) {
@@ -93,7 +92,7 @@ export class ShortcutService {
                 }
             }
         }
-        return undefined;
+        return false;
     }
     /**
      * Builds a event string of ctrl, shift, alt, and a-z + up, down, left, right

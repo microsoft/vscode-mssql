@@ -5,13 +5,9 @@
         "shift": "⇧"
     },
     "windows": {
-        "ctrl": "Ctrl",
-        "alt": "Alt",
-        "shift": "Shift"
+
     },
     "linux": {
-        "ctrl": "Ctrl",
-        "alt": "Alt",
-        "shift": "Shift"
+
     }
 }

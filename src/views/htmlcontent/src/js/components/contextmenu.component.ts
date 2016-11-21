@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, Inject, forwardRef } from '@angular/core';
 import {ISlickRange} from 'angular2-slickgrid';
 
 import {ShortcutService} from './../services/shortcuts.service';
@@ -14,15 +14,14 @@ import * as Utils from './../utils';
  */
 
 const template = `
-<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top]="position.y" [style.left]="position.x">
+<ul class="contextMenu" style="display:none;position:absolute">
     <li id="savecsv" (click)="handleContextActionClick('savecsv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsCSV']}}</span></li>
     <li id="savejson" (click)="handleContextActionClick('savejson')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsJSON']}}</span></li>
     <li id="selectall" (click)="handleContextActionClick('selectall')" [class.disabled]="isDisabled"> {{Constants.selectAll}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.selectAll']}}</span></li>
-</ul>
-`;
+</ul>`;
 
 @Component({
     selector: 'context-menu',
@@ -30,7 +29,7 @@ const template = `
     template: template
 })
 
-export class ContextMenu implements OnInit {
+export class ContextMenu {
     // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
     // tslint:disable-next-line:no-unused-variable
@@ -43,8 +42,6 @@ export class ContextMenu implements OnInit {
     private index: number;
     private selection: ISlickRange[];
     private isDisabled: boolean;
-    private position: {x: number, y: number} = {x: 0, y: 0};
-    private visible: boolean = false;
     private keys = {
         'event.saveAsCSV': '',
         'event.saveAsJSON': '',
@@ -62,25 +59,20 @@ export class ContextMenu implements OnInit {
         }
     }
 
-    ngOnInit(): void {
-        const self = this;
-        $(document).on('click', () => {
-            self.hide();
-        });
-    }
-
     show(x: number, y: number, batchId: number, resultId: number, index: number, selection: ISlickRange[]): void {
         this.batchId = batchId;
         this.resultId = resultId;
         this.index = index;
         this.selection = selection;
         this.isDisabled = (selection.length > 1);
-        this.position = { x: x, y: y};
-        this.visible = true;
+        $('.contextMenu').css('top', y).css('left', x).show();
+        $('body').one('click', () => {
+            $('.contextMenu').hide();
+        });
     }
 
     hide(): void {
-        this.visible = false;
+        $('.contextMenu').hide();
     }
 
     handleContextActionClick( type: string ): void {
