@@ -39,6 +39,18 @@ gulp.task('html:compile-src', () => {
     .pipe(gulp.dest(config.paths.html.out + '/dist/js'));
 });
 
+gulp.task('html:compile-test', () => {
+  return gulp
+    .src([config.paths.html.root + '/test/**/*.ts',
+        config.paths.html.root + '/typings/**/*'])
+    .pipe(srcmap.init())
+    .pipe(ts(tsProject))
+    .pipe(srcmap.write('.', {
+        sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent'; }
+    }))
+    .pipe(gulp.dest(config.paths.html.out + '/test'));
+});
+
 // Generate systemjs-based builds
 gulp.task('html:bundle:app', (done) => {
     if (min) {
@@ -211,7 +223,7 @@ gulp.task('html:test', function (done) {
   }, done).start();
 });
 
-gulp.task('html:compile', gulp.series('html:compile-src'))
+gulp.task('html:compile', gulp.series('html:compile-src', 'html:compile-test'));
 
 gulp.task('html:app', gulp.series(['html:compile', 'html:copy:assets', 'html:bundle:app', 'html:min-js', 'html:bundle:css']));
 

@@ -7,8 +7,8 @@ module.exports = function(config) {
   var appSrcBase = 'src/views/htmlcontent/src/js/';       // app source TS files
   var appAssets  = 'base/out/src/views/htmlcontent/'; // component assets fetched by Angular's compiler
 
-  var testBase    = 'out/test/angular/';       // transpiled test JS and map files
-  var testSrcBase = 'test/angular/';       // test source TS files
+  var testBase    = 'out/src/views/htmlcontent/test/';       // transpiled test JS and map files
+  var testSrcBase = 'src/views/htmlcontent/test/';       // test source TS files
 
   config.set({
     basePath: path.join(__dirname),
@@ -19,18 +19,9 @@ module.exports = function(config) {
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'), // click "Debug" in browser to see it
-      require('karma-htmlfile-reporter'), // crashing w/ strange socket error
       require('karma-junit-reporter')
     ],
 
-    customLaunchers: {
-      // From the CLI. Not used here but interesting
-      // chrome setup for travis CI using chromium
-      Chrome_travis_ci: {
-        base: 'Chrome',
-        flags: ['--no-sandbox']
-      }
-    },
     files: [
       'out/src/views/htmlcontent/lib/js/jquery-1.7.min.js',
       'out/src/views/htmlcontent/lib/js/jquery.event.drag-2.2.js',
@@ -73,7 +64,6 @@ module.exports = function(config) {
       { pattern: 'out/src/views/htmlcontent/lib/js/@angular/**/*.js.map', included: false, watched: false },
 
       { pattern: 'out/src/views/htmlcontent/lib/js/systemjs.config.js', included: false, watched: false },
-      { pattern: 'out/src/views/htmlcontent/lib/js/systemjs.config.extras.js', included: false, watched: false },
       'karma-test-shim.js',
 
       // transpiled application & spec code paths loaded via module imports
@@ -97,25 +87,15 @@ module.exports = function(config) {
     // Proxied base paths for loading assets
     proxies: {
       // required for component assets fetched by Angular's compiler
-      "/dist/": 'base/out/src/views/htmlcontent/dist/'
+      "/dist/": 'base/out/src/views/htmlcontent/dist/',
+      "/base/out/src/views/htmlcontent/src/": '/base/out/src/views/htmlcontent/dist/'
     },
 
     exclude: [],
     preprocessors: {
       'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage',
     },
-    // disabled HtmlReporter; suddenly crashing w/ strange socket error
-    reporters: ['progress', 'coverage', 'karma-remap-istanbul', 'junit'],//'html'],
-
-    // HtmlReporter configuration
-    htmlReporter: {
-      // Open this file to see results in browser
-      outputFile: '_test-output/tests.html',
-
-      // Optional
-      pageTitle: 'Unit Tests',
-      subPageTitle: __dirname
-    },
+    reporters: ['progress', 'coverage', 'karma-remap-istanbul', 'junit'],
     coverageReporter: {
       dir : 'coverage/',
       reporters: [
@@ -124,7 +104,9 @@ module.exports = function(config) {
     },
     remapIstanbulReporter: {
       reports: {
-        json: 'coverage/coverage-html.json'
+        json: 'coverage/coverage-html.json',
+        // uncomment below for html only coverage
+        // html: 'coverage/htmlcoverage/'
       }
     },
     junitReporter: {
