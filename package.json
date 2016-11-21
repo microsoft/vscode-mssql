@@ -406,6 +406,11 @@
             "default": true,
             "description": "[Optional] When true, column headers are included in CSV"
           }
+        },
+        "mssql.copyIncludeHeaders": {
+          "type": "boolean",
+          "description": "[Optional] Configuration options for copying results from the Results View",
+          "default": false
         }
       }
     }

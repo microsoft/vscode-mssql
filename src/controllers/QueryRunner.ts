@@ -232,6 +232,18 @@ export default class QueryRunner {
         });
     }
 
+    private getColumnHeaders(batchId: number, resultId: number, range: ISlickRange): string[] {
+        let headers: string[] = undefined;
+        let batchSummary: BatchSummary = this.batchSets[batchId];
+        if (batchSummary !== undefined) {
+            let resultSetSummary = batchSummary.resultSetSummaries[resultId];
+            headers = resultSetSummary.columnInfo.slice(range.fromCell, range.toCell + 1).map((info, i) => {
+                return info.columnName;
+            });
+        }
+        return headers;
+    }
+
     /**
      * Copy the result range to the system clip-board
      * @param selection The selection range array to copy
@@ -242,10 +254,21 @@ export default class QueryRunner {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             let copyString = '';
+
             // create a mapping of the ranges to get promises
             let tasks = selection.map((range, i) => {
                 return () => {
                     return self.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId).then((result) => {
+                        if (self.shouldIncludeHeaders()) {
+                            let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
+                            if (columnHeaders !== undefined) {
+                                for (let header of columnHeaders) {
+                                    copyString += header + '\t';
+                                }
+                                copyString += '\r\n';
+                            }
+                        }
+
                         // iterate over the rows to paste into the copy string
                         for (let row of result.resultSubset.rows) {
                             // iterate over the cells we want from that row
@@ -268,6 +291,14 @@ export default class QueryRunner {
                 });
             });
         });
+    }
+
+    private shouldIncludeHeaders(): boolean {
+        // get config option from vscode config
+        // use truthy conversion to evaluate
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let includeHeaders = config[Constants.copyIncludeHeaders];
+        return !!includeHeaders;
     }
 
     /**
