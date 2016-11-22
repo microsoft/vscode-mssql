@@ -2,8 +2,8 @@
 // /*global jasmine, __karma__, window*/
 Error.stackTraceLimit = 0; // "No stacktrace"" is usually best for app testing.
 
-// Uncomment to get full stacktrace output. Sometimes helpful, usually not.
-Error.stackTraceLimit = Infinity; //
+// Uncomment to get full stacktrace output.
+// Error.stackTraceLimit = Infinity; //
 
 var builtPath = '/base/out/src/views/htmlcontent/dist/js/';
 
@@ -44,20 +44,8 @@ System.config({
 });
 
 System.import('lib/js/systemjs.config.js')
-  .then(importSystemJsExtras)
   .then(initTestBed)
   .then(initTesting);
-
-/** Optional SystemJS configuration extras. Keep going w/o it */
-function importSystemJsExtras(){
-  return System.import('lib/js/systemjs.config.extras.js')
-  .catch(function(reason) {
-    console.log(
-      'Warning: System.import could not load the optional "systemjs.config.extras.js". Did you omit it by accident? Continuing without it.'
-    );
-    console.log(reason);
-  });
-}
 
 function initTestBed(){
   return Promise.all([

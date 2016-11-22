@@ -107,6 +107,7 @@ export default class QueryRunner {
     public runQuery(selection: ISelectionData): Thenable<void> {
         this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
         const self = this;
+        this.batchSets = [];
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
             querySelection: selection
