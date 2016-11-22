@@ -381,6 +381,7 @@
             "event.prevGrid": "ctrl+up",
             "event.nextGrid": "ctrl+down",
             "event.copySelection": "ctrl+c",
+            "event.copyWithHeaders": "",
             "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",
@@ -400,6 +401,11 @@
             "default": true,
             "description": "[Optional] When true, column headers are included in CSV"
           }
+        },
+        "mssql.copyIncludeHeaders": {
+          "type": "boolean",
+          "description": "[Optional] Configuration options for copying results from the Results View",
+          "default": false
         }
       }
     }

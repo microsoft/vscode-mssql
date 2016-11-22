@@ -165,6 +165,12 @@ export class AppComponent implements OnInit, AfterViewChecked {
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
         },
+        'event.copyWithHeaders': () => {
+            let activeGrid = this.activeGrid;
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId,
+                this.renderedDataSets[activeGrid].resultId, true);
+        },
         'event.maximizeGrid': () => {
             this.magnify(this.activeGrid);
         },
@@ -441,6 +447,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'selectall':
                 this.activeGrid = event.index;
                 this.shortcutfunc['event.selectAll']();
+                break;
+            case 'copySelection':
+                this.dataService.copyResults(event.selection, event.batchId, event.resultId);
+                break;
+            case 'copyWithHeaders':
+                this.dataService.copyResults(event.selection, event.batchId, event.resultId, true);
+                break;
             default:
                 break;
         }

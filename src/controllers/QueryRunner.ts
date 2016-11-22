@@ -233,20 +233,44 @@ export default class QueryRunner {
         });
     }
 
+    private getColumnHeaders(batchId: number, resultId: number, range: ISlickRange): string[] {
+        let headers: string[] = undefined;
+        let batchSummary: BatchSummary = this.batchSets[batchId];
+        if (batchSummary !== undefined) {
+            let resultSetSummary = batchSummary.resultSetSummaries[resultId];
+            headers = resultSetSummary.columnInfo.slice(range.fromCell, range.toCell + 1).map((info, i) => {
+                return info.columnName;
+            });
+        }
+        return headers;
+    }
+
     /**
      * Copy the result range to the system clip-board
      * @param selection The selection range array to copy
      * @param batchId The id of the batch to copy from
      * @param resultId The id of the result to copy from
+     * @param includeHeaders [Optional]: Should column headers be included in the copy selection
      */
-    public copyResults(selection: ISlickRange[], batchId: number, resultId: number): Promise<void> {
+    public copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): Promise<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             let copyString = '';
+
             // create a mapping of the ranges to get promises
             let tasks = selection.map((range, i) => {
                 return () => {
                     return self.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId).then((result) => {
+                        if (self.shouldIncludeHeaders(includeHeaders)) {
+                            let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
+                            if (columnHeaders !== undefined) {
+                                for (let header of columnHeaders) {
+                                    copyString += header + '\t';
+                                }
+                                copyString += '\r\n';
+                            }
+                        }
+
                         // iterate over the rows to paste into the copy string
                         for (let row of result.resultSubset.rows) {
                             // iterate over the cells we want from that row
@@ -269,6 +293,17 @@ export default class QueryRunner {
                 });
             });
         });
+    }
+
+    private shouldIncludeHeaders(includeHeaders: boolean): boolean {
+        if (includeHeaders !== undefined) {
+            // Respect the value explicity passed into the method
+            return includeHeaders;
+        }
+        // else get config option from vscode config
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        includeHeaders = config[Constants.copyIncludeHeaders];
+        return !!includeHeaders;
     }
 
     /**

@@ -21,6 +21,10 @@ const template = `
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsJSON']}}</span></li>
     <li id="selectall" (click)="handleContextActionClick('selectall')" [class.disabled]="isDisabled"> {{Constants.selectAll}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.selectAll']}}</span></li>
+    <li id="copy" (click)="handleContextActionClick('copySelection')" [class.disabled]="isDisabled"> {{Constants.copyLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copySelection']}}</span></li>
+    <li id="copyWithHeaders" (click)="handleContextActionClick('copyWithHeaders')" [class.disabled]="isDisabled"> {{Constants.copyWithHeadersLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copyWithHeaders']}}</span></li>
 </ul>
 `;
 
@@ -48,7 +52,9 @@ export class ContextMenu implements OnInit {
     private keys = {
         'event.saveAsCSV': '',
         'event.saveAsJSON': '',
-        'event.selectAll': ''
+        'event.selectAll': '',
+        'event.copySelection': '',
+        'event.copyWithHeaders': ''
     };
 
     constructor(@Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService) {

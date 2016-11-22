@@ -6,7 +6,9 @@ class MockShortCutService {
     private keyToString = {
         'event.saveAsCSV': 'ctrl+s',
         'event.saveAsJSON': 'ctrl+shift+s',
-        'event.selectAll': 'ctrl+a'
+        'event.selectAll': 'ctrl+a',
+        'event.copySelection': 'ctrl+c',
+        'event.copyWithHeaders': 'ctrl+shift+c'
     };
     public stringCodeFor(value: string): Promise<string> {
         return Promise.resolve(this.keyToString[value]);
@@ -63,7 +65,7 @@ describe('context Menu', () => {
             comp.show(0, 0, 0, 0, 0, []);
             fixture.detectChanges();
             expect(ele.firstElementChild.className.indexOf('hidden')).toEqual(-1);
-            expect(ele.firstElementChild.childElementCount).toEqual(3);
+            expect(ele.firstElementChild.childElementCount).toEqual(5, 'expect 5 menu items to be present');
         });
 
         it('hides correctly', () => {

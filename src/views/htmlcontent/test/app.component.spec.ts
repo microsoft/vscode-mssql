@@ -481,6 +481,23 @@ describe('AppComponent', function (): void {
             }, 100);
         });
 
+        it('event copy with headers', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copyWithHeaders'));
+            spyOn(dataService, 'copyResults');
+            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            triggerKeyEvent(40, ele);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0, true);
+                done();
+            }, 100);
+        });
+
         it('event maximize grid', (done) => {
 
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);

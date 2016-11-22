@@ -110,6 +110,7 @@ describe('data service', () => {
                 let param = getParamsFromUrl(conn.request.url);
                 expect(param['batchId']).toEqual('0');
                 expect(param['resultId']).toEqual('0');
+                expect(param['includeHeaders']).toEqual(undefined);
                 let body = JSON.parse(conn.request.getBody());
                 expect(body).toBeDefined();
                 expect(body).toEqual([]);
@@ -117,6 +118,25 @@ describe('data service', () => {
             });
 
             dataservice.copyResults([], 0, 0);
+        });
+    });
+
+    describe('copy with headers request', () => {
+        it('correctly threads through the data', (done) => {
+            mockbackend.connections.subscribe((conn: MockConnection) => {
+                let isCopyRequest = urlMatch(conn.request, /\/copyResults/, RequestMethod.Post);
+                expect(isCopyRequest).toBe(true);
+                let param = getParamsFromUrl(conn.request.url);
+                expect(param['batchId']).toEqual('0');
+                expect(param['resultId']).toEqual('0');
+                expect(param['includeHeaders']).toEqual('true');
+                let body = JSON.parse(conn.request.getBody());
+                expect(body).toBeDefined();
+                expect(body).toEqual([]);
+                done();
+            });
+
+            dataservice.copyResults([], 0, 0, true);
         });
     });
 

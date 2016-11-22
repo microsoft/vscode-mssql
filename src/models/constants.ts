@@ -45,6 +45,7 @@ export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'dist/html/sqlOutput.ejs';
 export const contentProviderMinFile = 'dist/js/app.min.js';
 
+export const copyIncludeHeaders = 'copyIncludeHeaders';
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
 export const configSaveAsCsv = 'saveAsCsv';
