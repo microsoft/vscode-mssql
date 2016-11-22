@@ -6,7 +6,9 @@ class MockShortCutService {
     private keyToString = {
         'event.saveAsCSV': 'ctrl+s',
         'event.saveAsJSON': 'ctrl+shift+s',
-        'event.selectAll': 'ctrl+a'
+        'event.selectAll': 'ctrl+a',
+        'event.copySelection': 'ctrl+c',
+        'event.copyWithHeaders': 'ctrl+shift+c'
     };
     public stringCodeFor(value: string): Promise<string> {
         return Promise.resolve(this.keyToString[value]);
