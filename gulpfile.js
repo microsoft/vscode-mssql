@@ -1,4 +1,5 @@
-﻿var gulp = require('gulp');
+﻿"use strict"
+var gulp = require('gulp');
 var rename = require('gulp-rename');
 var install = require('gulp-install');
 var tslint = require('gulp-tslint');
