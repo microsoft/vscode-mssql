@@ -14,7 +14,7 @@ import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
-import {Platform, getCurrentPlatform} from '../models/platform';
+import {Runtime, PlatformInformation} from '../models/platform';
 
 let opener = require('opener');
 
@@ -289,17 +289,20 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError, result.errorNumber, result.errorMessage));
             }
         } else {
-            let platform: Platform = getCurrentPlatform();
-            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
-                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
-                Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(action => {
-                    if (action && action === Constants.macOpenSslHelpButton) {
-                        opener(Constants.macOpenSslHelpLink);
-                    }
-                });
-            } else {
-                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
-            }
+            PlatformInformation.GetCurrent().then( platformInfo => {
+                if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
+                result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
+                     this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
+                     Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(action => {
+                        if (action && action === Constants.macOpenSslHelpButton) {
+                            opener(Constants.macOpenSslHelpLink);
+                        }
+                     });
+                } else {
+                        Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
+                }
+            });
+
         }
         this.statusView.connectError(fileUri, connection.credentials, result);
         this.vscodeWrapper.logToOutputChannel(

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {Platform} from '../models/platform';
+import * as Platform from '../models/platform';
 import Config from  '../configurations/config';
 import ServiceDownloadProvider from './download';
 import ServerProvider from './server';
@@ -41,7 +41,7 @@ const stubVsCode = new StubVsCode();
 /*
 * Installs the service for the given platform if it's not already installed.
 */
-export function installService(platform: Platform): Promise<String> {
+export function installService(platform: Platform.Runtime): Promise<String> {
     let downloadProvider = new ServiceDownloadProvider(config, logger);
     let serverProvider = new  ServerProvider(downloadProvider, config, statusView, stubVsCode);
     return serverProvider.getServerPath(platform);
@@ -50,7 +50,7 @@ export function installService(platform: Platform): Promise<String> {
 /*
 * Returns the install folder path for given platform.
 */
-export function getServiceInstallDirectory(platform: Platform): string {
+export function getServiceInstallDirectory(platform: Platform.Runtime): string {
     let downloadProvider = new ServiceDownloadProvider(config, logger);
     return downloadProvider.getInstallDirectory(platform);
 }

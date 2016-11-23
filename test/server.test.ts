@@ -6,7 +6,7 @@ import StatusView from './../src/views/statusView';
 import Config from './../src/configurations/config';
 import {ExtensionWrapper} from '../src/languageservice/extUtil';
 import * as path from 'path';
-import {getCurrentPlatform} from '../src/models/platform';
+import {Runtime} from '../src/models/platform';
 import {IConfig, IStatusView, IExtensionWrapper} from '../src/languageservice/interfaces';
 
 suite('Server tests', () => {
@@ -25,8 +25,9 @@ suite('Server tests', () => {
 
     test('findServerPath should return error given a folder with no installed service', () => {
         let installDir = __dirname;
+        const platform = Runtime.Windows_7_64;
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', 'exeFile2']);
-        testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
+        testDownloadProvider.setup(x => x.getInstallDirectory(platform)).returns(() => installDir);
         testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
         let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
@@ -38,7 +39,8 @@ suite('Server tests', () => {
     test('findServerPath should return the file path given a file that exists', () => {
         let installDir = __dirname;
         let fileName = path.join(installDir, __filename);
-        testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
+        const platform = Runtime.Windows_7_64;
+        testDownloadProvider.setup(x => x.getInstallDirectory(platform)).returns(() => installDir);
         testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
         let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
@@ -50,8 +52,9 @@ suite('Server tests', () => {
     test('findServerPath should not return the given file path if doesn not exist', () => {
         let installDir = __dirname;
         let fileName = path.join(installDir, __filename);
+        const platform = Runtime.Windows_7_64;
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', 'exeFile2']);
-        testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
+        testDownloadProvider.setup(x => x.getInstallDirectory(platform)).returns(() => installDir);
         testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
         let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
@@ -63,8 +66,9 @@ suite('Server tests', () => {
     test('findServerPath should return a valid file path given a folder with installed service', () => {
         let installDir = __dirname;
         let fileName = __filename;
+        const platform = Runtime.Windows_7_64;
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => ['exeFile1', fileName]);
-        testDownloadProvider.setup(x => x.getInstallDirectory()).returns(() => installDir);
+        testDownloadProvider.setup(x => x.getInstallDirectory(platform)).returns(() => installDir);
         testVsCode.setup(x => x.getActiveTextEditorUri()).returns(() => 'test');
         let server = new ServerProvider(testDownloadProvider.object, testConfig.object, testStatusView.object, testVsCode.object);
 
@@ -76,7 +80,7 @@ suite('Server tests', () => {
     test('getServerPath should download the service if not exist and return the valid service file path', () => {
         let installDir = __dirname;
         let fileName: string = __filename.replace(installDir, '');
-        const platform = getCurrentPlatform();
+        const platform = Runtime.Windows_7_64;
         let executables: string[]  = ['exeFile1'];
 
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => executables);
@@ -99,7 +103,7 @@ suite('Server tests', () => {
     test('getServerPath should not download the service if already exist', () => {
         let installDir = __dirname;
         let fileName: string = __filename.replace(installDir, '');
-        const platform = getCurrentPlatform();
+        const platform = Runtime.Windows_7_64;
         let executables: string[]  = [fileName];
 
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => executables);

@@ -1,11 +1,10 @@
 import assert = require('assert');
-import {Platform, getCurrentPlatform} from '../src/models/platform';
+import {Runtime, PlatformInformation} from '../src/models/platform';
 import Telemetry from '../src/models/telemetry';
 
-function getPlatform(): Promise<Platform> {
-    return new Promise((resolve, reject) => {
-        let platform = getCurrentPlatform();
-        resolve(platform);
+function getPlatform(): Promise<Runtime> {
+    return PlatformInformation.GetCurrent().then (platformInfo => {
+        return platformInfo.runtimeId;
     });
 }
 
@@ -17,7 +16,7 @@ suite('Platform Tests', () => {
 
     test('getCurrentPlatform should return valid value', (done) => {
         getPlatform().then(platform => {
-            assert.notEqual(platform, Platform.Unknown);
+            assert.notEqual(platform, Runtime.UnknownRuntime);
             done();
         });
     });

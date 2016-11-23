@@ -15,7 +15,7 @@ import ServiceDownloadProvider from './download';
 import {ExtensionWrapper, Logger} from './extUtil';
 import ExtConfig from  '../configurations/extConfig';
 import StatusView from '../views/statusView';
-import {Platform, getCurrentPlatform} from '../models/platform';
+import {Runtime, PlatformInformation} from '../models/platform';
 
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
@@ -55,12 +55,18 @@ export default class SqlToolsServiceClient {
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
     public initialize(context: ExtensionContext): Promise<boolean> {
-        return new Promise<boolean>( (resolve, reject) => {
-            const platform = getCurrentPlatform();
-            if (platform === Platform.Unknown) {
+         return PlatformInformation.GetCurrent().then( platformInfo => {
+            if (platformInfo.runtimeId === Runtime.UnknownRuntime) {
                 throw new Error('Invalid Platform');
+            } else {
+                return this.initializeService(platformInfo.runtimeId, context);
             }
-            this._server.getServerPath(platform).then(serverPath => {
+         });
+    }
+
+    private initializeService(runtime: Runtime, context: ExtensionContext): Promise<boolean> {
+         return new Promise<boolean>( (resolve, reject) => {
+            this._server.getServerPath(runtime).then(serverPath => {
                 let serverArgs = [];
                 let serverCommand = serverPath;
                 if (serverPath === undefined) {

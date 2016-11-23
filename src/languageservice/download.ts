@@ -9,7 +9,7 @@ import * as https from 'https';
 import * as http from 'http';
 import * as stream from 'stream';
 import {parse} from 'url';
-import {Platform, getCurrentPlatform} from '../models/platform';
+import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import {getProxyAgent} from './proxy';
 import * as path from 'path';
 import {IConfig, ILogger} from './interfaces';
@@ -33,7 +33,7 @@ export default class ServiceDownloadProvider {
    /**
     * Returns the download url for given platfotm
     */
-    public getDownloadFileName(platform: Platform): string {
+    public getDownloadFileName(platform: Runtime): string {
         let fileNamesJson = this._config.getSqlToolsConfigValue('downloadFileNames');
         let fileName = fileNamesJson[platform.toString()];
 
@@ -98,14 +98,12 @@ export default class ServiceDownloadProvider {
    /**
     * Returns SQL tools service installed folder.
     */
-    public getInstallDirectory(platform?: Platform): string {
-        if (platform === undefined) {
-            platform = getCurrentPlatform();
-        }
+    public getInstallDirectory(platform: Runtime): string {
+
         let basePath = this.getInstallDirectoryRoot();
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
         basePath = basePath.replace('{#version#}', versionFromConfig);
-        basePath = basePath.replace('{#platform#}', platform.toString());
+        basePath = basePath.replace('{#platform#}', getRuntimeDisplayName(platform));
         fse.mkdirsSync(basePath);
         return basePath;
     }
@@ -136,12 +134,9 @@ export default class ServiceDownloadProvider {
    /**
     * Downloads the SQL tools service and decompress it in the install folder.
     */
-    public go(platform?: Platform): Promise<boolean> {
+    public go(platform: Runtime): Promise<boolean> {
         const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
         const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
-        if (platform === undefined) {
-            platform = getCurrentPlatform();
-        }
 
         return new Promise<boolean>((resolve, reject) => {
             const fileName = this.getDownloadFileName( platform);
