@@ -15,7 +15,6 @@ export enum Runtime {
     UnknownRuntime = <any>'Unknown',
     UnknownVersion = <any>'Unknown',
     Windows_7_64 = <any>'Windows_7_64',
-    Windows_7_86 = <any>'Windows_7_86',
     OSX_10_11_64 = <any> 'OSX_10_11_64',
     CentOS_7 = <any>'CentOS_7',
     Debian_8 = <any>'Debian_8',
@@ -29,8 +28,6 @@ export enum Runtime {
 export function getRuntimeDisplayName(runtime: Runtime): string {
     switch (runtime) {
         case Runtime.Windows_7_64:
-            return 'Windows';
-        case Runtime.Windows_7_86:
             return 'Windows';
         case Runtime.OSX_10_11_64:
             return 'OSX';
@@ -196,7 +193,7 @@ export class PlatformInformation {
         switch (platform) {
             case 'win32':
                 switch (architecture) {
-                    case 'x86': return Runtime.Windows_7_86;
+                    case 'x86': return Runtime.UnknownRuntime;
                     case 'x86_64': return Runtime.Windows_7_64;
                     default:
                 }
