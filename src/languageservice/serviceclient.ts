@@ -6,7 +6,11 @@
 
 import { ExtensionContext, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
-    TransportKind, RequestType, NotificationType, NotificationHandler } from 'vscode-languageclient';
+    TransportKind, RequestType, NotificationType, NotificationHandler,
+    ErrorAction, CloseAction } from 'vscode-languageclient';
+
+import VscodeWrapper from '../controllers/vscodeWrapper';
+import Telemetry from '../models/telemetry';
 import * as Utils from '../models/utils';
 import {VersionRequest} from '../models/contracts';
 import Constants = require('../models/constants');
@@ -16,6 +20,84 @@ import {ExtensionWrapper, Logger} from './extUtil';
 import ExtConfig from  '../configurations/extConfig';
 import StatusView from '../views/statusView';
 import {Runtime, PlatformInformation} from '../models/platform';
+
+let opener = require('opener');
+
+/**
+ * @interface IMessage
+ */
+interface IMessage {
+    jsonrpc: string;
+}
+
+
+/**
+ * Handle Language Service client errors
+ * @class LanguageClientErrorHandler
+ */
+class LanguageClientErrorHandler {
+
+    private vscodeWrapper: VscodeWrapper;
+
+    /**
+     * Creates an instance of LanguageClientErrorHandler.
+     * @memberOf LanguageClientErrorHandler
+     */
+    constructor() {
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
+    }
+
+    /**
+     * Show an error message prompt with a link to known issues wiki page
+     * @memberOf LanguageClientErrorHandler
+     */
+    showOnErrorPrompt(): void {
+        Telemetry.sendTelemetryEvent('SqlToolsServiceCrash');
+
+        this.vscodeWrapper.showErrorMessage(
+          Constants.sqlToolsServiceCrashMessage,
+          Constants.sqlToolsServiceCrashButton).then(action => {
+            if (action && action === Constants.sqlToolsServiceCrashButton) {
+                opener(Constants.sqlToolsServiceCrashLink);
+            }
+        });
+    }
+
+    /**
+     * Callback for language service client error
+     *
+     * @param {Error} error
+     * @param {Message} message
+     * @param {number} count
+     * @returns {ErrorAction}
+     *
+     * @memberOf LanguageClientErrorHandler
+     */
+    error(error: Error, message: IMessage, count: number): ErrorAction {
+        this.showOnErrorPrompt();
+
+        // we don't retry running the service since crashes leave the extension
+        // in a bad, unrecovered state
+        return ErrorAction.Shutdown;
+    }
+
+    /**
+     * Callback for language service client closed
+     *
+     * @returns {CloseAction}
+     *
+     * @memberOf LanguageClientErrorHandler
+     */
+    closed(): CloseAction {
+        this.showOnErrorPrompt();
+
+        // we don't retry running the service since crashes leave the extension
+        // in a bad, unrecovered state
+        return CloseAction.DoNotRestart;
+    }
+}
 
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
@@ -94,7 +176,8 @@ export default class SqlToolsServiceClient {
                     documentSelector: ['sql'],
                     synchronize: {
                         configurationSection: 'mssql'
-                    }
+                    },
+                    errorHandler: new LanguageClientErrorHandler()
                 };
 
                 // cache the client instance for later use

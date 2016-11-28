@@ -14,6 +14,7 @@ export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
+export const cmdShowGettingStarted = 'extension.showGettingStarted';
 export const cmdManageConnectionProfiles = 'extension.manageProfiles';
 
 export const sqlDbPrefix = '.database.windows.net';
@@ -222,3 +223,8 @@ export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to co
 export const macOpenSslHelpButton = 'Help';
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 
+export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
+
+export const sqlToolsServiceCrashMessage = 'SQL Tools Service component could not start.';
+export const sqlToolsServiceCrashButton = 'View Known Issues';
+export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';

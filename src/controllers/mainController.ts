@@ -20,6 +20,8 @@ import { ISelectionData } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 
+let opener = require('opener');
+
 /**
  * The main controller class that initializes the extension
  */
@@ -98,6 +100,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
         this.registerCommand(Constants.cmdCancelQuery);
         this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
+        this.registerCommand(Constants.cmdShowGettingStarted);
+        this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
 
         this._vscodeWrapper = new VscodeWrapper();
 
@@ -313,7 +317,7 @@ export default class MainController implements vscode.Disposable {
             // ask the user to view a scenario document
             let confirmText = 'View Now';
             this._vscodeWrapper.showInformationMessage(
-                    'View a walkthrough of common vscode-mssql scenarios?', confirmText)
+                    'View mssql for Visual Studio Code release notes?', confirmText)
                 .then((choice) => {
                     if (choice === confirmText) {
                         self.launchReleaseNotesPage();
@@ -329,14 +333,21 @@ export default class MainController implements vscode.Disposable {
         // get the URI for the release notes page
         let docUri = vscode.Uri.file(
             this._context.asAbsolutePath(
-                'out/src/views/htmlcontent/src/docs/index.html'));
+                'out/src/views/htmlcontent/dist/docs/index.html'));
 
         // show the release notes page in the preview window
         vscode.commands.executeCommand(
             'vscode.previewHtml',
             docUri,
             vscode.ViewColumn.One,
-            'vscode-mssql Release Notes');
+            'mssql for VS Code Release Notes');
+    }
+
+     /**
+      * Shows the Getting Started page in the preview browser
+      */
+    private launchGettingStartedPage(): void {
+        opener(Constants.gettingStartedGuideLink);
     }
 
     /**
