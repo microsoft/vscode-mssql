@@ -86,6 +86,7 @@ export class QueryExecuteParams {
 
 export class QueryExecuteResult {
     messages: string;
+    hasInfoMessages: boolean;
 }
 
 // --------------------------------- </ Query Execution Request > ---------------------------------------

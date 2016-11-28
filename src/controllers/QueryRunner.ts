@@ -124,9 +124,11 @@ export default class QueryRunner {
             if (result.messages) {
                 self._statusView.executedQuery(self.uri);
                 self._isExecuting = false;
-                self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
+                if (!result.hasInfoMessages) {
+                    self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
+                }
                 self.batchSets = [{
-                        hasError: true,
+                        hasError: result.hasInfoMessages ? false : true,
                         id: 0,
                         selection: undefined,
                         messages: [{message: result.messages, time: undefined}],
