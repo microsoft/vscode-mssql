@@ -75,33 +75,6 @@ suite('Query Runner tests', () => {
 
     });
 
-    test('Handles Query Error Correctly', () => {
-        let testuri = 'uri';
-        let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
-        let testtitle = 'title';
-        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
-                                                          TypeMoq.It.isAny())).callback((type, details: QueryExecuteParams) => {
-                                                              assert.equal(details.ownerUri, testuri);
-                                                              assert.equal(details.querySelection, testSelection);
-                                                          })
-                                .returns(() => { return Promise.resolve({messages: 'failed'}); });
-        testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
-        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
-        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
-        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
-        let queryRunner = new QueryRunner(
-                    testuri,
-                    testtitle,
-                    testStatusView.object,
-                    testSqlToolsServerClient.object,
-                    testQueryNotificationHandler.object,
-                    testVscodeWrapper.object
-                );
-        return queryRunner.runQuery(testSelection).then(() => {
-            testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-        });
-    });
-
     test('Handles Info Message Correctly', () => {
         let testuri = 'uri';
         let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
@@ -128,6 +101,8 @@ suite('Query Runner tests', () => {
             // I expect no error message to be displayed
             testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.never());
             assert.strictEqual(queryRunner.batchSets[0].hasError, false);
+
+            // I expect query execution to be done
             assert.strictEqual(queryRunner.isExecutingQuery, false);
         });
     });
