@@ -471,7 +471,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.field, 'xml');
+            self.dataService.openLink(value, colDef.name, 'xml');
         });
     }
 
@@ -482,7 +482,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.field, 'json');
+            self.dataService.openLink(value, colDef.name, 'json');
         });
     }
 
