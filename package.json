@@ -402,7 +402,7 @@
         "mssql.resultsFontFamily": {
           "type": "string",
           "description": "Set the font family for the results grid; set to blank to use the editor set font",
-          "default": "serif"
+          "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif"
         },
         "mssql.saveAsCsv": {
           "type": "object",
