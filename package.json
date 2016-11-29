@@ -396,8 +396,13 @@
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
-          "description": "true for the messages pane to be open by default; false for closed",
+          "description": "True for the messages pane to be open by default; false for closed",
           "default": true
+        },
+        "mssql.resultsFontFamily": {
+          "type": "string",
+          "description": "Set the font family for the results grid; set to blank to use the editor set font",
+          "default": "serif"
         },
         "mssql.saveAsCsv": {
           "type": "object",
