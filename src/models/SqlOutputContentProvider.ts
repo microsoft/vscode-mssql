@@ -297,10 +297,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
-            queryRunner.batchResult.on('batch', (batch) => {
+            queryRunner.eventEmitter.on('resultSet', (resultSet) => {
+                this._service.broadcast(resultsUri, 'resultSet', resultSet);
+            });
+            queryRunner.eventEmitter.on('batch', (batch) => {
                 this._service.broadcast(resultsUri, 'batch', batch);
             });
-            queryRunner.batchResult.on('complete', () => {
+            queryRunner.eventEmitter.on('complete', () => {
                 this._service.broadcast(resultsUri, 'complete');
             });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));

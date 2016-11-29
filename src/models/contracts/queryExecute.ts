@@ -4,6 +4,7 @@ import { IDbColumn, ISelectionData, IResultMessage } from './../interfaces';
 
 export class ResultSetSummary {
     id: number;
+    batchId: number;
     rowCount: number;
     columnInfo: IDbColumn[];
 }
@@ -69,6 +70,23 @@ export class QueryExecuteBatchCompleteNotificationResult {
 }
 
 // -------------------------- </ Query Batch Complete Notification > -------------------------------
+
+// Query ResultSet Complete Notification -----------------------------------------------------------
+
+export namespace QueryExecuteResultSetCompleteNotification {
+    export const type: NotificationType<QueryExecuteResultSetCompleteNotificationParams> = {
+        get method(): string {
+            return 'query/resultSetComplete';
+        }
+    };
+}
+
+export class QueryExecuteResultSetCompleteNotificationParams {
+    resultSetSummary: ResultSetSummary;
+    ownerUri: string;
+}
+
+// /Query ResultSet Complete Notification ----------------------------------------------------------
 
 // --------------------------------- < Query Execution Request > ---------------------------------------
 export namespace QueryExecuteRequest {

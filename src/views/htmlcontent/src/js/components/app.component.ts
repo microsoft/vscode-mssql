@@ -265,7 +265,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;
-    private totalElapseExecution: number;
+    private totalElapsedExecution: number;
     private complete = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -291,7 +291,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     ngOnInit(): void {
         const self = this;
-        this.totalElapseExecution = 0;
+        this.totalElapsedExecution = 0;
         this.setupResizeBind();
         this.dataService.config.then((config) => {
             this.config = config;
@@ -304,72 +304,46 @@ export class AppComponent implements OnInit, AfterViewChecked {
             });
         });
         this.dataService.dataEventObs.subscribe(event => {
-            if (event.type === 'complete') {
-                self.complete = true;
-            } else {
-                let batch = event.data;
-                let exeTime = Utils.parseTimeString(batch.executionElapsed);
-                if (exeTime) {
-                    this.totalElapseExecution += <number> exeTime;
-                }
-                let messages: IMessages = {
-                    messages: [],
-                    hasError: batch.hasError,
-                    selection: batch.selection,
-                    startTime: new Date(batch.executionStart).toLocaleTimeString(),
-                    endTime: new Date(batch.executionEnd).toLocaleTimeString()
-                };
-                if (batch.hasError) {
-                    self._messageActive = true;
-                }
-                for (let message of batch.messages) {
-                    let date = new Date(message.time);
-                    let timeString = date.toLocaleTimeString();
-                    messages.messages.push({time: timeString, message: message.message});
-                }
-                self.messages.push(messages);
-                self.messagesAdded = true;
-                for (let resultId = 0; resultId < batch.resultSetSummaries.length; resultId++) {
-                    let result = batch.resultSetSummaries[resultId];
-                    let totalRows = result.rowCount;
-                    let columnData = result.columnInfo;
-                    let dataSet: IGridDataSet = {
-                            dataRows: undefined,
-                            columnDefinitions: undefined,
-                            totalRows: undefined,
-                            resized: undefined,
-                            batchId: batch.id,
-                            resultId: result.id,
-                            maxHeight: undefined,
-                            minHeight: undefined
-                        };
-                    let columnDefinitions = [];
+            switch (event.type) {
+                case 'complete':
+                    self.complete = true;
+                break;
+                case 'batch':
+                    let batch = event.data;
 
-                    for (let i = 0; i < columnData.length; i++) {
-                        // Fix column name for showplan queries
-                        let columnName = (columnData[i].columnName === 'Microsoft SQL Server 2005 XML Showplan') ?
-                                                    'XML Showplan' : columnData[i].columnName;
-                        if (columnData[i].isXml || columnData[i].isJson) {
-                            let linkType = columnData[i].isXml ? 'xml' : 'json';
-                            columnDefinitions.push({
-                                id: i.toString(),
-                                name: columnName,
-                                type: self.stringToFieldType('string'),
-                                formatter: self.hyperLinkFormatter,
-                                asyncPostRender: self.linkHandler(linkType)
-                            });
-                        } else {
-                            columnDefinitions.push({
-                                id: i.toString(),
-                                name: columnName,
-                                type: self.stringToFieldType('string'),
-                                formatter: self.textFormatter
-                            });
-                        }
+                    // Store the elapsed time of the batch
+                    let exeTime = Utils.parseTimeString(batch.executionElapsed);
+                    if (exeTime) {
+                        this.totalElapsedExecution += <number>exeTime;
                     }
-                    let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
+
+                    // Store the messages for the batch
+                    let messages: IMessages = {
+                        messages: batch.messages.map(m => {
+                            return {
+                                time: new Date(m.time).toLocaleTimeString(),
+                                message: m.message
+                            };
+                        }),
+                        hasError: batch.hasError,
+                        selection: batch.selection,
+                        startTime: new Date(batch.executionStart).toLocaleTimeString(),
+                        endTime: new Date(batch.executionEnd).toLocaleTimeString()
+                    };
+                    if (batch.hasError) {
+                        self._messageActive = true;
+                    }
+                    self.messages.push(messages);
+                    self.messagesAdded = true;
+
+                break;
+                case 'resultSet':
+                    let resultSet = event.data;
+
+                    // Setup a function for generating a promise to lookup result subsets
+                    let loadDataFunction = (offset: number, count: number) : Promise<IGridDataRow[]> => {
                         return new Promise<IGridDataRow[]>((resolve, reject) => {
-                            self.dataService.getRows(offset, count, batch.id, result.id).subscribe(rows => {
+                            self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
                                 let gridData: IGridDataRow[] = [];
                                 for (let i = 0; i < rows.rows.length; i++) {
                                     gridData.push({
@@ -381,21 +355,44 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         });
                     };
 
-                    let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(self.windowSize,
-                                                                                        totalRows,
-                                                                                        loadDataFunction,
-                                                                                        (index) => {
-                                                                                            return { values: [] };
-                                                                                        });
-                    dataSet.columnDefinitions = columnDefinitions;
-                    dataSet.totalRows = totalRows;
-                    dataSet.dataRows = virtualizedCollection;
-                    // calculate min and max height
-                    dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
-                                        Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * 30) + 10 : 'inherit';
-                    dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
-                                        (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
+                    // Precalculate the max height and min height
+                    let maxHeight = resultSet.totalRows < self._defaultNumShowingRows
+                        ? Math.max((resultSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
+                        : 'inherit';
+                    let minHeight = resultSet.totalRows > self._defaultNumShowingRows
+                        ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
+                        : maxHeight;
+
+                    // Store the result set from the event
+                    let dataSet: IGridDataSet = {
+                        resized: undefined,
+                        batchId: resultSet.batchId,
+                        resultId: resultSet.id,
+                        totalRows: resultSet.rowCount,
+                        maxHeight: maxHeight,
+                        minHeight: minHeight,
+                        dataRows: new VirtualizedCollection(
+                            self.windowSize,
+                            resultSet.rowCount,
+                            loadDataFunction,
+                            index => { return { values: [] }; }
+                        ),
+                        columnDefinitions: resultSet.columnInfo.map((c, i) => {
+                            let isLinked = c.isXml || c.isJson;
+                            let linkType = c.isXml ? 'xml' : 'json';
+                            return {
+                                id: i.toString(),
+                                columnName: c.columnName === 'Microsoft SQL Server 2005 XML Showplan'
+                                    ? 'XML Showplan'
+                                    : c.columnName,
+                                type: self.stringToFieldType('string'),
+                                formatter: isLinked ? self.hyperLinkFormatter : self.textFormatter,
+                                asyncPostRender: isLinked ? self.linkHandler(linkType) : undefined
+                            };
+                        })
+                    };
                     self.dataSets.push(dataSet);
+
                     // Create a dataSet to render without rows to reduce DOM size
                     let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
                     undefinedDataSet.columnDefinitions = dataSet.columnDefinitions;
@@ -404,9 +401,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.placeHolderDataSets.push(undefinedDataSet);
                     self.messagesAdded = true;
                     self.onScroll(0);
-                }
+                break;
+                default:
+                break;
             }
-
         });
     }
 
