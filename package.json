@@ -98,6 +98,9 @@
     "vscode-languageclient": "^2.5.0",
     "ws": "^1.1.1"
   },
+  "optionalDependencies": {
+    "regedit": "^2.2.6"
+  },
   "contributes": {
     "languages": [
       {
