@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import { ExtensionContext, workspace } from 'vscode';
+import { ExtensionContext, workspace, languages } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
     TransportKind, RequestType, NotificationType, NotificationHandler,
     ErrorAction, CloseAction } from 'vscode-languageclient';
@@ -146,9 +146,43 @@ export default class SqlToolsServiceClient {
          });
     }
 
+    /**
+     * Initializes the SQL language configuration
+     *
+     * @memberOf SqlToolsServiceClient
+     */
+    private initializeLanguageConfiguration(): void {
+        languages.setLanguageConfiguration('sql', {
+            comments: {
+                lineComment: '--',
+                blockComment: ['/*', '*/']
+            },
+
+            brackets: [
+                ['{', '}'],
+                ['[', ']'],
+                ['(', ')']
+            ],
+
+            __characterPairSupport: {
+                autoClosingPairs: [
+                    { open: '{', close: '}' },
+                    { open: '[', close: ']' },
+                    { open: '(', close: ')' },
+                    { open: '"', close: '"', notIn: ['string'] },
+                    { open: '\'', close: '\'', notIn: ['string', 'comment'] }
+                ]
+            }
+        });
+    }
+
     private initializeService(runtime: Runtime, context: ExtensionContext): Promise<boolean> {
-         return new Promise<boolean>( (resolve, reject) => {
+        let self = this;
+
+        return new Promise<boolean>( (resolve, reject) => {
             this._server.getServerPath(runtime).then(serverPath => {
+                self.initializeLanguageConfiguration();
+
                 let serverArgs = [];
                 let serverCommand = serverPath;
                 if (serverPath === undefined) {
