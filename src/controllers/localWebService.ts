@@ -12,12 +12,16 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const WebSocketServer = ws.Server;
 
+class WebSocketMapping {
+    public webSocketServer: ws;
+    public pendingMessages: Array<string> = [];
+}
+
 export default class LocalWebService {
     private app = express();
     private server = http.createServer();
     private wss = new WebSocketServer({ server: this.server});
-    private clientMap = new Map<string, ws>();
-    public newConnection = new EventEmitter();
+    private wsMap = new Map<string, WebSocketMapping>();
     static _servicePort: string;
     static _vscodeExtensionPath: string;
     static _htmlContentLocation = 'out/src/views/htmlcontent';
@@ -33,10 +37,26 @@ export default class LocalWebService {
         this.app.set('view engine', 'ejs');
         Utils.logDebug(Constants.msgLocalWebserviceStaticContent + LocalWebService.staticContentPath);
         this.server.on('request', this.app);
+
+        // Handle new connections to the web socket server
         this.wss.on('connection', (ws) => {
             let parse = querystring.parse(url.parse(ws.upgradeReq.url).query);
-            self.clientMap.set(parse.uri, ws);
-            self.newConnection.emit('connection', parse.uri);
+            if (self.wsMap.has(parse.uri)) {
+                // Mapping already exists
+                let mapping = self.wsMap.get(parse.uri);
+
+                // Replay all messages to the server and assign the server
+                while (mapping.pendingMessages.length > 0) {
+                    let currentMessage = mapping.pendingMessages.shift();
+                    ws.send(currentMessage);
+                }
+                mapping.webSocketServer = ws;
+            } else {
+                // Mapping does not exist. Create one now
+                let mapping = new WebSocketMapping();
+                mapping.webSocketServer = ws;
+                self.wsMap.set(parse.uri, mapping);
+            }
         });
     }
 
@@ -57,16 +77,29 @@ export default class LocalWebService {
     }
 
     broadcast(uri: string, event: string, data?: any): void {
-        let temp = {
-            type: event
-        };
+        let message = JSON.stringify({
+            type: event,
+            data: data ? data : undefined
+        });
 
-        if (data) {
-            temp['data'] = data;
-        }
+        // Is the URI mapped to a ready web socket server?
+        if (this.wsMap.has(uri)) {
+            // There is a mapping already, but has it been opened?
+            let mapping = this.wsMap.get(uri);
+            if (mapping.webSocketServer && mapping.webSocketServer.readyState === ws.OPEN) {
+                // Server is open, go ahead and send the message straight away
+                this.wsMap.get(uri).webSocketServer.send(message);
+            } else {
+                // Server is not open, append it to the queue
+                mapping.pendingMessages.push(message);
+            }
+        } else {
+            // There isn't a mapping, so create it
+            let mapping = new WebSocketMapping();
+            this.wsMap.set(uri, mapping);
 
-        if (this.clientMap.has(uri) && this.clientMap.get(uri).readyState === ws.OPEN) {
-            this.clientMap.get(uri).send(JSON.stringify(temp));
+            // Append the message to the queue
+            mapping.pendingMessages.push(message);
         }
     }
 

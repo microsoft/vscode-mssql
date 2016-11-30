@@ -102,7 +102,7 @@ const template = `
                 </template>
                 <tr *ngIf="complete">
                     <td></td>
-                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapseExecution))}}</td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapsedExecution))}}</td>
                 </tr>
             </tbody>
             <tbody *ngIf="messages.length === 0">
@@ -335,7 +335,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     }
                     self.messages.push(messages);
                     self.messagesAdded = true;
-
                 break;
                 case 'resultSet':
                     let resultSet = event.data;
@@ -382,7 +381,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             let linkType = c.isXml ? 'xml' : 'json';
                             return {
                                 id: i.toString(),
-                                columnName: c.columnName === 'Microsoft SQL Server 2005 XML Showplan'
+                                name: c.columnName === 'Microsoft SQL Server 2005 XML Showplan'
                                     ? 'XML Showplan'
                                     : c.columnName,
                                 type: self.stringToFieldType('string'),
