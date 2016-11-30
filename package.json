@@ -34,7 +34,13 @@
     "Azure SQL Data Warehouse"
   ],
   "activationEvents": [
-    "*"
+    "onLanguage:sql",
+    "onCommand:extension.connect",
+    "onCommand:extension.runQuery",
+    "onCommand:extension.disconnect",
+    "onCommand:extension.manageProfiles",
+    "onCommand:extension.chooseDatabase",
+    "onCommand:extension.cancelQuery"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [

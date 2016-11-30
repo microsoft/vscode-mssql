@@ -63,6 +63,8 @@ const template = `
                         showHeader="true"
                         [resized]="dataSet.resized"
                         (mousedown)="navigateToGrid(i)"
+                        [selectionModel]="selectionModel"
+                        [plugins]="slickgridPlugins"
                         class="boxCol content vertBox slickgrid">
             </slick-grid>
             <span class="boxCol content vertBox">
@@ -138,6 +140,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private scrollTimeOutTime = 200;
     private windowSize = 50;
     private maxScrollGrids = 8;
+    // tslint:disable-next-line:no-unused-variable
+    private selectionModel = 'DragRowSelectionModel';
+    // tslint:disable-next-line:no-unused-variable
+    private slickgridPlugins = ['AutoColumnSize'];
     // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
     // tslint:disable-next-line:no-unused-variable
