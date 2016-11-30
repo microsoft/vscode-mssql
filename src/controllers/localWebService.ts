@@ -1,6 +1,5 @@
 'use strict';
 import path = require('path');
-import { EventEmitter } from 'events';
 import * as ws from 'ws';
 import url = require('url');
 import querystring = require('querystring');
