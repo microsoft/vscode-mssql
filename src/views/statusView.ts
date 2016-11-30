@@ -23,7 +23,6 @@ class FileStatusBar {
 export default class StatusView implements vscode.Disposable {
     private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
-    private _numberOfSecondsBeforeHidingMessage = 5000;
 
     constructor() {
         this._statusBars = {};
@@ -159,27 +158,8 @@ export default class StatusView implements vscode.Disposable {
     public installingService(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = undefined;
-        this.showStatusBarItem(fileUri, bar.statusConnection);
-        this.showProgress(fileUri, Constants.serviceInstalling, bar.statusConnection);
-    }
-
-    public serviceInstalled(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.command = undefined;
-        bar.statusConnection.text = Constants.serviceInstalled;
-        this.showStatusBarItem(fileUri, bar.statusConnection);
-        // Cleat the status bar after 2 seconds
-        setTimeout(() => {
-            bar.statusConnection.text = '';
-            this.showStatusBarItem(fileUri, bar.statusConnection);
-        }, this._numberOfSecondsBeforeHidingMessage);
-    }
-
-    public serviceInstallationFailed(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.command = undefined;
-        bar.statusConnection.text = Constants.serviceInstallationFailed;
-        this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.showStatusBarItem(fileUri, bar.statusLanguageService);
+        this.showProgress(fileUri, Constants.serviceInstalling, bar.statusLanguageService);
     }
 
     public languageServiceUpdating(fileUri: string): void {

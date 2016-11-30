@@ -73,7 +73,8 @@
     "typescript": "^1.8.9",
     "uglify-js": "mishoo/UglifyJS2#harmony",
     "vscode": "^0.11.0",
-    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
+    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz",
+    "chai": "^3.5.0"
   },
   "dependencies": {
     "applicationinsights": "^0.15.0",

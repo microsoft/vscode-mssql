@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 export interface IStatusView {
-    installingService(fileUri: string): void;
-    serviceInstalled(fileUri: string): void;
-    serviceInstallationFailed(fileUri: string): void;
+    installingService(): void;
+    serviceInstalled(): void;
+    serviceInstallationFailed(): void;
+    updateServiceDownloadingProgress(downloadPercentage: number): void;
 }
 
 export interface IConfig {
@@ -20,10 +21,4 @@ export interface IConfig {
     getSqlToolsConfigValue(configKey: string): any;
 }
 
-export interface IExtensionWrapper {
-    getActiveTextEditorUri(): string;
-}
 
-export interface ILogger {
-    logDebug(message: string): void;
-}

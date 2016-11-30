@@ -76,6 +76,14 @@ export class PlatformInformation {
         return this.platform === 'linux';
     }
 
+    public isValidRuntime(): boolean {
+        return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime && this.runtimeId !== Runtime.UnknownVersion;
+    }
+
+    public getRuntimeDisplayName(): string {
+        return getRuntimeDisplayName(this.runtimeId);
+    }
+
     public toString(): string {
         let result = this.platform;
 
@@ -345,8 +353,10 @@ export class LinuxDistribution {
                 let key = line.substring(0, equalsIndex);
                 let value = line.substring(equalsIndex + 1);
 
-                // Strip double quotes if necessary
+                // Strip quotes if necessary
                 if (value.length > 1 && value.startsWith('"') && value.endsWith('"')) {
+                    value = value.substring(1, value.length - 1);
+                } else if (value.length > 1 && value.startsWith('\'') && value.endsWith('\'')) {
                     value = value.substring(1, value.length - 1);
                 }
 
