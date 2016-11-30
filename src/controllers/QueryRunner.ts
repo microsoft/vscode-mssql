@@ -121,12 +121,11 @@ export default class QueryRunner {
         });
 
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
-            if (result.messages) {
+            if (result.messages) { // Show informational messages if there was no query to execute
                 self._statusView.executedQuery(self.uri);
                 self._isExecuting = false;
-                self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
                 self.batchSets = [{
-                        hasError: true,
+                        hasError: false,
                         id: 0,
                         selection: undefined,
                         messages: [{message: result.messages, time: undefined}],

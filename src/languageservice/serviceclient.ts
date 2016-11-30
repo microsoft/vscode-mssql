@@ -4,10 +4,13 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import { ExtensionContext, workspace, window, OutputChannel } from 'vscode';
+import { ExtensionContext, workspace, window, OutputChannel, languages } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
     TransportKind, RequestType, NotificationType, NotificationHandler,
-    ErrorAction, CloseAction, ErrorHandler } from 'vscode-languageclient';
+    ErrorAction, CloseAction } from 'vscode-languageclient';
+
+import VscodeWrapper from '../controllers/vscodeWrapper';
+import Telemetry from '../models/telemetry';
 import * as Utils from '../models/utils';
 import {VersionRequest} from '../models/contracts';
 import {Logger} from '../models/logger';
@@ -18,7 +21,84 @@ import ExtConfig from  '../configurations/extConfig';
 import {PlatformInformation} from '../models/platform';
 import {ServerInitializationResult, ServerStatusView} from './serverStatus';
 
+let opener = require('opener');
 let _channel: OutputChannel = undefined;
+
+/**
+ * @interface IMessage
+ */
+interface IMessage {
+    jsonrpc: string;
+}
+
+
+/**
+ * Handle Language Service client errors
+ * @class LanguageClientErrorHandler
+ */
+class LanguageClientErrorHandler {
+
+    private vscodeWrapper: VscodeWrapper;
+
+    /**
+     * Creates an instance of LanguageClientErrorHandler.
+     * @memberOf LanguageClientErrorHandler
+     */
+    constructor() {
+        if (!this.vscodeWrapper) {
+            this.vscodeWrapper = new VscodeWrapper();
+        }
+    }
+
+    /**
+     * Show an error message prompt with a link to known issues wiki page
+     * @memberOf LanguageClientErrorHandler
+     */
+    showOnErrorPrompt(): void {
+        Telemetry.sendTelemetryEvent('SqlToolsServiceCrash');
+
+        this.vscodeWrapper.showErrorMessage(
+          Constants.sqlToolsServiceCrashMessage,
+          Constants.sqlToolsServiceCrashButton).then(action => {
+            if (action && action === Constants.sqlToolsServiceCrashButton) {
+                opener(Constants.sqlToolsServiceCrashLink);
+            }
+        });
+    }
+
+    /**
+     * Callback for language service client error
+     *
+     * @param {Error} error
+     * @param {Message} message
+     * @param {number} count
+     * @returns {ErrorAction}
+     *
+     * @memberOf LanguageClientErrorHandler
+     */
+    error(error: Error, message: IMessage, count: number): ErrorAction {
+        this.showOnErrorPrompt();
+
+        // we don't retry running the service since crashes leave the extension
+        // in a bad, unrecovered state
+        return ErrorAction.Shutdown;
+    }
+
+    /**
+     * Callback for language service client closed
+     *
+     * @returns {CloseAction}
+     *
+     * @memberOf LanguageClientErrorHandler
+     */
+    closed(): CloseAction {
+        this.showOnErrorPrompt();
+
+        // we don't retry running the service since crashes leave the extension
+        // in a bad, unrecovered state
+        return CloseAction.DoNotRestart;
+    }
+}
 
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
@@ -67,7 +147,6 @@ export default class SqlToolsServiceClient {
 
     public initializeForPlatform(platformInfo: PlatformInformation, context: ExtensionContext): Promise<ServerInitializationResult> {
          return new Promise<ServerInitializationResult>( (resolve, reject) => {
-
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
@@ -102,11 +181,43 @@ export default class SqlToolsServiceClient {
         });
     }
 
+    /**
+     * Initializes the SQL language configuration
+     *
+     * @memberOf SqlToolsServiceClient
+     */
+    private initializeLanguageConfiguration(): void {
+        languages.setLanguageConfiguration('sql', {
+            comments: {
+                lineComment: '--',
+                blockComment: ['/*', '*/']
+            },
+
+            brackets: [
+                ['{', '}'],
+                ['[', ']'],
+                ['(', ')']
+            ],
+
+            __characterPairSupport: {
+                autoClosingPairs: [
+                    { open: '{', close: '}' },
+                    { open: '[', close: ']' },
+                    { open: '(', close: ')' },
+                    { open: '"', close: '"', notIn: ['string'] },
+                    { open: '\'', close: '\'', notIn: ['string', 'comment'] }
+                ]
+            }
+        });
+    }
+
     private initializeLanguageClient(serverPath: string, context: ExtensionContext): void {
          if (serverPath === undefined) {
                 Utils.logDebug(Constants.invalidServiceFilePath);
                 throw new Error(Constants.invalidServiceFilePath);
          } else {
+            let self = this;
+            self.initializeLanguageConfiguration();
             let serverOptions: ServerOptions = this.createServerOptions(serverPath);
             this.client = this.createLanguageClient(serverOptions);
 
@@ -123,23 +234,13 @@ export default class SqlToolsServiceClient {
     }
 
     private createLanguageClient(serverOptions: ServerOptions): LanguageClient {
-
-        let defaultErrorHandler: ErrorHandler = undefined;
         // Options to control the language client
         let clientOptions: LanguageClientOptions = {
             documentSelector: ['sql'],
             synchronize: {
                 configurationSection: 'mssql'
             },
-            errorHandler: {
-                error: (error, message, count): ErrorAction => {
-                        return defaultErrorHandler.error(error, message, count);
-                },
-                closed: (): CloseAction => {
-                        // Restarts server 3 times in 5 minutes if keeps crashing
-                        return defaultErrorHandler.closed();
-                }
-            }
+            errorHandler: new LanguageClientErrorHandler()
         };
 
         // cache the client instance for later use
@@ -147,8 +248,6 @@ export default class SqlToolsServiceClient {
         client.onReady().then( () => {
             this.checkServiceCompatibility();
         });
-
-        defaultErrorHandler = client.createDefaultErrorHandler();
 
         return client;
     }

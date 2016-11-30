@@ -63,15 +63,15 @@ See [customize options] and [manage connection profiles] for more details.
         "event.saveAsJSON": "",
         "event.saveAsCSV": ""
     },
-    "mssql.messagesDefaultOpen": false,
+    "mssql.messagesDefaultOpen": true,
     "mssql.logDebugInfo": false,
     "mssql.saveAsCSV": {
         "includeHeaders": true
     },
     "mssql.enableIntelliSense": true,
-	"mssql.intelliSense.enableErrorChecking": true,
-	"mssql.intelliSense.enableSuggestions": true,
-	"mssql.intelliSense.enableQuickInfo": true,
+    "mssql.intelliSense.enableErrorChecking": true,
+    "mssql.intelliSense.enableSuggestions": true,
+    "mssql.intelliSense.enableQuickInfo": true,
     "mssql.intelliSense.lowerCaseSuggestions": false
 }
 ```
@@ -92,7 +92,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct]. For more i
 The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy statement of this software.
 
 ## License
-This extension is [licensed under the MIT License]. Please see the [third-party notices]file for additional copyright notices and license terms applicable to portions of the software.
+This extension is [licensed under the MIT License]. Please see the [third-party notices] file for additional copyright notices and license terms applicable to portions of the software.
 
 [the mssql extension tutorial]:https://aka.ms/mssql-getting-started
 [the SQL Developer tutorial]: http://aka.ms/sqldev
@@ -112,3 +112,4 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
 [Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
 [opencode@microsoft.com]:mailto:opencode@microsoft.com
+
