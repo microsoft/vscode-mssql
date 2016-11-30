@@ -118,7 +118,7 @@ export namespace Telemetry {
         Promise.all([getUserId(), getPlatformInformation()]).then(() => {
             properties['userId'] = userId;
             properties['distribution'] = (platformInformation && platformInformation.distribution) ?
-                (platformInformation.distribution.name + ', ' + platformInformation.distribution.version) : '';
+                `${platformInformation.distribution.name}, ${platformInformation.distribution.version}` : '';
 
             reporter.sendTelemetryEvent(eventName, properties, measures);
         });
