@@ -27,6 +27,10 @@ suite('Initialization Tests', () => {
     });
 
     test('Connection manager is initialized properly', (done) => {
+        // Trigger extension activation
+        let uri = vscode.Uri.parse('untitled:test.sql');
+        vscode.workspace.openTextDocument(uri);
+
         // Wait for the extension to activate
         ensureExtensionIsActive().then(() => {
             // Verify that the connection manager was initialized properly
