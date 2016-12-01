@@ -155,13 +155,6 @@ export default class StatusView implements vscode.Disposable {
         this.showProgress(fileUri, Constants.cancelingQueryLabel, bar.statusQuery);
     }
 
-    public installingService(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.command = undefined;
-        this.showStatusBarItem(fileUri, bar.statusLanguageService);
-        this.showProgress(fileUri, Constants.serviceInstalling, bar.statusLanguageService);
-    }
-
     public languageServiceUpdating(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusLanguageService.text =  Constants.updatingIntelliSenseLabel;

@@ -138,7 +138,7 @@ export default class SqlToolsServiceClient {
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
     public initialize(context: ExtensionContext): Promise<ServerInitializationResult> {
-         this._logger.appendLine('Initializing SQL tools service');
+         this._logger.appendLine(Constants.serviceInitializing);
 
          return PlatformInformation.GetCurrent().then( platformInfo => {
             return this.initializeForPlatform(platformInfo, context);
@@ -147,6 +147,8 @@ export default class SqlToolsServiceClient {
 
     public initializeForPlatform(platformInfo: PlatformInformation, context: ExtensionContext): Promise<ServerInitializationResult> {
          return new Promise<ServerInitializationResult>( (resolve, reject) => {
+            this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
+            this._logger.appendLine();
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);

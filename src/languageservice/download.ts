@@ -14,6 +14,7 @@ import {getProxyAgent} from './proxy';
 import * as path from 'path';
 import {IConfig, IStatusView} from './interfaces';
 import  {ILogger} from '../models/interfaces';
+import Constants = require('../models/constants');
 
 let tmp = require('tmp');
 let fs = require('fs');
@@ -189,7 +190,7 @@ export default class ServiceDownloadProvider {
             const fileName = this.getDownloadFileName( platform);
             const installDirectory = this.getInstallDirectory(platform);
 
-            this._logger.appendLine(`Installing sql tools service to ${installDirectory}`);
+            this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
             const urlString = this.getGetDownloadUrl(fileName);
 
             this._logger.appendLine(`Attempting to download ${urlString}`);
