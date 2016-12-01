@@ -78,7 +78,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             } catch (e) {
                 prod = false;
             }
-            let mssqlConfig = self._vscodeWrapper.getConfiguration('mssql');
+            let mssqlConfig = self._vscodeWrapper.getConfiguration(Constants.extensionName);
             let editorConfig = self._vscodeWrapper.getConfiguration('editor');
             let extensionFontFamily = mssqlConfig.get<string>(Constants.extConfigResultFontFamily).split('\'').join('').split('"').join('');
             let extensionFontSize = mssqlConfig.get<number>(Constants.extConfigResultFontSize);
