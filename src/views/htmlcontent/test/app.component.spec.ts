@@ -131,6 +131,7 @@ class MockShortcutService {
     template: ''
 })
 class MockSlickGrid {
+
     @Input() columnDefinitions: IColumnDefinition[];
     @Input() dataRows: IObservableCollection<IGridDataRow>;
     @Input() resized: Observable<any>;
@@ -140,10 +141,12 @@ class MockSlickGrid {
     @Input() contextColumns: string[] = [];
     @Input() columnsLoading: string[] = [];
     @Input() overrideCellFn: (rowNumber, columnId, value?, data?) => string;
-    @Input() showHeader: boolean = false;
+    @Input() showHeader: boolean = true;
     @Input() showDataTypeIcon: boolean = true;
     @Input() enableColumnReorder: boolean = false;
-    @Input() enableAsyncPostRender: boolean = true;
+    @Input() enableAsyncPostRender: boolean = false;
+    @Input() selectionModel: string = '';
+    @Input() plugins: string[] = [];
 
     @Output() loadFinished: EventEmitter<void> = new EventEmitter<void>();
     @Output() cellChanged: EventEmitter<{column: string, row: number, newValue: any}> = new EventEmitter<{column: string, row: number, newValue: any}>();
