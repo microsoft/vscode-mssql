@@ -80,10 +80,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
             let mssqlConfig = self._vscodeWrapper.getConfiguration('mssql');
             let editorConfig = self._vscodeWrapper.getConfiguration('editor');
-            let fontfamily = mssqlConfig.get<string>('resultsFontFamily') ?
-                mssqlConfig.get<string>('resultsFontFamily').split('\'').join('').split('"').join('') :
-                    editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
-            let fontsize = editorConfig.get<number>('fontSize') + 'px';
+            let extensionFontFamily = mssqlConfig.get<string>(Constants.extConfigResultFontFamily).split('\'').join('').split('"').join('');
+            let extensionFontSize = mssqlConfig.get<number>(Constants.extConfigResultFontSize);
+            let fontfamily = extensionFontFamily ?
+                             extensionFontFamily :
+                             editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
+            let fontsize = extensionFontSize ? extensionFontSize + 'px' : editorConfig.get<number>('fontSize') + 'px';
             let fontweight = editorConfig.get<string>('fontWeight');
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
                 {

@@ -216,6 +216,8 @@ export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 
 export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
+export const extConfigResultFontFamily = 'resultsFontFamily';
+export const extConfigResultFontSize = 'resultsFontSize';
 
 export const titleResultsPane = 'Results: {0}';
 
