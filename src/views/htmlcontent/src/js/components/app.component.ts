@@ -313,6 +313,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             switch (event.type) {
                 case 'complete':
                     self.complete = true;
+                    self.messagesAdded = true;
                 break;
                 case 'batch':
                     let batch = event.data;
@@ -408,6 +409,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.onScroll(0);
                 break;
                 default:
+                    console.error('Unexpected web socket event type "' + event.type + '" sent');
                 break;
             }
         });
