@@ -295,6 +295,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             queryRunner.eventEmitter.on('complete', () => {
                 this._service.broadcast(resultsUri, 'complete');
             });
+            queryRunner.eventEmitter.on('start', () => {
+                this._service.resetSocket(resultsUri);
+            });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
 

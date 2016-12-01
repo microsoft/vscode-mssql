@@ -140,6 +140,7 @@ export default class QueryRunner {
                 // register with the Notification Handler
                 self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
+            self.eventEmitter.emit('start');
         }, error => {
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
