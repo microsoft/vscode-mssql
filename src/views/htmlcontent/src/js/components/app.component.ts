@@ -102,15 +102,13 @@ const template = `
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
                 </template>
+                <tr *ngIf="!complete">
+                    <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
+                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"><span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
+                </tr>
                 <tr *ngIf="complete">
                     <td></td>
                     <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapseExecution))}}</td>
-                </tr>
-            </tbody>
-            <tbody *ngIf="messages.length === 0">
-                <tr>
-                    <td>[{{startString}}]</td>
-                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"><span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
                 </tr>
             </tbody>
         </table>
