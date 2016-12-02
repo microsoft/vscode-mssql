@@ -91,7 +91,7 @@ const template = `
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
-            <tbody *ngIf="messages.length > 0">
+            <tbody>
                 <template ngFor let-imessage [ngForOf]="messages">
                     <tr *ngIf="imessage.selection">
                         <td>[{{imessage.startTime}}]</td>
@@ -104,7 +104,10 @@ const template = `
                 </template>
                 <tr *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
-                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"><span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
+                    <td>
+                        <img src="dist/images/progress_36x_animation.gif" height="18px" />
+                        <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span>
+                    </td>
                 </tr>
                 <tr *ngIf="complete">
                     <td></td>

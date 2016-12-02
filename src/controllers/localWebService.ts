@@ -17,7 +17,7 @@ class WebSocketMapping {
 }
 
 class WebSocketMessage {
-    public event: string;
+    public type: string;
     public data: any;
 }
 
@@ -83,7 +83,7 @@ export default class LocalWebService {
 
     broadcast(uri: string, event: string, data?: any): void {
         // Create a message to send out
-        let message = {
+        let message: WebSocketMessage = {
             type: event,
             data: data ? data : undefined
         };
