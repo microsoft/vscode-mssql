@@ -49,11 +49,11 @@ export class ServerStatusView implements IStatusView, vscode.Disposable  {
         this._statusBarItem.command = undefined;
         this._statusBarItem.show();
 
-        this.showProgress(Constants.serviceInstalling);
+        this.showProgress('$(desktop-download) ' + Constants.serviceInstalling);
     }
 
     public updateServiceDownloadingProgress(downloadPercentage: number): void {
-        this._statusBarItem.text = `${Constants.serviceDownloading} ... ${downloadPercentage}%`;
+        this._statusBarItem.text = '$(cloud-download) ' + `${Constants.serviceDownloading} ... ${downloadPercentage}%`;
         this._statusBarItem.show();
     }
 
