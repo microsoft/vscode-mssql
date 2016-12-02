@@ -193,7 +193,7 @@ export default class ServiceDownloadProvider {
             this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
             const urlString = this.getGetDownloadUrl(fileName);
 
-            this._logger.appendLine(`Attempting to download ${urlString}`);
+            this._logger.appendLine(`${Constants.serviceDownloading} ${urlString}`);
 
             return this.download(urlString, proxy, strictSSL)
                 .then(inStream => {

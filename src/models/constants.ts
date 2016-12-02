@@ -180,11 +180,11 @@ export const unfoundResult = 'Data was disposed when text editor was closed; to 
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
-export const serviceInstalling = 'Installing Sql Tools Service';
+export const serviceInstalling = 'Installing';
 export const serviceInstallingTo = 'Installing SQL tools service to';
 export const serviceInitializing = 'Initializing SQL tools service for the mssql extension.';
 export const commandsNotAvailableWhileInstallingTheService = 'Note: mssql commands will be available after installing the service.';
-export const serviceDownloading = 'Downloading Sql Tools Service';
+export const serviceDownloading = 'Downloading';
 export const serviceInstalled = 'Sql Tools Service installed';
 export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
 export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
