@@ -8,8 +8,7 @@ before_install:
       sleep 3;
     fi
 install:
-  - npm install
-  - npm run vscode:prepublish
+    - npm install
 before_script:
     - npm install -g gulp-cli
     - npm install -g
