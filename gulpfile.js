@@ -15,7 +15,7 @@ var through = require('through2');
 var cproc = require('child_process');
 var os = require('os');
 var jeditor = require("gulp-json-editor");
-const path = require('path');
+var path = require('path');
 
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
