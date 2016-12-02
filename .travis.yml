@@ -3,7 +3,7 @@ language: node_js
 node_js:
   - "6.9.1"
 before_install:
-  - sudo apt-get install libxss1 libappindicator1 libindicator7
+  - sudo apt-get install libxss1 libappindicator1 libindicator7 libfontconfig1 libstdc++6 fonts-liberation lsb-base
   - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   - sudo dpkg -i google-chrome*.deb
   - export CHROME_BIN=/usr/bin/google-chrome
