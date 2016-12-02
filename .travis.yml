@@ -12,4 +12,4 @@ before_script:
 script:
   - gulp install
   - gulp build
-  - "./node_modules/.bin/karma start --single-run --browsers Chrome"
+  - "./node_modules/.bin/karma start"
