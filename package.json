@@ -47,6 +47,7 @@
     "vscode.sql"
   ],
   "devDependencies": {
+    "chai": "^3.5.0",
     "decache": "^4.1.0",
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#4.0",

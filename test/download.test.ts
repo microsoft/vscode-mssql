@@ -1,16 +1,19 @@
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
-import {IConfig} from '../src/languageservice/interfaces';
+import {IConfig, IStatusView} from '../src/languageservice/interfaces';
 import ServiceDownloadProvider from '../src/languageservice/download';
 import Config from  '../src/configurations/config';
-import * as Platform from '../src/models/platform';
+import {ServerStatusView} from '../src/languageservice/serverStatus';
+import {Runtime} from '../src/models/platform';
 import * as path from 'path';
 
 suite('ServiceDownloadProvider Tests', () => {
     let config: TypeMoq.Mock<IConfig>;
+    let testStatusView: TypeMoq.Mock<IStatusView>;
 
     setup(() => {
         config = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
+        testStatusView = TypeMoq.Mock.ofType(ServerStatusView, TypeMoq.MockBehavior.Strict);
     });
 
     test('getInstallDirectory should return the exact value from config if the path is absolute', (done) => {
@@ -20,8 +23,8 @@ suite('ServiceDownloadProvider Tests', () => {
             let expected = expectedPathFromConfig;
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-            let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
+            let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object);
+            let actual = downloadProvider.getInstallDirectory(Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
@@ -34,8 +37,8 @@ suite('ServiceDownloadProvider Tests', () => {
             let expected =  __dirname + '/0.0.4';
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-            let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
+            let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object);
+            let actual = downloadProvider.getInstallDirectory(Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
@@ -48,8 +51,8 @@ suite('ServiceDownloadProvider Tests', () => {
             let expected = __dirname + '/0.0.4/OSX';
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-            let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
+            let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object);
+            let actual = downloadProvider.getInstallDirectory(Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
@@ -62,11 +65,25 @@ suite('ServiceDownloadProvider Tests', () => {
             let expected = path.join(__dirname, '../../service/0.0.4/OSX');
             config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
             config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-            let downloadProvider = new ServiceDownloadProvider(config.object, undefined);
-            let actual = downloadProvider.getInstallDirectory(Platform.Runtime.OSX_10_11_64);
+            let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object);
+            let actual = downloadProvider.getInstallDirectory(Runtime.OSX_10_11_64);
             assert.equal(expected, actual);
             done();
          });
     });
 
+
+    test('getDownloadFileName should return the expected file name given a runtime', (done) => {
+         return new Promise((resolve, reject) => {
+             let expectedName = 'expected';
+             let fileNamesJson = {Windows_7_64: `${expectedName}`};
+             config.setup(x => x.getSqlToolsConfigValue('downloadFileNames')).returns(() => fileNamesJson);
+             let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object);
+             let actual = downloadProvider.getDownloadFileName(Runtime.Windows_7_64);
+             assert.equal(actual, expectedName);
+             done();
+         }).catch( error => {
+             assert.fail(error);
+         });
+    });
 });

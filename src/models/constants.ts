@@ -180,10 +180,15 @@ export const unfoundResult = 'Data was disposed when text editor was closed; to 
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
-export const serviceInstalling = 'Installing Sql Tools Service';
+export const serviceInstalling = 'Installing';
+export const serviceInstallingTo = 'Installing SQL tools service to';
+export const serviceInitializing = 'Initializing SQL tools service for the mssql extension.';
+export const commandsNotAvailableWhileInstallingTheService = 'Note: mssql commands will be available after installing the service.';
+export const serviceDownloading = 'Downloading';
 export const serviceInstalled = 'Sql Tools Service installed';
 export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
 export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
+export const unsupportedPlatformErrorMessage = 'The platform is not supported';
 export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
 export const extensionNotInitializedError = 'Unable to execute the command while the extension is initializing. Please try again later.';
 
@@ -224,6 +229,10 @@ export const titleResultsPane = 'Results: {0}';
 export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to connect.`;
 export const macOpenSslHelpButton = 'Help';
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
+
+export const sqlToolsServiceName = 'SQLToolsService';
+
+
 
 export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 
