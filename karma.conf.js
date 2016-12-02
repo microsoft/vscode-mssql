@@ -23,9 +23,9 @@ module.exports = function(config) {
     ],
 
     files: [
-      'out/src/views/htmlcontent/lib/js/jquery-1.7.min.js',
+      'out/src/views/htmlcontent/lib/js/jquery-1.8.3.js',
       'out/src/views/htmlcontent/lib/js/jquery.event.drag-2.2.js',
-      'out/src/views/htmlcontent/lib/js/jquery-ui-1.8.16.custom.min.js',
+      'out/src/views/htmlcontent/lib/js/jquery-ui-1.9.2.js',
       'out/src/views/htmlcontent/lib/js/underscore-min.js',
       'out/src/views/htmlcontent/lib/js/slick.core.js',
       'out/src/views/htmlcontent/lib/js/slick.grid.js',

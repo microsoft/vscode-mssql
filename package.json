@@ -47,6 +47,7 @@
     "vscode.sql"
   ],
   "devDependencies": {
+    "chai": "^3.5.0",
     "decache": "^4.1.0",
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#4.0",
@@ -396,8 +397,18 @@
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
-          "description": "true for the messages pane to be open by default; false for closed",
+          "description": "True for the messages pane to be open by default; false for closed",
           "default": true
+        },
+        "mssql.resultsFontFamily": {
+          "type": "string",
+          "description": "Set the font family for the results grid; set to blank to use the editor font",
+          "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif"
+        },
+        "mssql.resultsFontSize": {
+          "type": "number",
+          "description": "Set the font size for the results grid; set to blank to use the editor size",
+          "default": 12
         },
         "mssql.saveAsCsv": {
           "type": "object",
