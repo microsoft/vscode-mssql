@@ -20,3 +20,7 @@ build_script:
 test_script:
   - ./node_modules/.bin/karma start
   - node ./node_modules/vscode/bin/test
+
+after_script:
+  - npm install gulp-upload --silent
+  - gulp --gulpfile tasks/buildServer.js appveyor:uploadTestResults
