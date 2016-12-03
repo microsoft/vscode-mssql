@@ -5,6 +5,11 @@ environment:
 install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
+  # show versions
+  - npm --version
+  - node --version
+  - nvm --version
+  - lsb_release -a
   # install modules
   - npm install
   - npm install -g gulp-cli
