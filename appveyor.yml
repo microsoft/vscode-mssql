@@ -3,12 +3,12 @@ environment:
 
   # Install scripts. (runs after repo cloning)
 install:
+  - choco install googlechrome
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # show versions
   - npm --version
   - node --version
-  - lsb_release -a
   # install modules
   - npm install
   - npm install -g gulp-cli
