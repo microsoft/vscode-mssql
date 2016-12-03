@@ -19,5 +19,5 @@ install:
   - gulp install
 script:
   - gulp build
-  - "./node_modules/.bin/karma start"
-  - "./node_modules/vscode/bin/test"
+  - ./node_modules/.bin/karma start
+  - sudo ./node_modules/vscode/bin/test
