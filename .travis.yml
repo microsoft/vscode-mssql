@@ -16,4 +16,4 @@ install:
 script:
   - gulp build
   - xvfb-maybe ./node_modules/.bin/karma start
-  - scripts/vscodetest.sh
+  - xvfb-maybe node ./node_modules/vscode/bin/test
