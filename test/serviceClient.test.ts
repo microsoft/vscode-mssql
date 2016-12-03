@@ -2,7 +2,7 @@ console.log('serviceClient', __dirname);
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import ServerProvider from '../src/languageservice/server';
-import SqlToolsServiceClient from './../src/languageservice/serviceClient';
+import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 import {Logger} from '../src/models/logger';
 import {PlatformInformation} from '../src/models/platform';
 
