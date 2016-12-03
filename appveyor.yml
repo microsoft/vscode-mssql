@@ -1,0 +1,19 @@
+environment:
+  nodejs_version: "6.9.1"
+
+  # Install scripts. (runs after repo cloning)
+install:
+  # Get the latest stable version of Node.js or io.js
+  - ps: Install-Product node $env:nodejs_version
+  # install modules
+  - npm install
+  - npm install -g gulp-cli
+  - gulp install
+
+  # Post-install test scripts.
+test_script:
+  # Output useful info for debugging.
+  - node --version
+  - npm --version
+
+build: gulp build
