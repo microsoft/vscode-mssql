@@ -16,5 +16,6 @@ install:
 
 test_script:
   - gulp build
+  - "./node_modules/.bin/karma start"
 
 build: off
