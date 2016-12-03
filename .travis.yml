@@ -10,17 +10,12 @@ before_install:
   - sudo apt-get install -y x-ttcidfont-conf cabextract ttf-mscorefonts-installer # accept the EULA
   - sudo dpkg-reconfigure --default-priority x-ttcidfont-conf
   - export CHROME_BIN=/usr/bin/google-chrome
-  - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      export CXX="g++-4.9" CC="gcc-4.9";
-    fi
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start +extension RANDR
 install:
   - npm install -g --silent gulp-cli
-  - npm install -g --silent typescript
+  - npm install -g --silent xvfb-maybe
   - npm install
   - gulp install
 script:
   - gulp build
-  - ./node_modules/.bin/karma start
-  - node ./node_modules/vscode/bin/test
+  - xvfb-maybe ./node_modules/.bin/karma start
+  - xvfb-maybe node ./node_modules/vscode/bin/test

@@ -20,6 +20,6 @@ gulp.task('appveyor:uploadTestResults', () => {
             }
         }
     }
-    return gulp.src('test-reports/*')
+    return gulp.src('./test-reports/*')
                 .pipe(upload(options));
 });
