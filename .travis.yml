@@ -1,8 +1,5 @@
 sudo: required
 dist: trusty
-os:
-  - linux
-  - osx
 
 language: node_js
 node_js:

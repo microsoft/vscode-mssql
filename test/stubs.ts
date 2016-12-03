@@ -1,4 +1,5 @@
 'use strict';
+console.log(__dirname);
 
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 

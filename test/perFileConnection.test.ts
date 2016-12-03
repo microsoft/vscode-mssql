@@ -1,3 +1,4 @@
+console.log(__dirname);
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import { ExtensionContext } from 'vscode';
