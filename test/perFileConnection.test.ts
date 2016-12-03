@@ -1,4 +1,3 @@
-console.log('perfilconnection', __dirname);
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import { ExtensionContext } from 'vscode';

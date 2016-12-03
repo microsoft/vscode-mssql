@@ -1,4 +1,3 @@
-console.log('connectionconfig', __dirname);
 import * as TypeMoq from 'typemoq';
 
 import { ConnectionConfig } from '../src/connectionconfig/connectionconfig';

@@ -1,4 +1,3 @@
-console.log('download', __dirname);
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import {IConfig, IStatusView} from '../src/languageservice/interfaces';

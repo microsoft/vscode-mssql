@@ -1,4 +1,3 @@
-console.log('saveresults', __dirname);
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import Constants = require('../src/models/constants');

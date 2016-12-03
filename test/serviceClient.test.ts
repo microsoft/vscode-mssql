@@ -1,4 +1,3 @@
-console.log('serviceClient', __dirname);
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import ServerProvider from '../src/languageservice/server';

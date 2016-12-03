@@ -1,6 +1,4 @@
 'use strict';
-console.log('connectionstore', __dirname);
-
 import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');

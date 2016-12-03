@@ -1,4 +1,3 @@
-console.log('config', __dirname);
 import assert = require('assert');
 
 import Config from  '../src/configurations/config';

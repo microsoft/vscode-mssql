@@ -1,4 +1,3 @@
-console.log('extconfig', __dirname);
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import {IConfig} from '../src/languageservice/interfaces';
