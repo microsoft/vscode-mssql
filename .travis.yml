@@ -13,7 +13,8 @@ before_install:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 install:
-  - npm install -g gulp-cli
+  - npm install -g --silent gulp-cli
+  - npm install -g --silent typescript
   - npm install
   - npm explore vscode -- npm run prepublish
   - gulp install

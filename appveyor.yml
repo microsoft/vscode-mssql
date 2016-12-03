@@ -9,7 +9,7 @@ install:
   # show versions
   - npm --version
   - node --version
-  - npm install -g gulp-cli --silent
+  - npm install -g --silent gulp-cli
   # install modules
   - npm install
   - gulp install
