@@ -20,4 +20,4 @@ install:
 script:
   - gulp build
   - ./node_modules/.bin/karma start
-  - sudo ./node_modules/vscode/.bin/test
+  - node ./node_modules/vscode/bin/test
