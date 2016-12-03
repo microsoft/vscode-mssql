@@ -11,4 +11,4 @@ install:
   - gulp install
 
 build:
-    gulp build
+  - gulp build
