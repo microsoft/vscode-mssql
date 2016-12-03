@@ -3,7 +3,7 @@ language: node_js
 node_js:
   - "6.9.1"
 before_install:
-  - wget https://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_53.0.2785.143-0ubuntu0.14.04.1.1145_amd64.deb
+  - wget http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_53.0.2785.143-0ubuntu0.14.04.1.1145_amd64.deb
   - sudo dpkg -i google-chrome*.deb
   - export CHROME_BIN=/usr/bin/google-chrome
   - export DISPLAY=:99.0
