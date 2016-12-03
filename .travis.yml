@@ -15,7 +15,7 @@ before_install:
 install:
   - npm install -g gulp-cli
   - npm install
-  - npm run vscode:prepublish
+  - npm explore vsocde -- npm run prepublish
   - gulp install
 script:
   - gulp build

@@ -14,8 +14,8 @@ install:
   - npm install -g gulp-cli
   - gulp install
 
-test_script:
+build_script:
   - gulp build
-  - "./node_modules/.bin/karma start"
 
-build: off
+test_script:
+  - "./node_modules/.bin/karma start"
