@@ -9,9 +9,9 @@ install:
   # show versions
   - npm --version
   - node --version
+  - npm install -g gulp-cli --silent
   # install modules
   - npm install
-  - npm install -g gulp-cli
   - gulp install
 
 build_script:
