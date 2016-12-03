@@ -8,6 +8,7 @@ gulp.task('appveyor:uploadTestResults', () => {
         server: 'https://ci.appveyor.com/api/testresults/xunit/' + jobId,
         data: {
             fileName: function(file) {
+                console.log('file: ' + file.path);
                 return path.relative(__dirname, file.path)
             }
         },
