@@ -23,5 +23,5 @@ test_script:
   - node ./node_modules/vscode/bin/test
 
 after_test:
-  - npm install gulp-upload --silent
+  - npm install gulp-file-post --silent
   - gulp --gulpfile tasks/buildServer.js appveyor:uploadTestResults
