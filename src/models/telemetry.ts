@@ -1,11 +1,13 @@
 'use strict';
 import vscode = require('vscode');
-import Utils = require('./utils');
 import TelemetryReporter from 'vscode-extension-telemetry';
+import Utils = require('./utils');
+import { PlatformInformation } from './platform';
 
 export namespace Telemetry {
     let reporter: TelemetryReporter;
     let userId: string;
+    let platformInformation: PlatformInformation;
     let disabled: boolean;
 
     // Get the unique ID for the current user of the extension
@@ -22,6 +24,19 @@ export namespace Telemetry {
                 resolve(userId);
             }
         });
+    }
+
+    function getPlatformInformation(): Promise<PlatformInformation> {
+        if (platformInformation) {
+            return Promise.resolve(platformInformation);
+        } else {
+            return new Promise<PlatformInformation>(resolve => {
+                PlatformInformation.GetCurrent().then(info => {
+                    platformInformation = info;
+                    resolve(platformInformation);
+                });
+            });
+        }
     }
 
     export interface ITelemetryEventProperties {
@@ -100,8 +115,10 @@ export namespace Telemetry {
         }
 
         // Augment the properties structure with additional common properties before sending
-        getUserId().then( id => {
-            properties['userId'] = id;
+        Promise.all([getUserId(), getPlatformInformation()]).then(() => {
+            properties['userId'] = userId;
+            properties['distribution'] = (platformInformation && platformInformation.distribution) ?
+                `${platformInformation.distribution.name}, ${platformInformation.distribution.version}` : '';
 
             reporter.sendTelemetryEvent(eventName, properties, measures);
         });
