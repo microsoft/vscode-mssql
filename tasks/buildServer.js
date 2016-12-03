@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var upload = require('gulp-upload');
 var fs = require('fs');
+var parht = require('path');
 
 gulp.task('appveyor:uploadTestResults', () => {
     var resultsType = '';
@@ -21,9 +22,13 @@ gulp.task('appveyor:uploadTestResults', () => {
             }
         }
     }
+    var root = path.resolve(path.dirname(__dirname));
+    var testreports = path.resolve(root, 'test-reports');
+    console.log('root ' + root);
+    console.log('test reports' + testreports);
     try {
-        fs.accessSync('test-reports/', fs.F_OK);
-        return gulp.src('test-reports/*')
+        fs.accessSync(testreports, fs.F_OK);
+        return gulp.src(testreports + '/*')
                     .pipe(upload(options));
     } catch (e) {
         console.log('files do not exists');
