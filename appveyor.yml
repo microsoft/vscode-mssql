@@ -19,7 +19,7 @@ build_script:
 
 test_script:
   - ./node_modules/.bin/karma start
-  - node ./node_modules/vscode/bin/test
+  - node ./node_modules/vscode/bin/test && exit 0
 
 after_test:
   - ps: scripts\upload.ps1
