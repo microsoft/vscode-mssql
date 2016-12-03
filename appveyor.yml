@@ -23,5 +23,4 @@ test_script:
   - node ./node_modules/vscode/bin/test
 
 after_test:
-  - $ws = New-Object 'System.Net.WebClient'
-  - $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\test-reports\TESTS-Chrome*.xml))
+  - ps: .\scripts\upload.ps1
