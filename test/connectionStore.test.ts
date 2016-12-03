@@ -1,5 +1,5 @@
 'use strict';
-console.log(__dirname);
+console.log('connectionstore', __dirname);
 
 import * as TypeMoq from 'typemoq';
 

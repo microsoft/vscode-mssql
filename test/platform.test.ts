@@ -1,4 +1,4 @@
-console.log(__dirname);
+console.log('platform', __dirname);
 import assert = require('assert');
 import { expect } from 'chai';
 import {Runtime, PlatformInformation, LinuxDistribution} from '../src/models/platform';

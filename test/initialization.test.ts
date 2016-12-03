@@ -1,4 +1,4 @@
-console.log(__dirname);
+console.log('intilization', __dirname);
 import assert = require('assert');
 import vscode = require('vscode');
 

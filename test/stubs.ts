@@ -1,5 +1,5 @@
 'use strict';
-console.log(__dirname);
+console.log('stubs', __dirname);
 
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 

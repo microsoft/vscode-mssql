@@ -1,4 +1,4 @@
-console.log(__dirname);
+console.log('queryrunner', __dirname);
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import QueryRunner from './../src/controllers/QueryRunner';

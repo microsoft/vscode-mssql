@@ -1,4 +1,4 @@
-console.log(__dirname);
+console.log('server', __dirname);
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import ServiceDownloadProvider from '../src/languageservice/download';
