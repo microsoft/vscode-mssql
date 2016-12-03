@@ -20,7 +20,6 @@ build_script:
 test_script:
   - ./node_modules/.bin/karma start
   - set JUNIT_REPORT_PATH="%APPVEYOR_BUILD_FOLDER%/test-reports/ext_xunit.xml"
-  - echo %JUNIT_REPORT_PATH%
   - node ./node_modules/vscode/bin/test
 
 after_test:
