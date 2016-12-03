@@ -22,8 +22,8 @@ gulp.task('appveyor:uploadTestResults', () => {
         }
     }
     try {
-        fs.accessSync('./test-reports/', fs.F_OK);
-        return gulp.src('./test-reports/*')
+        fs.accessSync('test-reports/', fs.F_OK);
+        return gulp.src('test-reports/*')
                     .pipe(upload(options));
     } catch (e) {
         console.log('files do not exists');
