@@ -5,7 +5,19 @@ gulp.task('appveyor:uploadTestResults', () => {
     var resultsType = '';
     var jobId = process.env.APPVEYOR_JOB_ID;
     var options = {
-        server: 'https://ci.appveyor.com/api/testresults/xunit/' + jobId
+        server: 'https://ci.appveyor.com/api/testresults/xunit/' + jobId,
+        data: {
+            fileName: function(file) {
+                return path.relative(__dirname, file.path)
+            }
+        },
+        callback: function (err, data, res) {
+            if (err) {
+                console.log('error:' + err.toString());
+            } else {
+                console.log(data.toString());
+            }
+        }
     }
     return gulp.src('test-reports/*')
                 .pipe(upload(options));
