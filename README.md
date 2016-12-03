@@ -1,6 +1,7 @@
-[![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 [![Travis CI](https://travis-ci.org/anthonydresser/vscode-mssql.svg?branch=dev)](https://travis-ci.org/anthonydresser/vscode-mssql)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/anthonydresser/vscode-mssql?svg=true&retina=true&branch=dev)](https://ci.appveyor.com/project/anthonydresser/vscode-mssql)
+[![Coverage Status](https://coveralls.io/repos/github/anthonydresser/vscode-mssql/badge.svg?branch=dev)](https://coveralls.io/github/anthonydresser/vscode-mssql?branch=dev)
+[![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 
 # mssql for Visual Studio Code
