@@ -50,17 +50,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
-        this._service.newConnection.on('connection', (uri) => {
-            if (self._queryResultsMap.has(uri)) {
-                for (let batch of self._queryResultsMap.get(uri).queryRunner.batchSets) {
-                    self._service.broadcast(uri, 'batch', batch);
-                }
-
-                if (!self._queryResultsMap.get(uri).queryRunner.isExecutingQuery) {
-                    self._service.broadcast(uri, 'complete');
-                }
-            }
-        });
 
         // add http handler for '/root'
         this._service.addHandler(Interfaces.ContentType.Root, (req, res): void => {
@@ -302,11 +291,17 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
-            queryRunner.batchResult.on('batch', (batch) => {
+            queryRunner.eventEmitter.on('resultSet', (resultSet) => {
+                this._service.broadcast(resultsUri, 'resultSet', resultSet);
+            });
+            queryRunner.eventEmitter.on('batch', (batch) => {
                 this._service.broadcast(resultsUri, 'batch', batch);
             });
-            queryRunner.batchResult.on('complete', () => {
+            queryRunner.eventEmitter.on('complete', () => {
                 this._service.broadcast(resultsUri, 'complete');
+            });
+            queryRunner.eventEmitter.on('start', () => {
+                this._service.resetSocket(resultsUri);
             });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
