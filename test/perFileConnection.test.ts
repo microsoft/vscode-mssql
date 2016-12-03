@@ -1,9 +1,9 @@
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import { ExtensionContext } from 'vscode';
-import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 
 import { IPrompter } from '../src/prompts/question';
+import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentials, AuthenticationTypes } from '../src/models/interfaces';
