@@ -23,5 +23,5 @@ test_script:
   - node ./node_modules/vscode/bin/test
 
 after_test:
-  - npm install gulp-file-post --silent
-  - gulp --gulpfile tasks/buildServer.js appveyor:uploadTestResults
+  - $ws = New-Object 'System.Net.WebClient'
+  - $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\test-reports\TESTS-Chrome*.xml))
