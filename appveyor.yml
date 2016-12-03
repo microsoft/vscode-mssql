@@ -19,3 +19,4 @@ build_script:
 
 test_script:
   - "./node_modules/.bin/karma start"
+  - "./node_modules/vscode/bin/test"

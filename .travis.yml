@@ -16,7 +16,6 @@ install:
   - npm install -g --silent gulp-cli
   - npm install -g --silent typescript
   - npm install
-  - npm explore vscode -- npm run prepublish
   - gulp install
 script:
   - gulp build
