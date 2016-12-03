@@ -16,6 +16,7 @@ install:
   - gulp install
 script:
   - gulp build
+  - gulp cover:enable
   - xvfb-maybe ./node_modules/.bin/karma start
   - xvfb-maybe node ./node_modules/vscode/bin/test
   - gulp cover:combine
