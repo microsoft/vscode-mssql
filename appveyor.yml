@@ -24,6 +24,6 @@ test_script:
   - node ./node_modules/vscode/bin/test
 
 after_test:
-  - dir test-reports/ext_xunit.xml
+  - dir test-reports
   - npm install gulp-upload --silent
   - gulp --gulpfile tasks/buildServer.js appveyor:uploadTestResults
