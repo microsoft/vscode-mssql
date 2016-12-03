@@ -133,7 +133,7 @@ suite('ConnectionStore tests', () => {
 
                 credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
             }).catch(err => {
-                return new Error(err)
+                return new Error(err);
             });
     });
 
