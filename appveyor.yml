@@ -10,5 +10,7 @@ install:
   - npm install -g gulp-cli
   - gulp install
 
-build:
+test_script:
   - gulp build
+
+build: off
