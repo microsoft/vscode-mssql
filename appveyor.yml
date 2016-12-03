@@ -23,4 +23,4 @@ test_script:
   - node ./node_modules/vscode/bin/test
 
 after_test:
-  - ps: .\scripts\upload.ps1
+  - ps: scripts\upload.ps1
