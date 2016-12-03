@@ -1,5 +1,9 @@
 sudo: required
 dist: trusty
+os:
+  - linux
+  - osx
+
 language: node_js
 node_js:
   - "6.9.1"
