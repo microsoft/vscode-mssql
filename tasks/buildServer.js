@@ -1,5 +1,6 @@
 var gulp = require('gulp');
 var upload = require('gulp-upload');
+var fs = require('fs');
 
 gulp.task('appveyor:uploadTestResults', () => {
     var resultsType = '';
@@ -20,6 +21,12 @@ gulp.task('appveyor:uploadTestResults', () => {
             }
         }
     }
-    return gulp.src('./test-reports/*')
-                .pipe(upload(options));
+    try {
+        fs.accessSync('./test-reports', fs.F_OK);
+        return gulp.src('./test-reports/*')
+                    .pipe(upload(options));
+    } catch (e) {
+        console.log('files do not exists');
+        return;
+    }
 });
