@@ -98,7 +98,7 @@ export default class LocalWebService {
             this.wsMap.set(uri, mapping);
         } else {
             // Make sure the web socket server is open, then fire away
-            if (mapping.webSocketServer.readyState === ws.OPEN) {
+            if (mapping.webSocketServer && mapping.webSocketServer.readyState === ws.OPEN) {
                 mapping.webSocketServer.send(JSON.stringify(message));
             }
         }
