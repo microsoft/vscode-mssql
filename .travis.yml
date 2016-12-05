@@ -13,9 +13,8 @@ before_install:
   - export CHROME_BIN=chromium-browser
 # Set up chrome on osx
   - if [ $TRAVIS_OS_NAME == "osx" ]; then
-      brew install brew-cask;
-      brew cask install google-chrome;
-      export CHROME_BIN=~/Applications/google-chrome;
+      brew install google-chrome;
+      export CHROME_BIN=/Applications/Google\ Chrome.app;
     fi
   - export BUILDMACHINE=true
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
