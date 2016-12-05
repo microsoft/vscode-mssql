@@ -5,10 +5,11 @@ language: node_js
 node_js:
   - "6.9.1"
 before_install:
-  - wget http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_53.0.2785.143-0ubuntu0.14.04.1.1145_amd64.deb
-  - sudo dpkg -i chromium-browser*.deb
-  - export CHROME_BIN=/usr/bin/google-chrome
-  - sudo apt-get install xclip
+  #- wget http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_53.0.2785.143-0ubuntu0.14.04.1.1145_amd64.deb
+  #- sudo dpkg -i chromium-browser*.deb
+  #- export CHROME_BIN=/usr/bin/google-chrome
+  - export CHROME_BIN=chromium-browser
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
   - npm install -g npm
 install:
   - npm install -g --silent gulp-cli
