@@ -14,6 +14,7 @@ before_install:
   - export BUILDMACHINE=true
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
   - npm install -g npm
+  - printenv CHROME_BIN
 install:
   - npm install -g --silent gulp-cli
   - npm install -g --silent xvfb-maybe
@@ -21,7 +22,7 @@ install:
   - gulp install
 script:
   - gulp build
-  - gulp cover:enableconfig
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then gulp cover:enableconfig; fi
   - xvfb-maybe ./node_modules/.bin/karma start
   - xvfb-maybe node ./node_modules/vscode/bin/test
   - gulp cover:combine
