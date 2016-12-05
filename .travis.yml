@@ -29,5 +29,7 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then gulp cover:enableconfig; fi
   - xvfb-maybe ./node_modules/.bin/karma start
   - xvfb-maybe node ./node_modules/vscode/bin/test
-  - gulp cover:combine
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./node_modules/.bin/coveralls < coverage/lcov.info; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      gulp cover:combine;
+      ./node_modules/.bin/coveralls < coverage/lcov.info;
+    fi
