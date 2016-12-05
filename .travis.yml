@@ -35,6 +35,6 @@ script:
   - xvfb-maybe node ./node_modules/vscode/bin/test
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       gulp cover:combine;
-      ls node_modules/.bin/;
-      node ./node_modules/coveralls/bin/coveralls.js < coverage/lcov.info;
+      npm install coveralls
+      ./node_modules/.bin/coveralls < coverage/lcov.info;
     fi
