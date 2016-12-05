@@ -111,7 +111,7 @@ suite('ConnectionStore tests', () => {
         assert.ok(label.endsWith(namedProfile.profileName));
     });
 
-    test('SaveProfile should not save password if SavePassword is false', done => {
+    test('SaveProfile should not save password if SavePassword is false', () => {
         // Given
         globalstate.setup(x => x.get(TypeMoq.It.isAny())).returns(key => []);
 
@@ -133,8 +133,9 @@ suite('ConnectionStore tests', () => {
                 assert.ok(utils.isEmpty(credsToSave[0].password));
 
                 credentialStore.verify(x => x.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
-                done();
-            }).catch(err => done(new Error(err)));
+            }).catch(err => {
+                return new Error(err);
+            });
     });
 
     test('SaveProfile should save password using CredentialStore and not in the settings', (done) => {
