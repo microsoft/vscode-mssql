@@ -20,6 +20,7 @@ import ServiceDownloadProvider from './download';
 import ExtConfig from  '../configurations/extConfig';
 import {PlatformInformation} from '../models/platform';
 import {ServerInitializationResult, ServerStatusView} from './serverStatus';
+import * as LanguageServiceContracts from '../models/contracts/languageService';
 
 let opener = require('opener');
 let _channel: OutputChannel = undefined;
@@ -152,6 +153,7 @@ export default class SqlToolsServiceClient {
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
+                Telemetry.sendTelemetryEvent('Unsupported Platform', {platform: platformInfo.toString()} );
                 reject('Invalid Platform');
             } else {
                 if (platformInfo.runtimeId) {
@@ -169,6 +171,8 @@ export default class SqlToolsServiceClient {
                         this._server.downloadServerFiles(platformInfo.runtimeId).then ( installedServerPath => {
                             this.initializeLanguageClient(installedServerPath, context);
                             resolve(new ServerInitializationResult(true, true, installedServerPath));
+                        }).catch(downloadErr => {
+                            reject(downloadErr);
                         });
                     } else {
                         this.initializeLanguageClient(serverPath, context);
@@ -177,6 +181,7 @@ export default class SqlToolsServiceClient {
                 }).catch(err => {
                     Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err );
                     Utils.showErrorMsg(Constants.serviceLoadingFailed);
+                    Telemetry.sendTelemetryEvent('ServiceInitializingFailed');
                     reject(err);
                 });
             }
@@ -249,9 +254,17 @@ export default class SqlToolsServiceClient {
         let client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
         client.onReady().then( () => {
             this.checkServiceCompatibility();
+
         });
+        client.onNotification(LanguageServiceContracts.DefinitionSentNotification.type, this.handleLanguageServiceDefinitionSentNotification());
 
         return client;
+    }
+
+    private handleLanguageServiceDefinitionSentNotification(): NotificationHandler<LanguageServiceContracts.DefinitionSentParams> {
+        return (event: LanguageServiceContracts.DefinitionSentParams): void => {
+            Telemetry.sendTelemetryEvent('DefinitionRequested');
+        };
     }
 
     private createServerOptions(servicePath): ServerOptions {

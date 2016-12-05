@@ -20,3 +20,21 @@ export class IntelliSenseReadyParams {
 }
 
 // ------------------------------- </ IntelliSense Ready Event > ----------------------------------
+
+// ------------------------------- < IntelliSense Ready Event > ------------------------------------
+
+/**
+ * Event sent when the language service send a definition
+ */
+export namespace DefinitionSentNotification {
+    export const type: NotificationType<DefinitionSentParams> = { get method(): string { return 'textDocument/definitionSent'; } };
+}
+
+/**
+ * Update event parameters
+ */
+export class DefinitionSentParams {
+}
+
+// ------------------------------- </ IntelliSense Ready Event > ----------------------------------
+
