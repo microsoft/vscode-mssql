@@ -23,6 +23,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
     workspaceState: vscode.Memento;
     globalState: vscode.Memento;
     extensionPath: string;
+    storagePath;
 
     asAbsolutePath(relativePath: string): string {
         return undefined;
