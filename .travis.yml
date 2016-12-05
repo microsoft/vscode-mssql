@@ -36,5 +36,5 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       gulp cover:combine;
       ls node_modules/.bin/;
-      node_modules/.bin/coveralls < coverage/lcov.info;
+      node ./node_modules/coveralls/bin/coveralls.js < coverage/lcov.info;
     fi
