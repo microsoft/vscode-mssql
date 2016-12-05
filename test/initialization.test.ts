@@ -28,7 +28,7 @@ suite('Initialization Tests', () => {
 
     test('Connection manager is initialized properly', (done) => {
         // Trigger extension activation
-        let uri = vscode.Uri.parse('untitled:test.sql');
+        let uri = vscode.Uri.parse('untitled:%5Ctest.sql');
         vscode.workspace.openTextDocument(uri);
 
         // Wait for the extension to activate
