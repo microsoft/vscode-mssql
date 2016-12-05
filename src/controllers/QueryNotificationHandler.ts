@@ -4,8 +4,11 @@
 */
 import QueryRunner from './QueryRunner';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
-import { QueryExecuteCompleteNotification,
-    QueryExecuteBatchCompleteNotification } from '../models/contracts/queryExecute';
+import {
+    QueryExecuteCompleteNotification,
+    QueryExecuteBatchCompleteNotification,
+    QueryExecuteResultSetCompleteNotification
+} from '../models/contracts/queryExecute';
 import { NotificationHandler } from 'vscode-languageclient';
 
 export class QueryNotificationHandler {
@@ -26,6 +29,7 @@ export class QueryNotificationHandler {
     private initialize(): void {
         SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchCompleteNotification.type, this.handleBatchCompleteNotification());
+        SqlToolsServiceClient.instance.onNotification(QueryExecuteResultSetCompleteNotification.type, this.handleResultSetCompleteNotification());
     }
 
     // registers queryRunners with their uris to distribute notifications
@@ -33,20 +37,30 @@ export class QueryNotificationHandler {
         this._queryRunners.set(uri, runner);
     }
 
-    // handles distributing notifications to appropriate
+    // Distributes result completion notification to appropriate methods
     private handleCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             self._queryRunners.get(event.ownerUri).handleResult(event);
+
+            // There should be no more notifications for this query, so unbind it
             self._queryRunners.delete(event.ownerUri);
         };
     }
 
-    // handles distributing notifications to appropriate
+    // Distributes batch completion notification to appropriate methods
     private handleBatchCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
-            self._queryRunners.get(event.ownerUri).handleBatchResult(event);
+            self._queryRunners.get(event.ownerUri).handleBatchComplete(event);
+        };
+    }
+
+    // Distributes result set completion notification to appropriate methods
+    private handleResultSetCompleteNotification(): NotificationHandler<any> {
+        const self = this;
+        return (event) => {
+            self._queryRunners.get(event.ownerUri).handleResultSetComplete(event);
         };
     }
 }

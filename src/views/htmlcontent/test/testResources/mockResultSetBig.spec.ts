@@ -1,27 +1,8 @@
 import { WebSocketEvent } from './../../src/js/interfaces';
 
-const batch: WebSocketEvent = {
-  type: 'batch',
-  data: {
-  'executionElapsed': '00:00:00.1879820',
-  'executionEnd': '2016-11-10T17:39:27.9893860-08:00',
-  'executionStart': '2016-11-10T17:39:27.8014040-08:00',
-  'hasError': false,
-  'id': 0,
-  'selection': {
-    'endColumn': 1,
-    'endLine': 5,
-    'startColumn': 0,
-    'startLine': 3
-  },
-  'messages': [
-    {
-      'time': '2016-11-10T17:39:27.9773300-08:00',
-      'message': '(115 rows affected)'
-    }
-  ],
-  'resultSetSummaries': [
-    {
+const resultSet: WebSocketEvent = {
+    type: 'resultSet',
+    data: {
       'id': 0,
       'batchId': 0,
       'rowCount': 10,
@@ -400,7 +381,6 @@ const batch: WebSocketEvent = {
         }
       ]
     }
-  ]}
 };
 
-export default batch;
+export default resultSet;

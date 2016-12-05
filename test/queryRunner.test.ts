@@ -1,10 +1,17 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
+import { EventEmitter } from 'events';
 import QueryRunner from './../src/controllers/QueryRunner';
 import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
 import { SqlOutputContentProvider } from './../src/models/SqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
-import { QueryExecuteParams, QueryExecuteCompleteNotificationResult, ResultSetSummary } from './../src/models/contracts/queryExecute';
+import {
+    QueryExecuteParams,
+    QueryExecuteCompleteNotificationResult,
+    QueryExecuteBatchCompleteNotificationResult,
+    QueryExecuteResultSetCompleteNotificationParams,
+    ResultSetSummary
+} from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
 import * as Constants from '../src/models/constants';
@@ -105,6 +112,120 @@ suite('Query Runner tests', () => {
             // I expect query execution to be done
             assert.strictEqual(queryRunner.isExecutingQuery, false);
         });
+    });
+
+    test('Notification - Batch Complete', () => {
+        // Setup: Create a batch completion result
+        let batchComplete: QueryExecuteBatchCompleteNotificationResult = {
+            ownerUri: 'uri',
+            batchSummary: {
+                executionElapsed: undefined,
+                executionEnd: new Date().toISOString(),
+                executionStart: new Date().toISOString(),
+                hasError: false,
+                id: 0,
+                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+                messages: [{time: '', message: '6 affected rows'}],
+                resultSetSummaries: []
+            }
+        };
+
+        // If: I submit a batch completion notification to the query runner...
+        let queryRunner = new QueryRunner(
+            '',
+            '',
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
+        );
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('batch', TypeMoq.It.isAny()));
+        queryRunner.eventEmitter = mockEventEmitter.object;
+        queryRunner.handleBatchComplete(batchComplete);
+
+        // Then: It should store the batch and emit a batch complete notification
+        assert.equal(queryRunner.batchSets.indexOf(batchComplete.batchSummary), 0);
+        mockEventEmitter.verify(x => x.emit('batch', TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Notification - ResultSet Complete w/no previous results', () => {
+        // Setup: Create a resultset completion result
+        let resultSetComplete: QueryExecuteResultSetCompleteNotificationParams = {
+            ownerUri: 'uri',
+            resultSetSummary: {
+                batchId: 0,
+                columnInfo: [],
+                id: 0,
+                rowCount: 10
+            }
+        };
+
+        // If: I submit a resultSet completion notification to the query runner...
+        let queryRunner = new QueryRunner('', '',
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object);
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('resultSet', TypeMoq.It.isAny()));
+        queryRunner.eventEmitter = mockEventEmitter.object;
+        queryRunner.handleResultSetComplete(resultSetComplete);
+
+        // Then:
+        // ... It should create a batch summary to hold the result
+        assert.equal(queryRunner.batchSets.length, 1);
+        assert.equal(queryRunner.batchSets[0].id, 0);
+
+        // ... The batch that was created should contain the result set we got back
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 1);
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries[0], resultSetComplete.resultSetSummary);
+
+        // ... The resultset complete event should have been emitted
+        mockEventEmitter.verify(x => x.emit('resultSet', TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Notification - ResultSet complete w/previous results', () => {
+        // Setup:
+        // ... Create resultset completion results
+        let resultSetComplete1: QueryExecuteResultSetCompleteNotificationParams = {
+            ownerUri: 'uri',
+            resultSetSummary: {batchId: 0, columnInfo: [], id: 0, rowCount: 10 }
+        };
+        let resultSetComplete2: QueryExecuteResultSetCompleteNotificationParams = {
+            ownerUri: 'uri',
+            resultSetSummary: {batchId: 0, columnInfo: [], id: 1, rowCount: 10 }
+        };
+
+        // ... Create a mock event emitter to receive the events
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('resultSet', TypeMoq.It.isAny()));
+
+        // If:
+        // ... I submit a resultSet completion notification to the query runner
+        let queryRunner = new QueryRunner('', '',
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object);
+        queryRunner.eventEmitter = mockEventEmitter.object;
+        queryRunner.handleResultSetComplete(resultSetComplete1);
+
+        // ... And submit a second result set completion notification
+        queryRunner.handleResultSetComplete(resultSetComplete2);
+
+        // Then:
+        // ... There should only be one batch summary created to hold the results
+        assert.equal(queryRunner.batchSets.length, 1);
+        assert.equal(queryRunner.batchSets[0].id, 0);
+
+        // ... There should be two results in the batch summary
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 2);
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries[0], resultSetComplete1.resultSetSummary);
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries[1], resultSetComplete2.resultSetSummary);
+
+        // ... The resultset complete event should have been emitted twice
+        mockEventEmitter.verify(x => x.emit('resultSet', TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
     });
 
     test('Handles result correctly', () => {
