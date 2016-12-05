@@ -13,7 +13,7 @@ before_install:
   - export CHROME_BIN=chromium-browser
 # Set up chrome on osx
   - if [ $TRAVIS_OS_NAME == "osx" ]; then
-      brew install google-chrome;
+      brew cask install google-chrome;
       export CHROME_BIN=/Applications/Google\ Chrome.app;
     fi
   - export BUILDMACHINE=true
