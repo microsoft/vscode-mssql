@@ -11,11 +11,16 @@ os:
 
 before_install:
   - export CHROME_BIN=chromium-browser
+# Set up chrome on osx
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      wget https://dl.google.com/chrome/mac/stable/GGRO/googlechrome.dmg
+      open ~/Downloads/googlechrome.dmg
+      sudo cp -r /Volumes/Google\ Chrome/Google\ Chrome.app /Application/
+      export CHROME_BIN=/Application/Google\ Chrome.app
+    fi
   - export BUILDMACHINE=true
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
   - npm install -g npm
-  - printenv CHROME_BIN
-  - chromium-browser
 install:
   - npm install -g --silent gulp-cli
   - npm install -g --silent xvfb-maybe
