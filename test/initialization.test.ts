@@ -1,5 +1,4 @@
 import assert = require('assert');
-import os = require('os');
 import vscode = require('vscode');
 
 import * as Extension from '../src/extension';
@@ -30,14 +29,8 @@ suite('Initialization Tests', () => {
     test('Connection manager is initialized properly', function(done): void { // Note: this can't be an arrow function (=>), otherwise this.timeout() breaks
         this.timeout(10000); // Service installation usually takes a bit longer than the default 2000ms on a fresh install
 
-        // Trigger extension activation by opening an empty SQL file
-        let fileUri: vscode.Uri;
-        if (os.platform() === 'win32') {
-            fileUri = vscode.Uri.parse('untitled:%5Ctest.sql');
-        } else {
-            fileUri = vscode.Uri.parse('untitled:%2Ftest.sql');
-        }
-        vscode.workspace.openTextDocument(fileUri);
+        // Force the extension to activate by running one of our commands
+        vscode.commands.executeCommand('extension.connect');
 
         // Wait for the extension to activate
         ensureExtensionIsActive().then(() => {
