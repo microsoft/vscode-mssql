@@ -33,7 +33,9 @@ script:
       xvfb-maybe ./node_modules/.bin/karma start;
     fi
   - xvfb-maybe node ./node_modules/vscode/bin/test
+  - pwd
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       gulp cover:combine;
+      pwd;
       ./node_modules/.bin/coveralls < coverage/lcov.info;
     fi
