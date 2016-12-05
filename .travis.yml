@@ -4,6 +4,11 @@ dist: trusty
 language: node_js
 node_js:
   - "6.9.1"
+
+os:
+  - linux
+  - osx
+
 before_install:
   #- wget http://security.ubuntu.com/ubuntu/pool/universe/c/chromium-browser/chromium-browser_53.0.2785.143-0ubuntu0.14.04.1.1145_amd64.deb
   #- sudo dpkg -i chromium-browser*.deb
@@ -22,4 +27,4 @@ script:
   - xvfb-maybe ./node_modules/.bin/karma start
   - xvfb-maybe node ./node_modules/vscode/bin/test
   - gulp cover:combine
-  - ./node_modules/.bin/coveralls < coverage/lcov.info
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./node_modules/.bin/coveralls < coverage/lcov.info; fi
