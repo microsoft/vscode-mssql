@@ -1,7 +1,5 @@
 'use strict';
-
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
-
 import vscode = require('vscode');
 
 // Dummy implementation to simplify mocking

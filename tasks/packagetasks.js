@@ -4,7 +4,7 @@ var gutil = require('gulp-util');
 var cproc = require('child_process');
 var os = require('os');
 var del = require('del');
-const path = require('path');
+var path = require('path');
 
 function installSqlToolsService(platform) {
    var install = require('../out/src/languageservice/serviceInstallerUtil');
