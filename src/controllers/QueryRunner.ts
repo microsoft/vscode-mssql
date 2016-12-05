@@ -7,6 +7,7 @@ import {QueryNotificationHandler} from './QueryNotificationHandler';
 import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
+    QueryExecuteResultSetCompleteNotificationParams, ResultSetSummary,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
     QueryDisposeRequest, QueryExecuteBatchCompleteNotificationResult } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
@@ -32,7 +33,7 @@ export default class QueryRunner {
     private _title: string;
     private _resultLineOffset: number;
     private _batchSetsPromise: Promise<BatchSummary[]>;
-    public batchResult: EventEmitter = new EventEmitter();
+    public eventEmitter: EventEmitter = new EventEmitter();
     public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
@@ -139,6 +140,7 @@ export default class QueryRunner {
                 // register with the Notification Handler
                 self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
+            self.eventEmitter.emit('start');
         }, error => {
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
@@ -176,17 +178,34 @@ export default class QueryRunner {
         });
         this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
-        this.batchResult.emit('complete');
+        this.eventEmitter.emit('complete');
     }
 
-    public handleBatchResult(result: QueryExecuteBatchCompleteNotificationResult): void {
+    public handleBatchComplete(result: QueryExecuteBatchCompleteNotificationResult): void {
         let batch = result.batchSummary;
         if (batch.selection) {
             batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
             batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
         }
         this._batchSets.push(batch);
-        this.batchResult.emit('batch', batch);
+        this.eventEmitter.emit('batch', batch);
+    }
+
+    public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
+        let resultSet = result.resultSetSummary;
+
+        // Create the batch summary if we haven't seen this one yet
+        if (this._batchSets[resultSet.batchId] === undefined) {
+            let batchSummary = new BatchSummary();
+            batchSummary.id = resultSet.batchId;
+            batchSummary.resultSetSummaries = new Array<ResultSetSummary>();
+            this._batchSets[resultSet.batchId] = batchSummary;
+        }
+
+        // Store the result set in the batch and emit that a result set has completed
+        this._batchSets[resultSet.batchId].resultSetSummaries[resultSet.id] = resultSet;
+        this.eventEmitter.emit('resultSet', resultSet);
+
     }
 
     // get more data rows from the current resultSets from the service layer
