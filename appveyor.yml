@@ -6,6 +6,7 @@ install:
   - choco install googlechrome
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
+  - npm install -g npm
   # show versions
   - npm --version
   - node --version

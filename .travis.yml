@@ -9,6 +9,7 @@ before_install:
   - sudo dpkg -i chromium-browser*.deb
   - export CHROME_BIN=/usr/bin/google-chrome
   - sudo apt-get install xclip
+  - npm install -g npm
 install:
   - npm install -g --silent gulp-cli
   - npm install -g --silent xvfb-maybe
