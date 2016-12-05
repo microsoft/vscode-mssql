@@ -13,7 +13,8 @@ function ensureExtensionIsActive(): Promise<any> {
 }
 
 function waitForExtensionToBeActive(resolve): void {
-    if (!vscode.extensions.getExtension('Microsoft.mssql').isActive) {
+    if (typeof(vscode.extensions.getExtension('Microsoft.mssql')) === 'undefined' ||
+        !vscode.extensions.getExtension('Microsoft.mssql').isActive) {
         setTimeout(waitForExtensionToBeActive.bind(this, resolve), 50);
     } else {
         resolve();
