@@ -11,6 +11,7 @@ os:
 
 before_install:
   - export CHROME_BIN=chromium-browser
+  - export BUILDMACHINE=true
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
   - npm install -g npm
 install:
