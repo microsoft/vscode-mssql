@@ -7,7 +7,7 @@ import {QueryNotificationHandler} from './QueryNotificationHandler';
 import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
-    QueryExecuteResultSetCompleteNotificationParams, ResultSetSummary,
+    QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
     QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
@@ -181,31 +181,45 @@ export default class QueryRunner {
         this.eventEmitter.emit('complete');
     }
 
-    public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
+    public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
         let batch = result.batchSummary;
+
+        // Recalculate the start and end lines, relative to the result line offset
         if (batch.selection) {
             batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
             batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
         }
-        this._batchSets.push(batch);
-        this.eventEmitter.emit('batch', batch);
+
+        // Store the batch
+        this._batchSets[batch.id] = batch;
+        this.eventEmitter.emit('batchStart', batch);
+    }
+
+    public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
+        let batchGiven = result.batchSummary;
+        let batchLocal = this._batchSets[batchGiven.id];
+
+        // Store the info we don't get from the initial batch notification
+        batchLocal.hasError = batchGiven.hasError;
+        batchLocal.messages = batchGiven.messages;
+        batchLocal.executionEnd = batchGiven.executionEnd;
+        batchLocal.executionElapsed = batchGiven.executionElapsed;
+
+        this.eventEmitter.emit('batchComplete', batchLocal);
     }
 
     public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
         let resultSet = result.resultSetSummary;
+        let batchSet = this._batchSets[resultSet.batchId];
 
-        // Create the batch summary if we haven't seen this one yet
-        if (this._batchSets[resultSet.batchId] === undefined) {
-            let batchSummary = new BatchSummary();
-            batchSummary.id = resultSet.batchId;
-            batchSummary.resultSetSummaries = new Array<ResultSetSummary>();
-            this._batchSets[resultSet.batchId] = batchSummary;
+        // Store the result set in the batch
+        if (!batchSet.resultSetSummaries) {
+            batchSet.resultSetSummaries = [];
         }
 
         // Store the result set in the batch and emit that a result set has completed
-        this._batchSets[resultSet.batchId].resultSetSummaries[resultSet.id] = resultSet;
+        batchSet.resultSetSummaries[resultSet.id] = resultSet;
         this.eventEmitter.emit('resultSet', resultSet);
-
     }
 
     // get more data rows from the current resultSets from the service layer
