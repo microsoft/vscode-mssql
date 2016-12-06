@@ -9,7 +9,7 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteResultSetCompleteNotificationParams, ResultSetSummary,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
-    QueryDisposeRequest, QueryExecuteBatchCompleteNotificationResult } from '../models/contracts/queryExecute';
+    QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../models/constants');
@@ -181,7 +181,7 @@ export default class QueryRunner {
         this.eventEmitter.emit('complete');
     }
 
-    public handleBatchComplete(result: QueryExecuteBatchCompleteNotificationResult): void {
+    public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
         let batch = result.batchSummary;
         if (batch.selection) {
             batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;

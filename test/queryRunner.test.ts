@@ -8,7 +8,7 @@ import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import {
     QueryExecuteParams,
     QueryExecuteCompleteNotificationResult,
-    QueryExecuteBatchCompleteNotificationResult,
+    QueryExecuteBatchNotificationParams,
     QueryExecuteResultSetCompleteNotificationParams,
     ResultSetSummary
 } from './../src/models/contracts/queryExecute';
@@ -116,7 +116,7 @@ suite('Query Runner tests', () => {
 
     test('Notification - Batch Complete', () => {
         // Setup: Create a batch completion result
-        let batchComplete: QueryExecuteBatchCompleteNotificationResult = {
+        let batchComplete: QueryExecuteBatchNotificationParams = {
             ownerUri: 'uri',
             batchSummary: {
                 executionElapsed: undefined,
