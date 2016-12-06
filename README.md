@@ -20,7 +20,7 @@ See [the mssql extension tutorial] for the step by step guide.
 
 See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
 
-<img src="./images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+<img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
 
 ## Using
