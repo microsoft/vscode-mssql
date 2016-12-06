@@ -116,7 +116,7 @@ module.exports = function(config) {
       }
     },
     junitReporter: {
-      outputDir: 'test-reports/'
+      outputDir: __dirname + '/test-reports'
     },
 
     port: 9876,
