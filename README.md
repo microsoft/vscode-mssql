@@ -1,4 +1,8 @@
+[![Travis CI](https://travis-ci.org/Microsoft/vscode-mssql.svg?branch=dev)](https://travis-ci.org/Microsoft/vscode-mssql)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/{INSERT_ACCOUNT_HERE}/vscode-mssql?svg=true&retina=true&branch=dev)](https://ci.appveyor.com/project/{INSERT_ACCOUNT_HERE}/vscode-mssql)
+[![Coverage Status](https://coveralls.io/repos/github/Microsoft/vscode-mssql/badge.svg?branch=dev)](https://coveralls.io/github/Microsoft/vscode-mssql?branch=dev)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
+
 
 # mssql for Visual Studio Code
 

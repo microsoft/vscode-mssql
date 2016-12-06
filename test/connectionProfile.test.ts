@@ -1,5 +1,4 @@
 'use strict';
-
 import * as TypeMoq from 'typemoq';
 import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';

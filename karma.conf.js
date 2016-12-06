@@ -10,7 +10,7 @@ module.exports = function(config) {
   var testBase    = 'out/src/views/htmlcontent/test/';       // transpiled test JS and map files
   var testSrcBase = 'src/views/htmlcontent/test/';       // test source TS files
 
-  config.set({
+  var configuration = {
     basePath: path.join(__dirname),
     frameworks: ['jasmine'],
     plugins: [
@@ -96,6 +96,12 @@ module.exports = function(config) {
       'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage',
     },
     reporters: ['progress', 'coverage', 'karma-remap-istanbul', 'junit'],
+    customLaunchers: {
+        Chrome_travis_ci: {
+            base: 'Chrome',
+            flags: ['--no-sandbox']
+        }
+    },
     coverageReporter: {
       dir : 'coverage/',
       reporters: [
@@ -119,5 +125,10 @@ module.exports = function(config) {
     autoWatch: true,
     browsers: ['Chrome'],
     singleRun: true
-  })
+  }
+
+  if (process.env.TRAVIS) {
+    configuration.browsers = ['Chrome_travis_ci'];
+  }
+  config.set(configuration);
 }
