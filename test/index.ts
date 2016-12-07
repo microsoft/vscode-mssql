@@ -22,7 +22,8 @@ testRunner.configure(
         ui: 'tdd', 		        // the TDD UI is being used in extension.test.ts (suite, test, etc.)
         reporter: 'pm-mocha-jenkins-reporter',
         reporterOptions: {
-            junit_report_name: 'Tests',
+            junit_report_name: 'Extension Tests',
+            junit_report_path: '../test-reports/extension_tests.xml',
             junit_report_stack: 1
         },
         useColors: true         // colored output from test results

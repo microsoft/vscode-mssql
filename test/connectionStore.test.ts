@@ -1,5 +1,4 @@
 'use strict';
-
 import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
