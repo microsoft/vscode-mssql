@@ -102,7 +102,7 @@ const template = `
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
                 </template>
-                <tr *ngIf="!complete">
+                <tr id='executionSpinner' *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
                     <td>
                         <img src="dist/images/progress_36x_animation.gif" height="18px" />
