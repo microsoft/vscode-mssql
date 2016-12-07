@@ -311,7 +311,7 @@ export class ConnectionStore {
      * @param {Boolean} keepCredentialStore optional value to keep the credential store after a profile removal
      * @returns {Promise<boolean>} true if successful
      */
-    public removeProfile(profile: IConnectionProfile, keepCredentialStore: Boolean = false): Promise<boolean> {
+    public removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
             self._connectionConfig.removeConnection(profile).then(profileFound => {

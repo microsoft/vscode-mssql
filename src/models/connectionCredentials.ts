@@ -119,7 +119,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     // then transfer the password to the credential store
                     if (profile.savePassword && !wasPasswordEmptyInConfigFile) {
                         // Remove profile, but keep credential store if savePassword was enabled
-                        connectionStore.removeProfile(profile, profile.savePassword).then(() => {
+                        connectionStore.removeProfile(profile, true).then(() => {
                             connectionStore.saveProfile(profile);
                         });
                     // Or, if the user answered any additional questions for the profile, be sure to save it
