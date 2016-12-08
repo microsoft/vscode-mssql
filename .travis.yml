@@ -1,0 +1,39 @@
+sudo: required
+dist: trusty
+
+language: node_js
+node_js:
+  - "6.9.1"
+
+os:
+  - linux
+  - osx
+
+before_install:
+  - export CHROME_BIN=chromium-browser
+# Set up chrome on osx
+  - if [ $TRAVIS_OS_NAME == "osx" ]; then
+      brew cask install google-chrome;
+      export CHROME_BIN=/Applications/Google\ Chrome.app;
+    fi
+  - export BUILDMACHINE=true
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
+  - npm install -g npm
+install:
+  - npm install -g --silent gulp-cli
+  - npm install -g --silent xvfb-maybe
+  - npm install
+  - gulp install
+script:
+  - gulp build
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then gulp cover:enableconfig; fi
+  - if [ $TRAVIS_OS_NAME == "osx" ]; then
+      sudo xvfb-maybe ./node_modules/.bin/karma start;
+    else
+      xvfb-maybe ./node_modules/.bin/karma start;
+    fi
+  - xvfb-maybe node ./node_modules/vscode/bin/test
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      gulp cover:combine;
+      node_modules/.bin/coveralls < coverage/lcov.info;
+    fi

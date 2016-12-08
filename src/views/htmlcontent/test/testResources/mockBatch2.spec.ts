@@ -23,6 +23,7 @@ const batch: WebSocketEvent = {
   'resultSetSummaries': [
     {
       'id': 0,
+      'batchId': 0,
       'rowCount': 10,
       'columnInfo': [
         {

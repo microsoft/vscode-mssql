@@ -1,0 +1,27 @@
+environment:
+  nodejs_version: "6.9.1"
+
+  # Install scripts. (runs after repo cloning)
+install:
+  - choco install googlechrome
+  - set BUILDMACHINE=true
+  # Get the latest stable version of Node.js or io.js
+  - ps: Install-Product node $env:nodejs_version
+  - npm install -g npm
+  # show versions
+  - npm --version
+  - node --version
+  - npm install -g --silent gulp-cli
+  # install modules
+  - npm install
+  - gulp install
+
+build_script:
+  - gulp build
+
+test_script:
+  - ./node_modules/.bin/karma start
+  - node ./node_modules/vscode/bin/test
+
+on_finish:
+  - ps: scripts\upload.ps1
