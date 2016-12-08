@@ -199,7 +199,15 @@ export default class ConnectionManager {
             if (connection !== undefined) {
                 connection.intelliSenseTimer.end();
                 let duration = connection.intelliSenseTimer.getDuration();
-                Telemetry.sendTelemetryEvent('IntelliSenseActivated', {}, {duration: duration});
+                let document = this.vscodeWrapper.activeTextEditor.document;
+                let numberOfCharacters = document.getText().length;
+                Telemetry.sendTelemetryEvent('IntelliSenseActivated',
+                {
+                    isAzure: connection.serverInfo.isCloud ? '1' : '0'},
+                {
+                    duration: duration,
+                    fileSize: numberOfCharacters
+                });
             }
         };
     }
