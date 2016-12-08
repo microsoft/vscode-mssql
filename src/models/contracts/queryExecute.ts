@@ -55,24 +55,31 @@ export class QueryExecuteCompleteNotificationResult {
 
 // -------------------------- </ Query Execution Complete Notification > -------------------------------
 
-// -------------------------- < Query Batch Complete Notification > -------------------------------
-export namespace QueryExecuteBatchCompleteNotification {
-    export const type: NotificationType<QueryExecuteBatchCompleteNotificationResult> = {
-                                                                                            get method(): string {
-                                                                                                return 'query/batchComplete';
-                                                                                            }
-                                                                                        };
-}
-
-export class QueryExecuteBatchCompleteNotificationResult {
+// Query Batch Notification -----------------------------------------------------------------------
+export class QueryExecuteBatchNotificationParams {
     batchSummary: BatchSummary;
     ownerUri: string;
 }
 
-// -------------------------- </ Query Batch Complete Notification > -------------------------------
+// Query Batch Start Notification -----------------------------------------------------------------
+export namespace QueryExecuteBatchStartNotification {
+    export const type: NotificationType<QueryExecuteBatchNotificationParams> = {
+        get method(): string {
+            return 'query/batchStart';
+        }
+    };
+}
+
+// Query Batch Complete Notification --------------------------------------------------------------
+export namespace QueryExecuteBatchCompleteNotification {
+    export const type: NotificationType<QueryExecuteBatchNotificationParams> = {
+        get method(): string {
+            return 'query/batchComplete';
+        }
+    };
+}
 
 // Query ResultSet Complete Notification -----------------------------------------------------------
-
 export namespace QueryExecuteResultSetCompleteNotification {
     export const type: NotificationType<QueryExecuteResultSetCompleteNotificationParams> = {
         get method(): string {
