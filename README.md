@@ -81,7 +81,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```0.1.5```. See the [change log] for more detail.
+The current version is ```0.2.0```. See the [change log] for more detail.
 
 ## Support
 Support for this extension is provided on our [GitHub Issue Tracker]. You can submit a [bug report], a [feature suggestion] or participate in [discussions].
