@@ -263,7 +263,7 @@ export default class SqlToolsServiceClient {
 
      private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
         return (event: LanguageServiceContracts.TelemetryParams): void => {
-            Telemetry.sendTelemetryEvent(event.eventName, event.properties, event.measures);
+            Telemetry.sendTelemetryEvent(event.params.eventName, event.params.properties, event.params.measures);
         };
     }
 

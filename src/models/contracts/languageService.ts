@@ -27,16 +27,18 @@ export class IntelliSenseReadyParams {
  * Event sent when the language service send a telemetry event
  */
 export namespace TelemetryNotification {
-    export const type: NotificationType<TelemetryParams> = { get method(): string { return 'textDocument/telemetry'; } };
+    export const type: NotificationType<TelemetryParams> = { get method(): string { return 'telemetry/event'; } };
 }
 
 /**
  * Update event parameters
  */
 export class TelemetryParams {
-    public eventName: string;
-    public properties: Telemetry.ITelemetryEventProperties;
-    public measures: Telemetry.ITelemetryEventMeasures;
+    public params: {
+        eventName: string;
+        properties: Telemetry.ITelemetryEventProperties;
+        measures: Telemetry.ITelemetryEventMeasures;
+    };
 }
 
 // ------------------------------- </ Telemetry Sent Event > ----------------------------------
