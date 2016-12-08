@@ -118,13 +118,13 @@
                     var last = _ranges.pop();
 
                     var toCell = Math.max(newRangeColumn, last.toCell);
-                    if(last.fromCell <= newRangeColumn) {
+                    if (last.fromCell <= newRangeColumn) {
                         toCell = Math.max(newRangeColumn, last.toCell - 1);
                     }
 
                     var fromRow = Math.min(activeCell.row, last.fromRow);
-                    var toRow = Math.max(activeCell.row, last.toRow);
                     var fromCell = Math.min(newRangeColumn, last.fromCell);
+                    var toRow = Math.max(activeCell.row, last.toRow);
 
                     _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
                 } else {
@@ -147,7 +147,7 @@
                     var last = _ranges.pop();
 
                     var fromCell = Math.min(newRangeColumn, last.fromCell);
-                    if(newRangeColumn <= last.toCell) {
+                    if (newRangeColumn <= last.toCell) {
                             fromCell = Math.min(newRangeColumn, last.fromCell + 1);
                     }
 
@@ -209,7 +209,7 @@
 
                             var newRangeRow = activeCell.row - 1;
                             var toRow = Math.max(newRangeRow, last.toRow);
-                            if(last.fromRow <= newRangeRow) {
+                            if (last.fromRow <= newRangeRow) {
                                 toRow = Math.max(activeCell.row - 1, last.toRow - 1);
                             }
 
@@ -239,7 +239,7 @@
 
                             var newRangeRow = activeCell.row + 1;
                             var fromRow = Math.min(activeCell.row + 1, last.fromRow);
-                            if(newRangeRow <= last.toRow) {
+                            if (newRangeRow <= last.toRow) {
                                 fromRow = Math.min(activeCell.row + 1, last.fromRow + 1);
                             }
 
@@ -259,10 +259,10 @@
 
         function handleHeaderClick(e, args) {
             var columnIndex = _grid.getColumnIndex(args.column.id);
-            if(e.ctrlKey || e.metaKey){
+            if (e.ctrlKey || e.metaKey){
                 _ranges.push(new Slick.Range(0, columnIndex, _grid.getDataLength()-1, columnIndex));
                 _grid.setActiveCell(0, columnIndex + 1);
-            } else if(e.shiftKey && _ranges.length) {
+            } else if (e.shiftKey && _ranges.length) {
                 var last = _ranges.pop().fromCell;
                 var from = Math.min(columnIndex, last);
                 var to = Math.max(columnIndex, last);
@@ -289,7 +289,7 @@
             }
 
             if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
-                if(cell.cell !== 0) {
+                if (cell.cell !== 0) {
                     _ranges = [new Slick.Range(cell.row, cell.cell-1, cell.row, cell.cell-1)];
                     setSelectedRanges(_ranges);
                     _grid.setActiveCell(cell.row, cell.cell);
