@@ -1,4 +1,8 @@
+[![Travis CI](https://travis-ci.org/Microsoft/vscode-mssql.svg?branch=dev)](https://travis-ci.org/Microsoft/vscode-mssql)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/Microsoft/vscode-mssql?svg=true&retina=true&branch=dev)](https://ci.appveyor.com/project/kburtram/vscode-mssql)
+[![Coverage Status](https://coveralls.io/repos/github/Microsoft/vscode-mssql/badge.svg?branch=dev)](https://coveralls.io/github/Microsoft/vscode-mssql?branch=dev)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
+
 
 # mssql for Visual Studio Code
 
@@ -16,7 +20,7 @@ See [the mssql extension tutorial] for the step by step guide.
 
 See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
 
-<img src="./images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+<img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
 
 ## Using
