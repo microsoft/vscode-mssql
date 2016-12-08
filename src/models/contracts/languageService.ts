@@ -27,7 +27,7 @@ export class IntelliSenseReadyParams {
  * Event sent when the language service send a telemetry event
  */
 export namespace TelemetryNotification {
-    export const type: NotificationType<TelemetryParams> = { get method(): string { return 'telemetry/event'; } };
+    export const type: NotificationType<TelemetryParams> = { get method(): string { return 'telemetry/sqlevent'; } };
 }
 
 /**

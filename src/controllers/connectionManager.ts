@@ -203,7 +203,7 @@ export default class ConnectionManager {
                 let numberOfCharacters = document.getText().length;
                 Telemetry.sendTelemetryEvent('IntelliSenseActivated',
                 {
-                    isAzure: connection.serverInfo.isCloud ? '1' : '0'},
+                    isAzure: connection.serverInfo && connection.serverInfo.isCloud ? '1' : '0'},
                 {
                     duration: duration,
                     fileSize: numberOfCharacters
