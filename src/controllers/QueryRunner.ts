@@ -190,32 +190,25 @@ export default class QueryRunner {
             batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
         }
 
+        // Set the result sets as an empty array so that as result sets complete we can add to the list
+        batch.resultSetSummaries = [];
+
         // Store the batch
         this._batchSets[batch.id] = batch;
         this.eventEmitter.emit('batchStart', batch);
     }
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
-        let batchGiven = result.batchSummary;
-        let batchLocal = this._batchSets[batchGiven.id];
+        let batch = result.batchSummary;
 
-        // Store the info we don't get from the initial batch notification
-        batchLocal.hasError = batchGiven.hasError;
-        batchLocal.messages = batchGiven.messages;
-        batchLocal.executionEnd = batchGiven.executionEnd;
-        batchLocal.executionElapsed = batchGiven.executionElapsed;
-
-        this.eventEmitter.emit('batchComplete', batchLocal);
+        // Store the batch again to get the rest of the data
+        this._batchSets[batch.id] = batch;
+        this.eventEmitter.emit('batchComplete', batch);
     }
 
     public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
-
-        // Store the result set in the batch
-        if (!batchSet.resultSetSummaries) {
-            batchSet.resultSetSummaries = [];
-        }
 
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;

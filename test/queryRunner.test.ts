@@ -182,7 +182,7 @@ suite('Query Runner tests', () => {
             id: 0,
             selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
             messages: null,                 // tslint:disable-line:no-null-keyword
-            resultSetSummaries: null        // tslint:disable-line:no-null-keyword
+            resultSetSummaries: []
         };
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
         mockEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
@@ -199,7 +199,8 @@ suite('Query Runner tests', () => {
         assert.equal(storedBatch.messages, batchComplete.batchSummary.messages);
 
         // ... Result sets should not be set by the batch complete notification
-        assert.equal(storedBatch.resultSetSummaries, null); // tslint:disable-line:no-null-keyword
+        assert.equal(typeof(storedBatch.resultSetSummaries), typeof([]));
+        assert.equal(storedBatch.resultSetSummaries.length, 0);
 
         mockEventEmitter.verify(x => x.emit('batchComplete', TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
@@ -230,7 +231,7 @@ suite('Query Runner tests', () => {
             id: 0,
             selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
             messages: null,                 // tslint:disable-line:no-null-keyword
-            resultSetSummaries: null        // tslint:disable-line:no-null-keyword
+            resultSetSummaries: []
         };
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
         mockEventEmitter.setup(x => x.emit('resultSet', TypeMoq.It.isAny()));
@@ -277,7 +278,7 @@ suite('Query Runner tests', () => {
             id: 0,
             selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
             messages: null,                 // tslint:disable-line:no-null-keyword
-            resultSetSummaries: null        // tslint:disable-line:no-null-keyword
+            resultSetSummaries: []
         };
         queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleResultSetComplete(resultSetComplete1);
