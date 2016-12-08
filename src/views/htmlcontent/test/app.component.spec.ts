@@ -3,6 +3,7 @@ import { Component, Directive, Input, Output, EventEmitter } from '@angular/core
 import { ISlickRange, IColumnDefinition, IObservableCollection, IGridDataRow } from 'angular2-slickgrid';
 import { Observable, Subject, Observer } from 'rxjs/Rx';
 
+import * as TestUtils from './testUtils';
 import { WebSocketEvent, ResultSetSubset } from './../src/js/interfaces';
 import { DataService } from './../src/js/services/data.service';
 import { ShortcutService } from './../src/js/services/shortcuts.service';
@@ -29,26 +30,6 @@ function sendDataSets(ds: MockDataService, batch: WebSocketEvent, result: WebSoc
         batchEvent.data.id = i;
         ds.sendWSEvent(batchEvent);
     }
-}
-
-
-function triggerKeyEvent(key: number, ele: HTMLElement): void {
-    let keyboardEvent = document.createEvent('KeyboardEvent');
-    let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-    keyboardEvent[initMethod](
-                    'keydown', // event type : keydown, keyup, keypress
-                        true, // bubbles
-                        true, // cancelable
-                        window, // viewArg: should be window
-                        false, // ctrlKeyArg
-                        false, // altKeyArg
-                        false, // shiftKeyArg
-                        false, // metaKeyArg
-                        key, // keyCodeArg : unsigned long the virtual key code, else 0
-                        0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-    );
-    ele.dispatchEvent(keyboardEvent);
 }
 
 // Mock Setup
@@ -457,7 +438,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let results = <HTMLElement> ele.querySelector('#results');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(results).not.toBeNull('message pane is not visible');
@@ -476,7 +457,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let messages = <HTMLElement> ele.querySelector('#messages');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(messages).not.toBeNull('message pane is not visible');
@@ -495,7 +476,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(batch1);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0);
@@ -513,7 +494,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(batch1);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0, true);
@@ -535,7 +516,7 @@ describe('AppComponent', function (): void {
             fixture.detectChanges();
             let slickgrids = ele.querySelectorAll('slick-grid');
             expect(slickgrids.length).toEqual(2);
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 slickgrids = ele.querySelectorAll('slick-grid');
@@ -554,7 +535,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(batch2);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'json', []);
@@ -572,7 +553,7 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(batch2);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'csv', []);
@@ -597,7 +578,7 @@ describe('AppComponent', function (): void {
             targetSlickGrid = comp.slickgrids.toArray()[1];
             currentSlickGrid = comp.slickgrids.toArray()[0];
             spyOn(targetSlickGrid, 'setActive');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(targetSlickGrid.setActive).toHaveBeenCalled();
@@ -623,7 +604,7 @@ describe('AppComponent', function (): void {
             targetSlickGrid = comp.slickgrids.toArray()[0];
             currentSlickGrid = comp.slickgrids.toArray()[1];
             spyOn(targetSlickGrid, 'setActive');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(targetSlickGrid.setActive).toHaveBeenCalled();
