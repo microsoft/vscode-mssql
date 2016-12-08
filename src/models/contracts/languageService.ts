@@ -1,4 +1,5 @@
 import {NotificationType} from 'vscode-languageclient';
+import {Telemetry} from '../telemetry';
 
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
 
@@ -20,21 +21,22 @@ export class IntelliSenseReadyParams {
 }
 
 // ------------------------------- </ IntelliSense Ready Event > ----------------------------------
-
-// ------------------------------- < IntelliSense Ready Event > ------------------------------------
+// ------------------------------- < Telemetry Sent Event > ------------------------------------
 
 /**
- * Event sent when the language service send a definition
+ * Event sent when the language service send a telemetry event
  */
-export namespace DefinitionSentNotification {
-    export const type: NotificationType<DefinitionSentParams> = { get method(): string { return 'textDocument/definitionSent'; } };
+export namespace TelemetryNotification {
+    export const type: NotificationType<TelemetryParams> = { get method(): string { return 'textDocument/telemetry'; } };
 }
 
 /**
  * Update event parameters
  */
-export class DefinitionSentParams {
+export class TelemetryParams {
+    public eventName: string;
+    public properties: Telemetry.ITelemetryEventProperties;
+    public measures: Telemetry.ITelemetryEventMeasures;
 }
 
-// ------------------------------- </ IntelliSense Ready Event > ----------------------------------
-
+// ------------------------------- </ Telemetry Sent Event > ----------------------------------

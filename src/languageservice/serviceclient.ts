@@ -256,14 +256,14 @@ export default class SqlToolsServiceClient {
             this.checkServiceCompatibility();
 
         });
-        client.onNotification(LanguageServiceContracts.DefinitionSentNotification.type, this.handleLanguageServiceDefinitionSentNotification());
+        client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
 
         return client;
     }
 
-    private handleLanguageServiceDefinitionSentNotification(): NotificationHandler<LanguageServiceContracts.DefinitionSentParams> {
-        return (event: LanguageServiceContracts.DefinitionSentParams): void => {
-            Telemetry.sendTelemetryEvent('DefinitionRequested');
+     private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
+        return (event: LanguageServiceContracts.TelemetryParams): void => {
+            Telemetry.sendTelemetryEvent(event.eventName, event.properties, event.measures);
         };
     }
 
