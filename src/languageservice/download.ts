@@ -199,6 +199,8 @@ export default class ServiceDownloadProvider {
                 .then(inStream => {
                     this.install(inStream, installDirectory).then ( installed => {
                         resolve(installed);
+                    }).catch(installError => {
+                        reject(installError);
                     });
                 })
                 .catch(err => {
