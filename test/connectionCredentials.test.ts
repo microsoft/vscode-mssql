@@ -2,9 +2,7 @@
 import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
-// import fs = require('fs');
 import * as utils from '../src/models/utils';
-// import * as connectionInfo from '../src/models/connectionInfo';
 import * as Constants from '../src/models/constants';
 import * as stubs from './stubs';
 import * as interfaces from '../src/models/interfaces';
