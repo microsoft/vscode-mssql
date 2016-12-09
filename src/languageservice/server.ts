@@ -86,15 +86,16 @@ export default class ServerProvider {
     * Downloads the service and returns the path of the insalled service
     */
     public downloadServerFiles(runtime: Runtime): Promise<string> {
-        const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
-        return this._downloadProvider.InstallSQLToolsService(runtime).then( _ => {
-            return this.findServerPath(installDirectory).then ( result => {
-                 return result;
+        return new Promise<string>((resolve, reject) => {
+            const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
+            return this._downloadProvider.InstallSQLToolsService(runtime).then( _ => {
+                return this.findServerPath(installDirectory).then ( result => {
+                    return resolve(result);
+                });
+            }).catch(err => {
+                this._statusView.serviceInstallationFailed();
+                reject(err);
             });
-
-        }).catch(err => {
-            this._statusView.serviceInstallationFailed();
-            throw err;
         });
     }
 }

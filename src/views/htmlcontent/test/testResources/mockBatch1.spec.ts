@@ -1,7 +1,7 @@
 import { WebSocketEvent } from './../../src/js/interfaces';
 
 const batch: WebSocketEvent = {
-  type: 'batch',
+  type: 'batchComplete',
   data: {
   'executionElapsed': '00:00:00.1879820',
   'executionEnd': '2016-11-10T17:39:27.9893860-08:00',

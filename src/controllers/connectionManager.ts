@@ -53,6 +53,11 @@ export class ConnectionInfo {
     public serviceTimer: Utils.Timer;
 
     /**
+     * Timer for tracking intelliSense activation time.
+     */
+    public intelliSenseTimer: Utils.Timer;
+
+    /**
      * Whether the connection is in the process of connecting.
      */
     public connecting: boolean;
@@ -190,6 +195,24 @@ export default class ConnectionManager {
         const self = this;
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
             self._statusView.languageServiceUpdated(event.ownerUri);
+            let connection = self.getConnectionInfo(event.ownerUri);
+            if (connection !== undefined) {
+                connection.intelliSenseTimer.end();
+                let duration = connection.intelliSenseTimer.getDuration();
+                let numberOfCharacters: number = 0;
+                if (this.vscodeWrapper.activeTextEditor !== undefined
+                && this.vscodeWrapper.activeTextEditor.document !== undefined) {
+                    let document = this.vscodeWrapper.activeTextEditor.document;
+                    numberOfCharacters = document.getText().length;
+                }
+                Telemetry.sendTelemetryEvent('IntelliSenseActivated',
+                {
+                    isAzure: connection.serverInfo && connection.serverInfo.isCloud ? '1' : '0'},
+                {
+                    duration: duration,
+                    fileSize: numberOfCharacters
+                });
+            }
         };
     }
 
@@ -470,6 +493,7 @@ export default class ConnectionManager {
         return new Promise<boolean>((resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
+            connectionInfo.intelliSenseTimer = new Utils.Timer();
             connectionInfo.credentials = connectionCreds;
             connectionInfo.connecting = true;
             this._connections[fileUri] = connectionInfo;
