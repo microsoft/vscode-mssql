@@ -122,6 +122,7 @@ export default class QueryRunner {
         });
 
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
+            self.eventEmitter.emit('start');
             if (result.messages) { // Show informational messages if there was no query to execute
                 self._statusView.executedQuery(self.uri);
                 self._isExecuting = false;
@@ -136,14 +137,20 @@ export default class QueryRunner {
                         executionStart: undefined
                     }];
                 self.dataResolveReject.resolve();
+                this.eventEmitter.emit('batchStart', self._batchSets[0]);
+                this.eventEmitter.emit('batchComplete', self._batchSets[0]);
             } else {
                 // register with the Notification Handler
                 self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
-            self.eventEmitter.emit('start');
+            self.eventEmitter.emit('complete');
         }, error => {
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
+
+            // if the query failed, then create a new empty pane and close it
+            self.eventEmitter.emit('start');
+            self.eventEmitter.emit('complete');
             self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }
@@ -166,6 +173,7 @@ export default class QueryRunner {
                 executionStart: undefined
             }];
             this.dataResolveReject.resolve(this.batchSets);
+            this.eventEmitter.emit('complete');
             return;
         }
         this.batchSets = result.batchSummaries;
