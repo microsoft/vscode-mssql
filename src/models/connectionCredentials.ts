@@ -127,7 +127,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                                profile.savePassword !== (<IConnectionProfile>unprocessedCredentials).savePassword ||
                                profile.password !== unprocessedCredentials.password) {
                         connectionStore.removeProfile(profile).then(() => {
-                            connectionStore.saveProfile(profile, !wasPasswordEmptyInConfigFile);
+                            connectionStore.saveProfile(profile);
                         });
                     }
                 }
