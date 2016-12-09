@@ -374,10 +374,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     };
 
                     // Precalculate the max height and min height
-                    let maxHeight = resultSet.totalRows < self._defaultNumShowingRows
-                        ? Math.max((resultSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
+                    let maxHeight = resultSet.rowCount < self._defaultNumShowingRows
+                        ? Math.max((resultSet.rowCount + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
                         : 'inherit';
-                    let minHeight = resultSet.totalRows > self._defaultNumShowingRows
+                    let minHeight = resultSet.rowCount > self._defaultNumShowingRows
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
 
