@@ -199,8 +199,12 @@ export default class ConnectionManager {
             if (connection !== undefined) {
                 connection.intelliSenseTimer.end();
                 let duration = connection.intelliSenseTimer.getDuration();
-                let document = this.vscodeWrapper.activeTextEditor.document;
-                let numberOfCharacters = document.getText().length;
+                let numberOfCharacters: number = 0;
+                if (this.vscodeWrapper.activeTextEditor !== undefined
+                && this.vscodeWrapper.activeTextEditor.document !== undefined) {
+                    let document = this.vscodeWrapper.activeTextEditor.document;
+                    numberOfCharacters = document.getText().length;
+                }
                 Telemetry.sendTelemetryEvent('IntelliSenseActivated',
                 {
                     isAzure: connection.serverInfo && connection.serverInfo.isCloud ? '1' : '0'},
