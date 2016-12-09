@@ -144,6 +144,10 @@ export default class QueryRunner {
         }, error => {
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
+
+            // if the query failed, then create a new empty pane and close it
+            self.eventEmitter.emit('start');
+            self.eventEmitter.emit('complete');
             self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }
@@ -166,6 +170,7 @@ export default class QueryRunner {
                 executionStart: undefined
             }];
             this.dataResolveReject.resolve(this.batchSets);
+            this.eventEmitter.emit('complete');
             return;
         }
         this.batchSets = result.batchSummaries;
