@@ -144,16 +144,17 @@ suite('ConnectionCredentials Tests', () => {
         let isProfile: boolean = true;
         let isPasswordRequired: boolean = false;
         let wasPasswordEmptyInConfigFile: boolean = false;
-        let passwordQuestions: IQuestion[];
+        let passwordQuestion: IQuestion[];
         let answers = {};
-        answers[Constants.passwordPrompt] = 'newPassword';
 
 
         // Mocking functions
         connectionStore.setup(x => x.removeProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(true)));
         connectionStore.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(profile1)));
         prompter.setup(x => x.prompt(TypeMoq.It.isAny())).callback(questions => {
-                passwordQuestions = questions;
+                passwordQuestion = questions.filter(question => question.name === Constants.passwordPrompt);
+                answers[Constants.passwordPrompt] = 'newPassword';
+                passwordQuestion[0].onAnswered(answers[Constants.passwordPrompt]);
             })
             .returns((questions: IQuestion[]) => Promise.resolve(answers));
 
@@ -167,7 +168,8 @@ suite('ConnectionCredentials Tests', () => {
             connectionStore.object).then( success => {
                 assert.ok(success);
                 // Checking to see password question was prompted
-                assert.ok(passwordQuestions.filter(question => question.name === Constants.passwordPrompt));
+                assert.ok(passwordQuestion);
+                assert.equal(success.password, answers[Constants.passwordPrompt]);
                 connectionStore.verify(x => x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
                 connectionStore.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
                 done();
