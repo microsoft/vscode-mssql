@@ -1,5 +1,18 @@
 # Change Log
 
+## Version 0.2.0
+* Release date: December, 2016
+* Release status: Public Preview
+
+## What's new in this version
+* Peek Definition and Go To Definition support for Tables, Views and Stored Procedures. For a query such as `select * from dbo.Person` you can right-click on `dbo.Person` and see it as a `CREATE TABLE` script.
+* Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.
+* Output window now shows status of SQL tools service installation to make it easier to track install-time issues.
+* Progressive Result Sets: when running multiple queries at once, you'll now see result sets appear as soon as they are done processing instead of waiting for all queries to complete.
+The extension supports result set-level updates with per-row updates coming in a future update.
+* Multiple results view improvements: improved keyboard navigation, configuration settings to alter default font style and size, support for copying with column headers.
+* Multiple IntelliSense improvements: Support using  `[bracket].[syntax]`, handling of `"` at the end of a word, improved performance when connecting to same DB from a new file.
+
 ## Version 0.1.5
 * Release date: Nov 16, 2016
 * Release status: Public Preview
@@ -57,3 +70,4 @@ Report issues to [Github Issue Tracker] and provide your feedback.
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
 [OpenSSL requirement on macOS]:https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration
 [Windows 10 Universal C Runtime requirement]:https://github.com/Microsoft/vscode-mssql/wiki/windows10-universal-c-runtime-requirement
+[Operating Systems]:https://github.com/Microsoft/vscode-mssql/wiki/operating-systems
