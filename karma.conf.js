@@ -1,5 +1,6 @@
 // #docregion
 const path = require('path');
+const coverconfig = require('./coverconfig.json')
 
 module.exports = function(config) {
 
@@ -30,8 +31,8 @@ module.exports = function(config) {
       'out/src/views/htmlcontent/lib/js/slick.core.js',
       'out/src/views/htmlcontent/lib/js/slick.grid.js',
       'out/src/views/htmlcontent/lib/js/slick.editors.js',
-      'out/src/views/htmlcontent/lib/js/slick.autosizecolumn.js',
-      'out/src/views/htmlcontent/lib/js/slick.dragrowselector.js',
+      'out/src/views/htmlcontent/dist/js/slick.autosizecolumn.js',
+      'out/src/views/htmlcontent/dist/js/slick.dragrowselector.js',
       // System.js for module loading
       'out/src/views/htmlcontent/lib/js/system.src.js',
 
@@ -90,30 +91,13 @@ module.exports = function(config) {
       "/dist/": 'base/out/src/views/htmlcontent/dist/',
       "/base/out/src/views/htmlcontent/src/": '/base/out/src/views/htmlcontent/dist/'
     },
-
     exclude: [],
-    preprocessors: {
-      'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage',
-    },
-    reporters: ['progress', 'coverage', 'karma-remap-istanbul', 'junit'],
+    reporters: ['progress','karma-remap-istanbul', 'junit'],
     customLaunchers: {
         Chrome_travis_ci: {
             base: 'Chrome',
             flags: ['--no-sandbox']
         }
-    },
-    coverageReporter: {
-      dir : 'coverage/',
-      reporters: [
-        {type: 'json'}
-      ]
-    },
-    remapIstanbulReporter: {
-      reports: {
-        json: 'coverage/coverage-html.json',
-        // uncomment below for html only coverage
-        // html: 'coverage/htmlcoverage/'
-      }
     },
     junitReporter: {
       outputDir: __dirname + '/test-reports'
@@ -125,6 +109,26 @@ module.exports = function(config) {
     autoWatch: true,
     browsers: ['Chrome'],
     singleRun: true
+  }
+
+  if (coverconfig.enabled) {
+    config.preprocessors = {
+      'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage'
+    };
+    config.reporters.push('coverage');
+    config.coverageReporter = {
+      dir : 'coverage/',
+      reporters: [
+        {type: 'json'}
+      ]
+    };
+    config.remapIstanbulReporter = {
+      reports: {
+        json: 'coverage/coverage-html.json',
+        // uncomment below for html only coverage
+        // html: 'coverage/htmlcoverage/'
+      }
+    }
   }
 
   if (process.env.TRAVIS) {

@@ -35,7 +35,7 @@ gulp.task('cover:combine', () => {
             dir: './coverage'
         },
         reporters: [
-            {'name': 'lcov'}, // -> ./coverage/report.txt
+            {'name': 'lcovonly'}, // -> ./coverage/report.txt
             {'name': 'cobertura'} // -> ./jsonCov/cov.json
         ]
     }));
