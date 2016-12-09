@@ -137,6 +137,8 @@ export default class QueryRunner {
                         executionStart: undefined
                     }];
                 self.dataResolveReject.resolve();
+                this.eventEmitter.emit('batchStart', self._batchSets[0]);
+                this.eventEmitter.emit('batchComplete', self._batchSets[0]);
             } else {
                 // register with the Notification Handler
                 self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
