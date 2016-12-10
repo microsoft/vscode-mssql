@@ -4,8 +4,8 @@ dist: trusty
 # safelist
 branches:
   only:
-  - master
-  - dev
+    - master
+    - dev
 
 language: node_js
 node_js:
