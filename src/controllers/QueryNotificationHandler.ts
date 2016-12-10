@@ -6,6 +6,7 @@ import QueryRunner from './QueryRunner';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import {
     QueryExecuteCompleteNotification,
+    QueryExecuteBatchStartNotification,
     QueryExecuteBatchCompleteNotification,
     QueryExecuteResultSetCompleteNotification
 } from '../models/contracts/queryExecute';
@@ -28,6 +29,7 @@ export class QueryNotificationHandler {
     // register the handler to handle notifications for queries
     private initialize(): void {
         SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleCompleteNotification());
+        SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchStartNotification.type, this.handleBatchStartNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchCompleteNotification.type, this.handleBatchCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteResultSetCompleteNotification.type, this.handleResultSetCompleteNotification());
     }
@@ -45,6 +47,14 @@ export class QueryNotificationHandler {
 
             // There should be no more notifications for this query, so unbind it
             self._queryRunners.delete(event.ownerUri);
+        };
+    }
+
+    // Distributes batch start notification to appropriate methods
+    private handleBatchStartNotification(): NotificationHandler<any> {
+        const self = this;
+        return (event) => {
+            self._queryRunners.get(event.ownerUri).handleBatchStart(event);
         };
     }
 
