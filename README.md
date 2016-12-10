@@ -76,7 +76,9 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.intelliSense.enableErrorChecking": true,
     "mssql.intelliSense.enableSuggestions": true,
     "mssql.intelliSense.enableQuickInfo": true,
-    "mssql.intelliSense.lowerCaseSuggestions": false
+    "mssql.intelliSense.lowerCaseSuggestions": false,
+    "mssql.resultsFontFamily": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif",
+    "mssql.resultsFontSize": 12
 }
 ```
 
