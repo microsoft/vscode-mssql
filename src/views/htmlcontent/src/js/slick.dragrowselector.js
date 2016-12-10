@@ -117,15 +117,14 @@
                 if (e.shiftKey) {
                     var last = _ranges.pop();
 
-                    var toCell = Math.max(newRangeColumn, last.toCell);
-                    if (last.fromCell <= newRangeColumn) {
-                        toCell = Math.max(newRangeColumn, last.toCell - 1);
-                    }
+                    // If we are on the rightmost edge of the range and we navigate left,
+                    // we want to deselect the rightmost cell
+                    if (last.fromCell <= newRangeColumn) { last.toCell -= 1; }
 
                     var fromRow = Math.min(activeCell.row, last.fromRow);
                     var fromCell = Math.min(newRangeColumn, last.fromCell);
                     var toRow = Math.max(activeCell.row, last.toRow);
-
+                    var toCell = Math.max(newRangeColumn, last.toCell);
                     _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
                 } else {
                     _ranges = [new Slick.Range(activeCell.row, newRangeColumn, activeCell.row, newRangeColumn)];
@@ -146,12 +145,12 @@
                 if (e.shiftKey) {
                     var last = _ranges.pop();
 
-                    var fromCell = Math.min(newRangeColumn, last.fromCell);
-                    if (newRangeColumn <= last.toCell) {
-                            fromCell = Math.min(newRangeColumn, last.fromCell + 1);
-                    }
+                    // If we are on the leftmost edge of the range and we navigate right,
+                    // we want to deselect the leftmost cell
+                    if (newRangeColumn <= last.toCell) { last.fromCell += 1; }
 
                     var fromRow = Math.min(activeCell.row, last.fromRow);
+                    var fromCell = Math.min(newRangeColumn, last.fromCell);
                     var toRow = Math.max(activeCell.row, last.toRow);
                     var toCell = Math.max(newRangeColumn, last.toCell);
 
@@ -207,14 +206,14 @@
                         if (e.shiftKey) {
                             var last = _ranges.pop();
 
+                            // If we are on the bottommost edge of the range and we navigate up,
+                            // we want to deselect the bottommost row
                             var newRangeRow = activeCell.row - 1;
-                            var toRow = Math.max(newRangeRow, last.toRow);
-                            if (last.fromRow <= newRangeRow) {
-                                toRow = Math.max(activeCell.row - 1, last.toRow - 1);
-                            }
+                            if (last.fromRow <= newRangeRow) { last.toRow -= 1; }
 
                             var fromRow = Math.min(activeCell.row - 1, last.fromRow);
-                            var fromCell = Math.min(activeCell.cell - 1, last.fromCell)
+                            var fromCell = Math.min(activeCell.cell - 1, last.fromCell);
+                            var toRow = Math.max(newRangeRow, last.toRow);
                             var toCell = Math.max(activeCell.cell - 1, last.toCell);
                             _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
                         } else {
@@ -237,12 +236,12 @@
                         if (e.shiftKey) {
                             var last = _ranges.pop();
 
+                            // If we are on the topmost edge of the range and we navigate down,
+                            // we want to deselect the topmost row
                             var newRangeRow = activeCell.row + 1;
-                            var fromRow = Math.min(activeCell.row + 1, last.fromRow);
-                            if (newRangeRow <= last.toRow) {
-                                fromRow = Math.min(activeCell.row + 1, last.fromRow + 1);
-                            }
+                            if (newRangeRow <= last.toRow) { last.fromRow +=1; }
 
+                            var fromRow = Math.min(activeCell.row + 1, last.fromRow);
                             var fromCell = Math.min(activeCell.cell - 1, last.fromCell)
                             var toRow = Math.max(activeCell.row + 1, last.toRow);
                             var toCell = Math.max(activeCell.cell - 1, last.toCell);
