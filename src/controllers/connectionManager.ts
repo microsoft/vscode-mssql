@@ -3,6 +3,7 @@ import vscode = require('vscode');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import Constants = require('../models/constants');
 import * as ConnectionContracts from '../models/contracts/connection';
+import * as LanguageServiceContracts from '../models/contracts/languageService';
 import Utils = require('../models/utils');
 import Interfaces = require('../models/interfaces');
 import { ConnectionStore } from '../models/connectionStore';
@@ -13,7 +14,7 @@ import { IPrompter } from '../prompts/question';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
-import {Platform, getCurrentPlatform} from '../models/platform';
+import {Runtime, PlatformInformation} from '../models/platform';
 
 let opener = require('opener');
 
@@ -50,6 +51,11 @@ export class ConnectionInfo {
      * Timer for tracking service connection time.
      */
     public serviceTimer: Utils.Timer;
+
+    /**
+     * Timer for tracking intelliSense activation time.
+     */
+    public intelliSenseTimer: Utils.Timer;
 
     /**
      * Whether the connection is in the process of connecting.
@@ -92,6 +98,7 @@ export default class ConnectionManager {
         if (this.client !== undefined) {
             this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
             this.client.onNotification(ConnectionContracts.ConnectionCompleteNotification.type, this.handleConnectionCompleteNotification());
+            this.client.onNotification(LanguageServiceContracts.IntelliSenseReadyNotification.type, this.handleLanguageServiceUpdateNotification());
         }
     }
 
@@ -183,6 +190,35 @@ export default class ConnectionManager {
     /**
      * Public for testing purposes only.
      */
+    public handleLanguageServiceUpdateNotification(): NotificationHandler<LanguageServiceContracts.IntelliSenseReadyParams> {
+        // Using a lambda here to perform variable capture on the 'this' reference
+        const self = this;
+        return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
+            self._statusView.languageServiceUpdated(event.ownerUri);
+            let connection = self.getConnectionInfo(event.ownerUri);
+            if (connection !== undefined) {
+                connection.intelliSenseTimer.end();
+                let duration = connection.intelliSenseTimer.getDuration();
+                let numberOfCharacters: number = 0;
+                if (this.vscodeWrapper.activeTextEditor !== undefined
+                && this.vscodeWrapper.activeTextEditor.document !== undefined) {
+                    let document = this.vscodeWrapper.activeTextEditor.document;
+                    numberOfCharacters = document.getText().length;
+                }
+                Telemetry.sendTelemetryEvent('IntelliSenseActivated',
+                {
+                    isAzure: connection.serverInfo && connection.serverInfo.isCloud ? '1' : '0'},
+                {
+                    duration: duration,
+                    fileSize: numberOfCharacters
+                });
+            }
+        };
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
     public handleConnectionChangedNotification(): NotificationHandler<ConnectionContracts.ConnectionChangedParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
@@ -245,6 +281,7 @@ export default class ConnectionManager {
         connection.credentials = newCredentials;
 
         this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
+        this.statusView.languageServiceUpdating(fileUri);
 
         this._vscodeWrapper.logToOutputChannel(
             Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
@@ -275,17 +312,20 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError, result.errorNumber, result.errorMessage));
             }
         } else {
-            let platform: Platform = getCurrentPlatform();
-            if (platform === Platform.OSX && result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
-                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
-                Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(action => {
-                    if (action && action === Constants.macOpenSslHelpButton) {
-                        opener(Constants.macOpenSslHelpLink);
-                    }
-                });
-            } else {
-                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
-            }
+            PlatformInformation.GetCurrent().then( platformInfo => {
+                if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
+                result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
+                     this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
+                     Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(action => {
+                        if (action && action === Constants.macOpenSslHelpButton) {
+                            opener(Constants.macOpenSslHelpLink);
+                        }
+                     });
+                } else {
+                        Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
+                }
+            });
+
         }
         this.statusView.connectError(fileUri, connection.credentials, result);
         this.vscodeWrapper.logToOutputChannel(
@@ -453,6 +493,7 @@ export default class ConnectionManager {
         return new Promise<boolean>((resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
+            connectionInfo.intelliSenseTimer = new Utils.Timer();
             connectionInfo.credentials = connectionCreds;
             connectionInfo.connecting = true;
             this._connections[fileUri] = connectionInfo;

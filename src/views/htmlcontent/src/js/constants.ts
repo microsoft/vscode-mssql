@@ -5,6 +5,8 @@ export const saveCSVLabel = 'Save as CSV';
 export const saveJSONLabel = 'Save as JSON';
 export const resultPaneLabel = 'Results';
 export const selectAll = 'Select all';
+export const copyLabel = 'Copy';
+export const copyWithHeadersLabel = 'Copy with Headers';
 
 /** Messages Pane Labels */
 export const executeQueryLabel = 'Executing query...';

@@ -13,3 +13,6 @@ packages
 tools
 examples
 sqltoolsservice
+coverage
+test-reports
+.vscode-test

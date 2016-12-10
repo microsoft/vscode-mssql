@@ -1,9 +1,9 @@
 {
   "name": "mssql",
   "displayName": "mssql",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
-  "publisher": "ms-mssql",
+  "publisher": "Microsoft",
   "preview": true,
   "license": "SEE LICENSE IN LICENSE.txt",
   "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.0.0"
+    "vscode": "^1.4.0"
   },
   "categories": [
     "Languages"
@@ -34,33 +34,57 @@
     "Azure SQL Data Warehouse"
   ],
   "activationEvents": [
-    "*"
+    "onLanguage:sql",
+    "onCommand:extension.connect",
+    "onCommand:extension.runQuery",
+    "onCommand:extension.disconnect",
+    "onCommand:extension.manageProfiles",
+    "onCommand:extension.chooseDatabase",
+    "onCommand:extension.cancelQuery"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
     "vscode.sql"
   ],
   "devDependencies": {
+    "chai": "^3.5.0",
+    "coveralls": "^2.11.15",
+    "decache": "^4.1.0",
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-clean-css": "^2.0.13",
     "gulp-concat": "^2.6.0",
     "gulp-install": "^0.6.0",
+    "gulp-istanbul-report": "0.0.1",
     "gulp-json-editor": "^2.2.1",
     "gulp-rename": "^1.2.2",
+    "gulp-shell": "^0.5.2",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^6.0.2",
     "gulp-typescript": "^2.13.6",
     "gulp-uglify": "^2.0.0",
+    "istanbul": "^0.4.5",
+    "jasmine-core": "~2.4.1",
+    "karma": "^1.3.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-coverage": "^1.1.1",
+    "karma-htmlfile-reporter": "^0.3.4",
+    "karma-jasmine": "^1.0.2",
+    "karma-jasmine-html-reporter": "^0.2.2",
+    "karma-junit-reporter": "^1.1.0",
+    "karma-remap-istanbul": "^0.2.1",
     "pm-mocha-jenkins-reporter": "^0.2.6",
+    "remap-istanbul": "^0.6.4",
     "systemjs-builder": "^0.15.32",
     "tslint": "^3.14.0",
     "typemoq": "^0.3.2",
     "typescript": "^1.8.9",
     "uglify-js": "mishoo/UglifyJS2#harmony",
-    "vscode": "^0.11.0"
+    "vscode": "^0.11.0",
+    "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
-    "applicationinsights": "^0.15.0",
+    "applicationinsights": "^0.15.9",
     "body-parser": "^1.15.2",
     "comment-json": "^1.1.3",
     "copy-paste": "^1.3.0",
@@ -79,7 +103,8 @@
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.0.5",
-    "vscode-languageclient": "^2.5.0"
+    "vscode-languageclient": "^2.5.0",
+    "ws": "^1.1.1"
   },
   "contributes": {
     "languages": [
@@ -148,11 +173,6 @@
         "command": "extension.chooseDatabase",
         "title": "Use Database",
         "category": "MS SQL"
-      },
-      {
-        "command": "extension.showGettingStarted",
-        "title": "Getting Started Guide",
-        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -172,12 +192,6 @@
         "command": "extension.disconnect",
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
-        "when": "editorTextFocus && editorLangId == 'sql'"
-      },
-      {
-        "command": "extension.chooseDatabase",
-        "key": "ctrl+shift+u",
-        "mac": "cmd+shift+u",
         "when": "editorTextFocus && editorLangId == 'sql'"
       }
     ],
@@ -223,7 +237,7 @@
                 "type": "string",
                 "default": "{{put-username-here}}",
                 "description": "[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again."
-                },
+              },
               "password": {
                 "type": "string",
                 "default": "{{put-password-here}}",
@@ -375,6 +389,7 @@
             "event.prevGrid": "ctrl+up",
             "event.nextGrid": "ctrl+down",
             "event.copySelection": "ctrl+c",
+            "event.copyWithHeaders": "",
             "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",
@@ -383,8 +398,18 @@
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
-          "description": "true for the messages pane to be open by default; false for closed",
-	  "default": true
+          "description": "True for the messages pane to be open by default; false for closed",
+          "default": true
+        },
+        "mssql.resultsFontFamily": {
+          "type": "string",
+          "description": "Set the font family for the results grid; set to blank to use the editor font",
+          "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif"
+        },
+        "mssql.resultsFontSize": {
+          "type": "number",
+          "description": "Set the font size for the results grid; set to blank to use the editor size",
+          "default": 12
         },
         "mssql.saveAsCsv": {
           "type": "object",
@@ -394,6 +419,11 @@
             "default": true,
             "description": "[Optional] When true, column headers are included in CSV"
           }
+        },
+        "mssql.copyIncludeHeaders": {
+          "type": "boolean",
+          "description": "[Optional] Configuration options for copying results from the Results View",
+          "default": false
         }
       }
     }

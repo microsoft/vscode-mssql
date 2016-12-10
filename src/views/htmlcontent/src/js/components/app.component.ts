@@ -2,22 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
-    EventEmitter, ChangeDetectorRef, AfterViewChecked} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
+import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
+    EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
+import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
+    VirtualizedCollection, FieldType } from 'angular2-slickgrid';
 
-import {IColumnDefinition} from './../slickgrid/ModelInterfaces';
-import {IObservableCollection} from './../slickgrid/BaseLibrary';
-import {IGridDataRow} from './../slickgrid/SharedControlInterfaces';
-import {ISlickRange} from './../slickgrid/SelectionModel';
-import {SlickGrid} from './../slickgrid/SlickGrid';
-import {VirtualizedCollection} from './../slickgrid/VirtualizedCollection';
-import { FieldType } from './../slickgrid/EngineAPI';
-
-import {DataService} from './../services/data.service';
-import {ShortcutService} from './../services/shortcuts.service';
+import { DataService } from './../services/data.service';
+import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon, IGridBatchMetaData, ISelectionData, IResultMessage } from './../interfaces';
+import { IGridIcon, ISelectionData, IResultMessage } from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
@@ -50,14 +43,91 @@ interface IMessages {
     endTime: string;
 }
 
+    // tslint:disable:max-line-length
+const template = `
+<div class="fullsize vertBox">
+    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
+        <span> {{Constants.resultPaneLabel}} </span>
+        <span class="shortCut"> {{resultShortcut}} </span>
+    </div>
+    <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+         (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
+        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
+            [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
+            <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+                        [ngClass]="i === activeGrid ? 'active' : ''"
+                        [dataRows]="dataSet.dataRows"
+                        (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
+                        enableAsyncPostRender="true"
+                        showDataTypeIcon="false"
+                        showHeader="true"
+                        [resized]="dataSet.resized"
+                        (mousedown)="navigateToGrid(i)"
+                        [selectionModel]="selectionModel"
+                        [plugins]="slickgridPlugins"
+                        class="boxCol content vertBox slickgrid">
+            </slick-grid>
+            <span class="boxCol content vertBox">
+                <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
+                    <div *ngIf="icon.showCondition()" class="gridIcon">
+                        <a class="icon" href="#"
+                        (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
+                        [title]="icon.hoverText()" [ngClass]="icon.icon()">
+                        </a>
+                    </div>
+                </div>
+            </span>
+        </div>
+    </div>
+    <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
+    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
+        <div id="messageResizeHandle" class="resizableHandle"></div>
+        <span> {{Constants.messagePaneLabel}} </span>
+        <span class="shortCut"> {{messageShortcut}} </span>
+    </div>
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0">
+        <br>
+        <table id="messageTable">
+            <colgroup>
+                <col span="1" class="wide">
+            </colgroup>
+            <tbody>
+                <template ngFor let-imessage [ngForOf]="messages">
+                    <tr *ngIf="imessage.selection">
+                        <td>[{{imessage.startTime}}]</td>
+                        <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
+                    </tr>
+                    <tr *ngFor="let message of imessage.messages">
+                        <td></td>
+                        <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
+                    </tr>
+                </template>
+                <tr id='executionSpinner' *ngIf="!complete">
+                    <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
+                    <td>
+                        <img src="dist/images/progress_36x_animation.gif" height="18px" />
+                        <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span>
+                    </td>
+                </tr>
+                <tr *ngIf="complete">
+                    <td></td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapsedExecution))}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
+</div>
+`;
+    // tslint:enable:max-line-length
+
 /**
  * Top level app component which runs and controls the SlickGrid implementation
  */
 @Component({
     selector: 'my-app',
     host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
-    templateUrl: 'dist/html/app.html',
-    directives: [ContextMenu, SlickGrid],
+    template: template,
     providers: [DataService, ShortcutService],
     styles: [`
     .errorMessage {
@@ -71,6 +141,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private scrollTimeOutTime = 200;
     private windowSize = 50;
     private maxScrollGrids = 8;
+    // tslint:disable-next-line:no-unused-variable
+    private selectionModel = 'DragRowSelectionModel';
+    // tslint:disable-next-line:no-unused-variable
+    private slickgridPlugins = ['AutoColumnSize'];
     // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
     // tslint:disable-next-line:no-unused-variable
@@ -97,6 +171,12 @@ export class AppComponent implements OnInit, AfterViewChecked {
             let activeGrid = this.activeGrid;
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+        },
+        'event.copyWithHeaders': () => {
+            let activeGrid = this.activeGrid;
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId,
+                this.renderedDataSets[activeGrid].resultId, true);
         },
         'event.maximizeGrid': () => {
             this.magnify(this.activeGrid);
@@ -192,9 +272,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;
-    private totalElapseExecution: number;
-    @ViewChild(ContextMenu) contextMenu: ContextMenu;
-    @ViewChildren(SlickGrid) slickgrids: QueryList<SlickGrid>;
+    private totalElapsedExecution: number;
+    private complete = false;
+    @ViewChild('contextmenu') contextMenu: ContextMenu;
+    @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
 
     set messageActive(input: boolean) {
         this._messageActive = input;
@@ -207,7 +288,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         return this._messageActive;
     }
 
-    constructor(@Inject(forwardRef(() => DataService)) private dataService: DataService,
+    constructor(@Inject(forwardRef(() => DataService)) public dataService: DataService,
                 @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
                 @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
@@ -217,7 +298,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     ngOnInit(): void {
         const self = this;
-        this.totalElapseExecution = 0;
+        this.totalElapsedExecution = 0;
         this.setupResizeBind();
         this.dataService.config.then((config) => {
             this.config = config;
@@ -229,111 +310,119 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 self.resultShortcut = result;
             });
         });
-        this.dataService.getBatches().then((batchs: IGridBatchMetaData[]) => {
-            self.messages = [];
-            for (let [batchId, batch] of batchs.entries()) {
-                let exeTime = Utils.parseTimeString(batch.totalTime);
-                if (exeTime) {
-                    this.totalElapseExecution += <number> exeTime;
-                }
-                let messages: IMessages = {
-                    messages: [],
-                    hasError: batch.hasError,
-                    selection: batch.selection,
-                    startTime: new Date(batch.startTime).toLocaleTimeString(),
-                    endTime: new Date(batch.endTime).toLocaleTimeString()
-                };
-                if (batch.hasError) {
-                    self._messageActive = true;
-                }
-                for (let message of batch.messages) {
-                    let date = new Date(message.time);
-                    let timeString = date.toLocaleTimeString();
-                    messages.messages.push({time: timeString, message: message.message});
-                }
-                self.messages.push(messages);
-                self.messagesAdded = true;
-                self.dataService.numberOfResultSets(batchId).then((numberOfResults: number) => {
-                    for (let resultId = 0; resultId < numberOfResults; resultId++) {
-                        let totalRowsObs = self.dataService.getNumberOfRows(batchId, resultId);
-                        let columnDefinitionsObs = self.dataService.getColumns(batchId, resultId);
-                        Observable.forkJoin([totalRowsObs, columnDefinitionsObs]).subscribe((data: any[]) => {
-                            let dataSet: IGridDataSet = {
-                                    dataRows: undefined,
-                                    columnDefinitions: undefined,
-                                    totalRows: undefined,
-                                    resized: undefined,
-                                    batchId: batchId,
-                                    resultId: resultId,
-                                    maxHeight: undefined,
-                                    minHeight: undefined
-                                };
-                            let totalRows = data[0];
-                            let columnData = data[1];
-                            let columnDefinitions = [];
+        this.dataService.dataEventObs.subscribe(event => {
+            switch (event.type) {
+                case 'complete':
+                    self.complete = true;
+                    self.messagesAdded = true;
+                break;
+                case 'batchStart':
+                    let startedBatch = event.data;
 
-                            for (let i = 0; i < columnData.length; i++) {
-                                // Fix column name for showplan queries
-                                let columnName = (columnData[i].columnName === 'Microsoft SQL Server 2005 XML Showplan') ?
-                                                         'XML Showplan' : columnData[i].columnName;
-                                if (columnData[i].isXml || columnData[i].isJson) {
-                                    let linkType = columnData[i].isXml ? 'xml' : 'json';
-                                    columnDefinitions.push({
-                                        id: i.toString(),
-                                        name: columnName,
-                                        type: self.stringToFieldType('string'),
-                                        formatter: self.hyperLinkFormatter,
-                                        asyncPostRender: self.linkHandler(linkType)
-                                    });
-                                } else {
-                                    columnDefinitions.push({
-                                        id: i.toString(),
-                                        name: columnName,
-                                        type: self.stringToFieldType('string'),
-                                        formatter: self.textFormatter
+                    // Create the messages holder for the batch
+                    let messages: IMessages = {
+                        messages: [],
+                        hasError: false,
+                        selection: startedBatch.selection,
+                        startTime: new Date(startedBatch.executionStart).toLocaleTimeString(),
+                        endTime: undefined
+                    };
+                    self.messages[startedBatch.id] = messages;
+                break;
+                case 'batchComplete':
+                    let completedBatch = event.data;
+
+                    // Store the elapsed time of the batch
+                    let exeTime = Utils.parseTimeString(completedBatch.executionElapsed);
+                    if (exeTime) {
+                        this.totalElapsedExecution += <number>exeTime;
+                    }
+
+                    // Set the values we didn't have before
+                    let batchMessages = self.messages[completedBatch.id];
+                    batchMessages.messages = completedBatch.messages.map(m => {
+                        return {
+                            time: new Date(m.time).toLocaleTimeString(),
+                            message: m.message
+                        };
+                    });
+                    batchMessages.hasError = completedBatch.hasError;
+                    batchMessages.endTime = new Date(completedBatch.executionEnd).toLocaleTimeString();
+
+                    // If we have an error, set the messages to be shown
+                    if (completedBatch.hasError) {
+                        self._messageActive = true;
+                    }
+                    self.messagesAdded = true;
+                break;
+                case 'resultSet':
+                    let resultSet = event.data;
+
+                    // Setup a function for generating a promise to lookup result subsets
+                    let loadDataFunction = (offset: number, count: number) : Promise<IGridDataRow[]> => {
+                        return new Promise<IGridDataRow[]>((resolve, reject) => {
+                            self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
+                                let gridData: IGridDataRow[] = [];
+                                for (let i = 0; i < rows.rows.length; i++) {
+                                    gridData.push({
+                                        values: rows.rows[i]
                                     });
                                 }
-                            }
-                            let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
-                                return new Promise<IGridDataRow[]>((resolve, reject) => {
-                                    self.dataService.getRows(offset, count, batchId, resultId).subscribe(rows => {
-                                        let gridData: IGridDataRow[] = [];
-                                        for (let i = 0; i < rows.rows.length; i++) {
-                                            gridData.push({
-                                                values: rows.rows[i]
-                                            });
-                                        }
-                                        resolve(gridData);
-                                    });
-                                });
-                            };
-
-                            let virtualizedCollection = new VirtualizedCollection<IGridDataRow>(self.windowSize,
-                                                                                                totalRows,
-                                                                                                loadDataFunction,
-                                                                                                (index) => {
-                                                                                                    return { values: [] };
-                                                                                                });
-                            dataSet.columnDefinitions = columnDefinitions;
-                            dataSet.totalRows = totalRows;
-                            dataSet.dataRows = virtualizedCollection;
-                            // calculate min and max height
-                            dataSet.maxHeight = dataSet.totalRows < self._defaultNumShowingRows ?
-                                                Math.max((dataSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * 30) + 10 : 'inherit';
-                            dataSet.minHeight = dataSet.totalRows > self._defaultNumShowingRows ?
-                                                (self._defaultNumShowingRows + 1) * self._rowHeight + 10 : dataSet.maxHeight;
-                            self.dataSets.push(dataSet);
-                            // Create a dataSet to render without rows to reduce DOM size
-                            let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
-                            undefinedDataSet.columnDefinitions = dataSet.columnDefinitions;
-                            undefinedDataSet.dataRows = undefined;
-                            undefinedDataSet.resized = new EventEmitter();
-                            self.placeHolderDataSets.push(undefinedDataSet);
-                            self.messagesAdded = true;
-                            self.onScroll(0);
+                                resolve(gridData);
+                            });
                         });
-                    }
-                });
+                    };
+
+                    // Precalculate the max height and min height
+                    let maxHeight = resultSet.rowCount < self._defaultNumShowingRows
+                        ? Math.max((resultSet.rowCount + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
+                        : 'inherit';
+                    let minHeight = resultSet.rowCount > self._defaultNumShowingRows
+                        ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
+                        : maxHeight;
+
+                    // Store the result set from the event
+                    let dataSet: IGridDataSet = {
+                        resized: undefined,
+                        batchId: resultSet.batchId,
+                        resultId: resultSet.id,
+                        totalRows: resultSet.rowCount,
+                        maxHeight: maxHeight,
+                        minHeight: minHeight,
+                        dataRows: new VirtualizedCollection(
+                            self.windowSize,
+                            resultSet.rowCount,
+                            loadDataFunction,
+                            index => { return { values: [] }; }
+                        ),
+                        columnDefinitions: resultSet.columnInfo.map((c, i) => {
+                            let isLinked = c.isXml || c.isJson;
+                            let linkType = c.isXml ? 'xml' : 'json';
+                            return {
+                                id: i.toString(),
+                                name: c.columnName === 'Microsoft SQL Server 2005 XML Showplan'
+                                    ? 'XML Showplan'
+                                    : c.columnName,
+                                type: self.stringToFieldType('string'),
+                                formatter: isLinked ? self.hyperLinkFormatter : self.textFormatter,
+                                asyncPostRender: isLinked ? self.linkHandler(linkType) : undefined
+                            };
+                        })
+                    };
+                    self.dataSets.push(dataSet);
+
+                    // Create a dataSet to render without rows to reduce DOM size
+                    let undefinedDataSet = JSON.parse(JSON.stringify(dataSet));
+                    undefinedDataSet.columnDefinitions = dataSet.columnDefinitions;
+                    undefinedDataSet.dataRows = undefined;
+                    undefinedDataSet.resized = new EventEmitter();
+                    self.placeHolderDataSets.push(undefinedDataSet);
+                    self.messagesAdded = true;
+                    self.onScroll(0);
+                break;
+                default:
+                    console.error('Unexpected web socket event type "' + event.type + '" sent');
+                break;
             }
         });
     }
@@ -353,12 +442,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         switch (input) {
             case 'string':
                 fieldtype = FieldType.String;
-                break;
-            case 'boolean':
-                fieldtype = FieldType.Boolean;
-                break;
-            case 'decimal':
-                fieldtype = FieldType.Decimal;
                 break;
             default:
                 fieldtype = FieldType.String;
@@ -381,6 +464,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'selectall':
                 this.activeGrid = event.index;
                 this.shortcutfunc['event.selectAll']();
+                break;
+            case 'copySelection':
+                this.dataService.copyResults(event.selection, event.batchId, event.resultId);
+                break;
+            case 'copyWithHeaders':
+                this.dataService.copyResults(event.selection, event.batchId, event.resultId, true);
+                break;
             default:
                 break;
         }
@@ -398,7 +488,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.field, 'xml');
+            self.dataService.openLink(value, colDef.name, 'xml');
         });
     }
 
@@ -409,7 +499,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         let value = dataContext[colDef.field];
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.field, 'json');
+            self.dataService.openLink(value, colDef.name, 'json');
         });
     }
 
@@ -474,7 +564,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 }
             } else {
                 let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
-                let tabHeight = document.getElementById('results').offsetHeight;
+                let tabHeight = self._el.nativeElement.querySelector('#results').offsetHeight;
                 let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
                     + ((scrollTop % gridHeight) / gridHeight));
                 let min = Math.floor(scrollTop / gridHeight);
@@ -504,7 +594,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Binded to mouse click on messages
      */
     editorSelection(selection: ISelectionData): void {
-        this.dataService.setEditorSelection(selection);
+        this.dataService.editorSelection = selection;
     }
 
     /**
@@ -512,8 +602,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     setupResizeBind(): void {
         const self = this;
-        let $resizeHandle = $(document.getElementById('messageResizeHandle'));
-        let $messagePane = $(document.getElementById('messages'));
+        let $resizeHandle = $(self._el.nativeElement.querySelector('#messageResizeHandle'));
+        let $messagePane = $(self._el.nativeElement.querySelector('#messages'));
         $resizeHandle.bind('dragstart', (e) => {
             self.resizing = true;
             self.resizeHandleTop = e.pageY;
@@ -537,7 +627,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Ensures the messages tab is scrolled to the bottom
      */
     scrollMessages(): void {
-        let messagesDiv = document.getElementById('messages');
+        let messagesDiv = this._el.nativeElement.querySelector('#messages');
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
@@ -580,14 +670,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 e.stopImmediatePropagation();
             }
         });
-    }
-
-    /**
-     * Obtains the index in the slickgrids array which is currently focused
-     * @returns The index in the local slickgrids array that is currently focused
-     */
-    getActiveGridIndex(): number {
-        return parseInt($(document.activeElement).parent().parent().attr('id').split('_')[1], 10);
     }
 
     /**

@@ -1,7 +1,5 @@
 'use strict';
-
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
-
 import vscode = require('vscode');
 
 // Dummy implementation to simplify mocking
@@ -23,6 +21,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
     workspaceState: vscode.Memento;
     globalState: vscode.Memento;
     extensionPath: string;
+    storagePath;
 
     asAbsolutePath(relativePath: string): string {
         return undefined;

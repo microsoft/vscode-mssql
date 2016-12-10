@@ -3,8 +3,6 @@
     <title>Angular 2 QuickStart</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="dist/css//flexbox.css"/>
-    <link rel="stylesheet" type="text/css" href="lib/css/bootstrap.min.css"/>
     <style>
       :root {
         --background-color: <%=backgroundcolor%>;
@@ -21,20 +19,39 @@
         font-size: var(--font-size);
       }
     </style>
-    <link rel="stylesheet" type="text/css" href="dist/css/styles.css"/>
+    <link rel="stylesheet" type="text/css" href="dist/css/styles.min.css"/>
     <%if (theme === 'vscode-light') { %>
     <link rel="stylesheet" type="text/css" href="dist/css/color-theme-light.css"/>
     <%} else { %>
     <link rel="stylesheet" type="text/css" href="dist/css/color-theme-dark.css"/>
     <% } %>
+    <link rel="stylesheet" type="text/css" href="lib/css/slick.grid.css"/>
+    <link rel="stylesheet" type="text/css" href="lib/css/SlickGrid.css"/>
   </head>
   <!-- 3. Display the application -->
   <body>
     <div style="display: none;" id="uri"><%=uri%></div>
     <my-app></my-app>
   </body>
-
+    <% if (prod) { %>
     <script src="dist/js/app.bundle.js"></script>
+    <% } else { %>
+    <script src="lib/js/jquery-1.8.3.js"></script>
+    <script src="lib/js/jquery.event.drag-2.2.js"></script>
+    <script src="lib/js/jquery-ui-1.9.2.js"></script>
+    <script src="lib/js/underscore-min.js"></script>
+    <script src="lib/js/slick.core.js"></script>
+    <script src="lib/js/slick.grid.js"></script>
+    <script src="lib/js/slick.editors.js"></script>
+    <script src="lib/js/slick.autosizecolumn.js"></script>
+    <script src="lib/js/slick.dragrowselector.js"></script>
+     <!-- Polyfill(s) for older browsers -->
+    <script src="lib/js/shim.min.js"></script>
+    <script src="lib/js/zone.js/dist/zone.js"></script>
+    <script src="lib/js/Reflect.js"></script>
+    <script src="lib/js/system.src.js"></script>
+    <script src="lib/js/systemjs.config.js"></script>
+    <% } %>
     <script>
       System.import('app').catch(function(err){ console.error(err); });
     </script>

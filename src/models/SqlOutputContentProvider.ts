@@ -12,6 +12,7 @@ import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData } from './interfaces';
 const pd = require('pretty-data').pd;
+const fs = require('fs');
 
 const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
 
@@ -59,9 +60,22 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let theme: string = req.query.theme;
             let backgroundcolor: string = req.query.backgroundcolor;
             let color: string = req.query.color;
-            let fontfamily: string = decodeURI(req.query.fontfamily);
-            let fontsize: string = req.query.fontsize;
-            let fontweight: string = req.query.fontweight;
+            let prod;
+            try {
+                fs.accessSync(path.join(LocalWebService.staticContentPath, Constants.contentProviderMinFile), fs.F_OK);
+                prod = true;
+            } catch (e) {
+                prod = false;
+            }
+            let mssqlConfig = self._vscodeWrapper.getConfiguration(Constants.extensionName);
+            let editorConfig = self._vscodeWrapper.getConfiguration('editor');
+            let extensionFontFamily = mssqlConfig.get<string>(Constants.extConfigResultFontFamily).split('\'').join('').split('"').join('');
+            let extensionFontSize = mssqlConfig.get<number>(Constants.extConfigResultFontSize);
+            let fontfamily = extensionFontFamily ?
+                             extensionFontFamily :
+                             editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
+            let fontsize = extensionFontSize ? extensionFontSize + 'px' : editorConfig.get<number>('fontSize') + 'px';
+            let fontweight = editorConfig.get<string>('fontWeight');
             res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
                 {
                     uri: uri,
@@ -70,7 +84,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     color: color,
                     fontfamily: fontfamily,
                     fontsize: fontsize,
-                    fontweight: fontweight
+                    fontweight: fontweight,
+                    prod: prod
                 }
             );
         });
@@ -190,8 +205,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let uri = req.query.uri;
             let resultId = req.query.resultId;
             let batchId = req.query.batchId;
+            let includeHeaders = req.query.includeHeaders;
             let selection: Interfaces.ISlickRange[] = req.body;
-            self._queryResultsMap.get(uri).queryRunner.copyResults(selection, batchId, resultId).then(() => {
+            self._queryResultsMap.get(uri).queryRunner.copyResults(selection, batchId, resultId, includeHeaders).then(() => {
                 res.status = 200;
                 res.send();
             });
@@ -275,6 +291,21 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
+            queryRunner.eventEmitter.on('resultSet', (resultSet) => {
+                this._service.broadcast(resultsUri, 'resultSet', resultSet);
+            });
+            queryRunner.eventEmitter.on('batchStart', (batch) => {
+                this._service.broadcast(resultsUri, 'batchStart', batch);
+            });
+            queryRunner.eventEmitter.on('batchComplete', (batch) => {
+                this._service.broadcast(resultsUri, 'batchComplete', batch);
+            });
+            queryRunner.eventEmitter.on('complete', () => {
+                this._service.broadcast(resultsUri, 'complete');
+            });
+            queryRunner.eventEmitter.on('start', () => {
+                this._service.resetSocket(resultsUri);
+            });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
 
@@ -391,18 +422,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     var styles = window.getComputedStyle(doc);
                     var backgroundcolor = styles.getPropertyValue('--background-color');
                     var color = styles.getPropertyValue('--color');
-                    var fontfamily = styles.getPropertyValue('--font-family');
-                    var fontweight = styles.getPropertyValue('--font-weight');
-                    var fontsize = styles.getPropertyValue('--font-size');
                     var theme = document.body.className;
                     var url = "${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?" +
                             "uri=${encodedUri}" +
                             "&theme=" + theme +
                             "&backgroundcolor=" + backgroundcolor +
-                            "&color=" + color +
-                            "&fontfamily=" + fontfamily +
-                            "&fontweight=" + fontweight +
-                            "&fontsize=" + fontsize;
+                            "&color=" + color;
                     document.getElementById('frame').src = url;
                 };
             </script>

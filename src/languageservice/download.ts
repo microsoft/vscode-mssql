@@ -8,11 +8,13 @@
 import * as https from 'https';
 import * as http from 'http';
 import * as stream from 'stream';
-import {parse} from 'url';
-import {Platform, getCurrentPlatform} from '../models/platform';
+import {parse, Url} from 'url';
+import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import {getProxyAgent} from './proxy';
 import * as path from 'path';
-import {IConfig, ILogger} from './interfaces';
+import {IConfig, IStatusView} from './interfaces';
+import  {ILogger} from '../models/interfaces';
+import Constants = require('../models/constants');
 
 let tmp = require('tmp');
 let fs = require('fs');
@@ -27,13 +29,14 @@ tmp.setGracefulCleanup();
 export default class ServiceDownloadProvider {
 
     constructor(private _config: IConfig,
-                private _logger: ILogger) {
+                private _logger: ILogger,
+                private _statusView: IStatusView) {
     }
 
    /**
     * Returns the download url for given platfotm
     */
-    public getDownloadFileName(platform: Platform): string {
+    public getDownloadFileName(platform: Runtime): string {
         let fileNamesJson = this._config.getSqlToolsConfigValue('downloadFileNames');
         let fileName = fileNamesJson[platform.toString()];
 
@@ -48,12 +51,13 @@ export default class ServiceDownloadProvider {
         return fileName;
     }
 
-    private download(urlString: string, proxy?: string, strictSSL?: boolean): Promise<stream.Readable> {
-        let url = parse(urlString);
+    private setStatusUpdate(downloadPercentage: number): void {
+        this._statusView.updateServiceDownloadingProgress(downloadPercentage);
+    }
 
+    private getHttpClientOptions(url: Url, proxy?: string, strictSSL?: boolean): any {
         const agent = getProxyAgent(url, proxy, strictSSL);
 
-        let client = url.protocol === 'http:' ? http : https;
         let options: http.RequestOptions = {
             host: url.hostname,
             path: url.path,
@@ -71,39 +75,83 @@ export default class ServiceDownloadProvider {
             options = httpsOptions;
         }
 
+        return options;
+    }
+
+    private download(urlString: string, proxy?: string, strictSSL?: boolean): Promise<stream.Readable> {
+        let url = parse(urlString);
+        let options = this.getHttpClientOptions(url, proxy, strictSSL);
+        let client = url.protocol === 'http:' ? http : https;
+
         return new Promise<stream.Readable>((resolve, reject) => {
-            process.on('uncaughtException', function (err): void {
-                // When server DNS address is not valid the http client doesn't return any error code,
-                // So the promise never returns any reject or resolve. The only way to fix it was to handle the process exception
-                // and check for that specific error message
-                if (err !== undefined && err.message !== undefined && (<string>err.message).lastIndexOf('getaddrinfo') >= 0) {
-                    reject(err);
-                }
-            });
-            return client.get(options, res => {
+
+            let request = client.request(options, response => {
                 // handle redirection
-                if (res.statusCode === 302) {
-                    return this.download(res.headers.location);
-                } else if (res.statusCode !== 200) {
-                    return reject(Error(`Download failed with code ${res.statusCode}.`));
+                if (response.statusCode === 302 || response.statusCode === 301) {
+                    return this.download(response.headers.location, proxy, strictSSL).then(result => {
+                        return resolve(result);
+                    });
+                } else if (response.statusCode !== 200) {
+                    return reject(Error(`Download failed with code ${response.statusCode}.`));
                 }
 
-                return resolve(res);
+                this.handleHttpResponseEvents(response);
+                response.on('end', () => {
+                    resolve();
+                });
+
+                response.on('error', err => {
+                    reject(`Reponse error: ${err.code || 'NONE'}`);
+                });
+
+                return resolve(response);
             });
+
+            request.on('error', error => {
+                reject(`Request error: ${error.code || 'NONE'}`);
+            });
+
+            // Execute the request
+            request.end();
         });
+    }
+
+    private handleHttpResponseEvents(response: http.IncomingMessage): void {
+            // Downloading - hook up events
+            let packageSize = parseInt(response.headers['content-length'], 10);
+            let downloadedBytes = 0;
+            let downloadPercentage = 0;
+            let dots = 0;
+
+            this._logger.append(`(${Math.ceil(packageSize / 1024)} KB) `);
+            response.on('data', data => {
+                    downloadedBytes += data.length;
+
+                    // Update status bar item with percentage
+                    let newPercentage = Math.ceil(100 * (downloadedBytes / packageSize));
+                    if (newPercentage !== downloadPercentage) {
+                        this.setStatusUpdate(downloadPercentage);
+                        downloadPercentage = newPercentage;
+                    }
+
+                    // Update dots after package name in output console
+                    let newDots = Math.ceil(downloadPercentage / 5);
+                    if (newDots > dots) {
+                        this._logger.append('.'.repeat(newDots - dots));
+                        dots = newDots;
+                    }
+            });
     }
 
    /**
     * Returns SQL tools service installed folder.
     */
-    public getInstallDirectory(platform?: Platform): string {
-        if (platform === undefined) {
-            platform = getCurrentPlatform();
-        }
+    public getInstallDirectory(platform: Runtime): string {
+
         let basePath = this.getInstallDirectoryRoot();
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
         basePath = basePath.replace('{#version#}', versionFromConfig);
-        basePath = basePath.replace('{#platform#}', platform.toString());
+        basePath = basePath.replace('{#platform#}', getRuntimeDisplayName(platform));
         fse.mkdirsSync(basePath);
         return basePath;
     }
@@ -134,63 +182,74 @@ export default class ServiceDownloadProvider {
    /**
     * Downloads the SQL tools service and decompress it in the install folder.
     */
-    public go(platform?: Platform): Promise<boolean> {
+    public InstallSQLToolsService(platform: Runtime): Promise<boolean> {
         const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
         const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
-        if (platform === undefined) {
-            platform = getCurrentPlatform();
-        }
 
         return new Promise<boolean>((resolve, reject) => {
             const fileName = this.getDownloadFileName( platform);
             const installDirectory = this.getInstallDirectory(platform);
 
-            this._logger.logDebug(`Installing sql tools service to ${installDirectory}`);
+            this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
             const urlString = this.getGetDownloadUrl(fileName);
 
-            this._logger.logDebug(`Attempting to download ${urlString}`);
+            this._logger.appendLine(`${Constants.serviceDownloading} ${urlString}`);
 
             return this.download(urlString, proxy, strictSSL)
                 .then(inStream => {
-                    tmp.file((err, tmpPath, fd, cleanupCallback) => {
-                        if (err) {
-                            return reject(err);
-                        }
-
-                        this._logger.logDebug(`Downloading to ${tmpPath}...`);
-
-                        const outStream = fs.createWriteStream(undefined, { fd: fd });
-
-                        outStream.once('error', outStreamErr => reject(outStreamErr));
-                        inStream.once('error', inStreamErr => reject(inStreamErr));
-
-                        outStream.once('finish', () => {
-                            // At this point, the asset has finished downloading.
-
-                            this._logger.logDebug('Download complete!');
-                            this._logger.logDebug('Decompressing...');
-
-                            return decompress(tmpPath, installDirectory)
-                                .then(files => {
-                                    this._logger.logDebug(`Done! ${files.length} files unpacked.\n`);
-                                    return resolve(true);
-                                })
-                                .catch(decompressErr => {
-                                    this._logger.logDebug(`[ERROR] ${err}`);
-                                    return reject(decompressErr);
-                                });
-                        });
-
-                        inStream.pipe(outStream);
+                    this.install(inStream, installDirectory).then ( installed => {
+                        resolve(installed);
+                    }).catch(installError => {
+                        reject(installError);
                     });
                 })
                 .catch(err => {
-                    this._logger.logDebug(`[ERROR] ${err}`);
+                    this._logger.appendLine(`[ERROR] ${err}`);
                     reject(err);
                 });
         }).then(res => {
             return res;
         });
     }
+
+    private install(inStream: stream.Readable, installDirectory: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            tmp.file((err, tmpPath, fd, cleanupCallback) => {
+                if (err) {
+                    reject(err);
+                }
+
+                this._logger.logDebug(`Downloading to ${tmpPath}...`);
+
+                const outStream = fs.createWriteStream(undefined, { fd: fd });
+
+                outStream.once('error', outStreamErr => reject(outStreamErr));
+                inStream.once('error', inStreamErr => reject(inStreamErr));
+
+                outStream.once('finish', () => {
+                    // At this point, the asset has finished downloading.
+
+                    this._logger.appendLine(' Done!');
+                    this._logger.appendLine('Installing ...');
+                    this._statusView.installingService();
+
+                    return decompress(tmpPath, installDirectory)
+                        .then(files => {
+                            this._logger.appendLine(`Done! ${files.length} files unpacked.\n`);
+                            this._statusView.serviceInstalled();
+                            resolve(true);
+                        })
+                        .catch(decompressErr => {
+                            this._logger.appendLine(`[ERROR] ${err}`);
+                            reject(decompressErr);
+                        });
+                });
+
+                inStream.pipe(outStream);
+            });
+        });
+    }
 }
+
+
 

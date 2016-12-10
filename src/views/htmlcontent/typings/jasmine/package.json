@@ -1,0 +1,79 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "@types/jasmine@^2.5.36",
+        "scope": "@types",
+        "escapedName": "@types%2fjasmine",
+        "name": "@types/jasmine",
+        "rawSpec": "^2.5.36",
+        "spec": ">=2.5.36 <3.0.0",
+        "type": "range"
+      },
+      "/Users/anthonydresser/Documents/vscode-mssql/src/views/htmlcontent"
+    ]
+  ],
+  "_from": "@types/jasmine@>=2.5.36 <3.0.0",
+  "_id": "@types/jasmine@2.5.37",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/@types/jasmine",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/jasmine-2.5.37.tgz_1478005079042_0.7982070264406502"
+  },
+  "_npmUser": {
+    "name": "types",
+    "email": "ts-npm-types@microsoft.com"
+  },
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "@types/jasmine@^2.5.36",
+    "scope": "@types",
+    "escapedName": "@types%2fjasmine",
+    "name": "@types/jasmine",
+    "rawSpec": "^2.5.36",
+    "spec": ">=2.5.36 <3.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@types/jasmine/-/jasmine-2.5.37.tgz",
+  "_shasum": "15f16040b1106941ec4aeefa3cd9c55342a0dcbb",
+  "_shrinkwrap": null,
+  "_spec": "@types/jasmine@^2.5.36",
+  "_where": "/Users/anthonydresser/Documents/vscode-mssql/src/views/htmlcontent",
+  "author": {
+    "name": "Boris Yankov",
+    "email": "https://github.com/borisyankov/"
+  },
+  "dependencies": {},
+  "description": "TypeScript definitions for Jasmine 2.5",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "15f16040b1106941ec4aeefa3cd9c55342a0dcbb",
+    "tarball": "https://registry.npmjs.org/@types/jasmine/-/jasmine-2.5.37.tgz"
+  },
+  "license": "MIT",
+  "main": "",
+  "maintainers": [
+    {
+      "name": "types",
+      "email": "ryan.cavanaugh@microsoft.com"
+    }
+  ],
+  "name": "@types/jasmine",
+  "optionalDependencies": {},
+  "peerDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  "scripts": {},
+  "typesPublisherContentHash": "342ad787ae1d9085f9cb2f352460449c601a7fbda833a19bb87aa2787dbc9ec3",
+  "typings": "index.d.ts",
+  "version": "2.5.37"
+}

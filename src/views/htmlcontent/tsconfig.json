@@ -4,6 +4,7 @@
         "experimentalDecorators": true,
         "module": "commonjs",
         "sourceMap": true,
+        "rootDir": ".",
         "target": "es6"
     }
 }

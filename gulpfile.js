@@ -1,4 +1,5 @@
-﻿var gulp = require('gulp');
+﻿"use strict"
+var gulp = require('gulp');
 var rename = require('gulp-rename');
 var install = require('gulp-install');
 var tslint = require('gulp-tslint');
@@ -14,7 +15,7 @@ var through = require('through2');
 var cproc = require('child_process');
 var os = require('os');
 var jeditor = require("gulp-json-editor");
-const path = require('path');
+var path = require('path');
 
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
@@ -115,6 +116,24 @@ gulp.task('ext:copy-appinsights', () => {
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
 gulp.task('ext:build', gulp.series('ext:lint', 'ext:compile', 'ext:copy'));
+
+gulp.task('ext:test', (done) => {
+    let workspace = process.env['WORKSPACE'];
+    process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
+    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" --verbose`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            process.exit(1);
+        }
+        console.log(`stdout: ${stdout}`);
+        console.log(`stderr: ${stderr}`);
+        done();
+    });
+});
+
+gulp.task('test', gulp.series('html:test', 'ext:test'));
+
+require('./tasks/covertasks');
 
 gulp.task('clean', function (done) {
     return del('out', done);

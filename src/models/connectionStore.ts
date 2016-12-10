@@ -308,9 +308,10 @@ export class ConnectionStore {
      * from the credential store
      *
      * @param {IConnectionProfile} profile the profile to be removed
+     * @param {Boolean} keepCredentialStore optional value to keep the credential store after a profile removal
      * @returns {Promise<boolean>} true if successful
      */
-    public removeProfile(profile: IConnectionProfile): Promise<boolean> {
+    public removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
             self._connectionConfig.removeConnection(profile).then(profileFound => {
@@ -329,12 +330,13 @@ export class ConnectionStore {
             });
         }).then(profileFound => {
             // Now remove password from credential store. Currently do not care about status unless an error occurred
-            if (profile.savePassword === true) {
+            if (profile.savePassword === true && !keepCredentialStore) {
                 let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
                 self._credentialStore.deleteCredential(credentialId).then(undefined, rejected => {
                     throw new Error(rejected);
                 });
             }
+
             return profileFound;
         });
     }

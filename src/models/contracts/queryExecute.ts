@@ -1,6 +1,25 @@
 import {RequestType, NotificationType} from 'vscode-languageclient';
 import { IDbColumn, ISelectionData, IResultMessage } from './../interfaces';
 
+
+export class ResultSetSummary {
+    id: number;
+    batchId: number;
+    rowCount: number;
+    columnInfo: IDbColumn[];
+}
+
+export class BatchSummary {
+    hasError: boolean;
+    id: number;
+    selection: ISelectionData;
+    messages: IResultMessage[];
+    resultSetSummaries: ResultSetSummary[];
+    executionElapsed: string;
+    executionEnd: string;
+    executionStart: string;
+}
+
 // ------------------------------- < Query Dispose Request > ----------------------------------------
 export namespace QueryDisposeRequest {
     export const type: RequestType<QueryDisposeParams, QueryDisposeResult, void> = {
@@ -28,23 +47,6 @@ export namespace QueryExecuteCompleteNotification {
                                                                                   };
 }
 
-export class ResultSetSummary {
-    id: number;
-    rowCount: number;
-    columnInfo: IDbColumn[];
-}
-
-export class BatchSummary {
-    hasError: boolean;
-    id: number;
-    selection: ISelectionData;
-    messages: IResultMessage[];
-    resultSetSummaries: ResultSetSummary[];
-    executionElapsed: string;
-    executionEnd: string;
-    executionStart: string;
-}
-
 export class QueryExecuteCompleteNotificationResult {
     ownerUri: string;
     batchSummaries: BatchSummary[];
@@ -52,6 +54,46 @@ export class QueryExecuteCompleteNotificationResult {
 }
 
 // -------------------------- </ Query Execution Complete Notification > -------------------------------
+
+// Query Batch Notification -----------------------------------------------------------------------
+export class QueryExecuteBatchNotificationParams {
+    batchSummary: BatchSummary;
+    ownerUri: string;
+}
+
+// Query Batch Start Notification -----------------------------------------------------------------
+export namespace QueryExecuteBatchStartNotification {
+    export const type: NotificationType<QueryExecuteBatchNotificationParams> = {
+        get method(): string {
+            return 'query/batchStart';
+        }
+    };
+}
+
+// Query Batch Complete Notification --------------------------------------------------------------
+export namespace QueryExecuteBatchCompleteNotification {
+    export const type: NotificationType<QueryExecuteBatchNotificationParams> = {
+        get method(): string {
+            return 'query/batchComplete';
+        }
+    };
+}
+
+// Query ResultSet Complete Notification -----------------------------------------------------------
+export namespace QueryExecuteResultSetCompleteNotification {
+    export const type: NotificationType<QueryExecuteResultSetCompleteNotificationParams> = {
+        get method(): string {
+            return 'query/resultSetComplete';
+        }
+    };
+}
+
+export class QueryExecuteResultSetCompleteNotificationParams {
+    resultSetSummary: ResultSetSummary;
+    ownerUri: string;
+}
+
+// /Query ResultSet Complete Notification ----------------------------------------------------------
 
 // --------------------------------- < Query Execution Request > ---------------------------------------
 export namespace QueryExecuteRequest {

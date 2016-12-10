@@ -1,4 +1,5 @@
 'use strict';
+import { EventEmitter } from 'events';
 
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -6,8 +7,9 @@ import {QueryNotificationHandler} from './QueryNotificationHandler';
 import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
+    QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
-    QueryDisposeRequest } from '../models/contracts/queryExecute';
+    QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../models/constants');
@@ -25,12 +27,13 @@ export interface IResultSet {
 */
 export default class QueryRunner {
     // MEMBER VARIABLES ////////////////////////////////////////////////////
-    private _batchSets: BatchSummary[];
+    private _batchSets: BatchSummary[] = [];
     private _isExecuting: boolean;
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
     private _batchSetsPromise: Promise<BatchSummary[]>;
+    public eventEmitter: EventEmitter = new EventEmitter();
     public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
@@ -81,11 +84,11 @@ export default class QueryRunner {
         return this._batchSetsPromise;
     }
 
-    private get batchSets(): BatchSummary[] {
+    get batchSets(): BatchSummary[] {
         return this._batchSets;
     }
 
-    private set batchSets(batchSets: BatchSummary[]) {
+    set batchSets(batchSets: BatchSummary[]) {
         this._batchSets = batchSets;
     }
 
@@ -105,6 +108,7 @@ export default class QueryRunner {
     public runQuery(selection: ISelectionData): Thenable<void> {
         this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
         const self = this;
+        this.batchSets = [];
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
             querySelection: selection
@@ -118,12 +122,12 @@ export default class QueryRunner {
         });
 
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
-            if (result.messages) {
+            self.eventEmitter.emit('start');
+            if (result.messages) { // Show informational messages if there was no query to execute
                 self._statusView.executedQuery(self.uri);
                 self._isExecuting = false;
-                self._vscodeWrapper.showErrorMessage('Execution failed: ' + result.messages);
                 self.batchSets = [{
-                        hasError: true,
+                        hasError: false,
                         id: 0,
                         selection: undefined,
                         messages: [{message: result.messages, time: undefined}],
@@ -133,13 +137,20 @@ export default class QueryRunner {
                         executionStart: undefined
                     }];
                 self.dataResolveReject.resolve();
+                this.eventEmitter.emit('batchStart', self._batchSets[0]);
+                this.eventEmitter.emit('batchComplete', self._batchSets[0]);
             } else {
                 // register with the Notification Handler
                 self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
             }
+            self.eventEmitter.emit('complete');
         }, error => {
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
+
+            // if the query failed, then create a new empty pane and close it
+            self.eventEmitter.emit('start');
+            self.eventEmitter.emit('complete');
             self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }
@@ -162,6 +173,7 @@ export default class QueryRunner {
                 executionStart: undefined
             }];
             this.dataResolveReject.resolve(this.batchSets);
+            this.eventEmitter.emit('complete');
             return;
         }
         this.batchSets = result.batchSummaries;
@@ -174,6 +186,41 @@ export default class QueryRunner {
         });
         this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
+        this.eventEmitter.emit('complete');
+    }
+
+    public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
+        let batch = result.batchSummary;
+
+        // Recalculate the start and end lines, relative to the result line offset
+        if (batch.selection) {
+            batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
+            batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+        }
+
+        // Set the result sets as an empty array so that as result sets complete we can add to the list
+        batch.resultSetSummaries = [];
+
+        // Store the batch
+        this._batchSets[batch.id] = batch;
+        this.eventEmitter.emit('batchStart', batch);
+    }
+
+    public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
+        let batch = result.batchSummary;
+
+        // Store the batch again to get the rest of the data
+        this._batchSets[batch.id] = batch;
+        this.eventEmitter.emit('batchComplete', batch);
+    }
+
+    public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
+        let resultSet = result.resultSetSummary;
+        let batchSet = this._batchSets[resultSet.batchId];
+
+        // Store the result set in the batch and emit that a result set has completed
+        batchSet.resultSetSummaries[resultSet.id] = resultSet;
+        this.eventEmitter.emit('resultSet', resultSet);
     }
 
     // get more data rows from the current resultSets from the service layer
@@ -219,20 +266,44 @@ export default class QueryRunner {
         });
     }
 
+    private getColumnHeaders(batchId: number, resultId: number, range: ISlickRange): string[] {
+        let headers: string[] = undefined;
+        let batchSummary: BatchSummary = this.batchSets[batchId];
+        if (batchSummary !== undefined) {
+            let resultSetSummary = batchSummary.resultSetSummaries[resultId];
+            headers = resultSetSummary.columnInfo.slice(range.fromCell, range.toCell + 1).map((info, i) => {
+                return info.columnName;
+            });
+        }
+        return headers;
+    }
+
     /**
      * Copy the result range to the system clip-board
      * @param selection The selection range array to copy
      * @param batchId The id of the batch to copy from
      * @param resultId The id of the result to copy from
+     * @param includeHeaders [Optional]: Should column headers be included in the copy selection
      */
-    public copyResults(selection: ISlickRange[], batchId: number, resultId: number): Promise<void> {
+    public copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): Promise<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             let copyString = '';
+
             // create a mapping of the ranges to get promises
             let tasks = selection.map((range, i) => {
                 return () => {
                     return self.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId).then((result) => {
+                        if (self.shouldIncludeHeaders(includeHeaders)) {
+                            let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
+                            if (columnHeaders !== undefined) {
+                                for (let header of columnHeaders) {
+                                    copyString += header + '\t';
+                                }
+                                copyString += '\r\n';
+                            }
+                        }
+
                         // iterate over the rows to paste into the copy string
                         for (let row of result.resultSubset.rows) {
                             // iterate over the cells we want from that row
@@ -255,6 +326,17 @@ export default class QueryRunner {
                 });
             });
         });
+    }
+
+    private shouldIncludeHeaders(includeHeaders: boolean): boolean {
+        if (includeHeaders !== undefined) {
+            // Respect the value explicity passed into the method
+            return includeHeaders;
+        }
+        // else get config option from vscode config
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        includeHeaders = config[Constants.copyIncludeHeaders];
+        return !!includeHeaders;
     }
 
     /**

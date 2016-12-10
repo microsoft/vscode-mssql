@@ -6,9 +6,9 @@
 'use strict';
 
 import * as path from 'path';
-import {Platform, getCurrentPlatform} from '../models/platform';
+import {Runtime} from '../models/platform';
 import ServiceDownloadProvider from './download';
-import {IConfig, IStatusView, IExtensionWrapper} from './interfaces';
+import {IConfig, IStatusView} from './interfaces';
 let fs = require('fs-extra-promise');
 
 
@@ -19,8 +19,7 @@ export default class ServerProvider {
 
     constructor(private _downloadProvider: ServiceDownloadProvider,
                 private _config: IConfig,
-                private _statusView: IStatusView,
-                private _vsCodeExtention: IExtensionWrapper) {
+                private _statusView: IStatusView) {
     }
 
     /**
@@ -51,23 +50,17 @@ export default class ServerProvider {
         });
     }
 
-    /**
-     * Download the SQL tools service if doesn't exist and returns the file path.
-     */
-    public getServerPath(platform: Platform): Promise<string> {
-
-        if (platform === undefined) {
-            platform = getCurrentPlatform();
-        }
+   /**
+    * Download the SQL tools service if doesn't exist and returns the file path.
+    */
+    public getOrDownloadServer(runtime: Runtime): Promise<string> {
         // Attempt to find launch file path first from options, and then from the default install location.
         // If SQL tools service can't be found, download it.
 
-        const installDirectory = this._downloadProvider.getInstallDirectory(platform);
-
         return new Promise<string>((resolve, reject) => {
-            return this.findServerPath(installDirectory).then(result => {
+            return this.getServerPath(runtime).then(result => {
                 if (result === undefined) {
-                    return this.downloadServerFiles(platform).then ( downloadResult => {
+                    return this.downloadServerFiles(runtime).then ( downloadResult => {
                         resolve(downloadResult);
                     });
                 } else {
@@ -81,19 +74,28 @@ export default class ServerProvider {
         });
     }
 
-    private downloadServerFiles(platform: Platform): Promise<string> {
-        const installDirectory = this._downloadProvider.getInstallDirectory(platform);
-        let currentFileUrl = this._vsCodeExtention.getActiveTextEditorUri();
-        this._statusView.installingService(currentFileUrl);
-        return this._downloadProvider.go(platform).then( _ => {
-            return this.findServerPath(installDirectory).then ( result => {
-                 this._statusView.serviceInstalled(currentFileUrl);
-                 return result;
-            });
+   /**
+    * Returns the path of the insalled service
+    */
+    public getServerPath(runtime: Runtime): Promise<string> {
+        const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
+        return this.findServerPath(installDirectory);
+    }
 
-        }).catch(err => {
-            this._statusView.serviceInstallationFailed(currentFileUrl);
-            throw err;
+   /**
+    * Downloads the service and returns the path of the insalled service
+    */
+    public downloadServerFiles(runtime: Runtime): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
+            return this._downloadProvider.InstallSQLToolsService(runtime).then( _ => {
+                return this.findServerPath(installDirectory).then ( result => {
+                    return resolve(result);
+                });
+            }).catch(err => {
+                this._statusView.serviceInstallationFailed();
+                reject(err);
+            });
         });
     }
 }

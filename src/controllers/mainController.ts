@@ -128,7 +128,7 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-                SqlToolsServerClient.instance.initialize(self._context).then(() => {
+                SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
 
                 // Init status bar
                 self._statusview = new StatusView();
@@ -151,7 +151,7 @@ export default class MainController implements vscode.Disposable {
 
                 // telemetry for activation
                 Telemetry.sendTelemetryEvent('ExtensionActivated', {},
-                    { activationTime: activationTimer.getDuration() }
+                    { activationTime: activationTimer.getDuration(), serviceInstalled: serverResult.installedBeforeInitializing ? 1 : 0 }
                 );
 
                 self.showReleaseNotesPrompt();
@@ -159,6 +159,9 @@ export default class MainController implements vscode.Disposable {
                 Utils.logDebug(Constants.extensionActivated);
                 self._initialized = true;
                 resolve(true);
+            }).catch(err => {
+                Telemetry.sendTelemetryEventForException(err, 'initialize');
+                reject(err);
             });
         });
     }

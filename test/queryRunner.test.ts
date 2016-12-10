@@ -1,13 +1,22 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
+import { EventEmitter } from 'events';
 import QueryRunner from './../src/controllers/QueryRunner';
 import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
 import { SqlOutputContentProvider } from './../src/models/SqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
-import { QueryExecuteParams, QueryExecuteCompleteNotificationResult } from './../src/models/contracts/queryExecute';
+import {
+    QueryExecuteParams,
+    QueryExecuteCompleteNotificationResult,
+    QueryExecuteBatchNotificationParams,
+    QueryExecuteResultSetCompleteNotificationParams,
+    ResultSetSummary
+} from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
+import * as Constants from '../src/models/constants';
 import { ISlickRange } from './../src/models/interfaces';
+import * as stubs from './stubs';
 
 const ncp = require('copy-paste');
 
@@ -73,7 +82,7 @@ suite('Query Runner tests', () => {
 
     });
 
-    test('Handles Query Error Correctly', () => {
+    test('Handles Info Message Correctly', () => {
         let testuri = 'uri';
         let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
         let testtitle = 'title';
@@ -82,7 +91,7 @@ suite('Query Runner tests', () => {
                                                               assert.equal(details.ownerUri, testuri);
                                                               assert.equal(details.querySelection, testSelection);
                                                           })
-                                .returns(() => { return Promise.resolve({messages: 'failed'}); });
+                                .returns(() => { return Promise.resolve({messages: 'Commands completed successfully.', hasInfoMessages: true}); });
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
         testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
@@ -96,8 +105,195 @@ suite('Query Runner tests', () => {
                     testVscodeWrapper.object
                 );
         return queryRunner.runQuery(testSelection).then(() => {
-            testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            // I expect no error message to be displayed
+            testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.never());
+            assert.strictEqual(queryRunner.batchSets[0].hasError, false);
+
+            // I expect query execution to be done
+            assert.strictEqual(queryRunner.isExecutingQuery, false);
         });
+    });
+
+    test('Notification - Batch Start', () => {
+        // Setup: Create a batch start notification with appropriate values
+        // NOTE: nulls are used because that's what comes back from the service.
+        let batchStart: QueryExecuteBatchNotificationParams = {
+            ownerUri: 'uri',
+            batchSummary: {
+                executionElapsed: null,     // tslint:disable-line:no-null-keyword
+                executionEnd: null,         // tslint:disable-line:no-null-keyword
+                executionStart: new Date().toISOString(),
+                hasError: false,
+                id: 0,
+                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+                messages: null,             // tslint:disable-line:no-null-keyword
+                resultSetSummaries: null    // tslint:disable-line:no-null-keyword
+            }
+        };
+
+        // If: I submit a batch start notification to the query runner
+        let queryRunner = new QueryRunner(
+            '', '',
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
+        );
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('batchStart', TypeMoq.It.isAny()));
+        queryRunner.eventEmitter = mockEventEmitter.object;
+        queryRunner.handleBatchStart(batchStart);
+
+        // Then: It should store the batch and emit a batch start
+        assert.equal(queryRunner.batchSets.indexOf(batchStart.batchSummary), 0);
+        mockEventEmitter.verify(x => x.emit('batchStart', TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Notification - Batch Complete', () => {
+        // Setup: Create a batch completion result
+        let batchComplete: QueryExecuteBatchNotificationParams = {
+            ownerUri: 'uri',
+            batchSummary: {
+                executionElapsed: undefined,
+                executionEnd: new Date().toISOString(),
+                executionStart: new Date().toISOString(),
+                hasError: false,
+                id: 0,
+                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+                messages: [{time: '', message: '6 affected rows'}],
+                resultSetSummaries: []
+            }
+        };
+
+        // If: I submit a batch completion notification to the query runner that has a batch already started
+        let queryRunner = new QueryRunner(
+            '',
+            '',
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
+        );
+        queryRunner.batchSets[0] = {
+            executionElapsed: null,         // tslint:disable-line:no-null-keyword
+            executionEnd: null,             // tslint:disable-line:no-null-keyword
+            executionStart: new Date().toISOString(),
+            hasError: false,
+            id: 0,
+            selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+            messages: null,                 // tslint:disable-line:no-null-keyword
+            resultSetSummaries: []
+        };
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
+        queryRunner.eventEmitter = mockEventEmitter.object;
+        queryRunner.handleBatchComplete(batchComplete);
+
+        // Then: It should the remainder of the information and emit a batch complete notification
+        assert.equal(queryRunner.batchSets.length, 1);
+        let storedBatch = queryRunner.batchSets[0];
+        assert.equal(storedBatch.executionElapsed, undefined);
+        assert.equal(typeof(storedBatch.executionEnd), typeof(batchComplete.batchSummary.executionEnd));
+        assert.equal(typeof(storedBatch.executionStart), typeof(batchComplete.batchSummary.executionStart));
+        assert.equal(storedBatch.hasError, batchComplete.batchSummary.hasError);
+        assert.equal(storedBatch.messages, batchComplete.batchSummary.messages);
+
+        // ... Result sets should not be set by the batch complete notification
+        assert.equal(typeof(storedBatch.resultSetSummaries), typeof([]));
+        assert.equal(storedBatch.resultSetSummaries.length, 0);
+
+        mockEventEmitter.verify(x => x.emit('batchComplete', TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Notification - ResultSet Complete w/no previous results', () => {
+        // Setup: Create a resultset completion result
+        let resultSetComplete: QueryExecuteResultSetCompleteNotificationParams = {
+            ownerUri: 'uri',
+            resultSetSummary: {
+                batchId: 0,
+                columnInfo: [],
+                id: 0,
+                rowCount: 10
+            }
+        };
+
+        // If: I submit a resultSet completion notification to the query runner...
+        let queryRunner = new QueryRunner('', '',
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object);
+        queryRunner.batchSets[0] = {
+            executionElapsed: null,         // tslint:disable-line:no-null-keyword
+            executionEnd: null,             // tslint:disable-line:no-null-keyword
+            executionStart: new Date().toISOString(),
+            hasError: false,
+            id: 0,
+            selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+            messages: null,                 // tslint:disable-line:no-null-keyword
+            resultSetSummaries: []
+        };
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('resultSet', TypeMoq.It.isAny()));
+        queryRunner.eventEmitter = mockEventEmitter.object;
+        queryRunner.handleResultSetComplete(resultSetComplete);
+
+        // Then:
+        // ... The pre-existing batch should contain the result set we got back
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 1);
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries[0], resultSetComplete.resultSetSummary);
+
+        // ... The resultset complete event should have been emitted
+        mockEventEmitter.verify(x => x.emit('resultSet', TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Notification - ResultSet complete w/previous results', () => {
+        // Setup:
+        // ... Create resultset completion results
+        let resultSetComplete1: QueryExecuteResultSetCompleteNotificationParams = {
+            ownerUri: 'uri',
+            resultSetSummary: {batchId: 0, columnInfo: [], id: 0, rowCount: 10 }
+        };
+        let resultSetComplete2: QueryExecuteResultSetCompleteNotificationParams = {
+            ownerUri: 'uri',
+            resultSetSummary: {batchId: 0, columnInfo: [], id: 1, rowCount: 10 }
+        };
+
+        // ... Create a mock event emitter to receive the events
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('resultSet', TypeMoq.It.isAny()));
+
+        // If:
+        // ... I submit a resultSet completion notification to the query runner
+        let queryRunner = new QueryRunner('', '',
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object);
+        queryRunner.batchSets[0] = {
+            executionElapsed: null,         // tslint:disable-line:no-null-keyword
+            executionEnd: null,             // tslint:disable-line:no-null-keyword
+            executionStart: new Date().toISOString(),
+            hasError: false,
+            id: 0,
+            selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+            messages: null,                 // tslint:disable-line:no-null-keyword
+            resultSetSummaries: []
+        };
+        queryRunner.eventEmitter = mockEventEmitter.object;
+        queryRunner.handleResultSetComplete(resultSetComplete1);
+
+        // ... And submit a second result set completion notification
+        queryRunner.handleResultSetComplete(resultSetComplete2);
+
+        // Then:
+        // ... There should be two results in the batch summary
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 2);
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries[0], resultSetComplete1.resultSetSummary);
+        assert.equal(queryRunner.batchSets[0].resultSetSummaries[1], resultSetComplete2.resultSetSummary);
+
+        // ... The resultset complete event should have been emitted twice
+        mockEventEmitter.verify(x => x.emit('resultSet', TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
     });
 
     test('Handles result correctly', () => {
@@ -195,16 +391,28 @@ suite('Query Runner tests', () => {
         });
     });
 
-    test('Correctly copy pastes a selection', () => {
+    function setupWorkspaceConfig(configResult: {[key: string]: any}): void {
+        let config = stubs.createWorkspaceConfiguration(configResult);
+        testVscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+        .returns(x => {
+            return config;
+        });
+    }
+
+    suite('Copy Tests', () => {
+        // ------ Common inputs and setup for copy tests  -------
         const TAB = '\t';
         const CLRF = '\r\n';
-        const finalString = '1' + TAB + '2' + TAB + CLRF +
+        const finalStringNoHeader = '1' + TAB + '2' + TAB + CLRF +
                             '3' + TAB + '4' + TAB + CLRF +
                             '5' + TAB + '6' + TAB + CLRF +
                             '7' + TAB + '8' + TAB + CLRF +
                             '9' + TAB + '10' + TAB + CLRF;
-        let testuri = 'test';
-        let testresult = {
+
+        const finalStringWithHeader = 'Col1' + TAB + 'Col2' + TAB + CLRF + finalStringNoHeader;
+
+        const testuri = 'test';
+        const testresult = {
             message: '',
             resultSubset: {
                 rowCount: 5,
@@ -217,24 +425,142 @@ suite('Query Runner tests', () => {
                 ]
             }
         };
+
         let testRange: ISlickRange[] = [{fromCell: 0, fromRow: 0, toCell: 1, toRow: 4}];
-        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
-                                                          TypeMoq.It.isAny())).callback(() => {
-                                                              // testing
-                                                          }).returns(() => { return Promise.resolve(testresult); });
-        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
-        let queryRunner = new QueryRunner(
-            testuri,
-            testuri,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object
-        );
-        queryRunner.uri = testuri;
-        return queryRunner.copyResults(testRange, 0, 0).then(() => {
-            let pasteContents = ncp.paste();
-            assert.equal(pasteContents, finalString);
+
+        let result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: testuri,
+            message: undefined,
+            batchSummaries: [{
+                hasError: false,
+                id: 0,
+                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+                messages: [{time: '', message: '6 affects rows'}],
+                resultSetSummaries: <ResultSetSummary[]> [{
+                    id: 0,
+                    rowCount: 5,
+                    columnInfo: [
+                        { columnName: 'Col1' },
+                        { columnName: 'Col2' }
+                    ]
+                }],
+                executionElapsed: undefined,
+                executionStart: new Date().toISOString(),
+                executionEnd: new Date().toISOString()
+            }]
+        };
+
+        setup(() => {
+            testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
+                                                            TypeMoq.It.isAny())).callback(() => {
+                                                                // testing
+                                                            }).returns(() => { return Promise.resolve(testresult); });
+            testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+            testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
+            testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+        });
+
+        // ------ Copy tests  -------
+        test('Correctly copy pastes a selection', () => {
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = false;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            return queryRunner.copyResults(testRange, 0, 0).then(() => {
+                let pasteContents = ncp.paste();
+                assert.equal(pasteContents, finalStringNoHeader);
+            });
+        });
+
+        test('Copies selection with column headers set in user config', () => {
+            // Set column headers in the user config settings
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = true;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            queryRunner.dataResolveReject = {resolve: () => {
+                // Needed to handle the result callback
+            }};
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleResult(result);
+            return queryRunner.copyResults(testRange, 0, 0).then(() => {
+                let pasteContents = ncp.paste();
+                assert.equal(pasteContents, finalStringWithHeader);
+            });
+        });
+
+        test('Copies selection with headers when true passed as parameter', () => {
+            // Do not set column config in user settings
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = false;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            queryRunner.dataResolveReject = {resolve: () => {
+                // Needed to handle the result callback
+            }};
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleResult(result);
+
+            // call copyResults with additional parameter indicating to include headers
+            return queryRunner.copyResults(testRange, 0, 0, true).then(() => {
+                let pasteContents = ncp.paste();
+                assert.equal(pasteContents, finalStringWithHeader);
+            });
+        });
+
+        test('Copies selection without headers when false passed as parameter', () => {
+            // Set column config in user settings
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = true;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            queryRunner.dataResolveReject = {resolve: () => {
+                // Needed to handle the result callback
+            }};
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleResult(result);
+
+            // call copyResults with additional parameter indicating to not include headers
+            return queryRunner.copyResults(testRange, 0, 0, false).then(() => {
+                let pasteContents = ncp.paste();
+                assert.equal(pasteContents, finalStringNoHeader);
+            });
         });
     });
 });

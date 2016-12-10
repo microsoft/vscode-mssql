@@ -1,4 +1,8 @@
+[![Travis CI](https://travis-ci.org/Microsoft/vscode-mssql.svg?branch=dev)](https://travis-ci.org/Microsoft/vscode-mssql)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/Microsoft/vscode-mssql?svg=true&retina=true&branch=dev)](https://ci.appveyor.com/project/kburtram/vscode-mssql)
+[![Coverage Status](https://coveralls.io/repos/github/Microsoft/vscode-mssql/badge.svg?branch=dev)](https://coveralls.io/github/Microsoft/vscode-mssql?branch=dev)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
+
 
 # mssql for Visual Studio Code
 
@@ -12,8 +16,15 @@ Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for
 * Save the result to json or csv file format and view in the editor.
 * Customizable extension options including command shortcuts and more.
 
-## Using
 See [the mssql extension tutorial] for the step by step guide.
+
+See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
+
+<img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+
+
+## Using
+
 * First, install [Visual Studio Code] then install **mssql** extension by pressing **F1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
     * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instructions].
 * Open an existing file with a .sql file extenion or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**. **mssql** commands and funtionalities are enabled in the SQL language mode in Visual Studioc Code editor.
@@ -70,7 +81,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```0.1.5```. See the [change log] for more detail.
+The current version is ```0.2.0```. See the [change log] for more detail.
 
 ## Support
 Support for this extension is provided on our [GitHub Issue Tracker]. You can submit a [bug report], a [feature suggestion] or participate in [discussions].
@@ -87,7 +98,8 @@ The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy
 ## License
 This extension is [licensed under the MIT License]. Please see the [third-party notices] file for additional copyright notices and license terms applicable to portions of the software.
 
-[the mssql extension tutorial]:https://github.com/Microsoft/vscode-mssql/wiki/getting-started
+[the mssql extension tutorial]:https://aka.ms/mssql-getting-started
+[the SQL Developer tutorial]: http://aka.ms/sqldev
 [Visual Studio Code]: https://code.visualstudio.com/#alt-downloads
 [DotNet Core instructions]:https://www.microsoft.com/net/core
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
@@ -96,7 +108,6 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [change log]: https://github.com/Microsoft/vscode-mssql/blob/master/CHANGELOG.md
 [GitHub Issue Tracker]:https://github.com/Microsoft/vscode-mssql/issues
 [bug report]:https://github.com/Microsoft/vscode-mssql/issues/new
-[discussions]:https://gitter.im/Microsoft/mssql
 [feature suggestion]:https://github.com/Microsoft/vscode-mssql/issues/new
 [developer documentation]:https://github.com/Microsoft/vscode-mssql/wiki/contributing
 [Microsoft Enterprise and Developer Privacy Statement]:https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7
@@ -105,3 +116,4 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
 [Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
 [opencode@microsoft.com]:mailto:opencode@microsoft.com
+

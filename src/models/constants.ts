@@ -44,7 +44,9 @@ export const outputContentTypeShowError = 'showError';
 export const outputContentTypeShowWarning = 'showWarning';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'dist/html/sqlOutput.ejs';
+export const contentProviderMinFile = 'dist/js/app.min.js';
 
+export const copyIncludeHeaders = 'copyIncludeHeaders';
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
 export const configSaveAsCsv = 'saveAsCsv';
@@ -173,14 +175,20 @@ export const connectErrorCode = 'Errorcode: ';
 export const connectErrorMessage = 'ErrorMessage: ';
 export const executeQueryLabel = 'Executing query ';
 export const cancelingQueryLabel = 'Canceling query ';
+export const updatingIntelliSenseLabel = 'Updating IntelliSense...';
 export const unfoundResult = 'Data was disposed when text editor was closed; to view data please reexecute query.';
 
 export const serviceCompatibleVersion = '1.0.0';
 export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
-export const serviceInstalling = 'Installing Sql Tools Service';
+export const serviceInstalling = 'Installing';
+export const serviceInstallingTo = 'Installing SQL tools service to';
+export const serviceInitializing = 'Initializing SQL tools service for the mssql extension.';
+export const commandsNotAvailableWhileInstallingTheService = 'Note: mssql commands will be available after installing the service.';
+export const serviceDownloading = 'Downloading';
 export const serviceInstalled = 'Sql Tools Service installed';
 export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
 export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
+export const unsupportedPlatformErrorMessage = 'The platform is not supported';
 export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
 export const extensionNotInitializedError = 'Unable to execute the command while the extension is initializing. Please try again later.';
 
@@ -193,6 +201,7 @@ export const timeToWaitForLanguageModeChange = 10000.0;
 export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
 
 export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the connection information provided. Retry profile creation?';
+export const retryLabel = 'Retry';
 
 export const msgConnecting = 'Connecting to server \"{0}\" on document \"{1}\".';
 export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';
@@ -212,12 +221,18 @@ export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 
 export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
+export const extConfigResultFontFamily = 'resultsFontFamily';
+export const extConfigResultFontSize = 'resultsFontSize';
 
 export const titleResultsPane = 'Results: {0}';
 
 export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to connect.`;
 export const macOpenSslHelpButton = 'Help';
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
+
+export const sqlToolsServiceName = 'SQLToolsService';
+
+
 
 export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 

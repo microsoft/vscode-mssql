@@ -4,12 +4,16 @@
  * ------------------------------------------------------------------------------------------ */
 import {Injectable, Inject, forwardRef} from '@angular/core';
 import {Http, Headers} from '@angular/http';
-import {Observable} from 'rxjs/Rx';
+import { Observable, Subject, Observer } from 'rxjs/Rx';
 
-import { ISlickRange } from './../slickGrid/SelectionModel';
+import { ISlickRange } from 'angular2-slickgrid';
 
-import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData,
-    IResultMessage, IResultsConfig } from './../interfaces';
+import * as Utils from './../utils';
+
+import { ResultSetSubset, ISelectionData,
+    IResultsConfig, WebSocketEvent } from './../interfaces';
+
+const WS_URL = 'ws://localhost:' + window.location.port + '/';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.
@@ -17,186 +21,44 @@ import { IDbColumn, ResultSetSubset, IGridBatchMetaData, ISelectionData,
 
 @Injectable()
 export class DataService {
-    uri: string;
-    private batchSets: IGridBatchMetaData[];
+    private uri: string;
+    public ws: WebSocket;
+    public dataEventObs: Subject<WebSocketEvent>;
     private _shortcuts;
     private _config;
 
+    /* for testing purposes only */
+    public get webSocket(): WebSocket {
+        return this.ws;
+    }
+
     constructor(@Inject(forwardRef(() => Http)) private http) {
+        const self = this;
         // grab the uri from the document for requests
-        this.uri = encodeURI(document.getElementById('uri').innerText.trim());
-    }
+        this.uri = encodeURI(document.getElementById('uri') ? document.getElementById('uri').innerText.trim() : '');
+        this.ws = new WebSocket(WS_URL + '?uri=' + this.uri);
+        let observable = Observable.create(
+            (obs: Observer<MessageEvent>) => {
+                self.ws.onmessage = obs.next.bind(obs);
+                self.ws.onerror = obs.error.bind(obs);
+                self.ws.onclose = obs.complete.bind(obs);
 
-    /**
-     * Gets the meta data for the current results set view
-     */
-    private getMetaData(): Promise<void> {
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            self.http.get('/resultsetsMeta?uri=' + self.uri)
-                            .map(res => res.json())
-                            .subscribe((data: IGridBatchMetaData[]) => {
-                                self.batchSets = data;
-                                resolve();
-                            });
-        });
-    }
-
-    /**
-     * Get the number of batches in the query
-     */
-    numberOfBatchSets(): Promise<number> {
-        const self = this;
-        return new Promise<number>((resolve, reject) => {
-            if (!self.batchSets) {
-                self.getMetaData().then(() => {
-                    resolve(self.batchSets.length);
-                });
-            } else {
-                resolve(self.batchSets.length);
+                return self.ws.close.bind(self.ws);
             }
-        });
-    }
+        );
 
-    /**
-     * Get the number of results in the query
-     * @param batchId The batchid of which batch you want to return the numberOfResults Sets
-     * for
-     */
-    numberOfResultSets(batchId: number): Promise<number> {
-        const self = this;
-        if (!this.batchSets) {
-            return new Promise<number>((resolve, reject) => {
-                self.getMetaData().then(() => {
-                    if (self.batchSets[batchId].resultSets.length > 0) {
-                        resolve(self.batchSets[batchId].resultSets.length);
-                    }
-                });
-            });
-        } else {
-            return new Promise<number>((resolve, reject) => {
-                if (self.batchSets[batchId].resultSets.length > 0) {
-                    resolve(self.batchSets[batchId].resultSets.length);
+        let observer = {
+            next: (data: Object) => {
+                if (self.ws.readyState === WebSocket.OPEN) {
+                    self.ws.send(JSON.stringify(data));
                 }
-            });
-        }
-    }
-
-    /**
-     * Get the messages for a batch
-     * @param batchId The batchId for which batch to return messages for
-     */
-    getMessages(batchId: number): Promise<IResultMessage[]> {
-        const self = this;
-        return new Promise<IResultMessage[]>((resolve, reject) => {
-            if (!self.batchSets) {
-                self.getMetaData().then(() => {
-                    resolve(self.batchSets[batchId].messages);
-                });
-            } else {
-                resolve(self.batchSets[batchId].messages);
             }
+        };
+
+        this.dataEventObs = Subject.create(observer, observable).map((response: MessageEvent): WebSocketEvent => {
+            let data = JSON.parse(response.data);
+            return data;
         });
-    }
-
-    /**
-     * Get a batch
-     * @param batchId The batchId of the batch to return
-     * @return The batch
-     */
-    getBatch(batchId: number): Promise<IGridBatchMetaData> {
-        const self = this;
-        return new Promise<IGridBatchMetaData>((resolve, reject) => {
-            if (!self.batchSets) {
-                self.getMetaData().then(() => {
-                    resolve(self.batchSets[batchId]);
-                });
-            } else {
-                resolve(self.batchSets[batchId]);
-            }
-        });
-    }
-
-    /**
-     * Get all the batches
-     * @return The batches
-     */
-    getBatches(): Promise<IGridBatchMetaData[]> {
-        const self = this;
-        return new Promise<IGridBatchMetaData[]>((resolve, reject) => {
-            if (!self.batchSets) {
-                self.getMetaData().then(() => {
-                    resolve(self.batchSets);
-                });
-            } else {
-                resolve(self.batchSets);
-            }
-        });
-    }
-
-    /**
-     * Gets the total number of rows in the results set
-     * @param batchId The id of the batch you want to access result for
-     * @param resultId The id of the result you want to get the number of rows
-     * for
-     */
-    getNumberOfRows(batchId: number, resultId: number): Observable<number> {
-        const self = this;
-        if (!this.batchSets) {
-            return Observable.create(observer => {
-                self.getMetaData().then(() => {
-                    if (self.batchSets[batchId].resultSets.length > 0) {
-                        observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
-                        observer.complete();
-                    } else {
-                        observer.next(undefined);
-                        observer.complete();
-                    }
-                });
-            });
-        } else {
-            return Observable.create(observer => {
-                if (self.batchSets[batchId].resultSets.length > 0) {
-                    observer.next(self.batchSets[batchId].resultSets[resultId].numberOfRows);
-                    observer.complete();
-                } else {
-                    observer.next(undefined);
-                    observer.complete();
-                }
-            });
-        }
-    }
-
-    /**
-     * Gets the column data for the current results set
-     * @param batchId The id of the batch for which you are querying
-     * @param resultId The id of the result you want to get the columns for
-     */
-    getColumns(batchId: number, resultId: number): Observable<IDbColumn[]> {
-        const self = this;
-        if (!this.batchSets) {
-            return Observable.create(observer => {
-                self.getMetaData().then(() => {
-                    if (self.batchSets[batchId].resultSets.length > 0) {
-                        observer.next(self.batchSets[batchId].resultSets[resultId].columns);
-                        observer.complete();
-                    } else {
-                        observer.next(undefined);
-                        observer.complete();
-                    }
-                });
-            });
-        } else {
-            return Observable.create(observer => {
-                if (self.batchSets[batchId].resultSets.length > 0) {
-                    observer.next(self.batchSets[batchId].resultSets[resultId].columns);
-                    observer.complete();
-                } else {
-                    observer.next(undefined);
-                    observer.complete();
-                }
-            });
-        }
     }
 
     /**
@@ -208,30 +70,13 @@ export class DataService {
      * @param resultId The id of the result you want to get the rows for
      */
     getRows(start: number, numberOfRows: number, batchId: number, resultId: number): Observable<ResultSetSubset> {
-        const self = this;
-        if (!this.batchSets) {
-            return Observable.create(observer => {
-                self.getMetaData().then(success => {
-                    self.http.get(self.batchSets[batchId].resultSets[resultId].rowsUri
-                                  + '&rowStart=' + start
-                                  + '&numberOfRows=' + numberOfRows)
-                            .map(res => {
-                                return res.json();
-                            })
-                            .subscribe((data: ResultSetSubset) => {
-                                observer.next(data);
-                                observer.complete();
-                            });
-                });
-            });
-        } else {
-            return this.http.get(this.batchSets[batchId].resultSets[resultId].rowsUri
-                                  + '&rowStart=' + start
-                                  + '&numberOfRows=' + numberOfRows)
+        let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
+        let uri = Utils.formatString(uriFormat, 'rows', batchId, resultId, this.uri);
+        return this.http.get(uri + '&rowStart=' + start
+                                 + '&numberOfRows=' + numberOfRows)
                             .map(res => {
                                 return res.json();
                             });
-        }
     }
 
     /**
@@ -274,11 +119,15 @@ export class DataService {
      * @param selection The selection range to copy
      * @param batchId The batch id of the result to copy from
      * @param resultId The result id of the result to copy from
+     * @param includeHeaders [Optional]: Should column headers be included in the copy selection
      */
-    copyResults(selection: ISlickRange[], batchId: number, resultId: number): void {
+    copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): void {
         const self = this;
         let headers = new Headers();
         let url = '/copyResults?' + '&uri=' + self.uri + '&batchId=' + batchId + '&resultId=' + resultId;
+        if (includeHeaders !== undefined) {
+            url += '&includeHeaders=' + includeHeaders;
+        }
         self.http.post(url, selection, { headers: headers }).subscribe();
     }
 
@@ -286,7 +135,7 @@ export class DataService {
      * Sends a request to set the selection in the VScode window
      * @param selection The selection range in the VSCode window
      */
-    setEditorSelection(selection: ISelectionData): void {
+    set editorSelection(selection: ISelectionData) {
         const self = this;
         let headers = new Headers();
         let url = '/setEditorSelection?' + '&uri=' + self.uri;
@@ -309,7 +158,7 @@ export class DataService {
         self.http.post(url, JSON.stringify({ 'message': message }), { headers: headers }).subscribe();
     }
 
-    get config(): Promise<{[key: string]: string}> {
+    get config(): Promise<{[key: string]: any}> {
         const self = this;
         if (this._config) {
             return Promise.resolve(this._config);
@@ -317,9 +166,9 @@ export class DataService {
             return new Promise<{[key: string]: string}>((resolve, reject) => {
                 self.http.get('/config').map((res): IResultsConfig => {
                     return res.json();
-                }).subscribe((result) => {
-                    self._shortcuts = result.resultShortcuts;
-                    delete result.resultShortcuts;
+                }).subscribe((result: IResultsConfig) => {
+                    self._shortcuts = result.shortcuts;
+                    delete result.shortcuts;
                     self._config = result;
                     resolve(self._config);
                 });
