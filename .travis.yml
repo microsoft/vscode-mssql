@@ -1,6 +1,12 @@
 sudo: required
 dist: trusty
 
+# safelist
+branches:
+  only:
+  - master
+  - dev
+
 language: node_js
 node_js:
   - "6.9.1"
