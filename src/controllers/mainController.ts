@@ -159,6 +159,9 @@ export default class MainController implements vscode.Disposable {
                 Utils.logDebug(Constants.extensionActivated);
                 self._initialized = true;
                 resolve(true);
+            }).catch(err => {
+                Telemetry.sendTelemetryEventForException(err, 'initialize');
+                reject(err);
             });
         });
     }

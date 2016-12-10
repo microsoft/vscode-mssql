@@ -215,6 +215,43 @@ suite('ConnectionStore tests', () => {
             }).catch(err => done(new Error(err)));
     });
 
+    test('RemoveProfile should not remove password from CredentialStore if keepCredentialStore is enabled', (done) => {
+        testRemoveProfileWithKeepCredential(true, done);
+    });
+
+    test('RemoveProfile should remove password from CredentialStore if keepCredentialStore is disabled', (done) => {
+        testRemoveProfileWithKeepCredential(false, done);
+    });
+
+    function testRemoveProfileWithKeepCredential(keepCredentialStore: boolean,  done: Function): void {
+        // Given have 2 profiles
+        let profile = Object.assign(new ConnectionProfile(), defaultNamedProfile, {
+            profileName: 'otherServer-bcd-cde',
+            server: 'otherServer',
+            savePassword: true
+        });
+        connectionConfig.setup(x => x.removeConnection(TypeMoq.It.isAny())).returns(p => Promise.resolve(p));
+        credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
+
+        globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
+
+        // deleteCredential should never be called when keepCredentialStore is set to true
+        connectionStore.removeProfile(profile, keepCredentialStore)
+            .then(success => {
+                // Then expect that profile's password to be removed from connectionConfig but kept in the credential store
+                assert.ok(success);
+                connectionConfig.verify(x => x.removeConnection(TypeMoq.It.isAny()), TypeMoq.Times.once());
+                if (keepCredentialStore) {
+                    credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.never());
+                } else {
+                    credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
+                }
+                done();
+            }).catch(err => done(new Error(err)));
+    }
+
+
     test('RemoveProfile finds and removes profile with no profile name', (done) => {
         // Given have 2 profiles
         let unnamedProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, {

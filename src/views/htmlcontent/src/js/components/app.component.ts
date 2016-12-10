@@ -102,7 +102,7 @@ const template = `
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
                 </template>
-                <tr *ngIf="!complete">
+                <tr id='executionSpinner' *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
                     <td>
                         <img src="dist/images/progress_36x_animation.gif" height="18px" />
@@ -316,32 +316,43 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.complete = true;
                     self.messagesAdded = true;
                 break;
-                case 'batch':
-                    let batch = event.data;
+                case 'batchStart':
+                    let startedBatch = event.data;
+
+                    // Create the messages holder for the batch
+                    let messages: IMessages = {
+                        messages: [],
+                        hasError: false,
+                        selection: startedBatch.selection,
+                        startTime: new Date(startedBatch.executionStart).toLocaleTimeString(),
+                        endTime: undefined
+                    };
+                    self.messages[startedBatch.id] = messages;
+                break;
+                case 'batchComplete':
+                    let completedBatch = event.data;
 
                     // Store the elapsed time of the batch
-                    let exeTime = Utils.parseTimeString(batch.executionElapsed);
+                    let exeTime = Utils.parseTimeString(completedBatch.executionElapsed);
                     if (exeTime) {
                         this.totalElapsedExecution += <number>exeTime;
                     }
 
-                    // Store the messages for the batch
-                    let messages: IMessages = {
-                        messages: batch.messages.map(m => {
-                            return {
-                                time: new Date(m.time).toLocaleTimeString(),
-                                message: m.message
-                            };
-                        }),
-                        hasError: batch.hasError,
-                        selection: batch.selection,
-                        startTime: new Date(batch.executionStart).toLocaleTimeString(),
-                        endTime: new Date(batch.executionEnd).toLocaleTimeString()
-                    };
-                    if (batch.hasError) {
+                    // Set the values we didn't have before
+                    let batchMessages = self.messages[completedBatch.id];
+                    batchMessages.messages = completedBatch.messages.map(m => {
+                        return {
+                            time: new Date(m.time).toLocaleTimeString(),
+                            message: m.message
+                        };
+                    });
+                    batchMessages.hasError = completedBatch.hasError;
+                    batchMessages.endTime = new Date(completedBatch.executionEnd).toLocaleTimeString();
+
+                    // If we have an error, set the messages to be shown
+                    if (completedBatch.hasError) {
                         self._messageActive = true;
                     }
-                    self.messages.push(messages);
                     self.messagesAdded = true;
                 break;
                 case 'resultSet':
@@ -363,10 +374,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     };
 
                     // Precalculate the max height and min height
-                    let maxHeight = resultSet.totalRows < self._defaultNumShowingRows
-                        ? Math.max((resultSet.totalRows + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
+                    let maxHeight = resultSet.rowCount < self._defaultNumShowingRows
+                        ? Math.max((resultSet.rowCount + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
                         : 'inherit';
-                    let minHeight = resultSet.totalRows > self._defaultNumShowingRows
+                    let minHeight = resultSet.rowCount > self._defaultNumShowingRows
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
 
