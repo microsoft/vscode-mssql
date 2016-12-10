@@ -1,6 +1,6 @@
 // #docregion
 const path = require('path');
-const coverconfig = require('./coverconfig.json')
+const coverconfig = require('./out/coverconfig.json')
 
 module.exports = function(config) {
 
