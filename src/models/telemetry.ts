@@ -126,7 +126,7 @@ export namespace Telemetry {
             return;
         }
 
-        if (typeof properties === 'undefined') {
+        if (!properties || typeof properties === 'undefined') {
             properties = {};
         }
 
