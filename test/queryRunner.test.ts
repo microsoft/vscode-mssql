@@ -76,16 +76,70 @@ suite('Query Runner tests', () => {
             testVscodeWrapper.object
         );
 
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('start'));
+        mockEventEmitter.setup(x => x.emit('complete'));
+        queryRunner.eventEmitter = mockEventEmitter.object;
+
         return queryRunner.runQuery(testSelection).then(() => {
             testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+            // start and complete emitted regardless of successful or error
+            mockEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
+            mockEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
         });
 
+    });
+
+    test('Correctly handles error from bad query', () => {
+        let testuri = 'test';
+        let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
+        let testresult = {
+            message: 'failed'
+        };
+        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
+                                                          TypeMoq.It.isAny())).callback(() => {
+                                                              // testing
+                                                          }).returns(() => { return Promise.resolve(testresult); });
+
+        testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
+            .callback((queryRunner, uri: string) => {
+                assert.equal(uri, testuri);
+            });
+        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
+        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+
+        testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+        let queryRunner = new QueryRunner(
+            testuri,
+            testuri,
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
+        );
+
+        let testEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        testEventEmitter.setup(x => x.emit('start'));
+        testEventEmitter.setup(x => x.emit('complete'));
+        queryRunner.eventEmitter = testEventEmitter.object;
+        queryRunner.uri = testuri;
+
+        return queryRunner.runQuery(testSelection).then(undefined, () => {
+            testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            assert.strictEqual(queryRunner.isExecutingQuery, false);
+            testEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
+            testEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
+            testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
     });
 
     test('Handles Info Message Correctly', () => {
         let testuri = 'uri';
         let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
         let testtitle = 'title';
+        let testEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
         testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
                                                           TypeMoq.It.isAny())).callback((type, details: QueryExecuteParams) => {
                                                               assert.equal(details.ownerUri, testuri);
@@ -96,6 +150,11 @@ suite('Query Runner tests', () => {
         testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
+        testEventEmitter.setup(x => x.emit('start'));
+        testEventEmitter.setup(x => x.emit('complete'));
+        testEventEmitter.setup(x => x.emit('batchStart', TypeMoq.It.isAny()));
+        testEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
+
         let queryRunner = new QueryRunner(
                     testuri,
                     testtitle,
@@ -104,12 +163,22 @@ suite('Query Runner tests', () => {
                     testQueryNotificationHandler.object,
                     testVscodeWrapper.object
                 );
+        queryRunner.eventEmitter = testEventEmitter.object;
         return queryRunner.runQuery(testSelection).then(() => {
+            // Expected emit for start and complete
+            testEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
+            testEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
+
+            // Expected batch start and complete
+            testEventEmitter.verify(x => x.emit('batchStart', TypeMoq.It.isAny()), TypeMoq.Times.once());
+            testEventEmitter.verify(x => x.emit('batchComplete', TypeMoq.It.isAny()), TypeMoq.Times.once());
+
             // I expect no error message to be displayed
             testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.never());
             assert.strictEqual(queryRunner.batchSets[0].hasError, false);
 
             // I expect query execution to be done
+            testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
             assert.strictEqual(queryRunner.isExecutingQuery, false);
         });
     });
@@ -313,6 +382,8 @@ suite('Query Runner tests', () => {
             }]
         };
 
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('complete'));
         testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAny()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
@@ -324,12 +395,15 @@ suite('Query Runner tests', () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
+
+        queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.uri = '';
         queryRunner.dataResolveReject = {resolve: () => {
             resolveRan = true;
         }};
         queryRunner.handleResult(result);
         testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        mockEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
         assert.equal(resolveRan, true);
     });
 
