@@ -157,7 +157,28 @@ export default class StatusView implements vscode.Disposable {
 
     public languageServiceUpdating(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusLanguageService.text =  Constants.updatingIntelliSenseLabel;
+        bar.statusLanguageService.text = Constants.updatingIntelliSenseLabel;
+        this.showStatusBarItem(fileUri, bar.statusLanguageService);
+    }
+
+    public getlanguageServiceStatus(fileUri: string): string {
+        let bar = this.getStatusBar(fileUri);
+        return bar.statusLanguageService.text;
+    }
+
+    public languageServiceStatusChanged(fileUri: string, status: string): void {
+        let bar = this.getStatusBar(fileUri);
+        switch (status) {
+            case Constants.definitionRequestedStatus:
+                bar.statusLanguageService.text = Constants.gettingPeekdefinitionMessage;
+                break;
+            case Constants.definitionRequestCompletedStatus:
+                bar.statusLanguageService.text  = '';
+                break;
+            default:
+                Utils.logDebug(`Language service status changed. ${status}`);
+                break;
+        }
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
     }
 

@@ -239,3 +239,7 @@ export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 export const sqlToolsServiceCrashMessage = 'SQL Tools Service component could not start.';
 export const sqlToolsServiceCrashButton = 'View Known Issues';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
+
+export const gettingPeekdefinitionMessage = 'Getting peek definition ...';
+export const definitionRequestedStatus = 'DefinitionRequested';
+export const definitionRequestCompletedStatus = 'DefinitionRequestCompleted';
