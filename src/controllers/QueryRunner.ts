@@ -353,7 +353,7 @@ export default class QueryRunner {
 
     private removeNewLines(inputString: string): string {
         // This regex removes all newlines in all OS types
-        // Windows(CRLF): \n\r
+        // Windows(CRLF): \r\n
         // Linux(LF): \n
         // MacOS(CR): \r
         let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');
