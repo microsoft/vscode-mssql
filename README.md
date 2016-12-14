@@ -10,9 +10,8 @@ Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for
 
 * Connect to Microsoft SQL Server, Azure SQL Database and SQL Data Warehouses.
 * Create and manage connection profiles and most recently used connections.
-* Write T-SQL script with IntelliSense, T-SQL snippets, syntax colorizations, T-SQL error validations and ```GO``` batch separator.
-* Execute the script.
-* View the result in a slick grid.
+* Write T-SQL script with IntelliSense, Go to Definition, T-SQL snippets, syntax colorizations, T-SQL error validations and ```GO``` batch separator.
+* Execute your scripts and view results in a simple to use grid.
 * Save the result to json or csv file format and view in the editor.
 * Customizable extension options including command shortcuts and more.
 
@@ -22,6 +21,13 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+
+## What's new in 0.2.0
+* Peek Definition and Go To Definition support for Tables, Views and Stored Procedures.
+  * For a query such as `select * from dbo.Person` you can right-click on `dbo.Person` and see it as a `CREATE TABLE` script.
+* Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.
+* Multiple improvements & fixes to the results view, Intellisense handling, and service installation notification
+* For a full list see the [change log]
 
 ## Using
 
@@ -83,7 +89,27 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```0.2.0```. See the [change log] for more detail.
+The current version is ```0.2.0```. See the [change log] for a detailed list of changes in each version.
+
+## Supported Operating Systems
+
+Currently this extension supports the following operatings systems:
+
+* Windows (64-bit only)
+* macOS
+* Ubuntu 14.04 / Linux Mint 17 / Linux Mint 18 / Elementary OS 0.3
+* Ubuntu 16.04 / Elementary OS 0.4
+* Debian 8.2
+* CentOS 7.1 / Oracle Linux 7
+* Red Hat Enterprise Linux (RHEL)
+* Fedora 23
+* OpenSUSE 13.2
+
+## Offline Installation
+The extension will download and install a required SqlToolsService package during activation. For machines with no Internet access, you can still use the extension by choosing the
+`Install from VSIX...` option in the Extension view and installing a bundled release from our [Releases](https://github.com/Microsoft/vscode-mssql/releases) page.
+Each operating system has a .vsix file with the required service included. Pick the file for your OS, download and install to get started.
+We recommend you choose a full release and ignore any alpha or beta releases as these are our daily builds used in testing.
 
 ## Support
 Support for this extension is provided on our [GitHub Issue Tracker]. You can submit a [bug report], a [feature suggestion] or participate in [discussions].
