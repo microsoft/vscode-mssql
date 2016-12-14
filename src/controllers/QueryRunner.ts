@@ -352,7 +352,7 @@ export default class QueryRunner {
     }
 
     private removeNewLines(inputString: string): string {
-        // This regex removes all newlines in all OStypes
+        // This regex removes all newlines in all OS types
         // Windows(CRLF): \n\r
         // Linux(LF): \n
         // MacOS(CR): \r
