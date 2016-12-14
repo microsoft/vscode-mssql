@@ -241,7 +241,7 @@ export const sqlToolsServiceCrashMessage = 'SQL Tools Service component could no
 export const sqlToolsServiceCrashButton = 'View Known Issues';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
 
-export const gettingPeekdefinitionMessage = 'Getting peek definition ...';
+export const gettingdefinitionMessage = 'Getting definition ...';
 export const definitionRequestedStatus = 'DefinitionRequested';
 export const definitionRequestCompletedStatus = 'DefinitionRequestCompleted';
 export const updatingIntelliSenseStatus = 'updatingIntelliSense';

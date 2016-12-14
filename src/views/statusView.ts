@@ -164,7 +164,7 @@ export default class StatusView implements vscode.Disposable {
             case Constants.definitionRequestedStatus:
                 setTimeout(() => {
                     if (bar.currentLanguageServiceStatus !== Constants.definitionRequestCompletedStatus) {
-                        bar.statusLanguageService.text = Constants.gettingPeekdefinitionMessage;
+                        bar.statusLanguageService.text = Constants.gettingdefinitionMessage;
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
                     }
                 }, 500);
