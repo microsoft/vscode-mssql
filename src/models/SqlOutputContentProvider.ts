@@ -161,7 +161,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             let numberOfRows = req.query.numberOfRows;
             let uri: string = req.query.uri;
             self._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
-                let json = JSON.stringify(results.resultSubset).replace(/(\\r\\n|\\n|\\r)/gm, '\\t');
+                let json = JSON.stringify(results.resultSubset);
                 res.send(json);
             });
         });

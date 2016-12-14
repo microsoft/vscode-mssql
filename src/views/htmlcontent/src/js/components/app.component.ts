@@ -363,9 +363,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         return new Promise<IGridDataRow[]>((resolve, reject) => {
                             self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
                                 let gridData: IGridDataRow[] = [];
-                                for (let i = 0; i < rows.rows.length; i++) {
+                                for (let row = 0; row < rows.rows.length; row++) {
+                                    // Replace each cell's newline with spaces
+                                    for (let col = 0; col < rows.rows[row].length; col++) {
+                                        rows.rows[row][col] = rows.rows[row][col].replace(/(\r\n|\n|\r)/gm, ' ');
+                                    }
+
+                                    // Push row values onto end of gridData for slickgrid
                                     gridData.push({
-                                        values: rows.rows[i]
+                                        values: rows.rows[row]
                                     });
                                 }
                                 resolve(gridData);
