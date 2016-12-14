@@ -231,6 +231,7 @@ export const macOpenSslHelpButton = 'Help';
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 
 export const sqlToolsServiceName = 'SQLToolsService';
+export const serviceInitializingOutputChannelName = 'SqlToolsService Initialization';
 
 
 
@@ -239,3 +240,9 @@ export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 export const sqlToolsServiceCrashMessage = 'SQL Tools Service component could not start.';
 export const sqlToolsServiceCrashButton = 'View Known Issues';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
+
+export const gettingDefinitionMessage = 'Getting definition ...';
+export const definitionRequestedStatus = 'DefinitionRequested';
+export const definitionRequestCompletedStatus = 'DefinitionRequestCompleted';
+export const updatingIntelliSenseStatus = 'updatingIntelliSense';
+export const intelliSenseUpdatedStatus = 'intelliSenseUpdated';

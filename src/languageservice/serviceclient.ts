@@ -20,6 +20,7 @@ import ServiceDownloadProvider from './download';
 import ExtConfig from  '../configurations/extConfig';
 import {PlatformInformation} from '../models/platform';
 import {ServerInitializationResult, ServerStatusView} from './serverStatus';
+import StatusView from '../views/statusView';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 
 let opener = require('opener');
@@ -118,20 +119,23 @@ export default class SqlToolsServiceClient {
         this._client = client;
     }
 
-    constructor(private _server: ServerProvider, private _logger: Logger) {
+    constructor(
+        private _server: ServerProvider,
+        private _logger: Logger,
+        private _statusView: StatusView) {
     }
 
     // gets or creates the singleton SQL Tools service client instance
     public static get instance(): SqlToolsServiceClient {
         if (this._instance === undefined) {
             let config = new ExtConfig();
-            _channel = window.createOutputChannel(Constants.sqlToolsServiceName);
+            _channel = window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
             let logger = new Logger(text => _channel.append(text));
-            let statusView = new ServerStatusView();
-            let downloadProvider = new ServiceDownloadProvider(config, logger, statusView);
-            let serviceProvider = new ServerProvider(downloadProvider, config, statusView);
-
-            this._instance = new SqlToolsServiceClient(serviceProvider, logger);
+            let serverStatusView = new ServerStatusView();
+            let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView);
+            let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
+            let statusview = new StatusView();
+            this._instance = new SqlToolsServiceClient(serviceProvider, logger, statusview);
         }
         return this._instance;
     }
@@ -257,6 +261,7 @@ export default class SqlToolsServiceClient {
 
         });
         client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
+        client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
 
         return client;
     }
@@ -264,6 +269,15 @@ export default class SqlToolsServiceClient {
      private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
         return (event: LanguageServiceContracts.TelemetryParams): void => {
             Telemetry.sendTelemetryEvent(event.params.eventName, event.params.properties, event.params.measures);
+        };
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public handleLanguageServiceStatusNotification(): NotificationHandler<LanguageServiceContracts.StatusChangeParams> {
+        return (event: LanguageServiceContracts.StatusChangeParams): void => {
+            this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
         };
     }
 
