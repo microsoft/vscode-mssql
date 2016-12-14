@@ -231,6 +231,7 @@ export const macOpenSslHelpButton = 'Help';
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 
 export const sqlToolsServiceName = 'SQLToolsService';
+export const serviceInitializingOuputChannelName = 'SQLToolsService Initializing';
 
 
 

@@ -18,6 +18,8 @@ class FileStatusBar {
 
     // Timer used for displaying a progress indicator on queries
     public progressTimerId: number;
+
+    public currentLanguageServiceStatus: string;
 }
 
 export default class StatusView implements vscode.Disposable {
@@ -161,16 +163,17 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
     }
 
-    public getlanguageServiceStatus(fileUri: string): string {
-        let bar = this.getStatusBar(fileUri);
-        return bar.statusLanguageService.text;
-    }
-
     public languageServiceStatusChanged(fileUri: string, status: string): void {
         let bar = this.getStatusBar(fileUri);
+        bar.currentLanguageServiceStatus = status;
         switch (status) {
             case Constants.definitionRequestedStatus:
-                bar.statusLanguageService.text = Constants.gettingPeekdefinitionMessage;
+            setTimeout(() => {
+                 if (bar.currentLanguageServiceStatus !== Constants.definitionRequestCompletedStatus) {
+                    bar.statusLanguageService.text = Constants.gettingPeekdefinitionMessage;
+                    this.showStatusBarItem(fileUri, bar.statusLanguageService);
+                 }
+            }, 500);
                 break;
             case Constants.definitionRequestCompletedStatus:
                 bar.statusLanguageService.text  = '';
