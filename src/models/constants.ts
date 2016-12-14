@@ -244,3 +244,5 @@ export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mss
 export const gettingPeekdefinitionMessage = 'Getting peek definition ...';
 export const definitionRequestedStatus = 'DefinitionRequested';
 export const definitionRequestCompletedStatus = 'DefinitionRequestCompleted';
+export const updatingIntelliSenseStatus = 'updatingIntelliSense';
+export const intelliSenseUpdatedStatus = 'intelliSenseUpdated';

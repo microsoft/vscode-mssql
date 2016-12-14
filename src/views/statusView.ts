@@ -157,37 +157,31 @@ export default class StatusView implements vscode.Disposable {
         this.showProgress(fileUri, Constants.cancelingQueryLabel, bar.statusQuery);
     }
 
-    public languageServiceUpdating(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusLanguageService.text = Constants.updatingIntelliSenseLabel;
-        this.showStatusBarItem(fileUri, bar.statusLanguageService);
-    }
-
     public languageServiceStatusChanged(fileUri: string, status: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.currentLanguageServiceStatus = status;
         switch (status) {
             case Constants.definitionRequestedStatus:
-            setTimeout(() => {
-                 if (bar.currentLanguageServiceStatus !== Constants.definitionRequestCompletedStatus) {
-                    bar.statusLanguageService.text = Constants.gettingPeekdefinitionMessage;
-                    this.showStatusBarItem(fileUri, bar.statusLanguageService);
-                 }
-            }, 500);
+                setTimeout(() => {
+                    if (bar.currentLanguageServiceStatus !== Constants.definitionRequestCompletedStatus) {
+                        bar.statusLanguageService.text = Constants.gettingPeekdefinitionMessage;
+                        this.showStatusBarItem(fileUri, bar.statusLanguageService);
+                    }
+                }, 500);
                 break;
             case Constants.definitionRequestCompletedStatus:
                 bar.statusLanguageService.text  = '';
+                break;
+            case Constants.updatingIntelliSenseStatus:
+                bar.statusLanguageService.text = Constants.updatingIntelliSenseLabel;
+                break;
+            case Constants.intelliSenseUpdatedStatus:
+                bar.statusLanguageService.text = '';
                 break;
             default:
                 Utils.logDebug(`Language service status changed. ${status}`);
                 break;
         }
-        this.showStatusBarItem(fileUri, bar.statusLanguageService);
-    }
-
-    public languageServiceUpdated(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusLanguageService.text = '';
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
     }
 
