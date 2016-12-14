@@ -175,7 +175,7 @@ export default class StatusView implements vscode.Disposable {
             case Constants.definitionRequestedStatus:
                 setTimeout(() => {
                     if (getCurrentStatus() !== Constants.definitionRequestCompletedStatus) {
-                        updateMessage(Constants.gettingdefinitionMessage);
+                        updateMessage(Constants.gettingDefinitionMessage);
                     }
                 }, 500);
                 break;

@@ -19,7 +19,7 @@ suite('Status View Tests', () => {
                 return currentStatus;
             };
             let actualStatusMessage = '';
-            let expectedStatusMessage = Constants.gettingdefinitionMessage;
+            let expectedStatusMessage = Constants.gettingDefinitionMessage;
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };

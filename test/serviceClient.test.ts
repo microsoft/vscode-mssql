@@ -41,9 +41,9 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClinet = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClinet.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
             assert.equal(result.serverPath, fixture.installedServerPath);
             assert.equal(result.installedBeforeInitializing, false);
@@ -58,9 +58,9 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClinet = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClinet.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
             assert.equal(result.serverPath, fixture.downloadedServerPath);
             assert.equal(result.installedBeforeInitializing, true);
@@ -75,9 +75,9 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClinet = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClinet.initializeForPlatform(fixture.platformInfo, undefined).catch( error => {
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).catch( error => {
             return assert.equal(error, 'Invalid Platform');
         });
     });
@@ -93,11 +93,11 @@ suite('Service Client tests', () => {
             const status = 'new status';
 
             setupMocks(fixture);
-            let serviceClinet = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+            let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
             let statusChangeParams = new LanguageServiceContracts.StatusChangeParams();
             statusChangeParams.ownerUri = testFile;
             statusChangeParams.status = status;
-            serviceClinet.handleLanguageServiceStatusNotification().call(serviceClinet, statusChangeParams);
+            serviceClient.handleLanguageServiceStatusNotification().call(serviceClient, statusChangeParams);
             testStatusView.verify(x => x.languageServiceStatusChanged(testFile, status), TypeMoq.Times.once());
             done();
         });

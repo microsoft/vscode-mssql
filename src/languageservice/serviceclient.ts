@@ -129,7 +129,7 @@ export default class SqlToolsServiceClient {
     public static get instance(): SqlToolsServiceClient {
         if (this._instance === undefined) {
             let config = new ExtConfig();
-            _channel = window.createOutputChannel(Constants.serviceInitializingOuputChannelName);
+            _channel = window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
             let logger = new Logger(text => _channel.append(text));
             let serverStatusView = new ServerStatusView();
             let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView);
