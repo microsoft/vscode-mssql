@@ -1,8 +1,8 @@
 // #docregion
 const path = require('path');
-const fd = require('fs');
-const coverconfig
-if (fs.existsSync(coverConfigPath)) {
+const fs = require('fs');
+var coverconfig;
+if (fs.existsSync('./out/coverconfig.json')) {
   coverconfig = require('./out/coverconfig.json');
 } else {
   coverconfig = false;
