@@ -1,6 +1,12 @@
 // #docregion
 const path = require('path');
-const coverconfig = require('./out/coverconfig.json')
+const fd = require('fs');
+const coverconfig
+if (fs.existsSync(coverConfigPath)) {
+  coverconfig = require('./out/coverconfig.json');
+} else {
+  coverconfig = false;
+}
 
 module.exports = function(config) {
 
@@ -111,7 +117,7 @@ module.exports = function(config) {
     singleRun: true
   }
 
-  if (coverconfig.enabled) {
+  if (coverconfig && coverconfig.enabled) {
     config.preprocessors = {
       'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage'
     };
