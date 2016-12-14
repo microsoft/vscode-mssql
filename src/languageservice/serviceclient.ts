@@ -157,7 +157,7 @@ export default class SqlToolsServiceClient {
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                Telemetry.sendTelemetryEvent('Unsupported Platform', {platform: platformInfo.toString()} );
+                Telemetry.sendTelemetryEvent('UnsupportedPlatform', {platform: platformInfo.toString()} );
                 reject('Invalid Platform');
             } else {
                 if (platformInfo.runtimeId) {
