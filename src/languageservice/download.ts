@@ -51,9 +51,6 @@ export default class ServiceDownloadProvider {
         return fileName;
     }
 
-    private setStatusUpdate(downloadPercentage: number): void {
-        this._statusView.updateServiceDownloadingProgress(downloadPercentage);
-    }
 
     private getHttpClientOptions(url: Url, proxy?: string, strictSSL?: boolean): any {
         const agent = getProxyAgent(url, proxy, strictSSL);
@@ -95,7 +92,6 @@ export default class ServiceDownloadProvider {
                     return reject(Error(`Download failed with code ${response.statusCode}.`));
                 }
 
-                this.handleHttpResponseEvents(response);
                 response.on('end', () => {
                     resolve();
                 });
@@ -114,33 +110,6 @@ export default class ServiceDownloadProvider {
             // Execute the request
             request.end();
         });
-    }
-
-    private handleHttpResponseEvents(response: http.IncomingMessage): void {
-            // Downloading - hook up events
-            let packageSize = parseInt(response.headers['content-length'], 10);
-            let downloadedBytes = 0;
-            let downloadPercentage = 0;
-            let dots = 0;
-
-            this._logger.append(`(${Math.ceil(packageSize / 1024)} KB) `);
-            response.on('data', data => {
-                    downloadedBytes += data.length;
-
-                    // Update status bar item with percentage
-                    let newPercentage = Math.ceil(100 * (downloadedBytes / packageSize));
-                    if (newPercentage !== downloadPercentage) {
-                        this.setStatusUpdate(downloadPercentage);
-                        downloadPercentage = newPercentage;
-                    }
-
-                    // Update dots after package name in output console
-                    let newDots = Math.ceil(downloadPercentage / 5);
-                    if (newDots > dots) {
-                        this._logger.append('.'.repeat(newDots - dots));
-                        dots = newDots;
-                    }
-            });
     }
 
    /**
