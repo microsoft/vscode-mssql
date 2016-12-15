@@ -28,8 +28,8 @@ slick-grid.active .grid .slick-cell.selected {
   background-color: var(--color-cell-bg-grid-selected);
 }
 
-.slick-cell .grid-cell-value-container.missing-value {
-  color: var(--color-content) !important;
+.grid .slick-cell.selected .grid-cell-value-container.missing-value {
+    color: var(--color-content);
 }
 
 .boxRow.content.horzBox.slickgrid {
