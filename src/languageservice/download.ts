@@ -34,7 +34,7 @@ export default class ServiceDownloadProvider {
     }
 
    /**
-    * Returns the download url for given platfotm
+    * Returns the download url for given platform
     */
     public getDownloadFileName(platform: Runtime): string {
         let fileNamesJson = this._config.getSqlToolsConfigValue('downloadFileNames');
@@ -101,7 +101,7 @@ export default class ServiceDownloadProvider {
                 });
 
                 response.on('error', err => {
-                    reject(`Reponse error: ${err.code || 'NONE'}`);
+                    reject(`Response error: ${err.code || 'NONE'}`);
                 });
 
                 return resolve(response);

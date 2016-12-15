@@ -75,7 +75,7 @@ export default class ServerProvider {
     }
 
    /**
-    * Returns the path of the insalled service
+    * Returns the path of the installed service
     */
     public getServerPath(runtime: Runtime): Promise<string> {
         const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
@@ -83,7 +83,7 @@ export default class ServerProvider {
     }
 
    /**
-    * Downloads the service and returns the path of the insalled service
+    * Downloads the service and returns the path of the installed service
     */
     public downloadServerFiles(runtime: Runtime): Promise<string> {
         return new Promise<string>((resolve, reject) => {

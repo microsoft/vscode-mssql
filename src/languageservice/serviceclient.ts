@@ -134,8 +134,8 @@ export default class SqlToolsServiceClient {
             let serverStatusView = new ServerStatusView();
             let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView);
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
-            let statusview = new StatusView();
-            this._instance = new SqlToolsServiceClient(serviceProvider, logger, statusview);
+            let statusView = new StatusView();
+            this._instance = new SqlToolsServiceClient(serviceProvider, logger, statusView);
         }
         return this._instance;
     }

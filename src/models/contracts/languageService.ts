@@ -45,7 +45,7 @@ export class TelemetryParams {
 // ------------------------------- < Status Event > ------------------------------------
 
 /**
- * Event sent when the language service send a statuc change event
+ * Event sent when the language service send a status change event
  */
 export namespace StatusChangedNotification {
     export const type: NotificationType<StatusChangeParams> = { get method(): string { return 'textDocument/statusChanged'; } };
