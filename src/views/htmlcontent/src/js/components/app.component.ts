@@ -363,9 +363,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         return new Promise<IGridDataRow[]>((resolve, reject) => {
                             self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
                                 let gridData: IGridDataRow[] = [];
-                                for (let i = 0; i < rows.rows.length; i++) {
+                                for (let row = 0; row < rows.rows.length; row++) {
+                                    // Push row values onto end of gridData for slickgrid
                                     gridData.push({
-                                        values: rows.rows[i]
+                                        values: rows.rows[row]
                                     });
                                 }
                                 resolve(gridData);
@@ -533,13 +534,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Format all text to replace /n with spaces
+     * Format all text to replace all new lines with spaces
      */
     textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
         let valueToDisplay = value;
         let cellClasses = 'grid-cell-value-container';
         if (value) {
-            valueToDisplay = value.replace(/\n/g, ' ');
+            valueToDisplay = value.replace(/(\r\n|\n|\r)/g, ' ');
         } else {
             cellClasses += ' missing-value';
         }

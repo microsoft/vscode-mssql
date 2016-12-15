@@ -308,7 +308,12 @@ export default class QueryRunner {
                         for (let row of result.resultSubset.rows) {
                             // iterate over the cells we want from that row
                             for (let cell = range.fromCell; cell <= range.toCell; cell++) {
-                                copyString += row[cell] + '\t';
+                                if (self.shouldRemoveNewLines()) {
+                                    // This regex removes all new lines in all forms of new line
+                                    copyString += self.removeNewLines(row[cell]) + '\t';
+                                } else {
+                                    copyString += row[cell] + '\t';
+                                }
                             }
                             copyString += '\r\n';
                         }
@@ -337,6 +342,22 @@ export default class QueryRunner {
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         includeHeaders = config[Constants.copyIncludeHeaders];
         return !!includeHeaders;
+    }
+
+    private shouldRemoveNewLines(): boolean {
+        // get config copyRemoveNewLine option from vscode config
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let removeNewLines: boolean = config[Constants.configCopyRemoveNewLine];
+        return removeNewLines;
+    }
+
+    private removeNewLines(inputString: string): string {
+        // This regex removes all newlines in all OS types
+        // Windows(CRLF): \r\n
+        // Linux(LF)/Modern MacOS: \n
+        // Old MacOs: \r
+        let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');
+        return outputString;
     }
 
     /**

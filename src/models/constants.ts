@@ -53,6 +53,7 @@ export const configSaveAsCsv = 'saveAsCsv';
 export const configSaveAsJson = 'saveAsJson';
 export const configRecentConnections = 'recentConnections';
 export const configMaxRecentConnections = 'maxRecentConnections';
+export const configCopyRemoveNewLine = 'copyRemoveNewLine';
 
 
 // localizable strings

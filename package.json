@@ -424,7 +424,13 @@
           "type": "boolean",
           "description": "[Optional] Configuration options for copying results from the Results View",
           "default": false
+        },
+        "mssql.copyRemoveNewLine": {
+          "type": "boolean",
+          "description": "[Optional] Configuration options for copying multi-line results from the Results View",
+          "default": true
         }
+
       }
     }
   },
