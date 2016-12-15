@@ -134,8 +134,8 @@ export default class SqlToolsServiceClient {
             let serverStatusView = new ServerStatusView();
             let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView);
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
-            let statusview = new StatusView();
-            this._instance = new SqlToolsServiceClient(serviceProvider, logger, statusview);
+            let statusView = new StatusView();
+            this._instance = new SqlToolsServiceClient(serviceProvider, logger, statusView);
         }
         return this._instance;
     }
@@ -157,7 +157,7 @@ export default class SqlToolsServiceClient {
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                Telemetry.sendTelemetryEvent('Unsupported Platform', {platform: platformInfo.toString()} );
+                Telemetry.sendTelemetryEvent('UnsupportedPlatform', {platform: platformInfo.toString()} );
                 reject('Invalid Platform');
             } else {
                 if (platformInfo.runtimeId) {
