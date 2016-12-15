@@ -18,6 +18,8 @@ class FileStatusBar {
 
     // Timer used for displaying a progress indicator on queries
     public progressTimerId: number;
+
+    public currentLanguageServiceStatus: string;
 }
 
 export default class StatusView implements vscode.Disposable {
@@ -155,16 +157,41 @@ export default class StatusView implements vscode.Disposable {
         this.showProgress(fileUri, Constants.cancelingQueryLabel, bar.statusQuery);
     }
 
-    public languageServiceUpdating(fileUri: string): void {
+    public languageServiceStatusChanged(fileUri: string, status: string): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusLanguageService.text =  Constants.updatingIntelliSenseLabel;
-        this.showStatusBarItem(fileUri, bar.statusLanguageService);
+        bar.currentLanguageServiceStatus = status;
+        this.updateStatusMessage(status,
+        () => { return bar.currentLanguageServiceStatus; }, (message) => {
+            bar.statusLanguageService.text = message;
+            this.showStatusBarItem(fileUri, bar.statusLanguageService);
+        });
     }
 
-    public languageServiceUpdated(fileUri: string): void {
-        let bar = this.getStatusBar(fileUri);
-        bar.statusLanguageService.text = '';
-        this.showStatusBarItem(fileUri, bar.statusLanguageService);
+    public updateStatusMessage(
+        newStatus: string,
+        getCurrentStatus: () => string,
+        updateMessage:  (message: string) => void): void {
+        switch (newStatus) {
+            case Constants.definitionRequestedStatus:
+                setTimeout(() => {
+                    if (getCurrentStatus() !== Constants.definitionRequestCompletedStatus) {
+                        updateMessage(Constants.gettingDefinitionMessage);
+                    }
+                }, 500);
+                break;
+            case Constants.definitionRequestCompletedStatus:
+                updateMessage('');
+                break;
+            case Constants.updatingIntelliSenseStatus:
+                updateMessage(Constants.updatingIntelliSenseLabel);
+                break;
+            case Constants.intelliSenseUpdatedStatus:
+                updateMessage('');
+                break;
+            default:
+                Utils.logDebug(`Language service status changed. ${newStatus}`);
+                break;
+        }
     }
 
     /**

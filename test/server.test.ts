@@ -65,7 +65,7 @@ suite('Server tests', () => {
         });
     });
 
-    test('findServerPath should not return the given file path if doesn not exist', () => {
+    test('findServerPath should not return the given file path if does not exist', () => {
         let fixture: IFixture = {
             executableFileName: __filename,
             runtime: Runtime.Windows_7_64,

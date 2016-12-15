@@ -101,11 +101,11 @@ export namespace Telemetry {
                 }
             }
 
-            // Only adding the method name and the fist line of the stack strace. We don't add the error message because it might have PII
+            // Only adding the method name and the fist line of the stack trace. We don't add the error message because it might have PII
             Telemetry.sendTelemetryEvent('Exception', {methodName: methodName, errorLine: firstLine});
             Utils.logDebug('Unhandled Exception occurred. error: ' + err + ' method: ' + methodName );
         } catch (telemetryErr) {
-            // If sending telemetly event fails ignore it so it won't break the extension
+            // If sending telemetry event fails ignore it so it won't break the extension
             Utils.logDebug('Failed to send telemetry event. error: ' + telemetryErr );
         }
     }
@@ -126,7 +126,7 @@ export namespace Telemetry {
             return;
         }
 
-        if (typeof properties === 'undefined') {
+        if (!properties || typeof properties === 'undefined') {
             properties = {};
         }
 

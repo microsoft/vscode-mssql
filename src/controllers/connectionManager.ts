@@ -194,7 +194,7 @@ export default class ConnectionManager {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
-            self._statusView.languageServiceUpdated(event.ownerUri);
+            self._statusView.languageServiceStatusChanged(event.ownerUri, Constants.intelliSenseUpdatedStatus);
             let connection = self.getConnectionInfo(event.ownerUri);
             if (connection !== undefined) {
                 connection.intelliSenseTimer.end();
@@ -281,7 +281,7 @@ export default class ConnectionManager {
         connection.credentials = newCredentials;
 
         this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
-        this.statusView.languageServiceUpdating(fileUri);
+        this.statusView.languageServiceStatusChanged(fileUri, Constants.updatingIntelliSenseStatus);
 
         this._vscodeWrapper.logToOutputChannel(
             Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
