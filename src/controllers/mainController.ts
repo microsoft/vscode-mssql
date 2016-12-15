@@ -380,8 +380,8 @@ export default class MainController implements vscode.Disposable {
 
     /**
      * Called by VS Code when a text document closes. This will dispatch calls to other
-     * controllers as needed. Determines if this was a closed file or if it was an instance
-     * where a file was saved to disk after being an untitled file.
+     * controllers as needed. Determines if this was a normal closed file, a untitled closed file,
+     * or a renamed file
      * @param doc The document that was closed
      */
     private onDidCloseTextDocument(doc: vscode.TextDocument): void {
