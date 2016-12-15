@@ -36,6 +36,8 @@ export default class MainController implements vscode.Disposable {
     private _initialized: boolean = false;
     private _lastSavedUri: string;
     private _lastSavedTimer: Utils.Timer;
+    private _lastOpenedUri: string;
+    private _lastOpenedTimer: Utils.Timer;
 
     /**
      * The main controller constructor
@@ -400,6 +402,13 @@ export default class MainController implements vscode.Disposable {
             // Reset the save timer
             this._lastSavedTimer = undefined;
             this._lastSavedUri = undefined;
+        } else if (this._lastOpenedUri && this._lastOpenedTimer) {
+            this._lastOpenedTimer.end();
+
+            this._connectionMgr.onDidRenameTextDocument(this._lastOpenedUri, closedDocumentUri);
+
+            this._lastOpenedUri = undefined;
+            this._lastOpenedTimer = undefined;
         } else {
             // Pass along the close event to the other handlers
             this._connectionMgr.onDidCloseTextDocument(doc);
@@ -413,6 +422,10 @@ export default class MainController implements vscode.Disposable {
      */
     private onDidOpenTextDocument(doc: vscode.TextDocument): void {
         this._connectionMgr.onDidOpenTextDocument(doc);
+
+        this._lastOpenedTimer = new Utils.Timer();
+        this._lastOpenedTimer.start();
+        this._lastOpenedUri = doc.uri.toString();
     }
 
     /**
