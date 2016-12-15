@@ -314,11 +314,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Always run this command even if just updating to avoid a bug - tfs 8686842
 
         // Find any URIs which match the one we are about to display
-        let resultPaneUris = vscode.workspace.textDocuments.filter(tDoc => tDoc.uri.toString() === resultsUri);
+        let resultPaneURIMatch = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
 
         // Check if the results window already exists
-        if (resultPaneUris.length >= 1) {
-            // Use existsing results window
+        if (resultPaneURIMatch !== undefined) {
+            // Implicity Use existsing results window by not providing an pane
             vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
         } else {
             // A fresh results window should always start in the second pane
