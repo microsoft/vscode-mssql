@@ -388,40 +388,39 @@ export default class MainController implements vscode.Disposable {
         let closedDocumentUri: string = doc.uri.toString();
         let closedDocumentUriScheme: string = doc.uri.scheme;
 
-        // Did we save a document before this close event? Was it an untitled document?
-        if (this._lastSavedUri && this._lastSavedTimer && closedDocumentUriScheme === Constants.untitledScheme) {
-            // Stop the save timer
+        // Stop timers if they have been started
+        if (this._lastSavedTimer) {
             this._lastSavedTimer.end();
+        }
 
-            // Check that we saved a document *just* before this close event
-            // If so, then we saved an untitled document and need to update where necessary
-            if (this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
-                this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
-            }
-            // is the closed file connection being taken care of in the else case??
-
-            // Reset the save timer
-            this._lastSavedTimer = undefined;
-            this._lastSavedUri = undefined;
-        } else if (this._lastOpenedUri && this._lastOpenedTimer) {
-            // Stop the open file timer
+        if (this._lastOpenedTimer) {
             this._lastOpenedTimer.end();
+        }
 
-            // Check that we opened a document *just* before this close event
-            // If so then there must have been a renamed file
-            if (this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
-                this._connectionMgr.onDidRenameTextDocument(closedDocumentUri, this._lastOpenedUri);
-                return;
-            }
+        // Determine which event caused this close event
+        if (this._lastSavedUri &&
+                closedDocumentUriScheme === Constants.untitledScheme &&
+                this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
+            // Untitled file was saved
+            this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
 
-            // Reset used variables
-            this._lastOpenedUri = undefined;
-            this._lastOpenedTimer = undefined;
+        } else if (this._lastOpenedUri &&
+                this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
+            // File was renamed
+            this._connectionMgr.onDidRenameTextDocument(closedDocumentUri, this._lastOpenedUri);
+
         } else {
-            // Pass along the close event to the other handlers
+            // Pass along the close event to the other handlers for a normal closed file
             this._connectionMgr.onDidCloseTextDocument(doc);
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
+
+
+        // Reset special case timers and events
+        this._lastSavedUri = undefined;
+        this._lastSavedTimer = undefined;
+        this._lastOpenedTimer = undefined;
+        this._lastOpenedUri = undefined;
     }
 
     /**
