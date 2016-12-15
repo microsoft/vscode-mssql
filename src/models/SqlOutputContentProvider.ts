@@ -312,7 +312,18 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         queryRunner.runQuery(selection);
         let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
-        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+
+        // Find any URIs which match the one we are about to display
+        let resultPaneUris = vscode.workspace.textDocuments.filter(tDoc => tDoc.uri.toString() === resultsUri);
+
+        // Check if the results window already exists
+        if (resultPaneUris.length >= 1) {
+            // Use existsing results window
+            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
+        } else {
+            // A fresh results window should always start in the second pane
+            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+        }
     }
 
     public cancelQuery(input: QueryRunner | string): void {
