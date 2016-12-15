@@ -398,15 +398,23 @@ export default class MainController implements vscode.Disposable {
             if (this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
                 this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
             }
+            // is the closed file connection being taken care of in the else case??
 
             // Reset the save timer
             this._lastSavedTimer = undefined;
             this._lastSavedUri = undefined;
         } else if (this._lastOpenedUri && this._lastOpenedTimer) {
+            // Stop the open file timer
             this._lastOpenedTimer.end();
 
-            this._connectionMgr.onDidRenameTextDocument(this._lastOpenedUri, closedDocumentUri);
+            // Check that we opened a document *just* before this close event
+            // If so then there must have been a renamed file
+            if (this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
+                this._connectionMgr.onDidRenameTextDocument(closedDocumentUri, this._lastOpenedUri);
+                return;
+            }
 
+            // Reset used variables
             this._lastOpenedUri = undefined;
             this._lastOpenedTimer = undefined;
         } else {
@@ -423,6 +431,7 @@ export default class MainController implements vscode.Disposable {
     private onDidOpenTextDocument(doc: vscode.TextDocument): void {
         this._connectionMgr.onDidOpenTextDocument(doc);
 
+        // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();
         this._lastOpenedTimer.start();
         this._lastOpenedUri = doc.uri.toString();
