@@ -17,6 +17,7 @@ import Telemetry from '../src/models/telemetry';
 import * as Utils from '../src/models/utils';
 import { TestExtensionContext, TestPrompter } from './stubs';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
+import Constants = require('../src/models/constants');
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {
     let result = new ConnectionContracts.ConnectionCompleteParams();
@@ -515,15 +516,15 @@ suite('Per File Connection Tests', () => {
         // Connect
         manager.connect(testFile, createTestCredentials()).then(result => {
             assert.equal(result, true);
-            statusViewMock.verify(x => x.languageServiceUpdating(TypeMoq.It.isAny()), TypeMoq.Times.once());
-            statusViewMock.verify(x => x.languageServiceUpdated(TypeMoq.It.isAny()), TypeMoq.Times.never());
+            statusViewMock.verify(x => x.languageServiceStatusChanged(TypeMoq.It.isAny(), Constants.updatingIntelliSenseStatus), TypeMoq.Times.once());
+            statusViewMock.verify(x => x.languageServiceStatusChanged(TypeMoq.It.isAny(), Constants.intelliSenseUpdatedStatus), TypeMoq.Times.never());
 
             // Send a mock notification that the language service was updated
             let langResult = new LanguageServiceContracts.IntelliSenseReadyParams();
             langResult.ownerUri = testFile;
             manager.handleLanguageServiceUpdateNotification().call(manager, langResult);
 
-            statusViewMock.verify(x => x.languageServiceUpdated(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            statusViewMock.verify(x => x.languageServiceStatusChanged(TypeMoq.It.isAny(), Constants.intelliSenseUpdatedStatus), TypeMoq.Times.once());
 
             done();
         }).catch(err => {

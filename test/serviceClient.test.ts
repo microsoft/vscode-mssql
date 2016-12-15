@@ -4,6 +4,8 @@ import ServerProvider from '../src/languageservice/server';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import {Logger} from '../src/models/logger';
 import {PlatformInformation} from '../src/models/platform';
+import StatusView from './../src/views/statusView';
+import * as LanguageServiceContracts from '../src/models/contracts/languageService';
 
 interface IFixture {
     platformInfo: PlatformInformation;
@@ -15,9 +17,11 @@ suite('Service Client tests', () => {
 
     let testServiceProvider: TypeMoq.Mock<ServerProvider>;
     let logger = new Logger(text => console.log(text));
+    let testStatusView: TypeMoq.Mock<StatusView>;
 
     setup(() => {
         testServiceProvider = TypeMoq.Mock.ofType(ServerProvider, TypeMoq.MockBehavior.Strict);
+        testStatusView = TypeMoq.Mock.ofType(StatusView);
     });
 
     function setupMocks(fixture: IFixture): void {
@@ -37,9 +41,9 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClinet = new SqlToolsServiceClient(testServiceProvider.object, logger);
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClinet.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
             assert.equal(result.serverPath, fixture.installedServerPath);
             assert.equal(result.installedBeforeInitializing, false);
@@ -54,9 +58,9 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClinet = new SqlToolsServiceClient(testServiceProvider.object, logger);
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClinet.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
             assert.equal(result.serverPath, fixture.downloadedServerPath);
             assert.equal(result.installedBeforeInitializing, true);
@@ -71,10 +75,31 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClinet = new SqlToolsServiceClient(testServiceProvider.object, logger);
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClinet.initializeForPlatform(fixture.platformInfo, undefined).catch( error => {
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).catch( error => {
             return assert.equal(error, 'Invalid Platform');
+        });
+    });
+
+    test('handleLanguageServiceStatusNotification should change the UI status', (done) => {
+        return new Promise((resolve, reject) => {
+            let fixture: IFixture = {
+                installedServerPath: 'already installed service',
+                downloadedServerPath: undefined,
+                platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
+            };
+            const testFile = 'file:///my/test/file.sql';
+            const status = 'new status';
+
+            setupMocks(fixture);
+            let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+            let statusChangeParams = new LanguageServiceContracts.StatusChangeParams();
+            statusChangeParams.ownerUri = testFile;
+            statusChangeParams.status = status;
+            serviceClient.handleLanguageServiceStatusNotification().call(serviceClient, statusChangeParams);
+            testStatusView.verify(x => x.languageServiceStatusChanged(testFile, status), TypeMoq.Times.once());
+            done();
         });
     });
 });

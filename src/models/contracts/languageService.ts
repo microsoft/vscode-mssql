@@ -42,3 +42,29 @@ export class TelemetryParams {
 }
 
 // ------------------------------- </ Telemetry Sent Event > ----------------------------------
+// ------------------------------- < Status Event > ------------------------------------
+
+/**
+ * Event sent when the language service send a status change event
+ */
+export namespace StatusChangedNotification {
+    export const type: NotificationType<StatusChangeParams> = { get method(): string { return 'textDocument/statusChanged'; } };
+}
+
+/**
+ * Update event parameters
+ */
+export class StatusChangeParams {
+    /**
+     * URI identifying the text document
+     */
+    public ownerUri: string;
+
+    /**
+     * The new status of the document
+     */
+    public status: string;
+}
+
+
+// ------------------------------- </ Status Sent Event > ----------------------------------

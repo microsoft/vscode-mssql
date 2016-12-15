@@ -409,7 +409,7 @@
         "mssql.resultsFontSize": {
           "type": "number",
           "description": "Set the font size for the results grid; set to blank to use the editor size",
-          "default": 12
+          "default": 13
         },
         "mssql.saveAsCsv": {
           "type": "object",
