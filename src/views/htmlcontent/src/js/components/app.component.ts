@@ -364,11 +364,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                             self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
                                 let gridData: IGridDataRow[] = [];
                                 for (let row = 0; row < rows.rows.length; row++) {
-                                    // Replace each cell's newline with spaces
-                                    for (let col = 0; col < rows.rows[row].length; col++) {
-                                        rows.rows[row][col] = rows.rows[row][col].replace(/(\r\n|\n|\r)/gm, ' ');
-                                    }
-
                                     // Push row values onto end of gridData for slickgrid
                                     gridData.push({
                                         values: rows.rows[row]
@@ -539,13 +534,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Format all text to replace /n with spaces
+     * Format all text to replace all new lines with spaces
      */
     textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
         let valueToDisplay = value;
         let cellClasses = 'grid-cell-value-container';
         if (value) {
-            valueToDisplay = value.replace(/\n/g, ' ');
+            valueToDisplay = value.replace(/(\r\n|\n|\r)/g, ' ');
         } else {
             cellClasses += ' missing-value';
         }
