@@ -368,22 +368,12 @@ export default class QueryRunner {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                let docEditors = self._vscodeWrapper.visibleEditors.filter((editor) => {
-                    return editor.document === doc;
-                });
-                if (docEditors.length !== 0) {
-                    docEditors[0].selection = self._vscodeWrapper.selection(
-                                              self._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                              self._vscodeWrapper.position(selection.endLine, selection.endColumn));
+                self._vscodeWrapper.showTextDocument(doc).then((editor) => {
+                    editor.selection = self._vscodeWrapper.selection(
+                                    self._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                    self._vscodeWrapper.position(selection.endLine, selection.endColumn));
                     resolve();
-                } else {
-                    self._vscodeWrapper.showTextDocument(doc).then((editor) => {
-                        editor.selection = self._vscodeWrapper.selection(
-                                        self._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                        self._vscodeWrapper.position(selection.endLine, selection.endColumn));
-                        resolve();
-                    });
-                }
+                });
             });
         });
     }
