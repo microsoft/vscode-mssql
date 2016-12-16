@@ -24,7 +24,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 ## What's new in 0.2.0
 * Peek Definition and Go To Definition support for Tables, Views and Stored Procedures.
-  * For a query such as `select * from dbo.Person` you can right-click on `dbo.Person` and see it as a `CREATE TABLE` script.
+  * For a query such as `select * from dbo.Person` you can right-click on `Person` and see it as a `CREATE TABLE` script.
   * Note: you must be connected to a database to use this feature.
 * Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.
 * Multiple improvements & fixes to the results view, Intellisense handling, and service installation notification.
