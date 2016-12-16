@@ -116,6 +116,11 @@
 
                 if (e.shiftKey) {
                     var last = _ranges.pop();
+
+                    // If we are on the rightmost edge of the range and we navigate left,
+                    // we want to deselect the rightmost cell
+                    if (last.fromCell <= newRangeColumn) { last.toCell -= 1; }
+
                     var fromRow = Math.min(activeCell.row, last.fromRow);
                     var fromCell = Math.min(newRangeColumn, last.fromCell);
                     var toRow = Math.max(activeCell.row, last.toRow);
@@ -139,10 +144,16 @@
                 var newRangeColumn = newActiveCellColumn - 1;
                 if (e.shiftKey) {
                     var last = _ranges.pop();
+
+                    // If we are on the leftmost edge of the range and we navigate right,
+                    // we want to deselect the leftmost cell
+                    if (newRangeColumn <= last.toCell) { last.fromCell += 1; }
+
                     var fromRow = Math.min(activeCell.row, last.fromRow);
-                    var fromCell = Math.min(newRangeColumn, last.fromCell)
+                    var fromCell = Math.min(newRangeColumn, last.fromCell);
                     var toRow = Math.max(activeCell.row, last.toRow);
                     var toCell = Math.max(newRangeColumn, last.toCell);
+
                     _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
                 } else {
                     _ranges = [new Slick.Range(activeCell.row, newRangeColumn, activeCell.row, newRangeColumn)];
@@ -194,9 +205,15 @@
                     } else if (e.which == up_arrow && activeCell.row > 0) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
+
+                            // If we are on the bottommost edge of the range and we navigate up,
+                            // we want to deselect the bottommost row
+                            var newRangeRow = activeCell.row - 1;
+                            if (last.fromRow <= newRangeRow) { last.toRow -= 1; }
+
                             var fromRow = Math.min(activeCell.row - 1, last.fromRow);
-                            var fromCell = Math.min(activeCell.cell - 1, last.fromCell)
-                            var toRow = Math.max(activeCell.row - 1, last.toRow);
+                            var fromCell = Math.min(activeCell.cell - 1, last.fromCell);
+                            var toRow = Math.max(newRangeRow, last.toRow);
                             var toCell = Math.max(activeCell.cell - 1, last.toCell);
                             _ranges = [new Slick.Range(fromRow, fromCell, toRow, toCell)];
                         } else {
@@ -218,6 +235,12 @@
                     } else if (e.which == down_arrow && activeCell.row < _grid.getDataLength() - 1) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
+
+                            // If we are on the topmost edge of the range and we navigate down,
+                            // we want to deselect the topmost row
+                            var newRangeRow = activeCell.row + 1;
+                            if (newRangeRow <= last.toRow) { last.fromRow +=1; }
+
                             var fromRow = Math.min(activeCell.row + 1, last.fromRow);
                             var fromCell = Math.min(activeCell.cell - 1, last.fromCell)
                             var toRow = Math.max(activeCell.row + 1, last.toRow);
@@ -235,10 +258,10 @@
 
         function handleHeaderClick(e, args) {
             var columnIndex = _grid.getColumnIndex(args.column.id);
-            if(e.ctrlKey || e.metaKey){
+            if (e.ctrlKey || e.metaKey){
                 _ranges.push(new Slick.Range(0, columnIndex, _grid.getDataLength()-1, columnIndex));
                 _grid.setActiveCell(0, columnIndex + 1);
-            } else if(e.shiftKey && _ranges.length) {
+            } else if (e.shiftKey && _ranges.length) {
                 var last = _ranges.pop().fromCell;
                 var from = Math.min(columnIndex, last);
                 var to = Math.max(columnIndex, last);
@@ -265,7 +288,7 @@
             }
 
             if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
-                if(cell.cell !== 0) {
+                if (cell.cell !== 0) {
                     _ranges = [new Slick.Range(cell.row, cell.cell-1, cell.row, cell.cell-1)];
                     setSelectedRanges(_ranges);
                     _grid.setActiveCell(cell.row, cell.cell);
