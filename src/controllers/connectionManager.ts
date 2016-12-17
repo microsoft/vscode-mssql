@@ -597,17 +597,17 @@ export default class ConnectionManager {
         }
     }
 
-    public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
+    public transferFileConnection(oldFileUri: string, newFileUri: string): void {
         // Is the new file connected or the old file not connected?
-        if (!this.isConnected(untitledUri) || this.isConnected(savedUri)) {
+        if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
         }
 
         // Connect the saved uri and disconnect the untitled uri on successful connection
-        let creds: Interfaces.IConnectionCredentials = this._connections[untitledUri].credentials;
-        this.connect(savedUri, creds).then(result => {
+        let creds: Interfaces.IConnectionCredentials = this._connections[oldFileUri].credentials;
+        this.connect(newFileUri, creds).then(result => {
             if (result) {
-                this.disconnect(untitledUri);
+                this.disconnect(oldFileUri);
             }
         });
     }

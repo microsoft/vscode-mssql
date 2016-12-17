@@ -36,6 +36,8 @@ export default class MainController implements vscode.Disposable {
     private _initialized: boolean = false;
     private _lastSavedUri: string;
     private _lastSavedTimer: Utils.Timer;
+    private _lastOpenedUri: string;
+    private _lastOpenedTimer: Utils.Timer;
 
     /**
      * The main controller constructor
@@ -300,6 +302,11 @@ export default class MainController implements vscode.Disposable {
         return this._connectionMgr;
     }
 
+    public set connectionManager(connectionManager: ConnectionManager) {
+        this._connectionMgr = connectionManager;
+    }
+
+
     /**
      * Verifies the extension is initilized and if not shows an error message
      */
@@ -378,41 +385,64 @@ export default class MainController implements vscode.Disposable {
 
     /**
      * Called by VS Code when a text document closes. This will dispatch calls to other
-     * controllers as needed. Determines if this was a closed file or if it was an instance
-     * where a file was saved to disk after being an untitled file.
+     * controllers as needed. Determines if this was a normal closed file, a untitled closed file,
+     * or a renamed file
      * @param doc The document that was closed
      */
-    private onDidCloseTextDocument(doc: vscode.TextDocument): void {
+    public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         let closedDocumentUri: string = doc.uri.toString();
         let closedDocumentUriScheme: string = doc.uri.scheme;
 
-        // Did we save a document before this close event? Was it an untitled document?
-        if (this._lastSavedUri && this._lastSavedTimer && closedDocumentUriScheme === Constants.untitledScheme) {
-            // Stop the save timer
+        // Stop timers if they have been started
+        if (this._lastSavedTimer) {
             this._lastSavedTimer.end();
+        }
 
-            // Check that we saved a document *just* before this close event
-            // If so, then we saved an untitled document and need to update where necessary
-            if (this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
-                this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
-            }
+        if (this._lastOpenedTimer) {
+            this._lastOpenedTimer.end();
+        }
 
-            // Reset the save timer
-            this._lastSavedTimer = undefined;
-            this._lastSavedUri = undefined;
+        // Determine which event caused this close event
+
+        // If there was a saveTextDoc event just before this closeTextDoc event and it
+        // was untitled then we know it was an untitled save
+        if (this._lastSavedUri &&
+                closedDocumentUriScheme === Constants.untitledScheme &&
+                this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
+            // Untitled file was saved and connection will be transfered
+            this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
+
+        // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
+        } else if (this._lastOpenedUri &&
+                this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
+            // File was renamed and connection will be transfered
+            this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastOpenedUri);
+
         } else {
-            // Pass along the close event to the other handlers
+            // Pass along the close event to the other handlers for a normal closed file
             this._connectionMgr.onDidCloseTextDocument(doc);
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
+
+
+        // Reset special case timers and events
+        this._lastSavedUri = undefined;
+        this._lastSavedTimer = undefined;
+        this._lastOpenedTimer = undefined;
+        this._lastOpenedUri = undefined;
     }
 
     /**
      * Called by VS Code when a text document is opened. Checks if a SQL file was opened
      * to enable features of our extension for the document.
      */
-    private onDidOpenTextDocument(doc: vscode.TextDocument): void {
+    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
         this._connectionMgr.onDidOpenTextDocument(doc);
+
+        // Setup properties incase of rename
+        this._lastOpenedTimer = new Utils.Timer();
+        this._lastOpenedTimer.start();
+        this._lastOpenedUri = doc.uri.toString();
     }
 
     /**
@@ -420,7 +450,7 @@ export default class MainController implements vscode.Disposable {
      * help determine if the file was a file saved from an untitled file.
      * @param doc The document that was saved
      */
-    private onDidSaveTextDocument(doc: vscode.TextDocument): void {
+    public onDidSaveTextDocument(doc: vscode.TextDocument): void {
         let savedDocumentUri: string = doc.uri.toString();
 
         // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
