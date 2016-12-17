@@ -409,14 +409,14 @@ export default class MainController implements vscode.Disposable {
         if (this._lastSavedUri &&
                 closedDocumentUriScheme === Constants.untitledScheme &&
                 this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
-            // Untitled file was saved
-            this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
+            // Untitled file was saved and connection will be transfered
+            this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
 
         // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (this._lastOpenedUri &&
                 this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
-            // File was renamed
-            this._connectionMgr.onDidRenameTextDocument(closedDocumentUri, this._lastOpenedUri);
+            // File was renamed and connection will be transfered
+            this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastOpenedUri);
 
         } else {
             // Pass along the close event to the other handlers for a normal closed file

@@ -597,33 +597,17 @@ export default class ConnectionManager {
         }
     }
 
-    public onDidRenameTextDocument(oldFileUri: string, newFileUri: string): void {
-        // Check if the old file is connected and the new one is not connected
-        if (!this.isConnected(newFileUri) && this.isConnected(oldFileUri)) {
-
-            // Connect the saved uri and disconnect the untitled uri on successful connection
-            let creds: Interfaces.IConnectionCredentials = this._connections[oldFileUri].credentials;
-
-            // Connect new Uri using same credential then disconnect old Uri
-            this.connect(newFileUri, creds).then(result => {
-                if (result) {
-                    this.disconnect(oldFileUri);
-                }
-            });
-        }
-    }
-
-    public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
+    public transferFileConnection(oldFileUri: string, newFileUri: string): void {
         // Is the new file connected or the old file not connected?
-        if (!this.isConnected(untitledUri) || this.isConnected(savedUri)) {
+        if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
         }
 
         // Connect the saved uri and disconnect the untitled uri on successful connection
-        let creds: Interfaces.IConnectionCredentials = this._connections[untitledUri].credentials;
-        this.connect(savedUri, creds).then(result => {
+        let creds: Interfaces.IConnectionCredentials = this._connections[oldFileUri].credentials;
+        this.connect(newFileUri, creds).then(result => {
             if (result) {
-                this.disconnect(untitledUri);
+                this.disconnect(oldFileUri);
             }
         });
     }

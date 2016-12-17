@@ -29,8 +29,7 @@ suite('MainController Tests', () => {
         mainController = Extension.getController();
         mainController.connectionManager = connectionManager.object;
         connectionManager.setup(x => x.onDidCloseTextDocument(TypeMoq.It.isAny()));
-        connectionManager.setup(x => x.onDidRenameTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
-        connectionManager.setup(x => x.onUntitledFileSaved(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
+        connectionManager.setup(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
     });
 
     test('onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager' , done => {
@@ -50,7 +49,7 @@ suite('MainController Tests', () => {
 
         // Verify renameDoc function was called
         try {
-            connectionManager.verify(x => x.onDidRenameTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
             done();
         } catch (err) {
             done(new Error(err));
@@ -65,7 +64,7 @@ suite('MainController Tests', () => {
         mainController.onDidSaveTextDocument(document);
         mainController.onDidCloseTextDocument(document);
         try {
-            connectionManager.verify(x => x.onUntitledFileSaved(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
             done();
         } catch (err) {
             done(new Error(err));
