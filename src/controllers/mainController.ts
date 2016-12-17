@@ -403,12 +403,16 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Determine which event caused this close event
+
+        // If there was a saveTextDoc event just before this closeTextDoc event and it
+        // was untitled then we know it was an untitled save
         if (this._lastSavedUri &&
                 closedDocumentUriScheme === Constants.untitledScheme &&
                 this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
             // Untitled file was saved
             this._connectionMgr.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
 
+        // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (this._lastOpenedUri &&
                 this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
             // File was renamed
