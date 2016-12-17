@@ -2,38 +2,74 @@
 import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
-import * as utils from '../src/models/utils';
-import * as Constants from '../src/models/constants';
-import * as stubs from './stubs';
-import * as interfaces from '../src/models/interfaces';
-import { CredentialStore } from '../src/credentialstore/credentialstore';
-import { ConnectionProfile } from '../src/models/connectionProfile';
-import { ConnectionStore } from '../src/models/connectionStore';
-import { ConnectionCredentials } from '../src/models/connectionCredentials';
-import { IPrompter, IQuestion} from '../src/prompts/question';
-import { TestPrompter } from './stubs';
-import { IConnectionProfile, IConnectionCredentials } from '../src/models/interfaces';
-import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import MainController from '../src/controllers/mainController.ts';
+import MainController from '../src/controllers/mainController';
+import ConnectionManager from '../src/controllers/connectionManager';
+import * as Extension from '../src/extension';
+import Constants = require('../src/models/constants');
 
-import assert = require('assert');
+// import assert = require('assert');
 
 suite('MainController Tests', () => {
     let document: vscode.TextDocument;
-    let wrapper: VscodeWrapper;
+    let mainController: MainController;
+    let connectionManager: TypeMoq.Mock<ConnectionManager>;
 
     setup(() => {
         // Setup a standard document
         document = <vscode.TextDocument> {
-
+            uri : {
+                toString(skipEncoding?: boolean): string {
+                    return 'testingURI.sql';
+                }
+            }
         };
-        let wrapper = new VscodeWrapper();
-        let mainController: MainController = new MainController();
 
+        connectionManager = TypeMoq.Mock.ofType(ConnectionManager);
+
+        mainController = Extension.getController();
+        mainController.connectionManager = connectionManager.object;
+        connectionManager.setup(x => x.onDidCloseTextDocument(TypeMoq.It.isAny()));
+        connectionManager.setup(x => x.onDidRenameTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
+        connectionManager.setup(x => x.onUntitledFileSaved(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
     });
 
-    test('onDidOpenTextDocument should call the connection managers onDidOpenTextDocument and register event' , done => {
-        mainController.onDidOpenTextDocument();
+    test('onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager' , done => {
+        mainController.onDidCloseTextDocument(document);
+        try {
+            connectionManager.verify(x => x.onDidCloseTextDocument(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            done();
+        } catch (err) {
+            done(new Error(err));
+        }
+    });
+
+    test('onDidCloseTextDocument should call renamedDoc function when rename occurs' , done => {
+        // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
+        mainController.onDidOpenTextDocument(document);
+        mainController.onDidCloseTextDocument(document);
+
+        // Verify renameDoc function was called
+        try {
+            connectionManager.verify(x => x.onDidRenameTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            done();
+        } catch (err) {
+            done(new Error(err));
+        }
+    });
+
+    test('onDidCloseTextDocument should untitledDoc function when an untitled file is saved' , done => {
+        // Scheme of older doc must be untitled
+        document.uri.scheme = Constants.untitledScheme;
+
+        // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
+        mainController.onDidSaveTextDocument(document);
+        mainController.onDidCloseTextDocument(document);
+        try {
+            connectionManager.verify(x => x.onUntitledFileSaved(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            done();
+        } catch (err) {
+            done(new Error(err));
+        }
     });
 
 });
