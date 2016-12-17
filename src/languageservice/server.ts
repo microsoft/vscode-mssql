@@ -7,7 +7,7 @@
 
 import * as path from 'path';
 import {Runtime} from '../models/platform';
-import ServiceDownloadProvider from './download';
+import ServiceDownloadProvider from './serviceDownloadProvider';
 import {IConfig, IStatusView} from './interfaces';
 let fs = require('fs-extra-promise');
 
@@ -88,7 +88,7 @@ export default class ServerProvider {
     public downloadServerFiles(runtime: Runtime): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
-            return this._downloadProvider.InstallSQLToolsService(runtime).then( _ => {
+            return this._downloadProvider.installSQLToolsService(runtime).then( _ => {
                 return this.findServerPath(installDirectory).then ( result => {
                     return resolve(result);
                 });
