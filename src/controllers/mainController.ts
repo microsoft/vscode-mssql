@@ -302,6 +302,11 @@ export default class MainController implements vscode.Disposable {
         return this._connectionMgr;
     }
 
+    public set connectionManager(connectionManager: ConnectionManager) {
+        this._connectionMgr = connectionManager;
+    }
+
+
     /**
      * Verifies the extension is initilized and if not shows an error message
      */
@@ -384,7 +389,7 @@ export default class MainController implements vscode.Disposable {
      * or a renamed file
      * @param doc The document that was closed
      */
-    private onDidCloseTextDocument(doc: vscode.TextDocument): void {
+    public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         let closedDocumentUri: string = doc.uri.toString();
         let closedDocumentUriScheme: string = doc.uri.scheme;
 
@@ -427,7 +432,7 @@ export default class MainController implements vscode.Disposable {
      * Called by VS Code when a text document is opened. Checks if a SQL file was opened
      * to enable features of our extension for the document.
      */
-    private onDidOpenTextDocument(doc: vscode.TextDocument): void {
+    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
         this._connectionMgr.onDidOpenTextDocument(doc);
 
         // Setup properties incase of rename
@@ -441,7 +446,7 @@ export default class MainController implements vscode.Disposable {
      * help determine if the file was a file saved from an untitled file.
      * @param doc The document that was saved
      */
-    private onDidSaveTextDocument(doc: vscode.TextDocument): void {
+    public onDidSaveTextDocument(doc: vscode.TextDocument): void {
         let savedDocumentUri: string = doc.uri.toString();
 
         // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
