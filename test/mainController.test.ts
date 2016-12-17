@@ -56,7 +56,7 @@ suite('MainController Tests', () => {
         }
     });
 
-    test('onDidCloseTextDocument should untitledDoc function when an untitled file is saved' , done => {
+    test('onDidCloseTextDocument should call untitledDoc function when an untitled file is saved' , done => {
         // Scheme of older doc must be untitled
         document.uri.scheme = Constants.untitledScheme;
 
@@ -70,5 +70,33 @@ suite('MainController Tests', () => {
             done(new Error(err));
         }
     });
+
+    test('onDidOpenTextDocument should propogate the function to the connectionManager' , done => {
+
+        // Call onDidOpenTextDocument to test it side effects
+        mainController.onDidOpenTextDocument(document);
+        try {
+            connectionManager.verify(x => x.onDidOpenTextDocument(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            done();
+        } catch (err) {
+            done(new Error(err));
+        }
+    });
+
+    test('onDidSaveTextDocument should propogate the function to the connectionManager' , done => {
+
+        // Call onDidOpenTextDocument to test it side effects
+        mainController.onDidSaveTextDocument(document);
+        try {
+            // Ensure no extraneous function is called
+            connectionManager.verify(x => x.onDidOpenTextDocument(TypeMoq.It.isAny()), TypeMoq.Times.never());
+            connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
+            done();
+        } catch (err) {
+            done(new Error(err));
+        }
+    });
+
+
 
 });
