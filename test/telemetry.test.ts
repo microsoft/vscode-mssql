@@ -5,7 +5,7 @@ import Telemetry from '../src/models/telemetry';
 suite('Telemetry Tests', () => {
     test('Correct version of applicationInsights is installed', () => {
         // Find the path of our extension
-        let ext = vscode.extensions.getExtension('Microsoft.mssql');
+        let ext = vscode.extensions.getExtension('ms-mssql.mssql');
 
         // Open the applicationInsights node module package.json
         const appInsightsPackage: any = require(
