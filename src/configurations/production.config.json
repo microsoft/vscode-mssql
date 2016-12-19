@@ -1,7 +1,7 @@
 {
     "service": {
-        "downloadUrl": "https://github.com/Microsoft/sqltoolsservice/releases/download/v{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
-        "version": "0.2.0-alpha.6",
+        "downloadUrl": "https://download.microsoft.com/download/1/2/9/129DBE92-1B54-4024-9399-CE31DF148BD8/microsoft.sqltools.servicelayer-{#fileName#}",
+        "version": "0.2.0",
         "downloadFileNames": {
             "Windows_7_64": "win-x64-netcoreapp1.0.zip",
             "OSX_10_11_64": "osx-x64-netcoreapp1.0.tar.gz",
