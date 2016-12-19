@@ -56,7 +56,9 @@ export default class ServiceDownloadProvider {
         let versionFromConfig = this._config.getSqlToolsPackageVersion();
         basePath = basePath.replace('{#version#}', versionFromConfig);
         basePath = basePath.replace('{#platform#}', getRuntimeDisplayName(platform));
-        fse.mkdirsSync(basePath);
+        if (!fse.existsSync(basePath)) {
+            fse.mkdirsSync(basePath);
+        }
         return basePath;
     }
 
@@ -115,13 +117,11 @@ export default class ServiceDownloadProvider {
                         }).catch(installError => {
                             reject(installError);
                         });
-                }).catch(err => {
-                    this._logger.appendLine(`[ERROR] ${err}`);
-                    reject(err);
+                }).catch(downloadError => {
+                    this._logger.appendLine(`[ERROR] ${downloadError}`);
+                    reject(downloadError);
                 });
             });
-        }).then(res => {
-            return res;
         });
     }
 
@@ -142,7 +142,8 @@ export default class ServiceDownloadProvider {
         this._statusView.installingService();
 
         return new Promise<void>((resolve, reject) => {
-            this._decompressProvider.decompress(pkg, this._logger, this._statusView).then(_ => {
+            this._decompressProvider.decompress(pkg, this._logger).then(_ => {
+                this._statusView.serviceInstalled();
                 resolve();
             }).catch(err  => {
                 reject(err);

@@ -43,5 +43,5 @@ export interface IHttpClient {
 }
 
 export interface IDecompressProvider {
-    decompress(pkg: IPackage, logger: ILogger, statusView: IStatusView): Promise<void>;
+    decompress(pkg: IPackage, logger: ILogger): Promise<void>;
 }
