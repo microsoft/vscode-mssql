@@ -40,7 +40,8 @@
     "onCommand:extension.disconnect",
     "onCommand:extension.manageProfiles",
     "onCommand:extension.chooseDatabase",
-    "onCommand:extension.cancelQuery"
+    "onCommand:extension.cancelQuery",
+    "onCommand:extension.showGettingStarted"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -172,6 +173,11 @@
       {
         "command": "extension.chooseDatabase",
         "title": "Use Database",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.showGettingStarted",
+        "title": "Getting Started Guide",
         "category": "MS SQL"
       }
     ],
