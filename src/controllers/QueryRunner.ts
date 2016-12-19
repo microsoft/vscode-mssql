@@ -317,7 +317,7 @@ export default class QueryRunner {
             });
 
             let p = tasks[0]();
-            for (let i = 1; 1 < tasks.length; i++) {
+            for (let i = 1; i < tasks.length; i++) {
                 p = p.then(tasks[i]);
             }
             p.then(() => {
