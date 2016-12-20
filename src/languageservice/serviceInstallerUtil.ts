@@ -5,7 +5,9 @@
 
 import {Runtime, PlatformInformation} from '../models/platform';
 import Config from  '../configurations/config';
-import ServiceDownloadProvider from './download';
+import ServiceDownloadProvider from './serviceDownloadProvider';
+import DecompressProvider from './decompressProvider';
+import HttpClient from './httpClient';
 import ServerProvider from './server';
 import {IStatusView} from './interfaces';
 import {ILogger} from '../models/interfaces';
@@ -51,7 +53,9 @@ class StubLogger implements ILogger {
 const config = new Config();
 const logger = new StubLogger();
 const statusView = new StubStatusView();
-let downloadProvider = new ServiceDownloadProvider(config, logger, statusView);
+const httpClient = new HttpClient();
+const decompressProvider = new DecompressProvider();
+let downloadProvider = new ServiceDownloadProvider(config, logger, statusView, httpClient, decompressProvider);
 let serverProvider = new  ServerProvider(downloadProvider, config, statusView);
 
 /*

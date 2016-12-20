@@ -16,7 +16,9 @@ import {VersionRequest} from '../models/contracts';
 import {Logger} from '../models/logger';
 import Constants = require('../models/constants');
 import ServerProvider from './server';
-import ServiceDownloadProvider from './download';
+import ServiceDownloadProvider from './serviceDownloadProvider';
+import DecompressProvider from './decompressProvider';
+import HttpClient from './httpClient';
 import ExtConfig from  '../configurations/extConfig';
 import {PlatformInformation} from '../models/platform';
 import {ServerInitializationResult, ServerStatusView} from './serverStatus';
@@ -132,7 +134,10 @@ export default class SqlToolsServiceClient {
             _channel = window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
             let logger = new Logger(text => _channel.append(text));
             let serverStatusView = new ServerStatusView();
-            let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView);
+            let httpClient = new HttpClient();
+            let decompressProvider = new DecompressProvider();
+            let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView, httpClient,
+            decompressProvider);
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
             let statusView = new StatusView();
             this._instance = new SqlToolsServiceClient(serviceProvider, logger, statusView);
