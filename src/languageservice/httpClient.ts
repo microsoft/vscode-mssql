@@ -90,17 +90,19 @@ export default class HttpClient implements IHttpClient {
         progress.downloadedBytes += data.length;
 
         // Update status bar item with percentage
-        let newPercentage = Math.ceil(100 * (progress.downloadedBytes / progress.packageSize));
-        if (newPercentage !== progress.downloadPercentage) {
-            statusView.updateServiceDownloadingProgress(progress.downloadPercentage);
-            progress.downloadPercentage = newPercentage;
-        }
+        if (progress.packageSize > 0) {
+            let newPercentage = Math.ceil(100 * (progress.downloadedBytes / progress.packageSize));
+            if (newPercentage !== progress.downloadPercentage) {
+                statusView.updateServiceDownloadingProgress(progress.downloadPercentage);
+                progress.downloadPercentage = newPercentage;
+            }
 
-        // Update dots after package name in output console
-        let newDots = Math.ceil(progress.downloadPercentage / 5);
-        if (newDots > progress.dots) {
-            logger.append('.'.repeat(newDots - progress.dots));
-            progress.dots = newDots;
+            // Update dots after package name in output console
+            let newDots = Math.ceil(progress.downloadPercentage / 5);
+            if (newDots > progress.dots) {
+                logger.append('.'.repeat(newDots - progress.dots));
+                progress.dots = newDots;
+            }
         }
         return;
     }
