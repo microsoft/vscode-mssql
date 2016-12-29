@@ -47,8 +47,7 @@ export default class MainController implements vscode.Disposable {
      */
     constructor(context: vscode.ExtensionContext,
                 connectionManager?: ConnectionManager,
-                vscodeWrapper?: VscodeWrapper,
-                untitledSqlDocumentService?: UntitledSqlDocumentService) {
+                vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -58,11 +57,7 @@ export default class MainController implements vscode.Disposable {
         } else {
             this._vscodeWrapper = new VscodeWrapper();
         }
-        if (untitledSqlDocumentService) {
-            this._untitledSqlDocumentService = untitledSqlDocumentService;
-        } else {
-            this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
-        }
+        this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
     }
 
     /**

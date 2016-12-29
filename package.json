@@ -205,11 +205,6 @@
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus && editorLangId == 'sql'"
-      },
-      {
-        "command": "extension.newQuery",
-        "key": "ctrl+shift+n",
-        "mac": "cmd+shift+n+q"
       }
     ],
     "configuration": {
