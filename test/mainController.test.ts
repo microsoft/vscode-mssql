@@ -4,6 +4,7 @@ import * as TypeMoq from 'typemoq';
 import vscode = require('vscode');
 import MainController from '../src/controllers/mainController';
 import ConnectionManager from '../src/controllers/connectionManager';
+import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
 import * as Extension from '../src/extension';
 import Constants = require('../src/models/constants');
 import assert = require('assert');
@@ -13,6 +14,7 @@ suite('MainController Tests', () => {
     let newDocument: vscode.TextDocument;
     let mainController: MainController;
     let connectionManager: TypeMoq.Mock<ConnectionManager>;
+    let untitledSqlDocumentService: TypeMoq.Mock<UntitledSqlDocumentService>;
     let docUri: string;
     let newDocUri: string;
     let docUriCallback: string;
@@ -52,6 +54,9 @@ suite('MainController Tests', () => {
         // Setting up a mocked connectionManager
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager);
         mainController.connectionManager = connectionManager.object;
+
+        untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
+        mainController.untitledSqlDocumentService = untitledSqlDocumentService.object;
 
         // Watching these functions and input paramters
         connectionManager.setup(x => x.onDidOpenTextDocument(TypeMoq.It.isAny())).callback((doc) => {
@@ -173,4 +178,26 @@ suite('MainController Tests', () => {
         }
     });
 
+    test('onNewQuery should call the new query and new connection' , () => {
+
+        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(true));
+        connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(true));
+
+        return mainController.onNewQuery().then(result => {
+            untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
+            connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.once());
+        });
+    });
+
+    test('onNewQuery should not call the new connection if new query fails' , done => {
+
+        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<boolean>('error'); } );
+        connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(true); } );
+
+        mainController.onNewQuery().catch(error => {
+            untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
+            connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.never());
+            done();
+        });
+    });
 });

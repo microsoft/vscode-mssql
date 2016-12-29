@@ -15,6 +15,7 @@ export const cmdDisconnect = 'extension.disconnect';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 export const cmdShowGettingStarted = 'extension.showGettingStarted';
+export const cmdNewQuery = 'extension.newQuery';
 export const cmdManageConnectionProfiles = 'extension.manageProfiles';
 
 export const sqlDbPrefix = '.database.windows.net';
