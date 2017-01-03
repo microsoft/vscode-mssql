@@ -110,8 +110,6 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/slickgrid/slick.core.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.grid.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.editors.js',
-            config.paths.html.root + '/src/js/slick.dragrowselector.js',
-            config.paths.html.root + '/src/js/slick.autosizecolumn.js',
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
             config.paths.html.root + '/node_modules/zone.js/dist/zone.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
@@ -130,8 +128,6 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/slickgrid/slick.core.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.grid.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.editors.js',
-            config.paths.html.root + '/src/js/slick.dragrowselector.js',
-            config.paths.html.root + '/src/js/slick.autosizecolumn.js',
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
@@ -223,6 +219,20 @@ gulp.task('html:copy:assets', (done) => {
             })
         })
     );
+    promises.push(new Promise((resolve) => {
+            gulp.src([
+                config.paths.html.root + '/src/js/**/*.js',
+            ])
+            .pipe(srcmap.init())
+            .pipe(minifier({mangle: false}, uglifyjs))
+            .pipe(srcmap.write('.', {
+                sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent/src/js'; }
+            }))
+            .pipe(gulp.dest(config.paths.html.out + '/dist/js'))
+            .on('end', () => {
+                resolve();
+            })
+        }));
 
     Promise.all(promises).then(() => done());
 });
