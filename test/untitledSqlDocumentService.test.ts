@@ -1,7 +1,7 @@
 import * as TypeMoq from 'typemoq';
 import vscode = require('vscode');
 import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
-import VscodeWrapper from '../src/controllers/VscodeWrapper';
+import VscodeWrapper from '../src/controllers/vscodeWrapper';
 const fse = require('fs-extra');
 const fs = require('fs');
 
