@@ -10,7 +10,7 @@ import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, Sl
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon, ISelectionData, IResultMessage } from './../interfaces';
+import { IGridIcon, ISelectionData/*, IResultMessage */} from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
@@ -35,12 +35,11 @@ interface IGridDataSet {
     minHeight: number | string;
 }
 
-interface IMessages {
-    messages: IResultMessage[];
-    hasError: boolean;
-    selection: ISelectionData;
-    startTime: string;
-    endTime: string;
+interface IMessage {
+    batchId?: number;
+    isError: boolean;
+    time: string;
+    message: string;
 }
 
     // tslint:disable:max-line-length
@@ -92,7 +91,14 @@ const template = `
                 <col span="1" class="wide">
             </colgroup>
             <tbody>
-                <template ngFor let-imessage [ngForOf]="messages">
+                <template ngFor let-message [ngForOf]="messages">
+                    <tr>
+                        <td><span *ngIf="message.batchId">[{{message.time}}]</span></td>
+                        <td class="messageValue" [class.errorMessage]="message.hasError" [class.batchMessage]="message.batchId">{{message.message}}</td>
+                    </tr>
+                </template>
+
+                <!--<template ngFor let-imessage [ngForOf]="messages">
                     <tr *ngIf="imessage.selection">
                         <td>[{{imessage.startTime}}]</td>
                         <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
@@ -101,7 +107,7 @@ const template = `
                         <td></td>
                         <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
                     </tr>
-                </template>
+                </template>-->
                 <tr id='executionSpinner' *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
                     <td>
@@ -255,7 +261,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private placeHolderDataSets: IGridDataSet[] = [];
     // Datasets currently being rendered on the DOM
     private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
-    private messages: IMessages[] = [];
+    private messages: IMessage[] = [];
     private scrollTimeOut: number;
     private messagesAdded = false;
     private resizing = false;
@@ -316,45 +322,49 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.complete = true;
                     self.messagesAdded = true;
                 break;
-                case 'batchStart':
-                    let startedBatch = event.data;
+                case 'message':
+                    self.messages.push(event.data);
+                    break;
 
-                    // Create the messages holder for the batch
-                    let messages: IMessages = {
-                        messages: [],
-                        hasError: false,
-                        selection: startedBatch.selection,
-                        startTime: new Date(startedBatch.executionStart).toLocaleTimeString(),
-                        endTime: undefined
-                    };
-                    self.messages[startedBatch.id] = messages;
-                break;
-                case 'batchComplete':
-                    let completedBatch = event.data;
+                // case 'batchStart':
+                //     let startedBatch = event.data;
 
-                    // Store the elapsed time of the batch
-                    let exeTime = Utils.parseTimeString(completedBatch.executionElapsed);
-                    if (exeTime) {
-                        this.totalElapsedExecution += <number>exeTime;
-                    }
+                //     // Create the messages holder for the batch
+                //     let messages: IMessages = {
+                //         // messages: [],
+                //         hasError: false,
+                //         // selection: startedBatch.selection,
+                //         startTime: new Date(startedBatch.executionStart).toLocaleTimeString(),
+                //         endTime: undefined
+                //     };
+                //     self.messages[startedBatch.id] = messages;
+                // break;
+                // case 'batchComplete':
+                //     let completedBatch = event.data;
 
-                    // Set the values we didn't have before
-                    let batchMessages = self.messages[completedBatch.id];
-                    batchMessages.messages = completedBatch.messages.map(m => {
-                        return {
-                            time: new Date(m.time).toLocaleTimeString(),
-                            message: m.message
-                        };
-                    });
-                    batchMessages.hasError = completedBatch.hasError;
-                    batchMessages.endTime = new Date(completedBatch.executionEnd).toLocaleTimeString();
+                //     // Store the elapsed time of the batch
+                //     let exeTime = Utils.parseTimeString(completedBatch.executionElapsed);
+                //     if (exeTime) {
+                //         this.totalElapsedExecution += <number>exeTime;
+                //     }
 
-                    // If we have an error, set the messages to be shown
-                    if (completedBatch.hasError) {
-                        self._messageActive = true;
-                    }
-                    self.messagesAdded = true;
-                break;
+                //     // Set the values we didn't have before
+                //     let batchMessages = self.messages[completedBatch.id];
+                //     /* batchMessages.messages = completedBatch.messages.map(m => {
+                //         return {
+                //             time: new Date(m.time).toLocaleTimeString(),
+                //             message: m.message
+                //         };
+                //     }); */
+                //     batchMessages.hasError = completedBatch.hasError;
+                //     batchMessages.endTime = new Date(completedBatch.executionEnd).toLocaleTimeString();
+
+                //     // If we have an error, set the messages to be shown
+                //     if (completedBatch.hasError) {
+                //         self._messageActive = true;
+                //     }
+                //     self.messagesAdded = true;
+                // break;
                 case 'resultSet':
                     let resultSet = event.data;
 

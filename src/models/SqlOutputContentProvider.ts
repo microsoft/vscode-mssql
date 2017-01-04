@@ -300,6 +300,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             queryRunner.eventEmitter.on('batchComplete', (batch) => {
                 this._service.broadcast(resultsUri, 'batchComplete', batch);
             });
+            queryRunner.eventEmitter.on('message', (message) => {
+                this._service.broadcast(resultsUri, 'message', message);
+            });
             queryRunner.eventEmitter.on('complete', () => {
                 this._service.broadcast(resultsUri, 'complete');
             });
