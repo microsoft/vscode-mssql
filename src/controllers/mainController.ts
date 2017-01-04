@@ -52,11 +52,8 @@ export default class MainController implements vscode.Disposable {
         if (connectionManager) {
             this._connectionMgr = connectionManager;
         }
-        if (vscodeWrapper) {
-            this._vscodeWrapper = vscodeWrapper;
-        } else {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
+        this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
+
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
     }
 
