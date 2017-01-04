@@ -13,7 +13,6 @@ export class BatchSummary {
     hasError: boolean;
     id: number;
     selection: ISelectionData;
-    messages: IResultMessage[];
     resultSetSummaries: ResultSetSummary[];
     executionElapsed: string;
     executionEnd: string;
@@ -38,22 +37,19 @@ export class QueryDisposeResult {
 }
 // --------------------------------- </ Query Dispose Request > ----------------------------------------
 
-// -------------------------- < Query Execution Complete Notification > -------------------------------
+// Query Execution Complete Notification ----------------------------------------------------------
 export namespace QueryExecuteCompleteNotification {
     export const type: NotificationType<QueryExecuteCompleteNotificationResult> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/complete';
-                                                                                        }
-                                                                                  };
+        get method(): string {
+            return 'query/complete';
+        }
+    };
 }
 
 export class QueryExecuteCompleteNotificationResult {
     ownerUri: string;
     batchSummaries: BatchSummary[];
-    message: string;
 }
-
-// -------------------------- </ Query Execution Complete Notification > -------------------------------
 
 // Query Batch Notification -----------------------------------------------------------------------
 export class QueryExecuteBatchNotificationParams {
@@ -93,15 +89,28 @@ export class QueryExecuteResultSetCompleteNotificationParams {
     ownerUri: string;
 }
 
-// /Query ResultSet Complete Notification ----------------------------------------------------------
 
-// --------------------------------- < Query Execution Request > ---------------------------------------
+// Query Message Notification ---------------------------------------------------------------------
+export namespace QueryExecuteMessageNotification {
+    export const type: NotificationType<QueryExecuteMessageParams> = {
+        get method(): string {
+            return 'query/message';
+        }
+    };
+}
+
+export class QueryExecuteMessageParams {
+    message: IResultMessage;
+    ownerUri: string;
+}
+
+// Query Execution Request ------------------------------------------------------------------------
 export namespace QueryExecuteRequest {
     export const type: RequestType<QueryExecuteParams, QueryExecuteResult, void> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/execute';
-                                                                                        }
-                                                                                    };
+        get method(): string {
+            return 'query/execute';
+        }
+    };
 }
 
 export class QueryExecuteParams {
@@ -109,11 +118,7 @@ export class QueryExecuteParams {
     querySelection: ISelectionData;
 }
 
-export class QueryExecuteResult {
-    messages: string;
-}
-
-// --------------------------------- </ Query Execution Request > ---------------------------------------
+export class QueryExecuteResult {}
 
 // --------------------------------- < Query Results Request > ------------------------------------------
 export namespace QueryExecuteSubsetRequest {

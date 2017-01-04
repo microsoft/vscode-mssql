@@ -99,7 +99,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     for (let [batchIndex, batch] of batchSets.entries()) {
                         let tempBatch: Interfaces.IGridBatchMetaData = {
                             resultSets: [],
-                            messages: batch.messages,
                             hasError: batch.hasError,
                             selection: batch.selection,
                             startTime: batch.executionStart,
@@ -125,10 +124,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 // did not find query (most likely expired)
                 let tempBatch: Interfaces.IGridBatchMetaData = {
                     resultSets: undefined,
-                    messages: [{
-                        time: undefined,
-                        message: Constants.unfoundResult
-                    }],
+                    // TODO: Remove message
+                    // messages: [{
+                    //     time: undefined,
+                    //     message: Constants.unfoundResult
+                    // }],
                     hasError: undefined,
                     selection: undefined,
                     startTime: undefined,

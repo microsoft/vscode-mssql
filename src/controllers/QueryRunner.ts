@@ -9,6 +9,7 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
+    QueryExecuteMessageParams,
     QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
@@ -60,6 +61,7 @@ export default class QueryRunner {
         this._uri = _ownerUri;
         this._title = _editorTitle;
         this._isExecuting = false;
+        this.batchSets = [];
     }
 
     // PROPERTIES //////////////////////////////////////////////////////////
@@ -106,76 +108,42 @@ export default class QueryRunner {
 
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(selection: ISelectionData): Thenable<void> {
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
         const self = this;
-        this.batchSets = [];
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
+
+        // Put together the request
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
             querySelection: selection
         };
+
+        // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
         this._statusView.executingQuery(this.uri);
-
-        self._batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
+        this._batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
             self.dataResolveReject = {resolve: resolve, reject: reject};
         });
 
+        // Send the request to execute the query
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
+            // The query has started, so lets fire up the result pane
             self.eventEmitter.emit('start');
-            if (result.messages) { // Show informational messages if there was no query to execute
-                self._statusView.executedQuery(self.uri);
-                self._isExecuting = false;
-                self.batchSets = [{
-                        hasError: false,
-                        id: 0,
-                        selection: undefined,
-                        messages: [{message: result.messages, time: undefined}],
-                        resultSetSummaries: undefined,
-                        executionElapsed: undefined,
-                        executionEnd: undefined,
-                        executionStart: undefined
-                    }];
-                self.dataResolveReject.resolve();
-                this.eventEmitter.emit('batchStart', self._batchSets[0]);
-                this.eventEmitter.emit('batchComplete', self._batchSets[0]);
-            } else {
-                // register with the Notification Handler
-                self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
-            }
-            self.eventEmitter.emit('complete');
+            self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
         }, error => {
+            // Attempting to launch the query failed, show the error message
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
-
-            // if the query failed, then create a new empty pane and close it
-            self.eventEmitter.emit('start');
-            self.eventEmitter.emit('complete');
             self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }
 
     // handle the result of the notification
-    public handleResult(result: QueryExecuteCompleteNotificationResult): void {
+    public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
         this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgFinishedExecute, this._uri));
+
+        // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
-        if (result.message) {
-            // Error occured during execution
-            this._statusView.executedQuery(this.uri);
-            this.batchSets = [{
-                hasError: true,
-                id: 0,
-                selection: undefined,
-                messages: [{ time: undefined, message: result.message }],
-                resultSetSummaries: [],
-                executionElapsed: undefined,
-                executionEnd: undefined,
-                executionStart: undefined
-            }];
-            this.dataResolveReject.resolve(this.batchSets);
-            this.eventEmitter.emit('complete');
-            return;
-        }
         this.batchSets = result.batchSummaries;
 
         this.batchSets.map((batch) => {
@@ -184,6 +152,8 @@ export default class QueryRunner {
                 batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
             }
         });
+
+        // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
         this.eventEmitter.emit('complete');
@@ -221,6 +191,13 @@ export default class QueryRunner {
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
         this.eventEmitter.emit('resultSet', resultSet);
+    }
+
+    public handleMessage(obj: QueryExecuteMessageParams): void {
+        let message = obj.message;
+
+        // Send the message to the results pane
+        this.eventEmitter.emit('message', message);
     }
 
     // get more data rows from the current resultSets from the service layer
