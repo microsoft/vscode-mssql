@@ -237,7 +237,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i:\b(on|((is\s+)?not\s+)?null)\b)</string>
+			<string>(?i:\b(on|off|((is\s+)?not\s+)?null)\b)</string>
 			<key>name</key>
 			<string>keyword.other.DDL.create.II.sql</string>
 		</dict>
