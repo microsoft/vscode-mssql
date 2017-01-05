@@ -269,4 +269,20 @@ export default class VscodeWrapper {
     public get workspaceRootPath(): string {
         return vscode.workspace.rootPath;
     }
+
+    /**
+     * The folder that is open in VS Code. `undefined` when no folder
+     * has been opened.
+     *
+     * @readonly
+     * @see vscode.workspace.rootPath
+     */
+    public doesResultPaneExist(resultsUri: string): boolean {
+        let resultPaneURIMatch = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
+        return (resultPaneURIMatch !== undefined);
+    }
+
+    public newResultPaneViewColumn(): vscode.ViewColumn {
+        return vscode.ViewColumn.Two;
+    }
 }
