@@ -271,33 +271,40 @@ export default class VscodeWrapper {
     }
 
     /**
-     * The folder that is open in VS Code. `undefined` when no folder
-     * has been opened.
-     *
-     * @readonly
-     * @see vscode.workspace.rootPath
+     * Returns wether or not a result pane with the same URI exists
+     * @param The string value of a Uri.
+     * @return Existence boolean
      */
     public doesResultPaneExist(resultsUri: string): boolean {
         let resultPaneURIMatch = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
         return (resultPaneURIMatch !== undefined);
     }
 
+    /**
+     * Returns which column should be used for a new result pane
+     * @return ViewColumn to be used
+     */
     public newResultPaneViewColumn(): vscode.ViewColumn {
+        // Find configuration options
         let config = this.getConfiguration(Constants.extensionConfigSectionName);
         let splitPaneSelection = config[Constants.configSplitPaneSelection];
-        let viewColumn: vscode.ViewColumn = vscode.ViewColumn.Two;
+        let viewColumn: vscode.ViewColumn;
 
-        if (splitPaneSelection === 'same') {
+
+        switch (splitPaneSelection) {
+        case 'same' :
             viewColumn = this.activeTextEditor.viewColumn;
-        } else if (splitPaneSelection === 'last') {
+            break;
+        case 'last' :
             viewColumn = vscode.ViewColumn.Three;
-        // case where splitPaneSelection is next or anything else
-        } else {
+            break;
+        // default case where splitPaneSelection is next or anything else
+        default :
             if (this.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
                 viewColumn = vscode.ViewColumn.Two;
             } else {
                 viewColumn = vscode.ViewColumn.Three;
-            }
+            };
         }
 
         return viewColumn;
