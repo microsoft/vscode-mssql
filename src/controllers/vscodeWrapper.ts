@@ -283,6 +283,23 @@ export default class VscodeWrapper {
     }
 
     public newResultPaneViewColumn(): vscode.ViewColumn {
-        return vscode.ViewColumn.Two;
+        let config = this.getConfiguration(Constants.extensionConfigSectionName);
+        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let viewColumn: vscode.ViewColumn = vscode.ViewColumn.Two;
+
+        if (splitPaneSelection === 'same') {
+            viewColumn = this.activeTextEditor.viewColumn;
+        } else if (splitPaneSelection === 'last') {
+            viewColumn = vscode.ViewColumn.Three;
+        // case where splitPaneSelection is next or anything else
+        } else {
+            if (this.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
+                viewColumn = vscode.ViewColumn.Two;
+            } else {
+                viewColumn = vscode.ViewColumn.Three;
+            }
+        }
+
+        return viewColumn;
     }
 }

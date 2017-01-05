@@ -55,6 +55,7 @@ export const configSaveAsJson = 'saveAsJson';
 export const configRecentConnections = 'recentConnections';
 export const configMaxRecentConnections = 'maxRecentConnections';
 export const configCopyRemoveNewLine = 'copyRemoveNewLine';
+export const configSplitPaneSelection = 'splitPaneSelection';
 
 
 // localizable strings
