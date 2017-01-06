@@ -444,12 +444,12 @@
         },
         "mssql.splitPaneSelection": {
           "type": "string",
-          "description": "[Optional] Configuration options for which column new result panes should open in (Options: {'next'|'same'|'last'})",
+          "description": "[Optional] Configuration options for which column new result panes should open in",
           "default": "next",
           "enum": [
             "next",
-            "same",
-            "last"
+            "current",
+            "end"
           ]
         }
       }

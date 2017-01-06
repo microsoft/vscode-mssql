@@ -269,5 +269,4 @@ export default class VscodeWrapper {
     public get workspaceRootPath(): string {
         return vscode.workspace.rootPath;
     }
-
 }

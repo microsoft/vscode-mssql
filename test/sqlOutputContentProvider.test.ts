@@ -83,7 +83,8 @@ suite('SqlOutputProvider Tests', () => {
 });
 
 
-// TODO: rewrite all the outputprodiver handle tests (old ones kept for reference)
+// TODO: rewrite all the outputprovider handle tests (old ones kept for reference)
+// Tracked by issue #584
 /*
 // Imports used by previous tests
 

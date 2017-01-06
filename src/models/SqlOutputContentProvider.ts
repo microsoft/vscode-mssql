@@ -316,7 +316,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         // Check if the results window already exists
         if (this.doesResultPaneExist(resultsUri)) {
-            // Implicity Use existsing results window by not providing an pane
+            // Implicity Use existing results window by not providing a pane
             vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
         } else {
             // Wrapper tells us where the new results pane should be placed
@@ -536,13 +536,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     /**
-     * Returns wether or not a result pane with the same URI exists
+     * Returns whether or not a result pane with the same URI exists
      * @param The string value of a Uri.
-     * @return Existence boolean
+     * @return boolean true if pane exists
      * public for testing purposes
      */
     public doesResultPaneExist(resultsUri: string): boolean {
-        let resultPaneURIMatch = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
+        let resultPaneURIMatch = this._vscodeWrapper.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
         return (resultPaneURIMatch !== undefined);
     }
 
@@ -559,10 +559,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
 
         switch (splitPaneSelection) {
-        case 'same' :
+        case 'current' :
             viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
             break;
-        case 'last' :
+        case 'end' :
             viewColumn = vscode.ViewColumn.Three;
             break;
         // default case where splitPaneSelection is next or anything else
