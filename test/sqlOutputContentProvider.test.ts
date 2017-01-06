@@ -1,43 +1,23 @@
-/* tslint:disable */
-// The module 'assert' provides assertion methods from node
 'use strict';
-import * as TypeMoq from 'typemoq';
-import assert = require('assert');
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider';
-import LocalWebService from '../src/controllers/localWebService';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';
-import Interfaces = require('../src/models/interfaces');
 import Constants = require('../src/models/constants');
 import vscode = require('vscode');
-let results = require('./resources/results.json');
-let messages = require('./resources/messages.json');
-const pd = require('pretty-data').pd;
-const fs = require('fs');
-let request = require('request');
-let metadata = [
-    {
-        'columnsUri': '/' + Constants.outputContentTypeColumns + '?id=0',
-        'rowsUri': '/' + Constants.outputContentTypeRows + '?id=0'
-    }
-]
+import * as TypeMoq from 'typemoq';
+import assert = require('assert');
 
 suite('SqlOutputProvider Tests', () => {
-    // let port: string;
-    // let file = '/out/test/resources/sqlTest.sql';
     let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
     let context: TypeMoq.Mock<vscode.ExtensionContext>;
     let statusView: TypeMoq.Mock<StatusView>;
-    // let path: string;
 
     setup(() => {
-        // port = LocalWebService._servicePort;
-        // path = vscode.extensions.getExtension('microsoft.vscode-mssql').extensionPath;
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
         context.object.extensionPath = '';
@@ -47,26 +27,26 @@ suite('SqlOutputProvider Tests', () => {
 
     });
 
-    function setSplitPaneSelectionConfig(value: string): void {
-        let configResult: {[key: string]: any} = {};
-        configResult[Constants.configSplitPaneSelection] = value;
-        let config = stubs.createWorkspaceConfiguration(configResult);
-        vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
-        .returns(x => {
-            return config;
-        });
-    }
+    test('Correctly outputs the new result pane view column', done => {
+        function setSplitPaneSelectionConfig(value: string): void {
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.configSplitPaneSelection] = value;
+            let config = stubs.createWorkspaceConfiguration(configResult);
+            vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+            .returns(x => {
+                return config;
+            });
+        }
 
-    function setCurrentEditorColumn(column: number): void {
-        vscodeWrapper.setup(x => x.activeTextEditor)
-        .returns(x => {
-            let editor: vscode.TextEditor = new stubs.TestTextEditor();
-            editor.viewColumn = column;
-            return editor;
-        });
-    }
+        function setCurrentEditorColumn(column: number): void {
+            vscodeWrapper.setup(x => x.activeTextEditor)
+            .returns(x => {
+                let editor: vscode.TextEditor = new stubs.TestTextEditor();
+                editor.viewColumn = column;
+                return editor;
+            });
+        }
 
-    test("Correctly outputs the new result pane view column", done => {
         class Case {
             position: number;
             config: string;
@@ -82,7 +62,7 @@ suite('SqlOutputProvider Tests', () => {
             {position: 3, config: 'same', expectedColumn: 3},
             {position: 1, config: 'last', expectedColumn: 3},
             {position: 2, config: 'last', expectedColumn: 3},
-            {position: 3, config: 'last', expectedColumn: 3},
+            {position: 3, config: 'last', expectedColumn: 3}
         ];
 
         try {
@@ -100,8 +80,36 @@ suite('SqlOutputProvider Tests', () => {
         }
     });
 
-//TODO: rewrite all the outputprodiver tests
+});
+
+
+// TODO: rewrite all the outputprodiver handle tests (old ones kept for reference)
 /*
+// Imports used by previous tests
+
+import LocalWebService from '../src/controllers/localWebService';
+import Interfaces = require('../src/models/interfaces');
+let results = require('./resources/results.json');
+let messages = require('./resources/messages.json');
+const pd = require('pretty-data').pd;
+const fs = require('fs');
+let request = require('request');
+let metadata = [
+    {
+        'columnsUri': '/' + Constants.outputContentTypeColumns + '?id=0',
+        'rowsUri': '/' + Constants.outputContentTypeRows + '?id=0'
+    }
+]
+
+    // Old Decleration area
+    // let port: string;
+    // let file = '/out/test/resources/sqlTest.sql';
+    // let path: string;
+
+    // Old Setup Area
+    // port = LocalWebService._servicePort;
+    // path = vscode.extensions.getExtension('microsoft.vscode-mssql').extensionPath;
+
     test("Initial Server Responses", () => {
         let uri = contentProvider.updateContent(messages, results);
         let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri;
@@ -150,4 +158,3 @@ suite('SqlOutputProvider Tests', () => {
         });
     });
 */
-});
