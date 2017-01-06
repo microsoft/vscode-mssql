@@ -10,7 +10,7 @@ import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, Sl
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon, ISelectionData/*, IResultMessage */} from './../interfaces';
+import { IGridIcon, ISelectionData } from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
@@ -35,14 +35,20 @@ interface IGridDataSet {
     minHeight: number | string;
 }
 
+interface ILink {
+    text: string;
+    uri: string;
+}
+
 interface IMessage {
     batchId?: number;
     isError: boolean;
     time: string;
     message: string;
+    link: ILink;
 }
 
-    // tslint:disable:max-line-length
+// tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
     <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
@@ -93,21 +99,11 @@ const template = `
             <tbody>
                 <template ngFor let-message [ngForOf]="messages">
                     <tr>
-                        <td><span *ngIf="message.batchId">[{{message.time}}]</span></td>
-                        <td class="messageValue" [class.errorMessage]="message.hasError" [class.batchMessage]="message.batchId">{{message.message}}</td>
+                        <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
+                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="{{message.link.uri}}">{{message.link.text}}</a>
+                        </td>
                     </tr>
                 </template>
-
-                <!--<template ngFor let-imessage [ngForOf]="messages">
-                    <tr *ngIf="imessage.selection">
-                        <td>[{{imessage.startTime}}]</td>
-                        <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
-                    </tr>
-                    <tr *ngFor="let message of imessage.messages">
-                        <td></td>
-                        <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
-                    </tr>
-                </template>-->
                 <tr id='executionSpinner' *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
                     <td>
@@ -117,7 +113,7 @@ const template = `
                 </tr>
                 <tr *ngIf="complete">
                     <td></td>
-                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapsedExecution))}}</td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapsedMilliseconds))}}</td>
                 </tr>
             </tbody>
         </table>
@@ -125,7 +121,7 @@ const template = `
     <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
 </div>
 `;
-    // tslint:enable:max-line-length
+// tslint:enable:max-line-length
 
 /**
  * Top level app component which runs and controls the SlickGrid implementation
@@ -138,8 +134,11 @@ const template = `
     styles: [`
     .errorMessage {
         color: var(--color-error);
-    }`
-    ]
+    }
+    .batchMessage {
+        padding-left: 20px;
+    }
+    `]
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {
@@ -278,7 +277,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;
-    private totalElapsedExecution: number;
+    private totalElapsedMilliseconds: number;
     private complete = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -304,7 +303,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     ngOnInit(): void {
         const self = this;
-        this.totalElapsedExecution = 0;
+        this.totalElapsedMilliseconds = 0;
         this.setupResizeBind();
         this.dataService.config.then((config) => {
             this.config = config;
@@ -325,46 +324,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 case 'message':
                     self.messages.push(event.data);
                     break;
-
-                // case 'batchStart':
-                //     let startedBatch = event.data;
-
-                //     // Create the messages holder for the batch
-                //     let messages: IMessages = {
-                //         // messages: [],
-                //         hasError: false,
-                //         // selection: startedBatch.selection,
-                //         startTime: new Date(startedBatch.executionStart).toLocaleTimeString(),
-                //         endTime: undefined
-                //     };
-                //     self.messages[startedBatch.id] = messages;
-                // break;
-                // case 'batchComplete':
-                //     let completedBatch = event.data;
-
-                //     // Store the elapsed time of the batch
-                //     let exeTime = Utils.parseTimeString(completedBatch.executionElapsed);
-                //     if (exeTime) {
-                //         this.totalElapsedExecution += <number>exeTime;
-                //     }
-
-                //     // Set the values we didn't have before
-                //     let batchMessages = self.messages[completedBatch.id];
-                //     /* batchMessages.messages = completedBatch.messages.map(m => {
-                //         return {
-                //             time: new Date(m.time).toLocaleTimeString(),
-                //             message: m.message
-                //         };
-                //     }); */
-                //     batchMessages.hasError = completedBatch.hasError;
-                //     batchMessages.endTime = new Date(completedBatch.executionEnd).toLocaleTimeString();
-
-                //     // If we have an error, set the messages to be shown
-                //     if (completedBatch.hasError) {
-                //         self._messageActive = true;
-                //     }
-                //     self.messagesAdded = true;
-                // break;
                 case 'resultSet':
                     let resultSet = event.data;
 

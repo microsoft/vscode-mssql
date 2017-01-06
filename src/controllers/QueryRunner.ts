@@ -173,7 +173,19 @@ export default class QueryRunner {
 
         // Store the batch
         this._batchSets[batch.id] = batch;
-        this.eventEmitter.emit('batchStart', batch);
+
+        // Submit a message to indicate the start of the batch
+        let message = {
+            message: Constants.runQueryBatchStartMessage,
+            batchId: undefined,
+            isError: false,
+            time: new Date().toLocaleTimeString(),
+            link: {
+                uri: 'http://google.com',
+                text: Utils.formatString(Constants.runQueryBatchStartLine, batch.selection.startLine + 1)
+            }
+        };
+        this.eventEmitter.emit('message', message);
     }
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
@@ -195,6 +207,7 @@ export default class QueryRunner {
 
     public handleMessage(obj: QueryExecuteMessageParams): void {
         let message = obj.message;
+        message.time = new Date(message.time).toLocaleTimeString();
 
         // Send the message to the results pane
         this.eventEmitter.emit('message', message);

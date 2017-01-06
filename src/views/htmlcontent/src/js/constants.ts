@@ -11,9 +11,7 @@ export const copyWithHeadersLabel = 'Copy with Headers';
 /** Messages Pane Labels */
 export const executeQueryLabel = 'Executing query...';
 export const messagePaneLabel = 'Messages';
-export const messageStartLabel = 'Started executing query at ';
 export const lineSelectorFormatted = 'Line {0}';
-export const messageEndLabel = 'Completed';
 export const elapsedTimeLabel = 'Total execution time: {0}';
 
 /** Warning message for save icons */

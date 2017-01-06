@@ -64,3 +64,7 @@ export function parseNumAsTimeString(value: number): string {
 
     return tempVal > 0 ? rs + '.' + mss : rs;
 }
+
+export function isNumber(val: any): boolean {
+    return typeof(val) === 'number';
+}
