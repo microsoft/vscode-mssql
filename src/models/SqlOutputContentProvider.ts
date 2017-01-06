@@ -539,8 +539,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      * Returns wether or not a result pane with the same URI exists
      * @param The string value of a Uri.
      * @return Existence boolean
+     * public for testing purposes
      */
-    private doesResultPaneExist(resultsUri: string): boolean {
+    public doesResultPaneExist(resultsUri: string): boolean {
         let resultPaneURIMatch = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
         return (resultPaneURIMatch !== undefined);
     }
@@ -548,8 +549,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     /**
      * Returns which column should be used for a new result pane
      * @return ViewColumn to be used
+     * public for testing purposes
      */
-    private newResultPaneViewColumn(): vscode.ViewColumn {
+    public newResultPaneViewColumn(): vscode.ViewColumn {
         // Find configuration options
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         let splitPaneSelection = config[Constants.configSplitPaneSelection];
@@ -573,5 +575,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         return viewColumn;
+    }
+
+    // Exposing the wrapper for testing purposes
+    public setVscodeWrapper(wrapper: VscodeWrapper): void {
+        this._vscodeWrapper = wrapper;
     }
 }

@@ -28,6 +28,21 @@ class TestExtensionContext implements vscode.ExtensionContext {
     }
 }
 
+// Bare mock of a TextEditor for vscode
+class TestTextEditor implements vscode.TextEditor {
+    document: vscode.TextDocument;
+    selection: vscode.Selection;
+    selections: vscode.Selection[];
+    options: vscode.TextEditorOptions;
+    viewColumn: vscode.ViewColumn;
+
+    edit(callback: (editBuilder: vscode.TextEditorEdit) => void): Thenable<boolean> { return undefined; };
+    setDecorations(decorationType: vscode.TextEditorDecorationType, rangesOrOptions: vscode.Range[] | vscode.DecorationOptions[]): void { return undefined; };
+    revealRange(range: vscode.Range, revealType?: vscode.TextEditorRevealType): void { return undefined; };
+    show(column?: vscode.ViewColumn): void { return undefined; };
+    hide(): void { return undefined; };
+}
+
 class TestMemento implements vscode.Memento {
     get<T>(key: string, defaultValue?: T): T {
         return undefined;
@@ -60,4 +75,4 @@ function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.Works
     return Object.freeze(result);
 }
 
-export { TestPrompter, TestExtensionContext, TestMemento, createWorkspaceConfiguration };
+export { TestPrompter, TestExtensionContext, TestTextEditor, TestMemento, createWorkspaceConfiguration };
