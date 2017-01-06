@@ -314,16 +314,38 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Always run this command even if just updating to avoid a bug - tfs 8686842
 
         // Find any URIs which match the one we are about to display
-        let resultPaneURIMatch = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
+        let resultPaneTextDocument = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
 
         // Check if the results window already exists
-        if (resultPaneURIMatch !== undefined) {
+        let activeTextEditor = vscode.window.activeTextEditor;
+        let previewCommandPromise;
+        let resultPaneColumn;
+        if (resultPaneTextDocument !== undefined) {
             // Implicity Use existsing results window by not providing an pane
-            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
+            previewCommandPromise = vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
         } else {
             // A fresh results window should always start in the second pane
-            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+            previewCommandPromise = vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+            resultPaneColumn = vscode.ViewColumn.Two;
         }
+
+        // reset focus back to the text document after showing query results window
+        previewCommandPromise.then((e, f, g) => {
+            // get the result pane text editor to determine which column it was shown in
+            let resultPaneTextEditor = vscode.window.visibleTextEditors.find(
+                editor => editor.document.uri.toString() === resultsUri);
+
+            // get the result pane column from the text editor
+            if (resultPaneTextEditor !== undefined) {
+                resultPaneColumn = resultPaneTextEditor.viewColumn;
+            }
+
+            // only reset focus to the text editor if it's in a different column then the results window
+            if (resultPaneColumn !== undefined
+                && resultPaneColumn !== activeTextEditor.viewColumn) {
+                this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
+            }
+        });
     }
 
     public cancelQuery(input: QueryRunner | string): void {
