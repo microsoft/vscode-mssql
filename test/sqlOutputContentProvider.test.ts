@@ -6,7 +6,7 @@ import assert = require('assert');
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
-import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider';
 import LocalWebService from '../src/controllers/localWebService';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
