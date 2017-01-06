@@ -445,7 +445,12 @@
         "mssql.splitPaneSelection": {
           "type": "string",
           "description": "[Optional] Configuration options for which column new result panes should open in (Options: {'next'|'same'|'last'})",
-          "default": "next"
+          "default": "next",
+          "enum": [
+            "next",
+            "same",
+            "last"
+          ]
         }
       }
     }
