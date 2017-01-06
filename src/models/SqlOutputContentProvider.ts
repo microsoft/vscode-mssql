@@ -330,7 +330,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         // reset focus back to the text document after showing query results window
-        previewCommandPromise.then((e, f, g) => {
+        previewCommandPromise.then(() => {
             // get the result pane text editor to determine which column it was shown in
             let resultPaneTextEditor = vscode.window.visibleTextEditors.find(
                 editor => editor.document.uri.toString() === resultsUri);
