@@ -313,16 +313,36 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
 
-
         // Check if the results window already exists
+        let activeTextEditor = this._vscodeWrapper.activeTextEditor;
+        let previewCommandPromise;
+        let resultPaneColumn;
         if (this.doesResultPaneExist(resultsUri)) {
             // Implicity Use existing results window by not providing a pane
-            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
+            previewCommandPromise = vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
         } else {
             // Wrapper tells us where the new results pane should be placed
-            let viewColumn = this.newResultPaneViewColumn();
-            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, viewColumn, paneTitle);
+            resultPaneColumn = this.newResultPaneViewColumn();
+            previewCommandPromise = vscode.commands.executeCommand('vscode.previewHtml', resultsUri, resultPaneColumn, paneTitle);
         }
+
+        // reset focus back to the text document after showing query results window
+        previewCommandPromise.then(() => {
+            // get the result pane text editor to determine which column it was shown in
+            let resultPaneTextEditor = this._vscodeWrapper.visibleEditors.find(
+                editor => editor.document.uri.toString() === resultsUri);
+
+            // get the result pane column from the text editor
+            if (resultPaneTextEditor !== undefined) {
+                resultPaneColumn = resultPaneTextEditor.viewColumn;
+            }
+
+            // only reset focus to the text editor if it's in a different column then the results window
+            if (resultPaneColumn !== undefined
+                && resultPaneColumn !== activeTextEditor.viewColumn) {
+                this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
+            }
+        });
     }
 
     public cancelQuery(input: QueryRunner | string): void {
