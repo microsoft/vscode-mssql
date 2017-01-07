@@ -57,12 +57,12 @@ suite('SqlOutputProvider Tests', () => {
             {position: 1, config: 'next', expectedColumn: 2},
             {position: 2, config: 'next', expectedColumn: 3},
             {position: 3, config: 'next', expectedColumn: 3},
-            {position: 1, config: 'same', expectedColumn: 1},
-            {position: 2, config: 'same', expectedColumn: 2},
-            {position: 3, config: 'same', expectedColumn: 3},
-            {position: 1, config: 'last', expectedColumn: 3},
-            {position: 2, config: 'last', expectedColumn: 3},
-            {position: 3, config: 'last', expectedColumn: 3}
+            {position: 1, config: 'current', expectedColumn: 1},
+            {position: 2, config: 'current', expectedColumn: 2},
+            {position: 3, config: 'current', expectedColumn: 3},
+            {position: 1, config: 'end', expectedColumn: 3},
+            {position: 2, config: 'end', expectedColumn: 3},
+            {position: 3, config: 'end', expectedColumn: 3}
         ];
 
         try {
