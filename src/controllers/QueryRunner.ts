@@ -164,8 +164,8 @@ export default class QueryRunner {
 
         // Recalculate the start and end lines, relative to the result line offset
         if (batch.selection) {
-            batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
-            batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+            batch.selection.startLine += this._resultLineOffset;
+            batch.selection.endLine += this._resultLineOffset;
         }
 
         // Set the result sets as an empty array so that as result sets complete we can add to the list
@@ -173,19 +173,7 @@ export default class QueryRunner {
 
         // Store the batch
         this._batchSets[batch.id] = batch;
-
-        // Submit a message to indicate the start of the batch
-        let message = {
-            message: Constants.runQueryBatchStartMessage,
-            batchId: undefined,
-            isError: false,
-            time: new Date().toLocaleTimeString(),
-            link: {
-                uri: 'http://google.com',
-                text: Utils.formatString(Constants.runQueryBatchStartLine, batch.selection.startLine + 1)
-            }
-        };
-        this.eventEmitter.emit('message', message);
+        this.eventEmitter.emit('batchStart', batch);
     }
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {

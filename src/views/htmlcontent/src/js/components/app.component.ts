@@ -10,7 +10,7 @@ import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, Sl
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon, ISelectionData } from './../interfaces';
+import { IGridIcon } from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
@@ -100,7 +100,7 @@ const template = `
                 <template ngFor let-message [ngForOf]="messages">
                     <tr>
                         <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
-                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="{{message.link.uri}}">{{message.link.text}}</a>
+                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.link.uri)">{{message.link.text}}</a>
                         </td>
                     </tr>
                 </template>
@@ -561,10 +561,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Binded to mouse click on messages
+     * Sends a get request to the provided uri without changing the active page
+     * @param uri The URI to send a get request to
      */
-    editorSelection(selection: ISelectionData): void {
-        this.dataService.editorSelection = selection;
+    sendGetRequest(uri: string): void {
+        this.dataService.sendGetRequest(uri);
     }
 
     /**
