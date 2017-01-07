@@ -441,8 +441,17 @@
           "type": "boolean",
           "description": "[Optional] Configuration options for copying multi-line results from the Results View",
           "default": true
+        },
+        "mssql.splitPaneSelection": {
+          "type": "string",
+          "description": "[Optional] Configuration options for which column new result panes should open in",
+          "default": "next",
+          "enum": [
+            "next",
+            "current",
+            "end"
+          ]
         }
-
       }
     }
   },
