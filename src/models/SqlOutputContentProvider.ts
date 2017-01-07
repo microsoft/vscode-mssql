@@ -313,16 +313,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
 
-        // Find any URIs which match the one we are about to display
-        let resultPaneURIMatch = vscode.workspace.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
 
         // Check if the results window already exists
-        if (resultPaneURIMatch !== undefined) {
-            // Implicity Use existsing results window by not providing an pane
+        if (this.doesResultPaneExist(resultsUri)) {
+            // Implicity Use existing results window by not providing a pane
             vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
         } else {
-            // A fresh results window should always start in the second pane
-            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+            // Wrapper tells us where the new results pane should be placed
+            let viewColumn = this.newResultPaneViewColumn();
+            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, viewColumn, paneTitle);
         }
     }
 
@@ -534,5 +533,52 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
         }
         return path.join(os.tmpdir(), columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType);
+    }
+
+    /**
+     * Returns whether or not a result pane with the same URI exists
+     * @param The string value of a Uri.
+     * @return boolean true if pane exists
+     * public for testing purposes
+     */
+    public doesResultPaneExist(resultsUri: string): boolean {
+        let resultPaneURIMatch = this._vscodeWrapper.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
+        return (resultPaneURIMatch !== undefined);
+    }
+
+    /**
+     * Returns which column should be used for a new result pane
+     * @return ViewColumn to be used
+     * public for testing purposes
+     */
+    public newResultPaneViewColumn(): vscode.ViewColumn {
+        // Find configuration options
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let viewColumn: vscode.ViewColumn;
+
+
+        switch (splitPaneSelection) {
+        case 'current' :
+            viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+            break;
+        case 'end' :
+            viewColumn = vscode.ViewColumn.Three;
+            break;
+        // default case where splitPaneSelection is next or anything else
+        default :
+            if (this._vscodeWrapper.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
+                viewColumn = vscode.ViewColumn.Two;
+            } else {
+                viewColumn = vscode.ViewColumn.Three;
+            };
+        }
+
+        return viewColumn;
+    }
+
+    // Exposing the wrapper for testing purposes
+    public setVscodeWrapper(wrapper: VscodeWrapper): void {
+        this._vscodeWrapper = wrapper;
     }
 }
