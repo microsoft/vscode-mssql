@@ -24,7 +24,6 @@ suite('SqlOutputProvider Tests', () => {
         statusView = TypeMoq.Mock.ofType(StatusView);
         contentProvider = new SqlOutputContentProvider(context.object, statusView.object);
         contentProvider.setVscodeWrapper(vscodeWrapper.object);
-
     });
 
     test('Correctly outputs the new result pane view column', done => {
@@ -78,6 +77,37 @@ suite('SqlOutputProvider Tests', () => {
         } catch (err) {
             done(new Error(err));
         }
+    });
+
+    test('Correctly request rows from service', () => {
+
+        function formatString(str: string, ...args: any[]): string {
+            // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
+            // License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
+            let result: string;
+            if (args.length === 0) {
+                result = str;
+            } else {
+                result = str.replace(/\{(\d+)\}/g, (match, rest) => {
+                    let index = rest[0];
+                    return typeof args[index] !== 'undefined' ? args[index] : match;
+                });
+            }
+            return result;
+        }
+        let start = 0;
+        let numberOfRows = 2;
+        let batchId = 0;
+        let resultId = 0;
+        let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
+        let uri = formatString(uriFormat, 'rows', batchId, resultId);
+        let result = this.http.get(uri + '&rowStart=' + start
+                                 + '&numberOfRows=' + numberOfRows)
+                            .map(res => {
+                                return res.json();
+                        });
+        console.log(result);
+
     });
 
 });
