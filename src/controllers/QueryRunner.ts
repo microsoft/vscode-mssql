@@ -34,6 +34,7 @@ export default class QueryRunner {
     private _title: string;
     private _resultLineOffset: number;
     private _batchSetsPromise: Promise<BatchSummary[]>;
+    private _totalElapsedMilliseconds: number;
     public eventEmitter: EventEmitter = new EventEmitter();
     public dataResolveReject;
 
@@ -62,6 +63,7 @@ export default class QueryRunner {
         this._title = _editorTitle;
         this._isExecuting = false;
         this.batchSets = [];
+        this._totalElapsedMilliseconds = 0;
     }
 
     // PROPERTIES //////////////////////////////////////////////////////////
@@ -156,7 +158,7 @@ export default class QueryRunner {
         // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(this.uri);
         this.dataResolveReject.resolve(this.batchSets);
-        this.eventEmitter.emit('complete');
+        this.eventEmitter.emit('complete', this._totalElapsedMilliseconds);
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
@@ -181,6 +183,7 @@ export default class QueryRunner {
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
+        this._totalElapsedMilliseconds += new Date(batch.executionEnd).getTime() - new Date(batch.executionStart).getTime();
         this.eventEmitter.emit('batchComplete', batch);
     }
 

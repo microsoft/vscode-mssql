@@ -318,6 +318,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.dataService.dataEventObs.subscribe(event => {
             switch (event.type) {
                 case 'complete':
+                    self.totalElapsedMilliseconds = event.data;
                     self.complete = true;
                     self.messagesAdded = true;
                 break;
