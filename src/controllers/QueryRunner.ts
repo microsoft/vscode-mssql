@@ -33,10 +33,8 @@ export default class QueryRunner {
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
-    private _batchSetsPromise: Promise<BatchSummary[]>;
     private _totalElapsedMilliseconds: number;
     public eventEmitter: EventEmitter = new EventEmitter();
-    public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -84,10 +82,6 @@ export default class QueryRunner {
         this._title = title;
     }
 
-    getBatchSets(): Promise<BatchSummary[]> {
-        return this._batchSetsPromise;
-    }
-
     get batchSets(): BatchSummary[] {
         return this._batchSets;
     }
@@ -123,9 +117,6 @@ export default class QueryRunner {
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
         this._statusView.executingQuery(this.uri);
-        this._batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
-            self.dataResolveReject = {resolve: resolve, reject: reject};
-        });
 
         // Send the request to execute the query
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
@@ -157,7 +148,6 @@ export default class QueryRunner {
 
         // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(this.uri);
-        this.dataResolveReject.resolve(this.batchSets);
         this.eventEmitter.emit('complete', this._totalElapsedMilliseconds);
     }
 

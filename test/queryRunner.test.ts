@@ -367,7 +367,6 @@ suite('Query Runner tests', () => {
         testVscodeWrapper.setup(x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
 
         // ... Create a completion notification with bogus data
-        let resolveRan = false;
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: 'uri',
             batchSummaries: [{
@@ -392,7 +391,6 @@ suite('Query Runner tests', () => {
             testVscodeWrapper.object
         );
         queryRunner.eventEmitter = mockEventEmitter.object;
-        queryRunner.dataResolveReject = {resolve: () => { resolveRan = true; }};
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
@@ -403,9 +401,6 @@ suite('Query Runner tests', () => {
 
         // ... The event emitter should have gotten a complete event
         mockEventEmitter.verify(x => x.emit('complete', TypeMoq.It.isAnyNumber()), TypeMoq.Times.once());
-
-        // ... The data resolver was resolved
-        assert.equal(resolveRan, true);
 
         // ... The state of the query runner has been updated
         assert.equal(queryRunner.batchSets.length, 1);
@@ -573,9 +568,6 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleQueryComplete(result);
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
@@ -599,9 +591,6 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleQueryComplete(result);
 
@@ -627,9 +616,6 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleQueryComplete(result);
 
