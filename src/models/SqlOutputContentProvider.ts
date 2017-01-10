@@ -90,69 +90,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             );
         });
 
-        // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
-        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, (req, res): void => {
-            let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
-            let uri: string = req.query.uri;
-            if  (self._queryResultsMap.has(uri)) {
-                self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((batchSets) => {
-                    for (let [batchIndex, batch] of batchSets.entries()) {
-                        let tempBatch: Interfaces.IGridBatchMetaData = {
-                            resultSets: [],
-                            messages: batch.messages,
-                            hasError: batch.hasError,
-                            selection: batch.selection,
-                            startTime: batch.executionStart,
-                            endTime: batch.executionEnd,
-                            totalTime: batch.executionElapsed
-                        };
-                        for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
-                            let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-                            let encodedUri = encodeURIComponent(uri);
-
-                            tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                                columns: result.columnInfo,
-                                rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
-                                numberOfRows: result.rowCount
-                            });
-                        }
-                        tempBatchSets.push(tempBatch);
-                    }
-                    let json = JSON.stringify(tempBatchSets);
-                    res.send(json);
-                });
-            } else {
-                // did not find query (most likely expired)
-                let tempBatch: Interfaces.IGridBatchMetaData = {
-                    resultSets: undefined,
-                    messages: [{
-                        time: undefined,
-                        message: Constants.unfoundResult
-                    }],
-                    hasError: undefined,
-                    selection: undefined,
-                    startTime: undefined,
-                    endTime: undefined,
-                    totalTime: undefined
-                };
-                tempBatchSets.push(tempBatch);
-                let json = JSON.stringify(tempBatchSets);
-                res.send(json);
-            }
-        });
-
-        // add http handler for '/columns' - return column metadata as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Columns, (req, res): void => {
-            let resultId = req.query.resultId;
-            let batchId = req.query.batchId;
-            let uri: string = req.query.uri;
-            self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((data) => {
-                let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
-                let json = JSON.stringify(columnMetadata);
-                res.send(json);
-            });
-        });
-
         // add http handler for '/rows' - return rows end-point for a specific resultset
         this._service.addHandler(Interfaces.ContentType.Rows, (req, res): void => {
             let resultId = req.query.resultId;
