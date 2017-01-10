@@ -366,7 +366,6 @@ suite('Query Runner tests', () => {
     });
 
     test('Handles result correctly', () => {
-        let resolveRan = false;
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: 'uri',
             message: undefined,
@@ -398,13 +397,9 @@ suite('Query Runner tests', () => {
 
         queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.uri = '';
-        queryRunner.dataResolveReject = {resolve: () => {
-            resolveRan = true;
-        }};
         queryRunner.handleResult(result);
         testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         mockEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
-        assert.equal(resolveRan, true);
     });
 
     test('Correctly handles subset', () => {
@@ -570,9 +565,6 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleResult(result);
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
@@ -596,9 +588,6 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleResult(result);
 
@@ -624,9 +613,6 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleResult(result);
 

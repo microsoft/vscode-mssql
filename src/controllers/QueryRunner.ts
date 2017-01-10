@@ -32,9 +32,7 @@ export default class QueryRunner {
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
-    private _batchSetsPromise: Promise<BatchSummary[]>;
     public eventEmitter: EventEmitter = new EventEmitter();
-    public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -80,10 +78,6 @@ export default class QueryRunner {
         this._title = title;
     }
 
-    getBatchSets(): Promise<BatchSummary[]> {
-        return this._batchSetsPromise;
-    }
-
     get batchSets(): BatchSummary[] {
         return this._batchSets;
     }
@@ -117,10 +111,6 @@ export default class QueryRunner {
         this._isExecuting = true;
         this._statusView.executingQuery(this.uri);
 
-        self._batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
-            self.dataResolveReject = {resolve: resolve, reject: reject};
-        });
-
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
             self.eventEmitter.emit('start');
             if (result.messages) { // Show informational messages if there was no query to execute
@@ -136,7 +126,6 @@ export default class QueryRunner {
                         executionEnd: undefined,
                         executionStart: undefined
                     }];
-                self.dataResolveReject.resolve();
                 this.eventEmitter.emit('batchStart', self._batchSets[0]);
                 this.eventEmitter.emit('batchComplete', self._batchSets[0]);
             } else {
@@ -172,7 +161,6 @@ export default class QueryRunner {
                 executionEnd: undefined,
                 executionStart: undefined
             }];
-            this.dataResolveReject.resolve(this.batchSets);
             this.eventEmitter.emit('complete');
             return;
         }
@@ -185,7 +173,6 @@ export default class QueryRunner {
             }
         });
         this._statusView.executedQuery(this.uri);
-        this.dataResolveReject.resolve(this.batchSets);
         this.eventEmitter.emit('complete');
     }
 
