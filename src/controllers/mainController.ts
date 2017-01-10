@@ -16,6 +16,7 @@ import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
+import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import { ISelectionData } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
@@ -38,6 +39,7 @@ export default class MainController implements vscode.Disposable {
     private _lastSavedTimer: Utils.Timer;
     private _lastOpenedUri: string;
     private _lastOpenedTimer: Utils.Timer;
+    private _untitledSqlDocumentService: UntitledSqlDocumentService;
 
     /**
      * The main controller constructor
@@ -50,9 +52,9 @@ export default class MainController implements vscode.Disposable {
         if (connectionManager) {
             this._connectionMgr = connectionManager;
         }
-        if (vscodeWrapper) {
-            this._vscodeWrapper = vscodeWrapper;
-        }
+        this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
+
+        this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
     }
 
     /**
@@ -104,8 +106,10 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
         this.registerCommand(Constants.cmdShowGettingStarted);
         this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
+        this.registerCommand(Constants.cmdNewQuery);
+        this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
 
-        this._vscodeWrapper = new VscodeWrapper();
+        // this._vscodeWrapper = new VscodeWrapper();
 
         // Add handlers for VS Code generated commands
         this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
@@ -306,6 +310,10 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr = connectionManager;
     }
 
+    public set untitledSqlDocumentService(untitledSqlDocumentService: UntitledSqlDocumentService) {
+        this._untitledSqlDocumentService = untitledSqlDocumentService;
+    }
+
 
     /**
      * Verifies the extension is initilized and if not shows an error message
@@ -358,6 +366,15 @@ export default class MainController implements vscode.Disposable {
       */
     private launchGettingStartedPage(): void {
         opener(Constants.gettingStartedGuideLink);
+    }
+
+    /**
+     * Opens a new query and creates new connection
+     */
+    public onNewQuery(): Promise<boolean> {
+        return this._untitledSqlDocumentService.newQuery().then(x => {
+            return this._connectionMgr.onNewConnection();
+        });
     }
 
     /**

@@ -15,6 +15,7 @@ export const cmdDisconnect = 'extension.disconnect';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
 export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 export const cmdShowGettingStarted = 'extension.showGettingStarted';
+export const cmdNewQuery = 'extension.newQuery';
 export const cmdManageConnectionProfiles = 'extension.manageProfiles';
 
 export const sqlDbPrefix = '.database.windows.net';
@@ -54,6 +55,7 @@ export const configSaveAsJson = 'saveAsJson';
 export const configRecentConnections = 'recentConnections';
 export const configMaxRecentConnections = 'maxRecentConnections';
 export const configCopyRemoveNewLine = 'copyRemoveNewLine';
+export const configSplitPaneSelection = 'splitPaneSelection';
 
 
 // localizable strings
