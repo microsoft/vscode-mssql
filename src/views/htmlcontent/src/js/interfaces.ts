@@ -53,10 +53,8 @@ export class ResultSetSummary {
 }
 
 export class BatchSummary {
-    hasError: boolean;
     id: number;
     selection: ISelectionData;
-    messages: IResultMessage[];
     resultSetSummaries: ResultSetSummary[];
     executionElapsed: string;
     executionEnd: string;
@@ -76,19 +74,17 @@ export interface ISelectionData {
     endColumn: number;
 }
 
-export interface IResultMessage {
-    time: string;
-    message: string;
+export interface IMessageLink {
+    uri: string;
+    text: string;
 }
 
-export interface IGridBatchMetaData {
-    resultSets: IGridResultSet[];
-    messages: IResultMessage[];
-    hasError: boolean;
-    selection: ISelectionData;
-    startTime: string;
-    endTime: string;
-    totalTime: string;
+export interface IMessage {
+    batchId?: number;
+    time: string;
+    message: string;
+    isError: boolean;
+    link?: IMessageLink;
 }
 
 export interface IGridIcon {

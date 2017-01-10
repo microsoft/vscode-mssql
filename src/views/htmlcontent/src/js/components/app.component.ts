@@ -10,7 +10,10 @@ import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, Sl
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon } from './../interfaces';
+import {
+    IGridIcon,
+    IMessage
+} from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
@@ -33,19 +36,6 @@ interface IGridDataSet {
     resultId: number;
     maxHeight: number | string;
     minHeight: number | string;
-}
-
-interface ILink {
-    text: string;
-    uri: string;
-}
-
-interface IMessage {
-    batchId?: number;
-    isError: boolean;
-    time: string;
-    message: string;
-    link: ILink;
 }
 
 // tslint:disable:max-line-length
@@ -98,7 +88,7 @@ const template = `
             </colgroup>
             <tbody>
                 <template ngFor let-message [ngForOf]="messages">
-                    <tr>
+                    <tr class='messageRow'>
                         <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
                         <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.link.uri)">{{message.link.text}}</a>
                         </td>
