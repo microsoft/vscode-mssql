@@ -16,14 +16,19 @@ import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
 import * as Constants from '../src/models/constants';
 import * as QueryExecuteContracts from '../src/models/contracts/queryExecute';
-import { ISlickRange, ISelectionData } from './../src/models/interfaces';
+import {
+    ISlickRange,
+    ISelectionData
+ } from './../src/models/interfaces';
 import * as stubs from './stubs';
 
+// CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const ncp = require('copy-paste');
 const standardUri: string = 'uri';
 const standardTitle: string = 'title';
 const standardSelection: ISelectionData = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
 
+// TESTS //////////////////////////////////////////////////////////////////////////////////////////
 suite('Query Runner tests', () => {
 
     let testSqlOutputContentProvider: TypeMoq.Mock<SqlOutputContentProvider>;
@@ -318,9 +323,38 @@ suite('Query Runner tests', () => {
         mockEventEmitter.verify(x => x.emit('resultSet', TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
     });
 
-    // test('Notification - Message', () => {
+    test('Notification - Message', () => {
+        // Setup:
+        // ... Create a mock for an event emitter that handles message notifications
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny()));
 
-    // });
+        // ... Create a message notification with some message
+        let message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: false,
+                message: 'Message!',
+                time: new Date().toISOString()
+            },
+            ownerUri: standardUri
+        };
+
+        // If:
+        // ... I have a query runner
+        let queryRunner: QueryRunner = new QueryRunner(
+            standardUri, standardTitle,
+            testStatusView.object, testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object, testVscodeWrapper.object
+        );
+        queryRunner.eventEmitter = mockEventEmitter.object;
+
+        // ... And I ask to handle a message
+        queryRunner.handleMessage(message);
+
+        // Then: A message event should have been emitted
+        mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
 
     test('Notification - Query complete', () => {
         // Setup:
