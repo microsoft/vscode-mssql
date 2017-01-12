@@ -295,7 +295,7 @@ export default class QueryRunner {
                         for (let row of result.resultSubset.rows) {
                             // iterate over the cells we want from that row
                             for (let cell = range.fromCell; cell <= range.toCell; cell++) {
-                                if (self.shouldRemoveNewLines() && row[cell]) {
+                                if (row[cell] && self.shouldRemoveNewLines()) {
                                     // This regex removes all new lines in all forms of new line
                                     copyString += self.removeNewLines(row[cell]) + '\t';
                                 } else {
