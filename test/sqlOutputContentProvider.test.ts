@@ -10,12 +10,16 @@ import Constants = require('../src/models/constants');
 import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
+let request = require('request');
+import LocalWebService from '../src/controllers/localWebService';
+import Interfaces = require('../src/models/interfaces');
 
 suite('SqlOutputProvider Tests', () => {
     let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
     let context: TypeMoq.Mock<vscode.ExtensionContext>;
     let statusView: TypeMoq.Mock<StatusView>;
+    let port: string;
 
     setup(() => {
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
@@ -24,6 +28,7 @@ suite('SqlOutputProvider Tests', () => {
         statusView = TypeMoq.Mock.ofType(StatusView);
         contentProvider = new SqlOutputContentProvider(context.object, statusView.object);
         contentProvider.setVscodeWrapper(vscodeWrapper.object);
+        port = LocalWebService._servicePort;
     });
 
     test('Correctly outputs the new result pane view column', done => {
@@ -101,16 +106,35 @@ suite('SqlOutputProvider Tests', () => {
         let resultId = 0;
         let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
         let uri = formatString(uriFormat, 'rows', batchId, resultId);
-        let result = this.http.get(uri + '&rowStart=' + start
-                                 + '&numberOfRows=' + numberOfRows)
-                            .map(res => {
-                                return res.json();
-                        });
+        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri;
+        let result = request.get(url + '&rowStart=' + start + '&numberOfRows=' + numberOfRows,
+            function (err, res, body): void {
+                // assert.equal(res.statusCode, 200);
+                // assert.equal(htmlbuf.toString(), body);
+            });
         console.log(result);
 
     });
 
 });
+
+// functions to test:
+/*
+getQueryRunner
+openLink
+provideTextDocumentContent
+setRunnerDeletionTimeout
+onDidCloseTextDocument
+onUntitledFileSaved
+cancelQuery
+runQuery
+isRunningQuery
+update
+ondidchange
+*/
+
+
+
 
 
 // TODO: rewrite all the outputprovider handle tests (old ones kept for reference)
