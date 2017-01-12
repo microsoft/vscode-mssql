@@ -60,7 +60,6 @@ export default class QueryRunner {
         this._uri = _ownerUri;
         this._title = _editorTitle;
         this._isExecuting = false;
-        this.batchSets = [];
         this._totalElapsedMilliseconds = 0;
     }
 
@@ -137,9 +136,9 @@ export default class QueryRunner {
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
-        this.batchSets = result.batchSummaries;
+        this._batchSets = result.batchSummaries;
 
-        this.batchSets.map((batch) => {
+        this._batchSets.map((batch) => {
             if (batch.selection) {
                 batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
                 batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
@@ -148,7 +147,7 @@ export default class QueryRunner {
 
         // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(this.uri);
-        this.eventEmitter.emit('complete', this._totalElapsedMilliseconds);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds));
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
@@ -169,11 +168,11 @@ export default class QueryRunner {
     }
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
-        let batch = result.batchSummary;
+        let batch: BatchSummary = result.batchSummary;
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
-        this._totalElapsedMilliseconds += new Date(batch.executionEnd).getTime() - new Date(batch.executionStart).getTime();
+        this._totalElapsedMilliseconds += <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
         this.eventEmitter.emit('batchComplete', batch);
     }
 

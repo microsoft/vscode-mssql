@@ -103,7 +103,7 @@ const template = `
                 </tr>
                 <tr *ngIf="complete">
                     <td></td>
-                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapsedMilliseconds))}}</td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, totalElapsedTimeSpan)}}</td>
                 </tr>
             </tbody>
         </table>
@@ -267,7 +267,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;
-    private totalElapsedMilliseconds: number;
+    private totalElapsedTimeSpan: number;
     private complete = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -293,7 +293,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     ngOnInit(): void {
         const self = this;
-        this.totalElapsedMilliseconds = 0;
         this.setupResizeBind();
         this.dataService.config.then((config) => {
             this.config = config;
@@ -308,7 +307,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.dataService.dataEventObs.subscribe(event => {
             switch (event.type) {
                 case 'complete':
-                    self.totalElapsedMilliseconds = event.data;
+                    self.totalElapsedTimeSpan = event.data;
                     self.complete = true;
                     self.messagesAdded = true;
                 break;

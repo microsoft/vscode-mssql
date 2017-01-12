@@ -360,7 +360,7 @@ suite('Query Runner tests', () => {
         // Setup:
         // ... Create a mock for an event emitter that handles complete notifications
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup(x => x.emit('complete', TypeMoq.It.isAnyNumber()));
+        mockEventEmitter.setup(x => x.emit('complete', TypeMoq.It.isAnyString()));
 
         // ... Setup the VS Code view handlers
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
@@ -400,7 +400,7 @@ suite('Query Runner tests', () => {
         testStatusView.verify(x => x.executedQuery(standardUri), TypeMoq.Times.once());
 
         // ... The event emitter should have gotten a complete event
-        mockEventEmitter.verify(x => x.emit('complete', TypeMoq.It.isAnyNumber()), TypeMoq.Times.once());
+        mockEventEmitter.verify(x => x.emit('complete', TypeMoq.It.isAnyString()), TypeMoq.Times.once());
 
         // ... The state of the query runner has been updated
         assert.equal(queryRunner.batchSets.length, 1);

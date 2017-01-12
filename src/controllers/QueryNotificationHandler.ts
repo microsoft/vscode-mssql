@@ -29,7 +29,7 @@ export class QueryNotificationHandler {
 
     // register the handler to handle notifications for queries
     private initialize(): void {
-        SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleCompleteNotification());
+        SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleQueryCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchStartNotification.type, this.handleBatchStartNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchCompleteNotification.type, this.handleBatchCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteResultSetCompleteNotification.type, this.handleResultSetCompleteNotification());
@@ -42,7 +42,7 @@ export class QueryNotificationHandler {
     }
 
     // Distributes result completion notification to appropriate methods
-    private handleCompleteNotification(): NotificationHandler<any> {
+    private handleQueryCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             self._queryRunners.get(event.ownerUri).handleQueryComplete(event);

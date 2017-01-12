@@ -18,7 +18,7 @@ import messageError from './testResources/mockMessageError.spec';
 
 const completeEvent = {
     type: 'complete',
-    data: 1300
+    data: '00:00:00.388'
 };
 
 /**
