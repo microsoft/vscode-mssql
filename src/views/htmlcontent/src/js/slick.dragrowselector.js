@@ -9,8 +9,7 @@
     });
 
     function DragRowSelectionModel() {
-        const end_key = 35, home_key = 36, left_arrow = 37, up_arrow = 38, right_arrow = 39, down_arrow = 40,
-            a_key = 65, c_key = 67, keyColResizeIncr = 5;
+        const keyColResizeIncr = 5;
 
         var _grid;
         var _dragStart;
@@ -95,12 +94,12 @@
         function isNavigationKey(e) {
             // Nave keys (home, end, arrows) are all in sequential order so use a
             switch(e.which) {
-                case home_key:
-                case end_key:
-                case left_arrow:
-                case up_arrow:
-                case right_arrow:
-                case down_arrow:
+                case $.ui.keyCode.HOME:
+                case $.ui.keyCode.END:
+                case $.ui.keyCode.LEFT:
+                case $.ui.keyCode.UP:
+                case $.ui.keyCode.RIGHT:
+                case $.ui.keyCode.DOWN:
                     return true;
                 default:
                     return false;
@@ -109,7 +108,7 @@
 
         function navigateLeft(e, activeCell) {
             if (activeCell.cell > 1) {
-                var isHome = e.which == home_key;
+                var isHome = e.which == $.ui.keyCode.HOME;
                 var newActiveCellColumn = isHome ? 1 : activeCell.cell - 1;
                 // Unsure why but for range, must record 1 index less than expected
                 var newRangeColumn = newActiveCellColumn - 1;
@@ -138,7 +137,7 @@
         function navigateRight(e, activeCell) {
             var columnLength = _grid.getColumns().length;
             if (activeCell.cell < columnLength) {
-                var isEnd = e.which == end_key;
+                var isEnd = e.which == $.ui.keyCode.END;
                 var newActiveCellColumn = isEnd ? columnLength : activeCell.cell + 1;
                 // Unsure why but for range, must record 1 index less than expected
                 var newRangeColumn = newActiveCellColumn - 1;
@@ -184,15 +183,15 @@
                         return;
                     }
                     // end key
-                    if (e.which == end_key) {
+                    if (e.which == $.ui.keyCode.END) {
                         navigateRight(e, activeCell);
                     }
                     // home key
-                    if (e.which == home_key) {
+                    if (e.which == $.ui.keyCode.HOME) {
                         navigateLeft(e, activeCell);
                     }
                     // left arrow
-                    if (e.which == left_arrow) {
+                    if (e.which == $.ui.keyCode.LEFT) {
                         // column resize
                         if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
                             var allColumns = JSON.parse(JSON.stringify(_grid.getColumns()));
@@ -202,7 +201,7 @@
                             navigateLeft(e, activeCell);
                         }
                     // up arrow
-                    } else if (e.which == up_arrow && activeCell.row > 0) {
+                    } else if (e.which == $.ui.keyCode.UP && activeCell.row > 0) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
 
@@ -222,7 +221,7 @@
                         _grid.setActiveCell(activeCell.row - 1, activeCell.cell);
                         setSelectedRanges(_ranges);
                     // right arrow
-                    } else if (e.which == right_arrow) {
+                    } else if (e.which == $.ui.keyCode.RIGHT) {
                         // column resize
                         if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
                             var allColumns = JSON.parse(JSON.stringify(_grid.getColumns()));
@@ -232,7 +231,7 @@
                             navigateRight(e, activeCell);
                         }
                     // down arrow
-                    } else if (e.which == down_arrow && activeCell.row < _grid.getDataLength() - 1) {
+                    } else if (e.which == $.ui.keyCode.DOWN && activeCell.row < _grid.getDataLength() - 1) {
                         if (e.shiftKey) {
                             var last = _ranges.pop();
 
