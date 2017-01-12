@@ -8,7 +8,8 @@ import {
     QueryExecuteCompleteNotification,
     QueryExecuteBatchStartNotification,
     QueryExecuteBatchCompleteNotification,
-    QueryExecuteResultSetCompleteNotification
+    QueryExecuteResultSetCompleteNotification,
+    QueryExecuteMessageNotification
 } from '../models/contracts/queryExecute';
 import { NotificationHandler } from 'vscode-languageclient';
 
@@ -28,10 +29,11 @@ export class QueryNotificationHandler {
 
     // register the handler to handle notifications for queries
     private initialize(): void {
-        SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleCompleteNotification());
+        SqlToolsServiceClient.instance.onNotification(QueryExecuteCompleteNotification.type, this.handleQueryCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchStartNotification.type, this.handleBatchStartNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchCompleteNotification.type, this.handleBatchCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteResultSetCompleteNotification.type, this.handleResultSetCompleteNotification());
+        SqlToolsServiceClient.instance.onNotification(QueryExecuteMessageNotification.type, this.handleMessageNotification());
     }
 
     // registers queryRunners with their uris to distribute notifications
@@ -40,10 +42,10 @@ export class QueryNotificationHandler {
     }
 
     // Distributes result completion notification to appropriate methods
-    private handleCompleteNotification(): NotificationHandler<any> {
+    private handleQueryCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
-            self._queryRunners.get(event.ownerUri).handleResult(event);
+            self._queryRunners.get(event.ownerUri).handleQueryComplete(event);
 
             // There should be no more notifications for this query, so unbind it
             self._queryRunners.delete(event.ownerUri);
@@ -71,6 +73,13 @@ export class QueryNotificationHandler {
         const self = this;
         return (event) => {
             self._queryRunners.get(event.ownerUri).handleResultSetComplete(event);
+        };
+    }
+
+    private handleMessageNotification(): NotificationHandler<any> {
+        const self = this;
+        return (event) => {
+            self._queryRunners.get(event.ownerUri).handleMessage(event);
         };
     }
 }

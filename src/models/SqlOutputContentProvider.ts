@@ -150,10 +150,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             });
         });
 
-        // add http post handler for setting the selection in the editor
-        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, (req, res): void => {
+        // add http get handler for setting the selection in the editor
+        this._service.addHandler(Interfaces.ContentType.EditorSelection, (req, res): void => {
             let uri = req.query.uri;
-            let selection: ISelectionData = req.body;
+            let selection: ISelectionData = {
+                startLine: parseInt(req.query.startLine, 10),
+                startColumn: parseInt(req.query.startColumn, 10),
+                endLine: parseInt(req.query.endLine, 10),
+                endColumn: parseInt(req.query.endColumn, 10)
+            };
             self._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
                 res.status = 200;
                 res.send();
@@ -232,13 +237,33 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 this._service.broadcast(resultsUri, 'resultSet', resultSet);
             });
             queryRunner.eventEmitter.on('batchStart', (batch) => {
-                this._service.broadcast(resultsUri, 'batchStart', batch);
+                // Build a link for the selection and send it in a message
+                let encodedUri = encodeURIComponent(resultsUri);
+                let link = LocalWebService.getEndpointUri(Interfaces.ContentType.EditorSelection) + `?uri=${encodedUri}`;
+                if (batch.selection) {
+                    link += `&startLine=${batch.selection.startLine}` +
+                            `&startColumn=${batch.selection.startColumn}` +
+                            `&endLine=${batch.selection.endLine}` +
+                            `&endColumn=${batch.selection.endColumn}`;
+                }
+
+                let message = {
+                    message: Constants.runQueryBatchStartMessage,
+                    batchId: undefined,
+                    isError: false,
+                    time: new Date().toLocaleTimeString(),
+                    link: {
+                        text: Utils.formatString(Constants.runQueryBatchStartLine, batch.selection.startLine + 1),
+                        uri: link
+                    }
+                };
+                this._service.broadcast(resultsUri, 'message', message);
             });
-            queryRunner.eventEmitter.on('batchComplete', (batch) => {
-                this._service.broadcast(resultsUri, 'batchComplete', batch);
+            queryRunner.eventEmitter.on('message', (message) => {
+                this._service.broadcast(resultsUri, 'message', message);
             });
-            queryRunner.eventEmitter.on('complete', () => {
-                this._service.broadcast(resultsUri, 'complete');
+            queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
+                this._service.broadcast(resultsUri, 'complete', totalMilliseconds);
             });
             queryRunner.eventEmitter.on('start', () => {
                 this._service.resetSocket(resultsUri);
@@ -378,6 +403,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public provideTextDocumentContent(uri: vscode.Uri): string {
         // URI needs to be encoded as a component for proper inclusion in a url
         let encodedUri = encodeURIComponent(uri.toString());
+        console.log(`${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${encodedUri}`);
 
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `

@@ -259,13 +259,14 @@ export interface ISelectionData {
 }
 
 export interface IResultMessage {
+    batchId?: number;
+    isError: boolean;
     time: string;
     message: string;
 }
 
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
-    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
     startTime: string;

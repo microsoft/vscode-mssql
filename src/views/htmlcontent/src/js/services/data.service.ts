@@ -142,6 +142,16 @@ export class DataService {
         self.http.post(url, selection, { headers: headers }).subscribe();
     }
 
+    /**
+     * Sends a generic GET request without expecting anything in return
+     * @param uri The uri to send the GET request to
+     */
+    sendGetRequest(uri: string): void {
+        const self = this;
+        let headers = new Headers();
+        self.http.get(uri, {headers: headers}).subscribe();
+    }
+
     showWarning(message: string): void {
         const self = this;
         let url = '/showWarning?' + '&uri=' + self.uri;

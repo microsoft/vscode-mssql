@@ -74,6 +74,8 @@ export const msgRunQueryConnectionActive = 'runQuery: active connection is conne
 export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
 export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
 export const msgRunQueryInProgress = 'A query is already running for this editor session. Please cancel this query or wait for its completion.';
+export const runQueryBatchStartMessage = 'Started executing query at ';
+export const runQueryBatchStartLine = 'Line {0}';
 
 export const msgCancelQueryFailed = 'Canceling the query failed: {0}';
 export const msgCancelQueryNotRunning = 'Cannot cancel query as no query is running.';
