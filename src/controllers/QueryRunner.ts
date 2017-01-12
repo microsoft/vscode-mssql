@@ -347,7 +347,7 @@ export default class QueryRunner {
             // We must return null here to stay consistent with our respresentation
             return null; // tslint:disable-line
         }
-        
+
         let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');
         return outputString;
     }
