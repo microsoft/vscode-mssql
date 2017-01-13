@@ -3,6 +3,7 @@
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider';
+import { ISelectionData } from '../src/models/interfaces';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';
@@ -23,6 +24,8 @@ suite('SqlOutputProvider Tests', () => {
 
     setup(() => {
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapper.setup(x => x.textDocuments).returns(() => []);
+        vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny())).returns((name) => vscode.workspace.getConfiguration(name));
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
         context.object.extensionPath = '';
         statusView = TypeMoq.Mock.ofType(StatusView);
@@ -100,13 +103,23 @@ suite('SqlOutputProvider Tests', () => {
             }
             return result;
         }
+        let uri = vscodeWrapper.object.activeTextEditorUri;
+        let querySelection: ISelectionData = {
+            endColumn: 0,
+            endLine: 0,
+            startColumn: 0,
+            startLine: 0
+        };
+        let title = 'Test Title';
+        contentProvider.runQuery(statusView.object, uri, querySelection, title);
+
         let start = 0;
         let numberOfRows = 2;
         let batchId = 0;
         let resultId = 0;
         let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-        let uri = formatString(uriFormat, 'rows', batchId, resultId);
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri;
+        let uri2 = formatString(uriFormat, 'rows', batchId, resultId);
+        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri2;
         let result = request.get(url + '&rowStart=' + start + '&numberOfRows=' + numberOfRows,
             function (err, res, body): void {
                 // assert.equal(res.statusCode, 200);
