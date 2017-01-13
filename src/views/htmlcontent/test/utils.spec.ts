@@ -32,4 +32,19 @@ describe('utils', () => {
             expect(Utils.parseNumAsTimeString(5002)).toEqual('00:00:05.002');
         });
     });
+
+    describe('htmlEntities', () => {
+        it('Encodes characters properly', () => {
+            ['\u00A0', '\u1000', '\u8000', '\u9999', '\'', '"', '<', '>', '&'].forEach((item) => {
+                let expectedValue = `&#${item.charCodeAt(0)};`;
+                expect(Utils.htmlEntities(item)).toEqual(expectedValue);
+            });
+        });
+
+        it('Does not encode characters outside the range', () => {
+            ['a', 'A', '$', '0'].forEach((item) => {
+                expect(Utils.htmlEntities(item)).toEqual(item);
+            });
+        });
+    });
 });
