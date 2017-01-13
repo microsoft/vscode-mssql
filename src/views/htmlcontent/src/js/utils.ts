@@ -16,3 +16,16 @@ export function formatString(str: string, ...args: any[]): string {
 export function isNumber(val: any): boolean {
     return typeof(val) === 'number';
 }
+
+/**
+ * Converts <, >, &, ", ', and any characters that are outside \u00A0 to numeric HTML entity values
+ * like &#123;
+ * (Adapted from http://stackoverflow.com/a/18750001)
+ * @param str String to convert
+ * @return String with characters replaced.
+ */
+export function htmlEntities(str: string): string {
+    return str.replace(/[\u00A0-\u9999<>\&"']/gim, (i) => {
+        return `&#${i.charCodeAt(0)};`;
+    });
+}

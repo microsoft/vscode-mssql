@@ -476,35 +476,33 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Format xml field into a hyperlink
+     * Format xml field into a hyperlink and performs HTML entity encoding
      */
-    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
-        let valueToDisplay = (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    public hyperLinkFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
+        let valueToDisplay = Utils.htmlEntities(value);
         let cellClasses = 'grid-cell-value-container';
         if (value) {
             cellClasses += ' xmlLink';
-            return '<a class="' + cellClasses + '" href="#" >'
-                + valueToDisplay
-                + '</a>';
+            return `<a class="${cellClasses}" href="#" >${valueToDisplay}</a>`;
         } else {
             cellClasses += ' missing-value';
-            return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+            return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
         }
     }
 
     /**
-     * Format all text to replace all new lines with spaces
+     * Format all text to replace all new lines with spaces and performs HTML entity encoding
      */
     textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
         let valueToDisplay = value;
         let cellClasses = 'grid-cell-value-container';
         if (value) {
-            valueToDisplay = value.replace(/(\r\n|\n|\r)/g, ' ');
+            valueToDisplay = Utils.htmlEntities(value.replace(/(\r\n|\n|\r)/g, ' '));
         } else {
             cellClasses += ' missing-value';
         }
 
-        return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+        return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
     }
 
     /**
