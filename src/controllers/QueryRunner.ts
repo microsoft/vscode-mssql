@@ -326,6 +326,11 @@ export default class QueryRunner {
         // Windows(CRLF): \r\n
         // Linux(LF)/Modern MacOS: \n
         // Old MacOs: \r
+        if (!inputString) {
+            // We must return null here to stay consistent with our respresentation
+            return null; // tslint:disable-line
+        }
+
         let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');
         return outputString;
     }
