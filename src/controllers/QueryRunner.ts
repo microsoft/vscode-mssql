@@ -355,7 +355,7 @@ export default class QueryRunner {
         });
     }
 
-    public ResetHasCompleted(): void {
+    public resetHasCompleted(): void {
         this._hasCompleted = false;
     }
 }
