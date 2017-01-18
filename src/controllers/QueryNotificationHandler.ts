@@ -56,7 +56,7 @@ export class QueryNotificationHandler {
 
         // Set the runner for any other handlers if the runner is in use by the
         // current query or a subsequent query
-        if (runner.hasCompleted === false) {
+        if (!runner.hasCompleted) {
             this._queryRunners.set(uri, runner);
         }
     }
