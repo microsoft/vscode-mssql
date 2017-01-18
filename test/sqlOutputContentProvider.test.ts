@@ -10,12 +10,12 @@ import Constants = require('../src/models/constants');
 import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
-// import { ISelectionData } from '../src/models/interfaces';
+import { ISelectionData } from '../src/models/interfaces';
 
 
 suite('SqlOutputProvider Tests', () => {
     let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
-    let contentProvider: TypeMoq.Mock<SqlOutputContentProvider>;
+    let contentProvider: SqlOutputContentProvider;
     let context: TypeMoq.Mock<vscode.ExtensionContext>;
     let statusView: TypeMoq.Mock<StatusView>;
 
@@ -24,10 +24,8 @@ suite('SqlOutputProvider Tests', () => {
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
         context.object.extensionPath = '';
         statusView = TypeMoq.Mock.ofType(StatusView);
-        contentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Loose, context.object, statusView.object);
-        contentProvider.setup(x => x.setVscodeWrapper(TypeMoq.It.isAny())).callBase();
-        contentProvider.setup(x => x.newResultPaneViewColumn()).callBase();
-        contentProvider.object.setVscodeWrapper(vscodeWrapper.object);
+        contentProvider = new SqlOutputContentProvider(context.object, statusView.object);
+        contentProvider.setVscodeWrapper(vscodeWrapper.object);
     });
 
     test('Correctly outputs the new result pane view column', done => {
@@ -73,7 +71,7 @@ suite('SqlOutputProvider Tests', () => {
                 setSplitPaneSelectionConfig(c.config);
                 setCurrentEditorColumn(c.position);
 
-                let resultColumn = contentProvider.object.newResultPaneViewColumn();
+                let resultColumn = contentProvider.newResultPaneViewColumn();
                 assert.equal(resultColumn, c.expectedColumn);
             });
 
@@ -83,7 +81,6 @@ suite('SqlOutputProvider Tests', () => {
         }
     });
 
-/*
     test('RunQuery properly sets up a query to be run', done => {
         let title = 'Test_Title';
         let uri = 'Test_URI';
@@ -95,162 +92,82 @@ suite('SqlOutputProvider Tests', () => {
         };
 
         // Get properties of contentProvider before we run a query
-        // let prevMapLength = contentProvider.object.getResultsMap.length;
-        contentProvider.setup(x => x.doesResultPaneExist(TypeMoq.It.isAny())).returns( () => false);
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.setup(x => x.runQuery(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()));
-        contentProvider.setup(x => x.newResultPaneViewColumn()).returns( () => 1);
-        contentProvider.object.runQuery(statusView.object, uri, querySelection, title);
+        contentProvider.setDisplayResultPane( function(var1: string, var2: string): void { return; } );
+        contentProvider.runQuery(statusView.object, uri, querySelection, title);
 
         // Ensure all side effects occured as intended
-        // assert.equal(contentProvider.object.getResultsMap.length,  prevMapLength + 1);
-        contentProvider.verify(x => x.doesResultPaneExist(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        assert.equal(contentProvider.getResultsMap().has('tsqloutput:' + uri), true);
 
         done();
     });
 
 
-    test('Correctly request rows from service', () => {
-
-        function formatString(str: string, ...args: any[]): string {
-            // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
-            // License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
-            let result: string;
-            if (args.length === 0) {
-                result = str;
-            } else {
-                result = str.replace(/\{(\d+)\}/g, (match, rest) => {
-                    let index = rest[0];
-                    return typeof args[index] !== 'undefined' ? args[index] : match;
-                });
-            }
-            return result;
-        }
-        let uri = vscodeWrapper.object.activeTextEditorUri;
+    test('onUntitledFileSaved should deleted the untitled file and create a new titled file', done => {
+        let title = 'Test_Title';
+        let uri = 'Test_URI';
+        let newUri = 'Test_URI_New';
         let querySelection: ISelectionData = {
             endColumn: 0,
             endLine: 0,
             startColumn: 0,
             startLine: 0
         };
-        let title = 'Test Title';
+
+        // Get properties of contentProvider before we run a query
+        vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
+
+        // Setup the function to call base and run it
+        contentProvider.setDisplayResultPane( function(var1: string, var2: string): void { return; } );
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
 
-        let start = 0;
-        let numberOfRows = 2;
-        let batchId = 0;
-        let resultId = 0;
-        let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-        let uri2 = formatString(uriFormat, 'rows', batchId, resultId);
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri2;
-        let result = request.get(url + '&rowStart=' + start + '&numberOfRows=' + numberOfRows,
-            function (err, res, body): void {
-                // assert.equal(res.statusCode, 200);
-                // assert.equal(htmlbuf.toString(), body);
-            });
-        console.log(result);
+        // Ensure all side effects occured as intended
+        assert.equal(contentProvider.getResultsMap().has('tsqloutput:Test_URI'), true);
 
+        contentProvider.onUntitledFileSaved(uri, newUri);
+
+        assert.equal(contentProvider.getResultsMap().has('tsqloutput:' + uri), false);
+        assert.equal(contentProvider.getResultsMap().has('tsqloutput:' + newUri), true);
+
+        done();
     });
-    */
 
+    test('onDidCloseTextDocument properly mark the uri for deletion', done => {
+        let title = 'Test_Title';
+        let uri = 'Test_URI';
+        let querySelection: ISelectionData = {
+            endColumn: 0,
+            endLine: 0,
+            startColumn: 0,
+            startLine: 0
+        };
 
+        // Get properties of contentProvider before we run a query
+        vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
+
+        // Setup the function to call base and run it
+        contentProvider.setDisplayResultPane( function(var1: string, var2: string): void { return; } );
+        contentProvider.runQuery(statusView.object, uri, querySelection, title);
+
+        // Ensure all side effects occured as intended
+        assert.equal(contentProvider.getResultsMap().has('tsqloutput:' + uri), true);
+
+        let doc = <vscode.TextDocument> {
+            uri : {
+                toString(skipEncoding?: boolean): string {
+                    return uri;
+                }
+            },
+            languageId : 'sql'
+        };
+        contentProvider.onDidCloseTextDocument(doc);
+
+        // This URI should now be flagged for deletion later on
+        assert.equal(contentProvider.getResultsMap().get('tsqloutput:' + uri).flaggedForDeletion, true);
+
+        done();
+    });
 
 });
-
-// functions to test:
-/*
-getQueryRunner
-openLink
-provideTextDocumentContent
-setRunnerDeletionTimeout
-onDidCloseTextDocument
-onUntitledFileSaved
-cancelQuery
-runQuery
-isRunningQuery
-update
-ondidchange
-*/
-
-
-
-
-
-// TODO: rewrite all the outputprovider handle tests (old ones kept for reference)
-// Tracked by issue #584
-/*
-// Imports used by previous tests
-
-import LocalWebService from '../src/controllers/localWebService';
-import Interfaces = require('../src/models/interfaces');
-let results = require('./resources/results.json');
-let messages = require('./resources/messages.json');
-const pd = require('pretty-data').pd;
-const fs = require('fs');
-let request = require('request');
-let metadata = [
-    {
-        'columnsUri': '/' + Constants.outputContentTypeColumns + '?id=0',
-        'rowsUri': '/' + Constants.outputContentTypeRows + '?id=0'
-    }
-]
-
-    // Old Decleration area
-    // let port: string;
-    // let file = '/out/test/resources/sqlTest.sql';
-    // let path: string;
-
-    // Old Setup Area
-    // port = LocalWebService._servicePort;
-    // path = vscode.extensions.getExtension('microsoft.vscode-mssql').extensionPath;
-
-    test("Initial Server Responses", () => {
-        let uri = contentProvider.updateContent(messages, results);
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Root] + '?uri=' + uri;
-        let htmlbuf = fs.readFileSync(path +'/src/views/htmlcontent/sqlOutput.ejs')
-        htmlbuf = htmlbuf.toString();
-        htmlbuf = htmlbuf.replace('<%=uri%>', uri);
-        return request.get(url, function(err, res, body){
-            assert.equal(res.statusCode, 200);
-            assert.equal(htmlbuf.toString(), body);
-        });
-    });
-
-    test("Correctly Delievers MetaData", () => {
-        let uri = contentProvider.updateContent(messages, results);
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.ResultsetsMeta] + '?uri=' + uri;
-        return request.get(url, function(err, res, body){
-            assert.equal(res.statusCode, 200);
-            assert.equal(body, JSON.stringify(metadata));
-        });
-    });
-
-    test("Correctly Delievers Messages", () => {
-        let uri = contentProvider.updateContent(messages, results);
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Messages] + '?uri=' + uri;
-        return request.get(url, function(err, res, body){
-            assert.equal(res.statusCode, 200);
-            assert.equal(body, JSON.stringify(messages));
-        });
-    });
-
-    test("Correctly Delivers Columns", () => {
-        let uri = contentProvider.updateContent(messages, results);
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Columns] + '?id=0&uri=' + uri;
-        return request.get(url, function(err, res, body){
-            assert.equal(res.statusCode, 200);
-            assert.equal(body, JSON.stringify(results[0].columns));
-        });
-    });
-
-    test("Correctly Delievers Rows", () => {
-        let uri = contentProvider.updateContent(messages, results);
-        let url = 'http://localhost:' + port + '/' + Interfaces.ContentTypes[Interfaces.ContentType.Rows] + '?id=0&uri=' + uri;
-        return request.get(url,(err, res, body) => {
-            assert.equal(res.statusCode, 200);
-            assert.equal(body, JSON.stringify(results[0].rows));
-        });
-    });
-*/
