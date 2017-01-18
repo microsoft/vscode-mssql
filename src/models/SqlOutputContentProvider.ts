@@ -602,15 +602,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     // Exposing some variables for testing purposes only
-    public setDisplayResultPane(implementation: (var1: string, var2: string) => void): void {
+    set setDisplayResultPane(implementation: (var1: string, var2: string) => void) {
         this.displayResultPane = implementation;
     }
 
-    public setVscodeWrapper(wrapper: VscodeWrapper): void {
+    set setVscodeWrapper(wrapper: VscodeWrapper) {
         this._vscodeWrapper = wrapper;
     }
 
-    public getResultsMap(): Map<string, QueryRunnerState> {
+    get getResultsMap(): Map<string, QueryRunnerState> {
         return this._queryResultsMap;
     }
 }
