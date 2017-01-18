@@ -34,6 +34,7 @@ export default class QueryRunner {
     private _title: string;
     private _resultLineOffset: number;
     private _totalElapsedMilliseconds: number;
+    private _hasCompleted: boolean;
     public eventEmitter: EventEmitter = new EventEmitter();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
@@ -61,6 +62,7 @@ export default class QueryRunner {
         this._title = _editorTitle;
         this._isExecuting = false;
         this._totalElapsedMilliseconds = 0;
+        this._hasCompleted = false;
     }
 
     // PROPERTIES //////////////////////////////////////////////////////////
@@ -91,6 +93,10 @@ export default class QueryRunner {
 
     get isExecutingQuery(): boolean {
         return this._isExecuting;
+    }
+
+    get hasCompleted(): boolean {
+        return this._hasCompleted;
     }
 
     // PUBLIC METHODS ======================================================
@@ -136,6 +142,7 @@ export default class QueryRunner {
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
+        this._hasCompleted = true;
         this._batchSets = result.batchSummaries;
 
         this._batchSets.map((batch) => {
@@ -351,5 +358,14 @@ export default class QueryRunner {
                 });
             });
         });
+    }
+
+    public resetHasCompleted(): void {
+        this._hasCompleted = false;
+    }
+
+    // public for testing only - used to mock handleQueryComplete
+    public _setHasCompleted(): void {
+        this._hasCompleted = true;
     }
 }

@@ -226,6 +226,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             // If the query is not in progress, we can reuse the query runner
             queryRunner = existingRunner;
+            queryRunner.resetHasCompleted();
 
             // update the open pane assuming its open (if its not its a bug covered by the previewhtml command later)
             this.update(vscode.Uri.parse(resultsUri));
