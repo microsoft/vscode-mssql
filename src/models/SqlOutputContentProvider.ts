@@ -90,69 +90,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             );
         });
 
-        // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
-        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, (req, res): void => {
-            let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
-            let uri: string = req.query.uri;
-            if  (self._queryResultsMap.has(uri)) {
-                self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((batchSets) => {
-                    for (let [batchIndex, batch] of batchSets.entries()) {
-                        let tempBatch: Interfaces.IGridBatchMetaData = {
-                            resultSets: [],
-                            messages: batch.messages,
-                            hasError: batch.hasError,
-                            selection: batch.selection,
-                            startTime: batch.executionStart,
-                            endTime: batch.executionEnd,
-                            totalTime: batch.executionElapsed
-                        };
-                        for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
-                            let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-                            let encodedUri = encodeURIComponent(uri);
-
-                            tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                                columns: result.columnInfo,
-                                rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
-                                numberOfRows: result.rowCount
-                            });
-                        }
-                        tempBatchSets.push(tempBatch);
-                    }
-                    let json = JSON.stringify(tempBatchSets);
-                    res.send(json);
-                });
-            } else {
-                // did not find query (most likely expired)
-                let tempBatch: Interfaces.IGridBatchMetaData = {
-                    resultSets: undefined,
-                    messages: [{
-                        time: undefined,
-                        message: Constants.unfoundResult
-                    }],
-                    hasError: undefined,
-                    selection: undefined,
-                    startTime: undefined,
-                    endTime: undefined,
-                    totalTime: undefined
-                };
-                tempBatchSets.push(tempBatch);
-                let json = JSON.stringify(tempBatchSets);
-                res.send(json);
-            }
-        });
-
-        // add http handler for '/columns' - return column metadata as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Columns, (req, res): void => {
-            let resultId = req.query.resultId;
-            let batchId = req.query.batchId;
-            let uri: string = req.query.uri;
-            self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((data) => {
-                let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
-                let json = JSON.stringify(columnMetadata);
-                res.send(json);
-            });
-        });
-
         // add http handler for '/rows' - return rows end-point for a specific resultset
         this._service.addHandler(Interfaces.ContentType.Rows, (req, res): void => {
             let resultId = req.query.resultId;
@@ -213,10 +150,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             });
         });
 
-        // add http post handler for setting the selection in the editor
-        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, (req, res): void => {
+        // add http get handler for setting the selection in the editor
+        this._service.addHandler(Interfaces.ContentType.EditorSelection, (req, res): void => {
             let uri = req.query.uri;
-            let selection: ISelectionData = req.body;
+            let selection: ISelectionData = {
+                startLine: parseInt(req.query.startLine, 10),
+                startColumn: parseInt(req.query.startColumn, 10),
+                endLine: parseInt(req.query.endLine, 10),
+                endColumn: parseInt(req.query.endColumn, 10)
+            };
             self._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
                 res.status = 200;
                 res.send();
@@ -284,6 +226,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             // If the query is not in progress, we can reuse the query runner
             queryRunner = existingRunner;
+            queryRunner.resetHasCompleted();
 
             // update the open pane assuming its open (if its not its a bug covered by the previewhtml command later)
             this.update(vscode.Uri.parse(resultsUri));
@@ -295,13 +238,33 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 this._service.broadcast(resultsUri, 'resultSet', resultSet);
             });
             queryRunner.eventEmitter.on('batchStart', (batch) => {
-                this._service.broadcast(resultsUri, 'batchStart', batch);
+                // Build a link for the selection and send it in a message
+                let encodedUri = encodeURIComponent(resultsUri);
+                let link = LocalWebService.getEndpointUri(Interfaces.ContentType.EditorSelection) + `?uri=${encodedUri}`;
+                if (batch.selection) {
+                    link += `&startLine=${batch.selection.startLine}` +
+                            `&startColumn=${batch.selection.startColumn}` +
+                            `&endLine=${batch.selection.endLine}` +
+                            `&endColumn=${batch.selection.endColumn}`;
+                }
+
+                let message = {
+                    message: Constants.runQueryBatchStartMessage,
+                    batchId: undefined,
+                    isError: false,
+                    time: new Date().toLocaleTimeString(),
+                    link: {
+                        text: Utils.formatString(Constants.runQueryBatchStartLine, batch.selection.startLine + 1),
+                        uri: link
+                    }
+                };
+                this._service.broadcast(resultsUri, 'message', message);
             });
-            queryRunner.eventEmitter.on('batchComplete', (batch) => {
-                this._service.broadcast(resultsUri, 'batchComplete', batch);
+            queryRunner.eventEmitter.on('message', (message) => {
+                this._service.broadcast(resultsUri, 'message', message);
             });
-            queryRunner.eventEmitter.on('complete', () => {
-                this._service.broadcast(resultsUri, 'complete');
+            queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
+                this._service.broadcast(resultsUri, 'complete', totalMilliseconds);
             });
             queryRunner.eventEmitter.on('start', () => {
                 this._service.resetSocket(resultsUri);
@@ -445,6 +408,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public provideTextDocumentContent(uri: vscode.Uri): string {
         // URI needs to be encoded as a component for proper inclusion in a url
         let encodedUri = encodeURIComponent(uri.toString());
+        console.log(`${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${encodedUri}`);
 
         // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
         return `

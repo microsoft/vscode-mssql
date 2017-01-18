@@ -7,7 +7,6 @@ import { IResultsConfig } from './../src/js/interfaces';
 
 import mockGetRows1 from './testResources/mockGetRows1.spec';
 import mockConfig1 from './testResources/mockConfig1.spec';
-import mockBatch1 from './testResources/mockBatch2.spec';
 
 function getParamsFromUrl(url: string): any {
     let paramString = url.split('?')[1];
@@ -230,12 +229,12 @@ describe('data service', () => {
     describe('websocket', () => {
         it('correctly sends event on websocket event', (done) => {
             dataservice.dataEventObs.subscribe((result) => {
-                expect(result).toEqual(mockBatch1);
+                expect(result).toEqual(mockConfig1);
                 done();
             });
 
             dataservice.ws.dispatchEvent(new MessageEvent('message', {
-                data: JSON.stringify(mockBatch1)
+                data: JSON.stringify(mockConfig1)
             }));
         });
     });

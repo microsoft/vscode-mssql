@@ -623,6 +623,8 @@ interface JQueryEasingFunctions {
  */
 interface JQueryStatic {
 
+    _data(element: Element | JQuery, string: string): any;
+
     /**
      * Perform an asynchronous HTTP (Ajax) request.
      *

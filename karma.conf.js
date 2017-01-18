@@ -98,7 +98,7 @@ module.exports = function(config) {
       "/base/out/src/views/htmlcontent/src/": '/base/out/src/views/htmlcontent/dist/'
     },
     exclude: [],
-    reporters: ['progress','karma-remap-istanbul', 'junit'],
+    reporters: ['progress', 'junit'],
     customLaunchers: {
         Chrome_travis_ci: {
             base: 'Chrome',
@@ -113,22 +113,23 @@ module.exports = function(config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    browsers: ['Chrome_travis_ci'],
     singleRun: true
   }
 
   if (coverconfig && coverconfig.enabled) {
-    config.preprocessors = {
+    configuration.preprocessors = {
       'out/src/views/htmlcontent/dist/**/!(*spec)*.js': 'coverage'
     };
-    config.reporters.push('coverage');
-    config.coverageReporter = {
+    configuration.reporters.push('coverage');
+    configuration.reporters.push('karma-remap-istanbul')
+    configuration.coverageReporter = {
       dir : 'coverage/',
       reporters: [
         {type: 'json'}
       ]
     };
-    config.remapIstanbulReporter = {
+    configuration.remapIstanbulReporter = {
       reports: {
         json: 'coverage/coverage-html.json',
         // uncomment below for html only coverage
