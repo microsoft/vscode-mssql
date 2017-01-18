@@ -15,8 +15,12 @@ import { NotificationHandler } from 'vscode-languageclient';
 
 export class QueryNotificationHandler {
     private static _instance: QueryNotificationHandler;
-    private _queryRunners = new Map<string, QueryRunner>();
-    private _handlerCallbackQueue: ((run: QueryRunner) => void)[];
+
+    // public for testing only
+    public _queryRunners = new Map<string, QueryRunner>();
+
+    // public for testing only
+    public _handlerCallbackQueue: ((run: QueryRunner) => void)[] = [];
 
     static get instance(): QueryNotificationHandler {
         if (QueryNotificationHandler._instance) {
@@ -35,12 +39,12 @@ export class QueryNotificationHandler {
         SqlToolsServiceClient.instance.onNotification(QueryExecuteBatchCompleteNotification.type, this.handleBatchCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteResultSetCompleteNotification.type, this.handleResultSetCompleteNotification());
         SqlToolsServiceClient.instance.onNotification(QueryExecuteMessageNotification.type, this.handleMessageNotification());
-        this._handlerCallbackQueue = [];
     }
 
     // Registers queryRunners with their uris to distribute notifications.
     // Ensures that notifications are handled in the correct order by handling
     // enqueued handlers first.
+    // public for testing only
     public registerRunner(runner: QueryRunner, uri: string): void {
         // If enqueueOrRun was called before registerRunner for the current query,
         // _handlerCallbackQueue will be non-empty. Run all handlers in the queue first
@@ -52,13 +56,14 @@ export class QueryNotificationHandler {
 
         // Set the runner for any other handlers if the runner is in use by the
         // current query or a subsequent query
-        if (!runner.hasCompleted) {
+        if (runner.hasCompleted === false) {
             this._queryRunners.set(uri, runner);
         }
     }
 
     // Handles logic to run the given handlerCallback at the appropriate time. If the given runner is
     // undefined, the handlerCallback is put on the _handlerCallbackQueue to be run once the runner is set
+    // public for testing only
     private enqueueOrRun(handlerCallback: (runnerParam: QueryRunner) => void, runner: QueryRunner): void {
         if (runner === undefined) {
             this._handlerCallbackQueue.push(handlerCallback);
@@ -68,7 +73,8 @@ export class QueryNotificationHandler {
     }
 
     // Distributes result completion notification to appropriate methods
-    private handleQueryCompleteNotification(): NotificationHandler<any> {
+    // public for testing only
+    public handleQueryCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             let handlerCallback = (runner: QueryRunner) => {
@@ -87,7 +93,8 @@ export class QueryNotificationHandler {
     }
 
     // Distributes batch start notification to appropriate methods
-    private handleBatchStartNotification(): NotificationHandler<any> {
+    // public for testing only
+    public handleBatchStartNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             let handlerCallback = (runner: QueryRunner) => {
@@ -98,7 +105,8 @@ export class QueryNotificationHandler {
     }
 
     // Distributes batch completion notification to appropriate methods
-    private handleBatchCompleteNotification(): NotificationHandler<any> {
+    // public for testing only
+    public handleBatchCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             let handlerCallback = (runner: QueryRunner) => {
@@ -109,7 +117,8 @@ export class QueryNotificationHandler {
     }
 
     // Distributes result set completion notification to appropriate methods
-    private handleResultSetCompleteNotification(): NotificationHandler<any> {
+    // public for testing only
+    public handleResultSetCompleteNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             let handlerCallback = (runner: QueryRunner) => {
@@ -119,7 +128,9 @@ export class QueryNotificationHandler {
         };
     }
 
-    private handleMessageNotification(): NotificationHandler<any> {
+    // Distributes message notifications
+    // public for testing only
+    public handleMessageNotification(): NotificationHandler<any> {
         const self = this;
         return (event) => {
             let handlerCallback = (runner: QueryRunner) => {
