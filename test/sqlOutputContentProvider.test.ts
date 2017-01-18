@@ -3,7 +3,6 @@
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider';
-import { ISelectionData } from '../src/models/interfaces';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';
@@ -11,27 +10,24 @@ import Constants = require('../src/models/constants');
 import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
-let request = require('request');
-import LocalWebService from '../src/controllers/localWebService';
-import Interfaces = require('../src/models/interfaces');
+// import { ISelectionData } from '../src/models/interfaces';
+
 
 suite('SqlOutputProvider Tests', () => {
     let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
-    let contentProvider: SqlOutputContentProvider;
+    let contentProvider: TypeMoq.Mock<SqlOutputContentProvider>;
     let context: TypeMoq.Mock<vscode.ExtensionContext>;
     let statusView: TypeMoq.Mock<StatusView>;
-    let port: string;
 
     setup(() => {
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapper.setup(x => x.textDocuments).returns(() => []);
-        vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny())).returns((name) => vscode.workspace.getConfiguration(name));
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
         context.object.extensionPath = '';
         statusView = TypeMoq.Mock.ofType(StatusView);
-        contentProvider = new SqlOutputContentProvider(context.object, statusView.object);
-        contentProvider.setVscodeWrapper(vscodeWrapper.object);
-        port = LocalWebService._servicePort;
+        contentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Loose, context.object, statusView.object);
+        contentProvider.setup(x => x.setVscodeWrapper(TypeMoq.It.isAny())).callBase();
+        contentProvider.setup(x => x.newResultPaneViewColumn()).callBase();
+        contentProvider.object.setVscodeWrapper(vscodeWrapper.object);
     });
 
     test('Correctly outputs the new result pane view column', done => {
@@ -77,7 +73,7 @@ suite('SqlOutputProvider Tests', () => {
                 setSplitPaneSelectionConfig(c.config);
                 setCurrentEditorColumn(c.position);
 
-                let resultColumn = contentProvider.newResultPaneViewColumn();
+                let resultColumn = contentProvider.object.newResultPaneViewColumn();
                 assert.equal(resultColumn, c.expectedColumn);
             });
 
@@ -86,6 +82,35 @@ suite('SqlOutputProvider Tests', () => {
             done(new Error(err));
         }
     });
+
+/*
+    test('RunQuery properly sets up a query to be run', done => {
+        let title = 'Test_Title';
+        let uri = 'Test_URI';
+        let querySelection: ISelectionData = {
+            endColumn: 0,
+            endLine: 0,
+            startColumn: 0,
+            startLine: 0
+        };
+
+        // Get properties of contentProvider before we run a query
+        // let prevMapLength = contentProvider.object.getResultsMap.length;
+        contentProvider.setup(x => x.doesResultPaneExist(TypeMoq.It.isAny())).returns( () => false);
+        vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
+
+        // Setup the function to call base and run it
+        contentProvider.setup(x => x.runQuery(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()));
+        contentProvider.setup(x => x.newResultPaneViewColumn()).returns( () => 1);
+        contentProvider.object.runQuery(statusView.object, uri, querySelection, title);
+
+        // Ensure all side effects occured as intended
+        // assert.equal(contentProvider.object.getResultsMap.length,  prevMapLength + 1);
+        contentProvider.verify(x => x.doesResultPaneExist(TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+        done();
+    });
+
 
     test('Correctly request rows from service', () => {
 
@@ -128,6 +153,9 @@ suite('SqlOutputProvider Tests', () => {
         console.log(result);
 
     });
+    */
+
+
 
 });
 
