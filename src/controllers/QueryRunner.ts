@@ -121,6 +121,7 @@ export default class QueryRunner {
         // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
+        this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
 
         // Send the request to execute the query
@@ -367,5 +368,9 @@ export default class QueryRunner {
     // public for testing only - used to mock handleQueryComplete
     public _setHasCompleted(): void {
         this._hasCompleted = true;
+    }
+
+    get totalElapsedMilliseconds(): number {
+        return this._totalElapsedMilliseconds;
     }
 }

@@ -287,9 +287,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this.displayResultPane(resultsUri, paneTitle);
     }
 
-    // Intentionally created anonymously for testing purposes
-    public displayResultPane = function(resultsUri: string, paneTitle: string): void {
-                // Check if the results window already exists
+    // Function to render resultspane content
+    public displayResultPane(resultsUri: string, paneTitle: string): void {
+        // Check if the results window already exists
         let activeTextEditor = this._vscodeWrapper.activeTextEditor;
         let previewCommandPromise;
         let resultPaneColumn;
