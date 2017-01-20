@@ -1,5 +1,5 @@
-// TODO: rewrite all the outputprovider handle tests (old ones kept for reference)
-// Tracked by issue #625
+'use strict';
+
 import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import QueryRunner from '../src/controllers/QueryRunner';
