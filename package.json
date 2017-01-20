@@ -63,7 +63,7 @@
     "gulp-shell": "^0.5.2",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^6.0.2",
-    "gulp-typescript": "^2.13.6",
+    "gulp-typescript": "^3.1.4",
     "gulp-uglify": "^2.0.0",
     "istanbul": "^0.4.5",
     "jasmine-core": "~2.4.1",
@@ -80,7 +80,7 @@
     "systemjs-builder": "^0.15.32",
     "tslint": "^3.14.0",
     "typemoq": "^0.3.2",
-    "typescript": "^1.8.9",
+    "typescript": "^2.1.5",
     "uglify-js": "mishoo/UglifyJS2#harmony",
     "vscode": "^0.11.0",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"

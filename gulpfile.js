@@ -39,7 +39,7 @@ gulp.task('ext:compile-src', (done) => {
                 config.paths.project.root + '/typings/**/*.ts',
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())
-                .pipe(ts(tsProject))
+                .pipe(tsProject())
                 .on('error', function() {
                     if (process.env.BUILDMACHINE) {
                         done('Extension Tests failed to build. See Above.');
@@ -57,7 +57,7 @@ gulp.task('ext:compile-tests', (done) => {
                 config.paths.project.root + '/test/**/*.ts',
                 config.paths.project.root + '/typings/**/*.ts'])
                 .pipe(srcmap.init())
-                .pipe(ts(tsProject))
+                .pipe(tsProject())
                 .on('error', function() {
                     if (process.env.BUILDMACHINE) {
                         done('Extension Tests failed to build. See Above.');
