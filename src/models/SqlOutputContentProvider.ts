@@ -275,7 +275,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         queryRunner.runQuery(selection);
         let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
+        this.displayResultPane(resultsUri, paneTitle);
+    }
 
+    // Function to render resultspane content
+    public displayResultPane(resultsUri: string, paneTitle: string): void {
         // Check if the results window already exists
         let activeTextEditor = this._vscodeWrapper.activeTextEditor;
         let previewCommandPromise;
@@ -306,7 +310,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
             }
         });
-    }
+    };
 
     public cancelQuery(input: QueryRunner | string): void {
         let self = this;
@@ -561,8 +565,16 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return viewColumn;
     }
 
-    // Exposing the wrapper for testing purposes
-    public setVscodeWrapper(wrapper: VscodeWrapper): void {
+    // Exposing some variables for testing purposes only
+    set setDisplayResultPane(implementation: (var1: string, var2: string) => void) {
+        this.displayResultPane = implementation;
+    }
+
+    set setVscodeWrapper(wrapper: VscodeWrapper) {
         this._vscodeWrapper = wrapper;
+    }
+
+    get getResultsMap(): Map<string, QueryRunnerState> {
+        return this._queryResultsMap;
     }
 }
