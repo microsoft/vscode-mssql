@@ -44,39 +44,29 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(context: vscode.ExtensionContext, private _statusView: StatusView) {
-        const self = this;
-
         this._vscodeWrapper = new VscodeWrapper();
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
 
         // add http handler for '/root'
-        this._service.addHandler(Interfaces.ContentType.Root, function(req, res): void { self.rootRequestHandler(req, res); });
-
+        this._service.addHandler(Interfaces.ContentType.Root, (req, res) => this.rootRequestHandler(req, res));
         // add http handler for '/rows' - return rows end-point for a specific resultset
-        this._service.addHandler(Interfaces.ContentType.Rows, function(req, res): void { self.rowRequestHandler(req, res); });
-
+        this._service.addHandler(Interfaces.ContentType.Rows, (req, res) => this.rowRequestHandler(req, res));
         // add http handler for '/config'
-        this._service.addHandler(Interfaces.ContentType.Config, function(req, res): void { self.configRequestHandler(req, res); });
-
+        this._service.addHandler(Interfaces.ContentType.Config, (req, res) => this.configRequestHandler(req, res));
         // add http handler for '/saveResults' - return success message as JSON
-        this._service.addPostHandler(Interfaces.ContentType.SaveResults, function(req, res): void { self.saveResultsRequestHandler(req, res); });
-
+        this._service.addPostHandler(Interfaces.ContentType.SaveResults, (req, res) => this.saveResultsRequestHandler(req, res));
         // add http handler for '/openLink' - open content in a new vscode editor pane
-        this._service.addPostHandler(Interfaces.ContentType.OpenLink, function(req, res): void { self.openLinkRequestHandler(req, res); });
-
+        this._service.addPostHandler(Interfaces.ContentType.OpenLink, (req, res) => this.openLinkRequestHandler(req, res));
         // add http post handler for copying results
-        this._service.addPostHandler(Interfaces.ContentType.Copy, function(req, res): void { self.copyRequestHandler(req, res); });
-
+        this._service.addPostHandler(Interfaces.ContentType.Copy, (req, res) => this.copyRequestHandler(req, res));
         // add http get handler for setting the selection in the editor
-        this._service.addHandler(Interfaces.ContentType.EditorSelection, function(req, res): void { self.editorSelectionRequestHandler(req, res); });
-
+        this._service.addHandler(Interfaces.ContentType.EditorSelection, (req, res) => this.editorSelectionRequestHandler(req, res));
         // add http post handler for showing errors to user
-        this._service.addPostHandler(Interfaces.ContentType.ShowError, function(req, res): void { self.showErrorRequestHandler(req, res); });
-
+        this._service.addPostHandler(Interfaces.ContentType.ShowError, (req, res) => this.showErrorRequestHandler(req, res));
         // add http post handler for showing warning to user
-        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, function(req, res): void { self.showWarningRequestHandler(req, res); });
+        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, (req, res) => this.showWarningRequestHandler(req, res));
 
         // start express server on localhost and listen on a random port
         try {
