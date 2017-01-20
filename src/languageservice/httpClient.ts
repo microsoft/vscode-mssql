@@ -22,19 +22,19 @@ export default class HttpClient implements IHttpClient {
     * Downloads a file and stores the result in the temp file inside the package object
     */
     public downloadFile(urlString: string, pkg: IPackage, logger: ILogger, statusView: IStatusView, proxy?: string, strictSSL?: boolean): Promise<void> {
+        const self = this;
         const url = parseUrl(urlString);
         let options = this.getHttpClientOptions(url, proxy, strictSSL);
-        let client = url.protocol === 'http:' ? http : https;
 
         return new Promise<void>((resolve, reject) => {
             if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
                 return reject(new PackageError('Temporary package file unavailable', pkg));
             }
 
-            let request = client.request(options, response => {
+            function responseHandler(response: http.IncomingMessage): void {
                 if (response.statusCode === 301 || response.statusCode === 302) {
                     // Redirect - download from new location
-                    return resolve(this.downloadFile(response.headers.location, pkg, logger, statusView, proxy, strictSSL));
+                    return resolve(self.downloadFile(response.headers.location, pkg, logger, statusView, proxy, strictSSL));
                 }
 
                 if (response.statusCode !== 200) {
@@ -44,12 +44,19 @@ export default class HttpClient implements IHttpClient {
                 }
 
                 // If status code is 200
-                this.handleSuccessfulResponse(pkg, response, logger, statusView).then(_ => {
+                self.handleSuccessfulResponse(pkg, response, logger, statusView).then(_ => {
                     resolve();
                 }).catch(err => {
                     reject(err);
                 });
-            });
+            }
+
+            let request;
+            if (url.protocol === 'http:') {
+                request = http.request(options, (response) => { responseHandler(response); });
+            } else {
+                request = https.request(options, (response) => { responseHandler(response); });
+            }
 
             request.on('error', error => {
                 reject(new PackageError(`Request error: ${error.code || 'NONE'}`, pkg, error));
