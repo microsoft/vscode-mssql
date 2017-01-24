@@ -1,3 +1,6 @@
+import * as nls from 'vscode-nls';
+let localize = nls.loadMessageBundle();
+
 // constants
 export const languageId = 'sql';
 export const extensionName = 'mssql';
@@ -109,7 +112,7 @@ export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
                                 'Change editor language to "SQL" -or- ' +
                                 'Select T-SQL text in the active SQL editor.';
 
-export const recentConnectionsPlaceholder = 'Choose a connection profile from the list below';
+export const recentConnectionsPlaceholder = localize('recentConnectionsPlaceholder', 'it did not work');
 export const msgNoConnectionsInSettings = 'To use this command, add connection profile to User Settings.';
 export const labelOpenGlobalSettings = 'Open Global Settings';
 export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
