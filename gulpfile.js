@@ -22,8 +22,6 @@ var nls = require('vscode-nls-dev');
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
 
-let nls_build = false;
-
 gulp.task('ext:lint', () => {
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
@@ -37,28 +35,21 @@ gulp.task('ext:lint', () => {
 });
 
 gulp.task('ext:compile-src', (done) => {
-    let filterSrc = filter(['**/*.ts', '**/*.js'], {restore: true});
-    let filterLocaleDef = filter(['**', '!**/src/*.json']);
-
     return gulp.src([
                 config.paths.project.root + '/src/**/*.ts',
                 config.paths.project.root + '/src/**/*.js',
                 config.paths.project.root + '/typings/**/*.ts',
-                config.paths.project.root + '/localization/i18n/**/*.json',
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())
-                .pipe(filterSrc)
-                .pipe(tsProject()).js
-                .pipe(filterSrc.restore)
-                .pipe(nls.rewriteLocalizeCalls())
-                .pipe(filterLocaleDef)
-                .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n'))
+                .pipe(tsProject())
                 .on('error', function() {
                     if (process.env.BUILDMACHINE) {
                         done('Extension Tests failed to build. See Above.');
                         process.exit(1);
                     }
                 })
+                .pipe(nls.rewriteLocalizeCalls())
+                .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n'))
                 .pipe(srcmap.write('.', {
                    sourceRoot: function(file){ return file.cwd + '/src'; }
                 }))
