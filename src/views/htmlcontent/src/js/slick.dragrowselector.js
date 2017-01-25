@@ -273,7 +273,7 @@
                 _ranges.push(new Slick.Range(0, last, _grid.getDataLength()-1, last));
             } else {
                 _ranges = [new Slick.Range(0, columnIndex, _grid.getDataLength()-1, columnIndex)];
-                _grid.setActiveCell(0, columnIndex + 1);
+                _grid.resetActiveCell();
             }
             setSelectedRanges(_ranges);
             e.stopImmediatePropagation();
