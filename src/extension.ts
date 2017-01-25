@@ -1,5 +1,6 @@
 'use strict';
 import vscode = require('vscode');
+import Constants = require('./models/constants');
 import MainController from './controllers/mainController';
 
 let controller: MainController = undefined;
@@ -9,6 +10,7 @@ let controller: MainController = undefined;
 export function activate(context: vscode.ExtensionContext): Promise<boolean> {
     controller = new MainController(context);
     context.subscriptions.push(controller);
+    Constants.loadLocalizedConstants(vscode.env.language);
     return controller.activate();
 }
 

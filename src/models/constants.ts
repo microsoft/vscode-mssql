@@ -1,16 +1,13 @@
 import * as nls from 'vscode-nls';
-let localize = nls.loadMessageBundle();
 
-// constants
+// Constants
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
 export const connectionApplicationName = 'vscode-mssql';
 export const outputChannelName = 'MSSQL';
-
 export const connectionConfigFilename = 'settings.json';
 export const connectionsArrayName = 'mssql.connections';
-
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
@@ -20,7 +17,6 @@ export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 export const cmdShowGettingStarted = 'extension.showGettingStarted';
 export const cmdNewQuery = 'extension.newQuery';
 export const cmdManageConnectionProfiles = 'extension.manageProfiles';
-
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -28,12 +24,9 @@ export const azureDatabase = 'Azure';
 export const defaultPortNumber = 1433;
 export const sqlAuthentication = 'SqlLogin';
 export const defaultDatabase = 'master';
-
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
-
 export const maxDisplayedStatusTextLength = 50;
-
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
 export const outputContentTypeResultsetMeta = 'resultsetsMeta';
@@ -49,7 +42,15 @@ export const outputContentTypeShowWarning = 'showWarning';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'dist/html/sqlOutput.ejs';
 export const contentProviderMinFile = 'dist/js/app.min.js';
+export const serviceCompatibleVersion = '1.0.0';
+export const untitledSaveTimeThreshold = 10.0;
+export const renamedOpenTimeThreshold = 10.0;
+export const timeToWaitForLanguageModeChange = 10000.0;
+export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
+export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
+export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
 
+// Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
@@ -59,199 +60,299 @@ export const configRecentConnections = 'recentConnections';
 export const configMaxRecentConnections = 'maxRecentConnections';
 export const configCopyRemoveNewLine = 'copyRemoveNewLine';
 export const configSplitPaneSelection = 'splitPaneSelection';
-
-
-// localizable strings
-export const configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
-
-export const msgLocalWebserviceStaticContent = 'LocalWebService: added static html content path: ';
-export const msgLocalWebserviceStarted = 'LocalWebService listening on port ';
-export const msgRunQueryAllBatchesExecuted = 'runQuery: all batches executed';
-export const msgStartedExecute = 'Started query execution for document "{0}"';
-export const msgFinishedExecute = 'Finished query execution for document "{0}"';
-export const msgRunQueryError = 'runQuery: error: ';
-export const msgRunQueryExecutingBatch = 'runQuery: executeBatch called with SQL: ';
-export const msgRunQueryAddBatchResultsets = 'runQuery: adding resultsets for batch: ';
-export const msgRunQueryAddBatchError = 'runQuery: adding error message for batch: ';
-export const msgRunQueryConnectionActive = 'runQuery: active connection is connected, using it to run query';
-export const msgRunQueryConnectionDisconnected = 'runQuery: active connection is disconnected, reconnecting';
-export const msgRunQueryNoConnection = 'runQuery: no active connection - prompting for user';
-export const msgRunQueryInProgress = 'A query is already running for this editor session. Please cancel this query or wait for its completion.';
-export const runQueryBatchStartMessage = 'Started executing query at ';
-export const runQueryBatchStartLine = 'Line {0}';
-
-export const msgCancelQueryFailed = 'Canceling the query failed: {0}';
-export const msgCancelQueryNotRunning = 'Cannot cancel query as no query is running.';
-export const msgCancelQuerySuccess = 'Successfully canceled the query.';
-
-export const msgContentProviderOnContentUpdated = 'Content provider: onContentUpdated called';
-export const msgContentProviderAssociationFailure = 'Content provider: Unable to associate status view for current file';
-export const msgContentProviderOnRootEndpoint = 'LocalWebService: Root end-point called';
-export const msgContentProviderOnResultsEndpoint = 'LocalWebService: ResultsetsMeta endpoint called';
-export const msgContentProviderOnMessagesEndpoint = 'LocalWebService: Messages end-point called';
-export const msgContentProviderOnColumnsEndpoint = 'LocalWebService:  Columns end-point called for index = ';
-export const msgContentProviderOnRowsEndpoint = 'LocalWebService: Rows end-point called for index = ';
-export const msgContentProviderOnClear = 'Content provider: clear called';
-export const msgContentProviderOnUpdateContent = 'Content provider: updateContent called';
-export const msgContentProviderProvideContent = 'Content provider: provideTextDocumentContent called: ';
-
-export const msgChooseDatabaseNotConnected = 'No connection was found. Please connect to a server first.';
-export const msgChooseDatabasePlaceholder = 'Choose a database from the list below';
-
-export const msgConnectionError = 'Error {0}: {1}';
-export const msgConnectionError2 = 'Failed to connect: {0}';
-export const msgConnectionErrorPasswordExpired = 'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.';
-export const connectionErrorChannelName = 'Connection Errors';
-
-export const msgPromptCancelConnect = 'Server connection in progress. Do you want to cancel?';
-export const msgPromptClearRecentConnections = 'Confirm to clear recent connections list';
-
-export const extensionActivated = 'activated.';
-export const extensionDeactivated = 'de-activated.';
-export const msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
-                                'Change editor language to "SQL" -or- ' +
-                                'Select T-SQL text in the active SQL editor.';
-
-export const recentConnectionsPlaceholder = localize('recentConnectionsPlaceholder', 'it did not work');
-export const msgNoConnectionsInSettings = 'To use this command, add connection profile to User Settings.';
-export const labelOpenGlobalSettings = 'Open Global Settings';
-export const labelOpenWorkspaceSettings = 'Open Workspace Settings';
-export const CreateProfileFromConnectionsListLabel = 'Create Connection Profile';
-export const CreateProfileLabel = 'Create';
-export const ClearRecentlyUsedLabel = 'Clear Recent Connections List';
-export const EditProfilesLabel = 'Edit';
-export const RemoveProfileLabel = 'Remove';
-export const ManageProfilesPrompt = 'Manage Connection Profiles';
-export const SampleServerName = '{{put-server-name-here}}';
-
-export const serverPrompt = 'Server name';
-export const serverPlaceholder = 'hostname\\instance or <server>.database.windows.net';
-export const databasePrompt = 'Database name';
-export const databasePlaceholder = '[Optional] Database to connect (press Enter to connect to <default> database)';
-export const databaseDefaultValue = 'master';
-export const authTypePrompt = 'Authentication Type';
-export const authTypeIntegrated = 'Integrated';
-export const authTypeSql = 'SQL Login';
-export const authTypeAdUniversal = 'Active Directory Universal';
-export const usernamePrompt = 'User name';
-export const usernamePlaceholder = 'User name (SQL Login)';
-export const passwordPrompt = 'Password';
-export const passwordPlaceholder = 'Password (SQL Login)';
-export const msgSavePassword = 'Save Password? If \'No\', password will be required each time you connect';
-export const profileNamePrompt = 'Profile Name';
-export const profileNamePlaceholder = '[Optional] Enter a name for this profile';
-
-export const filepathPrompt = 'File path';
-export const filepathPlaceholder = 'File name';
-export const filepathMessage = 'File name';
-export const overwritePrompt = 'A file with this name already exists. Do you want to replace the existing file?';
-export const overwritePlaceholder = 'A file with this name already exists';
-
-export const msgSaveResultInProgress = 'A save request is already executing. Please wait for its completion.';
-export const msgCannotOpenContent = 'Error occurred opening content in editor.';
-export const msgSaveStarted = 'Started saving results to ';
-export const msgSaveFailed = 'Failed to save results. ';
-export const msgSaveSucceeded = 'Successfully saved results to ';
-
-export const msgSelectProfile = 'Select connection profile';
-export const msgSelectProfileToRemove = 'Select profile to remove';
-
-export const confirmRemoveProfilePrompt = 'Confirm to remove this profile.';
-export const msgNoProfilesSaved = 'No connection profile to remove.';
-export const msgProfileRemoved = 'Profile removed successfully';
-export const msgProfileCreated = 'Profile created successfully';
-export const msgProfileCreatedAndConnected = 'Profile created and connected';
-export const msgClearedRecentConnections = 'Recent connections list cleared';
-
-export const msgSelectionIsRequired = 'Selection is required.';
-export const msgIsRequired = ' is required.';
-export const msgRetry = 'Retry';
-export const msgError = 'Error: ';
-
-export const msgYes = 'Yes';
-export const msgNo = 'No';
-
-export const defaultDatabaseLabel = '<default>';
-export const notConnectedLabel = 'Disconnected';
-export const notConnectedTooltip = 'Click to connect to a database';
-export const connectingLabel = 'Connecting';
-export const connectingTooltip = 'Connecting to: ';
-export const connectedLabel = 'Connected.';
-export const connectErrorLabel = 'Connection error';
-export const connectErrorTooltip = 'Error connecting to: ';
-export const connectErrorCode = 'Errorcode: ';
-export const connectErrorMessage = 'ErrorMessage: ';
-export const executeQueryLabel = 'Executing query ';
-export const cancelingQueryLabel = 'Canceling query ';
-export const updatingIntelliSenseLabel = 'Updating IntelliSense...';
-export const unfoundResult = 'Data was disposed when text editor was closed; to view data please reexecute query.';
-
-export const serviceCompatibleVersion = '1.0.0';
-export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
-export const serviceInstalling = 'Installing';
-export const serviceInstallingTo = 'Installing SQL tools service to';
-export const serviceInitializing = 'Initializing SQL tools service for the mssql extension.';
-export const commandsNotAvailableWhileInstallingTheService = 'Note: mssql commands will be available after installing the service.';
-export const serviceDownloading = 'Downloading';
-export const serviceInstalled = 'Sql Tools Service installed';
-export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
-export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
-export const unsupportedPlatformErrorMessage = 'The platform is not supported';
-export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
-export const extensionNotInitializedError = 'Unable to execute the command while the extension is initializing. Please try again later.';
-
-export const untitledScheme = 'untitled';
-export const untitledSaveTimeThreshold = 10.0;
-export const renamedOpenTimeThreshold = 10.0;
-
-export const msgChangeLanguageMode = 'To use this command, you must set the language to \"SQL\". Confirm to change language mode.';
-export const timeToWaitForLanguageModeChange = 10000.0;
-
-export const msgChangedDatabaseContext = 'Changed database context to \"{0}\" for document \"{1}\"';
-
-export const msgPromptRetryCreateProfile = 'Error: Unable to connect using the connection information provided. Retry profile creation?';
-export const retryLabel = 'Retry';
-
-export const msgConnecting = 'Connecting to server \"{0}\" on document \"{1}\".';
-export const msgConnectedServerInfo = 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}';
-export const msgConnectionFailed = 'Error connecting to server \"{0}\". Details: {1}';
-export const msgChangingDatabase = 'Changing database context to \"{0}\" on server \"{1}\" on document \"{2}\".';
-export const msgChangedDatabase = 'Changed database context to \"{0}\" on server \"{1}\" on document \"{2}\".';
-export const msgDisconnected = 'Disconnected on document \"{0}\"';
-
-export const msgErrorReadingConfigFile = 'Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.';
-export const msgErrorOpeningConfigFile = 'Error: Unable to open connection profile settings file.';
-
-
-export const sqlToolsServiceConfigKey = 'service';
+export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
 export const sqlToolsServiceInstallDirConfigKey = 'installDir';
 export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
 export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
-
-export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
 export const extConfigResultFontFamily = 'resultsFontFamily';
 export const extConfigResultFontSize = 'resultsFontSize';
 
-export const titleResultsPane = 'Results: {0}';
-
-export const macOpenSslErrorMessage = `OpenSSL version >=1.0.1 is required to connect.`;
-export const macOpenSslHelpButton = 'Help';
-export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
-
-export const sqlToolsServiceName = 'SQLToolsService';
-export const serviceInitializingOutputChannelName = 'SqlToolsService Initialization';
-
-
-
-export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
-
+// ToolsService Constants
+export const serviceInstallingTo = 'Installing SQL tools service to';
+export const serviceInstalling = 'Installing';
+export const serviceDownloading = 'Downloading';
+export const serviceInstalled = 'Sql Tools Service installed';
+export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
 export const sqlToolsServiceCrashMessage = 'SQL Tools Service component could not start.';
 export const sqlToolsServiceCrashButton = 'View Known Issues';
-export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
+export const serviceInitializingOutputChannelName = 'SqlToolsService Initialization';
+export const serviceInitializing = 'Initializing SQL tools service for the mssql extension.';
+export const commandsNotAvailableWhileInstallingTheService = 'Note: mssql commands will be available after installing the service.';
+export const unsupportedPlatformErrorMessage = 'The platform is not supported';
+export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
+export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
+export const sqlToolsServiceName = 'SQLToolsService';
+export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
+export const sqlToolsServiceConfigKey = 'service';
 
-export const gettingDefinitionMessage = 'Getting definition ...';
-export const definitionRequestedStatus = 'DefinitionRequested';
-export const definitionRequestCompletedStatus = 'DefinitionRequestCompleted';
-export const updatingIntelliSenseStatus = 'updatingIntelliSense';
-export const intelliSenseUpdatedStatus = 'intelliSenseUpdated';
+
+// Localizable Strings (localized at runtime)
+export let configMyConnectionsNoServerName;
+export let msgLocalWebserviceStaticContent;
+export let msgLocalWebserviceStarted;
+export let msgRunQueryAllBatchesExecuted;
+export let msgStartedExecute;
+export let msgFinishedExecute;
+export let msgRunQueryError;
+export let msgRunQueryExecutingBatch;
+export let msgRunQueryAddBatchResultsets;
+export let msgRunQueryAddBatchError;
+export let msgRunQueryConnectionActive;
+export let msgRunQueryConnectionDisconnected;
+export let msgRunQueryNoConnection;
+export let msgRunQueryInProgress;
+export let runQueryBatchStartMessage;
+export let runQueryBatchStartLine;
+export let msgCancelQueryFailed;
+export let msgCancelQueryNotRunning;
+export let msgCancelQuerySuccess;
+export let msgContentProviderOnContentUpdated;
+export let msgContentProviderAssociationFailure;
+export let msgContentProviderOnRootEndpoint;
+export let msgContentProviderOnResultsEndpoint;
+export let msgContentProviderOnMessagesEndpoint;
+export let msgContentProviderOnColumnsEndpoint;
+export let msgContentProviderOnRowsEndpoint;
+export let msgContentProviderOnClear;
+export let msgContentProviderOnUpdateContent;
+export let msgContentProviderProvideContent;
+export let msgChooseDatabaseNotConnected;
+export let msgChooseDatabasePlaceholder;
+export let msgConnectionError;
+export let msgConnectionError2;
+export let msgConnectionErrorPasswordExpired;
+export let connectionErrorChannelName;
+export let msgPromptCancelConnect;
+export let msgPromptClearRecentConnections;
+export let extensionActivated;
+export let extensionDeactivated;
+export let msgOpenSqlFile;
+export let recentConnectionsPlaceholder;
+export let msgNoConnectionsInSettings;
+export let labelOpenGlobalSettings;
+export let labelOpenWorkspaceSettings;
+export let CreateProfileFromConnectionsListLabel;
+export let CreateProfileLabel;
+export let ClearRecentlyUsedLabel;
+export let EditProfilesLabel;
+export let RemoveProfileLabel;
+export let ManageProfilesPrompt;
+export let SampleServerName;
+export let serverPrompt;
+export let serverPlaceholder;
+export let databasePrompt;
+export let databasePlaceholder;
+export let databaseDefaultValue;
+export let authTypePrompt;
+export let authTypeIntegrated;
+export let authTypeSql;
+export let authTypeAdUniversal;
+export let usernamePrompt;
+export let usernamePlaceholder;
+export let passwordPrompt;
+export let passwordPlaceholder;
+export let msgSavePassword;
+export let profileNamePrompt;
+export let profileNamePlaceholder;
+export let filepathPrompt;
+export let filepathPlaceholder;
+export let filepathMessage;
+export let overwritePrompt;
+export let overwritePlaceholder;
+export let msgSaveResultInProgress;
+export let msgCannotOpenContent;
+export let msgSaveStarted;
+export let msgSaveFailed;
+export let msgSaveSucceeded;
+export let msgSelectProfile;
+export let msgSelectProfileToRemove;
+export let confirmRemoveProfilePrompt;
+export let msgNoProfilesSaved;
+export let msgProfileRemoved;
+export let msgProfileCreated;
+export let msgProfileCreatedAndConnected;
+export let msgClearedRecentConnections;
+export let msgSelectionIsRequired;
+export let msgIsRequired;
+export let msgRetry;
+export let msgError;
+export let msgYes;
+export let msgNo;
+export let defaultDatabaseLabel;
+export let notConnectedLabel;
+export let notConnectedTooltip;
+export let connectingLabel;
+export let connectingTooltip;
+export let connectedLabel;
+export let connectErrorLabel;
+export let connectErrorTooltip;
+export let connectErrorCode;
+export let connectErrorMessage;
+export let executeQueryLabel;
+export let cancelingQueryLabel;
+export let updatingIntelliSenseLabel;
+export let unfoundResult;
+export let extensionNotInitializedError;
+export let untitledScheme;
+export let msgChangeLanguageMode;
+export let msgChangedDatabaseContext;
+export let msgPromptRetryCreateProfile;
+export let retryLabel;
+export let msgConnecting;
+export let msgConnectedServerInfo;
+export let msgConnectionFailed;
+export let msgChangingDatabase;
+export let msgChangedDatabase;
+export let msgDisconnected;
+export let msgErrorReadingConfigFile;
+export let msgErrorOpeningConfigFile;
+export let titleResultsPane;
+export let macOpenSslErrorMessage;
+export let macOpenSslHelpButton;
+export let gettingDefinitionMessage;
+export let definitionRequestedStatus;
+export let definitionRequestCompletedStatus;
+export let updatingIntelliSenseStatus;
+export let intelliSenseUpdatedStatus;
+
+// Function that loads the localization context and updates all constants
+export function loadLocalizedConstants(locale: string): void {
+    // Configure Locale
+    let localize = nls.config({ locale: locale })();
+
+    // Localizing each localizable export
+    msgLocalWebserviceStaticContent = localize('msgLocalWebserviceStaticContent', 'LocalWebService: added static html content path: ');
+    msgLocalWebserviceStarted = localize('msgLocalWebserviceStarted', 'LocalWebService listening on port ');
+    msgRunQueryAllBatchesExecuted = localize('msgRunQueryAllBatchesExecuted', 'runQuery: all batches executed');
+    msgStartedExecute = localize('msgStartedExecute', 'Started query execution for document "{0}"');
+    msgFinishedExecute = localize('msgFinishedExecute', 'Finished query execution for document "{0}"');
+    msgRunQueryError = localize('msgRunQueryError', 'runQuery: error: ');
+    msgRunQueryExecutingBatch = localize('msgRunQueryExecutingBatch', 'runQuery: executeBatch called with SQL: ');
+    msgRunQueryAddBatchResultsets = localize('msgRunQueryAddBatchResultsets', 'runQuery: adding resultsets for batch: ');
+    msgRunQueryAddBatchError = localize('msgRunQueryAddBatchError', 'runQuery: adding error message for batch: ');
+    msgRunQueryConnectionActive = localize('msgRunQueryConnectionActive', 'runQuery: active connection is connected, using it to run query');
+    msgRunQueryConnectionDisconnected = localize('msgRunQueryConnectionDisconnected', 'runQuery: active connection is disconnected, reconnecting');
+    msgRunQueryNoConnection = localize('msgRunQueryNoConnection', 'runQuery: no active connection - prompting for user');
+    msgRunQueryInProgress = localize('msgRunQueryInProgress',
+        'A query is already running for this editor session. Please cancel this query or wait for its completion.');
+    runQueryBatchStartMessage = localize('runQueryBatchStartMessage', 'Started executing query at ');
+    runQueryBatchStartLine = localize('runQueryBatchStartLine', 'Line {0}');
+    msgCancelQueryFailed = localize('msgCancelQueryFailed', 'Canceling the query failed: {0}');
+    msgCancelQueryNotRunning = localize('msgCancelQueryNotRunning', 'Cannot cancel query as no query is running.');
+    msgCancelQuerySuccess = localize('msgCancelQuerySuccess', 'Successfully canceled the query.');
+    msgContentProviderOnContentUpdated = localize('msgContentProviderOnContentUpdated', 'Content provider: onContentUpdated called');
+    msgContentProviderAssociationFailure = localize('msgContentProviderAssociationFailure',
+        'Content provider: Unable to associate status view for current file');
+    msgContentProviderOnRootEndpoint = localize('msgContentProviderOnRootEndpoint', 'LocalWebService: Root end-point called');
+    msgContentProviderOnResultsEndpoint = localize('msgContentProviderOnResultsEndpoint', 'LocalWebService: ResultsetsMeta endpoint called');
+    msgContentProviderOnMessagesEndpoint = localize('msgContentProviderOnMessagesEndpoint', 'LocalWebService: Messages end-point called');
+    msgContentProviderOnColumnsEndpoint = localize('msgContentProviderOnColumnsEndpoint', 'LocalWebService:  Columns end-point called for index = ' );
+    msgContentProviderOnRowsEndpoint = localize('msgContentProviderOnRowsEndpoint', 'LocalWebService: Rows end-point called for index = ');
+    msgContentProviderOnClear = localize('msgContentProviderOnClear', 'Content provider: clear called');
+    msgContentProviderOnUpdateContent = localize('msgContentProviderOnUpdateContent', 'Content provider: updateContent called');
+    msgContentProviderProvideContent = localize('msgContentProviderProvideContent', 'Content provider: provideTextDocumentContent called: ');
+    msgChooseDatabaseNotConnected = localize('msgChooseDatabaseNotConnected', 'No connection was found. Please connect to a server first.');
+    msgChooseDatabasePlaceholder = localize('msgChooseDatabasePlaceholder', 'Choose a database from the list below');
+    msgConnectionError = localize('msgConnectionError', 'Error {0}: {1}');
+    msgConnectionError2 = localize('msgConnectionError2', 'Failed to connect: {0}');
+    msgConnectionErrorPasswordExpired = localize('msgConnectionErrorPasswordExpired',
+        'Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.');
+    connectionErrorChannelName = localize('connectionErrorChannelName', 'Connection Errors');
+    msgPromptCancelConnect = localize('msgPromptCancelConnect', 'Server connection in progress. Do you want to cancel?');
+    msgPromptClearRecentConnections = localize('msgPromptClearRecentConnections', 'Confirm to clear recent connections list');
+    extensionActivated = localize('extensionActivated', 'activated.');
+    extensionDeactivated = localize('extensionDeactivated', 'de-activated.');
+    msgOpenSqlFile = localize('msgOpenSqlFile',
+        'To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.');
+    recentConnectionsPlaceholder = localize('recentConnectionsPlaceholder', 'Choose a connection profile from the list below');
+    msgNoConnectionsInSettings = localize('msgNoConnectionsInSettings', 'To use this command, add connection profile to User Settings.');
+    labelOpenGlobalSettings = localize('labelOpenGlobalSettings', 'Open Global Settings');
+    labelOpenWorkspaceSettings = localize('labelOpenWorkspaceSettings', 'Open Workspace Settings');
+    CreateProfileFromConnectionsListLabel = localize('CreateProfileFromConnectionsListLabel', 'Create Connection Profile');
+    CreateProfileLabel = localize('CreateProfileLabel', 'Create');
+    ClearRecentlyUsedLabel = localize('ClearRecentlyUsedLabel', 'Clear Recent Connections List');
+    EditProfilesLabel = localize('EditProfilesLabel', 'Edit');
+    RemoveProfileLabel = localize('RemoveProfileLabel', 'Remove');
+    ManageProfilesPrompt = localize('ManageProfilesPrompt', 'Manage Connection Profiles');
+    SampleServerName = localize('SampleServerName', '{{put-server-name-here}}');
+    serverPrompt = localize('serverPrompt', 'Server name');
+    serverPlaceholder = localize('serverPlaceholder', 'hostname\\instance or <server>.database.windows.net');
+    databasePrompt = localize('databasePrompt', 'Database name');
+    databasePlaceholder = localize('databasePlaceholder', '[Optional] Database to connect (press Enter to connect to <default> database)');
+    databaseDefaultValue = localize('databaseDefaultValue', 'master');
+    authTypePrompt = localize('authTypePrompt', 'Authentication Type');
+    authTypeIntegrated = localize('authTypeIntegrated', 'Integrated');
+    authTypeSql = localize('authTypeSql', 'SQL Login');
+    authTypeAdUniversal = localize('authTypeAdUniversal', 'Active Directory Universal');
+    usernamePrompt = localize('usernamePrompt', 'User name');
+    usernamePlaceholder = localize('usernamePlaceholder', 'User name (SQL Login)');
+    passwordPrompt = localize('passwordPrompt', 'Password');
+    passwordPlaceholder = localize('passwordPlaceholder', 'Password (SQL Login)');
+    msgSavePassword = localize('msgSavePassword', 'Save Password? If \'No\', password will be required each time you connect');
+    profileNamePrompt = localize('profileNamePrompt', 'Profile Name');
+    profileNamePlaceholder = localize('profileNamePlaceholder', '[Optional] Enter a name for this profile');
+    filepathPrompt = localize('filepathPrompt', 'File path');
+    filepathPlaceholder = localize('filepathPlaceholder', 'File name');
+    filepathMessage = localize('filepathMessage', 'File name');
+    overwritePrompt = localize('overwritePrompt', 'A file with this name already exists. Do you want to replace the existing file?');
+    overwritePlaceholder = localize('overwritePlaceholder', 'A file with this name already exists');
+    msgSaveResultInProgress = localize('msgSaveResultInProgress', 'A save request is already executing. Please wait for its completion.');
+    msgCannotOpenContent = localize('msgCannotOpenContent', 'Error occurred opening content in editor.');
+    msgSaveStarted = localize('msgSaveStarted', 'Started saving results to ');
+    msgSaveFailed = localize('msgSaveFailed', 'Failed to save results. ');
+    msgSaveSucceeded = localize('msgSaveSucceeded', 'Successfully saved results to ');
+    msgSelectProfile = localize('msgSelectProfile', 'Select connection profile');
+    msgSelectProfileToRemove = localize('msgSelectProfileToRemove', 'Select profile to remove');
+    confirmRemoveProfilePrompt = localize('confirmRemoveProfilePrompt', 'Confirm to remove this profile.');
+    msgNoProfilesSaved = localize('msgNoProfilesSaved', 'No connection profile to remove.');
+    msgProfileRemoved = localize('msgProfileRemoved', 'Profile removed successfully');
+    msgProfileCreated = localize('msgProfileCreated', 'Profile created successfully');
+    msgProfileCreatedAndConnected = localize('msgProfileCreatedAndConnected', 'Profile created and connected');
+    msgClearedRecentConnections = localize('msgClearedRecentConnections', 'Recent connections list cleared');
+    msgSelectionIsRequired = localize('msgSelectionIsRequired', 'Selection is required.');
+    msgIsRequired = localize('msgIsRequired', ' is required.');
+    msgRetry = localize('msgRetry', 'Retry');
+    msgError = localize('msgError', 'Error: ');
+    msgYes = localize('msgYes', 'Yes');
+    msgNo = localize('msgNo', 'No');
+    defaultDatabaseLabel = localize('defaultDatabaseLabel', '<default>');
+    notConnectedLabel = localize('notConnectedLabel', 'Disconnected');
+    notConnectedTooltip = localize('notConnectedTooltip', 'Click to connect to a database');
+    connectingLabel = localize('connectingLabel', 'Connecting');
+    connectingTooltip = localize('connectingTooltip', 'Connecting to: ');
+    connectedLabel = localize('connectedLabel', 'Connected.');
+    connectErrorLabel = localize('connectErrorLabel', 'Connection error');
+    connectErrorTooltip = localize('connectErrorTooltip', 'Error connecting to: ');
+    connectErrorCode = localize('connectErrorCode', 'Errorcode: ');
+    connectErrorMessage = localize('connectErrorMessage', 'ErrorMessage: ');
+    executeQueryLabel = localize('executeQueryLabel', 'Executing query ');
+    cancelingQueryLabel = localize('cancelingQueryLabel', 'Canceling query ');
+    updatingIntelliSenseLabel = localize('updatingIntelliSenseLabel', 'Updating IntelliSense...');
+    unfoundResult = localize('unfoundResult', 'Data was disposed when text editor was closed); to view data please reexecute query.');
+    extensionNotInitializedError = localize('extensionNotInitializedError',
+        'Unable to execute the command while the extension is initializing. Please try again later.');
+    untitledScheme = localize('untitledScheme', 'untitled');
+    msgChangeLanguageMode = localize('msgChangeLanguageMode', 'To use this command, you must set the language to \"SQL\". Confirm to change language mode.');
+    msgChangedDatabaseContext = localize('msgChangedDatabaseContext', 'Changed database context to \"{0}\" for document \"{1}\"');
+    msgPromptRetryCreateProfile = localize('msgPromptRetryCreateProfile',
+        'Error: Unable to connect using the connection information provided. Retry profile creation?');
+    retryLabel = localize('retryLabel', 'Retry');
+    msgConnecting = localize('msgConnecting', 'Connecting to server \"{0}\" on document \"{1}\".');
+    msgConnectedServerInfo = localize('msgConnectedServerInfo', 'Connected to server \"{0}\" on document \"{1}\". Server information: {2}');
+    msgConnectionFailed = localize('msgConnectionFailed', 'Error connecting to server \"{0}\". Details: {1}');
+    msgChangingDatabase = localize('msgChangingDatabase', 'Changing database context to \"{0}\" on server \"{1}\" on document \"{2}\".');
+    msgChangedDatabase = localize('msgChangedDatabase', 'Changed database context to \"{0}\" on server \"{1}\" on document \"{2}\".');
+    msgDisconnected = localize('msgDisconnected', 'Disconnected on document \"{0}\"');
+    msgErrorReadingConfigFile = localize('msgErrorReadingConfigFile',
+        'Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.');
+    msgErrorOpeningConfigFile = localize('msgErrorOpeningConfigFile', 'Error: Unable to open connection profile settings file.');
+    titleResultsPane = localize('titleResultsPane', 'Results: {0}');
+    macOpenSslErrorMessage = localize('macOpenSslErrorMessage', 'OpenSSL version >=1.0.1 is required to connect.');
+    macOpenSslHelpButton = localize('macOpenSslHelpButton', 'Help');
+    gettingDefinitionMessage = localize('gettingDefinitionMessage', 'Getting definition ...');
+    definitionRequestedStatus = localize('definitionRequestedStatus', 'DefinitionRequested');
+    definitionRequestCompletedStatus = localize('definitionRequestCompletedStatus', 'DefinitionRequestCompleted');
+    updatingIntelliSenseStatus = localize('updatingIntelliSenseStatus', 'updatingIntelliSense');
+    intelliSenseUpdatedStatus = localize('intelliSenseUpdatedStatus', 'intelliSenseUpdated');
+};

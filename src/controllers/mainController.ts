@@ -20,7 +20,6 @@ import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import { ISelectionData } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
-import * as nls from 'vscode-nls';
 
 let opener = require('opener');
 
@@ -56,12 +55,6 @@ export default class MainController implements vscode.Disposable {
         this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
 
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
-
-        // Setting up localization based on vscode's localization settings
-        // should we use locale for config or from process?
-        // let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-        // let vscodeLocale = config[Constants.copyIncludeHeaders];
-        nls.config({ locale: vscode.env.language })();
     }
 
     /**

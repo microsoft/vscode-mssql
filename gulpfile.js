@@ -36,7 +36,7 @@ gulp.task('ext:lint', () => {
 
 gulp.task('ext:compile-src', (done) => {
     let filterSrc = filter(['**/*.ts', '**/*.js'], {restore: true});
-    let filterLocaleDef = filter(['**', '!**/controllers/*.json']);
+    let filterLocaleDef = filter(['**', '!**/src/*.json']);
 
     return gulp.src([
                 config.paths.project.root + '/src/**/*.ts',
@@ -61,11 +61,6 @@ gulp.task('ext:compile-src', (done) => {
                    sourceRoot: function(file){ return file.cwd + '/src'; }
                 }))
                 .pipe(gulp.dest('out/src/'));
-});
-
-gulp.task('ext:compile-nls', (done) => {
-    return gulp.src(config.paths.project.root + '/localization/i18n/**/*.json')
-        .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n'));
 });
 
 gulp.task('ext:compile-tests', (done) => {
@@ -109,11 +104,6 @@ gulp.task('ext:copy-js', () => {
         .pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
-gulp.task('ext:copy-nls', () => {
-    return gulp.src(config.paths.project.root + '/localization/i18n/**/out/*.nls.json')
-        .pipe(gulp.dest(config.paths.project.root + '/out/localization'))
-});
-
 // The version of applicationinsights the extension needs is 0.15.19 but the version vscode-telemetry dependns on is 0.15.6
 // so we need to manually overwrite the version in package.json inside vscode-extension-telemetry module.
 gulp.task('ext:appinsights-version', () => {
@@ -134,7 +124,7 @@ gulp.task('ext:copy-appinsights', () => {
      .pipe(gulp.dest("./node_modules/vscode-extension-telemetry", {'overwrite':true}));
 });
 
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-nls'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
 gulp.task('ext:build', gulp.series('ext:lint', 'ext:compile', 'ext:copy'));
 
@@ -183,34 +173,3 @@ gulp.task('install', function() {
 gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
 });
-
-gulp.task('nls-compile', function(done) {
-	compileNls();
-    done();
-});
-
-function compileNls() {
-	let inlineMap = true;
-    let inlineSource = false;
-
-    let r = tsProject.src()
-		.pipe(srcmap.init())
-		.pipe(tsProject()).js
-		.pipe(nls.rewriteLocalizeCalls())
-		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, 'i18n', 'out'));
-
-	if (inlineMap && inlineSource) {
-		r = r.pipe(srcmap.write());
-	} else {
-		r = r.pipe(srcmap.write("../out", {
-			// no inlined source
-			includeContent: inlineSource,
-			// Return relative source map root directories per file.
-			sourceRoot: "../src"
-		}));
-	}
-
-	return r.pipe(gulp.dest('out'));
-}
-
-gulp.task('nls-build', gulp.series('nls-compile', 'ext:copy-nls'));
