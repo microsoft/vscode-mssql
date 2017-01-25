@@ -22,6 +22,8 @@ var nls = require('vscode-nls-dev');
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
 
+let nls_build = false;
+
 gulp.task('ext:lint', () => {
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
@@ -142,25 +144,12 @@ gulp.task('ext:test', (done) => {
     });
 });
 
-gulp.task('ext:localize', (done) => {
-    return gulp.src(['./localization/package.nls.json'])
-        .pipe(nlsDev.rewriteLocalizeCalls())
-        .pipe(nlsDev.createAdditionalLanguageFiles(nlsDev.coreLanguages, 'i18n'/*, './out/localization/i18n'*/))
-        .pipe(gulp.dest(config.paths.project.root + '/out/localization'));
-});
-
 gulp.task('test', gulp.series('html:test', 'ext:test'));
 
 require('./tasks/covertasks');
 
 gulp.task('clean', function (done) {
     return del('out', done);
-});
-
-gulp.task('add-i18n', function() {
-	return gulp.src(['package.nls.json'])
-		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, 'localization/i18n'))
-		.pipe(gulp.dest('.'));
 });
 
 gulp.task('build', gulp.series('clean', 'html:build', 'ext:build', 'ext:install-service', 'ext:appinsights-version'));
