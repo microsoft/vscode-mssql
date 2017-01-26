@@ -479,10 +479,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Format xml field into a hyperlink and performs HTML entity encoding
      */
     public hyperLinkFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        let valueToDisplay = Utils.htmlEntities(value);
+        let valueToDisplay = value;
         let cellClasses = 'grid-cell-value-container';
         if (value) {
             cellClasses += ' xmlLink';
+            valueToDisplay = Utils.htmlEntities(value);
             return `<a class="${cellClasses}" href="#" >${valueToDisplay}</a>`;
         } else {
             cellClasses += ' missing-value';
