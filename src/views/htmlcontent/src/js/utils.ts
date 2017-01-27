@@ -25,7 +25,7 @@ export function isNumber(val: any): boolean {
  * @return String with characters replaced.
  */
 export function htmlEntities(str: string): string {
-    return str.replace(/[\u00A0-\u9999<>\&"']/gim, (i) => {
-        return `&#${i.charCodeAt(0)};`;
-    });
+    return typeof(str) === 'string'
+        ? str.replace(/[\u00A0-\u9999<>\&"']/gim, (i) => { return `&#${i.charCodeAt(0)};`; })
+        : undefined;
 }
