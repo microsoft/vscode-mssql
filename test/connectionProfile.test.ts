@@ -10,7 +10,7 @@ import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
-import Constants = require('../src/models/constants');
+import LocalizedConstants = require('../src/constants/localizedConstants');
 import assert = require('assert');
 import os = require('os');
 
@@ -77,13 +77,13 @@ suite('Connection Profile tests', () => {
 
         // Then expect the following flow:
         let questionNames: string[] = [
-            Constants.serverPrompt,     // Server
-            Constants.databasePrompt,   // DB Name
-            Constants.authTypePrompt,   // Authentication Type
-            Constants.usernamePrompt,   // UserName
-            Constants.passwordPrompt,   // Password
-            Constants.msgSavePassword,  // Save Password
-            Constants.profileNamePrompt // Profile Name
+            LocalizedConstants.serverPrompt,     // Server
+            LocalizedConstants.databasePrompt,   // DB Name
+            LocalizedConstants.authTypePrompt,   // Authentication Type
+            LocalizedConstants.usernamePrompt,   // UserName
+            LocalizedConstants.passwordPrompt,   // Password
+            LocalizedConstants.msgSavePassword,  // Save Password
+            LocalizedConstants.profileNamePrompt // Profile Name
         ];
 
         assert.strictEqual(profileQuestions.length, questionNames.length, 'unexpected number of questions');
@@ -119,7 +119,7 @@ suite('Connection Profile tests', () => {
 
         // Then expect SqlAuth to be the only default type
         let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
-        assert.strictEqual(authChoices[0].name, Constants.authTypeSql);
+        assert.strictEqual(authChoices[0].name, LocalizedConstants.authTypeSql);
         done();
     });
 
@@ -151,7 +151,7 @@ suite('Connection Profile tests', () => {
         let authChoices = <INameValueChoice[]>authQuestion.choices;
         if ('win32' === os.platform()) {
             assert.strictEqual(authChoices.length, 2);
-            assert.strictEqual(authChoices[1].name, Constants.authTypeIntegrated);
+            assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
             assert.strictEqual(authChoices[1].value, AuthenticationTypes[AuthenticationTypes.Integrated]);
 
             // And on a platform with multiple choices, should prompt for input
@@ -220,11 +220,11 @@ suite('Connection Profile tests', () => {
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
                 .returns(questions => {
                     let answers: {[key: string]: string} = {};
-                    answers[Constants.serverPrompt] = 'my-server';
-                    answers[Constants.databasePrompt] = 'my_db';
-                    answers[Constants.usernamePrompt] = 'sa';
-                    answers[Constants.passwordPrompt] = '12345678';
-                    answers[Constants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+                    answers[LocalizedConstants.serverPrompt] = 'my-server';
+                    answers[LocalizedConstants.databasePrompt] = 'my_db';
+                    answers[LocalizedConstants.usernamePrompt] = 'sa';
+                    answers[LocalizedConstants.passwordPrompt] = '12345678';
+                    answers[LocalizedConstants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
                     for (let key in answers) {
                         if (answers.hasOwnProperty(key)) {
                             questions.map(q => { if (q.name === key) { q.onAnswered(answers[key]); } });
@@ -263,11 +263,11 @@ suite('Connection Profile tests', () => {
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
                 .returns(questions => {
                     let answers: {[key: string]: string} = {};
-                    answers[Constants.serverPrompt] = 'my-server';
-                    answers[Constants.databasePrompt] = 'my_db';
-                    answers[Constants.usernamePrompt] = 'sa';
-                    answers[Constants.passwordPrompt] = '12345678';
-                    answers[Constants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+                    answers[LocalizedConstants.serverPrompt] = 'my-server';
+                    answers[LocalizedConstants.databasePrompt] = 'my_db';
+                    answers[LocalizedConstants.usernamePrompt] = 'sa';
+                    answers[LocalizedConstants.passwordPrompt] = '12345678';
+                    answers[LocalizedConstants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
                     for (let key in answers) {
                         if (answers.hasOwnProperty(key)) {
                             questions.map(q => { if (q.name === key) { q.onAnswered(answers[key]); } });

@@ -4,7 +4,7 @@ import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';
-import Constants = require('../src/models/constants');
+import Constants = require('../src/constants/constants');
 import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');

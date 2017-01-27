@@ -1,92 +1,5 @@
 import * as nls from 'vscode-nls';
 
-// Constants
-export const languageId = 'sql';
-export const extensionName = 'mssql';
-export const extensionConfigSectionName = 'mssql';
-export const connectionApplicationName = 'vscode-mssql';
-export const outputChannelName = 'MSSQL';
-export const connectionConfigFilename = 'settings.json';
-export const connectionsArrayName = 'mssql.connections';
-export const cmdRunQuery = 'extension.runQuery';
-export const cmdCancelQuery = 'extension.cancelQuery';
-export const cmdConnect = 'extension.connect';
-export const cmdDisconnect = 'extension.disconnect';
-export const cmdChooseDatabase = 'extension.chooseDatabase';
-export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
-export const cmdShowGettingStarted = 'extension.showGettingStarted';
-export const cmdNewQuery = 'extension.newQuery';
-export const cmdManageConnectionProfiles = 'extension.manageProfiles';
-export const sqlDbPrefix = '.database.windows.net';
-export const defaultConnectionTimeout = 15;
-export const azureSqlDbConnectionTimeout = 30;
-export const azureDatabase = 'Azure';
-export const defaultPortNumber = 1433;
-export const sqlAuthentication = 'SqlLogin';
-export const defaultDatabase = 'master';
-export const errorPasswordExpired = 18487;
-export const errorPasswordNeedsReset = 18488;
-export const maxDisplayedStatusTextLength = 50;
-export const outputContentTypeRoot = 'root';
-export const outputContentTypeMessages = 'messages';
-export const outputContentTypeResultsetMeta = 'resultsetsMeta';
-export const outputContentTypeColumns = 'columns';
-export const outputContentTypeRows = 'rows';
-export const outputContentTypeConfig = 'config';
-export const outputContentTypeSaveResults = 'saveResults';
-export const outputContentTypeOpenLink = 'openLink';
-export const outputContentTypeCopy = 'copyResults';
-export const outputContentTypeEditorSelection = 'setEditorSelection';
-export const outputContentTypeShowError = 'showError';
-export const outputContentTypeShowWarning = 'showWarning';
-export const outputServiceLocalhost = 'http://localhost:';
-export const msgContentProviderSqlOutputHtml = 'dist/html/sqlOutput.ejs';
-export const contentProviderMinFile = 'dist/js/app.min.js';
-export const serviceCompatibleVersion = '1.0.0';
-export const untitledSaveTimeThreshold = 10.0;
-export const renamedOpenTimeThreshold = 10.0;
-export const timeToWaitForLanguageModeChange = 10000.0;
-export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
-export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
-export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
-
-// Configuration Constants
-export const copyIncludeHeaders = 'copyIncludeHeaders';
-export const configLogDebugInfo = 'logDebugInfo';
-export const configMyConnections = 'connections';
-export const configSaveAsCsv = 'saveAsCsv';
-export const configSaveAsJson = 'saveAsJson';
-export const configRecentConnections = 'recentConnections';
-export const configMaxRecentConnections = 'maxRecentConnections';
-export const configCopyRemoveNewLine = 'copyRemoveNewLine';
-export const configSplitPaneSelection = 'splitPaneSelection';
-export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
-export const sqlToolsServiceInstallDirConfigKey = 'installDir';
-export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
-export const sqlToolsServiceVersionConfigKey = 'version';
-export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
-export const extConfigResultFontFamily = 'resultsFontFamily';
-export const extConfigResultFontSize = 'resultsFontSize';
-
-// ToolsService Constants
-export const serviceInstallingTo = 'Installing SQL tools service to';
-export const serviceInstalling = 'Installing';
-export const serviceDownloading = 'Downloading';
-export const serviceInstalled = 'Sql Tools Service installed';
-export const serviceInstallationFailed = 'Failed to install Sql Tools Service';
-export const sqlToolsServiceCrashMessage = 'SQL Tools Service component could not start.';
-export const sqlToolsServiceCrashButton = 'View Known Issues';
-export const serviceInitializingOutputChannelName = 'SqlToolsService Initialization';
-export const serviceInitializing = 'Initializing SQL tools service for the mssql extension.';
-export const commandsNotAvailableWhileInstallingTheService = 'Note: mssql commands will be available after installing the service.';
-export const unsupportedPlatformErrorMessage = 'The platform is not supported';
-export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
-export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
-export const sqlToolsServiceName = 'SQLToolsService';
-export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
-export const sqlToolsServiceConfigKey = 'service';
-
-
 // Localizable Strings (localized at runtime)
 export let configMyConnectionsNoServerName = 'Missing server name in user preferences connection: ';
 export let msgLocalWebserviceStaticContent = 'LocalWebService: added static html content path: ';
@@ -130,7 +43,7 @@ export let extensionDeactivated = 'de-activated.';
 export let msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
                                 'Change editor language to "SQL" -or- ' +
                                 'Select T-SQL text in the active SQL editor.';
-export let recentConnectionsPlaceholder = 'Choose a connection profile from the list below';
+export let recentConnectionsPlaceholder; // = localize('recentConnectionsPlaceholder', 'Choose a connection profile from the list below');
 export let msgNoConnectionsInSettings = 'To use this command, add connection profile to User Settings.';
 export let labelOpenGlobalSettings = 'Open Global Settings';
 export let labelOpenWorkspaceSettings = 'Open Workspace Settings';
@@ -219,7 +132,7 @@ export let updatingIntelliSenseStatus = 'updatingIntelliSense';
 export let intelliSenseUpdatedStatus = 'intelliSenseUpdated';
 
 // Function that loads the localization context and updates all letants
-export function loadLocalizedConstants(locale: string): void {
+export let loadLocalizedConstants = (locale: string) => {
     // Configure Locale
     let localize = nls.config({ locale: locale })();
     recentConnectionsPlaceholder = localize('recentConnectionsPlaceholder', 'Choose a connection profile from the list below');
