@@ -56,6 +56,7 @@
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-clean-css": "^2.0.13",
     "gulp-concat": "^2.6.0",
+    "gulp-debug": "^3.0.0",
     "gulp-filter": "^5.0.0",
     "gulp-install": "^0.6.0",
     "gulp-istanbul-report": "0.0.1",
@@ -78,6 +79,7 @@
     "karma-remap-istanbul": "^0.2.1",
     "pm-mocha-jenkins-reporter": "^0.2.6",
     "remap-istanbul": "^0.6.4",
+    "strip-bom": "^3.0.0",
     "systemjs-builder": "^0.15.32",
     "tslint": "^3.14.0",
     "typemoq": "^0.3.2",
@@ -86,6 +88,8 @@
     "vscode": "^0.11.0",
     "vscode-nls": "^2.0.2",
     "vscode-nls-dev": "^2.0.1",
+    "xpath": "^0.0.23",
+    "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {

@@ -18,6 +18,7 @@ var os = require('os');
 var jeditor = require("gulp-json-editor");
 var path = require('path');
 var nls = require('vscode-nls-dev');
+var localization = require('./tasks/localizationtasks');
 
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
@@ -152,4 +153,33 @@ gulp.task('install', function() {
 
 gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
+});
+
+// Import *.xlf
+gulp.task('test', function () {
+    var xliffConv = new XliffConv();
+    return gulp.src([config.paths.project.localization + '/*.xlf'])
+    .pipe(through.obj(function (file, enc, callback) {
+        var bundle, bundlePath;
+        var base = path.basename(file.path, '.xlf').match(/^(.*)[.]([^.]*)$/);
+        var xliff = String(file.contents);
+        if (base) {
+            try {
+                bundlePath = config.paths.project.localization + '\\i18n\\esn\\constants\\localizedConstants.i18n.json';
+                bundle = JSON.parse(stripBom(fs.readFileSync(bundlePath, 'utf8')));
+                console.log(bundle);
+                xliffConv.parseXliff(xliff, { bundle: bundle }, function (output) {
+                    file.contents = new Buffer(JSONstringify(output, null, 2));
+                    file.path = bundlePath;
+                });
+            }
+            catch (ex) {
+                console.log(ex);
+                callback(null, file);
+            }
+        } else {
+            callback(null, file);
+        }
+    }))
+    .pipe(gulp.dest(config.paths.project.localization));
 });
