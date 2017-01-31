@@ -75,4 +75,51 @@ function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.Works
     return Object.freeze(result);
 }
 
-export { TestPrompter, TestExtensionContext, TestTextEditor, TestMemento, createWorkspaceConfiguration };
+// Interface for an Result function passed in by an express call
+class ExpressResult {
+
+    constructor() {
+        // do nothing
+    }
+
+    public render(path: any, vars: any): any {
+        // do nothing
+    }
+
+    public send(json?: any): any {
+        // do nothing
+    }
+
+    public status: number;
+}
+
+// Interface for a request object passed in by an express call
+class ExpressRequest {
+
+    constructor(params?: any) {
+        this.query = params;
+    }
+
+    public query: {
+        uri?: string,
+        theme?: string,
+        backgroundColor?: string,
+        color?: string,
+        rowStart?: number,
+        resultId?: number,
+        batchId?: number,
+        numberOfRows?: number,
+        resultSetNo?: number,
+        batchIndex?: number,
+        format?: string,
+        includeHeaders?: boolean,
+        startLine?: number,
+        startColumn?: number,
+        endLine?: number,
+        endColumn?: number,
+    };
+
+    public body: any;
+}
+
+export { TestPrompter, TestExtensionContext, TestTextEditor, TestMemento, createWorkspaceConfiguration, ExpressRequest, ExpressResult };

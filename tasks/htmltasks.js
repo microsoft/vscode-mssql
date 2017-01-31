@@ -30,9 +30,9 @@ gulp.task('html:lint', () => {
 gulp.task('html:compile-src', () => {
   return gulp
     .src([config.paths.html.root + '/src/js/**/*.ts',
-        config.paths.html.root + '/typings/**/*'])
+    config.paths.html.root + '/typings/**/*.d.ts'])
     .pipe(srcmap.init())
-    .pipe(ts(tsProject))
+    .pipe(tsProject())
     .pipe(srcmap.write('.', {
         sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent'; }
     }))
@@ -42,9 +42,9 @@ gulp.task('html:compile-src', () => {
 gulp.task('html:compile-test', () => {
   return gulp
     .src([config.paths.html.root + '/test/**/*.ts',
-        config.paths.html.root + '/typings/**/*'])
+        config.paths.html.root + '/typings/**/*.d.ts'])
     .pipe(srcmap.init())
-    .pipe(ts(tsProject))
+    .pipe(tsProject())
     .pipe(srcmap.write('.', {
         sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent'; }
     }))

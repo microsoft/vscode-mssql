@@ -24,14 +24,14 @@ export default class HttpClient implements IHttpClient {
     public downloadFile(urlString: string, pkg: IPackage, logger: ILogger, statusView: IStatusView, proxy?: string, strictSSL?: boolean): Promise<void> {
         const url = parseUrl(urlString);
         let options = this.getHttpClientOptions(url, proxy, strictSSL);
-        let client = url.protocol === 'http:' ? http : https;
+        let clientRequest = url.protocol === 'http:' ? http.request : https.request;
 
         return new Promise<void>((resolve, reject) => {
             if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
                 return reject(new PackageError('Temporary package file unavailable', pkg));
             }
 
-            let request = client.request(options, response => {
+            let request = clientRequest(options, response => {
                 if (response.statusCode === 301 || response.statusCode === 302) {
                     // Redirect - download from new location
                     return resolve(this.downloadFile(response.headers.location, pkg, logger, statusView, proxy, strictSSL));

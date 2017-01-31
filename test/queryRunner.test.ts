@@ -96,8 +96,9 @@ suite('Query Runner tests', () => {
             testStatusView.verify<void>(x => x.executingQuery(standardUri), TypeMoq.Times.once());
             testVscodeWrapper.verify<void>(x => x.logToOutputChannel(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
 
-            // ... The query runner should indicate that it is running a query
+            // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
             assert.equal(queryRunner.isExecutingQuery, true);
+            assert.equal(queryRunner.totalElapsedMilliseconds, 0);
         });
     });
 

@@ -6,7 +6,7 @@ describe('Utility Tests', () => {
             expect(Utils.isNumber(0)).toBe(true);
             expect(Utils.isNumber(1)).toBe(true);
             expect(Utils.isNumber(false)).toBe(false);
-            expect(Utils.isNumber(null)).toBe(false);   // tslint:disable-line
+            expect(Utils.isNumber(null)).toBe(false);   // tslint:disable-line:no-null-keyword
             expect(Utils.isNumber(undefined)).toBe(false);
         });
     });
@@ -20,8 +20,15 @@ describe('Utility Tests', () => {
         });
 
         it('Does not encode characters outside the range', () => {
-            ['a', 'A', '$', '0'].forEach((item) => {
+            ['a', 'A', '$', '0', ''].forEach((item) => {
                 expect(Utils.htmlEntities(item)).toEqual(item);
+            });
+        });
+
+        it('Does not attempt encoding if the value is null or undefined', () => {
+            // We're explicitly checking null b/c this is what comes back from the service
+            [null, undefined].forEach((item) => {                       // tslint:disable-line:no-null-keyword
+                expect(Utils.htmlEntities(item)).toEqual(undefined);
             });
         });
     });
