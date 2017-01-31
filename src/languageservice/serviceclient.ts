@@ -24,6 +24,7 @@ import {PlatformInformation} from '../models/platform';
 import {ServerInitializationResult, ServerStatusView} from './serverStatus';
 import StatusView from '../views/statusView';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
+let vscode = require('vscode');
 
 let opener = require('opener');
 let _channel: OutputChannel = undefined;
@@ -301,6 +302,10 @@ export default class SqlToolsServiceClient {
             if (logDebugInfo) {
                 serverArgs.push('--enable-logging');
             }
+
+            // Setup Locale for extension localization
+            let locale = vscode.env.language;
+            serverArgs.push('--locale ' + locale);
         }
 
         // run the service host using dotnet.exe from the path
