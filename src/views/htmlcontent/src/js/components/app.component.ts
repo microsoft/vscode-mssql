@@ -449,23 +449,26 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
     }
 
+    openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
+        let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+        this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
+    }
+
     /**
      * Perform copy and do other actions for context menu on the messages component
      */
     handleMessagesContextClick(event: {type: string, selectedRange: IRange}): void {
         switch (event.type) {
             case 'copySelection':
-                event.selectedRange.select();
-                event.selectedRange.getDocument().execCommand('copy');
+                // event.selectedRange.select();
+                // event.selectedRange.getDocument().execCommand('copy');
+                // let selectedText = event.selectedRange.toString();
+                let selectedText = event.selectedRange.text();
+                this.executeCopy(selectedText);
                 break;
             default:
                 break;
         }
-    }
-
-    openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
-        let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-        this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
     }
 
     openMessagesContextMenu(event: any): void {
@@ -488,6 +491,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
         elRange.detach();
         return selectedRange;
+    }
+
+    // Copy text as text
+    executeCopy(text: string): void {
+        let input = document.createElement('textarea');
+        document.body.appendChild(input);
+        input.value = text;
+        input.focus();
+        input.select();
+        document.execCommand('copy');
+        input.remove();
     }
 
     /**

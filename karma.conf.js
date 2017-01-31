@@ -57,6 +57,7 @@ module.exports = function(config) {
 
       // Rangy
       'out/src/views/htmlcontent/lib/js/rangy-core.js',
+      'out/src/views/htmlcontent/lib/js/rangy-textrange.js',
 
       // RxJs
       { pattern: 'out/src/views/htmlcontent/lib/js/rxjs/**/*.js', included: false, watched: false },
