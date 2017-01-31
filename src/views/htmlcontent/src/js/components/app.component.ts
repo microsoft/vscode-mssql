@@ -173,9 +173,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.navigateToGrid(this.activeGrid - 1);
         },
         'event.copySelection': () => {
+            let range: IRange = this.getSelectedRangeUnderMessages();
+            let messageText = range ? range.text() : '';
+            if (messageText.length > 0) {
+                this.executeCopy(messageText);
+            } else {
                 let activeGrid = this.activeGrid;
                 let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
                 this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+            }
         },
         'event.copyWithHeaders': () => {
             let activeGrid = this.activeGrid;
@@ -460,9 +466,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     handleMessagesContextClick(event: {type: string, selectedRange: IRange}): void {
         switch (event.type) {
             case 'copySelection':
-                // event.selectedRange.select();
-                // event.selectedRange.getDocument().execCommand('copy');
-                // let selectedText = event.selectedRange.toString();
                 let selectedText = event.selectedRange.text();
                 this.executeCopy(selectedText);
                 break;
@@ -473,12 +476,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     openMessagesContextMenu(event: any): void {
         event.preventDefault();
+        let selectedRange: IRange = this.getSelectedRangeUnderMessages();
+        this.messagesContextMenu.show(event.clientX, event.clientY, selectedRange);
+    }
+
+    getSelectedRangeUnderMessages(): IRange {
         let selectedRange: IRange = undefined;
         let msgEl = this._el.nativeElement.querySelector('#messages');
         if (msgEl) {
             selectedRange = this.getSelectedRangeWithin(msgEl);
         }
-        this.messagesContextMenu.show(event.clientX, event.clientY, selectedRange);
+        return selectedRange;
     }
 
     getSelectedRangeWithin(el): IRange {
@@ -707,6 +715,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
             return false;
         }
 
+        // Deselect any text since we are navigating to a new grid
+        // Do this even if not switching grids, since this covers clicking on the grid after message selection
+        rangy.getSelection().removeAllRanges();
+
         // check if you are actually trying to change navigation
         if (this.activeGrid === targetIndex) {
             return false;
@@ -729,6 +741,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             scrollTop = (gridHeight * targetIndex);
             resultsWindow.scrollTop(scrollTop);
         }
+
         return true;
     }
 

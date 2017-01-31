@@ -43,7 +43,7 @@ export class MessagesContextMenu implements OnInit {
     private position: {x: number, y: number} = {x: 0, y: 0};
     private visible: boolean = false;
     private keys = {
-        'event.selectAll': ''
+        'event.copySelection': ''
     };
 
 
@@ -67,8 +67,8 @@ export class MessagesContextMenu implements OnInit {
 
     show(x: number, y: number, selectedRange: IRange): void {
         this.selectedRange = selectedRange;
-        let selectedText = (selectedRange && selectedRange.toString) ? selectedRange.toString() : undefined;
-        this.isDisabled = (!selectedText || selectedText.length === 0);
+        let selectedText = (selectedRange && selectedRange.toString) ? selectedRange.toString() : '';
+        this.isDisabled = selectedText.length === 0;
         this.position = { x: x, y: y};
         this.visible = true;
     }

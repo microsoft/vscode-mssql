@@ -137,5 +137,20 @@ export interface IRange {
      */
     getDocument(): Document;
 
+    /**
+     * Detaches the range so it's no longer tracked by Rangy using DOM manipulation
+     *
+     *
+     * @memberOf IRange
+     */
     detach(): void;
+
+    /**
+     * Gets formatted text under a range. This is an improvement over toString() which contains unnecessary whitespac
+     *
+     * @returns {string}
+     *
+     * @memberOf IRange
+     */
+    text(): string;
 }

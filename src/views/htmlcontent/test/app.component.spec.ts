@@ -4,7 +4,7 @@ import { ISlickRange, IColumnDefinition, IObservableCollection, IGridDataRow } f
 import { Observable, Subject, Observer } from 'rxjs/Rx';
 
 import * as TestUtils from './testUtils';
-import { WebSocketEvent, ResultSetSubset } from './../src/js/interfaces';
+import { WebSocketEvent, ResultSetSubset, IRange } from './../src/js/interfaces';
 import { DataService } from './../src/js/services/data.service';
 import { ShortcutService } from './../src/js/services/shortcuts.service';
 import { AppComponent } from './../src/js/components/app.component';
@@ -194,6 +194,23 @@ class MockContextMenu {
     }
 }
 
+@Component({
+    selector: 'msg-context-menu',
+    template: ''
+})
+class MockMessagesContextMenu {
+    @Output() clickEvent: EventEmitter<{type: string, selectedRange: IRange}>
+        = new EventEmitter<{type: string, selectedRange: IRange}>();
+
+    public emitEvent(event: {type: string, selectedRange: IRange}): void {
+        this.clickEvent.emit(event);
+    }
+
+    public show(x: number, y: number, selectedRange: IRange): void {
+        // No op
+    }
+}
+
 @Directive({
   selector: '[onScroll]'
 })
@@ -218,7 +235,7 @@ describe('AppComponent', function (): void {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [ AppComponent, MockSlickGrid, MockContextMenu, MockScrollDirective, MockMouseDownDirective ]
+            declarations: [ AppComponent, MockSlickGrid, MockContextMenu, MockMessagesContextMenu, MockScrollDirective, MockMouseDownDirective ]
         }).overrideComponent(AppComponent, {
             set: {
                 providers: [
@@ -283,7 +300,7 @@ describe('AppComponent', function (): void {
             expect(messages.getElementsByTagName('a').length).toEqual(1);   // One link should be visible
         });
 
-        it('should have initilized the grids correctly', () => {
+        it('should have initialized the grids correctly', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
