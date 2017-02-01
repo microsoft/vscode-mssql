@@ -1,26 +1,23 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { ContextMenu } from './../src/js/components/contextmenu.component';
+import { MessagesContextMenu } from './../src/js/components/messagescontextmenu.component';
 import { ShortcutService } from './../src/js/services/shortcuts.service';
+import { IRange } from './../src/js/interfaces';
 
 class MockShortCutService {
     private keyToString = {
-        'event.saveAsCSV': 'ctrl+s',
-        'event.saveAsJSON': 'ctrl+shift+s',
-        'event.selectAll': 'ctrl+a',
-        'event.copySelection': 'ctrl+c',
-        'event.copyWithHeaders': 'ctrl+shift+c'
+        'event.copySelection': 'ctrl+c'
     };
     public stringCodeFor(value: string): Promise<string> {
         return Promise.resolve(this.keyToString[value]);
     }
 }
 
-describe('context Menu', () => {
+describe('Messages Context Menu', () => {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [ ContextMenu ]
-        }).overrideComponent(ContextMenu, {
+            declarations: [ MessagesContextMenu ]
+        }).overrideComponent(MessagesContextMenu, {
             set: {
                 providers: [
                     {
@@ -33,12 +30,12 @@ describe('context Menu', () => {
     }));
 
     describe('initialization', () => {
-        let fixture: ComponentFixture<ContextMenu>;
-        let comp: ContextMenu;
+        let fixture: ComponentFixture<MessagesContextMenu>;
+        let comp: MessagesContextMenu;
         let ele: HTMLElement;
 
         beforeEach(() => {
-            fixture = TestBed.createComponent<ContextMenu>(ContextMenu);
+            fixture = TestBed.createComponent<MessagesContextMenu>(MessagesContextMenu);
             fixture.detectChanges();
             comp = fixture.componentInstance;
             ele = fixture.nativeElement;
@@ -50,22 +47,22 @@ describe('context Menu', () => {
     });
 
     describe('basic behavior', () => {
-        let fixture: ComponentFixture<ContextMenu>;
-        let comp: ContextMenu;
+        let fixture: ComponentFixture<MessagesContextMenu>;
+        let comp: MessagesContextMenu;
         let ele: HTMLElement;
 
         beforeEach(() => {
-            fixture = TestBed.createComponent<ContextMenu>(ContextMenu);
+            fixture = TestBed.createComponent<MessagesContextMenu>(MessagesContextMenu);
             fixture.detectChanges();
             comp = fixture.componentInstance;
             ele = fixture.nativeElement;
         });
 
         it('shows correctly', () => {
-            comp.show(0, 0, 0, 0, 0, []);
+            comp.show(0, 0, <IRange>{});
             fixture.detectChanges();
             expect(ele.firstElementChild.className.indexOf('hidden')).toEqual(-1);
-            expect(ele.firstElementChild.childElementCount).toEqual(5, 'expect 5 menu items to be present');
+            expect(ele.firstElementChild.childElementCount).toEqual(1, 'expect 1 menu items to be present');
         });
 
         it('hides correctly', () => {
@@ -74,16 +71,32 @@ describe('context Menu', () => {
             expect(ele.firstElementChild.className.indexOf('hidden')).not.toEqual(-1);
         });
 
+        it('disables copy when range is empty', () => {
+            comp.show(0, 0, <IRange> { toString: () => ''});
+            fixture.detectChanges();
+
+            // expect disabled element if toString is undefined
+            let firstLi = <HTMLElement> ele.firstElementChild.firstElementChild;
+            expect(firstLi.className.indexOf('disabled')).not.toEqual(-1);
+        });
+
+        it('enables copy when range has text', () => {
+            comp.show(0, 0, <IRange>{ toString: () => 'text'});
+            fixture.detectChanges();
+
+            // expect disabled element if toString is undefined
+            let firstLi = <HTMLElement> ele.firstElementChild.firstElementChild;
+            expect(firstLi.className.indexOf('disabled')).toEqual(-1);
+        });
+
         it('emits correct event', (done) => {
+            let range = <IRange>{ toString: () => 'text' };
             comp.clickEvent.subscribe((result) => {
-                expect(result.type).toEqual('savecsv');
-                expect(result.batchId).toEqual(0);
-                expect(result.resultId).toEqual(0);
-                expect(result.index).toEqual(0);
-                expect(result.selection).toEqual([]);
+                expect(result.type).toEqual('copySelection');
+                expect(result.selectedRange).toEqual(range);
                 done();
             });
-            comp.show(0, 0, 0, 0, 0, []);
+            comp.show(0, 0, range);
             fixture.detectChanges();
             let firstLi = <HTMLElement> ele.firstElementChild.firstElementChild;
             firstLi.click();

@@ -112,6 +112,8 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/slickgrid/slick.editors.js',
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
             config.paths.html.root + '/node_modules/zone.js/dist/zone.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-core.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
             config.paths.html.root + '/systemjs.config.js'
@@ -129,6 +131,8 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/slickgrid/slick.grid.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.editors.js',
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-core.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
             config.paths.html.root + '/systemjs.config.extras.js',

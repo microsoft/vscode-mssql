@@ -16,6 +16,8 @@
                         showHeader="true"
                         [resized]="dataSet.resized"
                         (mousedown)="navigateToGrid(i)"
+                        [selectionModel]="selectionModel"
+                        [plugins]="slickgridPlugins"
                         class="boxCol content vertBox slickgrid">
             </slick-grid>
             <span class="boxCol content vertBox">
@@ -31,37 +33,37 @@
         </div>
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
+    <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
     <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0">
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0"
+        (contextmenu)="openMessagesContextMenu($event)">
         <br>
         <table id="messageTable">
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
-            <tbody *ngIf="messages.length > 0">
-                <template ngFor let-imessage [ngForOf]="messages">
-                    <tr *ngIf="imessage.selection">
-                        <td>[{{imessage.startTime}}]</td>
-                        <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
-                    </tr>
-                    <tr *ngFor="let message of imessage.messages">
-                        <td></td>
-                        <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
+            <tbody>
+                <template ngFor let-message [ngForOf]="messages">
+                    <tr class='messageRow'>
+                        <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
+                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.link.uri)">{{message.link.text}}</a>
+                        </td>
                     </tr>
                 </template>
+                <tr id='executionSpinner' *ngIf="!complete">
+                    <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
+                    <td>
+                        <img src="dist/images/progress_36x_animation.gif" height="18px" />
+                        <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span>
+                    </td>
+                </tr>
                 <tr *ngIf="complete">
                     <td></td>
-                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapsedExecution))}}</td>
-                </tr>
-            </tbody>
-            <tbody *ngIf="messages.length === 0">
-                <tr>
-                    <td>[{{startString}}]</td>
-                    <td><img src="dist/images/progress_36x_animation.gif" height="18px"><span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span></td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, totalElapsedTimeSpan)}}</td>
                 </tr>
             </tbody>
         </table>
