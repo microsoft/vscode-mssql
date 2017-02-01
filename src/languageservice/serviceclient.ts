@@ -302,11 +302,11 @@ export default class SqlToolsServiceClient {
             if (logDebugInfo) {
                 serverArgs.push('--enable-logging');
             }
-
-            // Setup Locale for extension localization
-            let locale = vscode.env.language;
-            serverArgs.push('--locale ' + locale);
         }
+
+        // Setup Locale for extension localization
+        let locale = vscode.env.language;
+        serverArgs.push('--locale ' + locale);
 
         // run the service host using dotnet.exe from the path
         let serverOptions: ServerOptions = {  command: serverCommand, args: serverArgs, transport: TransportKind.stdio  };
