@@ -506,6 +506,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let input = document.createElement('textarea');
         document.body.appendChild(input);
         input.value = text;
+        input.style.position = 'absolute';
+        input.style.bottom = '100%';
         input.focus();
         input.select();
         document.execCommand('copy');
