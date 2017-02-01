@@ -4,7 +4,7 @@ import { ISlickRange, IColumnDefinition, IObservableCollection, IGridDataRow } f
 import { Observable, Subject, Observer } from 'rxjs/Rx';
 
 import * as TestUtils from './testUtils';
-import { WebSocketEvent, ResultSetSubset } from './../src/js/interfaces';
+import { WebSocketEvent, ResultSetSubset, IRange } from './../src/js/interfaces';
 import { DataService } from './../src/js/services/data.service';
 import { ShortcutService } from './../src/js/services/shortcuts.service';
 import { AppComponent } from './../src/js/components/app.component';
@@ -20,6 +20,7 @@ const completeEvent = {
     type: 'complete',
     data: '00:00:00.388'
 };
+declare let rangy;
 
 /**
  * Sends a sequence of web socket events to immitate the execution of a set of batches.
@@ -194,6 +195,23 @@ class MockContextMenu {
     }
 }
 
+@Component({
+    selector: 'msg-context-menu',
+    template: ''
+})
+class MockMessagesContextMenu {
+    @Output() clickEvent: EventEmitter<{type: string, selectedRange: IRange}>
+        = new EventEmitter<{type: string, selectedRange: IRange}>();
+
+    public emitEvent(event: {type: string, selectedRange: IRange}): void {
+        this.clickEvent.emit(event);
+    }
+
+    public show(x: number, y: number, selectedRange: IRange): void {
+        // No op
+    }
+}
+
 @Directive({
   selector: '[onScroll]'
 })
@@ -218,7 +236,7 @@ describe('AppComponent', function (): void {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [ AppComponent, MockSlickGrid, MockContextMenu, MockScrollDirective, MockMouseDownDirective ]
+            declarations: [ AppComponent, MockSlickGrid, MockContextMenu, MockMessagesContextMenu, MockScrollDirective, MockMouseDownDirective ]
         }).overrideComponent(AppComponent, {
             set: {
                 providers: [
@@ -283,7 +301,7 @@ describe('AppComponent', function (): void {
             expect(messages.getElementsByTagName('a').length).toEqual(1);   // One link should be visible
         });
 
-        it('should have initilized the grids correctly', () => {
+        it('should have initialized the grids correctly', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
@@ -439,6 +457,35 @@ describe('AppComponent', function (): void {
             slickgrid.contextMenu.emit({x: 20, y: 20});
             expect(slickgrid.getSelectedRanges).toHaveBeenCalled();
             expect(contextmenu.show).toHaveBeenCalledWith(20, 20, 0, 0, 0, []);
+        });
+
+        it('should open messages context menu when event is fired', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(messageBatchStart);
+            dataService.sendWSEvent(resultSetSmall);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+
+            let slickgrid = comp.slickgrids.toArray()[0];
+            let msgContextMenu = comp.messagesContextMenu;
+            let showSpy = spyOn(msgContextMenu, 'show');
+            spyOn(slickgrid, 'getSelectedRanges').and.returnValue([]);
+
+            let messageTable = ele.querySelector('#messageTable');
+            let elRange = <IRange> rangy.createRange();
+            elRange.selectNodeContents(messageTable);
+            rangy.getSelection().setSingleRange(elRange);
+
+            comp.openMessagesContextMenu({clientX: 20, clientY: 20, preventDefault: () => { return undefined; } });
+
+            rangy.getSelection().removeAllRanges();
+
+            expect(slickgrid.getSelectedRanges).not.toHaveBeenCalled();
+            expect(msgContextMenu.show).toHaveBeenCalled();
+
+            let range: IRange = showSpy.calls.mostRecent().args[2];
+            expect(range).not.toBe(undefined);
         });
     });
 
@@ -660,6 +707,8 @@ describe('AppComponent', function (): void {
         });
 
         it('event copy selection', (done) => {
+            rangy.getSelection().removeAllRanges();
+
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
             let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
@@ -693,6 +742,37 @@ describe('AppComponent', function (): void {
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0, true);
+                done();
+            }, 100);
+        });
+
+        it('event copy messages', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copySelection'));
+            spyOn(dataService, 'copyResults');
+            spyOn(document, 'execCommand').and.callThrough();
+            dataService.sendWSEvent(messageBatchStart);
+            dataService.sendWSEvent(resultSetSmall);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+
+            // Select the table under messages before sending the event
+            let messageTable = ele.querySelector('#messageTable');
+            let elRange = <IRange> rangy.createRange();
+            elRange.selectNodeContents(messageTable);
+            rangy.getSelection().setSingleRange(elRange);
+
+            TestUtils.triggerKeyEvent(40, ele);
+
+            setTimeout(() => {
+                fixture.detectChanges();
+                rangy.getSelection().removeAllRanges();
+
+                expect(document.execCommand).toHaveBeenCalledWith('copy');
+                expect(dataService.copyResults).not.toHaveBeenCalled();
                 done();
             }, 100);
         });

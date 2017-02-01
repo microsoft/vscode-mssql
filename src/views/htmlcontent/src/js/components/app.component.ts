@@ -10,9 +10,12 @@ import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, Sl
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
+import { MessagesContextMenu } from './messagescontextmenu.component';
+
 import {
     IGridIcon,
-    IMessage
+    IMessage,
+    IRange
 } from './../interfaces';
 
 import * as Constants from './../constants';
@@ -21,6 +24,9 @@ import * as Utils from './../utils';
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
 enableProdMode();
+
+// text selection helper library
+declare let rangy;
 
 enum SelectedTab {
     Results = 0,
@@ -75,12 +81,14 @@ const template = `
         </div>
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
+    <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
     <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0">
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0"
+        (contextmenu)="openMessagesContextMenu($event)">
         <br>
         <table id="messageTable">
             <colgroup>
@@ -133,8 +141,10 @@ const template = `
 
 export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
+    // tslint:disable-next-line:no-unused-variable
     private scrollTimeOutTime = 200;
     private windowSize = 50;
+    // tslint:disable-next-line:no-unused-variable
     private maxScrollGrids = 8;
     // tslint:disable-next-line:no-unused-variable
     private selectionModel = 'DragRowSelectionModel';
@@ -163,9 +173,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.navigateToGrid(this.activeGrid - 1);
         },
         'event.copySelection': () => {
-            let activeGrid = this.activeGrid;
-            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-            this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+            let range: IRange = this.getSelectedRangeUnderMessages();
+            let messageText = range ? range.text() : '';
+            if (messageText.length > 0) {
+                this.executeCopy(messageText);
+            } else {
+                let activeGrid = this.activeGrid;
+                let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+                this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+            }
         },
         'event.copyWithHeaders': () => {
             let activeGrid = this.activeGrid;
@@ -260,6 +276,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resultActive = true;
     // tslint:disable-next-line:no-unused-variable
     private _messageActive = true;
+    // tslint:disable-next-line:no-unused-variable
     private firstRender = true;
     // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
@@ -270,6 +287,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private totalElapsedTimeSpan: number;
     private complete = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
+    @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
 
     set messageActive(input: boolean) {
@@ -294,6 +312,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
+
         this.dataService.config.then((config) => {
             this.config = config;
             self._messageActive = self.config.messagesDefaultOpen;
@@ -439,6 +458,60 @@ export class AppComponent implements OnInit, AfterViewChecked {
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
         this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
+    }
+
+    /**
+     * Perform copy and do other actions for context menu on the messages component
+     */
+    handleMessagesContextClick(event: {type: string, selectedRange: IRange}): void {
+        switch (event.type) {
+            case 'copySelection':
+                let selectedText = event.selectedRange.text();
+                this.executeCopy(selectedText);
+                break;
+            default:
+                break;
+        }
+    }
+
+    openMessagesContextMenu(event: any): void {
+        event.preventDefault();
+        let selectedRange: IRange = this.getSelectedRangeUnderMessages();
+        this.messagesContextMenu.show(event.clientX, event.clientY, selectedRange);
+    }
+
+    getSelectedRangeUnderMessages(): IRange {
+        let selectedRange: IRange = undefined;
+        let msgEl = this._el.nativeElement.querySelector('#messages');
+        if (msgEl) {
+            selectedRange = this.getSelectedRangeWithin(msgEl);
+        }
+        return selectedRange;
+    }
+
+    getSelectedRangeWithin(el): IRange {
+        let selectedRange = undefined;
+        let sel = rangy.getSelection();
+        let elRange = <IRange> rangy.createRange();
+        elRange.selectNodeContents(el);
+        if (sel.rangeCount) {
+            selectedRange = sel.getRangeAt(0).intersection(elRange);
+        }
+        elRange.detach();
+        return selectedRange;
+    }
+
+    // Copy text as text
+    executeCopy(text: string): void {
+        let input = document.createElement('textarea');
+        document.body.appendChild(input);
+        input.value = text;
+        input.style.position = 'absolute';
+        input.style.bottom = '100%';
+        input.focus();
+        input.select();
+        document.execCommand('copy');
+        input.remove();
     }
 
     /**
@@ -609,7 +682,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
             self.slickgrids.toArray()[0].setActive();
         });
-}
+    }
 
     /**
      *
@@ -626,7 +699,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let eString = this.shortcuts.buildEventString(e);
         this.shortcuts.getEvent(eString).then((result) => {
             if (result) {
-                self.shortcutfunc[<string> result]();
+                let eventName = <string> result;
+                self.shortcutfunc[eventName]();
                 e.stopImmediatePropagation();
             }
         });
@@ -643,6 +717,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
         if (targetIndex >= this.renderedDataSets.length || targetIndex < 0) {
             return false;
         }
+
+        // Deselect any text since we are navigating to a new grid
+        // Do this even if not switching grids, since this covers clicking on the grid after message selection
+        rangy.getSelection().removeAllRanges();
 
         // check if you are actually trying to change navigation
         if (this.activeGrid === targetIndex) {
@@ -666,6 +744,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             scrollTop = (gridHeight * targetIndex);
             resultsWindow.scrollTop(scrollTop);
         }
+
         return true;
     }
 

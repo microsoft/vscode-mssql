@@ -55,6 +55,10 @@ module.exports = function(config) {
       'out/src/views/htmlcontent/lib/js/zone.js/dist/async-test.js',
       'out/src/views/htmlcontent/lib/js/zone.js/dist/fake-async-test.js',
 
+      // Rangy
+      'out/src/views/htmlcontent/lib/js/rangy-core.js',
+      'out/src/views/htmlcontent/lib/js/rangy-textrange.js',
+
       // RxJs
       { pattern: 'out/src/views/htmlcontent/lib/js/rxjs/**/*.js', included: false, watched: false },
       { pattern: 'out/src/views/htmlcontent/lib/js/rxjs/**/*.js.map', included: false, watched: false },
