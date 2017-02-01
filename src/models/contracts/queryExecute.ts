@@ -108,7 +108,7 @@ export class QueryExecuteMessageParams {
 export namespace QueryExecuteRequest {
     export const type: RequestType<QueryExecuteParams, QueryExecuteResult, void> = {
         get method(): string {
-            return 'query/execute';
+            return 'query/executeDocumentSelection';
         }
     };
 }
