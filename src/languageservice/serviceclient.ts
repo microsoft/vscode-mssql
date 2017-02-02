@@ -295,18 +295,23 @@ export default class SqlToolsServiceClient {
             serverCommand = 'dotnet';
         }
 
-        // Enable diagnostic logging in the service if it is configured
+        // Get the extenion's configuration
         let config = workspace.getConfiguration(Constants.extensionConfigSectionName);
         if (config) {
+            // Enable diagnostic logging in the service if it is configured
             let logDebugInfo = config[Constants.configLogDebugInfo];
             if (logDebugInfo) {
                 serverArgs.push('--enable-logging');
             }
+
+            // Send Locale for sqltoolsservice localization
+            let applyLocalization = config[Constants.configApplyLocalization];
+            if (applyLocalization) {
+                let locale = vscode.env.language;
+                serverArgs.push('--locale ' + locale);
+            }
         }
 
-        // Setup Locale for extension localization
-        let locale = vscode.env.language;
-        serverArgs.push('--locale ' + locale);
 
         // run the service host using dotnet.exe from the path
         let serverOptions: ServerOptions = {  command: serverCommand, args: serverArgs, transport: TransportKind.stdio  };
