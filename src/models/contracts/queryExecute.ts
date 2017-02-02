@@ -19,24 +19,6 @@ export class BatchSummary {
     executionStart: string;
 }
 
-// ------------------------------- < Query Dispose Request > ----------------------------------------
-export namespace QueryDisposeRequest {
-    export const type: RequestType<QueryDisposeParams, QueryDisposeResult, void> = {
-                                                                                        get method(): string {
-                                                                                            return 'query/dispose';
-                                                                                        }
-                                                                                   };
-}
-
-export class QueryDisposeParams {
-    ownerUri: string;
-}
-
-export class QueryDisposeResult {
-    messages: string;
-}
-// --------------------------------- </ Query Dispose Request > ----------------------------------------
-
 // Query Execution Complete Notification ----------------------------------------------------------
 export namespace QueryExecuteCompleteNotification {
     export const type: NotificationType<QueryExecuteCompleteNotificationResult> = {
