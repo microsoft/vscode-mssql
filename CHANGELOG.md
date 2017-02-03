@@ -5,7 +5,7 @@
 * Release status: Public Preview
 
 ## What's new in this version
-* HotFix for issue [#669] "Results Panel not Refreshing Automatically". This issue affects users on VSCode 1.9.0 or greater.
+* HotFix for issue [#669] "Results Panel not Refreshing Automatically". This issue impacts users on VSCode 1.9.0 or greater.
 
 ## Version 0.2.0
 * Release date: December, 2016
