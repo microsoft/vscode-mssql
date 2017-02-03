@@ -40,7 +40,7 @@ function convertJsonToDictionary(jsonInput) {
 // export json files from *.xlf
 // mirrors the file paths and names
 gulp.task('import-xliff', function () {
-    return gulp.src([config.paths.project.localization + '/xliff/**/*.xlf'])
+    return gulp.src([config.paths.project.localization + '/xliff/**/*.xlf', '!' + config.paths.project.localization + '/xliff/enu/**/*.xlf'])
     .pipe(through.obj(function (file, enc, callback) {
 
         // convert cliff into json document
