@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.2.1
+* Release date: February 2, 2016
+* Release status: Public Preview
+
+## What's new in this version
+* HotFix for issue [#669] "Results Panel not Refreshing Automatically". This issue impacts users on VSCode 1.9.0 or greater.
+
 ## Version 0.2.0
 * Release date: December, 2016
 * Release status: Public Preview
@@ -71,3 +78,4 @@ Report issues to [Github Issue Tracker] and provide your feedback.
 [OpenSSL requirement on macOS]:https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration
 [Windows 10 Universal C Runtime requirement]:https://github.com/Microsoft/vscode-mssql/wiki/windows10-universal-c-runtime-requirement
 [Operating Systems]:https://github.com/Microsoft/vscode-mssql/wiki/operating-systems
+[#669]:https://github.com/Microsoft/vscode-mssql/issues/669

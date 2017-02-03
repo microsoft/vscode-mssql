@@ -419,12 +419,16 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let encodedUri = encodeURIComponent(uri.toString());
         console.log(`${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${encodedUri}`);
 
-        // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
+        // Fix for issue #669 "Results Panel not Refreshing Automatically" - always include a unique time
+        // so that the content returned is different. Otherwise VSCode will not refresh the document since it
+        // thinks that there is nothing to be updated.
+        let timeNow = new Date().getTime();
         return `
         <html>
         <head>
             <script type="text/javascript">
                 window.onload = function(event) {
+                    console.log('reloaded results window at time ${timeNow}ms');
                     var doc = document.documentElement;
                     var styles = window.getComputedStyle(doc);
                     var backgroundcolor = styles.getPropertyValue('--background-color');
