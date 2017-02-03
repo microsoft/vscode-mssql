@@ -411,13 +411,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public provideTextDocumentContent(uri: vscode.Uri): string {
         // URI needs to be encoded as a component for proper inclusion in a url
         let encodedUri = encodeURIComponent(uri.toString());
-
-        // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
+        let timeNow = new Date().getTime();
         return `
         <html>
         <head>
             <script type="text/javascript">
                 window.onload = function(event) {
+                    console.log('reloaded results window at time ${timeNow}ms');
                     var doc = document.documentElement;
                     var styles = window.getComputedStyle(doc);
                     var backgroundcolor = styles.getPropertyValue('--background-color');
