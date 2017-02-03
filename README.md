@@ -21,6 +21,8 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 0.2.1
+* HotFix for issue [#669] "Results Panel not Refreshing Automatically". This issue impacts users on VSCode 1.9.0 or greater.
 
 ## What's new in 0.2.0
 * Peek Definition and Go To Definition support for Tables, Views and Stored Procedures.
@@ -147,4 +149,5 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
 [Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
 [opencode@microsoft.com]:mailto:opencode@microsoft.com
+[#669]:https://github.com/Microsoft/vscode-mssql/issues/669
 
