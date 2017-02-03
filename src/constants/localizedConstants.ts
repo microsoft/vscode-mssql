@@ -43,7 +43,7 @@ export let extensionDeactivated = 'de-activated.';
 export let msgOpenSqlFile = 'To use this command, Open a .sql file -or- ' +
                                 'Change editor language to "SQL" -or- ' +
                                 'Select T-SQL text in the active SQL editor.';
-export let recentConnectionsPlaceholder; // = localize('recentConnectionsPlaceholder', 'Choose a connection profile from the list below');
+export let recentConnectionsPlaceholder = 'Choose a connection profile from the list below';
 export let msgNoConnectionsInSettings = 'To use this command, add connection profile to User Settings.';
 export let labelOpenGlobalSettings = 'Open Global Settings';
 export let labelOpenWorkspaceSettings = 'Open Workspace Settings';
@@ -135,10 +135,9 @@ export let intelliSenseUpdatedStatus = 'intelliSenseUpdated';
 export let loadLocalizedConstants = (locale: string) => {
     // Configure Locale
     let localize = nls.config({ locale: locale })();
-    recentConnectionsPlaceholder = localize('recentConnectionsPlaceholder', 'Choose a connection profile from the list below');
 
     // Localizing each localizable export
-    /* Localized Calls for each localizable const
+    recentConnectionsPlaceholder = localize('recentConnectionsPlaceholder', 'Choose a connection profile from the list below');
     msgLocalWebserviceStaticContent = localize('msgLocalWebserviceStaticContent', 'LocalWebService: added static html content path: ');
     msgLocalWebserviceStarted = localize('msgLocalWebserviceStarted', 'LocalWebService listening on port ');
     msgRunQueryAllBatchesExecuted = localize('msgRunQueryAllBatchesExecuted', 'runQuery: all batches executed');
@@ -271,5 +270,4 @@ export let loadLocalizedConstants = (locale: string) => {
     definitionRequestCompletedStatus = localize('definitionRequestCompletedStatus', 'DefinitionRequestCompleted');
     updatingIntelliSenseStatus = localize('updatingIntelliSenseStatus', 'updatingIntelliSense');
     intelliSenseUpdatedStatus = localize('intelliSenseUpdatedStatus', 'intelliSenseUpdated');
-    */
 };
