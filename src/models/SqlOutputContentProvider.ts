@@ -289,6 +289,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     // Function to render resultspane content
     public displayResultPane(resultsUri: string, paneTitle: string): void {
+        // Get the active text editor
+        let activeTextEditor = this._vscodeWrapper.activeTextEditor;
+
         // Check if the results window already exists
         if (this.doesResultPaneExist(resultsUri)) {
             // Update the existing results pane with the given reusltsUri
@@ -307,7 +310,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     resultPaneColumn = resultPaneTextEditor.viewColumn;
                 }
 
-                let activeTextEditor = this._vscodeWrapper.activeTextEditor;
                 // only reset focus to the text editor if it's in a different column then the results window
                 if (resultPaneColumn !== undefined
                     && resultPaneColumn !== activeTextEditor.viewColumn) {
