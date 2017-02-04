@@ -293,13 +293,11 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let activeTextEditor = this._vscodeWrapper.activeTextEditor;
 
         // Check if the results window already exists
-        if (this.doesResultPaneExist(resultsUri)) {
-            // Update the existing results pane with the given reusltsUri
-            this.update(vscode.Uri.parse(resultsUri));
-        } else {
+        if (!this.doesResultPaneExist(resultsUri)) {
             // Wrapper tells us where the new results pane should be placed
             let resultPaneColumn = this.newResultPaneViewColumn();
-            // Open new window then reset focus back to the editor
+
+            // Try and Open new window then reset focus back to the editor
             vscode.commands.executeCommand('vscode.previewHtml', resultsUri, resultPaneColumn, paneTitle).then(() => {
                 // get the result pane text editor to determine which column it was shown in
                 let resultPaneTextEditor = this._vscodeWrapper.visibleEditors.find(
@@ -315,6 +313,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     && resultPaneColumn !== activeTextEditor.viewColumn) {
                     this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
                 }
+            }, err => {
+                // Output to console if an error occurs
+                Utils.logToOutputChannel(err);
             });
         }
     };
