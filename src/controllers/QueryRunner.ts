@@ -275,32 +275,18 @@ export default class QueryRunner {
                         if (self.shouldIncludeHeaders(includeHeaders)) {
                             let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
                             if (columnHeaders !== undefined) {
-                                for (let index = 0; index < columnHeaders.length; index++) {
-                                    if (index !== 0) {
-                                        copyString += '\t';
-                                    }
-                                    copyString += columnHeaders[index];
-                                }
-                                copyString += '\r\n';
+                                copyString += columnHeaders.join('\t') + '\r\n';
                             }
                         }
 
-                        // iterate over the rows to paste into the copy string
+                        // Iterate over the rows to paste into the copy string
                         for (let row of result.resultSubset.rows) {
-                            // iterate over the cells we want from that row
-                            for (let cell = range.fromCell; cell <= range.toCell; cell++) {
-                                if (cell !== range.fromCell) {
-                                    copyString += '\t';
-                                }
-
-                                if (self.shouldRemoveNewLines()) {
-                                    // This regex removes all new lines in all forms of new line
-                                    copyString += self.removeNewLines(row[cell]);
-                                } else {
-                                    copyString += row[cell];
-                                }
+                            let cells = row.slice(range.fromCell, (range.toCell + 1));
+                            if (self.shouldRemoveNewLines()) {
+                                // Remove all new lines from cells
+                                cells = cells.map(x => self.removeNewLines(x));
                             }
-                            copyString += '\r\n';
+                            copyString += cells.join('\t') + '\r\n';
                         }
                     });
                 };
