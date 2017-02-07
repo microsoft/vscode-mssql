@@ -130,6 +130,7 @@ export let definitionRequestedStatus = 'DefinitionRequested';
 export let definitionRequestCompletedStatus = 'DefinitionRequestCompleted';
 export let updatingIntelliSenseStatus = 'updatingIntelliSense';
 export let intelliSenseUpdatedStatus = 'intelliSenseUpdated';
+export let testLocalizationConstant = 'test_en';
 
 // Function that loads the localization context and updates all letants
 export let loadLocalizedConstants = (locale: string) => {
@@ -137,6 +138,7 @@ export let loadLocalizedConstants = (locale: string) => {
     let localize = nls.config({ locale: locale })();
 
     // Localizing each localizable export
+    testLocalizationConstant = localize('testLocalizationConstant', 'test_en');
     recentConnectionsPlaceholder = localize('recentConnectionsPlaceholder', 'Choose a connection profile from the list below');
     msgLocalWebserviceStaticContent = localize('msgLocalWebserviceStaticContent', 'LocalWebService: added static html content path: ');
     msgLocalWebserviceStarted = localize('msgLocalWebserviceStarted', 'LocalWebService listening on port ');
