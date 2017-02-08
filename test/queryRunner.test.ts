@@ -21,6 +21,7 @@ import {
     ISelectionData
  } from './../src/models/interfaces';
 import * as stubs from './stubs';
+import * as os from 'os';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const ncp = require('copy-paste');
@@ -478,11 +479,11 @@ suite('Query Runner tests', () => {
         // ------ Common inputs and setup for copy tests  -------
         const TAB = '\t';
         const CLRF = '\r\n';
-        const finalStringNoHeader = '1' + TAB + '2' + CLRF +
-                            '3' + TAB + '4' + CLRF +
-                            '5' + TAB + '6' + CLRF +
-                            '7' + TAB + '8' + CLRF +
-                            '9' + TAB + '10' + CLRF;
+        const finalStringNoHeader = '1' + TAB + '2' + os.EOL +
+                            '3' + TAB + '4' + os.EOL +
+                            '5' + TAB + '6' + os.EOL +
+                            '7' + TAB + '8' + os.EOL +
+                            '9' + TAB + '10' + os.EOL;
 
         const finalStringWithHeader = 'Col1' + TAB + 'Col2' + CLRF + finalStringNoHeader;
 
