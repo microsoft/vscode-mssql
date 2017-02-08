@@ -15,6 +15,7 @@ import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../mod
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../models/constants');
 import * as Utils from './../models/utils';
+import * as os from 'os';
 
 const ncp = require('copy-paste');
 
@@ -275,25 +276,18 @@ export default class QueryRunner {
                         if (self.shouldIncludeHeaders(includeHeaders)) {
                             let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
                             if (columnHeaders !== undefined) {
-                                for (let header of columnHeaders) {
-                                    copyString += header + '\t';
-                                }
-                                copyString += '\r\n';
+                                copyString += columnHeaders.join('\t') + os.EOL;
                             }
                         }
 
-                        // iterate over the rows to paste into the copy string
+                        // Iterate over the rows to paste into the copy string
                         for (let row of result.resultSubset.rows) {
-                            // iterate over the cells we want from that row
-                            for (let cell = range.fromCell; cell <= range.toCell; cell++) {
-                                if (self.shouldRemoveNewLines()) {
-                                    // This regex removes all new lines in all forms of new line
-                                    copyString += self.removeNewLines(row[cell]) + '\t';
-                                } else {
-                                    copyString += row[cell] + '\t';
-                                }
+                            let cells = row.slice(range.fromCell, (range.toCell + 1));
+                            if (self.shouldRemoveNewLines()) {
+                                // Remove all new lines from cells
+                                cells = cells.map(x => self.removeNewLines(x));
                             }
-                            copyString += '\r\n';
+                            copyString += cells.join('\t') + os.EOL;
                         }
                     });
                 };
