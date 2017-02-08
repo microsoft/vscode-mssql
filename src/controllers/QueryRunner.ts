@@ -15,6 +15,7 @@ import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../mod
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../models/constants');
 import * as Utils from './../models/utils';
+import * as os from 'os';
 
 const ncp = require('copy-paste');
 
@@ -275,7 +276,7 @@ export default class QueryRunner {
                         if (self.shouldIncludeHeaders(includeHeaders)) {
                             let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
                             if (columnHeaders !== undefined) {
-                                copyString += columnHeaders.join('\t') + '\r\n';
+                                copyString += columnHeaders.join('\t') + os.EOL;
                             }
                         }
 
@@ -286,7 +287,7 @@ export default class QueryRunner {
                                 // Remove all new lines from cells
                                 cells = cells.map(x => self.removeNewLines(x));
                             }
-                            copyString += cells.join('\t') + '\r\n';
+                            copyString += cells.join('\t') + os.EOL;
                         }
                     });
                 };
