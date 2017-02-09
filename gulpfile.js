@@ -76,7 +76,7 @@ gulp.task('ext:compile-tests', (done) => {
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests'));
+gulp.task('ext:compile', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:compile-src', 'ext:compile-tests'));
 
 gulp.task('ext:copy-tests', () => {
     return gulp.src(config.paths.project.root + '/test/resources/**/*')
