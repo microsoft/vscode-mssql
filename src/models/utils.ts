@@ -3,7 +3,7 @@ import * as getmac from 'getmac';
 import * as crypto from 'crypto';
 import * as os from 'os';
 import vscode = require('vscode');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
 import * as interfaces from './interfaces';
 import {ExtensionContext} from 'vscode';
 import fs = require('fs');

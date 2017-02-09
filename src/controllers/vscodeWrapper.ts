@@ -1,7 +1,7 @@
 import vscode = require('vscode');
 
 
-import * as Constants from './../models/constants';
+import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
 

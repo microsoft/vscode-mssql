@@ -1,6 +1,6 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
-import Constants = require('../src/models/constants');
+import LocalizedConstants = require('../src/constants/localizedConstants');
 import Interfaces = require('../src/models/interfaces');
 import ResultsSerializer  from './../src/models/resultsSerializer';
 import { SaveResultsAsCsvRequestParams } from './../src/models/contracts';
@@ -35,7 +35,7 @@ suite('save results tests', () => {
 
         let filePathQuestions: IQuestion[];
         let answers = {};
-        answers[Constants.filepathPrompt] = filePath;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
 
         // setup mock filepath prompt
         prompter.setup(x => x.prompt(TypeMoq.It.isAny())).callback(questions => {
@@ -57,7 +57,7 @@ suite('save results tests', () => {
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
 
         saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
-            assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
+            assert.equal(filePathQuestions[0].name, LocalizedConstants.filepathPrompt );
         });
 
     });
@@ -66,8 +66,8 @@ suite('save results tests', () => {
 
         let filePathQuestions: IQuestion[];
         let answers = {};
-        answers[Constants.filepathPrompt] = filePath;
-        answers[Constants.overwritePrompt] = true;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
+        answers[LocalizedConstants.overwritePrompt] = true;
 
         // setup mock filepath prompt
         prompter.setup(x => x.prompt(TypeMoq.It.isAny())).callback(questions => {
@@ -90,7 +90,7 @@ suite('save results tests', () => {
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
 
         saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then( () => {
-            assert.equal(filePathQuestions[0].name, Constants.filepathPrompt );
+            assert.equal(filePathQuestions[0].name, LocalizedConstants.filepathPrompt );
         });
 
     });

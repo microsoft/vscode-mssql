@@ -1,5 +1,6 @@
 'use strict';
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import Interfaces = require('./interfaces');
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from './utils';
@@ -116,7 +117,7 @@ export function getConnectionDisplayString(creds: Interfaces.IConnectionCredenti
     if (creds.database !== '') {
         text = appendIfNotEmpty(text, creds.database);
     } else {
-        text = appendIfNotEmpty(text, Constants.defaultDatabaseLabel);
+        text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
     }
     let user: string = getUserNameOrDomainLogin(creds);
     text = appendIfNotEmpty(text, user);

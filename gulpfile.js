@@ -3,6 +3,7 @@ var gulp = require('gulp');
 var rename = require('gulp-rename');
 var install = require('gulp-install');
 var tslint = require('gulp-tslint');
+var filter = require('gulp-filter');
 var ts = require('gulp-typescript');
 var tsProject = ts.createProject('tsconfig.json');
 var del = require('del');
@@ -16,6 +17,7 @@ var cproc = require('child_process');
 var os = require('os');
 var jeditor = require("gulp-json-editor");
 var path = require('path');
+var nls = require('vscode-nls-dev');
 
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
@@ -46,6 +48,8 @@ gulp.task('ext:compile-src', (done) => {
                         process.exit(1);
                     }
                 })
+                .pipe(nls.rewriteLocalizeCalls())
+                .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n'))
                 .pipe(srcmap.write('.', {
                    sourceRoot: function(file){ return file.cwd + '/src'; }
                 }))

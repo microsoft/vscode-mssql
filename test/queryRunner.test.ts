@@ -14,7 +14,7 @@ import {
 } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
-import * as Constants from '../src/models/constants';
+import * as Constants from '../src/constants/constants';
 import * as QueryExecuteContracts from '../src/models/contracts/queryExecute';
 import {
     ISlickRange,

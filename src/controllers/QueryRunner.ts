@@ -13,7 +13,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
 import * as os from 'os';
 
@@ -111,7 +112,7 @@ export default class QueryRunner {
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(selection: ISelectionData): Thenable<void> {
         const self = this;
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._uri));
 
         // Put together the request
         let queryDetails: QueryExecuteParams = {
@@ -140,7 +141,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgFinishedExecute, this._uri));
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._uri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
