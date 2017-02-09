@@ -31,14 +31,14 @@ function convertXmlToDictionary(xmlInput) {
         let sourceElement = unit.getElementsByTagName('source');
         let source = '';
         if (sourceElement.length === 1) {
-            source = sourceElement[0].textContent;
+            source = escapeChars(sourceElement[0].textContent);
         }
 
         // Extract target element if possible
         let targetElement = unit.getElementsByTagName('target');
         let target = '';
         if(targetElement.length === 1){
-            target = targetElement[0].textContent;
+            target = escapeChars(targetElement[0].textContent);
         }
 
         // Return json with {id:{target,source}} format
@@ -46,6 +46,11 @@ function convertXmlToDictionary(xmlInput) {
     }
 
     return dict;
+}
+
+// Escapes all characters which need to be escaped (')
+function escapeChars(input) {
+    return input.replace(/'/g, "\\'");
 }
 
 // converts plain text json into a json object

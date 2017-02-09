@@ -76,7 +76,7 @@ gulp.task('ext:compile-tests', (done) => {
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:compile-src', 'ext:compile-tests'));
+gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests'));
 
 gulp.task('ext:copy-tests', () => {
     return gulp.src(config.paths.project.root + '/test/resources/**/*')
@@ -120,7 +120,9 @@ gulp.task('ext:copy-appinsights', () => {
 
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
-gulp.task('ext:build', gulp.series('ext:lint', 'ext:compile', 'ext:copy'));
+gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json'));
+
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:compile', 'ext:copy'));
 
 gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];
