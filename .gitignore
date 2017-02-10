@@ -16,3 +16,4 @@ sqltoolsservice
 coverage
 test-reports
 .vscode-test
+localization/i18n/
