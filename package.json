@@ -451,6 +451,46 @@
             "current",
             "end"
           ]
+        },
+        "mssql.format.alignColumnDefinitionsInColumns": {
+          "type": "boolean",
+          "description": "Should column definitions be aligned?",
+          "default": false
+        },
+        "mssql.format.datatypeCasing": {
+          "type": "string",
+          "description": "Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)",
+          "default": "none",
+          "enum": [
+            "none",
+            "uppercase",
+            "lowercase"
+          ]
+        },
+        "mssql.format.keywordCasing": {
+          "type": "string",
+          "description": "Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)",
+          "default": "none",
+          "enum": [
+            "none",
+            "uppercase",
+            "lowercase"
+          ]
+        },
+        "mssql.format.placeCommasBeforeNextStatement": {
+          "type": "boolean",
+          "description": "should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'",
+          "default": false
+        },
+        "mssql.format.placeSelectStatementReferencesOnNewLine": {
+          "type": "boolean",
+          "description": "Should references to objects in a select statements be split into separate lines? Spits 'T1' and 'T2' into separate lines in 'SELECT ... FROM T1, T2'",
+          "default": false
+        },
+        "mssql.format.useBracketForIdentifiers": {
+          "type": "boolean",
+          "description": "Should identifiers be formated with square brackets '[dbo].[mytable]' or without brackets 'dbo.mytable'",
+          "default": false
         }
       }
     }
