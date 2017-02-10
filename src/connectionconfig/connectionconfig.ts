@@ -6,7 +6,8 @@
 
 import fs = require('fs');
 import os = require('os');
-import * as Constants from '../models/constants';
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from '../models/utils';
 import { IConnectionProfile } from '../models/interfaces';
 import { IConnectionConfig } from './iconnectionconfig';
@@ -47,7 +48,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
         if (!parsedSettingsFile) {
-            return Promise.reject(Utils.formatString(Constants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
+            return Promise.reject(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
         }
 
         let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
@@ -90,7 +91,7 @@ export class ConnectionConfig implements IConnectionConfig {
         if (profiles.length > 0) {
             profiles = profiles.filter(conn => {
                 // filter any connection missing a server name or the sample that's shown by default
-                return !!(conn.server) && conn.server !== Constants.SampleServerName;
+                return !!(conn.server) && conn.server !== LocalizedConstants.SampleServerName;
             });
         }
 
@@ -210,7 +211,7 @@ export class ConnectionConfig implements IConnectionConfig {
                         let fileObject: any = commentJson.parse(fileContents);
                         return fileObject;
                     } catch (e) { // Error parsing JSON
-                        this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
+                        this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, filename));
                     }
                 } else {
                     return {};
@@ -218,7 +219,7 @@ export class ConnectionConfig implements IConnectionConfig {
             }
         } catch (e) { // Error reading the file
             if (e.code !== 'ENOENT') { // Ignore error if the file doesn't exist
-                this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgErrorReadingConfigFile, filename));
+                this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, filename));
             } else {
                 return {};
             }

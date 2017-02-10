@@ -1,7 +1,8 @@
 'use strict';
 import vscode = require('vscode');
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import Utils = require('../models/utils');
@@ -194,7 +195,7 @@ export default class ConnectionManager {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
-            self._statusView.languageServiceStatusChanged(event.ownerUri, Constants.intelliSenseUpdatedStatus);
+            self._statusView.languageServiceStatusChanged(event.ownerUri, LocalizedConstants.intelliSenseUpdatedStatus);
             let connection = self.getConnectionInfo(event.ownerUri);
             if (connection !== undefined) {
                 connection.intelliSenseTimer.end();
@@ -231,7 +232,7 @@ export default class ConnectionManager {
 
                 self._statusView.connectSuccess(event.ownerUri, connectionInfo.credentials, connectionInfo.serverInfo);
 
-                let logMessage = Utils.formatString(Constants.msgChangedDatabaseContext, event.connection.databaseName, event.ownerUri);
+                let logMessage = Utils.formatString(LocalizedConstants.msgChangedDatabaseContext, event.connection.databaseName, event.ownerUri);
 
                 self.vscodeWrapper.logToOutputChannel(logMessage);
             }
@@ -281,10 +282,10 @@ export default class ConnectionManager {
         connection.credentials = newCredentials;
 
         this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
-        this.statusView.languageServiceStatusChanged(fileUri, Constants.updatingIntelliSenseStatus);
+        this.statusView.languageServiceStatusChanged(fileUri, LocalizedConstants.updatingIntelliSenseStatus);
 
         this._vscodeWrapper.logToOutputChannel(
-            Utils.formatString(Constants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
+            Utils.formatString(LocalizedConstants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
         );
 
         connection.extensionTimer.end();
@@ -307,29 +308,32 @@ export default class ConnectionManager {
             // Check if the error is an expired password
             if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
                 // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
+                Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
             } else {
-                Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError, result.errorNumber, result.errorMessage));
+                Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
             }
         } else {
             PlatformInformation.GetCurrent().then( platformInfo => {
                 if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
                 result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
-                     this.vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgConnectionError2,
-                     Constants.macOpenSslErrorMessage), Constants.macOpenSslHelpButton).then(action => {
-                        if (action && action === Constants.macOpenSslHelpButton) {
+                     this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgConnectionError2,
+                     LocalizedConstants.macOpenSslErrorMessage), LocalizedConstants.macOpenSslHelpButton).then(action => {
+                        if (action && action === LocalizedConstants.macOpenSslHelpButton) {
                             opener(Constants.macOpenSslHelpLink);
                         }
                      });
                 } else {
-                        Utils.showErrorMsg(Utils.formatString(Constants.msgConnectionError2, result.messages));
+                        Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError2, result.messages));
                 }
             });
 
         }
         this.statusView.connectError(fileUri, connection.credentials, result);
         this.vscodeWrapper.logToOutputChannel(
-            Utils.formatString(Constants.msgConnectionFailed, connection.credentials.server, result.errorMessage ? result.errorMessage : result.messages)
+            Utils.formatString(
+                LocalizedConstants.msgConnectionFailed,
+                connection.credentials.server,
+                result.errorMessage ? result.errorMessage : result.messages)
         );
     }
 
@@ -361,7 +365,7 @@ export default class ConnectionManager {
 
         return new Promise<boolean>( (resolve, reject) => {
             if (!self.isConnected(fileUri)) {
-                self.vscodeWrapper.showWarningMessage(Constants.msgChooseDatabaseNotConnected);
+                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
                 resolve(false);
                 return;
             }
@@ -374,7 +378,7 @@ export default class ConnectionManager {
                 self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials, result.databaseNames).then( newDatabaseCredentials => {
                     if (newDatabaseCredentials) {
                         self.vscodeWrapper.logToOutputChannel(
-                            Utils.formatString(Constants.msgChangingDatabase, newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
+                            Utils.formatString(LocalizedConstants.msgChangingDatabase, newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
                         );
 
                         self.disconnect(fileUri).then( () => {
@@ -382,7 +386,10 @@ export default class ConnectionManager {
                                 Telemetry.sendTelemetryEvent('UseDatabase');
 
                                 self.vscodeWrapper.logToOutputChannel(
-                                    Utils.formatString(Constants.msgChangedDatabase, newDatabaseCredentials.database, newDatabaseCredentials.server, fileUri)
+                                    Utils.formatString(
+                                        LocalizedConstants.msgChangedDatabase,
+                                        newDatabaseCredentials.database,
+                                        newDatabaseCredentials.server, fileUri)
                                 );
                                 resolve(true);
                             }).catch(err => {
@@ -418,7 +425,7 @@ export default class ConnectionManager {
                         Telemetry.sendTelemetryEvent('DatabaseDisconnected');
 
                         self.vscodeWrapper.logToOutputChannel(
-                            Utils.formatString(Constants.msgDisconnected, fileUri)
+                            Utils.formatString(LocalizedConstants.msgDisconnected, fileUri)
                         );
                     }
 
@@ -468,7 +475,7 @@ export default class ConnectionManager {
         return new Promise<boolean>((resolve, reject) => {
             if (!fileUri) {
                 // A text document needs to be open before we can connect
-                self.vscodeWrapper.showWarningMessage(Constants.msgOpenSqlFile);
+                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
                 resolve(false);
                 return;
             } else if (!self.vscodeWrapper.isEditingSqlFile) {
@@ -500,7 +507,7 @@ export default class ConnectionManager {
 
             self.statusView.connecting(fileUri, connectionCreds);
             self.vscodeWrapper.logToOutputChannel(
-                Utils.formatString(Constants.msgConnecting, connectionCreds.server, fileUri)
+                Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
             );
 
             // Setup the handler for the connection complete notification to call
