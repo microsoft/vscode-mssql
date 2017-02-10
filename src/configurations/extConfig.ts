@@ -7,7 +7,7 @@
 
 import Config from  './config';
 import { workspace, WorkspaceConfiguration } from 'vscode';
-import * as Constants from '../models/constants';
+import * as Constants from '../constants/constants';
 import {IConfig} from '../languageservice/interfaces';
 
 /*

@@ -1,6 +1,5 @@
 'use strict';
-// import vscode = require('vscode');
-import Constants = require('./constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
@@ -35,16 +34,16 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         questions.push(
             {
                 type: QuestionTypes.confirm,
-                name: Constants.msgSavePassword,
-                message: Constants.msgSavePassword,
+                name: LocalizedConstants.msgSavePassword,
+                message: LocalizedConstants.msgSavePassword,
                 shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile),
                 onAnswered: (value) => profile.savePassword = value
             },
             {
                 type: QuestionTypes.input,
-                name: Constants.profileNamePrompt,
-                message: Constants.profileNamePrompt,
-                placeHolder: Constants.profileNamePlaceholder,
+                name: LocalizedConstants.profileNamePrompt,
+                message: LocalizedConstants.profileNamePrompt,
+                placeHolder: LocalizedConstants.profileNamePlaceholder,
                 default: defaultProfileValues ? defaultProfileValues.profileName : undefined,
                 onAnswered: (value) => {
                     // Fall back to a default name if none specified

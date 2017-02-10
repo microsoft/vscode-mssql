@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
@@ -29,7 +30,7 @@ export class ConnectionUI {
                 private _connectionStore: ConnectionStore,
                 private _prompter: IPrompter,
                 private _vscodeWrapper?: VscodeWrapper) {
-        this._errorOutputChannel = vscode.window.createOutputChannel(Constants.connectionErrorChannelName);
+        this._errorOutputChannel = vscode.window.createOutputChannel(LocalizedConstants.connectionErrorChannelName);
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
@@ -74,7 +75,7 @@ export class ConnectionUI {
             } else {
                 // We have recent connections - show them in a picklist
                 self.promptItemChoice({
-                    placeHolder: Constants.recentConnectionsPlaceholder,
+                    placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
                     matchOnDescription: true
                 }, picklist)
                 .then(selection => {
@@ -133,8 +134,8 @@ export class ConnectionUI {
         return new Promise<boolean>((resolve, reject) => {
             let question: IQuestion = {
                 type: QuestionTypes.confirm,
-                name: Constants.msgPromptCancelConnect,
-                message: Constants.msgPromptCancelConnect
+                name: LocalizedConstants.msgPromptCancelConnect,
+                message: LocalizedConstants.msgPromptCancelConnect
             };
             self._prompter.promptSingle(question).then(result => {
                 resolve(result ? true : false);
@@ -153,8 +154,8 @@ export class ConnectionUI {
         return new Promise<boolean>((resolve, reject) => {
             let question: IQuestion = {
                 type: QuestionTypes.confirm,
-                name: Constants.msgChangeLanguageMode,
-                message: Constants.msgChangeLanguageMode
+                name: LocalizedConstants.msgChangeLanguageMode,
+                message: LocalizedConstants.msgChangeLanguageMode
             };
             self._prompter.promptSingle(question).then( value => {
                 if (value) {
@@ -195,7 +196,7 @@ export class ConnectionUI {
             });
 
             const pickListOptions: vscode.QuickPickOptions = {
-                placeHolder: Constants.msgChooseDatabasePlaceholder
+                placeHolder: LocalizedConstants.msgChooseDatabasePlaceholder
             };
 
             // show database picklist, and modify the current connection to switch the active database
@@ -239,8 +240,8 @@ export class ConnectionUI {
         return new Promise<boolean>((resolve, reject) => {
             let question: IQuestion = {
                 type: QuestionTypes.confirm,
-                name: Constants.msgPromptClearRecentConnections,
-                message: Constants.msgPromptClearRecentConnections
+                name: LocalizedConstants.msgPromptClearRecentConnections,
+                message: LocalizedConstants.msgPromptClearRecentConnections
             };
             self._prompter.promptSingle(question).then(result => {
                 resolve(result ? true : false);
@@ -255,16 +256,16 @@ export class ConnectionUI {
         return new Promise<boolean>((resolve, reject) => {
             // Create profile, clear recent connections, edit profiles, or remove profile?
             let choices: INameValueChoice[] = [
-                { name: Constants.CreateProfileLabel, value: ManageProfileTask.Create },
-                { name: Constants.ClearRecentlyUsedLabel, value: ManageProfileTask.ClearRecentlyUsed},
-                { name: Constants.EditProfilesLabel, value: ManageProfileTask.Edit},
-                { name: Constants.RemoveProfileLabel, value: ManageProfileTask.Remove}
+                { name: LocalizedConstants.CreateProfileLabel, value: ManageProfileTask.Create },
+                { name: LocalizedConstants.ClearRecentlyUsedLabel, value: ManageProfileTask.ClearRecentlyUsed},
+                { name: LocalizedConstants.EditProfilesLabel, value: ManageProfileTask.Edit},
+                { name: LocalizedConstants.RemoveProfileLabel, value: ManageProfileTask.Remove}
             ];
 
             let question: IQuestion = {
                 type: QuestionTypes.expand,
-                name: Constants.ManageProfilesPrompt,
-                message: Constants.ManageProfilesPrompt,
+                name: LocalizedConstants.ManageProfilesPrompt,
+                message: LocalizedConstants.ManageProfilesPrompt,
                 choices: choices,
                 onAnswered: (value) => {
                     switch (value) {
@@ -277,7 +278,7 @@ export class ConnectionUI {
                             self.promptToClearRecentConnectionsList().then(result => {
                                 if (result) {
                                     self.connectionManager.clearRecentConnectionsList().then(() => {
-                                        self.vscodeWrapper.showInformationMessage(Constants.msgClearedRecentConnections);
+                                        self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgClearedRecentConnections);
                                         resolve(true);
                                     });
                                 } else {
@@ -328,9 +329,9 @@ export class ConnectionUI {
             }).then(savedProfile => {
                 if (savedProfile) {
                     if (validate) {
-                        self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreatedAndConnected);
+                        self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreatedAndConnected);
                     } else {
-                        self.vscodeWrapper.showInformationMessage(Constants.msgProfileCreated);
+                        self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
                     }
                 }
                 return savedProfile;
@@ -372,8 +373,8 @@ export class ConnectionUI {
 
     private promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
         // Ask if the user would like to fix the profile
-        return this._vscodeWrapper.showErrorMessage(Constants.msgPromptRetryCreateProfile, Constants.retryLabel).then(result => {
-            if (result === Constants.retryLabel) {
+        return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryCreateProfile, LocalizedConstants.retryLabel).then(result => {
+            if (result === LocalizedConstants.retryLabel) {
                 return ConnectionProfile.createProfile(this._prompter, profile);
             } else {
                 return undefined;
@@ -410,7 +411,7 @@ export class ConnectionUI {
         }).then(result => {
             if (result) {
                 // TODO again consider moving information prompts to the prompt package
-                vscode.window.showInformationMessage(Constants.msgProfileRemoved);
+                vscode.window.showInformationMessage(LocalizedConstants.msgProfileRemoved);
             }
             return result;
         });
@@ -421,7 +422,7 @@ export class ConnectionUI {
         if (!profiles || profiles.length === 0) {
             // Inform the user we have no profiles available for deletion
             // TODO: consider moving to prompter if we separate all UI logic from workflows in the future
-            vscode.window.showErrorMessage(Constants.msgNoProfilesSaved);
+            vscode.window.showErrorMessage(LocalizedConstants.msgNoProfilesSaved);
             return Promise.resolve(undefined);
         }
 
@@ -432,7 +433,7 @@ export class ConnectionUI {
                 // 1: what profile should we remove?
                 type: QuestionTypes.expand,
                 name: chooseProfile,
-                message: Constants.msgSelectProfileToRemove,
+                message: LocalizedConstants.msgSelectProfileToRemove,
                 matchOptions: { matchOnDescription: true },
                 choices: profiles
             },
@@ -440,7 +441,7 @@ export class ConnectionUI {
                 // 2: Confirm removal before proceeding
                 type: QuestionTypes.confirm,
                 name: confirm,
-                message: Constants.confirmRemoveProfilePrompt
+                message: LocalizedConstants.confirmRemoveProfilePrompt
             }
         ];
 

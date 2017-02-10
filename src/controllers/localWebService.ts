@@ -4,7 +4,8 @@ import * as ws from 'ws';
 import url = require('url');
 import querystring = require('querystring');
 import Utils = require('../models/utils');
-import Constants = require('../models/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
+import Constants = require('../constants/constants');
 import Interfaces = require('../models/interfaces');
 import http = require('http');
 const bodyParser = require('body-parser');
@@ -39,7 +40,7 @@ export default class LocalWebService {
         this.app.use(express.static(LocalWebService.staticContentPath));
         this.app.use(bodyParser.json({limit: '50mb', type: 'application/json'}));
         this.app.set('view engine', 'ejs');
-        Utils.logDebug(Constants.msgLocalWebserviceStaticContent + LocalWebService.staticContentPath);
+        Utils.logDebug(LocalizedConstants.msgLocalWebserviceStaticContent + LocalWebService.staticContentPath);
         this.server.on('request', this.app);
 
         // Handle new connections to the web socket server
@@ -129,7 +130,7 @@ export default class LocalWebService {
 
     start(): void {
         const port = this.server.listen(0).address().port; // 0 = listen on a random port
-        Utils.logDebug(Constants.msgLocalWebserviceStarted + port);
+        Utils.logDebug(LocalizedConstants.msgLocalWebserviceStarted + port);
         LocalWebService._servicePort = port.toString();
     }
 }

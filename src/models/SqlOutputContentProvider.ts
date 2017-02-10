@@ -2,7 +2,8 @@
 import vscode = require('vscode');
 import path = require('path');
 import os = require('os');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
@@ -229,7 +230,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
-                this._vscodeWrapper.showInformationMessage(Constants.msgRunQueryInProgress);
+                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
                 return;
             }
 
@@ -258,12 +259,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 }
 
                 let message = {
-                    message: Constants.runQueryBatchStartMessage,
+                    message: LocalizedConstants.runQueryBatchStartMessage,
                     batchId: undefined,
                     isError: false,
                     time: new Date().toLocaleTimeString(),
                     link: {
-                        text: Utils.formatString(Constants.runQueryBatchStartLine, batch.selection.startLine + 1),
+                        text: Utils.formatString(LocalizedConstants.runQueryBatchStartLine, batch.selection.startLine + 1),
                         uri: link
                     }
                 };
@@ -282,43 +283,42 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         queryRunner.runQuery(selection);
-        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
         this.displayResultPane(resultsUri, paneTitle);
     }
 
     // Function to render resultspane content
     public displayResultPane(resultsUri: string, paneTitle: string): void {
-        // Check if the results window already exists
+        // Get the active text editor
         let activeTextEditor = this._vscodeWrapper.activeTextEditor;
-        let previewCommandPromise;
-        let resultPaneColumn;
-        if (this.doesResultPaneExist(resultsUri)) {
-            // Implicity Use existing results window by not providing a pane
-            previewCommandPromise = vscode.commands.executeCommand('vscode.previewHtml', resultsUri, paneTitle);
-        } else {
+
+        // Check if the results window already exists
+        if (!this.doesResultPaneExist(resultsUri)) {
             // Wrapper tells us where the new results pane should be placed
-            resultPaneColumn = this.newResultPaneViewColumn();
-            previewCommandPromise = vscode.commands.executeCommand('vscode.previewHtml', resultsUri, resultPaneColumn, paneTitle);
+            let resultPaneColumn = this.newResultPaneViewColumn();
+
+            // Try and Open new window then reset focus back to the editor
+            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, resultPaneColumn, paneTitle).then(() => {
+                // get the result pane text editor to determine which column it was shown in
+                let resultPaneTextEditor = this._vscodeWrapper.visibleEditors.find(
+                    editor => editor.document.uri.toString() === resultsUri);
+
+                // get the result pane column from the text editor
+                if (resultPaneTextEditor !== undefined) {
+                    resultPaneColumn = resultPaneTextEditor.viewColumn;
+                }
+
+                // only reset focus to the text editor if it's in a different column then the results window
+                if (resultPaneColumn !== undefined
+                    && resultPaneColumn !== activeTextEditor.viewColumn) {
+                    this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
+                }
+            }, err => {
+                // Output to console if an error occurs
+                Utils.logToOutputChannel(err);
+            });
         }
-
-        // reset focus back to the text document after showing query results window
-        previewCommandPromise.then(() => {
-            // get the result pane text editor to determine which column it was shown in
-            let resultPaneTextEditor = this._vscodeWrapper.visibleEditors.find(
-                editor => editor.document.uri.toString() === resultsUri);
-
-            // get the result pane column from the text editor
-            if (resultPaneTextEditor !== undefined) {
-                resultPaneColumn = resultPaneTextEditor.viewColumn;
-            }
-
-            // only reset focus to the text editor if it's in a different column then the results window
-            if (resultPaneColumn !== undefined
-                && resultPaneColumn !== activeTextEditor.viewColumn) {
-                this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
-            }
-        });
     };
 
     public cancelQuery(input: QueryRunner | string): void {
@@ -335,7 +335,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
-            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQueryNotRunning);
+            self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
             return;
         }
 
@@ -345,7 +345,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Cancel the query
         queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
-            self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
+            self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error));
         });
     }
 
@@ -419,12 +419,16 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let encodedUri = encodeURIComponent(uri.toString());
         console.log(`${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${encodedUri}`);
 
-        // return dummy html content that redirects to 'http://localhost:<port>' after the page loads
+        // Fix for issue #669 "Results Panel not Refreshing Automatically" - always include a unique time
+        // so that the content returned is different. Otherwise VSCode will not refresh the document since it
+        // thinks that there is nothing to be updated.
+        let timeNow = new Date().getTime();
         return `
         <html>
         <head>
             <script type="text/javascript">
                 window.onload = function(event) {
+                    console.log('reloaded results window at time ${timeNow}ms');
                     var doc = document.documentElement;
                     var styles = window.getComputedStyle(doc);
                     var backgroundcolor = styles.getPropertyValue('--background-color');
@@ -477,7 +481,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     edit.insert(new vscode.Position(0, 0), content);
                 }).then(result => {
                     if (!result) {
-                        self._vscodeWrapper.showErrorMessage(Constants.msgCannotOpenContent);
+                        self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgCannotOpenContent);
                     }
                 });
             }, (error: any) => {

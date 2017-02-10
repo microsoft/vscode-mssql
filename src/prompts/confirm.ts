@@ -5,7 +5,7 @@
 
 import {window, QuickPickOptions} from 'vscode';
 import Prompt from './prompt';
-import Constants = require('../models/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import EscapeException from '../utils/EscapeException';
 
 export default class ConfirmPrompt extends Prompt {
@@ -16,8 +16,8 @@ export default class ConfirmPrompt extends Prompt {
 
     public render(): any {
         let choices: { [id: string]: boolean } = {};
-        choices[Constants.msgYes] = true;
-        choices[Constants.msgNo] = false;
+        choices[LocalizedConstants.msgYes] = true;
+        choices[LocalizedConstants.msgNo] = false;
 
         const options: QuickPickOptions = {
             placeHolder: this._question.message
