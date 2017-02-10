@@ -18,6 +18,7 @@
         var _self = this;
         var _dragging = false;
         var _lastSelectedCell = 0;
+        var _columnResized = false;
 
         function init(grid) {
             _grid = grid;
@@ -29,6 +30,7 @@
             _grid.onDragStart.subscribe(handleDragStart);
             _grid.onDragEnd.subscribe(handleDragEnd);
             _grid.onHeaderClick.subscribe(handleHeaderClick);
+            _grid.onColumnsResized.subscribe(handleColumnsResized);
         }
 
         function destroy() {
@@ -40,6 +42,7 @@
             _grid.onDragStart.unsubscribe(handleDragStart);
             _grid.onDragEnd.unsubscribe(handleDragEnd);
             _grid.onHeaderClick.unsubscribe(handleHeaderClick);
+            _grid.onColumnsResized.unsubscribe(handleColumnsResized);
         }
 
         function rangesToRows(ranges) {
@@ -255,11 +258,22 @@
             }
         }
 
+        function handleColumnsResized(e, args) {
+            _columnResized = true;
+            setTimeout(function() {
+                _columnResized = false;
+            }, 10);
+        }
+
         function handleHeaderClick(e, args) {
+            if (_columnResized) {
+                _columnResized = false;
+                return true;
+            }
+
             var columnIndex = _grid.getColumnIndex(args.column.id);
             if (e.ctrlKey || e.metaKey){
                 _ranges.push(new Slick.Range(0, columnIndex, _grid.getDataLength()-1, columnIndex));
-                _grid.setActiveCell(0, columnIndex + 1);
             } else if (e.shiftKey && _ranges.length) {
                 var last = _ranges.pop().fromCell;
                 var from = Math.min(columnIndex, last);
@@ -273,8 +287,9 @@
                 _ranges.push(new Slick.Range(0, last, _grid.getDataLength()-1, last));
             } else {
                 _ranges = [new Slick.Range(0, columnIndex, _grid.getDataLength()-1, columnIndex)];
-                _grid.resetActiveCell();
             }
+
+            _grid.resetActiveCell();
             setSelectedRanges(_ranges);
             e.stopImmediatePropagation();
             return true;
