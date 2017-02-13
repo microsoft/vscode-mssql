@@ -8,9 +8,10 @@ import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteResultSetCompleteNotificationParams,
-    QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
+    QueryExecuteSubsetParams, QueryExecuteSubsetRequest,
     QueryExecuteMessageParams,
-    QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
+    QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
+import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/QueryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../constants/constants');
@@ -234,14 +235,10 @@ export default class QueryRunner {
             let disposeDetails = new QueryDisposeParams();
             disposeDetails.ownerUri = self.uri;
             self._client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
-                if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
-                    reject();
-                } else {
-                    resolve();
-                }
+                resolve();
             }, error => {
-                self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
+                self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error);
+                reject();
             });
         });
     }

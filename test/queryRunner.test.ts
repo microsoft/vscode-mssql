@@ -16,6 +16,7 @@ import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
 import * as Constants from '../src/constants/constants';
 import * as QueryExecuteContracts from '../src/models/contracts/queryExecute';
+import * as QueryDisposeContracts from '../src/models/contracts/QueryDispose';
 import {
     ISlickRange,
     ISelectionData
@@ -637,7 +638,7 @@ suite('Query Runner tests', () => {
  */
 function setupStandardQueryRequestServiceMock(
     testSqlToolsServerClient: TypeMoq.Mock<SqlToolsServerClient>,
-    returnCallback: (...x: any[]) => Thenable<QueryExecuteContracts.QueryDisposeResult>
+    returnCallback: (...x: any[]) => Thenable<QueryDisposeContracts.QueryDisposeResult>
 ): void {
     testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isValue(QueryExecuteContracts.QueryExecuteRequest.type), TypeMoq.It.isAny()))
         .callback((type, details: QueryExecuteParams) => {
