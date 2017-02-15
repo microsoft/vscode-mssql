@@ -9,7 +9,7 @@ import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import * as path from 'path';
 import {IConfig, IStatusView, IPackage, PackageError, IHttpClient, IDecompressProvider} from './interfaces';
 import  {ILogger} from '../models/interfaces';
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
 import * as tmp from 'tmp';
 
 let fse = require('fs-extra');

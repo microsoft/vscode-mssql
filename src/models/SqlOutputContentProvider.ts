@@ -2,7 +2,8 @@
 import vscode = require('vscode');
 import path = require('path');
 import os = require('os');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
@@ -229,7 +230,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
-                this._vscodeWrapper.showInformationMessage(Constants.msgRunQueryInProgress);
+                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
                 return;
             }
 
@@ -258,12 +259,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 }
 
                 let message = {
-                    message: Constants.runQueryBatchStartMessage,
+                    message: LocalizedConstants.runQueryBatchStartMessage,
                     batchId: undefined,
                     isError: false,
                     time: new Date().toLocaleTimeString(),
                     link: {
-                        text: Utils.formatString(Constants.runQueryBatchStartLine, batch.selection.startLine + 1),
+                        text: Utils.formatString(LocalizedConstants.runQueryBatchStartLine, batch.selection.startLine + 1),
                         uri: link
                     }
                 };
@@ -282,7 +283,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         queryRunner.runQuery(selection);
-        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
         this.displayResultPane(resultsUri, paneTitle);
     }
@@ -334,7 +335,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
-            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQueryNotRunning);
+            self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
             return;
         }
 
@@ -344,7 +345,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Cancel the query
         queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
-            self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
+            self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error));
         });
     }
 
@@ -480,7 +481,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     edit.insert(new vscode.Position(0, 0), content);
                 }).then(result => {
                     if (!result) {
-                        self._vscodeWrapper.showErrorMessage(Constants.msgCannotOpenContent);
+                        self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgCannotOpenContent);
                     }
                 });
             }, (error: any) => {

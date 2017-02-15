@@ -56,6 +56,7 @@
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-clean-css": "^2.0.13",
     "gulp-concat": "^2.6.0",
+    "gulp-filter": "^5.0.0",
     "gulp-install": "^0.6.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-json-editor": "^2.2.1",
@@ -83,6 +84,9 @@
     "typescript": "^2.1.5",
     "uglify-js": "mishoo/UglifyJS2#harmony",
     "vscode": "^0.11.0",
+    "vscode-nls": "^2.0.2",
+    "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
+    "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
@@ -487,9 +491,10 @@
           "description": "Should references to objects in a select statements be split into separate lines? Spits 'T1' and 'T2' into separate lines in 'SELECT ... FROM T1, T2'",
           "default": false
         },
-        "mssql.format.useBracketForIdentifiers": {
+        "mssql.applyLocalization": {
           "type": "boolean",
-          "description": "Should identifiers be formated with square brackets '[dbo].[mytable]' or without brackets 'dbo.mytable'",
+          "description": "[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)",
+
           "default": false
         }
       }

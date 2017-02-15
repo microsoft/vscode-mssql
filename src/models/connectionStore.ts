@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
@@ -105,7 +106,7 @@ export class ConnectionStore {
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections();
         pickListItems.push(<IConnectionCredentialsQuickPickItem> {
-            label: Constants.CreateProfileFromConnectionsListLabel,
+            label: LocalizedConstants.CreateProfileFromConnectionsListLabel,
             connectionCreds: undefined,
             quickPickItemType: CredentialsQuickPickItemType.NewConnection
         });
@@ -419,7 +420,7 @@ export class ConnectionStore {
                     let connection = ConnInfo.fixupConnectionCredentials(element);
                     connections.push(connection);
                 } else {
-                    Utils.logDebug(Constants.configMyConnectionsNoServerName + ' index (' + index + '): ' + element.toString());
+                    Utils.logDebug(LocalizedConstants.configMyConnectionsNoServerName + ' index (' + index + '): ' + element.toString());
                 }
             }
         }

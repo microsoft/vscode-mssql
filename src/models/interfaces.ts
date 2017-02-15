@@ -1,6 +1,6 @@
 'use strict';
 import vscode = require('vscode');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
 
 // interfaces
 export enum ContentType {

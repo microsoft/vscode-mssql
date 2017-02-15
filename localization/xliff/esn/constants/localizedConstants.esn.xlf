@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en-US" target-language="esn">
+    <body>
+      <trans-unit id="testLocalizationConstant">
+        <source xml:lang="en">test_en</source>
+        <target>test_es</target>
+      </trans-unit>
+      <trans-unit id="recentConnectionsPlaceholder">
+        <source xml:lang="en">Choose a connection profile from the list below</source>
+        <target>Elija un perfil de conexión de la lista siguiente</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

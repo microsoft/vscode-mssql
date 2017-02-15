@@ -6,7 +6,8 @@ import MainController from '../src/controllers/mainController';
 import ConnectionManager from '../src/controllers/connectionManager';
 import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
 import * as Extension from '../src/extension';
-import Constants = require('../src/models/constants');
+import Constants = require('../src/constants/constants');
+import LocalizedConstants = require('../src/constants/localizedConstants');
 import assert = require('assert');
 
 suite('MainController Tests', () => {
@@ -110,7 +111,7 @@ suite('MainController Tests', () => {
     // Saved Untitled file event test
     test('onDidCloseTextDocument should call untitledDoc function when an untitled file is saved' , done => {
         // Scheme of older doc must be untitled
-        document.uri.scheme = Constants.untitledScheme;
+        document.uri.scheme = LocalizedConstants.untitledScheme;
 
         // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
         mainController.onDidSaveTextDocument(newDocument);

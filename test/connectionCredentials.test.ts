@@ -3,7 +3,8 @@ import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
 import * as utils from '../src/models/utils';
-import * as Constants from '../src/models/constants';
+import * as Constants from '../src/constants/constants';
+import LocalizedConstants = require('../src/constants/localizedConstants');
 import * as stubs from './stubs';
 import * as interfaces from '../src/models/interfaces';
 import { CredentialStore } from '../src/credentialstore/credentialstore';
@@ -150,9 +151,9 @@ suite('ConnectionCredentials Tests', () => {
         connectionStore.setup(x => x.removeProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(true)));
         connectionStore.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(profile1)));
         prompter.setup(x => x.prompt(TypeMoq.It.isAny())).callback(questions => {
-                passwordQuestion = questions.filter(question => question.name === Constants.passwordPrompt);
-                answers[Constants.passwordPrompt] = 'newPassword';
-                passwordQuestion[0].onAnswered(answers[Constants.passwordPrompt]);
+                passwordQuestion = questions.filter(question => question.name === LocalizedConstants.passwordPrompt);
+                answers[LocalizedConstants.passwordPrompt] = 'newPassword';
+                passwordQuestion[0].onAnswered(answers[LocalizedConstants.passwordPrompt]);
             })
             .returns((questions: IQuestion[]) => Promise.resolve(answers));
 
@@ -167,7 +168,7 @@ suite('ConnectionCredentials Tests', () => {
                 assert.ok(success);
                 // Checking to see password question was prompted
                 assert.ok(passwordQuestion);
-                assert.equal(success.password, answers[Constants.passwordPrompt]);
+                assert.equal(success.password, answers[LocalizedConstants.passwordPrompt]);
                 connectionStore.verify(x => x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
                 connectionStore.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
                 done();

@@ -3,6 +3,7 @@ var gulp = require('gulp');
 var rename = require('gulp-rename');
 var install = require('gulp-install');
 var tslint = require('gulp-tslint');
+var filter = require('gulp-filter');
 var ts = require('gulp-typescript');
 var tsProject = ts.createProject('tsconfig.json');
 var del = require('del');
@@ -16,6 +17,8 @@ var cproc = require('child_process');
 var os = require('os');
 var jeditor = require("gulp-json-editor");
 var path = require('path');
+var nls = require('vscode-nls-dev');
+var localization = require('./tasks/localizationtasks');
 
 require('./tasks/htmltasks')
 require('./tasks/packagetasks')
@@ -46,6 +49,8 @@ gulp.task('ext:compile-src', (done) => {
                         process.exit(1);
                     }
                 })
+                .pipe(nls.rewriteLocalizeCalls())
+                .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
                 .pipe(srcmap.write('.', {
                    sourceRoot: function(file){ return file.cwd + '/src'; }
                 }))
@@ -115,7 +120,9 @@ gulp.task('ext:copy-appinsights', () => {
 
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
-gulp.task('ext:build', gulp.series('ext:lint', 'ext:compile', 'ext:copy'));
+gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json'));
+
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:compile', 'ext:copy'));
 
 gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];

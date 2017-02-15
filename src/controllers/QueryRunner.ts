@@ -8,12 +8,14 @@ import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteResultSetCompleteNotificationParams,
-    QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
+    QueryExecuteSubsetParams, QueryExecuteSubsetRequest,
     QueryExecuteMessageParams,
-    QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
+    QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
+import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/QueryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
 import * as os from 'os';
 
@@ -111,7 +113,7 @@ export default class QueryRunner {
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(selection: ISelectionData): Thenable<void> {
         const self = this;
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._uri));
 
         // Put together the request
         let queryDetails: QueryExecuteParams = {
@@ -140,7 +142,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgFinishedExecute, this._uri));
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._uri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
@@ -233,14 +235,10 @@ export default class QueryRunner {
             let disposeDetails = new QueryDisposeParams();
             disposeDetails.ownerUri = self.uri;
             self._client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
-                if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
-                    reject();
-                } else {
-                    resolve();
-                }
+                resolve();
             }, error => {
-                self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
+                self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error);
+                reject();
             });
         });
     }
