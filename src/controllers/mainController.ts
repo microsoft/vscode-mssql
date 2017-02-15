@@ -109,6 +109,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
         this.registerCommand(Constants.cmdNewQuery);
         this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
+        this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
+        this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.runAndLogErrors(self.onRebuildIntelliSense(), 'onRebuildIntelliSense'); });
 
         // this._vscodeWrapper = new VscodeWrapper();
 
@@ -223,6 +225,15 @@ export default class MainController implements vscode.Disposable {
      * Let users pick from a list of connections
      */
     public onNewConnection(): Promise<boolean> {
+        if (this.CanRunCommand()) {
+            return this._connectionMgr.onNewConnection();
+        }
+    }
+
+    /**
+     * Clear and rebuild the IntelliSense cache
+     */
+    public onRebuildIntelliSense(): Promise<boolean> {
         if (this.CanRunCommand()) {
             return this._connectionMgr.onNewConnection();
         }

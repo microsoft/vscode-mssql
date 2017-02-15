@@ -15,6 +15,7 @@ export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 export const cmdShowGettingStarted = 'extension.showGettingStarted';
 export const cmdNewQuery = 'extension.newQuery';
 export const cmdManageConnectionProfiles = 'extension.manageProfiles';
+export const cmdRebuildIntelliSenseCache = 'extension.rebuildIntelliSenseCache';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;

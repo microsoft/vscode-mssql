@@ -42,7 +42,8 @@
     "onCommand:extension.chooseDatabase",
     "onCommand:extension.cancelQuery",
     "onCommand:extension.showGettingStarted",
-    "onCommand:extension.newQuery"
+    "onCommand:extension.newQuery",
+    "onCommand:extension.rebuildIntelliSenseCache"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -188,6 +189,11 @@
       {
         "command": "extension.newQuery",
         "title": "New query",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.rebuildIntelliSenseCache",
+        "title": "Clear IntelliSense Cache",
         "category": "MS SQL"
       }
     ],
