@@ -501,6 +501,6 @@
   },
   "scripts": {
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "install-packages": "npm install github:gulpjs/gulp#4.0 && npm install gulp-install && gulp --gulpfile install.js install"
+    "install-packages": "npm install -g gulp-cli && npm install gulp-install && gulp --gulpfile install.js install"
   }
 }
