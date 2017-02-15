@@ -494,7 +494,6 @@
         "mssql.applyLocalization": {
           "type": "boolean",
           "description": "[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)",
-
           "default": false
         }
       }
