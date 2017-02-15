@@ -10,6 +10,7 @@ import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import Utils = require('../models/utils');
 import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
+import { RebuildIntelliSenseNotification } from '../models/contracts/languageService';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -110,7 +111,7 @@ export default class MainController implements vscode.Disposable {
         this.registerCommand(Constants.cmdNewQuery);
         this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
         this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
-        this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.runAndLogErrors(self.onRebuildIntelliSense(), 'onRebuildIntelliSense'); });
+        this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
 
         // this._vscodeWrapper = new VscodeWrapper();
 
@@ -233,9 +234,17 @@ export default class MainController implements vscode.Disposable {
     /**
      * Clear and rebuild the IntelliSense cache
      */
-    public onRebuildIntelliSense(): Promise<boolean> {
+    public onRebuildIntelliSense(): void {
         if (this.CanRunCommand()) {
-            return this._connectionMgr.onNewConnection();
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+                this._statusview.languageServiceStatusChanged(fileUri, LocalizedConstants.updatingIntelliSenseStatus);
+                SqlToolsServerClient.instance.sendNotification(RebuildIntelliSenseNotification.type, {
+                    ownerUri: fileUri
+                });
+            } else {
+                this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            }
         }
     }
 

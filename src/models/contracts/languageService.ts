@@ -20,6 +20,23 @@ export class IntelliSenseReadyParams {
     public ownerUri: string;
 }
 
+/**
+ * Notification sent when the an IntelliSense cache invalidation is requested
+ */
+export namespace RebuildIntelliSenseNotification {
+    export const type: NotificationType<RebuildIntelliSenseParams> = { get method(): string { return 'textDocument/rebuildIntelliSense'; } };
+}
+
+/**
+ * Rebuild IntelliSense notification parameters
+ */
+export class RebuildIntelliSenseParams {
+    /**
+     * URI identifying the text document
+     */
+    public ownerUri: string;
+}
+
 // ------------------------------- </ IntelliSense Ready Event > ----------------------------------
 // ------------------------------- < Telemetry Sent Event > ------------------------------------
 

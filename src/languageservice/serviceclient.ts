@@ -331,6 +331,16 @@ export default class SqlToolsServiceClient {
     }
 
     /**
+     * Send a notification to the service client
+     * @param params The params to pass with the notification
+     */
+    public sendNotification<P>(type: NotificationType<P>, params?: P): void {
+        if (this.client !== undefined) {
+            this.client.sendNotification(type, params);
+        }
+    }
+
+    /**
      * Register a handler for a notification type
      * @param type The notification type to register the handler for
      * @param handler The handler to register
