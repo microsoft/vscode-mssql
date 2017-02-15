@@ -1,5 +1,28 @@
 # Change Log
 
+## Version 0.3.0
+* Release date: February 2, 2016
+* Release status: Public Preview
+
+## What's new in this version
+* T-SQL formatting support is now included. This is a highly requested feature, and this release includes a basic parser
+with configuration options for some of the most common T-SQL formatting styles.
+  * To format a .sql file, right-click and choose `Format Document`.
+  * To format part of a document, highlight a selection, right-click and choose `Format Selection`
+  * To change the formatting settings, hit F1 and choose `Preferences: Open User Settings`. Type in `mssql.format` and
+  change any of the options
+* `Refresh Intellisense Cache` command added. This will rebuild the intellisense for a connected database to include any recent
+schema changes
+* `New Query` command added. This opens a new .sql file and connects to a server, making it quicker to get started with your queries
+* Fixed support for SQL Data Warehouse connections.
+* Prototype localization support added. We will be adding full localization support in a future update.
+* Improved Peek Definition support. Multiple bug fixes, and additional supported types.
+  * Supported types: Tables, Views, Procedures, User Defined Tables, User Defined Types, Synonyms, Scalar Functions, Table Valued Functions
+* Support for Windows x86 machines
+* Fix for issue #604 where results that included HTML were not rendered correctly
+* Multiple fixes for syntax highlighting
+* Fixed issues where query execution failed due to parser failures.
+
 ## Version 0.2.1
 * Release date: February 2, 2016
 * Release status: Public Preview
