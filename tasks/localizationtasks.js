@@ -30,14 +30,14 @@ function convertXmlToDictionary(xmlInput) {
         // Extract source element if possible
         let sourceElement = unit.getElementsByTagName('source');
         let source = '';
-        if (sourceElement.length === 1) {
+        if (sourceElement.length >= 1) {
             source = escapeChars(sourceElement[0].textContent);
         }
 
         // Extract target element if possible
         let targetElement = unit.getElementsByTagName('target');
         let target = '';
-        if(targetElement.length === 1){
+        if(targetElement.length >= 1){
             target = escapeChars(targetElement[0].textContent);
         }
 
@@ -64,7 +64,7 @@ gulp.task('ext:localization:xliff-to-json', function () {
     return gulp.src([config.paths.project.localization + '/xliff/**/*.xlf', '!' + config.paths.project.localization + '/xliff/enu/**/*.xlf'])
     .pipe(through.obj(function (file, enc, callback) {
 
-        // convert cliff into json document
+        // convert xliff into json document
         let dict = convertXmlToDictionary(String(file.contents));
         Object.keys(dict).map(function(key, index) {
             dict[key] = dict[key]['target']
