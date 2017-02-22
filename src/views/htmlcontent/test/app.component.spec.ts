@@ -3,26 +3,37 @@ import { Component, Directive, Input, Output, EventEmitter } from '@angular/core
 import { ISlickRange, IColumnDefinition, IObservableCollection, IGridDataRow } from 'angular2-slickgrid';
 import { Observable, Subject, Observer } from 'rxjs/Rx';
 
-import { WebSocketEvent, ResultSetSubset } from './../src/js/interfaces';
+import * as TestUtils from './testUtils';
+import { WebSocketEvent, ResultSetSubset, IRange } from './../src/js/interfaces';
 import { DataService } from './../src/js/services/data.service';
 import { ShortcutService } from './../src/js/services/shortcuts.service';
 import { AppComponent } from './../src/js/components/app.component';
 import * as Constants from './../src/js/constants';
 import resultSetSmall from './testResources/mockResultSetSmall.spec';
 import resultSetBig from './testResources/mockResultSetBig.spec';
-import batchStart from './testResources/mockBatchStart.spec';
-import batch1 from './testResources/mockBatch1.spec';
-import batch2 from './testResources/mockBatch2.spec';
+import messageBatchStart from './testResources/mockMessageBatchStart.spec';
+import messageResultSet from './testResources/mockMessageResultSet.spec';
+import messageSimple from './testResources/mockMessageSimple.spec';
+import messageError from './testResources/mockMessageError.spec';
 
 const completeEvent = {
-    type: 'complete'
+    type: 'complete',
+    data: '00:00:00.388'
 };
+declare let rangy;
 
-function sendDataSets(ds: MockDataService, batch: WebSocketEvent, result: WebSocketEvent, count: number): void {
+/**
+ * Sends a sequence of web socket events to immitate the execution of a set of batches.
+ * @param ds    The dataservice to send the websocket events
+ * @param batchStartMessage The message sent at the start of a batch
+ * @param resultMessage The message sent when a result set has completed
+ * @param result    The result set event that completed
+ * @param count The number of times to repeat the sequence of events
+ */
+function sendDataSets(ds: MockDataService, batchStartMessage: WebSocketEvent, resultMessage: WebSocketEvent, result: WebSocketEvent, count: number): void {
     for (let i = 0; i < count; i++) {
         // Send a batch start
-        let batchStartEvent = <WebSocketEvent> JSON.parse(JSON.stringify(batchStart));
-        batchStartEvent.data.id = i;
+        let batchStartEvent = <WebSocketEvent> JSON.parse(JSON.stringify(batchStartMessage));
         ds.sendWSEvent(batchStartEvent);
 
         // Send a result set completion
@@ -31,31 +42,11 @@ function sendDataSets(ds: MockDataService, batch: WebSocketEvent, result: WebSoc
         resultSetEvent.data.batchId = i;
         ds.sendWSEvent(resultSetEvent);
 
-        // Send the batch completion
-        let batchEvent = <WebSocketEvent> JSON.parse(JSON.stringify(batch));
-        batchEvent.data.id = i;
-        ds.sendWSEvent(batchEvent);
+        // Send a result set complete message
+        let resultSetMessageEvent = <WebSocketEvent> JSON.parse(JSON.stringify(resultMessage));
+        resultSetMessageEvent.data.batchId = i;
+        ds.sendWSEvent(resultSetMessageEvent);
     }
-}
-
-
-function triggerKeyEvent(key: number, ele: HTMLElement): void {
-    let keyboardEvent = document.createEvent('KeyboardEvent');
-    let initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent';
-
-    keyboardEvent[initMethod](
-                    'keydown', // event type : keydown, keyup, keypress
-                        true, // bubbles
-                        true, // cancelable
-                        window, // viewArg: should be window
-                        false, // ctrlKeyArg
-                        false, // altKeyArg
-                        false, // shiftKeyArg
-                        false, // metaKeyArg
-                        key, // keyCodeArg : unsigned long the virtual key code, else 0
-                        0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-    );
-    ele.dispatchEvent(keyboardEvent);
 }
 
 // Mock Setup
@@ -204,6 +195,23 @@ class MockContextMenu {
     }
 }
 
+@Component({
+    selector: 'msg-context-menu',
+    template: ''
+})
+class MockMessagesContextMenu {
+    @Output() clickEvent: EventEmitter<{type: string, selectedRange: IRange}>
+        = new EventEmitter<{type: string, selectedRange: IRange}>();
+
+    public emitEvent(event: {type: string, selectedRange: IRange}): void {
+        this.clickEvent.emit(event);
+    }
+
+    public show(x: number, y: number, selectedRange: IRange): void {
+        // No op
+    }
+}
+
 @Directive({
   selector: '[onScroll]'
 })
@@ -228,7 +236,7 @@ describe('AppComponent', function (): void {
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [ AppComponent, MockSlickGrid, MockContextMenu, MockScrollDirective, MockMouseDownDirective ]
+            declarations: [ AppComponent, MockSlickGrid, MockContextMenu, MockMessagesContextMenu, MockScrollDirective, MockMouseDownDirective ]
         }).overrideComponent(AppComponent, {
             set: {
                 providers: [
@@ -245,7 +253,7 @@ describe('AppComponent', function (): void {
         });
     }));
 
-    describe('basic startup', () => {
+    describe('Basic Startup', () => {
 
         beforeEach(() => {
             fixture = TestBed.createComponent<AppComponent>(AppComponent);
@@ -277,9 +285,9 @@ describe('AppComponent', function (): void {
             ele = fixture.nativeElement;
         });
 
-        it('should have started showing messages after the batch start command', () => {
+        it('should have started showing messages after the batch start message', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             fixture.detectChanges();
 
             let results = ele.querySelector('#results');
@@ -290,13 +298,14 @@ describe('AppComponent', function (): void {
             expect(messages).not.toBeNull('messages pane is not visible');
             expect(messages.className.indexOf('hidden')).toEqual(-1);
             expect(messages.getElementsByTagName('tr').length).toEqual(2);  // One for "started" message, one for spinner
+            expect(messages.getElementsByTagName('a').length).toEqual(1);   // One link should be visible
         });
 
-        it('should have initilized the grids correctly', () => {
+        it('should have initialized the grids correctly', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
 
@@ -309,6 +318,8 @@ describe('AppComponent', function (): void {
             let messages = ele.querySelector('#messages');
             expect(messages).not.toBeNull('messages pane is not visible');
             expect(messages.className.indexOf('hidden')).toEqual(-1);
+            expect(messages.getElementsByTagName('tr').length).toEqual(3);
+            expect(messages.getElementsByTagName('a').length).toEqual(1);
         });
     });
 
@@ -330,7 +341,7 @@ describe('AppComponent', function (): void {
 
         it('should be visible after a batch starts', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             fixture.detectChanges();
 
             // Spinner should be visible
@@ -340,20 +351,9 @@ describe('AppComponent', function (): void {
 
         it('should be be visible after a result completes', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            fixture.detectChanges();
-
-            // Spinner should be visible
-            let spinner = ele.querySelector('#executionSpinner');
-            expect(spinner).not.toBeNull('spinner is not visible');
-        });
-
-        it('should be be visible after a batch completes', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
-            dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             fixture.detectChanges();
 
             // Spinner should be visible
@@ -363,9 +363,9 @@ describe('AppComponent', function (): void {
 
         it('should be hidden after a query completes', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
 
@@ -395,9 +395,9 @@ describe('AppComponent', function (): void {
 
         it('should hide message pane on click when there is data', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let messages = <HTMLElement> ele.querySelector('#messages');
@@ -411,9 +411,9 @@ describe('AppComponent', function (): void {
 
         it('should hide the results pane on click when there is data', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let results = <HTMLElement> ele.querySelector('#results');
@@ -427,7 +427,7 @@ describe('AppComponent', function (): void {
 
         it('should render all grids when there are alot but only subset of data', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            sendDataSets(dataService, batch1, resultSetBig, 20);
+            sendDataSets(dataService, messageBatchStart, messageResultSet, resultSetBig, 20);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let slickgrids = ele.querySelectorAll('slick-grid');
@@ -436,7 +436,7 @@ describe('AppComponent', function (): void {
 
         it('should render all grids when there are alot but only subset of data', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            sendDataSets(dataService, batch1, resultSetSmall, 20);
+            sendDataSets(dataService, messageBatchStart, messageResultSet, resultSetSmall, 20);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let slickgrids = ele.querySelectorAll('slick-grid');
@@ -445,9 +445,9 @@ describe('AppComponent', function (): void {
 
         it('should open context menu when event is fired', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let contextmenu = comp.contextMenu;
@@ -457,6 +457,124 @@ describe('AppComponent', function (): void {
             slickgrid.contextMenu.emit({x: 20, y: 20});
             expect(slickgrid.getSelectedRanges).toHaveBeenCalled();
             expect(contextmenu.show).toHaveBeenCalledWith(20, 20, 0, 0, 0, []);
+        });
+
+        it('should open messages context menu when event is fired', () => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(messageBatchStart);
+            dataService.sendWSEvent(resultSetSmall);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+
+            let slickgrid = comp.slickgrids.toArray()[0];
+            let msgContextMenu = comp.messagesContextMenu;
+            let showSpy = spyOn(msgContextMenu, 'show');
+            spyOn(slickgrid, 'getSelectedRanges').and.returnValue([]);
+
+            let messageTable = ele.querySelector('#messageTable');
+            let elRange = <IRange> rangy.createRange();
+            elRange.selectNodeContents(messageTable);
+            rangy.getSelection().setSingleRange(elRange);
+
+            comp.openMessagesContextMenu({clientX: 20, clientY: 20, preventDefault: () => { return undefined; } });
+
+            rangy.getSelection().removeAllRanges();
+
+            expect(slickgrid.getSelectedRanges).not.toHaveBeenCalled();
+            expect(msgContextMenu.show).toHaveBeenCalled();
+
+            let range: IRange = showSpy.calls.mostRecent().args[2];
+            expect(range).not.toBe(undefined);
+        });
+    });
+
+    describe('Message Behavior', () => {
+        beforeEach(() => {
+            fixture = TestBed.createComponent<AppComponent>(AppComponent);
+            fixture.detectChanges();
+            comp = fixture.componentInstance;
+            ele = fixture.nativeElement;
+        });
+
+        it('Correctly Displays Simple Messages', () => {
+            // Send a message that doesn't have error, indentation, or links
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(messageSimple);
+            fixture.detectChanges();
+
+            let messageRows = ele.querySelectorAll('.messageRow');
+            let messageCells = ele.querySelectorAll('.messageRow > td');
+            expect(messageRows.length).toEqual(1);                                      // Only one message row should be visible
+            expect(messageCells.length).toEqual(2);                                     // Two cells should be visible
+
+            let messageTimeCell = messageCells[0];
+            expect(messageTimeCell.getElementsByTagName('span').length).toEqual(1);     // Time cell should be populated
+
+            let messageValueCell = messageCells[1];
+            expect(messageValueCell.classList.contains('errorMessage')).toEqual(false); // Message is not an error
+            expect(messageValueCell.classList.contains('batchMessage')).toEqual(false); // Message should not be indented
+            expect(messageValueCell.getElementsByTagName('a').length).toEqual(0);       // Message should not have a link
+        });
+
+        it('Correctly Displays Messages With Links', () => {
+            // Send a message that contains a link
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(messageBatchStart);
+            fixture.detectChanges();
+
+            let messageRows = ele.querySelectorAll('.messageRow');
+            let messageCells = ele.querySelectorAll('.messageRow > td');
+            expect(messageRows.length).toEqual(1);                                      // Only one message row should be visible
+            expect(messageCells.length).toEqual(2);                                     // Two cells should be visible
+
+            let messageTimeCell = messageCells[0];
+            expect(messageTimeCell.getElementsByTagName('span').length).toEqual(1);     // Time cell should be populated
+
+            let messageValueCell = messageCells[1];
+            expect(messageValueCell.classList.contains('errorMessage')).toEqual(false); // Message is not an error
+            expect(messageValueCell.classList.contains('batchMessage')).toEqual(false); // Message should not be indented
+            expect(messageValueCell.getElementsByTagName('a').length).toEqual(1);       // Message should have a link
+        });
+
+        it('Correctly Displays Messages With Indentation', () => {
+            // Send a message that is indented under a batch start
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(messageResultSet);
+            fixture.detectChanges();
+
+            let messageRows = ele.querySelectorAll('.messageRow');
+            let messageCells = ele.querySelectorAll('.messageRow > td');
+            expect(messageRows.length).toEqual(1);                                      // Only one message row should be visible
+            expect(messageCells.length).toEqual(2);                                     // Two cells should be visible
+
+            let messageTimeCell = messageCells[0];
+            expect(messageTimeCell.getElementsByTagName('span').length).toEqual(0);     // Time cell should not be populated
+
+            let messageValueCell = messageCells[1];
+            expect(messageValueCell.classList.contains('errorMessage')).toEqual(false); // Message is not an error
+            expect(messageValueCell.classList.contains('batchMessage')).toEqual(true);  // Message should be indented
+            expect(messageValueCell.getElementsByTagName('a').length).toEqual(0);       // Message should not have a link
+        });
+
+        it('Correctly Displays Messages With Errors', () => {
+            // Send a message that is an error
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(messageError);
+            fixture.detectChanges();
+
+            let messageRows = ele.querySelectorAll('.messageRow');
+            let messageCells = ele.querySelectorAll('.messageRow > td');
+            expect(messageRows.length).toEqual(1);                                      // Only one message row should be visible
+            expect(messageCells.length).toEqual(2);                                     // Two cells should be visible
+
+            let messageTimeCell = messageCells[0];
+            expect(messageTimeCell.getElementsByTagName('span').length).toEqual(1);     // Time cell should be populated
+
+            let messageValueCell = messageCells[1];
+            expect(messageValueCell.classList.contains('errorMessage')).toEqual(true);  // Message is an error
+            expect(messageValueCell.classList.contains('batchMessage')).toEqual(false); // Message should not be indented
+            expect(messageValueCell.getElementsByTagName('a').length).toEqual(0);       // Message should not have a link
         });
     });
 
@@ -471,9 +589,9 @@ describe('AppComponent', function (): void {
         it('should send save requests when the icons are clicked', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
             spyOn(dataService, 'sendSaveRequest');
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let icons = ele.querySelectorAll('.gridIcon');
@@ -488,12 +606,12 @@ describe('AppComponent', function (): void {
 
         it('should have maximized the grid when the icon is clicked', (done) => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetBig);
-            dataService.sendWSEvent(batch1);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let slickgrids = ele.querySelectorAll('slick-grid');
@@ -524,9 +642,9 @@ describe('AppComponent', function (): void {
             let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleResultPane'));
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let results = <HTMLElement> ele.querySelector('#results');
@@ -553,13 +671,13 @@ describe('AppComponent', function (): void {
             let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleResultPane'));
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let results = <HTMLElement> ele.querySelector('#results');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(results).not.toBeNull('message pane is not visible');
@@ -573,13 +691,13 @@ describe('AppComponent', function (): void {
             let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleMessagePane'));
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let messages = <HTMLElement> ele.querySelector('#messages');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(messages).not.toBeNull('message pane is not visible');
@@ -589,17 +707,19 @@ describe('AppComponent', function (): void {
         });
 
         it('event copy selection', (done) => {
+            rangy.getSelection().removeAllRanges();
+
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
             let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copySelection'));
             spyOn(dataService, 'copyResults');
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0);
@@ -613,15 +733,46 @@ describe('AppComponent', function (): void {
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copyWithHeaders'));
             spyOn(dataService, 'copyResults');
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.copyResults).toHaveBeenCalledWith([], 0, 0, true);
+                done();
+            }, 100);
+        });
+
+        it('event copy messages', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copySelection'));
+            spyOn(dataService, 'copyResults');
+            spyOn(document, 'execCommand').and.callThrough();
+            dataService.sendWSEvent(messageBatchStart);
+            dataService.sendWSEvent(resultSetSmall);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+
+            // Select the table under messages before sending the event
+            let messageTable = ele.querySelector('#messageTable');
+            let elRange = <IRange> rangy.createRange();
+            elRange.selectNodeContents(messageTable);
+            rangy.getSelection().setSingleRange(elRange);
+
+            TestUtils.triggerKeyEvent(40, ele);
+
+            setTimeout(() => {
+                fixture.detectChanges();
+                rangy.getSelection().removeAllRanges();
+
+                expect(document.execCommand).toHaveBeenCalledWith('copy');
+                expect(dataService.copyResults).not.toHaveBeenCalled();
                 done();
             }, 100);
         });
@@ -632,17 +783,17 @@ describe('AppComponent', function (): void {
             let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.maximizeGrid'));
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetBig);
-            dataService.sendWSEvent(batch1);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let slickgrids = ele.querySelectorAll('slick-grid');
             expect(slickgrids.length).toEqual(2);
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 slickgrids = ele.querySelectorAll('slick-grid');
@@ -657,12 +808,12 @@ describe('AppComponent', function (): void {
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsJSON'));
             spyOn(dataService, 'sendSaveRequest');
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'json', []);
@@ -676,12 +827,12 @@ describe('AppComponent', function (): void {
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsCSV'));
             spyOn(dataService, 'sendSaveRequest');
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'csv', []);
@@ -695,12 +846,12 @@ describe('AppComponent', function (): void {
             let shortcutService = <ShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.nextGrid'));
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetBig);
-            dataService.sendWSEvent(batch1);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let currentSlickGrid;
@@ -708,7 +859,7 @@ describe('AppComponent', function (): void {
             targetSlickGrid = comp.slickgrids.toArray()[1];
             currentSlickGrid = comp.slickgrids.toArray()[0];
             spyOn(targetSlickGrid, 'setActive');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(targetSlickGrid.setActive).toHaveBeenCalled();
@@ -722,12 +873,12 @@ describe('AppComponent', function (): void {
             let shortcutService = <ShortcutService> fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.prevGrid'));
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetBig);
-            dataService.sendWSEvent(batch1);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
-            dataService.sendWSEvent(batch2);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             comp.navigateToGrid(1);
@@ -736,7 +887,7 @@ describe('AppComponent', function (): void {
             targetSlickGrid = comp.slickgrids.toArray()[0];
             currentSlickGrid = comp.slickgrids.toArray()[1];
             spyOn(targetSlickGrid, 'setActive');
-            triggerKeyEvent(40, ele);
+            TestUtils.triggerKeyEvent(40, ele);
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(targetSlickGrid.setActive).toHaveBeenCalled();
@@ -747,9 +898,9 @@ describe('AppComponent', function (): void {
 
         it('event select all', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            dataService.sendWSEvent(batchStart);
+            dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetBig);
-            dataService.sendWSEvent(batch1);
+            dataService.sendWSEvent(messageResultSet);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let slickgrid;

@@ -1,6 +1,6 @@
 'use strict';
 import vscode = require('vscode');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
 
 // interfaces
 export enum ContentType {
@@ -259,13 +259,14 @@ export interface ISelectionData {
 }
 
 export interface IResultMessage {
+    batchId?: number;
+    isError: boolean;
     time: string;
     message: string;
 }
 
 export interface IGridBatchMetaData {
     resultSets: IGridResultSet[];
-    messages: IResultMessage[];
     hasError: boolean;
     selection: ISelectionData;
     startTime: string;

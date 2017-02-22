@@ -10,7 +10,13 @@ import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, Sl
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
-import { IGridIcon, ISelectionData, IResultMessage } from './../interfaces';
+import { MessagesContextMenu } from './messagescontextmenu.component';
+
+import {
+    IGridIcon,
+    IMessage,
+    IRange
+} from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
@@ -18,6 +24,9 @@ import * as Utils from './../utils';
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
 enableProdMode();
+
+// text selection helper library
+declare let rangy;
 
 enum SelectedTab {
     Results = 0,
@@ -35,15 +44,7 @@ interface IGridDataSet {
     minHeight: number | string;
 }
 
-interface IMessages {
-    messages: IResultMessage[];
-    hasError: boolean;
-    selection: ISelectionData;
-    startTime: string;
-    endTime: string;
-}
-
-    // tslint:disable:max-line-length
+// tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
     <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
@@ -80,26 +81,25 @@ const template = `
         </div>
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
+    <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
     <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0">
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0"
+        (contextmenu)="openMessagesContextMenu($event)">
         <br>
         <table id="messageTable">
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
             <tbody>
-                <template ngFor let-imessage [ngForOf]="messages">
-                    <tr *ngIf="imessage.selection">
-                        <td>[{{imessage.startTime}}]</td>
-                        <td>{{Constants.messageStartLabel}}<a href="#" (click)="editorSelection(imessage.selection)">{{Utils.formatString(Constants.lineSelectorFormatted, imessage.selection.startLine + 1)}}</a></td>
-                    </tr>
-                    <tr *ngFor="let message of imessage.messages">
-                        <td></td>
-                        <td class="messageValue" [class.errorMessage]="imessage.hasError" style="padding-left: 20px">{{message.message}}</td>
+                <template ngFor let-message [ngForOf]="messages">
+                    <tr class='messageRow'>
+                        <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
+                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.link.uri)">{{message.link.text}}</a>
+                        </td>
                     </tr>
                 </template>
                 <tr id='executionSpinner' *ngIf="!complete">
@@ -111,7 +111,7 @@ const template = `
                 </tr>
                 <tr *ngIf="complete">
                     <td></td>
-                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, Utils.parseNumAsTimeString(totalElapsedExecution))}}</td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, totalElapsedTimeSpan)}}</td>
                 </tr>
             </tbody>
         </table>
@@ -119,7 +119,7 @@ const template = `
     <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
 </div>
 `;
-    // tslint:enable:max-line-length
+// tslint:enable:max-line-length
 
 /**
  * Top level app component which runs and controls the SlickGrid implementation
@@ -132,14 +132,19 @@ const template = `
     styles: [`
     .errorMessage {
         color: var(--color-error);
-    }`
-    ]
+    }
+    .batchMessage {
+        padding-left: 20px;
+    }
+    `]
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
+    // tslint:disable-next-line:no-unused-variable
     private scrollTimeOutTime = 200;
     private windowSize = 50;
+    // tslint:disable-next-line:no-unused-variable
     private maxScrollGrids = 8;
     // tslint:disable-next-line:no-unused-variable
     private selectionModel = 'DragRowSelectionModel';
@@ -168,9 +173,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.navigateToGrid(this.activeGrid - 1);
         },
         'event.copySelection': () => {
-            let activeGrid = this.activeGrid;
-            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-            this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+            let range: IRange = this.getSelectedRangeUnderMessages();
+            let messageText = range ? range.text() : '';
+            if (messageText.length > 0) {
+                this.executeCopy(messageText);
+            } else {
+                let activeGrid = this.activeGrid;
+                let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+                this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
+            }
         },
         'event.copyWithHeaders': () => {
             let activeGrid = this.activeGrid;
@@ -255,7 +266,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private placeHolderDataSets: IGridDataSet[] = [];
     // Datasets currently being rendered on the DOM
     private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
-    private messages: IMessages[] = [];
+    private messages: IMessage[] = [];
     private scrollTimeOut: number;
     private messagesAdded = false;
     private resizing = false;
@@ -265,6 +276,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resultActive = true;
     // tslint:disable-next-line:no-unused-variable
     private _messageActive = true;
+    // tslint:disable-next-line:no-unused-variable
     private firstRender = true;
     // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
@@ -272,9 +284,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;
-    private totalElapsedExecution: number;
+    private totalElapsedTimeSpan: number;
     private complete = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
+    @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
 
     set messageActive(input: boolean) {
@@ -298,8 +311,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     ngOnInit(): void {
         const self = this;
-        this.totalElapsedExecution = 0;
         this.setupResizeBind();
+
         this.dataService.config.then((config) => {
             this.config = config;
             self._messageActive = self.config.messagesDefaultOpen;
@@ -313,48 +326,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.dataService.dataEventObs.subscribe(event => {
             switch (event.type) {
                 case 'complete':
+                    self.totalElapsedTimeSpan = event.data;
                     self.complete = true;
                     self.messagesAdded = true;
                 break;
-                case 'batchStart':
-                    let startedBatch = event.data;
-
-                    // Create the messages holder for the batch
-                    let messages: IMessages = {
-                        messages: [],
-                        hasError: false,
-                        selection: startedBatch.selection,
-                        startTime: new Date(startedBatch.executionStart).toLocaleTimeString(),
-                        endTime: undefined
-                    };
-                    self.messages[startedBatch.id] = messages;
-                break;
-                case 'batchComplete':
-                    let completedBatch = event.data;
-
-                    // Store the elapsed time of the batch
-                    let exeTime = Utils.parseTimeString(completedBatch.executionElapsed);
-                    if (exeTime) {
-                        this.totalElapsedExecution += <number>exeTime;
-                    }
-
-                    // Set the values we didn't have before
-                    let batchMessages = self.messages[completedBatch.id];
-                    batchMessages.messages = completedBatch.messages.map(m => {
-                        return {
-                            time: new Date(m.time).toLocaleTimeString(),
-                            message: m.message
-                        };
-                    });
-                    batchMessages.hasError = completedBatch.hasError;
-                    batchMessages.endTime = new Date(completedBatch.executionEnd).toLocaleTimeString();
-
-                    // If we have an error, set the messages to be shown
-                    if (completedBatch.hasError) {
-                        self._messageActive = true;
-                    }
-                    self.messagesAdded = true;
-                break;
+                case 'message':
+                    self.messages.push(event.data);
+                    break;
                 case 'resultSet':
                     let resultSet = event.data;
 
@@ -363,9 +341,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         return new Promise<IGridDataRow[]>((resolve, reject) => {
                             self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
                                 let gridData: IGridDataRow[] = [];
-                                for (let i = 0; i < rows.rows.length; i++) {
+                                for (let row = 0; row < rows.rows.length; row++) {
+                                    // Push row values onto end of gridData for slickgrid
                                     gridData.push({
-                                        values: rows.rows[i]
+                                        values: rows.rows[row]
                                     });
                                 }
                                 resolve(gridData);
@@ -482,6 +461,60 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
+     * Perform copy and do other actions for context menu on the messages component
+     */
+    handleMessagesContextClick(event: {type: string, selectedRange: IRange}): void {
+        switch (event.type) {
+            case 'copySelection':
+                let selectedText = event.selectedRange.text();
+                this.executeCopy(selectedText);
+                break;
+            default:
+                break;
+        }
+    }
+
+    openMessagesContextMenu(event: any): void {
+        event.preventDefault();
+        let selectedRange: IRange = this.getSelectedRangeUnderMessages();
+        this.messagesContextMenu.show(event.clientX, event.clientY, selectedRange);
+    }
+
+    getSelectedRangeUnderMessages(): IRange {
+        let selectedRange: IRange = undefined;
+        let msgEl = this._el.nativeElement.querySelector('#messages');
+        if (msgEl) {
+            selectedRange = this.getSelectedRangeWithin(msgEl);
+        }
+        return selectedRange;
+    }
+
+    getSelectedRangeWithin(el): IRange {
+        let selectedRange = undefined;
+        let sel = rangy.getSelection();
+        let elRange = <IRange> rangy.createRange();
+        elRange.selectNodeContents(el);
+        if (sel.rangeCount) {
+            selectedRange = sel.getRangeAt(0).intersection(elRange);
+        }
+        elRange.detach();
+        return selectedRange;
+    }
+
+    // Copy text as text
+    executeCopy(text: string): void {
+        let input = document.createElement('textarea');
+        document.body.appendChild(input);
+        input.value = text;
+        input.style.position = 'absolute';
+        input.style.bottom = '100%';
+        input.focus();
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+    }
+
+    /**
      * Add handler for clicking on xml link
      */
     xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
@@ -516,35 +549,34 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Format xml field into a hyperlink
+     * Format xml field into a hyperlink and performs HTML entity encoding
      */
-    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
-        let valueToDisplay = (value + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    public hyperLinkFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
+        let valueToDisplay = value;
         let cellClasses = 'grid-cell-value-container';
         if (value) {
             cellClasses += ' xmlLink';
-            return '<a class="' + cellClasses + '" href="#" >'
-                + valueToDisplay
-                + '</a>';
+            valueToDisplay = Utils.htmlEntities(value);
+            return `<a class="${cellClasses}" href="#" >${valueToDisplay}</a>`;
         } else {
             cellClasses += ' missing-value';
-            return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+            return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
         }
     }
 
     /**
-     * Format all text to replace /n with spaces
+     * Format all text to replace all new lines with spaces and performs HTML entity encoding
      */
     textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
         let valueToDisplay = value;
         let cellClasses = 'grid-cell-value-container';
         if (value) {
-            valueToDisplay = value.replace(/\n/g, ' ');
+            valueToDisplay = Utils.htmlEntities(value.replace(/(\r\n|\n|\r)/g, ' '));
         } else {
             cellClasses += ' missing-value';
         }
 
-        return '<span title="' + valueToDisplay + '" class="' + cellClasses + '">' + valueToDisplay + '</span>';
+        return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
     }
 
     /**
@@ -591,10 +623,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
-     * Binded to mouse click on messages
+     * Sends a get request to the provided uri without changing the active page
+     * @param uri The URI to send a get request to
      */
-    editorSelection(selection: ISelectionData): void {
-        this.dataService.editorSelection = selection;
+    sendGetRequest(uri: string): void {
+        this.dataService.sendGetRequest(uri);
     }
 
     /**
@@ -649,7 +682,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
             self.slickgrids.toArray()[0].setActive();
         });
-}
+    }
 
     /**
      *
@@ -666,7 +699,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let eString = this.shortcuts.buildEventString(e);
         this.shortcuts.getEvent(eString).then((result) => {
             if (result) {
-                self.shortcutfunc[<string> result]();
+                let eventName = <string> result;
+                self.shortcutfunc[eventName]();
                 e.stopImmediatePropagation();
             }
         });
@@ -683,6 +717,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
         if (targetIndex >= this.renderedDataSets.length || targetIndex < 0) {
             return false;
         }
+
+        // Deselect any text since we are navigating to a new grid
+        // Do this even if not switching grids, since this covers clicking on the grid after message selection
+        rangy.getSelection().removeAllRanges();
 
         // check if you are actually trying to change navigation
         if (this.activeGrid === targetIndex) {
@@ -706,6 +744,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             scrollTop = (gridHeight * targetIndex);
             resultsWindow.scrollTop(scrollTop);
         }
+
         return true;
     }
 

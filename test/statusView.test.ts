@@ -1,7 +1,7 @@
 import assert = require('assert');
 
 import StatusView from '../src/views/statusView';
-import Constants = require('../src/models/constants');
+import LocalizedConstants = require('../src/constants/localizedConstants');
 import Telemetry from '../src/models/telemetry';
 
 suite('Status View Tests', () => {
@@ -13,13 +13,13 @@ suite('Status View Tests', () => {
     test('updateStatusMessage should not immediately update status message for definition request', (done) => {
         return new Promise((resolve, reject) => {
             let statusView = new StatusView();
-            let newStatus = Constants.definitionRequestedStatus;
+            let newStatus = LocalizedConstants.definitionRequestedStatus;
             let currentStatus = '';
             let getCurrentStatus = () => {
                 return currentStatus;
             };
             let actualStatusMessage = '';
-            let expectedStatusMessage = Constants.gettingDefinitionMessage;
+            let expectedStatusMessage = LocalizedConstants.gettingDefinitionMessage;
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };
@@ -35,8 +35,8 @@ suite('Status View Tests', () => {
     test('updateStatusMessage should not update status message for definition request if already completed', (done) => {
         return new Promise((resolve, reject) => {
             let statusView = new StatusView();
-            let newStatus = Constants.definitionRequestedStatus;
-            let currentStatus = Constants.definitionRequestCompletedStatus;
+            let newStatus = LocalizedConstants.definitionRequestedStatus;
+            let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
             let getCurrentStatus = () => {
                 return currentStatus;
             };
@@ -57,8 +57,8 @@ suite('Status View Tests', () => {
     test('updateStatusMessage should update status message for definition request completed', (done) => {
         return new Promise((resolve, reject) => {
             let statusView = new StatusView();
-            let newStatus = Constants.definitionRequestCompletedStatus;
-            let currentStatus = Constants.definitionRequestCompletedStatus;
+            let newStatus = LocalizedConstants.definitionRequestCompletedStatus;
+            let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
             let getCurrentStatus = () => {
                 return currentStatus;
             };
@@ -76,13 +76,13 @@ suite('Status View Tests', () => {
     test('updateStatusMessage should update status message for updating intelliSense', (done) => {
         return new Promise((resolve, reject) => {
             let statusView = new StatusView();
-            let newStatus = Constants.updatingIntelliSenseStatus;
+            let newStatus = LocalizedConstants.updatingIntelliSenseStatus;
             let currentStatus = '';
             let getCurrentStatus = () => {
                 return currentStatus;
             };
             let actualStatusMessage = '';
-            let expectedStatusMessage = Constants.updatingIntelliSenseLabel;
+            let expectedStatusMessage = LocalizedConstants.updatingIntelliSenseLabel;
             let updateMessage = (message) => {
                 actualStatusMessage = message;
             };
@@ -95,7 +95,7 @@ suite('Status View Tests', () => {
     test('updateStatusMessage should update status message for intelliSense updated status', (done) => {
         return new Promise((resolve, reject) => {
             let statusView = new StatusView();
-            let newStatus = Constants.intelliSenseUpdatedStatus;
+            let newStatus = LocalizedConstants.intelliSenseUpdatedStatus;
             let currentStatus = '';
             let getCurrentStatus = () => {
                 return currentStatus;

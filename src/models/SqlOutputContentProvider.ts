@@ -2,7 +2,8 @@
 import vscode = require('vscode');
 import path = require('path');
 import os = require('os');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
@@ -44,202 +45,29 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(context: vscode.ExtensionContext, private _statusView: StatusView) {
-        const self = this;
-
         this._vscodeWrapper = new VscodeWrapper();
 
         // create local express server
         this._service = new LocalWebService(context.extensionPath);
 
         // add http handler for '/root'
-        this._service.addHandler(Interfaces.ContentType.Root, (req, res): void => {
-            let uri: string = req.query.uri;
-            if (self._queryResultsMap.has(uri)) {
-                clearTimeout(self._queryResultsMap.get(uri).timeout);
-            }
-            let theme: string = req.query.theme;
-            let backgroundcolor: string = req.query.backgroundcolor;
-            let color: string = req.query.color;
-            let prod;
-            try {
-                fs.accessSync(path.join(LocalWebService.staticContentPath, Constants.contentProviderMinFile), fs.F_OK);
-                prod = true;
-            } catch (e) {
-                prod = false;
-            }
-            let mssqlConfig = self._vscodeWrapper.getConfiguration(Constants.extensionName);
-            let editorConfig = self._vscodeWrapper.getConfiguration('editor');
-            let extensionFontFamily = mssqlConfig.get<string>(Constants.extConfigResultFontFamily).split('\'').join('').split('"').join('');
-            let extensionFontSize = mssqlConfig.get<number>(Constants.extConfigResultFontSize);
-            let fontfamily = extensionFontFamily ?
-                             extensionFontFamily :
-                             editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
-            let fontsize = extensionFontSize ? extensionFontSize + 'px' : editorConfig.get<number>('fontSize') + 'px';
-            let fontweight = editorConfig.get<string>('fontWeight');
-            res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
-                {
-                    uri: uri,
-                    theme: theme,
-                    backgroundcolor: backgroundcolor,
-                    color: color,
-                    fontfamily: fontfamily,
-                    fontsize: fontsize,
-                    fontweight: fontweight,
-                    prod: prod
-                }
-            );
-        });
-
-        // add http handler for '/resultsetsMeta' - return metadata about columns & rows in multiple resultsets
-        this._service.addHandler(Interfaces.ContentType.ResultsetsMeta, (req, res): void => {
-            let tempBatchSets: Interfaces.IGridBatchMetaData[] = [];
-            let uri: string = req.query.uri;
-            if  (self._queryResultsMap.has(uri)) {
-                self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((batchSets) => {
-                    for (let [batchIndex, batch] of batchSets.entries()) {
-                        let tempBatch: Interfaces.IGridBatchMetaData = {
-                            resultSets: [],
-                            messages: batch.messages,
-                            hasError: batch.hasError,
-                            selection: batch.selection,
-                            startTime: batch.executionStart,
-                            endTime: batch.executionEnd,
-                            totalTime: batch.executionElapsed
-                        };
-                        for (let [resultIndex, result] of batch.resultSetSummaries.entries()) {
-                            let uriFormat = '/{0}?batchId={1}&resultId={2}&uri={3}';
-                            let encodedUri = encodeURIComponent(uri);
-
-                            tempBatch.resultSets.push( <Interfaces.IGridResultSet> {
-                                columns: result.columnInfo,
-                                rowsUri: Utils.formatString(uriFormat, Constants.outputContentTypeRows, batchIndex, resultIndex, encodedUri),
-                                numberOfRows: result.rowCount
-                            });
-                        }
-                        tempBatchSets.push(tempBatch);
-                    }
-                    let json = JSON.stringify(tempBatchSets);
-                    res.send(json);
-                });
-            } else {
-                // did not find query (most likely expired)
-                let tempBatch: Interfaces.IGridBatchMetaData = {
-                    resultSets: undefined,
-                    messages: [{
-                        time: undefined,
-                        message: Constants.unfoundResult
-                    }],
-                    hasError: undefined,
-                    selection: undefined,
-                    startTime: undefined,
-                    endTime: undefined,
-                    totalTime: undefined
-                };
-                tempBatchSets.push(tempBatch);
-                let json = JSON.stringify(tempBatchSets);
-                res.send(json);
-            }
-        });
-
-        // add http handler for '/columns' - return column metadata as a JSON string
-        this._service.addHandler(Interfaces.ContentType.Columns, (req, res): void => {
-            let resultId = req.query.resultId;
-            let batchId = req.query.batchId;
-            let uri: string = req.query.uri;
-            self._queryResultsMap.get(uri).queryRunner.getBatchSets().then((data) => {
-                let columnMetadata = data[batchId].resultSetSummaries[resultId].columnInfo;
-                let json = JSON.stringify(columnMetadata);
-                res.send(json);
-            });
-        });
-
+        this._service.addHandler(Interfaces.ContentType.Root, (req, res) => this.rootRequestHandler(req, res));
         // add http handler for '/rows' - return rows end-point for a specific resultset
-        this._service.addHandler(Interfaces.ContentType.Rows, (req, res): void => {
-            let resultId = req.query.resultId;
-            let batchId = req.query.batchId;
-            let rowStart = req.query.rowStart;
-            let numberOfRows = req.query.numberOfRows;
-            let uri: string = req.query.uri;
-            self._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
-                let json = JSON.stringify(results.resultSubset);
-                res.send(json);
-            });
-        });
-
-        this._service.addHandler(Interfaces.ContentType.Config, (req, res): void => {
-            let extConfig = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-            let config = new ResultsConfig();
-            for (let key of Constants.extConfigResultKeys) {
-                config[key] = extConfig[key];
-            }
-            let json = JSON.stringify(config);
-            res.send(json);
-        });
-
+        this._service.addHandler(Interfaces.ContentType.Rows, (req, res) => this.rowRequestHandler(req, res));
+        // add http handler for '/config'
+        this._service.addHandler(Interfaces.ContentType.Config, (req, res) => this.configRequestHandler(req, res));
         // add http handler for '/saveResults' - return success message as JSON
-        this._service.addPostHandler(Interfaces.ContentType.SaveResults, (req, res): void => {
-            let uri: string = req.query.uri;
-            let queryUri = self._queryResultsMap.get(uri).queryRunner.uri;
-            let selectedResultSetNo: number = Number(req.query.resultSetNo);
-            let batchIndex: number = Number(req.query.batchIndex);
-            let format: string = req.query.format;
-            let selection: Interfaces.ISlickRange[] = req.body;
-            let saveResults = new ResultsSerializer();
-            saveResults.onSaveResults(queryUri, batchIndex, selectedResultSetNo, format, selection);
-            res.status = 200;
-            res.send();
-        });
-
+        this._service.addPostHandler(Interfaces.ContentType.SaveResults, (req, res) => this.saveResultsRequestHandler(req, res));
         // add http handler for '/openLink' - open content in a new vscode editor pane
-        this._service.addPostHandler(Interfaces.ContentType.OpenLink, (req, res): void => {
-            let content: string = req.body.content;
-            let columnName: string = req.body.columnName;
-            let linkType: string = req.body.type;
-            self.openLink(content, columnName, linkType);
-            res.status = 200;
-            res.send();
-        });
-
+        this._service.addPostHandler(Interfaces.ContentType.OpenLink, (req, res) => this.openLinkRequestHandler(req, res));
         // add http post handler for copying results
-        this._service.addPostHandler(Interfaces.ContentType.Copy, (req, res): void => {
-            let uri = req.query.uri;
-            let resultId = req.query.resultId;
-            let batchId = req.query.batchId;
-            let includeHeaders = req.query.includeHeaders;
-            let selection: Interfaces.ISlickRange[] = req.body;
-            self._queryResultsMap.get(uri).queryRunner.copyResults(selection, batchId, resultId, includeHeaders).then(() => {
-                res.status = 200;
-                res.send();
-            });
-        });
-
-        // add http post handler for setting the selection in the editor
-        this._service.addPostHandler(Interfaces.ContentType.EditorSelection, (req, res): void => {
-            let uri = req.query.uri;
-            let selection: ISelectionData = req.body;
-            self._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
-                res.status = 200;
-                res.send();
-            });
-        });
-
+        this._service.addPostHandler(Interfaces.ContentType.Copy, (req, res) => this.copyRequestHandler(req, res));
+        // add http get handler for setting the selection in the editor
+        this._service.addHandler(Interfaces.ContentType.EditorSelection, (req, res) => this.editorSelectionRequestHandler(req, res));
         // add http post handler for showing errors to user
-        this._service.addPostHandler(Interfaces.ContentType.ShowError, (req, res): void => {
-            let message: string = req.body.message;
-            self._vscodeWrapper.showErrorMessage(message);
-            // not attached to show function callback, since callback returns only after user closes message
-            res.status = 200;
-            res.send();
-        });
-
+        this._service.addPostHandler(Interfaces.ContentType.ShowError, (req, res) => this.showErrorRequestHandler(req, res));
         // add http post handler for showing warning to user
-        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, (req, res): void => {
-            let message: string = req.body.message;
-            self._vscodeWrapper.showWarningMessage(message);
-            // not attached to show function callback, since callback returns only after user closes message
-            res.status = 200;
-            res.send();
-        });
+        this._service.addPostHandler(Interfaces.ContentType.ShowWarning, (req, res) => this.showWarningRequestHandler(req, res));
 
         // start express server on localhost and listen on a random port
         try {
@@ -248,6 +76,130 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             Utils.showErrorMsg(error);
             throw(error);
         }
+    }
+
+    public rootRequestHandler(req, res): void {
+        let uri: string = req.query.uri;
+        if (this._queryResultsMap.has(uri)) {
+            clearTimeout(this._queryResultsMap.get(uri).timeout);
+        }
+        let theme: string = req.query.theme;
+        let backgroundcolor: string = req.query.backgroundcolor;
+        let color: string = req.query.color;
+        let prod;
+        try {
+            fs.accessSync(path.join(LocalWebService.staticContentPath, Constants.contentProviderMinFile), fs.F_OK);
+            prod = true;
+        } catch (e) {
+            prod = false;
+        }
+        let mssqlConfig = this._vscodeWrapper.getConfiguration(Constants.extensionName);
+        let editorConfig = this._vscodeWrapper.getConfiguration('editor');
+        let extensionFontFamily = mssqlConfig.get<string>(Constants.extConfigResultFontFamily).split('\'').join('').split('"').join('');
+        let extensionFontSize = mssqlConfig.get<number>(Constants.extConfigResultFontSize);
+        let fontfamily = extensionFontFamily ?
+                            extensionFontFamily :
+                            editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
+        let fontsize = extensionFontSize ? extensionFontSize + 'px' : editorConfig.get<number>('fontSize') + 'px';
+        let fontweight = editorConfig.get<string>('fontWeight');
+        res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
+            {
+                uri: uri,
+                theme: theme,
+                backgroundcolor: backgroundcolor,
+                color: color,
+                fontfamily: fontfamily,
+                fontsize: fontsize,
+                fontweight: fontweight,
+                prod: prod
+            }
+        );
+    }
+
+    public rowRequestHandler(req, res): void {
+        let resultId = req.query.resultId;
+        let batchId = req.query.batchId;
+        let rowStart = req.query.rowStart;
+        let numberOfRows = req.query.numberOfRows;
+        let uri: string = req.query.uri;
+        this._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, batchId, resultId).then(results => {
+            let json = JSON.stringify(results.resultSubset);
+            res.send(json);
+        });
+    }
+
+    public configRequestHandler(req, res): void {
+        let extConfig = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let config = new ResultsConfig();
+        for (let key of Constants.extConfigResultKeys) {
+            config[key] = extConfig[key];
+        }
+        let json = JSON.stringify(config);
+        res.send(json);
+    }
+
+    public saveResultsRequestHandler(req, res): void {
+        let uri: string = req.query.uri;
+        let queryUri = this._queryResultsMap.get(uri).queryRunner.uri;
+        let selectedResultSetNo: number = Number(req.query.resultSetNo);
+        let batchIndex: number = Number(req.query.batchIndex);
+        let format: string = req.query.format;
+        let selection: Interfaces.ISlickRange[] = req.body;
+        let saveResults = new ResultsSerializer();
+        saveResults.onSaveResults(queryUri, batchIndex, selectedResultSetNo, format, selection);
+        res.status = 200;
+        res.send();
+    }
+
+    public openLinkRequestHandler(req, res): void {
+        let content: string = req.body.content;
+        let columnName: string = req.body.columnName;
+        let linkType: string = req.body.type;
+        this.openLink(content, columnName, linkType);
+        res.status = 200;
+        res.send();
+    }
+
+    public copyRequestHandler(req, res): void {
+        let uri = req.query.uri;
+        let resultId = req.query.resultId;
+        let batchId = req.query.batchId;
+        let includeHeaders = req.query.includeHeaders;
+        let selection: Interfaces.ISlickRange[] = req.body;
+        this._queryResultsMap.get(uri).queryRunner.copyResults(selection, batchId, resultId, includeHeaders).then(() => {
+            res.status = 200;
+            res.send();
+        });
+    }
+
+    public editorSelectionRequestHandler(req, res): void {
+        let uri = req.query.uri;
+        let selection: ISelectionData = {
+            startLine: parseInt(req.query.startLine, 10),
+            startColumn: parseInt(req.query.startColumn, 10),
+            endLine: parseInt(req.query.endLine, 10),
+            endColumn: parseInt(req.query.endColumn, 10)
+        };
+        this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
+            res.status = 200;
+            res.send();
+        });
+    }
+
+    public showErrorRequestHandler(req, res): void {
+        let message: string = req.body.message;
+        this._vscodeWrapper.showErrorMessage(message);
+        // not attached to show function callback, since callback returns only after user closes message
+        res.status = 200;
+        res.send();
+    }
+
+    public showWarningRequestHandler(req, res): void {
+        let message: string = req.body.message;
+        this._vscodeWrapper.showWarningMessage(message);
+        // not attached to show function callback, since callback returns only after user closes message
+        res.status = 200;
+        res.send();
     }
 
     // PROPERTIES //////////////////////////////////////////////////////////
@@ -278,12 +230,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
-                this._vscodeWrapper.showInformationMessage(Constants.msgRunQueryInProgress);
+                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
                 return;
             }
 
             // If the query is not in progress, we can reuse the query runner
             queryRunner = existingRunner;
+            queryRunner.resetHasCompleted();
 
             // update the open pane assuming its open (if its not its a bug covered by the previewhtml command later)
             this.update(vscode.Uri.parse(resultsUri));
@@ -295,13 +248,33 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                 this._service.broadcast(resultsUri, 'resultSet', resultSet);
             });
             queryRunner.eventEmitter.on('batchStart', (batch) => {
-                this._service.broadcast(resultsUri, 'batchStart', batch);
+                // Build a link for the selection and send it in a message
+                let encodedUri = encodeURIComponent(resultsUri);
+                let link = LocalWebService.getEndpointUri(Interfaces.ContentType.EditorSelection) + `?uri=${encodedUri}`;
+                if (batch.selection) {
+                    link += `&startLine=${batch.selection.startLine}` +
+                            `&startColumn=${batch.selection.startColumn}` +
+                            `&endLine=${batch.selection.endLine}` +
+                            `&endColumn=${batch.selection.endColumn}`;
+                }
+
+                let message = {
+                    message: LocalizedConstants.runQueryBatchStartMessage,
+                    batchId: undefined,
+                    isError: false,
+                    time: new Date().toLocaleTimeString(),
+                    link: {
+                        text: Utils.formatString(LocalizedConstants.runQueryBatchStartLine, batch.selection.startLine + 1),
+                        uri: link
+                    }
+                };
+                this._service.broadcast(resultsUri, 'message', message);
             });
-            queryRunner.eventEmitter.on('batchComplete', (batch) => {
-                this._service.broadcast(resultsUri, 'batchComplete', batch);
+            queryRunner.eventEmitter.on('message', (message) => {
+                this._service.broadcast(resultsUri, 'message', message);
             });
-            queryRunner.eventEmitter.on('complete', () => {
-                this._service.broadcast(resultsUri, 'complete');
+            queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
+                this._service.broadcast(resultsUri, 'complete', totalMilliseconds);
             });
             queryRunner.eventEmitter.on('start', () => {
                 this._service.resetSocket(resultsUri);
@@ -310,10 +283,43 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         queryRunner.runQuery(selection);
-        let paneTitle = Utils.formatString(Constants.titleResultsPane, queryRunner.title);
+        let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
         // Always run this command even if just updating to avoid a bug - tfs 8686842
-        vscode.commands.executeCommand('vscode.previewHtml', resultsUri, vscode.ViewColumn.Two, paneTitle);
+        this.displayResultPane(resultsUri, paneTitle);
     }
+
+    // Function to render resultspane content
+    public displayResultPane(resultsUri: string, paneTitle: string): void {
+        // Get the active text editor
+        let activeTextEditor = this._vscodeWrapper.activeTextEditor;
+
+        // Check if the results window already exists
+        if (!this.doesResultPaneExist(resultsUri)) {
+            // Wrapper tells us where the new results pane should be placed
+            let resultPaneColumn = this.newResultPaneViewColumn();
+
+            // Try and Open new window then reset focus back to the editor
+            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, resultPaneColumn, paneTitle).then(() => {
+                // get the result pane text editor to determine which column it was shown in
+                let resultPaneTextEditor = this._vscodeWrapper.visibleEditors.find(
+                    editor => editor.document.uri.toString() === resultsUri);
+
+                // get the result pane column from the text editor
+                if (resultPaneTextEditor !== undefined) {
+                    resultPaneColumn = resultPaneTextEditor.viewColumn;
+                }
+
+                // only reset focus to the text editor if it's in a different column then the results window
+                if (resultPaneColumn !== undefined
+                    && resultPaneColumn !== activeTextEditor.viewColumn) {
+                    this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
+                }
+            }, err => {
+                // Output to console if an error occurs
+                Utils.logToOutputChannel(err);
+            });
+        }
+    };
 
     public cancelQuery(input: QueryRunner | string): void {
         let self = this;
@@ -329,7 +335,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
 
         if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
-            self._vscodeWrapper.showInformationMessage(Constants.msgCancelQueryNotRunning);
+            self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
             return;
         }
 
@@ -339,7 +345,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Cancel the query
         queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
-            self._vscodeWrapper.showErrorMessage(Utils.formatString(Constants.msgCancelQueryFailed, error));
+            self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error));
         });
     }
 
@@ -411,6 +417,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     public provideTextDocumentContent(uri: vscode.Uri): string {
         // URI needs to be encoded as a component for proper inclusion in a url
         let encodedUri = encodeURIComponent(uri.toString());
+        console.log(`${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${encodedUri}`);
 
         // Fix for issue #669 "Results Panel not Refreshing Automatically" - always include a unique time
         // so that the content returned is different. Otherwise VSCode will not refresh the document since it
@@ -474,7 +481,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
                     edit.insert(new vscode.Position(0, 0), content);
                 }).then(result => {
                     if (!result) {
-                        self._vscodeWrapper.showErrorMessage(Constants.msgCannotOpenContent);
+                        self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgCannotOpenContent);
                     }
                 });
             }, (error: any) => {
@@ -527,5 +534,64 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
         }
         return path.join(os.tmpdir(), columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType);
+    }
+
+    /**
+     * Returns whether or not a result pane with the same URI exists
+     * @param The string value of a Uri.
+     * @return boolean true if pane exists
+     * public for testing purposes
+     */
+    public doesResultPaneExist(resultsUri: string): boolean {
+        let resultPaneURIMatch = this._vscodeWrapper.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
+        return (resultPaneURIMatch !== undefined);
+    }
+
+    /**
+     * Returns which column should be used for a new result pane
+     * @return ViewColumn to be used
+     * public for testing purposes
+     */
+    public newResultPaneViewColumn(): vscode.ViewColumn {
+        // Find configuration options
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let viewColumn: vscode.ViewColumn;
+
+
+        switch (splitPaneSelection) {
+        case 'current' :
+            viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+            break;
+        case 'end' :
+            viewColumn = vscode.ViewColumn.Three;
+            break;
+        // default case where splitPaneSelection is next or anything else
+        default :
+            if (this._vscodeWrapper.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
+                viewColumn = vscode.ViewColumn.Two;
+            } else {
+                viewColumn = vscode.ViewColumn.Three;
+            };
+        }
+
+        return viewColumn;
+    }
+
+    // Exposing some variables for testing purposes only
+    set setDisplayResultPane(implementation: (var1: string, var2: string) => void) {
+        this.displayResultPane = implementation;
+    }
+
+    set setVscodeWrapper(wrapper: VscodeWrapper) {
+        this._vscodeWrapper = wrapper;
+    }
+
+    get getResultsMap(): Map<string, QueryRunnerState> {
+        return this._queryResultsMap;
+    }
+
+    set setResultsMap(setMap: Map<string, QueryRunnerState>) {
+        this._queryResultsMap = setMap;
     }
 }

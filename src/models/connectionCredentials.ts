@@ -1,5 +1,5 @@
 'use strict';
-import Constants = require('./constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import { ConnectionDetails } from './contracts/connection';
 import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionStore } from './connectionStore';
@@ -91,8 +91,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
         // Potentially ask to save password
         questions.push({
             type: QuestionTypes.confirm,
-            name: Constants.msgSavePassword,
-            message: Constants.msgSavePassword,
+            name: LocalizedConstants.msgSavePassword,
+            message: LocalizedConstants.msgSavePassword,
             shouldPrompt: (answers) => {
                 if (isProfile) {
                     // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
@@ -151,20 +151,20 @@ export class ConnectionCredentials implements IConnectionCredentials {
             // Server must be present
             {
                 type: QuestionTypes.input,
-                name: Constants.serverPrompt,
-                message: Constants.serverPrompt,
-                placeHolder: Constants.serverPlaceholder,
+                name: LocalizedConstants.serverPrompt,
+                message: LocalizedConstants.serverPrompt,
+                placeHolder: LocalizedConstants.serverPlaceholder,
                 default: defaultProfileValues ? defaultProfileValues.server : undefined,
                 shouldPrompt: (answers) => utils.isEmpty(credentials.server),
-                validate: (value) => ConnectionCredentials.validateRequiredString(Constants.serverPrompt, value),
+                validate: (value) => ConnectionCredentials.validateRequiredString(LocalizedConstants.serverPrompt, value),
                 onAnswered: (value) => credentials.server = value
             },
             // Database name is not required, prompt is optional
             {
                 type: QuestionTypes.input,
-                name: Constants.databasePrompt,
-                message: Constants.databasePrompt,
-                placeHolder: Constants.databasePlaceholder,
+                name: LocalizedConstants.databasePrompt,
+                message: LocalizedConstants.databasePrompt,
+                placeHolder: LocalizedConstants.databasePlaceholder,
                 default: defaultProfileValues ? defaultProfileValues.database : undefined,
                 shouldPrompt: (answers) => promptForDbName,
                 onAnswered: (value) => credentials.database = value
@@ -172,8 +172,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
             // AuthenticationType is required if there is more than 1 option on this platform
             {
                 type: QuestionTypes.expand,
-                name: Constants.authTypePrompt,
-                message: Constants.authTypePrompt,
+                name: LocalizedConstants.authTypePrompt,
+                message: LocalizedConstants.authTypePrompt,
                 choices: authenticationChoices,
                 shouldPrompt: (answers) => utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
                 onAnswered: (value) => {
@@ -183,24 +183,24 @@ export class ConnectionCredentials implements IConnectionCredentials {
             // Username must be pressent
             {
                 type: QuestionTypes.input,
-                name: Constants.usernamePrompt,
-                message: Constants.usernamePrompt,
-                placeHolder: Constants.usernamePlaceholder,
+                name: LocalizedConstants.usernamePrompt,
+                message: LocalizedConstants.usernamePrompt,
+                placeHolder: LocalizedConstants.usernamePlaceholder,
                 default: defaultProfileValues ? defaultProfileValues.user : undefined,
                 shouldPrompt: (answers) => ConnectionCredentials.shouldPromptForUser(credentials),
-                validate: (value) => ConnectionCredentials.validateRequiredString(Constants.usernamePrompt, value),
+                validate: (value) => ConnectionCredentials.validateRequiredString(LocalizedConstants.usernamePrompt, value),
                 onAnswered: (value) => credentials.user = value
             },
             // Password may or may not be necessary
             {
                 type: QuestionTypes.password,
-                name: Constants.passwordPrompt,
-                message: Constants.passwordPrompt,
-                placeHolder: Constants.passwordPlaceholder,
+                name: LocalizedConstants.passwordPrompt,
+                message: LocalizedConstants.passwordPrompt,
+                placeHolder: LocalizedConstants.passwordPlaceholder,
                 shouldPrompt: (answers) => ConnectionCredentials.shouldPromptForPassword(credentials),
                 validate: (value) => {
                     if (isPasswordRequired) {
-                        return ConnectionCredentials.validateRequiredString(Constants.passwordPrompt, value);
+                        return ConnectionCredentials.validateRequiredString(LocalizedConstants.passwordPrompt, value);
                     }
                     return undefined;
                 },
@@ -230,18 +230,18 @@ export class ConnectionCredentials implements IConnectionCredentials {
     // Validates a string is not empty, returning undefined if true and an error message if not
     protected static validateRequiredString(property: string, value: string): string {
         if (utils.isEmpty(value)) {
-            return property + Constants.msgIsRequired;
+            return property + LocalizedConstants.msgIsRequired;
         }
         return undefined;
     }
 
     public static getAuthenticationTypesChoice(): INameValueChoice[] {
         let choices: INameValueChoice[] = [
-            { name: Constants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) }
+            { name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) }
         ];
         // In the case of win32 support integrated. For all others only SqlAuth supported
         if ('win32' === os.platform()) {
-             choices.push({ name: Constants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) });
+             choices.push({ name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) });
         }
         // TODO When Azure Active Directory is supported, add this here
 

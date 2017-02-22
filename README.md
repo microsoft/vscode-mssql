@@ -21,12 +21,31 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 0.3.0
+* T-SQL formatting support is now included. This is a highly requested feature, and this release includes a basic parser
+with configuration options for some of the most common T-SQL formatting styles.
+  * To format a .sql file, right-click and choose `Format Document`.
+  * To format part of a document, highlight a selection, right-click and choose `Format Selection`
+  * To change the formatting settings, hit F1 and choose `Preferences: Open User Settings`. Type in `mssql.format` and
+  change any of the options
+* `Refresh Intellisense Cache` command added. This will rebuild the intellisense for a connected database to include any recent
+schema changes
+* `New Query` command added. This opens a new .sql file and connects to a server, making it quicker to get started with your queries
+* Fixed support for SQL Data Warehouse connections.
+* Prototype localization support added. We will be adding full localization support in a future update.
+* Improved Peek Definition support. Multiple bug fixes, and additional supported types.
+  * Supported types: Tables, Views, Procedures, User Defined Tables, User Defined Types, Synonyms, Scalar Functions, Table Valued Functions
+* Support for Windows x86 machines
+* Fix for issue #604 where results that included HTML were not rendered correctly
+* Multiple fixes for syntax highlighting
+* Fixed issues where query execution failed due to parser failures.
+
 ## What's new in 0.2.1
 * HotFix for issue [#669] "Results Panel not Refreshing Automatically". This issue impacts users on VSCode 1.9.0 or greater.
 
 ## What's new in 0.2.0
 * Peek Definition and Go To Definition support for Tables, Views and Stored Procedures.
-  * For a query such as `select * from dbo.Person` you can right-click on `dbo.Person` and see it as a `CREATE TABLE` script.
+  * For a query such as `select * from dbo.Person` you can right-click on `Person` and see it as a `CREATE TABLE` script.
   * Note: you must be connected to a database to use this feature.
 * Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.
 * Multiple improvements & fixes to the results view, Intellisense handling, and service installation notification.
@@ -37,7 +56,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 * First, install [Visual Studio Code] then install **mssql** extension by pressing **F1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
     * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instructions].
-* Open an existing file with a .sql file extenion or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**. **mssql** commands and funtionalities are enabled in the SQL language mode in Visual Studioc Code editor.
+* Open an existing file with a .sql file extension or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**. **mssql** commands and functionalities are enabled in the SQL language mode in Visual Studio Code editor.
 * Create a new connection profile using command palette by pressing **F1**, type **sqlman** to run **MS SQL: Manage Connection Profile** command. Select **Create**. See [manage connection profiles] for more information about how to create and edit connection profiles in your User Settings (settings.json) file.
 * Connect to a database by pressing **F1** and type **sqlcon** to run **MS SQL: Connnect** command, then select a connection profile. You can also use a shortcut (**ctrl+shift+c**).
 * Write T-SQL script in the editor using IntelliSense and Snippets. Type **sql** in the editor to list T-SQL Snippets.
@@ -88,7 +107,8 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.intelliSense.enableQuickInfo": true,
     "mssql.intelliSense.lowerCaseSuggestions": false,
     "mssql.resultsFontFamily": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif",
-    "mssql.resultsFontSize": 13
+    "mssql.resultsFontSize": 13,
+    "mssql.copyRemoveNewLine" : true
 }
 ```
 

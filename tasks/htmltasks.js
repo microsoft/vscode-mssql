@@ -30,9 +30,9 @@ gulp.task('html:lint', () => {
 gulp.task('html:compile-src', () => {
   return gulp
     .src([config.paths.html.root + '/src/js/**/*.ts',
-        config.paths.html.root + '/typings/**/*'])
+    config.paths.html.root + '/typings/**/*.d.ts'])
     .pipe(srcmap.init())
-    .pipe(ts(tsProject))
+    .pipe(tsProject())
     .pipe(srcmap.write('.', {
         sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent'; }
     }))
@@ -42,9 +42,9 @@ gulp.task('html:compile-src', () => {
 gulp.task('html:compile-test', () => {
   return gulp
     .src([config.paths.html.root + '/test/**/*.ts',
-        config.paths.html.root + '/typings/**/*'])
+        config.paths.html.root + '/typings/**/*.d.ts'])
     .pipe(srcmap.init())
-    .pipe(ts(tsProject))
+    .pipe(tsProject())
     .pipe(srcmap.write('.', {
         sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent'; }
     }))
@@ -110,10 +110,10 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/slickgrid/slick.core.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.grid.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.editors.js',
-            config.paths.html.root + '/src/js/slick.dragrowselector.js',
-            config.paths.html.root + '/src/js/slick.autosizecolumn.js',
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
             config.paths.html.root + '/node_modules/zone.js/dist/zone.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-core.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
             config.paths.html.root + '/systemjs.config.js'
@@ -130,9 +130,9 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/slickgrid/slick.core.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.grid.js',
             config.paths.html.root + '/node_modules/slickgrid/slick.editors.js',
-            config.paths.html.root + '/src/js/slick.dragrowselector.js',
-            config.paths.html.root + '/src/js/slick.autosizecolumn.js',
             config.paths.html.root + '/node_modules/core-js/client/shim.min.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-core.js',
+            config.paths.html.root + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
             config.paths.html.root + '/systemjs.config.extras.js',
@@ -223,6 +223,20 @@ gulp.task('html:copy:assets', (done) => {
             })
         })
     );
+    promises.push(new Promise((resolve) => {
+            gulp.src([
+                config.paths.html.root + '/src/js/**/*.js',
+            ])
+            .pipe(srcmap.init())
+            .pipe(minifier({mangle: false}, uglifyjs))
+            .pipe(srcmap.write('.', {
+                sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent/src/js'; }
+            }))
+            .pipe(gulp.dest(config.paths.html.out + '/dist/js'))
+            .on('end', () => {
+                resolve();
+            })
+        }));
 
     Promise.all(promises).then(() => done());
 });

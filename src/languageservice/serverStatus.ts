@@ -7,7 +7,7 @@
 
 import {IStatusView} from './interfaces';
 import vscode = require('vscode');
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
 
 /*
 * The status class which includes the service initialization result.

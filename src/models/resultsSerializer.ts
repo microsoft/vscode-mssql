@@ -1,6 +1,7 @@
 import path = require('path');
 import vscode = require('vscode');
-import Constants = require('./constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import os = require('os');
 import fs = require('fs');
 import Interfaces = require('./interfaces');
@@ -52,29 +53,29 @@ export default class ResultsSerializer {
             // prompt user to enter file path
             {
                 type: QuestionTypes.input,
-                name: Constants.filepathPrompt,
-                message: Constants.filepathMessage,
+                name: LocalizedConstants.filepathPrompt,
+                message: LocalizedConstants.filepathMessage,
                 placeHolder: filepathPlaceHolder,
-                validate: (value) => this.validateFilePath(Constants.filepathPrompt, value)
+                validate: (value) => this.validateFilePath(LocalizedConstants.filepathPrompt, value)
             },
             // prompt to overwrite file if file already exists
             {
                 type: QuestionTypes.confirm,
-                name: Constants.overwritePrompt,
-                message: Constants.overwritePrompt,
-                placeHolder: Constants.overwritePlaceholder,
-                shouldPrompt: (answers) => this.fileExists(answers[Constants.filepathPrompt]),
+                name: LocalizedConstants.overwritePrompt,
+                message: LocalizedConstants.overwritePrompt,
+                placeHolder: LocalizedConstants.overwritePlaceholder,
+                shouldPrompt: (answers) => this.fileExists(answers[LocalizedConstants.filepathPrompt]),
                 onAnswered: (value) => prompted = true
             }
         ];
         return this._prompter.prompt(questions).then(answers => {
-            if (answers && answers[Constants.filepathPrompt] ) {
+            if (answers && answers[LocalizedConstants.filepathPrompt] ) {
                 // return filename if file does not exist or if user opted to overwrite file
-                if (!prompted || (prompted && answers[Constants.overwritePrompt])) {
-                     return answers[Constants.filepathPrompt];
+                if (!prompted || (prompted && answers[LocalizedConstants.overwritePrompt])) {
+                     return answers[LocalizedConstants.filepathPrompt];
                 }
                 // call prompt again if user did not opt to overwrite
-                if (prompted && !answers[Constants.overwritePrompt]) {
+                if (prompted && !answers[LocalizedConstants.overwritePrompt]) {
                     return self.promptForFilepath();
                 }
             }
@@ -159,7 +160,7 @@ export default class ResultsSerializer {
 
     private validateFilePath(property: string, value: string): string {
         if (Utils.isEmpty(value.trim())) {
-            return property + Constants.msgIsRequired;
+            return property + LocalizedConstants.msgIsRequired;
         }
         return undefined;
     }
@@ -216,24 +217,24 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsJsonRequest.type;
         }
 
-        self._vscodeWrapper.logToOutputChannel(Constants.msgSaveStarted + this._filePath);
+        self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
 
         // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
         return self._client.sendRequest( type, saveResultsParams).then(result => {
                 if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + result.messages);
-                    self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + result.messages);
+                    self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + result.messages);
+                    self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveFailed + result.messages);
                 } else {
-                    self._vscodeWrapper.showInformationMessage(Constants.msgSaveSucceeded + this._filePath);
-                    self._vscodeWrapper.logToOutputChannel(Constants.msgSaveSucceeded + filePath);
+                    self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgSaveSucceeded + this._filePath);
+                    self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveSucceeded + filePath);
                     self.openSavedFile(self._filePath);
                 }
                 // telemetry for save results
                 Telemetry.sendTelemetryEvent('SavedResults', { 'type': format });
 
             }, error => {
-                self._vscodeWrapper.showErrorMessage(Constants.msgSaveFailed + error);
-                self._vscodeWrapper.logToOutputChannel(Constants.msgSaveFailed + error);
+                self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + error);
+                self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveFailed + error);
         });
     }
 

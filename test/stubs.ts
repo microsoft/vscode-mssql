@@ -28,6 +28,21 @@ class TestExtensionContext implements vscode.ExtensionContext {
     }
 }
 
+// Bare mock of a TextEditor for vscode
+class TestTextEditor implements vscode.TextEditor {
+    document: vscode.TextDocument;
+    selection: vscode.Selection;
+    selections: vscode.Selection[];
+    options: vscode.TextEditorOptions;
+    viewColumn: vscode.ViewColumn;
+
+    edit(callback: (editBuilder: vscode.TextEditorEdit) => void): Thenable<boolean> { return undefined; };
+    setDecorations(decorationType: vscode.TextEditorDecorationType, rangesOrOptions: vscode.Range[] | vscode.DecorationOptions[]): void { return undefined; };
+    revealRange(range: vscode.Range, revealType?: vscode.TextEditorRevealType): void { return undefined; };
+    show(column?: vscode.ViewColumn): void { return undefined; };
+    hide(): void { return undefined; };
+}
+
 class TestMemento implements vscode.Memento {
     get<T>(key: string, defaultValue?: T): T {
         return undefined;
@@ -60,4 +75,51 @@ function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.Works
     return Object.freeze(result);
 }
 
-export { TestPrompter, TestExtensionContext, TestMemento, createWorkspaceConfiguration };
+// Interface for an Result function passed in by an express call
+class ExpressResult {
+
+    constructor() {
+        // do nothing
+    }
+
+    public render(path: any, vars: any): any {
+        // do nothing
+    }
+
+    public send(json?: any): any {
+        // do nothing
+    }
+
+    public status: number;
+}
+
+// Interface for a request object passed in by an express call
+class ExpressRequest {
+
+    constructor(params?: any) {
+        this.query = params;
+    }
+
+    public query: {
+        uri?: string,
+        theme?: string,
+        backgroundColor?: string,
+        color?: string,
+        rowStart?: number,
+        resultId?: number,
+        batchId?: number,
+        numberOfRows?: number,
+        resultSetNo?: number,
+        batchIndex?: number,
+        format?: string,
+        includeHeaders?: boolean,
+        startLine?: number,
+        startColumn?: number,
+        endLine?: number,
+        endColumn?: number,
+    };
+
+    public body: any;
+}
+
+export { TestPrompter, TestExtensionContext, TestTextEditor, TestMemento, createWorkspaceConfiguration, ExpressRequest, ExpressResult };

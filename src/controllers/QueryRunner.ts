@@ -8,12 +8,16 @@ import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteResultSetCompleteNotificationParams,
-    QueryExecuteSubsetParams, QueryDisposeParams, QueryExecuteSubsetRequest,
-    QueryDisposeRequest, QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
+    QueryExecuteSubsetParams, QueryExecuteSubsetRequest,
+    QueryExecuteMessageParams,
+    QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
+import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/QueryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
+import * as os from 'os';
 
 const ncp = require('copy-paste');
 
@@ -32,9 +36,9 @@ export default class QueryRunner {
     private _uri: string;
     private _title: string;
     private _resultLineOffset: number;
-    private _batchSetsPromise: Promise<BatchSummary[]>;
+    private _totalElapsedMilliseconds: number;
+    private _hasCompleted: boolean;
     public eventEmitter: EventEmitter = new EventEmitter();
-    public dataResolveReject;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -60,6 +64,8 @@ export default class QueryRunner {
         this._uri = _ownerUri;
         this._title = _editorTitle;
         this._isExecuting = false;
+        this._totalElapsedMilliseconds = 0;
+        this._hasCompleted = false;
     }
 
     // PROPERTIES //////////////////////////////////////////////////////////
@@ -80,10 +86,6 @@ export default class QueryRunner {
         this._title = title;
     }
 
-    getBatchSets(): Promise<BatchSummary[]> {
-        return this._batchSetsPromise;
-    }
-
     get batchSets(): BatchSummary[] {
         return this._batchSets;
     }
@@ -96,6 +98,10 @@ export default class QueryRunner {
         return this._isExecuting;
     }
 
+    get hasCompleted(): boolean {
+        return this._hasCompleted;
+    }
+
     // PUBLIC METHODS ======================================================
 
     public cancel(): Thenable<QueryCancelResult> {
@@ -106,87 +112,53 @@ export default class QueryRunner {
 
     // Pulls the query text from the current document/selection and initiates the query
     public runQuery(selection: ISelectionData): Thenable<void> {
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgStartedExecute, this._uri));
         const self = this;
-        this.batchSets = [];
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._uri));
+
+        // Put together the request
         let queryDetails: QueryExecuteParams = {
             ownerUri: this._uri,
             querySelection: selection
         };
+
+        // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
+        this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
 
-        self._batchSetsPromise = new Promise<BatchSummary[]>((resolve, reject) => {
-            self.dataResolveReject = {resolve: resolve, reject: reject};
-        });
-
+        // Send the request to execute the query
         return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
+            // The query has started, so lets fire up the result pane
             self.eventEmitter.emit('start');
-            if (result.messages) { // Show informational messages if there was no query to execute
-                self._statusView.executedQuery(self.uri);
-                self._isExecuting = false;
-                self.batchSets = [{
-                        hasError: false,
-                        id: 0,
-                        selection: undefined,
-                        messages: [{message: result.messages, time: undefined}],
-                        resultSetSummaries: undefined,
-                        executionElapsed: undefined,
-                        executionEnd: undefined,
-                        executionStart: undefined
-                    }];
-                self.dataResolveReject.resolve();
-                this.eventEmitter.emit('batchStart', self._batchSets[0]);
-                this.eventEmitter.emit('batchComplete', self._batchSets[0]);
-            } else {
-                // register with the Notification Handler
-                self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
-            }
-            self.eventEmitter.emit('complete');
+            self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
         }, error => {
+            // Attempting to launch the query failed, show the error message
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
-
-            // if the query failed, then create a new empty pane and close it
-            self.eventEmitter.emit('start');
-            self.eventEmitter.emit('complete');
             self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
         });
     }
 
     // handle the result of the notification
-    public handleResult(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(Constants.msgFinishedExecute, this._uri));
-        this._isExecuting = false;
-        if (result.message) {
-            // Error occured during execution
-            this._statusView.executedQuery(this.uri);
-            this.batchSets = [{
-                hasError: true,
-                id: 0,
-                selection: undefined,
-                messages: [{ time: undefined, message: result.message }],
-                resultSetSummaries: [],
-                executionElapsed: undefined,
-                executionEnd: undefined,
-                executionStart: undefined
-            }];
-            this.dataResolveReject.resolve(this.batchSets);
-            this.eventEmitter.emit('complete');
-            return;
-        }
-        this.batchSets = result.batchSummaries;
+    public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._uri));
 
-        this.batchSets.map((batch) => {
+        // Store the batch sets we got back as a source of "truth"
+        this._isExecuting = false;
+        this._hasCompleted = true;
+        this._batchSets = result.batchSummaries;
+
+        this._batchSets.map((batch) => {
             if (batch.selection) {
                 batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
                 batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
             }
         });
+
+        // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(this.uri);
-        this.dataResolveReject.resolve(this.batchSets);
-        this.eventEmitter.emit('complete');
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds));
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
@@ -194,8 +166,8 @@ export default class QueryRunner {
 
         // Recalculate the start and end lines, relative to the result line offset
         if (batch.selection) {
-            batch.selection.startLine = batch.selection.startLine + this._resultLineOffset;
-            batch.selection.endLine = batch.selection.endLine + this._resultLineOffset;
+            batch.selection.startLine += this._resultLineOffset;
+            batch.selection.endLine += this._resultLineOffset;
         }
 
         // Set the result sets as an empty array so that as result sets complete we can add to the list
@@ -207,10 +179,11 @@ export default class QueryRunner {
     }
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
-        let batch = result.batchSummary;
+        let batch: BatchSummary = result.batchSummary;
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
+        this._totalElapsedMilliseconds += <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
         this.eventEmitter.emit('batchComplete', batch);
     }
 
@@ -221,6 +194,14 @@ export default class QueryRunner {
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
         this.eventEmitter.emit('resultSet', resultSet);
+    }
+
+    public handleMessage(obj: QueryExecuteMessageParams): void {
+        let message = obj.message;
+        message.time = new Date(message.time).toLocaleTimeString();
+
+        // Send the message to the results pane
+        this.eventEmitter.emit('message', message);
     }
 
     // get more data rows from the current resultSets from the service layer
@@ -254,14 +235,10 @@ export default class QueryRunner {
             let disposeDetails = new QueryDisposeParams();
             disposeDetails.ownerUri = self.uri;
             self._client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
-                if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + result.messages);
-                    reject();
-                } else {
-                    resolve();
-                }
+                resolve();
             }, error => {
-                self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
+                self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error);
+                reject();
             });
         });
     }
@@ -297,20 +274,18 @@ export default class QueryRunner {
                         if (self.shouldIncludeHeaders(includeHeaders)) {
                             let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
                             if (columnHeaders !== undefined) {
-                                for (let header of columnHeaders) {
-                                    copyString += header + '\t';
-                                }
-                                copyString += '\r\n';
+                                copyString += columnHeaders.join('\t') + os.EOL;
                             }
                         }
 
-                        // iterate over the rows to paste into the copy string
+                        // Iterate over the rows to paste into the copy string
                         for (let row of result.resultSubset.rows) {
-                            // iterate over the cells we want from that row
-                            for (let cell = range.fromCell; cell <= range.toCell; cell++) {
-                                copyString += row[cell] + '\t';
+                            let cells = row.slice(range.fromCell, (range.toCell + 1));
+                            if (self.shouldRemoveNewLines()) {
+                                // Remove all new lines from cells
+                                cells = cells.map(x => self.removeNewLines(x));
                             }
-                            copyString += '\r\n';
+                            copyString += cells.join('\t') + os.EOL;
                         }
                     });
                 };
@@ -339,6 +314,27 @@ export default class QueryRunner {
         return !!includeHeaders;
     }
 
+    private shouldRemoveNewLines(): boolean {
+        // get config copyRemoveNewLine option from vscode config
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let removeNewLines: boolean = config[Constants.configCopyRemoveNewLine];
+        return removeNewLines;
+    }
+
+    private removeNewLines(inputString: string): string {
+        // This regex removes all newlines in all OS types
+        // Windows(CRLF): \r\n
+        // Linux(LF)/Modern MacOS: \n
+        // Old MacOs: \r
+        if (!inputString) {
+            // We must return null here to stay consistent with our respresentation
+            return null; // tslint:disable-line
+        }
+
+        let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');
+        return outputString;
+    }
+
     /**
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
@@ -347,23 +343,26 @@ export default class QueryRunner {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                let docEditors = self._vscodeWrapper.visibleEditors.filter((editor) => {
-                    return editor.document === doc;
-                });
-                if (docEditors.length !== 0) {
-                    docEditors[0].selection = self._vscodeWrapper.selection(
-                                              self._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                              self._vscodeWrapper.position(selection.endLine, selection.endColumn));
+                self._vscodeWrapper.showTextDocument(doc).then((editor) => {
+                    editor.selection = self._vscodeWrapper.selection(
+                                    self._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                                    self._vscodeWrapper.position(selection.endLine, selection.endColumn));
                     resolve();
-                } else {
-                    self._vscodeWrapper.showTextDocument(doc).then((editor) => {
-                        editor.selection = self._vscodeWrapper.selection(
-                                        self._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                        self._vscodeWrapper.position(selection.endLine, selection.endColumn));
-                        resolve();
-                    });
-                }
+                });
             });
         });
+    }
+
+    public resetHasCompleted(): void {
+        this._hasCompleted = false;
+    }
+
+    // public for testing only - used to mock handleQueryComplete
+    public _setHasCompleted(): void {
+        this._hasCompleted = true;
+    }
+
+    get totalElapsedMilliseconds(): number {
+        return this._totalElapsedMilliseconds;
     }
 }

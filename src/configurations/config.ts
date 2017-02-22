@@ -6,7 +6,7 @@
 'use strict';
 const fs = require('fs');
 import * as path from 'path';
-import * as Constants from '../models/constants';
+import * as Constants from '../constants/constants';
 import {IConfig} from '../languageservice/interfaces';
 
 /*

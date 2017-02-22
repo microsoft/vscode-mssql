@@ -1,5 +1,6 @@
 import vscode = require('vscode');
-import Constants = require('../models/constants');
+import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 import ConnInfo = require('../models/connectionInfo');
 import * as ConnectionContracts from '../models/contracts/connection';
 import Interfaces = require('../models/interfaces');
@@ -95,8 +96,8 @@ export default class StatusView implements vscode.Disposable {
 
     public notConnected(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.text = Constants.notConnectedLabel;
-        bar.statusConnection.tooltip = Constants.notConnectedTooltip;
+        bar.statusConnection.text = LocalizedConstants.notConnectedLabel;
+        bar.statusConnection.tooltip = LocalizedConstants.notConnectedTooltip;
         bar.statusConnection.command = Constants.cmdConnect;
         this.showStatusBarItem(fileUri, bar.statusConnection);
         bar.statusLanguageService.text = '';
@@ -106,9 +107,9 @@ export default class StatusView implements vscode.Disposable {
     public connecting(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdDisconnect;
-        bar.statusConnection.tooltip = Constants.connectingTooltip + ConnInfo.getTooltip(connCreds);
+        bar.statusConnection.tooltip = LocalizedConstants.connectingTooltip + ConnInfo.getTooltip(connCreds);
         this.showStatusBarItem(fileUri, bar.statusConnection);
-        this.showProgress(fileUri, Constants.connectingLabel, bar.statusConnection);
+        this.showProgress(fileUri, LocalizedConstants.connectingLabel, bar.statusConnection);
     }
 
     public connectSuccess(fileUri: string, connCreds: Interfaces.IConnectionCredentials, serverInfo: ConnectionContracts.ServerInfo): void {
@@ -122,14 +123,14 @@ export default class StatusView implements vscode.Disposable {
     public connectError(fileUri: string, credentials: Interfaces.IConnectionCredentials, error: ConnectionContracts.ConnectionCompleteParams): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
-        bar.statusConnection.text = Constants.connectErrorLabel;
+        bar.statusConnection.text = LocalizedConstants.connectErrorLabel;
         if (error.errorNumber && error.errorMessage && !Utils.isEmpty(error.errorMessage)) {
-            bar.statusConnection.tooltip = Constants.connectErrorTooltip + credentials.server + '\n' +
-                                        Constants.connectErrorCode + error.errorNumber + '\n' +
-                                        Constants.connectErrorMessage + error.errorMessage;
+            bar.statusConnection.tooltip = LocalizedConstants.connectErrorTooltip + credentials.server + '\n' +
+                                        LocalizedConstants.connectErrorCode + error.errorNumber + '\n' +
+                                        LocalizedConstants.connectErrorMessage + error.errorMessage;
         } else {
-            bar.statusConnection.tooltip = Constants.connectErrorTooltip + credentials.server + '\n' +
-                                        Constants.connectErrorMessage + error.messages;
+            bar.statusConnection.tooltip = LocalizedConstants.connectErrorTooltip + credentials.server + '\n' +
+                                        LocalizedConstants.connectErrorMessage + error.messages;
         }
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
@@ -137,9 +138,9 @@ export default class StatusView implements vscode.Disposable {
     public executingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusQuery.command = undefined;
-        bar.statusQuery.tooltip = Constants.executeQueryLabel;
+        bar.statusQuery.tooltip = LocalizedConstants.executeQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(fileUri, Constants.executeQueryLabel, bar.statusQuery);
+        this.showProgress(fileUri, LocalizedConstants.executeQueryLabel, bar.statusQuery);
     }
 
     public executedQuery(fileUri: string): void {
@@ -152,9 +153,9 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.hide();
 
         bar.statusQuery.command = undefined;
-        bar.statusQuery.tooltip = Constants.cancelingQueryLabel;
+        bar.statusQuery.tooltip = LocalizedConstants.cancelingQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(fileUri, Constants.cancelingQueryLabel, bar.statusQuery);
+        this.showProgress(fileUri, LocalizedConstants.cancelingQueryLabel, bar.statusQuery);
     }
 
     public languageServiceStatusChanged(fileUri: string, status: string): void {
@@ -172,20 +173,20 @@ export default class StatusView implements vscode.Disposable {
         getCurrentStatus: () => string,
         updateMessage:  (message: string) => void): void {
         switch (newStatus) {
-            case Constants.definitionRequestedStatus:
+            case LocalizedConstants.definitionRequestedStatus:
                 setTimeout(() => {
-                    if (getCurrentStatus() !== Constants.definitionRequestCompletedStatus) {
-                        updateMessage(Constants.gettingDefinitionMessage);
+                    if (getCurrentStatus() !== LocalizedConstants.definitionRequestCompletedStatus) {
+                        updateMessage(LocalizedConstants.gettingDefinitionMessage);
                     }
                 }, 500);
                 break;
-            case Constants.definitionRequestCompletedStatus:
+            case LocalizedConstants.definitionRequestCompletedStatus:
                 updateMessage('');
                 break;
-            case Constants.updatingIntelliSenseStatus:
-                updateMessage(Constants.updatingIntelliSenseLabel);
+            case LocalizedConstants.updatingIntelliSenseStatus:
+                updateMessage(LocalizedConstants.updatingIntelliSenseLabel);
                 break;
-            case Constants.intelliSenseUpdatedStatus:
+            case LocalizedConstants.intelliSenseUpdatedStatus:
                 updateMessage('');
                 break;
             default:

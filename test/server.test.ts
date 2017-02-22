@@ -1,6 +1,6 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
-import ServiceDownloadProvider from '../src/languageservice/download';
+import ServiceDownloadProvider from '../src/languageservice/serviceDownloadProvider';
 import ServerProvider from '../src/languageservice/server';
 import {ServerStatusView} from '../src/languageservice/serverStatus';
 import Config from './../src/configurations/config';
@@ -29,7 +29,7 @@ suite('Server tests', () => {
     function setupMocks(fixture: IFixture): void {
         testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => fixture.executablesFromConfig);
         testDownloadProvider.setup(x => x.getInstallDirectory(fixture.runtime)).returns(() => fixture.installDir);
-        testDownloadProvider.setup(x => x.InstallSQLToolsService(fixture.runtime)).callback(() => {
+        testDownloadProvider.setup(x => x.installSQLToolsService(fixture.runtime)).callback(() => {
             fixture.executablesFromConfig = [fixture.executableFileName.replace(fixture.installDir, '')];
         }).returns(() => { return Promise.resolve(true); });
     }

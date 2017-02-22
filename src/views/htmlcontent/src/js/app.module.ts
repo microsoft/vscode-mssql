@@ -13,6 +13,7 @@ import { AppComponent }  from './components/app.component';
 import { ScrollDirective } from './directives/scroll.directive';
 import { MouseDownDirective } from './directives/mousedown.directive';
 import { ContextMenu } from './components/contextmenu.component';
+import { MessagesContextMenu } from './components/messagescontextmenu.component';
 
 /**
  * Top level angular module, no actual content here
@@ -32,7 +33,7 @@ const WINDOW_PROVIDER: ValueProvider = {
   providers: [
     WINDOW_PROVIDER
   ],
-  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective, ContextMenu],
+  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective, ContextMenu, MessagesContextMenu],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

@@ -2,7 +2,7 @@ import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import {IConfig} from '../src/languageservice/interfaces';
 import { WorkspaceConfiguration, workspace } from 'vscode';
-import * as Constants from '../src/models/constants';
+import * as Constants from '../src/constants/constants';
 import ExtConfig from  '../src/configurations/extConfig';
 import Config from  '../src/configurations/config';
 

@@ -32,7 +32,7 @@ describe('context Menu', () => {
         });
     }));
 
-    describe('initilization', () => {
+    describe('initialization', () => {
         let fixture: ComponentFixture<ContextMenu>;
         let comp: ContextMenu;
         let ele: HTMLElement;

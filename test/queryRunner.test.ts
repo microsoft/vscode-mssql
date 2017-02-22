@@ -14,12 +14,23 @@ import {
 } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
-import * as Constants from '../src/models/constants';
-import { ISlickRange } from './../src/models/interfaces';
+import * as Constants from '../src/constants/constants';
+import * as QueryExecuteContracts from '../src/models/contracts/queryExecute';
+import * as QueryDisposeContracts from '../src/models/contracts/QueryDispose';
+import {
+    ISlickRange,
+    ISelectionData
+ } from './../src/models/interfaces';
 import * as stubs from './stubs';
+import * as os from 'os';
 
+// CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const ncp = require('copy-paste');
+const standardUri: string = 'uri';
+const standardTitle: string = 'title';
+const standardSelection: ISelectionData = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
 
+// TESTS //////////////////////////////////////////////////////////////////////////////////////////
 suite('Query Runner tests', () => {
 
     let testSqlOutputContentProvider: TypeMoq.Mock<SqlOutputContentProvider>;
@@ -48,138 +59,94 @@ suite('Query Runner tests', () => {
         assert.equal(typeof queryRunner !== undefined, true);
     });
 
-    test('Runs Query Correctly', () => {
-        let testuri = 'uri';
-        let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
-        let testtitle = 'title';
+    test('Handles Query Request Result Properly', () => {
+        // Setup:
+        // ... Standard service to handle a execute request, standard query notification
+        setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => { return Promise.resolve(new QueryExecuteContracts.QueryExecuteResult); });
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
-        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback((type, details: QueryExecuteParams) => {
-                assert.equal(details.ownerUri, testuri);
-                assert.equal(details.querySelection, testSelection);
-            })
-            .returns(() => { return Promise.resolve({ messages: undefined }); });
-        testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
-            .callback((queryRunner, uri: string) => {
-                assert.equal(uri, testuri);
-            });
+        // ... Mock up the view and VSCode wrapper to handle requests to update view
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
-        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
         testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
 
-        let queryRunner = new QueryRunner(
-            testuri,
-            testtitle,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object
-        );
-
+        // ... Mock up a event emitter to accept a start event (only)
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
         mockEventEmitter.setup(x => x.emit('start'));
-        mockEventEmitter.setup(x => x.emit('complete'));
-        queryRunner.eventEmitter = mockEventEmitter.object;
 
-        return queryRunner.runQuery(testSelection).then(() => {
-            testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
-
-            // start and complete emitted regardless of successful or error
-            mockEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
-            mockEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
-        });
-
-    });
-
-    test('Correctly handles error from bad query', () => {
-        let testuri = 'test';
-        let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
-        let testresult = {
-            message: 'failed'
-        };
-        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
-                                                          TypeMoq.It.isAny())).callback(() => {
-                                                              // testing
-                                                          }).returns(() => { return Promise.resolve(testresult); });
-
-        testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
-            .callback((queryRunner, uri: string) => {
-                assert.equal(uri, testuri);
-            });
-        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
-        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
-        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
-
-        testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+        // If:
+        // ... I create a query runner
         let queryRunner = new QueryRunner(
-            testuri,
-            testuri,
+            standardUri,
+            standardTitle,
             testStatusView.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
+        queryRunner.eventEmitter = mockEventEmitter.object;
 
-        let testEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        testEventEmitter.setup(x => x.emit('start'));
-        testEventEmitter.setup(x => x.emit('complete'));
-        queryRunner.eventEmitter = testEventEmitter.object;
-        queryRunner.uri = testuri;
+        // ... And run a query
+        return queryRunner.runQuery(standardSelection).then(() => {
+            // Then:
+            // ... The query notification handler should have registered the query runner
+            testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isValue(queryRunner), TypeMoq.It.isValue(standardUri)), TypeMoq.Times.once());
 
-        return queryRunner.runQuery(testSelection).then(undefined, () => {
-            testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-            assert.strictEqual(queryRunner.isExecutingQuery, false);
-            testEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
-            testEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
-            testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            // ... Start is the only event that should be emitted during successful query start
+            mockEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
+
+            // ... The VS Code status should be updated
+            testStatusView.verify<void>(x => x.executingQuery(standardUri), TypeMoq.Times.once());
+            testVscodeWrapper.verify<void>(x => x.logToOutputChannel(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+
+            // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
+            assert.equal(queryRunner.isExecutingQuery, true);
+            assert.equal(queryRunner.totalElapsedMilliseconds, 0);
         });
     });
 
-    test('Handles Info Message Correctly', () => {
-        let testuri = 'uri';
-        let testSelection = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
-        let testtitle = 'title';
-        let testEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
-                                                          TypeMoq.It.isAny())).callback((type, details: QueryExecuteParams) => {
-                                                              assert.equal(details.ownerUri, testuri);
-                                                              assert.equal(details.querySelection, testSelection);
-                                                          })
-                                .returns(() => { return Promise.resolve({messages: 'Commands completed successfully.', hasInfoMessages: true}); });
-        testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
-        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+    test('Handles Query Request Error Properly', () => {
+        // Setup:
+        // ... Setup the mock service client to return an error when the execute request is submitted
+        // ... Setup standard notification mock
+        setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => { return Promise.reject<QueryExecuteContracts.QueryExecuteResult>('failed'); });
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
+
+        // ... Setup the status view to handle start and stop updates
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
-        testEventEmitter.setup(x => x.emit('start'));
-        testEventEmitter.setup(x => x.emit('complete'));
-        testEventEmitter.setup(x => x.emit('batchStart', TypeMoq.It.isAny()));
-        testEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
 
+        // ... Setup the vs code wrapper to handle output logging and error messages
+        testVscodeWrapper.setup(x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+        testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+
+        // ... Setup the event emitter to handle nothing
+        let testEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+
+        // If:
+        // ... I create a query runner
         let queryRunner = new QueryRunner(
-                    testuri,
-                    testtitle,
-                    testStatusView.object,
-                    testSqlToolsServerClient.object,
-                    testQueryNotificationHandler.object,
-                    testVscodeWrapper.object
-                );
+            standardUri,
+            standardTitle,
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object
+        );
         queryRunner.eventEmitter = testEventEmitter.object;
-        return queryRunner.runQuery(testSelection).then(() => {
-            // Expected emit for start and complete
-            testEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
-            testEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
 
-            // Expected batch start and complete
-            testEventEmitter.verify(x => x.emit('batchStart', TypeMoq.It.isAny()), TypeMoq.Times.once());
-            testEventEmitter.verify(x => x.emit('batchComplete', TypeMoq.It.isAny()), TypeMoq.Times.once());
+        // ... And I run a query that is going to fail to start
+        return queryRunner.runQuery(standardSelection).then(undefined, () => {
+            // Then:
+            // ... The view status should have started and stopped
+            testVscodeWrapper.verify(x => x.logToOutputChannel(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            testStatusView.verify(x => x.executingQuery(standardUri), TypeMoq.Times.once());
+            testStatusView.verify(x => x.executedQuery(standardUri), TypeMoq.Times.once());
 
-            // I expect no error message to be displayed
-            testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.never());
-            assert.strictEqual(queryRunner.batchSets[0].hasError, false);
-
-            // I expect query execution to be done
-            testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            // ... The query runner should not be running a query
             assert.strictEqual(queryRunner.isExecutingQuery, false);
+
+            // ... An error message should have been shown
+            testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
     });
 
@@ -195,7 +162,6 @@ suite('Query Runner tests', () => {
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-                messages: null,             // tslint:disable-line:no-null-keyword
                 resultSetSummaries: null    // tslint:disable-line:no-null-keyword
             }
         };
@@ -229,7 +195,6 @@ suite('Query Runner tests', () => {
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-                messages: [{time: '', message: '6 affected rows'}],
                 resultSetSummaries: []
             }
         };
@@ -250,7 +215,6 @@ suite('Query Runner tests', () => {
             hasError: false,
             id: 0,
             selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-            messages: null,                 // tslint:disable-line:no-null-keyword
             resultSetSummaries: []
         };
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
@@ -265,7 +229,6 @@ suite('Query Runner tests', () => {
         assert.equal(typeof(storedBatch.executionEnd), typeof(batchComplete.batchSummary.executionEnd));
         assert.equal(typeof(storedBatch.executionStart), typeof(batchComplete.batchSummary.executionStart));
         assert.equal(storedBatch.hasError, batchComplete.batchSummary.hasError);
-        assert.equal(storedBatch.messages, batchComplete.batchSummary.messages);
 
         // ... Result sets should not be set by the batch complete notification
         assert.equal(typeof(storedBatch.resultSetSummaries), typeof([]));
@@ -299,7 +262,6 @@ suite('Query Runner tests', () => {
             hasError: false,
             id: 0,
             selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-            messages: null,                 // tslint:disable-line:no-null-keyword
             resultSetSummaries: []
         };
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
@@ -346,7 +308,6 @@ suite('Query Runner tests', () => {
             hasError: false,
             id: 0,
             selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-            messages: null,                 // tslint:disable-line:no-null-keyword
             resultSetSummaries: []
         };
         queryRunner.eventEmitter = mockEventEmitter.object;
@@ -365,16 +326,56 @@ suite('Query Runner tests', () => {
         mockEventEmitter.verify(x => x.emit('resultSet', TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
     });
 
-    test('Handles result correctly', () => {
-        let resolveRan = false;
+    test('Notification - Message', () => {
+        // Setup:
+        // ... Create a mock for an event emitter that handles message notifications
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny()));
+
+        // ... Create a message notification with some message
+        let message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: false,
+                message: 'Message!',
+                time: new Date().toISOString()
+            },
+            ownerUri: standardUri
+        };
+
+        // If:
+        // ... I have a query runner
+        let queryRunner: QueryRunner = new QueryRunner(
+            standardUri, standardTitle,
+            testStatusView.object, testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object, testVscodeWrapper.object
+        );
+        queryRunner.eventEmitter = mockEventEmitter.object;
+
+        // ... And I ask to handle a message
+        queryRunner.handleMessage(message);
+
+        // Then: A message event should have been emitted
+        mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Notification - Query complete', () => {
+        // Setup:
+        // ... Create a mock for an event emitter that handles complete notifications
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        mockEventEmitter.setup(x => x.emit('complete', TypeMoq.It.isAnyString()));
+
+        // ... Setup the VS Code view handlers
+        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
+        testVscodeWrapper.setup(x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+
+        // ... Create a completion notification with bogus data
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: 'uri',
-            message: undefined,
             batchSummaries: [{
                 hasError: false,
                 id: 0,
-                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-                messages: [{time: '', message: '6 affects rows'}],
+                selection: standardSelection,
                 resultSetSummaries: [],
                 executionElapsed: undefined,
                 executionStart: new Date().toISOString(),
@@ -382,29 +383,31 @@ suite('Query Runner tests', () => {
             }]
         };
 
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup(x => x.emit('complete'));
-        testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
-        testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAny()));
-        testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
+        // If:
+        // ... I have a query runner
         let queryRunner = new QueryRunner(
-            '',
-            '',
+            standardUri,
+            standardTitle,
             testStatusView.object,
             testSqlToolsServerClient.object,
             testQueryNotificationHandler.object,
             testVscodeWrapper.object
         );
-
         queryRunner.eventEmitter = mockEventEmitter.object;
-        queryRunner.uri = '';
-        queryRunner.dataResolveReject = {resolve: () => {
-            resolveRan = true;
-        }};
-        queryRunner.handleResult(result);
-        testStatusView.verify(x => x.executedQuery(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-        mockEventEmitter.verify(x => x.emit('complete'), TypeMoq.Times.once());
-        assert.equal(resolveRan, true);
+
+        // ... And I handle a query completion event
+        queryRunner.handleQueryComplete(result);
+
+        // Then:
+        // ... The VS Code view should have stopped executing
+        testStatusView.verify(x => x.executedQuery(standardUri), TypeMoq.Times.once());
+
+        // ... The event emitter should have gotten a complete event
+        mockEventEmitter.verify(x => x.emit('complete', TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+
+        // ... The state of the query runner has been updated
+        assert.equal(queryRunner.batchSets.length, 1);
+        assert.equal(queryRunner.isExecutingQuery, false);
     });
 
     test('Correctly handles subset', () => {
@@ -476,14 +479,14 @@ suite('Query Runner tests', () => {
     suite('Copy Tests', () => {
         // ------ Common inputs and setup for copy tests  -------
         const TAB = '\t';
-        const CLRF = '\r\n';
-        const finalStringNoHeader = '1' + TAB + '2' + TAB + CLRF +
-                            '3' + TAB + '4' + TAB + CLRF +
-                            '5' + TAB + '6' + TAB + CLRF +
-                            '7' + TAB + '8' + TAB + CLRF +
-                            '9' + TAB + '10' + TAB + CLRF;
+        const CLRF = os.EOL;
+        const finalStringNoHeader = '1' + TAB + '2' + CLRF +
+                            '3' + TAB + '4' + CLRF +
+                            '5' + TAB + '6' + CLRF +
+                            '7' + TAB + '8' + CLRF +
+                            '9' + TAB + '10' + CLRF;
 
-        const finalStringWithHeader = 'Col1' + TAB + 'Col2' + TAB + CLRF + finalStringNoHeader;
+        const finalStringWithHeader = 'Col1' + TAB + 'Col2' + CLRF + finalStringNoHeader;
 
         const testuri = 'test';
         const testresult = {
@@ -504,12 +507,10 @@ suite('Query Runner tests', () => {
 
         let result: QueryExecuteCompleteNotificationResult = {
             ownerUri: testuri,
-            message: undefined,
             batchSummaries: [{
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
-                messages: [{time: '', message: '6 affects rows'}],
                 resultSetSummaries: <ResultSetSummary[]> [{
                     id: 0,
                     rowCount: 5,
@@ -570,11 +571,8 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
-            queryRunner.handleResult(result);
+            queryRunner.handleQueryComplete(result);
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
                 let pasteContents = ncp.paste();
                 assert.equal(pasteContents, finalStringWithHeader);
@@ -596,11 +594,8 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
-            queryRunner.handleResult(result);
+            queryRunner.handleQueryComplete(result);
 
             // call copyResults with additional parameter indicating to include headers
             return queryRunner.copyResults(testRange, 0, 0, true).then(() => {
@@ -624,11 +619,8 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.dataResolveReject = {resolve: () => {
-                // Needed to handle the result callback
-            }};
             // Call handleResult to ensure column header info is seeded
-            queryRunner.handleResult(result);
+            queryRunner.handleQueryComplete(result);
 
             // call copyResults with additional parameter indicating to not include headers
             return queryRunner.copyResults(testRange, 0, 0, false).then(() => {
@@ -638,3 +630,27 @@ suite('Query Runner tests', () => {
         });
     });
 });
+
+/**
+ * Sets up a mock SQL Tools Service client with a handler for submitting a query execute request
+ * @param testSqlToolsServerClient The mock service client to setup
+ * @param returnCallback Function to execute when query execute request is called
+ */
+function setupStandardQueryRequestServiceMock(
+    testSqlToolsServerClient: TypeMoq.Mock<SqlToolsServerClient>,
+    returnCallback: (...x: any[]) => Thenable<QueryDisposeContracts.QueryDisposeResult>
+): void {
+    testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isValue(QueryExecuteContracts.QueryExecuteRequest.type), TypeMoq.It.isAny()))
+        .callback((type, details: QueryExecuteParams) => {
+            assert.equal(details.ownerUri, standardUri);
+            assert.equal(details.querySelection, standardSelection);
+        })
+        .returns(returnCallback);
+}
+
+function setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler: TypeMoq.Mock<QueryNotificationHandler>): void {
+    testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
+        .callback((qr, u: string) => {
+            assert.equal(u, standardUri);
+        });
+}

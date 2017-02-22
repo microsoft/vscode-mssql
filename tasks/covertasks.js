@@ -35,11 +35,11 @@ gulp.task('cover:combine', () => {
             dir: './coverage'
         },
         reporters: [
-            {'name': 'lcov'}, // -> ./coverage/report.txt
+            {'name': 'lcovonly'}, // -> ./coverage/report.txt
             {'name': 'cobertura'} // -> ./jsonCov/cov.json
         ]
     }));
 });
 
 // for running on the jenkins build system
-gulp.task('cover:jenkins', gulp.series('cover:clean', 'html:test', 'cover:enableconfig', 'ext:test', 'cover:combine'));
+gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'html:test', 'ext:test', 'cover:combine'));
