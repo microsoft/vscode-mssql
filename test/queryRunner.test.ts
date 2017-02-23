@@ -484,7 +484,7 @@ suite('Query Runner tests', () => {
                             '3' + TAB + '4' + CLRF +
                             '5' + TAB + '6' + CLRF +
                             '7' + TAB + '8' + CLRF +
-                            '9' + TAB + '10' + CLRF;
+                            '9' + TAB + '10';
 
         const finalStringWithHeader = 'Col1' + TAB + 'Col2' + CLRF + finalStringNoHeader;
 
