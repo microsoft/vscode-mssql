@@ -98,9 +98,7 @@ See [customize options] and [manage connection profiles] for more details.
     },
     "mssql.messagesDefaultOpen": true,
     "mssql.logDebugInfo": false,
-    "mssql.saveAsCSV": {
-        "includeHeaders": true
-    },
+    "mssql.saveAsCSV.includeHeaders": true,
     "mssql.enableIntelliSense": true,
     "mssql.intelliSense.enableErrorChecking": true,
     "mssql.intelliSense.enableSuggestions": true,
@@ -108,7 +106,16 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.intelliSense.lowerCaseSuggestions": false,
     "mssql.resultsFontFamily": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif",
     "mssql.resultsFontSize": 13,
-    "mssql.copyRemoveNewLine" : true
+    "mssql.copyIncludeHeaders": false,
+    "mssql.copyRemoveNewLine" : true,
+    "mssql.splitPaneSelection": "next",
+    "mssql.format.alignColumnDefinitionsInColumns": false,
+    "mssql.format.datatypeCasing": "none",
+    "mssql.format.keywordCasing": "none",
+    "mssql.format.placeCommasBeforeNextStatement": false,
+    "mssql.format.placeSelectStatementReferencesOnNewLine": false,
+    "mssql.applyLocalization": false,
+    "mssql.query.displayBitAsNumber": true
 }
 ```
 
