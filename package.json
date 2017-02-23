@@ -193,7 +193,7 @@
       },
       {
         "command": "extension.rebuildIntelliSenseCache",
-        "title": "Clear IntelliSense Cache",
+        "title": "Refresh IntelliSense Cache",
         "category": "MS SQL"
       }
     ],
