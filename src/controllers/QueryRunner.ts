@@ -279,13 +279,17 @@ export default class QueryRunner {
                         }
 
                         // Iterate over the rows to paste into the copy string
-                        for (let row of result.resultSubset.rows) {
+                        for (let rowIndex: number = 0; rowIndex < result.resultSubset.rows.length; rowIndex++) {
+                            let row = result.resultSubset.rows[rowIndex];
                             let cells = row.slice(range.fromCell, (range.toCell + 1));
                             if (self.shouldRemoveNewLines()) {
                                 // Remove all new lines from cells
                                 cells = cells.map(x => self.removeNewLines(x));
                             }
-                            copyString += cells.join('\t') + os.EOL;
+                            copyString += cells.join('\t');
+                            if (rowIndex < result.resultSubset.rows.length - 1) {
+                                copyString += os.EOL;
+                            }
                         }
                     });
                 };
