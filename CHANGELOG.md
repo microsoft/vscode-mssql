@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 0.3.0
-* Release date: February 2, 2016
+* Release date: February 24, 2016
 * Release status: Public Preview
 
 ## What's new in this version

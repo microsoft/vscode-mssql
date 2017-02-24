@@ -433,14 +433,10 @@
           "description": "Set the font size for the results grid; set to blank to use the editor size",
           "default": 13
         },
-        "mssql.saveAsCsv": {
-          "type": "object",
-          "description": "[Optional] Configuration options for saving results as CSV",
-          "includeHeaders": {
-            "type": "boolean",
-            "default": true,
-            "description": "[Optional] When true, column headers are included in CSV"
-          }
+        "mssql.saveAsCsv.includeHeaders": {
+          "type": "boolean",
+          "description": "[Optional] When true, column headers are included when saving results as CSV",
+          "default": true
         },
         "mssql.copyIncludeHeaders": {
           "type": "boolean",
