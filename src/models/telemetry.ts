@@ -131,7 +131,7 @@ export namespace Telemetry {
         }
 
         // Augment the properties structure with additional common properties before sending
-        Promise.all([getUserId, getPlatformInformation]).then(() => {
+        Promise.all<string|PlatformInformation>([getUserId(), getPlatformInformation()]).then(() => {
             properties['userId'] = userId;
             properties['distribution'] = (platformInformation && platformInformation.distribution) ?
                 `${platformInformation.distribution.name}, ${platformInformation.distribution.version}` : '';
