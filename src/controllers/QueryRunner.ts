@@ -331,8 +331,7 @@ export default class QueryRunner {
         // Linux(LF)/Modern MacOS: \n
         // Old MacOs: \r
         if (!inputString) {
-            // We must return null here to stay consistent with our respresentation
-            return null; // tslint:disable-line
+            return 'null';
         }
 
         let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');

@@ -9,7 +9,7 @@ branches:
 
   # Install scripts. (runs after repo cloning)
 install:
-  - choco install googlechrome
+  - choco install --ignore-checksums googlechrome
   - set BUILDMACHINE=true
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
