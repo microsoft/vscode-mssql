@@ -5,6 +5,10 @@ import assert = require('assert');
 
 suite('Localization Tests', () => {
 
+    let resetLocalization = () => {
+        LocalizedConstants.loadLocalizedConstants('en');
+    };
+
     test('Default Localization Test' , done => {
         assert.equal(LocalizedConstants.testLocalizationConstant, 'test');
         done();
@@ -19,6 +23,7 @@ suite('Localization Tests', () => {
     test('ES Localization Test' , done => {
         LocalizedConstants.loadLocalizedConstants('es');
         assert.equal(LocalizedConstants.testLocalizationConstant, 'prueba');
+        resetLocalization();
         done();
     });
 });

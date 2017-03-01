@@ -106,7 +106,7 @@ suite('save results tests', () => {
         } else {
             resolvedFilePath = '/my/test/testfilename.csv';
         }
-        answers['File path'] = filename;
+        answers[LocalizedConstants.filepathPrompt] = filename;
         // setup mocks
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
                                         .returns((questions: IQuestion[]) => Promise.resolve(answers));
@@ -131,7 +131,7 @@ suite('save results tests', () => {
     test('Save as CSV - test if information message is displayed on success', () => {
 
         let answers = {};
-        answers['File path'] = filePath;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
 
         // setup mocks
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
@@ -159,7 +159,7 @@ suite('save results tests', () => {
     test('Save as CSV - test if error message is displayed on failure to save', () => {
 
         let answers = {};
-        answers['File path'] = filePath;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
 
         // setup mocks
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
@@ -180,7 +180,7 @@ suite('save results tests', () => {
     test('Save as JSON - test if information message is displayed on success', () => {
 
         let answers = {};
-        answers['File path'] = filePath;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
 
         // setup mocks
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
@@ -208,7 +208,7 @@ suite('save results tests', () => {
     test('Save as JSON - test if error message is displayed on failure to save', () => {
 
         let answers = {};
-        answers['File path'] = filePath;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
 
         // setup mocks
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
@@ -229,7 +229,7 @@ suite('save results tests', () => {
     test('Save as with selection - test if selected range is passed in parameters', () => {
 
         let answers = {};
-        answers['File path'] = filePath;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
         let selection: Interfaces.ISlickRange[] = [{
             fromCell: 0,
             toCell: 1,
@@ -268,7 +268,7 @@ suite('save results tests', () => {
     test('Save as with selection - test case when right click on single cell - no selection is set in parameters', () => {
 
         let answers = {};
-        answers['File path'] = filePath;
+        answers[LocalizedConstants.filepathPrompt] = filePath;
         let selection: Interfaces.ISlickRange[] = [{
             fromCell: 0,
             toCell: 0,
