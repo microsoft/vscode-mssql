@@ -61,6 +61,7 @@
     "gulp-install": "^0.6.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-json-editor": "^2.2.1",
+    "gulp-remote-src": "0.4.1",
     "gulp-rename": "^1.2.2",
     "gulp-shell": "^0.5.2",
     "gulp-sourcemaps": "^1.6.0",
