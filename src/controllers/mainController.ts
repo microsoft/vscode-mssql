@@ -372,17 +372,7 @@ export default class MainController implements vscode.Disposable {
      * Shows the release notes page in the preview browser
      */
     private launchReleaseNotesPage(): void {
-        // get the URI for the release notes page
-        let docUri = vscode.Uri.file(
-            this._context.asAbsolutePath(
-                'out/src/views/htmlcontent/dist/docs/index.html'));
-
-        // show the release notes page in the preview window
-        vscode.commands.executeCommand(
-            'vscode.previewHtml',
-            docUri,
-            vscode.ViewColumn.One,
-            'mssql for VS Code Release Notes');
+        opener(Constants.changelogLink);
     }
 
      /**

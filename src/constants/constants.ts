@@ -47,6 +47,7 @@ export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
+export const changelogLink = 'https://aka.ms/vscode-mssql-changelog';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
 
 // Configuration Constants
