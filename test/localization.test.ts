@@ -6,19 +6,19 @@ import assert = require('assert');
 suite('Localization Tests', () => {
 
     test('Default Localization Test' , done => {
-        assert.equal(LocalizedConstants.testLocalizationConstant, 'test_en');
+        assert.equal(LocalizedConstants.testLocalizationConstant, 'test');
         done();
     });
 
     test('EN Localization Test' , done => {
         LocalizedConstants.loadLocalizedConstants('en');
-        assert.equal(LocalizedConstants.testLocalizationConstant, 'test_en');
+        assert.equal(LocalizedConstants.testLocalizationConstant, 'test');
         done();
     });
 
     test('ES Localization Test' , done => {
         LocalizedConstants.loadLocalizedConstants('es');
-        assert.equal(LocalizedConstants.testLocalizationConstant, 'test_es');
+        assert.equal(LocalizedConstants.testLocalizationConstant, 'prueba');
         done();
     });
 });
