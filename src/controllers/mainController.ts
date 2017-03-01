@@ -138,8 +138,7 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-                SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
-
+            SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
                 // Init status bar
                 self._statusview = new StatusView();
 
@@ -196,6 +195,7 @@ export default class MainController implements vscode.Disposable {
         if (this.CanRunCommand()) {
             return this._connectionMgr.onChooseDatabase();
         }
+        return Promise.resolve(false);
     }
 
     /**
@@ -210,6 +210,7 @@ export default class MainController implements vscode.Disposable {
             }
             return this._connectionMgr.onDisconnect();
         }
+        return Promise.resolve(false);
     }
 
     /**
@@ -220,6 +221,7 @@ export default class MainController implements vscode.Disposable {
             Telemetry.sendTelemetryEvent('ManageProfiles');
             return this._connectionMgr.onManageProfiles();
         }
+        return Promise.resolve(false);
     }
 
     /**
@@ -229,6 +231,7 @@ export default class MainController implements vscode.Disposable {
         if (this.CanRunCommand()) {
             return this._connectionMgr.onNewConnection();
         }
+        return Promise.resolve(false);
     }
 
     /**
@@ -393,9 +396,12 @@ export default class MainController implements vscode.Disposable {
      * Opens a new query and creates new connection
      */
     public onNewQuery(): Promise<boolean> {
-        return this._untitledSqlDocumentService.newQuery().then(x => {
-            return this._connectionMgr.onNewConnection();
-        });
+        if (this.CanRunCommand()) {
+            return this._untitledSqlDocumentService.newQuery().then(x => {
+                return this._connectionMgr.onNewConnection();
+            });
+        }
+        return Promise.resolve(false);
     }
 
     /**
@@ -428,6 +434,10 @@ export default class MainController implements vscode.Disposable {
      * @param doc The document that was closed
      */
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
+        if (this._connectionMgr === undefined) {
+            // Avoid processing events before initialization is complete
+            return;
+        }
         let closedDocumentUri: string = doc.uri.toString();
         let closedDocumentUriScheme: string = doc.uri.scheme;
 
@@ -475,6 +485,10 @@ export default class MainController implements vscode.Disposable {
      * to enable features of our extension for the document.
      */
     public onDidOpenTextDocument(doc: vscode.TextDocument): void {
+        if (this._connectionMgr === undefined) {
+            // Avoid processing events before initialization is complete
+            return;
+        }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
         // Setup properties incase of rename
@@ -489,6 +503,11 @@ export default class MainController implements vscode.Disposable {
      * @param doc The document that was saved
      */
     public onDidSaveTextDocument(doc: vscode.TextDocument): void {
+        if (this._connectionMgr === undefined) {
+            // Avoid processing events before initialization is complete
+            return;
+        }
+
         let savedDocumentUri: string = doc.uri.toString();
 
         // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
