@@ -37,7 +37,7 @@ export class ServerInitializationResult {
 export class ServerStatusView implements IStatusView, vscode.Disposable  {
     private _numberOfSecondsBeforeHidingMessage = 5000;
     private _statusBarItem: vscode.StatusBarItem = undefined;
-    private _progressTimerId: number;
+    private _progressTimerId: NodeJS.Timer;
 
     constructor() {
         this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);

@@ -34,6 +34,6 @@ declare var console: {
 };
 
 declare function clearTimeout(handle: number): void;
-declare function setTimeout(handler: any, timeout?: any, ...args: any[]): number;
+declare function setTimeout(handler: any, timeout?: any, ...args: any[]): NodeJS.Timer;
 declare function clearInterval(handle: number): void;
-declare function setInterval(handler: any, timeout?: any, ...args: any[]): number;
+declare function setInterval(handler: any, timeout?: any, ...args: any[]): NodeJS.Timer;

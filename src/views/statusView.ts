@@ -18,7 +18,7 @@ class FileStatusBar {
     public statusLanguageService: vscode.StatusBarItem;
 
     // Timer used for displaying a progress indicator on queries
-    public progressTimerId: number;
+    public progressTimerId: NodeJS.Timer;
 
     public currentLanguageServiceStatus: string;
 }
