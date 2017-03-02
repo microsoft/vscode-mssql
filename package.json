@@ -84,7 +84,7 @@
     "typemoq": "^0.3.2",
     "typescript": "^2.1.5",
     "uglify-js": "mishoo/UglifyJS2#harmony",
-    "vscode": "^0.11.0",
+    "vscode": "https://github.com/Raymondd/vscode-extension-vscode/releases/download/1.0.5/vscode-extension-vscode-0.11.17.2.tar.gz",
     "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
     "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
