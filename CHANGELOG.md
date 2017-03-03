@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 0.3.0
-* Release date: March 1, 2016
+* Release date: March 1, 2017
 * Release status: Public Preview
 
 ## What's new in this version
@@ -24,7 +24,7 @@ schema changes
 * Fixed issues where query execution failed due to parser failures.
 
 ## Version 0.2.1
-* Release date: February 2, 2016
+* Release date: February 2, 2017
 * Release status: Public Preview
 
 ## What's new in this version
