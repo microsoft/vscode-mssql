@@ -1,5 +1,5 @@
 <?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ja">
+  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="pt-BR">
     <body>
         <trans-unit id="configMyConnectionsNoServerName">
             <source xml:lang="en">Missing server name in user preferences connection: </source>
@@ -9,7 +9,6 @@
         </trans-unit>
         <trans-unit id="msgLocalWebserviceStarted">
             <source xml:lang="en">LocalWebService listening on port </source>
-            <target>ポートをリッスンしている LocalWebService</target>
         </trans-unit>
         <trans-unit id="msgRunQueryAllBatchesExecuted">
             <source xml:lang="en">runQuery: all batches executed</source>
@@ -46,11 +45,9 @@
         </trans-unit>
         <trans-unit id="runQueryBatchStartMessage">
             <source xml:lang="en">Started executing query at </source>
-            <target>クエリの実行を開始しました。</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartLine">
             <source xml:lang="en">Line {0}</source>
-            <target>行 {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryFailed">
             <source xml:lang="en">Canceling the query failed: {0}</source>
@@ -66,7 +63,6 @@
         </trans-unit>
         <trans-unit id="msgContentProviderAssociationFailure">
             <source xml:lang="en">Content provider: Unable to associate status view for current file</source>
-            <target>コンテンツ プロバイダー: 現在のファイルのステータスの表示を関連付けることができません</target>
         </trans-unit>
         <trans-unit id="msgContentProviderOnRootEndpoint">
             <source xml:lang="en">LocalWebService: Root end-point called</source>
@@ -100,18 +96,15 @@
         </trans-unit>
         <trans-unit id="msgConnectionError">
             <source xml:lang="en">Error {0}: {1}</source>
-            <target>エラー {0}: {1}</target>
         </trans-unit>
         <trans-unit id="msgConnectionError2">
             <source xml:lang="en">Failed to connect: {0}</source>
-            <target>接続に失敗しました: {0}</target>
         </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
             <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
         </trans-unit>
         <trans-unit id="connectionErrorChannelName">
             <source xml:lang="en">Connection Errors</source>
-            <target>接続エラー</target>
         </trans-unit>
         <trans-unit id="msgPromptCancelConnect">
             <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
@@ -130,36 +123,30 @@
         </trans-unit>
         <trans-unit id="recentConnectionsPlaceholder">
             <source xml:lang="en">Choose a connection profile from the list below</source>
-            <target>下の一覧から、接続プロファイルを選択します。</target>
         </trans-unit>
         <trans-unit id="msgNoConnectionsInSettings">
             <source xml:lang="en">To use this command, add connection profile to User Settings.</source>
-            <target>このコマンドを使用するには、接続プロファイルをユーザー設定に追加します。</target>
         </trans-unit>
         <trans-unit id="labelOpenGlobalSettings">
             <source xml:lang="en">Open Global Settings</source>
         </trans-unit>
         <trans-unit id="labelOpenWorkspaceSettings">
             <source xml:lang="en">Open Workspace Settings</source>
-            <target>ワークスペースの設定を開く</target>
         </trans-unit>
         <trans-unit id="CreateProfileFromConnectionsListLabel">
             <source xml:lang="en">Create Connection Profile</source>
         </trans-unit>
         <trans-unit id="CreateProfileLabel">
             <source xml:lang="en">Create</source>
-            <target>作成</target>
         </trans-unit>
         <trans-unit id="ClearRecentlyUsedLabel">
             <source xml:lang="en">Clear Recent Connections List</source>
         </trans-unit>
         <trans-unit id="EditProfilesLabel">
             <source xml:lang="en">Edit</source>
-            <target>編集</target>
         </trans-unit>
         <trans-unit id="RemoveProfileLabel">
             <source xml:lang="en">Remove</source>
-            <target>削除</target>
         </trans-unit>
         <trans-unit id="ManageProfilesPrompt">
             <source xml:lang="en">Manage Connection Profiles</source>
@@ -169,146 +156,117 @@
         </trans-unit>
         <trans-unit id="serverPrompt">
             <source xml:lang="en">Server name</source>
-            <target>サーバー名</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
             <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net</source>
         </trans-unit>
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>
-            <target>データベース名</target>
         </trans-unit>
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
         </trans-unit>
         <trans-unit id="databaseDefaultValue">
             <source xml:lang="en">master</source>
-            <target>マスター</target>
         </trans-unit>
         <trans-unit id="authTypePrompt">
             <source xml:lang="en">Authentication Type</source>
-            <target>認証の種類</target>
         </trans-unit>
         <trans-unit id="authTypeIntegrated">
             <source xml:lang="en">Integrated</source>
-            <target>SQL Server 認証と Windows 認証</target>
         </trans-unit>
         <trans-unit id="authTypeSql">
             <source xml:lang="en">SQL Login</source>
-            <target>SQL ログイン</target>
         </trans-unit>
         <trans-unit id="authTypeAdUniversal">
             <source xml:lang="en">Active Directory Universal</source>
-            <target>Active Directory ユニバーサル</target>
         </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>
-            <target>ユーザー名</target>
         </trans-unit>
         <trans-unit id="usernamePlaceholder">
             <source xml:lang="en">User name (SQL Login)</source>
-            <target>ユーザー名 (SQL ログイン)</target>
         </trans-unit>
         <trans-unit id="passwordPrompt">
             <source xml:lang="en">Password</source>
-            <target>パスワード</target>
         </trans-unit>
         <trans-unit id="passwordPlaceholder">
             <source xml:lang="en">Password (SQL Login)</source>
-            <target>パスワード (SQL ログイン)</target>
         </trans-unit>
         <trans-unit id="msgSavePassword">
             <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
         </trans-unit>
         <trans-unit id="profileNamePrompt">
             <source xml:lang="en">Profile Name</source>
-            <target>プロファイル名</target>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
             <source xml:lang="en">[Optional] Enter a name for this profile</source>
         </trans-unit>
         <trans-unit id="filepathPrompt">
             <source xml:lang="en">File path</source>
-            <target>ファイルパス</target>
         </trans-unit>
         <trans-unit id="filepathPlaceholder">
             <source xml:lang="en">File name</source>
-            <target>ファイル名</target>
         </trans-unit>
         <trans-unit id="filepathMessage">
             <source xml:lang="en">File name</source>
-            <target>ファイル名</target>
         </trans-unit>
         <trans-unit id="overwritePrompt">
             <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
         </trans-unit>
         <trans-unit id="overwritePlaceholder">
             <source xml:lang="en">A file with this name already exists</source>
-            <target>この名前のファイルが既に存在します。</target>
         </trans-unit>
         <trans-unit id="msgSaveResultInProgress">
             <source xml:lang="en">A save request is already executing. Please wait for its completion.</source>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
             <source xml:lang="en">Error occurred opening content in editor.</source>
-            <target>エディターでコンテンツを開くときにエラーが発生しました。</target>
         </trans-unit>
         <trans-unit id="msgSaveStarted">
             <source xml:lang="en">Started saving results to </source>
         </trans-unit>
         <trans-unit id="msgSaveFailed">
             <source xml:lang="en">Failed to save results. </source>
-            <target>結果を保存できませんでした。</target>
         </trans-unit>
         <trans-unit id="msgSaveSucceeded">
             <source xml:lang="en">Successfully saved results to </source>
-            <target>結果が正常に保存されました</target>
         </trans-unit>
         <trans-unit id="msgSelectProfile">
             <source xml:lang="en">Select connection profile</source>
-            <target>接続プロファイルを選択します。</target>
         </trans-unit>
         <trans-unit id="msgSelectProfileToRemove">
             <source xml:lang="en">Select profile to remove</source>
-            <target>削除するプロファイルを選択します。</target>
         </trans-unit>
         <trans-unit id="confirmRemoveProfilePrompt">
             <source xml:lang="en">Confirm to remove this profile.</source>
-            <target>このプロファイルを削除することを確認します。</target>
         </trans-unit>
         <trans-unit id="msgNoProfilesSaved">
             <source xml:lang="en">No connection profile to remove.</source>
-            <target>削除する接続プロファイルがありません。</target>
         </trans-unit>
         <trans-unit id="msgProfileRemoved">
             <source xml:lang="en">Profile removed successfully</source>
-            <target>プロファイルが正常に削除されました</target>
         </trans-unit>
         <trans-unit id="msgProfileCreated">
             <source xml:lang="en">Profile created successfully</source>
-            <target>プロファイルが作成されました</target>
         </trans-unit>
         <trans-unit id="msgProfileCreatedAndConnected">
             <source xml:lang="en">Profile created and connected</source>
-            <target>プロファイルが作成され、接続されました。</target>
         </trans-unit>
         <trans-unit id="msgClearedRecentConnections">
             <source xml:lang="en">Recent connections list cleared</source>
         </trans-unit>
         <trans-unit id="msgSelectionIsRequired">
             <source xml:lang="en">Selection is required.</source>
-            <target>選択は必須です。</target>
         </trans-unit>
         <trans-unit id="msgIsRequired">
             <source xml:lang="en"> is required.</source>
-            <target>必須です。</target>
         </trans-unit>
         <trans-unit id="msgRetry">
             <source xml:lang="en">Retry</source>
         </trans-unit>
         <trans-unit id="msgError">
             <source xml:lang="en">Error: </source>
-            <target>エラー:</target>
         </trans-unit>
         <trans-unit id="msgYes">
             <source xml:lang="en">Yes</source>
@@ -318,42 +276,33 @@
         </trans-unit>
         <trans-unit id="defaultDatabaseLabel">
             <source xml:lang="en">&lt;default&gt;</source>
-            <target>&lt; 既定 &gt;</target>
         </trans-unit>
         <trans-unit id="notConnectedLabel">
             <source xml:lang="en">Disconnected</source>
-            <target>切断</target>
         </trans-unit>
         <trans-unit id="notConnectedTooltip">
             <source xml:lang="en">Click to connect to a database</source>
         </trans-unit>
         <trans-unit id="connectingLabel">
             <source xml:lang="en">Connecting</source>
-            <target>接続中</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
             <source xml:lang="en">Connecting to: </source>
-            <target>接続します。</target>
         </trans-unit>
         <trans-unit id="connectedLabel">
             <source xml:lang="en">Connected.</source>
-            <target>接続されています。</target>
         </trans-unit>
         <trans-unit id="connectErrorLabel">
             <source xml:lang="en">Connection error</source>
-            <target>接続エラー</target>
         </trans-unit>
         <trans-unit id="connectErrorTooltip">
             <source xml:lang="en">Error connecting to: </source>
-            <target>接続エラー:</target>
         </trans-unit>
         <trans-unit id="connectErrorCode">
             <source xml:lang="en">Errorcode: </source>
-            <target>エラー コード:</target>
         </trans-unit>
         <trans-unit id="connectErrorMessage">
             <source xml:lang="en">ErrorMessage: </source>
-            <target>エラー メッセージ:</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query </source>
@@ -363,7 +312,6 @@
         </trans-unit>
         <trans-unit id="updatingIntelliSenseLabel">
             <source xml:lang="en">Updating IntelliSense...</source>
-            <target>IntelliSense を更新しています.</target>
         </trans-unit>
         <trans-unit id="unfoundResult">
             <source xml:lang="en">Data was disposed when text editor was closed; to view data please reexecute query.</source>
@@ -373,7 +321,6 @@
         </trans-unit>
         <trans-unit id="untitledScheme">
             <source xml:lang="en">untitled</source>
-            <target>無題</target>
         </trans-unit>
         <trans-unit id="msgChangeLanguageMode">
             <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
@@ -410,41 +357,33 @@
         </trans-unit>
         <trans-unit id="msgErrorOpeningConfigFile">
             <source xml:lang="en">Error: Unable to open connection profile settings file.</source>
-            <target>エラー: 接続プロファイルの設定ファイルを開くことができません。</target>
         </trans-unit>
         <trans-unit id="titleResultsPane">
             <source xml:lang="en">Results: {0}</source>
-            <target>結果: {0}</target>
         </trans-unit>
         <trans-unit id="macOpenSslErrorMessage">
             <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
         </trans-unit>
         <trans-unit id="macOpenSslHelpButton">
             <source xml:lang="en">Help</source>
-            <target>ヘルプ</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
         </trans-unit>
         <trans-unit id="definitionRequestedStatus">
             <source xml:lang="en">DefinitionRequested</source>
-            <target>DefinitionRequested</target>
         </trans-unit>
         <trans-unit id="definitionRequestCompletedStatus">
             <source xml:lang="en">DefinitionRequestCompleted</source>
-            <target>DefinitionRequestCompleted</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseStatus">
             <source xml:lang="en">updatingIntelliSense</source>
-            <target>updatingIntelliSense</target>
         </trans-unit>
         <trans-unit id="intelliSenseUpdatedStatus">
             <source xml:lang="en">intelliSenseUpdated</source>
-            <target>intelliSenseUpdated</target>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
             <source xml:lang="en">test_en</source>
-            <target>test_en</target>
         </trans-unit>
     </body>
   </file>

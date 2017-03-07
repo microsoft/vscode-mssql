@@ -384,7 +384,7 @@
             <source xml:lang="en">intelliSenseUpdated</source>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
-            <source xml:lang="en">test_en</source>
+            <source xml:lang="en">test</source>
         </trans-unit>
     </body>
   </file>

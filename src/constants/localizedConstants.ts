@@ -129,7 +129,7 @@ export let definitionRequestedStatus = 'DefinitionRequested';
 export let definitionRequestCompletedStatus = 'DefinitionRequestCompleted';
 export let updatingIntelliSenseStatus = 'updatingIntelliSense';
 export let intelliSenseUpdatedStatus = 'intelliSenseUpdated';
-export let testLocalizationConstant = 'test_en';
+export let testLocalizationConstant = 'test';
 export let loadLocalizedConstants = (locale: string) => {
 	let localize = nls.config({ locale: locale })();
 	configMyConnectionsNoServerName = localize('configMyConnectionsNoServerName', 'Missing server name in user preferences connection: ');
@@ -259,5 +259,5 @@ export let loadLocalizedConstants = (locale: string) => {
 	definitionRequestCompletedStatus = localize('definitionRequestCompletedStatus', 'DefinitionRequestCompleted');
 	updatingIntelliSenseStatus = localize('updatingIntelliSenseStatus', 'updatingIntelliSense');
 	intelliSenseUpdatedStatus = localize('intelliSenseUpdatedStatus', 'intelliSenseUpdated');
-	testLocalizationConstant = localize('testLocalizationConstant', 'test_en');
+	testLocalizationConstant = localize('testLocalizationConstant', 'test');
 };
