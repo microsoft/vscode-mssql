@@ -19,7 +19,7 @@ const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
 
 // holds information about the state of a query runner
 class QueryRunnerState {
-    timeout: number;
+    timeout: NodeJS.Timer;
     flaggedForDeletion: boolean;
     constructor (public queryRunner: QueryRunner) {
         this.flaggedForDeletion = false;
@@ -392,7 +392,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
     }
 
-    private setRunnerDeletionTimeout(uri: string): number {
+    private setRunnerDeletionTimeout(uri: string): NodeJS.Timer {
         const self = this;
         return setTimeout(() => {
             let queryRunnerState = self._queryResultsMap.get(uri);
