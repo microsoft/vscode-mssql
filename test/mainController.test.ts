@@ -117,7 +117,7 @@ suite('MainController Tests', () => {
             languageId : 'sql'
         };
 
-        // // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
+        // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
         mainController.onDidSaveTextDocument(newDocument);
         mainController.onDidCloseTextDocument(document2);
         try {
