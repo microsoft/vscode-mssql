@@ -142,6 +142,21 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Opens an untitled SQL document.
+     * [open document](#workspace.onDidOpenTextDocument)-event fires.
+     * The document to open is denoted by the [uri](#Uri). Two schemes are supported:
+     *
+     * Uris with other schemes will make this method return a rejected promise.
+     *
+     * @param uri Identifies the resource to open.
+     * @return A promise that resolves to a [document](#TextDocument).
+     * @see vscode.workspace.openTextDocument
+     */
+    public openMsSqlTextDocument(): Thenable<vscode.TextDocument> {
+        return vscode.workspace.openTextDocument({ language: 'sql'});
+    }
+
+    /**
      * Helper to log messages to "MSSQL" output channel.
      */
     public logToOutputChannel(msg: any): void {

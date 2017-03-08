@@ -41,6 +41,10 @@ class TestTextEditor implements vscode.TextEditor {
     revealRange(range: vscode.Range, revealType?: vscode.TextEditorRevealType): void { return undefined; };
     show(column?: vscode.ViewColumn): void { return undefined; };
     hide(): void { return undefined; };
+    insertSnippet(snippet: vscode.SnippetString, location?: vscode.Position | vscode.Range | vscode.Position[] | vscode.Range[], options?:
+    { undoStopBefore: boolean; undoStopAfter: boolean; }): Thenable<boolean> {
+        return undefined;
+    }
 }
 
 class TestMemento implements vscode.Memento {
@@ -64,12 +68,19 @@ function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.Works
                 val = defaultValue;
             }
             return val;
+        },
+        inspect<T>(section: string): { key: string; defaultValue?: T; globalValue?: T; workspaceValue?: T } | undefined {
+            return undefined;
+        },
+        update(section: string, value: any, global?: boolean): Thenable<void> {
+            this[section] = value;
+            return undefined;
         }
     };
 
     // Copy properties across so that indexer works as expected
     Object.keys(items).forEach((key) => {
-        result[key] = items[key];
+        result.update(key, items[key]);
     });
 
     return Object.freeze(result);
