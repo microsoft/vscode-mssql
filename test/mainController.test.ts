@@ -112,14 +112,17 @@ suite('MainController Tests', () => {
     // Saved Untitled file event test
     test('onDidCloseTextDocument should call untitledDoc function when an untitled file is saved' , done => {
         // Scheme of older doc must be untitled
-        document.uri.scheme = LocalizedConstants.untitledScheme;
+        let document2 = <vscode.TextDocument> {
+            uri : vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
+            languageId : 'sql'
+        };
 
         // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
         mainController.onDidSaveTextDocument(newDocument);
-        mainController.onDidCloseTextDocument(document);
+        mainController.onDidCloseTextDocument(document2);
         try {
             connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
-            assert.equal(docUriCallback, document.uri.toString());
+            assert.equal(docUriCallback, document2.uri.toString());
             assert.equal(newDocUriCallback, newDocument.uri.toString());
             done();
         } catch (err) {

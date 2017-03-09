@@ -2,8 +2,6 @@ import * as TypeMoq from 'typemoq';
 import vscode = require('vscode');
 import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-const fse = require('fs-extra');
-const fs = require('fs');
 
 interface IFixture {
     openDocResult: Promise<vscode.TextDocument>;
@@ -40,7 +38,7 @@ suite('UntitledSqlDocumentService Tests', () => {
          vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
 
          vscodeWrapper.setup(x => x.textDocuments).returns(() => { return fixture.textDocuments; });
-         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny()))
+         vscodeWrapper.setup(x => x.openMsSqlTextDocument())
          .returns(() => { return Promise.resolve(createTextDocumentObject()); });
          vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
          .returns(() => { return Promise.resolve(TypeMoq.It.isAny()); });
@@ -60,67 +58,7 @@ suite('UntitledSqlDocumentService Tests', () => {
         fixture = createUntitledSqlDocumentService(fixture);
 
         return fixture.service.newQuery().then(result => {
-            fixture.vscodeWrapper.verify(x => x.openTextDocument(
-                TypeMoq.It.is<vscode.Uri>(d => d.scheme === 'untitled')), TypeMoq.Times.once());
-            fixture.vscodeWrapper.verify(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
-        });
-     });
-
-     test('newQuery should increment the counter for untitled document if file exits' , () => {
-        let fixture: IFixture = {
-            openDocResult: Promise.resolve(createTextDocumentObject()),
-            showDocResult: Promise.resolve(TypeMoq.It.isAny()),
-            service: undefined,
-            vscodeWrapper: undefined,
-            textDocuments: []
-        };
-        let counter = getCounterForUntitledFile(1);
-        fixture = createUntitledSqlDocumentService(fixture);
-        let filePath = UntitledSqlDocumentService.createFilePath(counter);
-        if (!fs.existsSync(filePath)) {
-            fs.writeFileSync(filePath, 'test');
-        }
-        return fixture.service.newQuery().then(result => {
-            fixture.vscodeWrapper.verify(x => x.openTextDocument(
-                TypeMoq.It.is<vscode.Uri>(d => verifyDocumentUri(d, counter + 1))), TypeMoq.Times.once());
-            fixture.vscodeWrapper.verify(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
-            if (!fs.existsSync(filePath)) {
-                fse.remove(filePath, undefined);
-            }
-        });
-     });
-
-     function verifyDocumentUri(uri: vscode.Uri, expectedNumber: number): boolean {
-         return uri.scheme === 'untitled' && uri.path.endsWith(`${expectedNumber}.sql`);
-     }
-
-     function getCounterForUntitledFile(start: number): number {
-        let counter = start;
-        let filePath = UntitledSqlDocumentService.createFilePath(counter);
-        while (fs.existsSync(filePath)) {
-            counter++;
-            filePath = UntitledSqlDocumentService.createFilePath(counter);
-        }
-        return counter;
-     }
-
-     test('newQuery should increment the counter for untitled document given text documents already open with current counter' , () => {
-        let counter = getCounterForUntitledFile(1);
-        let fixture: IFixture = {
-            openDocResult: Promise.resolve(createTextDocumentObject()),
-            showDocResult: Promise.resolve(TypeMoq.It.isAny()),
-            service: undefined,
-            vscodeWrapper: undefined,
-            textDocuments: [
-                createTextDocumentObject(UntitledSqlDocumentService.createFilePath(counter + 1)),
-                createTextDocumentObject(UntitledSqlDocumentService.createFilePath(counter))]
-        };
-        fixture = createUntitledSqlDocumentService(fixture);
-        let service = fixture.service;
-
-        return service.newQuery().then(result => {
-            fixture.vscodeWrapper.verify(x => x.openTextDocument(
-                TypeMoq.It.is<vscode.Uri>(d => verifyDocumentUri(d, counter + 2))), TypeMoq.Times.once());
+            fixture.vscodeWrapper.verify(x => x.openMsSqlTextDocument(), TypeMoq.Times.once());
             fixture.vscodeWrapper.verify(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
      });
