@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.4.0"
+    "vscode": "^1.9.0"
   },
   "categories": [
     "Languages"
