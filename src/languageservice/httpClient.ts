@@ -9,8 +9,7 @@ import  {ILogger} from '../models/interfaces';
 import {parse as parseUrl, Url} from 'url';
 import * as https from 'https';
 import * as http from 'http';
-import {getProxyAgent} from './proxy';
-import * as Utils from '../models/utils';
+import {getProxyAgent, isBoolean} from './proxy';
 
 let fs = require('fs');
 
@@ -82,7 +81,7 @@ export default class HttpClient implements IHttpClient {
                     host: url.hostname,
                     path: url.path,
                     agent: agent,
-                    rejectUnauthorized: Utils.isBoolean(strictSSL) ? strictSSL : true
+                    rejectUnauthorized: isBoolean(strictSSL) ? strictSSL : true
             };
             options = httpsOptions;
         }
