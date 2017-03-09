@@ -189,7 +189,7 @@
       },
       {
         "command": "extension.newQuery",
-        "title": "New query",
+        "title": "New Query",
         "category": "MS SQL"
       },
       {
