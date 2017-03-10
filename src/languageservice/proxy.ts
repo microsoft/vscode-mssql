@@ -19,6 +19,10 @@ function getSystemProxyURL(requestURL: Url): string {
     return undefined;
 }
 
+export function isBoolean(obj: any): obj is boolean {
+    return obj === true || obj === false;
+}
+
 /*
  * Returns the proxy agent using the proxy url in the parameters or the system proxy. Returns null if no proxy found
  */
@@ -35,13 +39,11 @@ export function getProxyAgent(requestURL: Url, proxy?: string, strictSSL?: boole
         return undefined;
     }
 
-    strictSSL = strictSSL || true;
-
     const opts = {
          host: proxyEndpoint.hostname,
          port: Number(proxyEndpoint.port),
          auth: proxyEndpoint.auth,
-         rejectUnauthorized: strictSSL
+         rejectUnauthorized: isBoolean(strictSSL) ? strictSSL : true
      };
 
     return requestURL.protocol === 'http:' ? new HttpProxyAgent(opts) : new HttpsProxyAgent(opts);

@@ -324,6 +324,10 @@ export function parseTimeString(value: string): number | boolean {
     return ms + (h * msInH) + (m * msInM) + (s * msInS);
 }
 
+export function isBoolean(obj: any): obj is boolean {
+    return obj === true || obj === false;
+}
+
 /**
  * Takes a number of milliseconds and converts it to a string like HH:MM:SS.fff
  * @param value The number of milliseconds to convert to a timespan string
