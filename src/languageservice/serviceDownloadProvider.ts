@@ -91,6 +91,7 @@ export default class ServiceDownloadProvider {
     public installSQLToolsService(platform: Runtime): Promise<boolean> {
         const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
         const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
+        const authorization = this._config.getWorkspaceConfig('http.proxyAuthorization');
 
         return new Promise<boolean>((resolve, reject) => {
             const fileName = this.getDownloadFileName(platform);
@@ -108,7 +109,7 @@ export default class ServiceDownloadProvider {
             this.createTempFile(pkg).then(tmpResult => {
                 pkg.tmpFile = tmpResult;
 
-                this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView, proxy, strictSSL).then(_ => {
+                this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView, proxy, strictSSL, authorization).then(_ => {
 
                     this._logger.logDebug(`Downloaded to ${pkg.tmpFile.name}...`);
                     this._logger.appendLine(' Done!');

@@ -9,7 +9,7 @@ import  {ILogger} from '../models/interfaces';
 import {parse as parseUrl, Url} from 'url';
 import * as https from 'https';
 import * as http from 'http';
-import {getProxyAgent} from './proxy';
+import {getProxyAgent, isBoolean} from './proxy';
 
 let fs = require('fs');
 
@@ -21,9 +21,16 @@ export default class HttpClient implements IHttpClient {
    /*
     * Downloads a file and stores the result in the temp file inside the package object
     */
-    public downloadFile(urlString: string, pkg: IPackage, logger: ILogger, statusView: IStatusView, proxy?: string, strictSSL?: boolean): Promise<void> {
+    public downloadFile(
+        urlString: string,
+        pkg: IPackage,
+        logger: ILogger,
+        statusView: IStatusView,
+        proxy?: string,
+        strictSSL?: boolean,
+        authorization?: string): Promise<void> {
         const url = parseUrl(urlString);
-        let options = this.getHttpClientOptions(url, proxy, strictSSL);
+        let options = this.getHttpClientOptions(url, proxy, strictSSL, authorization);
         let clientRequest = url.protocol === 'http:' ? http.request : https.request;
 
         return new Promise<void>((resolve, reject) => {
@@ -34,7 +41,7 @@ export default class HttpClient implements IHttpClient {
             let request = clientRequest(options, response => {
                 if (response.statusCode === 301 || response.statusCode === 302) {
                     // Redirect - download from new location
-                    return resolve(this.downloadFile(response.headers.location, pkg, logger, statusView, proxy, strictSSL));
+                    return resolve(this.downloadFile(response.headers.location, pkg, logger, statusView, proxy, strictSSL, authorization));
                 }
 
                 if (response.statusCode !== 200) {
@@ -60,14 +67,13 @@ export default class HttpClient implements IHttpClient {
         });
     }
 
-    private getHttpClientOptions(url: Url, proxy?: string, strictSSL?: boolean): any {
+    private getHttpClientOptions(url: Url, proxy?: string, strictSSL?: boolean, authorization?: string): any {
         const agent = getProxyAgent(url, proxy, strictSSL);
 
         let options: http.RequestOptions = {
             host: url.hostname,
             path: url.path,
-            agent: agent,
-            port: +url.port
+            agent: agent
         };
 
         if (url.protocol === 'https:') {
@@ -75,9 +81,12 @@ export default class HttpClient implements IHttpClient {
                     host: url.hostname,
                     path: url.path,
                     agent: agent,
-                    port: +url.port
+                    rejectUnauthorized: isBoolean(strictSSL) ? strictSSL : true
             };
             options = httpsOptions;
+        }
+        if (authorization) {
+            options.headers = Object.assign(options.headers || {}, { 'Proxy-Authorization': authorization });
         }
 
         return options;
