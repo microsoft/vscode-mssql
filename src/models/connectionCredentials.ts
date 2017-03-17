@@ -43,36 +43,36 @@ export class ConnectionCredentials implements IConnectionCredentials {
      */
     public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
         let details: ConnectionDetails = new ConnectionDetails();
-        details.serverName = credentials.server;
-        if (credentials.port && details.serverName.indexOf(',') === -1) {
+        details['serverName'] = credentials.server;
+        if (credentials.port && details['serverName'].indexOf(',') === -1) {
             // Port is appended to the server name in a connection string
-            details.serverName += (',' + credentials.port);
+            details['serverName'] += (',' + credentials.port);
         }
-        details.databaseName = credentials.database;
-        details.userName = credentials.user;
-        details.password = credentials.password;
-        details.authenticationType = credentials.authenticationType;
-        details.encrypt = credentials.encrypt;
-        details.trustServerCertificate = credentials.trustServerCertificate;
-        details.persistSecurityInfo = credentials.persistSecurityInfo;
-        details.connectTimeout = credentials.connectTimeout;
-        details.connectRetryCount = credentials.connectRetryCount;
-        details.connectRetryInterval = credentials.connectRetryInterval;
-        details.applicationName = credentials.applicationName;
-        details.workstationId = credentials.workstationId;
-        details.applicationIntent = credentials.applicationIntent;
-        details.currentLanguage = credentials.currentLanguage;
-        details.pooling = credentials.pooling;
-        details.maxPoolSize = credentials.maxPoolSize;
-        details.minPoolSize = credentials.minPoolSize;
-        details.loadBalanceTimeout = credentials.loadBalanceTimeout;
-        details.replication = credentials.replication;
-        details.attachDbFilename = credentials.attachDbFilename;
-        details.failoverPartner = credentials.failoverPartner;
-        details.multiSubnetFailover = credentials.multiSubnetFailover;
-        details.multipleActiveResultSets = credentials.multipleActiveResultSets;
-        details.packetSize = credentials.packetSize;
-        details.typeSystemVersion = credentials.typeSystemVersion;
+        details['databaseName'] = credentials.database;
+        details['userName'] = credentials.user;
+        details['password'] = credentials.password;
+        details['authenticationType'] = credentials.authenticationType;
+        details['encrypt'] = credentials.encrypt;
+        details['trustServerCertificate'] = credentials.trustServerCertificate;
+        details['persistSecurityInfo'] = credentials.persistSecurityInfo;
+        details['connectTimeout'] = credentials.connectTimeout;
+        details['connectRetryCount'] = credentials.connectRetryCount;
+        details['connectRetryInterval'] = credentials.connectRetryInterval;
+        details['applicationName'] = credentials.applicationName;
+        details['workstationId'] = credentials.workstationId;
+        details['applicationIntent'] = credentials.applicationIntent;
+        details['currentLanguage'] = credentials.currentLanguage;
+        details['pooling'] = credentials.pooling;
+        details['maxPoolSize'] = credentials.maxPoolSize;
+        details['minPoolSize'] = credentials.minPoolSize;
+        details['loadBalanceTimeout'] = credentials.loadBalanceTimeout;
+        details['replication'] = credentials.replication;
+        details['attachDbFilename'] = credentials.attachDbFilename;
+        details['failoverPartner'] = credentials.failoverPartner;
+        details['multiSubnetFailover'] = credentials.multiSubnetFailover;
+        details['multipleActiveResultSets'] = credentials.multipleActiveResultSets;
+        details['packetSize'] = credentials.packetSize;
+        details['typeSystemVersion'] = credentials.typeSystemVersion;
 
         return details;
     }
