@@ -44,15 +44,15 @@ suite('save results tests', () => {
             .returns((questions: IQuestion[]) => Promise.resolve(answers));
         // setup mock sql tools server client
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                        .callback((type, details: SaveResultsAsCsvRequestParams) => {
-                                                // check if filepath was set from answered prompt
-                                                assert.equal(details.ownerUri, testFile);
-                                                assert.equal(details.filePath, filePath);
-                                        })
-                                        .returns(() => {
-                                            // This will come back as null from the service layer, but tslinter doesn't like that
-                                            return Promise.resolve({messages: 'failure'});
-                                        });
+            .callback((type, details: SaveResultsAsCsvRequestParams) => {
+                    // check if filepath was set from answered prompt
+                    assert.equal(details.ownerUri, testFile);
+                    assert.equal(details.filePath, filePath);
+            })
+            .returns(() => {
+                // This will come back as null from the service layer, but tslinter doesn't like that
+                return Promise.resolve({messages: 'failure'});
+            });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
 
@@ -127,9 +127,7 @@ suite('save results tests', () => {
                                 });
     });
 
-
-    test('Save as CSV - test if information message is displayed on success', () => {
-
+    function testSaveSuccess(format: string): Thenable<void> {
         let answers = {};
         answers[LocalizedConstants.filepathPrompt] = filePath;
 
@@ -150,80 +148,54 @@ suite('save results tests', () => {
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
+        return saveResults.onSaveResults( testFile, 0, 0, format, undefined).then( () => {
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
+    }
+
+    function testSaveFailure(format: string): Thenable<void> {
+        let answers = {};
+        answers[LocalizedConstants.filepathPrompt] = filePath;
+
+        // setup mocks
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+                                .returns((questions: IQuestion[]) => Promise.resolve(answers));
+        vscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                                .returns(() => {
+                                    return Promise.resolve({messages: 'failure'});
+                                });
+
+        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
+        return saveResults.onSaveResults( testFile, 0, 0, format, undefined).then( () => {
+                    // check if error message was displayed
+                    vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
+    }
+
+    test('Save as CSV - test if information message is displayed on success', () => {
+        return testSaveSuccess('csv');
     });
 
     test('Save as CSV - test if error message is displayed on failure to save', () => {
-
-        let answers = {};
-        answers[LocalizedConstants.filepathPrompt] = filePath;
-
-        // setup mocks
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
-                                .returns((questions: IQuestion[]) => Promise.resolve(answers));
-        vscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
-        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                .returns(() => {
-                                    return Promise.resolve({messages: 'failure'});
-                                });
-
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResults( testFile, 0, 0, 'csv', undefined).then( () => {
-                    // check if error message was displayed
-                    vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-        });
+        return testSaveFailure('csv');
     });
 
     test('Save as JSON - test if information message is displayed on success', () => {
-
-        let answers = {};
-        answers[LocalizedConstants.filepathPrompt] = filePath;
-
-        // setup mocks
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
-                                    .returns((questions: IQuestion[]) => Promise.resolve(answers));
-        vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
-        vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
-                                            return Promise.resolve(undefined);
-                                        });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
-                                            return Promise.resolve(undefined);
-                                        });
-        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                    .returns(() => {
-                                        // This will come back as null from the service layer, but tslinter doesn't like that
-                                        return Promise.resolve({messages: undefined});
-                                    });
-
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
-                    // check if information message was displayed
-                    vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-        });
+        return testSaveSuccess('json');
     });
 
     test('Save as JSON - test if error message is displayed on failure to save', () => {
+        return testSaveFailure('json');
+    });
 
-        let answers = {};
-        answers[LocalizedConstants.filepathPrompt] = filePath;
+    test('Save as Excel - test if information message is displayed on success', () => {
+        return testSaveSuccess('excel');
+    });
 
-        // setup mocks
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
-                                .returns((questions: IQuestion[]) => Promise.resolve(answers));
-        vscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
-        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                                .returns(() => {
-                                    return Promise.resolve({messages: 'failure'});
-                                });
-
-        let saveResults = new ResultsSerializer(serverClient.object, prompter.object, vscodeWrapper.object);
-        return saveResults.onSaveResults( testFile, 0, 0, 'json', undefined).then( () => {
-                    // check if error message was displayed
-                    vscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-        });
+    test('Save as Excel - test if error message is displayed on failure to save', () => {
+        return testSaveFailure('excel');
     });
 
     test('Save as with selection - test if selected range is passed in parameters', () => {

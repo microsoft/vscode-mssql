@@ -10,7 +10,8 @@ const config: IResultsConfig = {
         'event.toggleMagnify': '',
         'event.selectAll': 'a',
         'event.saveAsJSON': 'ctrl+s',
-        'event.saveAsCSV': 'ctrl+alt+s'
+        'event.saveAsCSV': 'ctrl+alt+s',
+        'event.saveAsExcel': 'ctrl+alt+l'
     },
     'messagesDefaultOpen': true
 };

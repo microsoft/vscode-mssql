@@ -66,15 +66,19 @@ export class SaveResultsRequestParams {
 }
 
 export class SaveResultsAsCsvRequestParams extends SaveResultsRequestParams {
-        includeHeaders: boolean = true;
+    includeHeaders: boolean = true;
 }
 
 export class SaveResultsAsJsonRequestParams extends SaveResultsRequestParams {
-        // TODO: Define config for JSON
+    // TODO: Define config for JSON
+}
+
+export class SaveResultsAsExcelRequestParams extends SaveResultsRequestParams {
+    includeHeaders: boolean = true;
 }
 
 export class SaveResultRequestResult {
-        messages: string;
+    messages: string;
 }
 
 // --------------------------------- < Save Results as CSV Request > ------------------------------------------
@@ -90,3 +94,10 @@ export namespace SaveResultsAsJsonRequest {
     export const type: RequestType<SaveResultsAsJsonRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveJson'; } };
 }
 // --------------------------------- </ Save Results as JSON Request > ------------------------------------------
+
+// --------------------------------- < Save Results as Excel Request > ------------------------------------------
+// save results in Excel format
+export namespace SaveResultsAsExcelRequest {
+    export const type: RequestType<SaveResultsAsExcelRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveExcel'; } };
+}
+// --------------------------------- </ Save Results as Excel Request > ------------------------------------------
