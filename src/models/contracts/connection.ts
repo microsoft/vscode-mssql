@@ -12,7 +12,7 @@ export namespace ConnectionRequest {
  */
 export class ConnectionDetails {
 
-    public options: { [name: string]: any };
+    public options: { [name: string]: any } = {};
 }
 
 /**
