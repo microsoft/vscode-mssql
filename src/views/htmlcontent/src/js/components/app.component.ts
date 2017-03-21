@@ -196,18 +196,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.slickgrids.toArray()[this.activeGrid].selection = true;
         },
         'event.saveAsCSV': () => {
-            let activeGrid = this.activeGrid;
-            let batchId = this.renderedDataSets[activeGrid].batchId;
-            let resultId = this.renderedDataSets[activeGrid].resultId;
-            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-            this.dataService.sendSaveRequest(batchId, resultId, 'csv', selection);
+            this.sendSaveRequest('csv');
         },
         'event.saveAsJSON': () => {
-            let activeGrid = this.activeGrid;
-            let batchId = this.renderedDataSets[activeGrid].batchId;
-            let resultId = this.renderedDataSets[activeGrid].resultId;
-            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-            this.dataService.sendSaveRequest(batchId, resultId, 'json', selection);
+            this.sendSaveRequest('json');
+        },
+        'event.saveAsExcel': () => {
+            this.sendSaveRequest('excel');
         }
     };
     // tslint:disable-next-line:no-unused-variable
@@ -249,6 +244,19 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'savejson', batchId: batchId, resultId: resultId, index: index, selection: selection});
+                } else {
+                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
+                }
+            }
+        },
+        {
+            showCondition: () => { return true; },
+            icon: () => { return 'saveExcel'; },
+            hoverText: () => { return Constants.saveExcelLabel; },
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                if (selection.length <= 1) {
+                    this.handleContextClick({type: 'saveexcel', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -440,6 +448,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'savejson':
                 this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json', event.selection);
                 break;
+            case 'saveexcel':
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'excel', event.selection);
+                break;
             case 'selectall':
                 this.activeGrid = event.index;
                 this.shortcutfunc['event.selectAll']();
@@ -458,6 +469,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
         this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
+    }
+
+    private sendSaveRequest(format: string): void {
+        let activeGrid = this.activeGrid;
+        let batchId = this.renderedDataSets[activeGrid].batchId;
+        let resultId = this.renderedDataSets[activeGrid].resultId;
+        let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+        this.dataService.sendSaveRequest(batchId, resultId, format, selection);
     }
 
     /**
