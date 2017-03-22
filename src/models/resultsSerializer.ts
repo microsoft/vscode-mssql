@@ -14,6 +14,11 @@ import CodeAdapter from '../prompts/adapter';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import Telemetry from '../models/telemetry';
 
+let opener = require('opener');
+
+
+type SaveAsRequestParams =  Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams | Contracts.SaveResultsAsExcelRequestParams;
+
 /**
  *  Handles save results request from the context menu of slickGrid
  */
@@ -128,6 +133,24 @@ export default class ResultsSerializer {
         return saveResultsParams;
     }
 
+    private getConfigForExcel(): Contracts.SaveResultsAsExcelRequestParams {
+        // get save results config from vscode config
+        // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
+        // and we want to have just 1 setting that lists this.
+        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
+
+        // if user entered config, set options
+        if (saveConfig) {
+            if (saveConfig.includeHeaders !== undefined) {
+                saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+            }
+        }
+        return saveResultsParams;
+    }
+
+
     private resolveCurrentDirectory(uri: string): string {
         const self = this;
         self._isTempFile = false;
@@ -165,10 +188,9 @@ export default class ResultsSerializer {
         return undefined;
     }
 
-    private getParameters(filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange):
-                                                        Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams {
+    private getParameters(filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange): SaveAsRequestParams {
         const self = this;
-        let saveResultsParams: Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams;
+        let saveResultsParams: SaveAsRequestParams;
         if (!path.isAbsolute(filePath)) {
             this._filePath = self.resolveFilePath(this._uri, filePath);
         } else {
@@ -179,6 +201,8 @@ export default class ResultsSerializer {
             saveResultsParams =  self.getConfigForCsv();
         } else if (format === 'json') {
             saveResultsParams =  self.getConfigForJson();
+        } else if (format === 'excel') {
+            saveResultsParams =  self.getConfigForExcel();
         }
 
         saveResultsParams.filePath = this._filePath;
@@ -215,6 +239,8 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsCsvRequest.type;
         } else if (format === 'json') {
             type = Contracts.SaveResultsAsJsonRequest.type;
+        } else if (format === 'excel') {
+            type = Contracts.SaveResultsAsExcelRequest.type;
         }
 
         self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
@@ -227,7 +253,7 @@ export default class ResultsSerializer {
                 } else {
                     self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgSaveSucceeded + this._filePath);
                     self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveSucceeded + filePath);
-                    self.openSavedFile(self._filePath);
+                    self.openSavedFile(self._filePath, format);
                 }
                 // telemetry for save results
                 Telemetry.sendTelemetryEvent('SavedResults', { 'type': format });
@@ -256,16 +282,26 @@ export default class ResultsSerializer {
     /**
      * Open the saved file in a new vscode editor pane
      */
-    public openSavedFile(filePath: string): void {
+    public openSavedFile(filePath: string, format: string): void {
         const self = this;
-        let uri = vscode.Uri.file(filePath);
-        self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
-            // Show open document and set focus
-            self._vscodeWrapper.showTextDocument(doc, 1, false).then(undefined, (error: any) => {
+        if (format === 'excel') {
+            // This will not open in VSCode as it's treated as binary. Use the native file opener instead
+            // Note: must use filePath here, URI does not open correctly
+            opener(filePath, undefined, (error, stdout, stderr) => {
+                if (error) {
+                    self._vscodeWrapper.showErrorMessage(error);
+                }
+            });
+        } else {
+            let uri = vscode.Uri.file(filePath);
+            self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+                // Show open document and set focus
+                self._vscodeWrapper.showTextDocument(doc, 1, false).then(undefined, (error: any) => {
+                    self._vscodeWrapper.showErrorMessage(error);
+                });
+            }, (error: any) => {
                 self._vscodeWrapper.showErrorMessage(error);
             });
-        }, (error: any) => {
-            self._vscodeWrapper.showErrorMessage(error);
-        });
+        }
     }
 }

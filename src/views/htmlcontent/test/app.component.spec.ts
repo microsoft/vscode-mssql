@@ -595,13 +595,16 @@ describe('AppComponent', function (): void {
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
             let icons = ele.querySelectorAll('.gridIcon');
-            expect(icons.length).toEqual(2);
+            expect(icons.length).toEqual(3);
             let csvIcon = <HTMLElement> icons[0].firstElementChild;
             csvIcon.click();
             expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'csv', []);
             let jsonIcon = <HTMLElement> icons[1].firstElementChild;
             jsonIcon.click();
             expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'json', []);
+            let excelIcon = <HTMLElement> icons[2].firstElementChild;
+            excelIcon.click();
+            expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'excel', []);
         });
 
         it('should have maximized the grid when the icon is clicked', (done) => {
@@ -836,6 +839,25 @@ describe('AppComponent', function (): void {
             setTimeout(() => {
                 fixture.detectChanges();
                 expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'csv', []);
+                done();
+            }, 100);
+        });
+
+        it('event save as excel', (done) => {
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            spyOn(shortcutService, 'buildEventString').and.returnValue('');
+            spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsExcel'));
+            spyOn(dataService, 'sendSaveRequest');
+            dataService.sendWSEvent(messageBatchStart);
+            dataService.sendWSEvent(resultSetSmall);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            TestUtils.triggerKeyEvent(40, ele);
+            setTimeout(() => {
+                fixture.detectChanges();
+                expect(dataService.sendSaveRequest).toHaveBeenCalledWith(0, 0, 'excel', []);
                 done();
             }, 100);
         });

@@ -94,7 +94,8 @@ See [customize options] and [manage connection profiles] for more details.
         "event.maximizeGrid": "",
         "event.selectAll": "",
         "event.saveAsJSON": "",
-        "event.saveAsCSV": ""
+        "event.saveAsCSV": "",
+        "event.saveAsExcel": ""
     },
     "mssql.messagesDefaultOpen": true,
     "mssql.logDebugInfo": false,

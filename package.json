@@ -416,7 +416,8 @@
             "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",
-            "event.saveAsCSV": ""
+            "event.saveAsCSV": "",
+            "event.saveAsExcel": ""
           }
         },
         "mssql.messagesDefaultOpen": {
