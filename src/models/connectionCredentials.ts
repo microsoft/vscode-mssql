@@ -43,36 +43,36 @@ export class ConnectionCredentials implements IConnectionCredentials {
      */
     public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
         let details: ConnectionDetails = new ConnectionDetails();
-        details.serverName = credentials.server;
-        if (credentials.port && details.serverName.indexOf(',') === -1) {
+        details.options['server'] = credentials.server;
+        if (credentials.port && details.options['server'].indexOf(',') === -1) {
             // Port is appended to the server name in a connection string
-            details.serverName += (',' + credentials.port);
+            details.options['server'] += (',' + credentials.port);
         }
-        details.databaseName = credentials.database;
-        details.userName = credentials.user;
-        details.password = credentials.password;
-        details.authenticationType = credentials.authenticationType;
-        details.encrypt = credentials.encrypt;
-        details.trustServerCertificate = credentials.trustServerCertificate;
-        details.persistSecurityInfo = credentials.persistSecurityInfo;
-        details.connectTimeout = credentials.connectTimeout;
-        details.connectRetryCount = credentials.connectRetryCount;
-        details.connectRetryInterval = credentials.connectRetryInterval;
-        details.applicationName = credentials.applicationName;
-        details.workstationId = credentials.workstationId;
-        details.applicationIntent = credentials.applicationIntent;
-        details.currentLanguage = credentials.currentLanguage;
-        details.pooling = credentials.pooling;
-        details.maxPoolSize = credentials.maxPoolSize;
-        details.minPoolSize = credentials.minPoolSize;
-        details.loadBalanceTimeout = credentials.loadBalanceTimeout;
-        details.replication = credentials.replication;
-        details.attachDbFilename = credentials.attachDbFilename;
-        details.failoverPartner = credentials.failoverPartner;
-        details.multiSubnetFailover = credentials.multiSubnetFailover;
-        details.multipleActiveResultSets = credentials.multipleActiveResultSets;
-        details.packetSize = credentials.packetSize;
-        details.typeSystemVersion = credentials.typeSystemVersion;
+        details.options['database'] = credentials.database;
+        details.options['user'] = credentials.user;
+        details.options['password'] = credentials.password;
+        details.options['authenticationType'] = credentials.authenticationType;
+        details.options['encrypt'] = credentials.encrypt;
+        details.options['trustServerCertificate'] = credentials.trustServerCertificate;
+        details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
+        details.options['connectTimeout'] = credentials.connectTimeout;
+        details.options['connectRetryCount'] = credentials.connectRetryCount;
+        details.options['connectRetryInterval'] = credentials.connectRetryInterval;
+        details.options['applicationName'] = credentials.applicationName;
+        details.options['workstationId'] = credentials.workstationId;
+        details.options['applicationIntent'] = credentials.applicationIntent;
+        details.options['currentLanguage'] = credentials.currentLanguage;
+        details.options['pooling'] = credentials.pooling;
+        details.options['maxPoolSize'] = credentials.maxPoolSize;
+        details.options['minPoolSize'] = credentials.minPoolSize;
+        details.options['loadBalanceTimeout'] = credentials.loadBalanceTimeout;
+        details.options['replication'] = credentials.replication;
+        details.options['attachDbFilename'] = credentials.attachDbFilename;
+        details.options['failoverPartner'] = credentials.failoverPartner;
+        details.options['multiSubnetFailover'] = credentials.multiSubnetFailover;
+        details.options['multipleActiveResultSets'] = credentials.multipleActiveResultSets;
+        details.options['packetSize'] = credentials.packetSize;
+        details.options['typeSystemVersion'] = credentials.typeSystemVersion;
 
         return details;
     }
