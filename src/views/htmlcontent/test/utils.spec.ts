@@ -35,6 +35,11 @@ describe('Utility Tests', () => {
     });
 
     describe('isDbCellValue', () => {
+        it('Detects undefined properly', () => {
+            let dbCellValue = undefined;
+            expect(Utils.isDbCellValue(dbCellValue)).toEqual(false);
+        });
+
         it('Detects a DbCellValue properly', () => {
             let dbCellValue: DbCellValue = {displayValue: 'qqq', isNull: false};
             expect(Utils.isDbCellValue(dbCellValue)).toEqual(true);

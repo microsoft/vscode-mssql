@@ -570,17 +570,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Format xml field into a hyperlink and performs HTML entity encoding
      */
-    public hyperLinkFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        let valueToDisplay = value;
+    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
-        if (value) {
+        let valueToDisplay: string;
+        if (Utils.isDbCellValue(value)) {
             cellClasses += ' xmlLink';
-            valueToDisplay = Utils.htmlEntities(value);
+            valueToDisplay = Utils.htmlEntities(value.displayValue);
             return `<a class="${cellClasses}" href="#" >${valueToDisplay}</a>`;
-        } else {
-            cellClasses += ' missing-value';
-            return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
         }
+
+        // If we make it to here, we don't have a DbCellValue
+        cellClasses += ' missing-value';
+        return `<span class="${cellClasses}"></span>`;
     }
 
     /**

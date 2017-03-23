@@ -36,5 +36,7 @@ export function htmlEntities(str: string): string {
  * @returns True if the object is a DbCellValue, false otherwise
  */
 export function isDbCellValue(object: any): boolean {
-    return (object.displayValue !== undefined && object.isNull !== undefined);
+    return object !== undefined
+        && object.displayValue !== undefined
+        && object.isNull !== undefined;
 }
