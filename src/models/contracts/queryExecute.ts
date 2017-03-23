@@ -119,13 +119,17 @@ export class QueryExecuteSubsetParams {
     rowsCount: number;
 }
 
+export class DbCellValue {
+    displayValue: string;
+    isNull: boolean;
+}
+
 export class ResultSetSubset {
     rowCount: number;
-    rows: any[][];
+    rows: DbCellValue[][];
 }
 
 export class QueryExecuteSubsetResult {
-    message: string;
     resultSubset: ResultSetSubset;
 }
 

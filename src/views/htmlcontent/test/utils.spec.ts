@@ -1,4 +1,5 @@
 import * as Utils from './../src/js/utils';
+import { DbCellValue } from './../src/js/interfaces';
 
 describe('Utility Tests', () => {
     describe('IsNumber', () => {
@@ -31,5 +32,22 @@ describe('Utility Tests', () => {
                 expect(Utils.htmlEntities(item)).toEqual(undefined);
             });
         });
+    });
+
+    describe('isDbCellValue', () => {
+        it('Detects undefined properly', () => {
+            let dbCellValue = undefined;
+            expect(Utils.isDbCellValue(dbCellValue)).toEqual(false);
+        });
+
+        it('Detects a DbCellValue properly', () => {
+            let dbCellValue: DbCellValue = {displayValue: 'qqq', isNull: false};
+            expect(Utils.isDbCellValue(dbCellValue)).toEqual(true);
+        });
+
+        it('Detects a non-DbCellValue properly', () => {
+            let nonDbCellValue: string = 'qqq';
+            expect(Utils.isDbCellValue(nonDbCellValue)).toEqual(false);
+        })
     });
 });

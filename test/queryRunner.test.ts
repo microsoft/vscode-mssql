@@ -10,7 +10,8 @@ import {
     QueryExecuteCompleteNotificationResult,
     QueryExecuteBatchNotificationParams,
     QueryExecuteResultSetCompleteNotificationParams,
-    ResultSetSummary
+    ResultSetSummary,
+    QueryExecuteSubsetResult
 } from './../src/models/contracts/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
@@ -412,16 +413,15 @@ suite('Query Runner tests', () => {
 
     test('Correctly handles subset', () => {
         let testuri = 'test';
-        let testresult = {
-            message: '',
+        let testresult: QueryExecuteSubsetResult = {
             resultSubset: {
                 rowCount: 5,
                 rows: [
-                    ['1', '2'],
-                    ['3', '4'],
-                    ['5', '6'],
-                    ['7', '8'],
-                    ['9', '10']
+                    [{isNull: false, displayValue: '1'}, {isNull: false, displayValue: '2'}],
+                    [{isNull: false, displayValue: '3'}, {isNull: false, displayValue: '4'}],
+                    [{isNull: false, displayValue: '5'}, {isNull: false, displayValue: '6'}],
+                    [{isNull: false, displayValue: '7'}, {isNull: false, displayValue: '8'}],
+                    [{isNull: false, displayValue: '9'}, {isNull: false, displayValue: '10'}]
                 ]
             }
         };
@@ -489,16 +489,15 @@ suite('Query Runner tests', () => {
         const finalStringWithHeader = 'Col1' + TAB + 'Col2' + CLRF + finalStringNoHeader;
 
         const testuri = 'test';
-        const testresult = {
-            message: '',
+        let testresult: QueryExecuteSubsetResult = {
             resultSubset: {
                 rowCount: 5,
                 rows: [
-                    ['1', '2'],
-                    ['3', '4'],
-                    ['5', '6'],
-                    ['7', '8'],
-                    ['9', '10']
+                    [{isNull: false, displayValue: '1'}, {isNull: false, displayValue: '2'}],
+                    [{isNull: false, displayValue: '3'}, {isNull: false, displayValue: '4'}],
+                    [{isNull: false, displayValue: '5'}, {isNull: false, displayValue: '6'}],
+                    [{isNull: false, displayValue: '7'}, {isNull: false, displayValue: '8'}],
+                    [{isNull: false, displayValue: '9'}, {isNull: false, displayValue: '10'}]
                 ]
             }
         };
