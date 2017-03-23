@@ -130,7 +130,6 @@ export class ResultSetSubset {
 }
 
 export class QueryExecuteSubsetResult {
-    message: string;
     resultSubset: ResultSetSubset;
 }
 
