@@ -15,7 +15,8 @@ import { MessagesContextMenu } from './messagescontextmenu.component';
 import {
     IGridIcon,
     IMessage,
-    IRange
+    IRange// ,
+    // DbCellValue
 } from './../interfaces';
 
 import * as Constants from './../constants';
@@ -586,13 +587,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Format all text to replace all new lines with spaces and performs HTML entity encoding
      */
-    textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        let valueToDisplay = value;
+    textFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
-        if (value) {
-            valueToDisplay = Utils.htmlEntities(value.replace(/(\r\n|\n|\r)/g, ' '));
+        let valueToDisplay: string;
+        if (AppComponent.isDbCellValue(value)) {
+            valueToDisplay = Utils.htmlEntities(value.displayValue.replace(/(\r\n|\n|\r)/g, ' '));
+            if (value.isNull) {
+                cellClasses += ' missing-value';
+            }
         } else {
-            cellClasses += ' missing-value';
+            valueToDisplay = '';
         }
 
         return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
@@ -774,5 +778,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     grid.resized.emit();
                 }
         });
+    }
+
+    static isDbCellValue(object: any): boolean {
+        return (object.displayValue !== undefined && object.isNull !== undefined);
     }
 }

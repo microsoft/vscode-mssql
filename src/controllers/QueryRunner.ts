@@ -215,12 +215,10 @@ export default class QueryRunner {
         queryDetails.batchIndex = batchIndex;
         return new Promise<QueryExecuteSubsetResult>((resolve, reject) => {
             self._client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
-                if (result.message) {
-                    self._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + result.message);
-                    reject();
-                } else {
-                    resolve(result);
-                }
+                resolve(result);
+            }, error => {
+                self._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + error);
+                reject();
             });
         });
     }
@@ -281,11 +279,11 @@ export default class QueryRunner {
                         // Iterate over the rows to paste into the copy string
                         for (let rowIndex: number = 0; rowIndex < result.resultSubset.rows.length; rowIndex++) {
                             let row = result.resultSubset.rows[rowIndex];
-                            let cells = row.slice(range.fromCell, (range.toCell + 1));
-                            if (self.shouldRemoveNewLines()) {
-                                // Remove all new lines from cells
-                                cells = cells.map(x => self.removeNewLines(x));
-                            }
+                            let cellObjects = row.slice(range.fromCell, (range.toCell + 1));
+                            // Remove newlines if requested
+                            let cells = self.shouldRemoveNewLines()
+                                ? cellObjects.map(x => self.removeNewLines(x.displayValue))
+                                : cellObjects.map(x => x.displayValue);
                             copyString += cells.join('\t');
                             if (rowIndex < result.resultSubset.rows.length - 1) {
                                 copyString += os.EOL;
