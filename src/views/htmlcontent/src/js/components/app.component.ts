@@ -15,8 +15,7 @@ import { MessagesContextMenu } from './messagescontextmenu.component';
 import {
     IGridIcon,
     IMessage,
-    IRange// ,
-    // DbCellValue
+    IRange
 } from './../interfaces';
 
 import * as Constants from './../constants';
@@ -590,7 +589,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     textFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
         let valueToDisplay: string;
-        if (AppComponent.isDbCellValue(value)) {
+        if (Utils.isDbCellValue(value)) {
             valueToDisplay = Utils.htmlEntities(value.displayValue.replace(/(\r\n|\n|\r)/g, ' '));
             if (value.isNull) {
                 cellClasses += ' missing-value';
@@ -778,9 +777,5 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     grid.resized.emit();
                 }
         });
-    }
-
-    static isDbCellValue(object: any): boolean {
-        return (object.displayValue !== undefined && object.isNull !== undefined);
     }
 }
