@@ -48,6 +48,6 @@ describe('Utility Tests', () => {
         it('Detects a non-DbCellValue properly', () => {
             let nonDbCellValue: string = 'qqq';
             expect(Utils.isDbCellValue(nonDbCellValue)).toEqual(false);
-        })
+        });
     });
 });
