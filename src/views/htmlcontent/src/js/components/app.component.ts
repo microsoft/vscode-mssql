@@ -389,7 +389,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                 id: i.toString(),
                                 name: c.columnName === 'Microsoft SQL Server 2005 XML Showplan'
                                     ? 'XML Showplan'
-                                    : c.columnName,
+                                    : Utils.htmlEntities(c.columnName),
                                 type: self.stringToFieldType('string'),
                                 formatter: isLinked ? self.hyperLinkFormatter : self.textFormatter,
                                 asyncPostRender: isLinked ? self.linkHandler(linkType) : undefined
