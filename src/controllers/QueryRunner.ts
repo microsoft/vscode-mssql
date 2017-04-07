@@ -214,7 +214,7 @@ export default class QueryRunner {
         queryDetails.rowsStartIndex = rowStart;
         queryDetails.batchIndex = batchIndex;
         return new Promise<QueryExecuteSubsetResult>((resolve, reject) => {
-            self._client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
+            self._client.sendRequest<QueryExecuteSubsetParams, QueryExecuteSubsetResult, void>(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
                 resolve(result);
             }, error => {
                 self._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + error);

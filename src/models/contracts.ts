@@ -1,10 +1,11 @@
-import {RequestType} from 'vscode-languageclient';
+import {RequestType, ResponseError} from 'vscode-languageclient';
 
 // --------------------------------- < Version Request > -------------------------------------------------
 
 // Version request message callback declaration
 export namespace VersionRequest {
-    export const type: RequestType<void, VersionResult, void> = { get method(): string { return 'version'; } };
+    export const type: RequestType<void, VersionResult, ResponseError<void>, void> =
+        new RequestType<void, VersionResult, ResponseError<void>, void>('version');
 }
 
 // Version response format
@@ -17,7 +18,8 @@ export type VersionResult = string;
 
 // Read Credential request message callback declaration
 export namespace ReadCredentialRequest {
-    export const type: RequestType<Credential, Credential, void> = { get method(): string { return 'credential/read'; } };
+    export const type: RequestType<Credential, Credential, ResponseError<void>, void> =
+        new RequestType<Credential, Credential, ResponseError<void>, void>('credential/read');
 }
 
 /**
@@ -41,7 +43,8 @@ export class Credential {
 
 // Save Credential request message callback declaration
 export namespace SaveCredentialRequest {
-    export const type: RequestType<Credential, boolean, void> = { get method(): string { return 'credential/save'; } };
+    export const type: RequestType<Credential, boolean, ResponseError<void>, void> =
+        new RequestType<Credential, boolean, ResponseError<void>, void>('credential/save');
 }
 // --------------------------------- </ Save Credential Request > -------------------------------------------------
 
@@ -50,7 +53,8 @@ export namespace SaveCredentialRequest {
 
 // Delete Credential request message callback declaration
 export namespace DeleteCredentialRequest {
-    export const type: RequestType<Credential, boolean, void> = { get method(): string { return 'credential/delete'; } };
+    export const type: RequestType<Credential, boolean, ResponseError<void>, void> =
+        new RequestType<Credential, boolean, ResponseError<void>, void>('credential/delete');
 }
 // --------------------------------- </ Delete Credential Request > -------------------------------------------------
 
@@ -84,20 +88,23 @@ export class SaveResultRequestResult {
 // --------------------------------- < Save Results as CSV Request > ------------------------------------------
 // save results in csv format
 export namespace SaveResultsAsCsvRequest {
-    export const type: RequestType<SaveResultsAsCsvRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveCsv'; } };
+    export const type: RequestType<SaveResultsAsCsvRequestParams, SaveResultRequestResult, ResponseError<void>, void> =
+        new RequestType<SaveResultsAsCsvRequestParams, SaveResultRequestResult, ResponseError<void>, void>('query/saveCsv');
 }
 // --------------------------------- </ Save Results as CSV Request > ------------------------------------------
 
 // --------------------------------- < Save Results as JSON Request > ------------------------------------------
 // save results in json format
 export namespace SaveResultsAsJsonRequest {
-    export const type: RequestType<SaveResultsAsJsonRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveJson'; } };
+    export const type: RequestType<SaveResultsAsJsonRequestParams, SaveResultRequestResult, ResponseError<void>, void> =
+        new RequestType<SaveResultsAsJsonRequestParams, SaveResultRequestResult, ResponseError<void>, void>('query/saveJson');
 }
 // --------------------------------- </ Save Results as JSON Request > ------------------------------------------
 
 // --------------------------------- < Save Results as Excel Request > ------------------------------------------
 // save results in Excel format
 export namespace SaveResultsAsExcelRequest {
-    export const type: RequestType<SaveResultsAsExcelRequestParams, SaveResultRequestResult, void> = { get method(): string { return 'query/saveExcel'; } };
+    export const type: RequestType<SaveResultsAsExcelRequestParams, SaveResultRequestResult, ResponseError<void>, void> =
+        new RequestType<SaveResultsAsExcelRequestParams, SaveResultRequestResult, ResponseError<void>, void>('query/saveExcel');
 }
 // --------------------------------- </ Save Results as Excel Request > ------------------------------------------

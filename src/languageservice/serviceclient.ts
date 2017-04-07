@@ -7,7 +7,7 @@
 import { ExtensionContext, workspace, window, OutputChannel, languages } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions,
     TransportKind, RequestType, NotificationType, NotificationHandler,
-    ErrorAction, CloseAction } from 'vscode-languageclient';
+    ErrorAction, CloseAction, ResponseError } from 'vscode-languageclient';
 
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import Telemetry from '../models/telemetry';
@@ -35,7 +35,6 @@ let _channel: OutputChannel = undefined;
 interface IMessage {
     jsonrpc: string;
 }
-
 
 /**
  * Handle Language Service client errors
@@ -157,44 +156,50 @@ export default class SqlToolsServiceClient {
     }
 
     public initializeForPlatform(platformInfo: PlatformInformation, context: ExtensionContext): Promise<ServerInitializationResult> {
-         return new Promise<ServerInitializationResult>( (resolve, reject) => {
-            this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
-            this._logger.appendLine();
-            this._logger.append(`Platform: ${platformInfo.toString()}`);
+        let self = this;
+        return new Promise<ServerInitializationResult>( (resolve, reject) => {
+            // Log some stuff about the platform
+            self._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
+            self._logger.appendLine();
+            self._logger.append(`Platform: ${platformInfo.toString()}`);
+
+            // Make sure that the platform we're running on is valid
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
                 Telemetry.sendTelemetryEvent('UnsupportedPlatform', {platform: platformInfo.toString()} );
                 reject('Invalid Platform');
-            } else {
-                if (platformInfo.runtimeId) {
-                    this._logger.appendLine(` (${platformInfo.getRuntimeDisplayName()})`);
-                } else {
-                    this._logger.appendLine();
-                }
-                this._logger.appendLine();
-                this._server.getServerPath(platformInfo.runtimeId).then(serverPath => {
-                    if (serverPath === undefined) {
-                        // Check if the service already installed and if not open the output channel to show the logs
-                        if (_channel !== undefined) {
-                            _channel.show();
-                        }
-                        this._server.downloadServerFiles(platformInfo.runtimeId).then ( installedServerPath => {
-                            this.initializeLanguageClient(installedServerPath, context);
-                            resolve(new ServerInitializationResult(true, true, installedServerPath));
-                        }).catch(downloadErr => {
-                            reject(downloadErr);
-                        });
-                    } else {
-                        this.initializeLanguageClient(serverPath, context);
-                        resolve(new ServerInitializationResult(false, true, serverPath));
-                    }
-                }).catch(err => {
-                    Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err );
-                    Utils.showErrorMsg(Constants.serviceLoadingFailed);
-                    Telemetry.sendTelemetryEvent('ServiceInitializingFailed');
-                    reject(err);
-                });
+                return;
             }
+
+            // We have a valid platform, log what it is
+            self._logger.appendLine(platformInfo.runtimeId ? ` (${platformInfo.getRuntimeDisplayName()})` : '');
+            self._logger.appendLine();
+
+            // Download the service if necessary
+            this._server.getServerPath(platformInfo.runtimeId).then(serverPath => {
+                // Determine if the service is already installed
+                if (serverPath === undefined) {
+                    // Service is not installed
+                    // Open output to show download logs
+                    if (_channel !== undefined) {
+                        _channel.show();
+                    }
+
+                    // Start downloading the service
+                    self._server.downloadServerFiles(platformInfo.runtimeId).then(installedServerPath => {
+                        self.initializeLanguageClient(installedServerPath, context).then(() => {
+                            resolve(new ServerInitializationResult(true, true, installedServerPath));
+                        });
+                    }).catch(downloadErr => {
+                        reject(downloadErr);
+                    });
+                } else {
+                    // Service is already installed
+                    self.initializeLanguageClient(serverPath, context).then(() => {
+                        resolve(new ServerInitializationResult(false, true, serverPath));
+                    });
+                }
+            });
         });
     }
 
@@ -228,30 +233,18 @@ export default class SqlToolsServiceClient {
         });
     }
 
-    private initializeLanguageClient(serverPath: string, context: ExtensionContext): void {
-         if (serverPath === undefined) {
-                Utils.logDebug(Constants.invalidServiceFilePath);
-                throw new Error(Constants.invalidServiceFilePath);
-         } else {
-            let self = this;
-            self.initializeLanguageConfiguration();
-            let serverOptions: ServerOptions = this.createServerOptions(serverPath);
-            this.client = this.createLanguageClient(serverOptions);
+    private initializeLanguageClient(serverPath: string, context: ExtensionContext): Promise<void> {
+        let self = this;
 
-            if (context !== undefined) {
-                // Create the language client and start the client.
-                let disposable = this.client.start();
+        // Stop if we have an invalid path
+        if (serverPath === undefined) {
+            Utils.logDebug(Constants.invalidServiceFilePath);
+            throw new Error(Constants.invalidServiceFilePath);
+        }
 
-                // Push the disposable to the context's subscriptions so that the
-                // client can be deactivated on extension deactivation
-
-                context.subscriptions.push(disposable);
-            }
-         }
-    }
-
-    private createLanguageClient(serverOptions: ServerOptions): LanguageClient {
-        // Options to control the language client
+        // Server path was good, so start initializing it
+        self.initializeLanguageConfiguration();
+        let serverOptions: ServerOptions = self.createServerOptions(serverPath);
         let clientOptions: LanguageClientOptions = {
             documentSelector: ['sql'],
             synchronize: {
@@ -260,19 +253,20 @@ export default class SqlToolsServiceClient {
             errorHandler: new LanguageClientErrorHandler()
         };
 
-        // cache the client instance for later use
+        // Create and start the client
         let client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
-        client.onReady().then( () => {
-            this.checkServiceCompatibility();
+        let disposableClient = client.start();
+        context.subscriptions.push(disposableClient);
 
+        return client.onReady().then(() => {
+            self._client = client;
+            self.checkServiceCompatibility();
+            client.onNotification(LanguageServiceContracts.TelemetryNotification.type, self.handleLanguageServiceTelemetryNotification());
+            client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, self.handleLanguageServiceStatusNotification());
         });
-        client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
-        client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
-
-        return client;
     }
 
-     private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
+    private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
         return (event: LanguageServiceContracts.TelemetryParams): void => {
             Telemetry.sendTelemetryEvent(event.params.eventName, event.params.properties, event.params.measures);
         };
@@ -322,11 +316,15 @@ export default class SqlToolsServiceClient {
      * Send a request to the service client
      * @param type The of the request to make
      * @param params The params to pass with the request
+     * @type P The type of the parameters provided in the request
+     * @type R The type of the result from successful execution of the request
+     * @type E The type of the data object in an error response. Can be void if data is not expected
+     *         or any if anything can be returned.
      * @returns A thenable object for when the request receives a response
      */
-    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
+    public sendRequest<P, R, E>(type: RequestType<P, R, ResponseError<E>, void>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
-            return this.client.sendRequest(type, params);
+            return this.client.sendRequest<P, R, ResponseError<E>, void>(type, params, undefined);
         }
     }
 
@@ -334,7 +332,7 @@ export default class SqlToolsServiceClient {
      * Send a notification to the service client
      * @param params The params to pass with the notification
      */
-    public sendNotification<P>(type: NotificationType<P>, params?: P): void {
+    public sendNotification<P>(type: NotificationType<P, void>, params?: P): void {
         if (this.client !== undefined) {
             this.client.sendNotification(type, params);
         }
@@ -345,7 +343,7 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to register the handler for
      * @param handler The handler to register
      */
-    public onNotification<P>(type: NotificationType<P>, handler: NotificationHandler<P>): void {
+    public onNotification<P>(type: NotificationType<P, void>, handler: NotificationHandler<P>): void {
         if (this._client !== undefined) {
              return this.client.onNotification(type, handler);
         }

@@ -7,7 +7,7 @@ import fs = require('fs');
 import Interfaces = require('./interfaces');
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
-import {RequestType} from 'vscode-languageclient';
+import {RequestType, ResponseError} from 'vscode-languageclient';
 import * as Utils from '../models/utils';
 import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
@@ -234,7 +234,7 @@ export default class ResultsSerializer {
                                                                                                                                         Thenable<void> {
         const self = this;
         let saveResultsParams =  self.getParameters( filePath, batchIndex, resultSetNo, format, selection);
-        let type: RequestType<Contracts.SaveResultsRequestParams, Contracts.SaveResultRequestResult, void>;
+        let type: RequestType<Contracts.SaveResultsRequestParams, Contracts.SaveResultRequestResult, ResponseError<void>, void>;
         if (format === 'csv') {
             type = Contracts.SaveResultsAsCsvRequest.type;
         } else if (format === 'json') {

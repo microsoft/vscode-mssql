@@ -7,7 +7,8 @@ import {Telemetry} from '../telemetry';
  * Event sent when the language service is finished updating after a connection
  */
 export namespace IntelliSenseReadyNotification {
-    export const type: NotificationType<IntelliSenseReadyParams> = { get method(): string { return 'textDocument/intelliSenseReady'; } };
+    export const type: NotificationType<IntelliSenseReadyParams, void> =
+        new NotificationType<IntelliSenseReadyParams, void>('textDocument/intelliSenseReady');
 }
 
 /**
@@ -24,7 +25,8 @@ export class IntelliSenseReadyParams {
  * Notification sent when the an IntelliSense cache invalidation is requested
  */
 export namespace RebuildIntelliSenseNotification {
-    export const type: NotificationType<RebuildIntelliSenseParams> = { get method(): string { return 'textDocument/rebuildIntelliSense'; } };
+    export const type: NotificationType<RebuildIntelliSenseParams, void> =
+        new NotificationType<RebuildIntelliSenseParams, void>('textDocument/rebuildIntelliSense');
 }
 
 /**
@@ -44,7 +46,8 @@ export class RebuildIntelliSenseParams {
  * Event sent when the language service send a telemetry event
  */
 export namespace TelemetryNotification {
-    export const type: NotificationType<TelemetryParams> = { get method(): string { return 'telemetry/sqlevent'; } };
+    export const type: NotificationType<TelemetryParams, void> =
+        new NotificationType<TelemetryParams, void>('telemetry/sqlevent');
 }
 
 /**
@@ -65,7 +68,8 @@ export class TelemetryParams {
  * Event sent when the language service send a status change event
  */
 export namespace StatusChangedNotification {
-    export const type: NotificationType<StatusChangeParams> = { get method(): string { return 'textDocument/statusChanged'; } };
+    export const type: NotificationType<StatusChangeParams, void> =
+        new NotificationType<StatusChangeParams, void>('textDocument/statusChanged');
 }
 
 /**

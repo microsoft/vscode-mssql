@@ -138,10 +138,10 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-                // Initialize telemetry
-                Telemetry.initialize(self._context);
+            // Initialize telemetry
+            Telemetry.initialize(self._context);
 
-                SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
+            SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
 
                 // Init status bar
                 self._statusview = new StatusView();
