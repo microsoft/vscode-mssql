@@ -136,7 +136,7 @@ export default class QueryRunner {
             // Attempting to launch the query failed, show the error message
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
-            self._vscodeWrapper.showErrorMessage('Execution failed: ' + error);
+            self._vscodeWrapper.showErrorMessage('Execution failed: ' + error.message);
         });
     }
 
@@ -217,7 +217,7 @@ export default class QueryRunner {
             self._client.sendRequest<QueryExecuteSubsetParams, QueryExecuteSubsetResult, void>(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
                 resolve(result);
             }, error => {
-                self._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + error);
+                self._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + error.message);
                 reject();
             });
         });
@@ -235,7 +235,7 @@ export default class QueryRunner {
             self._client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
                 resolve();
             }, error => {
-                self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error);
+                self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error.message);
                 reject();
             });
         });

@@ -345,7 +345,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Cancel the query
         queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
-            self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error));
+            self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error.message));
         });
     }
 
