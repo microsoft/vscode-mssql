@@ -104,6 +104,21 @@ class LanguageClientErrorHandler {
     }
 }
 
+export class InitializationState {
+    client: LanguageClient;
+    clientResult: ServerInitializationResult;
+    platformInfo: PlatformInformation;
+
+    public constructor(platformInfo: PlatformInformation) {
+        let result: ServerInitializationResult = new ServerInitializationResult();
+        result.isRunning = false;
+
+        this.client = undefined;
+        this.clientResult = result;
+        this.platformInfo = platformInfo;
+    }
+}
+
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
     // singleton instance
@@ -148,58 +163,111 @@ export default class SqlToolsServiceClient {
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
     public initialize(context: ExtensionContext): Promise<ServerInitializationResult> {
-         this._logger.appendLine(Constants.serviceInitializing);
+        let self = this;
+        self._logger.appendLine(Constants.serviceInitializing);
 
-         return PlatformInformation.GetCurrent().then( platformInfo => {
-            return this.initializeForPlatform(platformInfo, context);
-         });
+        // Get the information about the platform
+        return PlatformInformation.GetCurrent()
+        .then(platformInfo => { return self.initializeWithPlatform(new InitializationState(platformInfo)); })
+        .then(state => { return self.startLanguageClient(context, state); });
     }
 
-    public initializeForPlatform(platformInfo: PlatformInformation, context: ExtensionContext): Promise<ServerInitializationResult> {
+
+    public initializeWithPlatform(state: InitializationState): Promise<InitializationState> {
         let self = this;
-        return new Promise<ServerInitializationResult>( (resolve, reject) => {
-            // Log some stuff about the platform
-            self._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
-            self._logger.appendLine();
-            self._logger.append(`Platform: ${platformInfo.toString()}`);
 
-            // Make sure that the platform we're running on is valid
-            if (!platformInfo.isValidRuntime()) {
-                Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                Telemetry.sendTelemetryEvent('UnsupportedPlatform', {platform: platformInfo.toString()} );
-                reject('Invalid Platform');
-                return;
-            }
+        // Log some stuff about the platform
+        self._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
+        self._logger.appendLine();
+        self._logger.append(`Platform: ${state.platformInfo.toString()}`);
 
-            // We have a valid platform, log what it is
-            self._logger.appendLine(platformInfo.runtimeId ? ` (${platformInfo.getRuntimeDisplayName()})` : '');
-            self._logger.appendLine();
+        // Make sure that the platform we're running
+        if (!state.platformInfo.isValidRuntime()) {
+            Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
+            Telemetry.sendTelemetryEvent('UnsupportedPlatform', {platform: state.platformInfo.toString()} );
+            return Promise.reject(new Error('Invalid Platform'));
+        }
 
-            // Download the service if necessary
-            this._server.getServerPath(platformInfo.runtimeId).then(serverPath => {
-                // Determine if the service is already installed
-                if (serverPath === undefined) {
-                    // Service is not installed
-                    // Open output to show download logs
-                    if (_channel !== undefined) {
-                        _channel.show();
-                    }
+        // We have a valid platform, log what it is
+        self._logger.appendLine(state.platformInfo.runtimeId ? ` (${state.platformInfo.getRuntimeDisplayName()})` : '');
+        self._logger.appendLine();
 
-                    // Start downloading the service
-                    self._server.downloadServerFiles(platformInfo.runtimeId).then(installedServerPath => {
-                        self.initializeLanguageClient(installedServerPath, context).then(() => {
-                            resolve(new ServerInitializationResult(true, true, installedServerPath));
-                        });
-                    }).catch(downloadErr => {
-                        reject(downloadErr);
-                    });
-                } else {
-                    // Service is already installed
-                    self.initializeLanguageClient(serverPath, context).then(() => {
-                        resolve(new ServerInitializationResult(false, true, serverPath));
-                    });
-                }
-            });
+        // Get the path to the server
+        return self._server.getServerPath(state.platformInfo.runtimeId)
+        .then(serverPath => {
+            state.clientResult.serverPath = serverPath;
+            return self.downloadServiceIfNecessary(state);
+        })
+        .then(serverPath => { return self.createLanguageClient(serverPath); });
+    }
+
+    private downloadServiceIfNecessary(state: InitializationState): Promise<InitializationState> {
+        let self = this;
+
+        if (state.clientResult.serverPath !== undefined) {
+            // Service was already installed
+            return Promise.resolve(state);
+        }
+
+        // Service is not installed
+        // Open output to show download logs
+        if (_channel !== undefined) {
+            _channel.show();
+        }
+
+        // Service is not installed, download it and store the downloaded path
+        return self._server.downloadServerFiles(state.platformInfo.runtimeId)
+        .then(downloadedPath => {
+            state.clientResult.serverPath = downloadedPath;
+            state.clientResult.installedBeforeInitializing = true;
+            return state;
+        });
+    }
+
+    private createLanguageClient(state: InitializationState): InitializationState {
+        let self = this;
+
+        // Stop if we have an invalid path
+        if (state.clientResult.serverPath === undefined) {
+            Utils.logDebug(Constants.invalidServiceFilePath);
+            throw new Error(Constants.invalidServiceFilePath);
+        }
+
+        // Server path was good, so start initializing it
+        self.initializeLanguageConfiguration();
+        let serverOptions: ServerOptions = self.createServerOptions(state.clientResult.serverPath);
+        let clientOptions: LanguageClientOptions = {
+            documentSelector: ['sql'],
+            synchronize: {
+                configurationSection: 'mssql'
+            },
+            errorHandler: new LanguageClientErrorHandler()
+        };
+
+        // Create the client
+        state.client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
+        return state;
+    }
+
+    public startLanguageClient(context: ExtensionContext, state: InitializationState): Promise<ServerInitializationResult> {
+        let self = this;
+
+        // Start the client, register the disposable client
+        context.subscriptions.push(state.client.start());
+
+        // When it's ready, return the initialization result from the state
+        return state.client.onReady().then(() => {
+            // Store the client
+            self._client = state.client;
+
+            // Do basic initialization and event registration
+            self.checkServiceCompatibility();
+            self._client.onNotification(LanguageServiceContracts.TelemetryNotification.type, self.handleLanguageServiceTelemetryNotification());
+            self._client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, self.handleLanguageServiceStatusNotification());
+
+            // Indicate client is running and return the result
+            state.clientResult.isRunning = true;
+            return state.clientResult;
         });
     }
 
@@ -230,39 +298,6 @@ export default class SqlToolsServiceClient {
                     { open: '\'', close: '\'', notIn: ['string', 'comment'] }
                 ]
             }
-        });
-    }
-
-    private initializeLanguageClient(serverPath: string, context: ExtensionContext): Promise<void> {
-        let self = this;
-
-        // Stop if we have an invalid path
-        if (serverPath === undefined) {
-            Utils.logDebug(Constants.invalidServiceFilePath);
-            throw new Error(Constants.invalidServiceFilePath);
-        }
-
-        // Server path was good, so start initializing it
-        self.initializeLanguageConfiguration();
-        let serverOptions: ServerOptions = self.createServerOptions(serverPath);
-        let clientOptions: LanguageClientOptions = {
-            documentSelector: ['sql'],
-            synchronize: {
-                configurationSection: 'mssql'
-            },
-            errorHandler: new LanguageClientErrorHandler()
-        };
-
-        // Create and start the client
-        let client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
-        let disposableClient = client.start();
-        context.subscriptions.push(disposableClient);
-
-        return client.onReady().then(() => {
-            self._client = client;
-            self.checkServiceCompatibility();
-            client.onNotification(LanguageServiceContracts.TelemetryNotification.type, self.handleLanguageServiceTelemetryNotification());
-            client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, self.handleLanguageServiceStatusNotification());
         });
     }
 
@@ -324,7 +359,7 @@ export default class SqlToolsServiceClient {
      */
     public sendRequest<P, R, E>(type: RequestType<P, R, ResponseError<E>, void>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
-            return this.client.sendRequest<P, R, ResponseError<E>, void>(type, params, undefined);
+            return this.client.sendRequest<P, R, ResponseError<E>, void>(type, params);
         }
     }
 

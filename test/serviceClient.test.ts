@@ -2,6 +2,7 @@ import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import ServerProvider from '../src/languageservice/server';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
+import {InitializationState} from '../src/languageservice/serviceclient';
 import {Logger} from '../src/models/logger';
 import {PlatformInformation} from '../src/models/platform';
 import StatusView from './../src/views/statusView';
@@ -33,52 +34,117 @@ suite('Service Client tests', () => {
         });
     }
 
-    test('initializeForPlatform should not install the service if already exists', () => {
+    test('initializeWithPlatform should not install the service if already exists', () => {
+        // Setup:
+        // ... Create a fixture that mocks an already installed service
         let fixture: IFixture = {
             installedServerPath: 'already installed service',
             downloadedServerPath: undefined,
             platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
         };
-
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        // ... Create an initialization state object with the platform info
+        let initState: InitializationState = new InitializationState(fixture.platformInfo);
+
+        // If: I initialize a new tools service with valid state
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        return serviceClient.initializeWithPlatform(initState).then( result => {
+            // Then:
+            // ... A state object should be returned with a client obj, a result, and platform info
             assert.notEqual(result, undefined);
-            assert.equal(result.serverPath, fixture.installedServerPath);
-            assert.equal(result.installedBeforeInitializing, false);
+            assert.notEqual(result.client, undefined);
+            assert.notEqual(result.clientResult, undefined);
+
+            // ... The result must indicate that the client isn't running, was not installed
+            assert.equal(result.clientResult.serverPath, fixture.installedServerPath);
+            assert.equal(result.clientResult.installedBeforeInitializing, false);
+            assert.equal(result.clientResult.isRunning, false);
+        }).catch(error => {
+            assert.fail(error, undefined, 'initialize promise was rejected');
         });
     });
 
-    test('initializeForPlatform should install the service if not exists', () => {
+    test('initializeWithPlatform should install the service if not exists', () => {
+        // Setup:
+        // ... Create a fixture that mocks a not installed service
         let fixture: IFixture = {
             installedServerPath: undefined,
-            downloadedServerPath: 'downloaded service',
+            downloadedServerPath: 'potential',
             platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
         };
-
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        // ... Create an initialization state object with the platform info
+        let initState: InitializationState = new InitializationState(fixture.platformInfo);
+
+        // If: I initialize a new tools service with valid state
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        return serviceClient.initializeWithPlatform(initState).then( result => {
+            // Then:
+            // ... A state object should be returned with a client obj, a result, and platform info
             assert.notEqual(result, undefined);
-            assert.equal(result.serverPath, fixture.downloadedServerPath);
-            assert.equal(result.installedBeforeInitializing, true);
+            assert.notEqual(result.client, undefined);
+            assert.notEqual(result.clientResult, undefined);
+
+            // ... The result must indicate that the client isn't running, was installed
+            assert.equal(result.clientResult.serverPath, fixture.downloadedServerPath);
+            assert.equal(result.clientResult.installedBeforeInitializing, true);
+            assert.equal(result.clientResult.isRunning, false);
+        }).catch(error => {
+            assert.fail(error, undefined, 'initialize promise was rejected');
         });
     });
 
-    test('initializeForPlatform should fails given unsupported platform', () => {
+    test('initalizeWithPlatform should throw on failed download', () => {
+        // Setup:
+        // ... Create a fixture that mocks an failed download (missing downloaded path and installed path)
         let fixture: IFixture = {
-            installedServerPath: 'already installed service',
+            installedServerPath: undefined,
+            downloadedServerPath: undefined,
+            platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
+        };
+        setupMocks(fixture);
+
+        // ... Create an initialization state object with the platform info
+        let initState: InitializationState = new InitializationState(fixture.platformInfo);
+
+        // If: I initialize a new tools service client that will fail to return a server path
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        return serviceClient.initializeWithPlatform(initState).then(state => {
+            // Then:
+            // ... It should not have succeeded
+            assert.fail(state, undefined, 'initialize promise was resolved');
+        }, error => {
+            // ... The error message should not be empty
+            assert.notEqual(error, undefined);
+            assert.equal(error.message.length > 0, true);
+        });
+    });
+
+    test('initalizeWithPlatform should reject on invalid runtime', () => {
+        // Setup:
+        // ... Create a fixture that mocks an invalid runtime
+        let fixture: IFixture = {
+            installedServerPath: undefined,
             downloadedServerPath: undefined,
             platformInfo: new PlatformInformation('invalid platform', 'x86_64', undefined)
         };
-
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
 
-        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).catch( error => {
-            return assert.equal(error, 'Invalid Platform');
+        // ... Create an initialization state object with the platform info
+        let initState: InitializationState = new InitializationState(fixture.platformInfo);
+
+        // If: I initialize a new tools service client with invalid runtime
+        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        return serviceClient.initializeWithPlatform(initState).then(state => {
+            // Then:
+            // ... It should not have succeeded
+            assert.fail(state, undefined, 'initialize promise was resolved');
+        }, error => {
+            // ... The error message should not be empty
+            assert.notEqual(error, undefined);
+            assert.equal(error.message.length > 0, true);
         });
     });
 
