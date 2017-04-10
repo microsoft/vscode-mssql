@@ -1,8 +1,6 @@
 /*---------------------------------------------------------
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
-/// <reference path="../typings/node.d.ts" />
-
 'use strict';
 import paths = require('path');
 const fs = require('fs');
@@ -20,8 +18,7 @@ if (!tty.getWindowSize) {
 }
 
 let mocha = new Mocha({
-    ui: 'tdd',
-    useColors: true
+    ui: 'tdd'
 });
 
 let testOptions = undefined;
@@ -73,12 +70,8 @@ function run(testsRoot, clb): any {
             // Run the tests
             let failureCount = 0;
 
-            mocha.run()
-                .on('fail', function (test, err): void {
-                failureCount++;
-            })
-            .on('end', function (): void {
-                clb(undefined, failureCount);
+            mocha.run((failures: number) => {
+                process.on('exit', () => { clb(undefined, failureCount); });
             });
         } catch (error) {
             return clb(error);

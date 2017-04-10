@@ -64,12 +64,8 @@ suite('ConnectionStore tests', () => {
     });
 
     test('formatCredentialId should handle server, DB and username correctly', () => {
-        try {
-            ConnectionStore.formatCredentialId('', '', '');
-            assert.fail('Expected exception to be thrown when server name missing');
-        } catch (e) {
-            // Expected
-        }
+        assert.throws(() => { ConnectionStore.formatCredentialId('', '', ''); });
+
         let serverName = 'myServer';
         let dbName = 'someDB';
         let userName = 'aUser';

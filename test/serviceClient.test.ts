@@ -61,7 +61,7 @@ suite('Service Client tests', () => {
             assert.equal(result.clientResult.installedBeforeInitializing, false);
             assert.equal(result.clientResult.isRunning, false);
         }).catch(error => {
-            assert.fail(error, undefined, 'initialize promise was rejected');
+            assert.fail(error, undefined, 'initialize promise was rejected', undefined);
         });
     });
 
@@ -92,7 +92,7 @@ suite('Service Client tests', () => {
             assert.equal(result.clientResult.installedBeforeInitializing, true);
             assert.equal(result.clientResult.isRunning, false);
         }).catch(error => {
-            assert.fail(error, undefined, 'initialize promise was rejected');
+            assert.fail(error, undefined, 'initialize promise was rejected', undefined);
         });
     });
 
@@ -114,7 +114,7 @@ suite('Service Client tests', () => {
         return serviceClient.initializeWithPlatform(initState).then(state => {
             // Then:
             // ... It should not have succeeded
-            assert.fail(state, undefined, 'initialize promise was resolved');
+            assert.fail(state, undefined, 'initialize promise was resolved', undefined);
         }, error => {
             // ... The error message should not be empty
             assert.notEqual(error, undefined);
@@ -140,7 +140,7 @@ suite('Service Client tests', () => {
         return serviceClient.initializeWithPlatform(initState).then(state => {
             // Then:
             // ... It should not have succeeded
-            assert.fail(state, undefined, 'initialize promise was resolved');
+            assert.fail(state, undefined, 'initialize promise was resolved', undefined);
         }, error => {
             // ... The error message should not be empty
             assert.notEqual(error, undefined);
