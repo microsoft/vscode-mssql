@@ -18,7 +18,8 @@ if (!tty.getWindowSize) {
 }
 
 let mocha = new Mocha({
-    ui: 'tdd'
+    ui: 'tdd',
+    useColors: true
 });
 
 let testOptions = undefined;
@@ -70,8 +71,12 @@ function run(testsRoot, clb): any {
             // Run the tests
             let failureCount = 0;
 
-            mocha.run((failures: number) => {
-                process.on('exit', () => { clb(undefined, failureCount); });
+            mocha.run()
+                .on('fail', function (test, err): void {
+                failureCount++;
+            })
+            .on('end', function (): void {
+                clb(undefined, failureCount);
             });
         } catch (error) {
             return clb(error);
