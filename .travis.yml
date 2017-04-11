@@ -38,7 +38,7 @@ script:
     else
       xvfb-maybe ./node_modules/.bin/karma start;
     fi
-  - xvfb-maybe node ./node_modules/vscode/bin/test
+  - xvfb-maybe --max-old-space-size=8192 ./node_modules/vscode/bin/test
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       gulp cover:combine;
       node_modules/.bin/coveralls < coverage/lcov.info;
