@@ -3,387 +3,387 @@
     <body>
         <trans-unit id="configMyConnectionsNoServerName">
             <source xml:lang="en">Missing server name in user preferences connection: </source>
+            <target>Отсутствует имя сервера в пользовательских настройках подключения:</target>
         </trans-unit>
         <trans-unit id="msgLocalWebserviceStaticContent">
             <source xml:lang="en">LocalWebService: added static html content path: </source>
+            <target>LocalWebService: добавлен путь для статического контента html:</target>
         </trans-unit>
         <trans-unit id="msgLocalWebserviceStarted">
             <source xml:lang="en">LocalWebService listening on port </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAllBatchesExecuted">
-            <source xml:lang="en">runQuery: all batches executed</source>
+            <target>LocalWebService прослушивает порт</target>
         </trans-unit>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
+            <target>Начало выполнения запроса для документа «{0}»</target>
         </trans-unit>
         <trans-unit id="msgFinishedExecute">
             <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryError">
-            <source xml:lang="en">runQuery: error: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryExecutingBatch">
-            <source xml:lang="en">runQuery: executeBatch called with SQL: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAddBatchResultsets">
-            <source xml:lang="en">runQuery: adding resultsets for batch: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAddBatchError">
-            <source xml:lang="en">runQuery: adding error message for batch: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryConnectionActive">
-            <source xml:lang="en">runQuery: active connection is connected, using it to run query</source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryConnectionDisconnected">
-            <source xml:lang="en">runQuery: active connection is disconnected, reconnecting</source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryNoConnection">
-            <source xml:lang="en">runQuery: no active connection - prompting for user</source>
+            <target>Завершено выполнение запроса для документа «{0}»</target>
         </trans-unit>
         <trans-unit id="msgRunQueryInProgress">
             <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
+            <target>Запрос уже выполняется в активном документе. Отмените запрос или дождитесь окончания его выполнения.</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartMessage">
             <source xml:lang="en">Started executing query at </source>
+            <target>Начало выполнения запроса</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartLine">
             <source xml:lang="en">Line {0}</source>
+            <target>Строка {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryFailed">
             <source xml:lang="en">Canceling the query failed: {0}</source>
+            <target>Ошибка при отмене запроса: {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryNotRunning">
             <source xml:lang="en">Cannot cancel query as no query is running.</source>
-        </trans-unit>
-        <trans-unit id="msgCancelQuerySuccess">
-            <source xml:lang="en">Successfully canceled the query.</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnContentUpdated">
-            <source xml:lang="en">Content provider: onContentUpdated called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderAssociationFailure">
-            <source xml:lang="en">Content provider: Unable to associate status view for current file</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnRootEndpoint">
-            <source xml:lang="en">LocalWebService: Root end-point called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnResultsEndpoint">
-            <source xml:lang="en">LocalWebService: ResultsetsMeta endpoint called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnMessagesEndpoint">
-            <source xml:lang="en">LocalWebService: Messages end-point called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnColumnsEndpoint">
-            <source xml:lang="en">LocalWebService:  Columns end-point called for index = </source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnRowsEndpoint">
-            <source xml:lang="en">LocalWebService: Rows end-point called for index = </source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnClear">
-            <source xml:lang="en">Content provider: clear called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnUpdateContent">
-            <source xml:lang="en">Content provider: updateContent called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderProvideContent">
-            <source xml:lang="en">Content provider: provideTextDocumentContent called: </source>
+            <target>Невозможно отменить запрос, так как ни один запрос не выполняется.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabaseNotConnected">
             <source xml:lang="en">No connection was found. Please connect to a server first.</source>
+            <target>Соединение отсутствует. Пожалуйста, подключитесь к серверу.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabasePlaceholder">
             <source xml:lang="en">Choose a database from the list below</source>
+            <target>Выберите базу данных из списка ниже</target>
         </trans-unit>
         <trans-unit id="msgConnectionError">
             <source xml:lang="en">Error {0}: {1}</source>
+            <target>Ошибка {0}: {1}</target>
         </trans-unit>
         <trans-unit id="msgConnectionError2">
             <source xml:lang="en">Failed to connect: {0}</source>
+            <target>Не удалось установить соединение: {0}</target>
         </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
             <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
+            <target>Ошибка {0}: {1}. Попробуйте войти под учетной записью другого пользователя и измените пароль с помощью инструкции ALTER LOGIN.</target>
         </trans-unit>
         <trans-unit id="connectionErrorChannelName">
             <source xml:lang="en">Connection Errors</source>
+            <target>Ошибки подключения</target>
         </trans-unit>
         <trans-unit id="msgPromptCancelConnect">
             <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
+            <target>Выполняется подключение к серверу. Хотите отменить?</target>
         </trans-unit>
         <trans-unit id="msgPromptClearRecentConnections">
             <source xml:lang="en">Confirm to clear recent connections list</source>
+            <target>Подтвердите очистку списка недавних подключений</target>
         </trans-unit>
         <trans-unit id="extensionActivated">
             <source xml:lang="en">activated.</source>
+            <target>активировано.</target>
         </trans-unit>
         <trans-unit id="extensionDeactivated">
             <source xml:lang="en">de-activated.</source>
+            <target>деактивировано.</target>
         </trans-unit>
         <trans-unit id="msgOpenSqlFile">
             <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
+            <target>Для использования этой команды, откройте файл .sql, либо измените языковой режим окна редактора на «SQL», либо выберите текст T-SQL в активном окне редактора.</target>
         </trans-unit>
         <trans-unit id="recentConnectionsPlaceholder">
             <source xml:lang="en">Choose a connection profile from the list below</source>
-        </trans-unit>
-        <trans-unit id="msgNoConnectionsInSettings">
-            <source xml:lang="en">To use this command, add connection profile to User Settings.</source>
-        </trans-unit>
-        <trans-unit id="labelOpenGlobalSettings">
-            <source xml:lang="en">Open Global Settings</source>
-        </trans-unit>
-        <trans-unit id="labelOpenWorkspaceSettings">
-            <source xml:lang="en">Open Workspace Settings</source>
+            <target>Выберите профиль подключения из списка ниже</target>
         </trans-unit>
         <trans-unit id="CreateProfileFromConnectionsListLabel">
             <source xml:lang="en">Create Connection Profile</source>
+            <target>Создать профиль подключения</target>
         </trans-unit>
         <trans-unit id="CreateProfileLabel">
             <source xml:lang="en">Create</source>
+            <target>Создать</target>
         </trans-unit>
         <trans-unit id="ClearRecentlyUsedLabel">
             <source xml:lang="en">Clear Recent Connections List</source>
+            <target>Очистить список недавних подключений</target>
         </trans-unit>
         <trans-unit id="EditProfilesLabel">
             <source xml:lang="en">Edit</source>
+            <target>Изменить</target>
         </trans-unit>
         <trans-unit id="RemoveProfileLabel">
             <source xml:lang="en">Remove</source>
+            <target>Удалить</target>
         </trans-unit>
         <trans-unit id="ManageProfilesPrompt">
             <source xml:lang="en">Manage Connection Profiles</source>
+            <target>Управление профилями подключения</target>
         </trans-unit>
         <trans-unit id="SampleServerName">
             <source xml:lang="en">{{put-server-name-here}}</source>
+            <target>{{введите-имя-сервера-здесь}}</target>
         </trans-unit>
         <trans-unit id="serverPrompt">
             <source xml:lang="en">Server name</source>
+            <target>Имя сервера</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
             <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net</source>
+            <target>хост\\имяэкземпляра или &lt;server&gt;.database.windows.net</target>
         </trans-unit>
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>
+            <target>Имя базы данных</target>
         </trans-unit>
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
-        </trans-unit>
-        <trans-unit id="databaseDefaultValue">
-            <source xml:lang="en">master</source>
+            <target>[Опционально] Имя базы данных для подключения (оставьте пустым, чтобы использовать базу данных по умолчанию)</target>
         </trans-unit>
         <trans-unit id="authTypePrompt">
             <source xml:lang="en">Authentication Type</source>
+            <target>Тип проверки подлинности</target>
         </trans-unit>
         <trans-unit id="authTypeIntegrated">
             <source xml:lang="en">Integrated</source>
+            <target>Встроенный</target>
         </trans-unit>
         <trans-unit id="authTypeSql">
             <source xml:lang="en">SQL Login</source>
-        </trans-unit>
-        <trans-unit id="authTypeAdUniversal">
-            <source xml:lang="en">Active Directory Universal</source>
+            <target>SQL Login</target>
         </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>
+            <target>Имя пользователя</target>
         </trans-unit>
         <trans-unit id="usernamePlaceholder">
             <source xml:lang="en">User name (SQL Login)</source>
+            <target>Имя пользователя (SQL Login)</target>
         </trans-unit>
         <trans-unit id="passwordPrompt">
             <source xml:lang="en">Password</source>
+            <target>Пароль</target>
         </trans-unit>
         <trans-unit id="passwordPlaceholder">
             <source xml:lang="en">Password (SQL Login)</source>
+            <target>Пароль (SQL Login)</target>
         </trans-unit>
         <trans-unit id="msgSavePassword">
             <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
+            <target>Сохранить пароль? Если «Нет», пароль будет требоваться каждый раз при подключении</target>
         </trans-unit>
         <trans-unit id="profileNamePrompt">
             <source xml:lang="en">Profile Name</source>
+            <target>Имя профиля</target>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
             <source xml:lang="en">[Optional] Enter a name for this profile</source>
+            <target>[Опционально] Введите имя для этого профиля</target>
         </trans-unit>
         <trans-unit id="filepathPrompt">
             <source xml:lang="en">File path</source>
-        </trans-unit>
-        <trans-unit id="filepathPlaceholder">
-            <source xml:lang="en">File name</source>
+            <target>Путь к файлу</target>
         </trans-unit>
         <trans-unit id="filepathMessage">
             <source xml:lang="en">File name</source>
+            <target>Имя файла</target>
         </trans-unit>
         <trans-unit id="overwritePrompt">
             <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
+            <target>Файл с таким именем уже существует. Вы действительно хотите заменить существующий файл?</target>
         </trans-unit>
         <trans-unit id="overwritePlaceholder">
             <source xml:lang="en">A file with this name already exists</source>
-        </trans-unit>
-        <trans-unit id="msgSaveResultInProgress">
-            <source xml:lang="en">A save request is already executing. Please wait for its completion.</source>
+            <target>Файл с таким именем уже существует</target>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
             <source xml:lang="en">Error occurred opening content in editor.</source>
+            <target>При открытии документа произошла ошибка.</target>
         </trans-unit>
         <trans-unit id="msgSaveStarted">
             <source xml:lang="en">Started saving results to </source>
+            <target>Начало сохранения результатов в</target>
         </trans-unit>
         <trans-unit id="msgSaveFailed">
             <source xml:lang="en">Failed to save results. </source>
+            <target>Не удалось сохранить результаты.</target>
         </trans-unit>
         <trans-unit id="msgSaveSucceeded">
             <source xml:lang="en">Successfully saved results to </source>
-        </trans-unit>
-        <trans-unit id="msgSelectProfile">
-            <source xml:lang="en">Select connection profile</source>
+            <target>Результаты успешно сохранены в</target>
         </trans-unit>
         <trans-unit id="msgSelectProfileToRemove">
             <source xml:lang="en">Select profile to remove</source>
+            <target>Выберите профиль для удаления</target>
         </trans-unit>
         <trans-unit id="confirmRemoveProfilePrompt">
             <source xml:lang="en">Confirm to remove this profile.</source>
+            <target>Подтвердите удаление этого профиля.</target>
         </trans-unit>
         <trans-unit id="msgNoProfilesSaved">
             <source xml:lang="en">No connection profile to remove.</source>
+            <target>Нет профилей для удаления.</target>
         </trans-unit>
         <trans-unit id="msgProfileRemoved">
             <source xml:lang="en">Profile removed successfully</source>
+            <target>Профиль успешно удален</target>
         </trans-unit>
         <trans-unit id="msgProfileCreated">
             <source xml:lang="en">Profile created successfully</source>
+            <target>Профиль успешно создан</target>
         </trans-unit>
         <trans-unit id="msgProfileCreatedAndConnected">
             <source xml:lang="en">Profile created and connected</source>
+            <target>Создан новый профиль, подключение установлено</target>
         </trans-unit>
         <trans-unit id="msgClearedRecentConnections">
             <source xml:lang="en">Recent connections list cleared</source>
-        </trans-unit>
-        <trans-unit id="msgSelectionIsRequired">
-            <source xml:lang="en">Selection is required.</source>
+            <target>Cписок последних подключений очищен</target>
         </trans-unit>
         <trans-unit id="msgIsRequired">
             <source xml:lang="en"> is required.</source>
-        </trans-unit>
-        <trans-unit id="msgRetry">
-            <source xml:lang="en">Retry</source>
+            <target>является обязательным.</target>
         </trans-unit>
         <trans-unit id="msgError">
             <source xml:lang="en">Error: </source>
+            <target>Ошибка:</target>
         </trans-unit>
         <trans-unit id="msgYes">
             <source xml:lang="en">Yes</source>
+            <target>Да</target>
         </trans-unit>
         <trans-unit id="msgNo">
             <source xml:lang="en">No</source>
+            <target>Нет</target>
         </trans-unit>
         <trans-unit id="defaultDatabaseLabel">
             <source xml:lang="en">&lt;default&gt;</source>
+            <target>&lt; по умолчанию &gt;</target>
         </trans-unit>
         <trans-unit id="notConnectedLabel">
             <source xml:lang="en">Disconnected</source>
+            <target>Отключен</target>
         </trans-unit>
         <trans-unit id="notConnectedTooltip">
             <source xml:lang="en">Click to connect to a database</source>
+            <target>Щелкните здесь, чтобы подключиться к базе данных</target>
         </trans-unit>
         <trans-unit id="connectingLabel">
             <source xml:lang="en">Connecting</source>
+            <target>Подключение</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
             <source xml:lang="en">Connecting to: </source>
-        </trans-unit>
-        <trans-unit id="connectedLabel">
-            <source xml:lang="en">Connected.</source>
+            <target>Подключение к:</target>
         </trans-unit>
         <trans-unit id="connectErrorLabel">
             <source xml:lang="en">Connection error</source>
+            <target>Ошибка подключения</target>
         </trans-unit>
         <trans-unit id="connectErrorTooltip">
             <source xml:lang="en">Error connecting to: </source>
+            <target>Ошибка при подключении к:</target>
         </trans-unit>
         <trans-unit id="connectErrorCode">
-            <source xml:lang="en">Errorcode: </source>
+            <source xml:lang="en">Error code: </source>
+            <target>Ошибка:</target>
         </trans-unit>
         <trans-unit id="connectErrorMessage">
-            <source xml:lang="en">ErrorMessage: </source>
+            <source xml:lang="en">Error Message: </source>
+            <target>Сообщение:</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query </source>
+            <target>Выполнение запроса</target>
         </trans-unit>
         <trans-unit id="cancelingQueryLabel">
             <source xml:lang="en">Canceling query </source>
+            <target>Отмена запроса</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseLabel">
             <source xml:lang="en">Updating IntelliSense...</source>
-        </trans-unit>
-        <trans-unit id="unfoundResult">
-            <source xml:lang="en">Data was disposed when text editor was closed; to view data please reexecute query.</source>
+            <target>Обновление IntelliSense...</target>
         </trans-unit>
         <trans-unit id="extensionNotInitializedError">
             <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
+            <target>Невозможно выполнить команду в процессе инициализации расширения. Пожалуйста, повторите попытку позже.</target>
         </trans-unit>
         <trans-unit id="untitledScheme">
             <source xml:lang="en">untitled</source>
+            <target>без названия</target>
         </trans-unit>
         <trans-unit id="msgChangeLanguageMode">
             <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
+            <target>Для использования этой команды, в активном окне редактора должен использоваться языковой режим «SQL». Подтвердите изменение языкового режима.</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabaseContext">
             <source xml:lang="en">Changed database context to &quot;{0}&quot; for document &quot;{1}&quot;</source>
+            <target>Контекст базы данных изменен на «{0}» для документа «{1}»</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryCreateProfile">
             <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+            <target>Ошибка: Не удается подключиться с использованием предоставленных сведений о подключении. Повторить создание профиля?</target>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
+            <target>Повторить попытку</target>
         </trans-unit>
         <trans-unit id="msgConnecting">
             <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
+            <target>Подключение к серверу «{0}» в документе «{1}».</target>
         </trans-unit>
         <trans-unit id="msgConnectedServerInfo">
             <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
+            <target>Подключение к серверу «{0}» в документе «{1}». Сведения о сервере: {2}</target>
         </trans-unit>
         <trans-unit id="msgConnectionFailed">
             <source xml:lang="en">Error connecting to server &quot;{0}&quot;. Details: {1}</source>
+            <target>При подключении к серверу «{0}» возникла ошибка: {1}</target>
         </trans-unit>
         <trans-unit id="msgChangingDatabase">
             <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
+            <target>Подключение к базе данных «{0}» на сервере «{1}» в документе «{2}».</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabase">
             <source xml:lang="en">Changed database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
+            <target>Контекст базы данных изменен на «{0}» на сервере «{1}» в документе «{2}».</target>
         </trans-unit>
         <trans-unit id="msgDisconnected">
             <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
+            <target>Завершено соединение для документа «{0}»</target>
         </trans-unit>
         <trans-unit id="msgErrorReadingConfigFile">
             <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-        </trans-unit>
-        <trans-unit id="msgErrorOpeningConfigFile">
-            <source xml:lang="en">Error: Unable to open connection profile settings file.</source>
+            <target>Ошибка: Не удалось загрузить список профилей из [{0}]. Проверьте корректность формата файла.</target>
         </trans-unit>
         <trans-unit id="titleResultsPane">
             <source xml:lang="en">Results: {0}</source>
+            <target>Результаты: {0}</target>
         </trans-unit>
         <trans-unit id="macOpenSslErrorMessage">
             <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
+            <target>Для подключения требуется OpenSSL версии 1.0.1 или старше.</target>
         </trans-unit>
         <trans-unit id="macOpenSslHelpButton">
             <source xml:lang="en">Help</source>
+            <target>Справка</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
+            <target>Получение определения...</target>
         </trans-unit>
         <trans-unit id="definitionRequestedStatus">
             <source xml:lang="en">DefinitionRequested</source>
+            <target>DefinitionRequested</target>
         </trans-unit>
         <trans-unit id="definitionRequestCompletedStatus">
             <source xml:lang="en">DefinitionRequestCompleted</source>
+            <target>DefinitionRequestCompleted</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseStatus">
             <source xml:lang="en">updatingIntelliSense</source>
+            <target>updatingIntelliSense</target>
         </trans-unit>
         <trans-unit id="intelliSenseUpdatedStatus">
             <source xml:lang="en">intelliSenseUpdated</source>
+            <target>intelliSenseUpdated</target>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
-            <source xml:lang="en">test_en</source>
+            <source xml:lang="en">test</source>
+            <target>тест</target>
         </trans-unit>
     </body>
   </file>
