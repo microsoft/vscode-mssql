@@ -7,384 +7,383 @@
         </trans-unit>
         <trans-unit id="msgLocalWebserviceStaticContent">
             <source xml:lang="en">LocalWebService: added static html content path: </source>
+            <target>LocalWebService: static html 콘텐츠 경로 추가:</target>
         </trans-unit>
         <trans-unit id="msgLocalWebserviceStarted">
             <source xml:lang="en">LocalWebService listening on port </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAllBatchesExecuted">
-            <source xml:lang="en">runQuery: all batches executed</source>
+            <target>LocalWebService 포트에서 수신 대기</target>
         </trans-unit>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
+            <target>&quot;{0}&quot;의 쿼리 실행 시작</target>
         </trans-unit>
         <trans-unit id="msgFinishedExecute">
             <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryError">
-            <source xml:lang="en">runQuery: error: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryExecutingBatch">
-            <source xml:lang="en">runQuery: executeBatch called with SQL: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAddBatchResultsets">
-            <source xml:lang="en">runQuery: adding resultsets for batch: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAddBatchError">
-            <source xml:lang="en">runQuery: adding error message for batch: </source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryConnectionActive">
-            <source xml:lang="en">runQuery: active connection is connected, using it to run query</source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryConnectionDisconnected">
-            <source xml:lang="en">runQuery: active connection is disconnected, reconnecting</source>
-        </trans-unit>
-        <trans-unit id="msgRunQueryNoConnection">
-            <source xml:lang="en">runQuery: no active connection - prompting for user</source>
+            <target>&quot;{0}&quot;의 쿼리 실행 완료</target>
         </trans-unit>
         <trans-unit id="msgRunQueryInProgress">
             <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
+            <target>쿼리가 이미 실행 중입니다. 현재 실행 중인 쿼리를 취소하거나 완료 될 때까지 기다리세요.</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartMessage">
             <source xml:lang="en">Started executing query at </source>
+            <target>쿼리 실행 시작: </target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartLine">
             <source xml:lang="en">Line {0}</source>
+            <target>줄 {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryFailed">
             <source xml:lang="en">Canceling the query failed: {0}</source>
+            <target>쿼리 취소 실패: {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryNotRunning">
             <source xml:lang="en">Cannot cancel query as no query is running.</source>
-        </trans-unit>
-        <trans-unit id="msgCancelQuerySuccess">
-            <source xml:lang="en">Successfully canceled the query.</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnContentUpdated">
-            <source xml:lang="en">Content provider: onContentUpdated called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderAssociationFailure">
-            <source xml:lang="en">Content provider: Unable to associate status view for current file</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnRootEndpoint">
-            <source xml:lang="en">LocalWebService: Root end-point called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnResultsEndpoint">
-            <source xml:lang="en">LocalWebService: ResultsetsMeta endpoint called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnMessagesEndpoint">
-            <source xml:lang="en">LocalWebService: Messages end-point called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnColumnsEndpoint">
-            <source xml:lang="en">LocalWebService:  Columns end-point called for index = </source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnRowsEndpoint">
-            <source xml:lang="en">LocalWebService: Rows end-point called for index = </source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnClear">
-            <source xml:lang="en">Content provider: clear called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnUpdateContent">
-            <source xml:lang="en">Content provider: updateContent called</source>
-        </trans-unit>
-        <trans-unit id="msgContentProviderProvideContent">
-            <source xml:lang="en">Content provider: provideTextDocumentContent called: </source>
+            <target>실행 중인 쿼리가 없습니다.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabaseNotConnected">
             <source xml:lang="en">No connection was found. Please connect to a server first.</source>
+            <target>서버에 연결되어 있지 않습니다. 먼저 서버에 접속하세요.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabasePlaceholder">
             <source xml:lang="en">Choose a database from the list below</source>
+            <target>목록에서 데이터베이스를 선택하세요.</target>
         </trans-unit>
         <trans-unit id="msgConnectionError">
             <source xml:lang="en">Error {0}: {1}</source>
+            <target>오류 {0}: {1}</target>
         </trans-unit>
         <trans-unit id="msgConnectionError2">
             <source xml:lang="en">Failed to connect: {0}</source>
+            <target>연결 실패: {0}</target>
         </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
             <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
+            <target>오류 {0}: {1} 다른 사용자로 로그인 한 다음 ALTER LOGIN을 사용하여 암호를 변경하십시오.</target>
         </trans-unit>
         <trans-unit id="connectionErrorChannelName">
             <source xml:lang="en">Connection Errors</source>
+            <target>연결 오류</target>
         </trans-unit>
         <trans-unit id="msgPromptCancelConnect">
             <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
+            <target>서버를 연결 하는 중입니다. 취소 하시겠습니까?</target>
         </trans-unit>
         <trans-unit id="msgPromptClearRecentConnections">
             <source xml:lang="en">Confirm to clear recent connections list</source>
+            <target>최근 연결 목록 삭제를 승인합니다.</target>
         </trans-unit>
         <trans-unit id="extensionActivated">
             <source xml:lang="en">activated.</source>
+            <target>활성화됨.</target>
         </trans-unit>
         <trans-unit id="extensionDeactivated">
             <source xml:lang="en">de-activated.</source>
+            <target>비 활성화 됨.</target>
         </trans-unit>
         <trans-unit id="msgOpenSqlFile">
             <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
+            <target>이 명령을 사용하기 위해, .sql 파일을 열거나 -또는- 편집기 언어를 &quot;SQL&quot;로 변경하거나 -또는-현재 SQL 편집기에서 T-SQL 텍스트를 선택하십시오.</target>
         </trans-unit>
         <trans-unit id="recentConnectionsPlaceholder">
             <source xml:lang="en">Choose a connection profile from the list below</source>
-        </trans-unit>
-        <trans-unit id="msgNoConnectionsInSettings">
-            <source xml:lang="en">To use this command, add connection profile to User Settings.</source>
-        </trans-unit>
-        <trans-unit id="labelOpenGlobalSettings">
-            <source xml:lang="en">Open Global Settings</source>
-        </trans-unit>
-        <trans-unit id="labelOpenWorkspaceSettings">
-            <source xml:lang="en">Open Workspace Settings</source>
+            <target>목록에서 연결 프로필을 선택하세요.</target>
         </trans-unit>
         <trans-unit id="CreateProfileFromConnectionsListLabel">
             <source xml:lang="en">Create Connection Profile</source>
+            <target>새 연결 프로필 작성</target>
         </trans-unit>
         <trans-unit id="CreateProfileLabel">
             <source xml:lang="en">Create</source>
+            <target>만들기</target>
         </trans-unit>
         <trans-unit id="ClearRecentlyUsedLabel">
             <source xml:lang="en">Clear Recent Connections List</source>
+            <target>최근 연결 목록 삭제</target>
         </trans-unit>
         <trans-unit id="EditProfilesLabel">
             <source xml:lang="en">Edit</source>
+            <target>편집</target>
         </trans-unit>
         <trans-unit id="RemoveProfileLabel">
             <source xml:lang="en">Remove</source>
+            <target>제거</target>
         </trans-unit>
         <trans-unit id="ManageProfilesPrompt">
             <source xml:lang="en">Manage Connection Profiles</source>
+            <target>연결 프로필 관리</target>
         </trans-unit>
         <trans-unit id="SampleServerName">
             <source xml:lang="en">{{put-server-name-here}}</source>
+            <target>{{서버 이름을 지정하세요}}</target>
         </trans-unit>
         <trans-unit id="serverPrompt">
             <source xml:lang="en">Server name</source>
+            <target>서버 이름</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
             <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net</source>
+            <target>hostname\\instance 또는 &lt; 서버 &gt;. database.windows.net</target>
         </trans-unit>
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>
+            <target>데이터베이스 이름</target>
         </trans-unit>
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
-        </trans-unit>
-        <trans-unit id="databaseDefaultValue">
-            <source xml:lang="en">master</source>
+            <target>[선택 사항] 연결할 데이터베이스 (&lt;defualt&gt; 데이터베이스에 연결하기 위해 Enter를 누릅니다)</target>
         </trans-unit>
         <trans-unit id="authTypePrompt">
             <source xml:lang="en">Authentication Type</source>
+            <target>인증 유형</target>
         </trans-unit>
         <trans-unit id="authTypeIntegrated">
             <source xml:lang="en">Integrated</source>
+            <target>통합인증</target>
         </trans-unit>
         <trans-unit id="authTypeSql">
             <source xml:lang="en">SQL Login</source>
-        </trans-unit>
-        <trans-unit id="authTypeAdUniversal">
-            <source xml:lang="en">Active Directory Universal</source>
+            <target>SQL 로그인</target>
         </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>
+            <target>사용자 이름</target>
         </trans-unit>
         <trans-unit id="usernamePlaceholder">
             <source xml:lang="en">User name (SQL Login)</source>
+            <target>사용자 이름 (SQL 로그인)</target>
         </trans-unit>
         <trans-unit id="passwordPrompt">
             <source xml:lang="en">Password</source>
+            <target>암호</target>
         </trans-unit>
         <trans-unit id="passwordPlaceholder">
             <source xml:lang="en">Password (SQL Login)</source>
+            <target>암호 (SQL 로그인)</target>
         </trans-unit>
         <trans-unit id="msgSavePassword">
             <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
+            <target>암호를 저장하시겠습니까? 연결할 때 마다 암호를 입력하려면 '아니오'를 선택하세요.</target>
         </trans-unit>
         <trans-unit id="profileNamePrompt">
             <source xml:lang="en">Profile Name</source>
+            <target>프로필 이름</target>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
             <source xml:lang="en">[Optional] Enter a name for this profile</source>
+            <target>[선택 사항] 프로필 이름을 입력하세요.</target>
         </trans-unit>
         <trans-unit id="filepathPrompt">
             <source xml:lang="en">File path</source>
-        </trans-unit>
-        <trans-unit id="filepathPlaceholder">
-            <source xml:lang="en">File name</source>
+            <target>파일 경로</target>
         </trans-unit>
         <trans-unit id="filepathMessage">
             <source xml:lang="en">File name</source>
+            <target>파일 이름</target>
         </trans-unit>
         <trans-unit id="overwritePrompt">
             <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
+            <target>같은 이름의 파일이 이미 있습니다. 기존 파일을 대체 하시겠습니까?</target>
         </trans-unit>
         <trans-unit id="overwritePlaceholder">
             <source xml:lang="en">A file with this name already exists</source>
-        </trans-unit>
-        <trans-unit id="msgSaveResultInProgress">
-            <source xml:lang="en">A save request is already executing. Please wait for its completion.</source>
+            <target>같은 이름의 파일이 이미 있습니다.</target>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
             <source xml:lang="en">Error occurred opening content in editor.</source>
+            <target>편집기에서 콘텐츠를 여는 중 오류가 발생했습니다.</target>
         </trans-unit>
         <trans-unit id="msgSaveStarted">
             <source xml:lang="en">Started saving results to </source>
+            <target>결과 저장 시작: </target>
         </trans-unit>
         <trans-unit id="msgSaveFailed">
             <source xml:lang="en">Failed to save results. </source>
+            <target>결과 저장에 실패하였습니다.</target>
         </trans-unit>
         <trans-unit id="msgSaveSucceeded">
             <source xml:lang="en">Successfully saved results to </source>
-        </trans-unit>
-        <trans-unit id="msgSelectProfile">
-            <source xml:lang="en">Select connection profile</source>
+            <target>결과 저장 완료: </target>
         </trans-unit>
         <trans-unit id="msgSelectProfileToRemove">
             <source xml:lang="en">Select profile to remove</source>
+            <target>제거할 프로필을 선택하세요.</target>
         </trans-unit>
         <trans-unit id="confirmRemoveProfilePrompt">
             <source xml:lang="en">Confirm to remove this profile.</source>
+            <target>이 프로필을 제거 하려면 확인 하십시오.</target>
         </trans-unit>
         <trans-unit id="msgNoProfilesSaved">
             <source xml:lang="en">No connection profile to remove.</source>
+            <target>제거할 연결 프로필이 없습니다.</target>
         </trans-unit>
         <trans-unit id="msgProfileRemoved">
             <source xml:lang="en">Profile removed successfully</source>
+            <target>프로필을 제거했습니다.</target>
         </trans-unit>
         <trans-unit id="msgProfileCreated">
             <source xml:lang="en">Profile created successfully</source>
+            <target>프로필을 만들었습니다.</target>
         </trans-unit>
         <trans-unit id="msgProfileCreatedAndConnected">
             <source xml:lang="en">Profile created and connected</source>
+            <target>새 프로필을 작성하고 연결했습니다.</target>
         </trans-unit>
         <trans-unit id="msgClearedRecentConnections">
             <source xml:lang="en">Recent connections list cleared</source>
-        </trans-unit>
-        <trans-unit id="msgSelectionIsRequired">
-            <source xml:lang="en">Selection is required.</source>
+            <target>최근 연결 목록을 삭제했습니다.</target>
         </trans-unit>
         <trans-unit id="msgIsRequired">
             <source xml:lang="en"> is required.</source>
-        </trans-unit>
-        <trans-unit id="msgRetry">
-            <source xml:lang="en">Retry</source>
+            <target>가 필요 합니다.</target>
         </trans-unit>
         <trans-unit id="msgError">
             <source xml:lang="en">Error: </source>
+            <target>오류:</target>
         </trans-unit>
         <trans-unit id="msgYes">
             <source xml:lang="en">Yes</source>
+            <target>예</target>
         </trans-unit>
         <trans-unit id="msgNo">
             <source xml:lang="en">No</source>
+            <target>아니요</target>
         </trans-unit>
         <trans-unit id="defaultDatabaseLabel">
             <source xml:lang="en">&lt;default&gt;</source>
+            <target>&lt;default&gt;</target>
         </trans-unit>
         <trans-unit id="notConnectedLabel">
             <source xml:lang="en">Disconnected</source>
+            <target>연결 끊김</target>
         </trans-unit>
         <trans-unit id="notConnectedTooltip">
             <source xml:lang="en">Click to connect to a database</source>
+            <target>데이터베이스에 연결을 클릭 합니다.</target>
         </trans-unit>
         <trans-unit id="connectingLabel">
             <source xml:lang="en">Connecting</source>
+            <target>연결</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
             <source xml:lang="en">Connecting to: </source>
-        </trans-unit>
-        <trans-unit id="connectedLabel">
-            <source xml:lang="en">Connected.</source>
+            <target>연결 중:</target>
         </trans-unit>
         <trans-unit id="connectErrorLabel">
             <source xml:lang="en">Connection error</source>
+            <target>연결 오류</target>
         </trans-unit>
         <trans-unit id="connectErrorTooltip">
             <source xml:lang="en">Error connecting to: </source>
+            <target>연결 중 오류:</target>
         </trans-unit>
         <trans-unit id="connectErrorCode">
-            <source xml:lang="en">Errorcode: </source>
+            <source xml:lang="en">Error code: </source>
+            <target>오류 코드:</target>
         </trans-unit>
         <trans-unit id="connectErrorMessage">
-            <source xml:lang="en">ErrorMessage: </source>
+            <source xml:lang="en">Error Message: </source>
+            <target>오류 메시지:</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query </source>
+            <target>쿼리 실행중</target>
         </trans-unit>
         <trans-unit id="cancelingQueryLabel">
             <source xml:lang="en">Canceling query </source>
+            <target>쿼리 취소</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseLabel">
             <source xml:lang="en">Updating IntelliSense...</source>
-        </trans-unit>
-        <trans-unit id="unfoundResult">
-            <source xml:lang="en">Data was disposed when text editor was closed; to view data please reexecute query.</source>
+            <target>IntelliSense를 업데이트 하는 중...</target>
         </trans-unit>
         <trans-unit id="extensionNotInitializedError">
             <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
+            <target>확장을 초기화 하는 동안 명령을 실행할 수 없습니다. 나중에 다시 시도 하십시오.</target>
         </trans-unit>
         <trans-unit id="untitledScheme">
             <source xml:lang="en">untitled</source>
+            <target>제목 없음</target>
         </trans-unit>
         <trans-unit id="msgChangeLanguageMode">
             <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
+            <target>이 명령을 사용 하려면 &quot;SQL&quot;로 언어를 설정 해야 합니다. 언어 모드를 변경 하려면 확인 하십시오.</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabaseContext">
             <source xml:lang="en">Changed database context to &quot;{0}&quot; for document &quot;{1}&quot;</source>
+            <target>&quot;{1}&quot;의 데이터베이스 컨텍스트가 &quot;{0}&quot;로 변경되었습니다.</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryCreateProfile">
             <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+            <target>오류: 제공된 연결 정보로 연결할 수 없습니다. 프로필을 다시 만드시겠습니까?</target>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
+            <target>재시도</target>
         </trans-unit>
         <trans-unit id="msgConnecting">
             <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
+            <target>&quot;{1}&quot;을 서버 &quot;{0}&quot;에 연결합니다.</target>
         </trans-unit>
         <trans-unit id="msgConnectedServerInfo">
             <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
+            <target>&quot;{1}&quot;을 서버 &quot;{0}&quot;에 연결하였습니다. 서버 정보: {2}</target>
         </trans-unit>
         <trans-unit id="msgConnectionFailed">
             <source xml:lang="en">Error connecting to server &quot;{0}&quot;. Details: {1}</source>
+            <target>서버 &quot;{0}&quot;에 연결하는 동안 오류가 발생했습니다. 세부 정보: {1}</target>
         </trans-unit>
         <trans-unit id="msgChangingDatabase">
             <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
+            <target>{2}의 데이터베이스 컨텍스트를 서버 {1}의 데이터베이스 {0}(으)로 변경 중입니다.</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabase">
             <source xml:lang="en">Changed database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
+            <target>{2}의 데이터베이스 컨텍스트를 서버 {1}의 데이터베이스 {0}(으)로 변경했습니다.</target>
         </trans-unit>
         <trans-unit id="msgDisconnected">
             <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
+            <target>&quot;{0}&quot;의 연결을 종료하였습니다.</target>
         </trans-unit>
         <trans-unit id="msgErrorReadingConfigFile">
             <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-        </trans-unit>
-        <trans-unit id="msgErrorOpeningConfigFile">
-            <source xml:lang="en">Error: Unable to open connection profile settings file.</source>
+            <target>오류: [{0}]에서 연결 프로필을 불러올 수 없습니다. 파일 형식이 올바른지 확인하십시오.</target>
         </trans-unit>
         <trans-unit id="titleResultsPane">
             <source xml:lang="en">Results: {0}</source>
+            <target>결과: {0}</target>
         </trans-unit>
         <trans-unit id="macOpenSslErrorMessage">
             <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
+            <target>연결을 위해 OpenSSL 버전 &gt;= 1.0.1이 필요합니다.</target>
         </trans-unit>
         <trans-unit id="macOpenSslHelpButton">
             <source xml:lang="en">Help</source>
+            <target>도움말</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
+            <target>정의 가져오는 중...</target>
         </trans-unit>
         <trans-unit id="definitionRequestedStatus">
             <source xml:lang="en">DefinitionRequested</source>
+            <target>정의 요청중</target>
         </trans-unit>
         <trans-unit id="definitionRequestCompletedStatus">
             <source xml:lang="en">DefinitionRequestCompleted</source>
+            <target>정의 요청 완료</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseStatus">
             <source xml:lang="en">updatingIntelliSense</source>
+            <target>IntelliSense 정보 업데이트 중</target>
         </trans-unit>
         <trans-unit id="intelliSenseUpdatedStatus">
             <source xml:lang="en">intelliSenseUpdated</source>
+            <target>IntelliSense 정보 업데이트 완료</target>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
-            <source xml:lang="en">test_en</source>
+            <source xml:lang="en">test</source>
+            <target>테스트</target>
         </trans-unit>
     </body>
   </file>
