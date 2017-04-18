@@ -13,10 +13,6 @@
             <source xml:lang="en">LocalWebService listening on port </source>
             <target>LocalWebService escuchando en el puerto</target>
         </trans-unit>
-        <trans-unit id="msgRunQueryAllBatchesExecuted">
-            <source xml:lang="en">runQuery: all batches executed</source>
-            <target>runQuery: todos los lotes (batches) han sido ejecutados</target>
-        </trans-unit>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
             <target>Se inició la ejecución de la consulta para el documento &quot;{0}&quot;</target>
@@ -24,34 +20,6 @@
         <trans-unit id="msgFinishedExecute">
             <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
             <target>Se terminó la ejecución de la consulta para el documento &quot;{0}&quot;</target>
-        </trans-unit>
-        <trans-unit id="msgRunQueryError">
-            <source xml:lang="en">runQuery: error: </source>
-            <target>runQuery: error:</target>
-        </trans-unit>
-        <trans-unit id="msgRunQueryExecutingBatch">
-            <source xml:lang="en">runQuery: executeBatch called with SQL: </source>
-            <target>runQuery: executeBatch llamado con SQL:</target>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAddBatchResultsets">
-            <source xml:lang="en">runQuery: adding resultsets for batch: </source>
-            <target>runQuery: agregando resultsets para el lote:</target>
-        </trans-unit>
-        <trans-unit id="msgRunQueryAddBatchError">
-            <source xml:lang="en">runQuery: adding error message for batch: </source>
-            <target>runQuery: agregando mensaje de error de lote:</target>
-        </trans-unit>
-        <trans-unit id="msgRunQueryConnectionActive">
-            <source xml:lang="en">runQuery: active connection is connected, using it to run query</source>
-            <target>runQuery: la conexión activa se ha conectado, se está usando para ejecutar la consulta</target>
-        </trans-unit>
-        <trans-unit id="msgRunQueryConnectionDisconnected">
-            <source xml:lang="en">runQuery: active connection is disconnected, reconnecting</source>
-            <target>runQuery: la conexión activa se ha desconectada, conectando nuevamente</target>
-        </trans-unit>
-        <trans-unit id="msgRunQueryNoConnection">
-            <source xml:lang="en">runQuery: no active connection - prompting for user</source>
-            <target>runQuery: ninguna conexión activa - solicitud de usuario</target>
         </trans-unit>
         <trans-unit id="msgRunQueryInProgress">
             <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
@@ -72,50 +40,6 @@
         <trans-unit id="msgCancelQueryNotRunning">
             <source xml:lang="en">Cannot cancel query as no query is running.</source>
             <target>No se puede cancelar la consulta porque no hay ninguna consulta en ejecución.</target>
-        </trans-unit>
-        <trans-unit id="msgCancelQuerySuccess">
-            <source xml:lang="en">Successfully canceled the query.</source>
-            <target>La consulta se canceló correctamente.</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnContentUpdated">
-            <source xml:lang="en">Content provider: onContentUpdated called</source>
-            <target>Proveedor de contenido: onContentUpdated ha sido llamado</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderAssociationFailure">
-            <source xml:lang="en">Content provider: Unable to associate status view for current file</source>
-            <target>Proveedor de contenido: no se puede asociar la vista de estado del archivo actual</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnRootEndpoint">
-            <source xml:lang="en">LocalWebService: Root end-point called</source>
-            <target>LocalWebService: el extremo raíz ha sido llamado</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnResultsEndpoint">
-            <source xml:lang="en">LocalWebService: ResultsetsMeta endpoint called</source>
-            <target>LocalWebService: el endpoint ResultsetsMeta ha sido llamado</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnMessagesEndpoint">
-            <source xml:lang="en">LocalWebService: Messages end-point called</source>
-            <target>LocalWebService: el endpoint de mensajes ha sido llamado</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnColumnsEndpoint">
-            <source xml:lang="en">LocalWebService:  Columns end-point called for index = </source>
-            <target>LocalWebService: el endpoint de columnas ha sido llamado para el índice = </target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnRowsEndpoint">
-            <source xml:lang="en">LocalWebService: Rows end-point called for index = </source>
-            <target>LocalWebService: Extremo de filas llamado índice =</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnClear">
-            <source xml:lang="en">Content provider: clear called</source>
-            <target>Proveedor de contenido: borrar llamado</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderOnUpdateContent">
-            <source xml:lang="en">Content provider: updateContent called</source>
-            <target>Proveedor de contenido: updateContent llamado</target>
-        </trans-unit>
-        <trans-unit id="msgContentProviderProvideContent">
-            <source xml:lang="en">Content provider: provideTextDocumentContent called: </source>
-            <target>Proveedor de contenido: provideTextDocumentContent llamado:</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabaseNotConnected">
             <source xml:lang="en">No connection was found. Please connect to a server first.</source>
@@ -165,18 +89,6 @@
             <source xml:lang="en">Choose a connection profile from the list below</source>
             <target>Elija un perfil de conexión de la lista siguiente</target>
         </trans-unit>
-        <trans-unit id="msgNoConnectionsInSettings">
-            <source xml:lang="en">To use this command, add connection profile to User Settings.</source>
-            <target>Para usar este comando, agregar el perfil de conexión a las configuraciones de usuario.</target>
-        </trans-unit>
-        <trans-unit id="labelOpenGlobalSettings">
-            <source xml:lang="en">Open Global Settings</source>
-            <target>Abrir Configuración Global</target>
-        </trans-unit>
-        <trans-unit id="labelOpenWorkspaceSettings">
-            <source xml:lang="en">Open Workspace Settings</source>
-            <target>Abrir configuración de área de trabajo</target>
-        </trans-unit>
         <trans-unit id="CreateProfileFromConnectionsListLabel">
             <source xml:lang="en">Create Connection Profile</source>
             <target>Crear perfil de conexión</target>
@@ -221,10 +133,6 @@
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
             <target>[Opcional] Base de datos a conectar (presione ENTER para conectarse a la base de datos &lt;predeterminada&gt;)</target>
         </trans-unit>
-        <trans-unit id="databaseDefaultValue">
-            <source xml:lang="en">master</source>
-            <target>maestro</target>
-        </trans-unit>
         <trans-unit id="authTypePrompt">
             <source xml:lang="en">Authentication Type</source>
             <target>Tipo de autenticación</target>
@@ -236,10 +144,6 @@
         <trans-unit id="authTypeSql">
             <source xml:lang="en">SQL Login</source>
             <target>Inicio de sesión SQL</target>
-        </trans-unit>
-        <trans-unit id="authTypeAdUniversal">
-            <source xml:lang="en">Active Directory Universal</source>
-            <target>Active Directory universal</target>
         </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>
@@ -273,10 +177,6 @@
             <source xml:lang="en">File path</source>
             <target>Ruta de archivo</target>
         </trans-unit>
-        <trans-unit id="filepathPlaceholder">
-            <source xml:lang="en">File name</source>
-            <target>Nombre de archivo</target>
-        </trans-unit>
         <trans-unit id="filepathMessage">
             <source xml:lang="en">File name</source>
             <target>Nombre de archivo</target>
@@ -288,10 +188,6 @@
         <trans-unit id="overwritePlaceholder">
             <source xml:lang="en">A file with this name already exists</source>
             <target>Ya existe un archivo con este nombre</target>
-        </trans-unit>
-        <trans-unit id="msgSaveResultInProgress">
-            <source xml:lang="en">A save request is already executing. Please wait for its completion.</source>
-            <target>Ya se está ejecutando una solicitud de guardado. Espere a que finalice.</target>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
             <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -308,10 +204,6 @@
         <trans-unit id="msgSaveSucceeded">
             <source xml:lang="en">Successfully saved results to </source>
             <target>Correctamente guardados los resultados a</target>
-        </trans-unit>
-        <trans-unit id="msgSelectProfile">
-            <source xml:lang="en">Select connection profile</source>
-            <target>Seleccione el perfil de conexión</target>
         </trans-unit>
         <trans-unit id="msgSelectProfileToRemove">
             <source xml:lang="en">Select profile to remove</source>
@@ -341,17 +233,9 @@
             <source xml:lang="en">Recent connections list cleared</source>
             <target>Lista de conexiones recientes desactivada</target>
         </trans-unit>
-        <trans-unit id="msgSelectionIsRequired">
-            <source xml:lang="en">Selection is required.</source>
-            <target>Se requiere la selección.</target>
-        </trans-unit>
         <trans-unit id="msgIsRequired">
             <source xml:lang="en"> is required.</source>
             <target>es requerido.</target>
-        </trans-unit>
-        <trans-unit id="msgRetry">
-            <source xml:lang="en">Retry</source>
-            <target>Reintentar</target>
         </trans-unit>
         <trans-unit id="msgError">
             <source xml:lang="en">Error: </source>
@@ -385,10 +269,6 @@
             <source xml:lang="en">Connecting to: </source>
             <target>Conectandose a:</target>
         </trans-unit>
-        <trans-unit id="connectedLabel">
-            <source xml:lang="en">Connected.</source>
-            <target>Conectado.</target>
-        </trans-unit>
         <trans-unit id="connectErrorLabel">
             <source xml:lang="en">Connection error</source>
             <target>Error de conexión</target>
@@ -398,11 +278,11 @@
             <target>Error conectandose a:</target>
         </trans-unit>
         <trans-unit id="connectErrorCode">
-            <source xml:lang="en">Errorcode: </source>
-            <target>Código de error:</target>
+            <source xml:lang="en">Error code: </source>
+            <target>Código de error: </target>
         </trans-unit>
         <trans-unit id="connectErrorMessage">
-            <source xml:lang="en">ErrorMessage: </source>
+            <source xml:lang="en">Error Message: </source>
             <target>Mensaje de error:</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
@@ -416,10 +296,6 @@
         <trans-unit id="updatingIntelliSenseLabel">
             <source xml:lang="en">Updating IntelliSense...</source>
             <target>Actualizando IntelliSense...</target>
-        </trans-unit>
-        <trans-unit id="unfoundResult">
-            <source xml:lang="en">Data was disposed when text editor was closed; to view data please reexecute query.</source>
-            <target>Los datos se eliminaron cuando se cerró el editor de texto; Para ver los datos, ejecutar nuevamente la consulta.</target>
         </trans-unit>
         <trans-unit id="extensionNotInitializedError">
             <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
@@ -473,10 +349,6 @@
             <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
             <target>Error: No se han podido cargar los perfiles de conexión de [{0}]. Compruebe si el archivo tiene el formato correcto.</target>
         </trans-unit>
-        <trans-unit id="msgErrorOpeningConfigFile">
-            <source xml:lang="en">Error: Unable to open connection profile settings file.</source>
-            <target>Error: No se puede abrir el archivo de configuración de perfil de conexión.</target>
-        </trans-unit>
         <trans-unit id="titleResultsPane">
             <source xml:lang="en">Results: {0}</source>
             <target>Resultados: {0}</target>
@@ -495,19 +367,19 @@
         </trans-unit>
         <trans-unit id="definitionRequestedStatus">
             <source xml:lang="en">DefinitionRequested</source>
-            <target>DefinitionRequested</target>
+            <target>Definición requerida</target>
         </trans-unit>
         <trans-unit id="definitionRequestCompletedStatus">
             <source xml:lang="en">DefinitionRequestCompleted</source>
-            <target>DefinitionRequestCompleted</target>
+            <target>solicitud de definición completada</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseStatus">
             <source xml:lang="en">updatingIntelliSense</source>
-            <target>updatingIntelliSense</target>
+            <target>Actualizando IntelliSense</target>
         </trans-unit>
         <trans-unit id="intelliSenseUpdatedStatus">
             <source xml:lang="en">intelliSenseUpdated</source>
-            <target>intelliSenseUpdated</target>
+            <target>IntelliSense actualizado </target>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
             <source xml:lang="en">test</source>
