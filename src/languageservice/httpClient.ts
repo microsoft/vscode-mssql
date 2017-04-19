@@ -59,7 +59,7 @@ export default class HttpClient implements IHttpClient {
             });
 
             request.on('error', error => {
-                reject(new PackageError(`Request error: ${error.code || 'NONE'}`, pkg, error));
+                reject(new PackageError(`Request error: ${error.stack}`, pkg, error));
             });
 
             // Execute the request
@@ -134,7 +134,7 @@ export default class HttpClient implements IHttpClient {
             });
 
             response.on('error', err => {
-                reject(new PackageError(`Response error: ${err.code || 'NONE'}`, pkg, err));
+                reject(new PackageError(`Response error: ${err.stack}`, pkg, err));
             });
 
             // Begin piping data from the response to the package file

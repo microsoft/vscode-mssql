@@ -275,7 +275,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // Datasets currently being rendered on the DOM
     private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
     private messages: IMessage[] = [];
-    private scrollTimeOut: number;
+    private scrollTimeOut: NodeJS.Timer;
     private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;

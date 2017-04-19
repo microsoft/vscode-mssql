@@ -1,10 +1,11 @@
-import {NotificationType, RequestType} from 'vscode-languageclient';
+import {NotificationType, RequestType, ResponseError} from 'vscode-languageclient';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
-     export const type: RequestType<ConnectParams, boolean, void> = { get method(): string { return 'connection/connect'; } };
+     export const type: RequestType<ConnectParams, boolean, ResponseError<void>, void> =
+        new RequestType<ConnectParams, boolean, ResponseError<void>, void>('connection/connect');
 }
 
 /**
@@ -38,7 +39,8 @@ export class ConnectParams {
  * Connection complete event callback declaration.
  */
 export namespace ConnectionCompleteNotification {
-    export const type: NotificationType<ConnectionCompleteParams> = { get method(): string { return 'connection/complete'; } };
+    export const type: NotificationType<ConnectionCompleteParams, void> =
+        new NotificationType<ConnectionCompleteParams, void>('connection/complete');
 }
 
 /**
@@ -144,7 +146,8 @@ export class ConnectionCompleteParams {
  * Cancel connect request message callback declaration
  */
 export namespace CancelConnectRequest {
-    export const type: RequestType<CancelConnectParams, CancelConnectResult, void> = { get method(): string { return 'connection/cancelconnect'; } };
+    export const type: RequestType<CancelConnectParams, CancelConnectResult, ResponseError<void>, void> =
+        new RequestType<CancelConnectParams, CancelConnectResult, ResponseError<void>, void>('connection/cancelconnect');
 }
 
 /**
@@ -170,7 +173,8 @@ export type CancelConnectResult = boolean;
  * Connection changed event callback declaration.
  */
 export namespace ConnectionChangedNotification {
-    export const type: NotificationType<ConnectionChangedParams> = { get method(): string { return 'connection/connectionchanged'; } };
+    export const type: NotificationType<ConnectionChangedParams, void> =
+        new NotificationType<ConnectionChangedParams, void>('connection/connectionchanged');
 }
 
 /**
@@ -214,7 +218,8 @@ export class ConnectionChangedParams {
 
 // Disconnect request message callback declaration
 export namespace DisconnectRequest {
-    export const type: RequestType<DisconnectParams, DisconnectResult, void> = { get method(): string { return 'connection/disconnect'; } };
+    export const type: RequestType<DisconnectParams, DisconnectResult, ResponseError<void>, void> =
+        new RequestType<DisconnectParams, DisconnectResult, ResponseError<void>, void>('connection/disconnect');
 }
 
 // Disconnect request message format
@@ -232,7 +237,8 @@ export type DisconnectResult = boolean;
 
 // List databases request callback declaration
 export namespace ListDatabasesRequest {
-    export const type: RequestType<ListDatabasesParams, ListDatabasesResult, void> = { get method(): string { return 'connection/listdatabases'; } };
+    export const type: RequestType<ListDatabasesParams, ListDatabasesResult, ResponseError<void>, void> =
+        new RequestType<ListDatabasesParams, ListDatabasesResult, ResponseError<void>, void>('connection/listdatabases');
 }
 
 // List databases request format

@@ -138,10 +138,10 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-                // Initialize telemetry
-                Telemetry.initialize(self._context);
+            // Initialize telemetry
+            Telemetry.initialize(self._context);
 
-                SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
+            SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
 
                 // Init status bar
                 self._statusview = new StatusView();
@@ -321,8 +321,8 @@ export default class MainController implements vscode.Disposable {
     private runAndLogErrors<T>(promise: Promise<T>, handlerName: string): Promise<T> {
         let self = this;
         return promise.catch(err => {
-            self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
-            Telemetry.sendTelemetryEventForException(err, handlerName);
+            self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err.message);
+            Telemetry.sendTelemetryEventForException(err.message, handlerName);
         });
     }
 

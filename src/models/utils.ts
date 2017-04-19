@@ -263,8 +263,8 @@ export function isFileExisting(filePath: string): boolean {
 
 // One-time use timer for performance testing
 export class Timer {
-    private _startTime: number[];
-    private _endTime: number[];
+    private _startTime: [number, number];
+    private _endTime: [number, number];
 
     constructor() {
         this.start();

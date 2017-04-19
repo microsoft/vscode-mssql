@@ -106,7 +106,7 @@ suite('ServiceDownloadProvider Tests', () => {
              assert.equal(actual, expectedName);
              done();
          }).catch( error => {
-             assert.fail(error);
+             assert.fail(error, undefined, 'During promise of downloading file', undefined);
          });
     });
 

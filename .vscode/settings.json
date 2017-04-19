@@ -15,5 +15,8 @@
         "**/out/*" : true
     },
 
-    "lcov.path": ["coverage/lcov.info"]
+    "lcov.path": [
+        "coverage/lcov.info"
+    ],
+    "vsicons.presets.angular": true
 }

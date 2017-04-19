@@ -5,6 +5,7 @@ import QueryRunner from './../src/controllers/QueryRunner';
 import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
 import { SqlOutputContentProvider } from './../src/models/SqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
+import {ResponseError} from 'vscode-languageclient';
 import {
     QueryExecuteParams,
     QueryExecuteCompleteNotificationResult,
@@ -21,7 +22,7 @@ import * as QueryDisposeContracts from '../src/models/contracts/QueryDispose';
 import {
     ISlickRange,
     ISelectionData
- } from './../src/models/interfaces';
+} from './../src/models/interfaces';
 import * as stubs from './stubs';
 import * as os from 'os';
 
@@ -109,7 +110,8 @@ suite('Query Runner tests', () => {
         // Setup:
         // ... Setup the mock service client to return an error when the execute request is submitted
         // ... Setup standard notification mock
-        setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => { return Promise.reject<QueryExecuteContracts.QueryExecuteResult>('failed'); });
+        let error: ResponseError<any> = new ResponseError(0, 'failed');
+        setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => { return Promise.reject<QueryExecuteContracts.QueryExecuteResult>(error); });
         setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
         // ... Setup the status view to handle start and stop updates
