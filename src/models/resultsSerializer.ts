@@ -259,8 +259,8 @@ export default class ResultsSerializer {
                 Telemetry.sendTelemetryEvent('SavedResults', { 'type': format });
 
             }, error => {
-                self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + error);
-                self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveFailed + error);
+                self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + error.message);
+                self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveFailed + error.message);
         });
     }
 
