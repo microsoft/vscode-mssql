@@ -4,7 +4,7 @@
   --color-error: #E81123;
   --color-success: #7CD300;
   --color-bg-header: hsla(0,0%,50%,.2);
-  --color-bg-content-light: #ffffff;
+  --color-resize-handle: grey;
   --color-bg-content-header: #F5F5F5; /* used for color of grid headers */
   --color-cell-border-active: grey;
   --color-cell-bg-grid-selected: rgb(173, 214, 255);
