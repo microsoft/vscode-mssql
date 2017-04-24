@@ -4,7 +4,7 @@
   --color-error: #E81123;
   --color-success: #7CD300;
   --color-bg-header: hsla(0,0%,50%,.2); /* used for pane toolbars */
-  --color-bg-content-light: #4d4d4d;
+  --color-resize-handle: #4d4d4d;
   --color-bg-content-header: #333334; /* used for color of grid headers */
   --color-cell-border-active: white;
   --color-cell-bg-grid-selected: rgb(38, 79, 120);
