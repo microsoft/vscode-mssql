@@ -538,10 +538,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
         const self = this;
-        let value = dataContext[colDef.field];
-        $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.name, 'xml');
-        });
+        self.handleLink(cellRef, row, dataContext, colDef, 'xml');
     }
 
     /**
@@ -549,10 +546,26 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     jsonLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
         const self = this;
-        let value = dataContext[colDef.field];
+        self.handleLink(cellRef, row, dataContext, colDef, 'json');
+    }
+
+    private handleLink(cellRef: string, row: number, dataContext: JSON, colDef: any, linkType: string): void {
+        const self = this;
+        let value = self.getCellValueString(dataContext, colDef);
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.name, 'json');
+            self.dataService.openLink(value, colDef.name, linkType);
         });
+    }
+
+    private getCellValueString(dataContext: JSON, colDef: any): string {
+        let returnVal = '';
+        let value = dataContext[colDef.field];
+        if (Utils.isDbCellValue(value)) {
+            returnVal = value.displayValue;
+        } else if (typeof value === 'string') {
+            returnVal = value;
+        }
+        return returnVal;
     }
 
     /**
@@ -564,7 +577,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         } else if (type === 'json') {
             return this.jsonLinkHandler;
         }
-
     }
 
     /**

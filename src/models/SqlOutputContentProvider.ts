@@ -1,7 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import path = require('path');
-import os = require('os');
+// // import os = require('os');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import LocalWebService from '../controllers/localWebService';
@@ -454,8 +454,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     public openLink(content: string, columnName: string, linkType: string): void {
         const self = this;
-        let tempFileName = self.getXmlTempFileName(columnName, linkType);
-        let uri = vscode.Uri.parse('untitled:' + tempFileName);
+        ////let tempFileName = self.getXmlTempFileName(columnName, linkType);
+        ////let uri = vscode.Uri.parse('untitled:' + tempFileName);
         if (linkType === 'xml') {
             try {
                 content = pd.xml(content);
@@ -475,7 +475,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
         }
 
-        vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+        ////vscode.workspace.openTextDocument(uri).then
+        vscode.workspace.openTextDocument({language: linkType}) .then((doc: vscode.TextDocument) => {
             vscode.window.showTextDocument(doc, 1, false).then(editor => {
                 editor.edit(edit => {
                     edit.insert(new vscode.Position(0, 0), content);
@@ -517,24 +518,24 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
     }
 
-    /**
-     * Return temp file name for opening a link
-     */
-    private getXmlTempFileName(columnName: string, linkType: string): string {
-        if (columnName === 'XML Showplan') {
-            columnName = 'Showplan';
-        }
-        let baseFileName = columnName + '-';
-        let retryCount: number = 200;
-        for (let i = 0; i < retryCount; i++) {
-            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
-            SqlOutputContentProvider.tempFileCount++;
-            if (!Utils.isFileExisting(tempFileName)) {
-                return tempFileName;
-            }
-        }
-        return path.join(os.tmpdir(), columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType);
-    }
+    // // /**
+    // //  * Return temp file name for opening a link
+    // //  */
+    // // private getXmlTempFileName(columnName: string, linkType: string): string {
+    // //     if (columnName === 'XML Showplan') {
+    // //         columnName = 'Showplan';
+    // //     }
+    // //     let baseFileName = columnName + '-';
+    // //     let retryCount: number = 200;
+    // //     for (let i = 0; i < retryCount; i++) {
+    // //         let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
+    // //         SqlOutputContentProvider.tempFileCount++;
+    // //         if (!Utils.isFileExisting(tempFileName)) {
+    // //             return tempFileName;
+    // //         }
+    // //     }
+    // //     return path.join(os.tmpdir(), columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType);
+    // // }
 
     /**
      * Returns whether or not a result pane with the same URI exists
