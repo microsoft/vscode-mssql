@@ -504,6 +504,31 @@
           "type": "boolean",
           "default": true,
           "description": "Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'"
+        },
+        "mssql.intelliSense.enableIntelliSense": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense be enabled"
+        },
+        "mssql.intelliSense.enableErrorChecking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense error checking be enabled"
+        },
+        "mssql.intelliSense.enableSuggestions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense suggestions be enabled"
+        },
+        "mssql.intelliSense.enableQuickInfo": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense quick info be enabled"
+        },
+        "mssql.intelliSense.lowerCaseSuggestions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Should IntelliSense suggestions be lowercase"
         }
       }
     }
