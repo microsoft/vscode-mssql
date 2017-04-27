@@ -193,17 +193,6 @@ gulp.task('html:copy:assets', (done) => {
 
     promises.push(new Promise((resolve) => {
             gulp.src([
-                    config.paths.html.root + '/src/docs/**/*'
-                ])
-                .pipe(gulp.dest(config.paths.html.out + '/dist/docs'))
-                .on('end', () => {
-                    resolve();
-                })
-        })
-    );
-
-    promises.push(new Promise((resolve) => {
-            gulp.src([
                 config.paths.html.root + '/src/images/*'
             ])
             .pipe(gulp.dest(config.paths.html.out + '/dist/images'))
