@@ -471,7 +471,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
         }
 
-        vscode.workspace.openTextDocument({ language: linkType }) .then((doc: vscode.TextDocument) => {
+        vscode.workspace.openTextDocument({ language: linkType }).then((doc: vscode.TextDocument) => {
             vscode.window.showTextDocument(doc, 1, false).then(editor => {
                 editor.edit(edit => {
                     edit.insert(new vscode.Position(0, 0), content);

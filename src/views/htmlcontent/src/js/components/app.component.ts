@@ -559,6 +559,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     private getCellValueString(dataContext: JSON, colDef: any): string {
         let returnVal = '';
+        if (!dataContext)
+        {
+            return returnVal;
+        }
+
         let value = dataContext[colDef.field];
         if (Utils.isDbCellValue(value)) {
             returnVal = value.displayValue;
