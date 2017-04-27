@@ -21,6 +21,22 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.0
+* We are please to announce the official GA of the MSSQL extension! This release focuses on stability, localization support, and top customer feedback issues
+* The MSSQL extension is now localized. Use the `Configure Language` command in VSCode to change to your language of choice. Restart the application and the MSSQL extension will now support your language for all commands and messages.
+* Community-added support for `Save as Excel`, which supports saving to .xlsx format and opening this in the default application for .xlsx files on your machine.
+* Numerous bug fixes:
+  * IntelliSense improvements to support configuration of Intellisense options from user settings, plus keyword fixes.
+  * Query Execution fixes and improvements: [#832](https://github.com/Microsoft/vscode-mssql/issues/832), [#815](https://github.com/Microsoft/vscode-mssql/issues/815), [#803](https://github.com/Microsoft/vscode-mssql/issues/803), [#794](https://github.com/Microsoft/vscode-mssql/issues/794), [#772](https://github.com/Microsoft/vscode-mssql/issues/772)
+  * Improved support for downloading and installing the tools service behind proxies
+  * Improvements to `Go To Definition` / `Peek Definition` support [#769](https://github.com/Microsoft/vscode-mssql/issues/769)
+
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* Wujun Zhou, for adding the `Save as Excel` feature
+* The many contributors to our community localization. A full list is available on [this TechNet post](https://blogs.technet.microsoft.com/dataplatforminsider/2017/04/13/crossplatform-tools-for-sql-server-opened-for-community-localization/). Particular thanks to Mona Nasr for coordinating our community localization efforts.
+
 ## What's new in 0.3.0
 * T-SQL formatting support is now included. This is a highly requested feature, and this release includes a basic parser
 with configuration options for some of the most common T-SQL formatting styles.
