@@ -537,16 +537,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Add handler for clicking on xml link
      */
     xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
-        const self = this;
-        self.handleLink(cellRef, row, dataContext, colDef, 'xml');
+        this.handleLink(cellRef, row, dataContext, colDef, 'xml');
     }
 
     /**
      * Add handler for clicking on json link
      */
     jsonLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
-        const self = this;
-        self.handleLink(cellRef, row, dataContext, colDef, 'json');
+        this.handleLink(cellRef, row, dataContext, colDef, 'json');
     }
 
     private handleLink(cellRef: string, row: number, dataContext: JSON, colDef: any, linkType: string): void {
@@ -559,8 +557,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     private getCellValueString(dataContext: JSON, colDef: any): string {
         let returnVal = '';
-        if (!dataContext)
-        {
+        if (!dataContext) {
             return returnVal;
         }
 
