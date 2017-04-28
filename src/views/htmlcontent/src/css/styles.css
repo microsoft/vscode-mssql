@@ -75,6 +75,7 @@ table {
 
 #messageTable td {
   padding-right: 20px;
+  color: var(--color-content);
 }
 
 #messageTable tbody tr:last-child > td {
