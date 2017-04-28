@@ -37,11 +37,17 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public multipleActiveResultSets: boolean;
     public packetSize: number;
     public typeSystemVersion: string;
+    public connectionString: string;
 
     /**
      * Create a connection details contract from connection credentials.
      */
     public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
+        // If there is a connection string, use it to create the connection details
+        // // if (credentials.connectionString) {
+        // //     return ConnectionCredentials.createConnectionDetailsFromConnectionString(credentials.connectionString);
+        // // }
+
         let details: ConnectionDetails = new ConnectionDetails();
         details.options['server'] = credentials.server;
         if (credentials.port && details.options['server'].indexOf(',') === -1) {
@@ -247,5 +253,81 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
         return choices;
     }
+
+    public static createConnectionCredentialsFromString(connectionString: string): ConnectionCredentials {
+        let credentials = new ConnectionCredentials();
+        let connectionStringParts = connectionString.split(';');
+        connectionStringParts.forEach(parameter => {
+            let splitIndex = parameter.indexOf('=');
+            let key = parameter.slice(0, splitIndex).toLowerCase();
+            let value = parameter.slice(splitIndex + 1);
+            let credentialsPropertyName = ConnectionCredentials.credentialsPropertyNameMap[key];
+
+            // If the key doesn't correspond to a property, ignore it
+            if (credentialsPropertyName) {
+                credentials[credentialsPropertyName] = value;
+            }
+        });
+
+        return credentials;
+    }
+
+    private static credentialsPropertyNameMap = {
+        'addr': 'server',
+        'address': 'server',
+        'app': 'applicationName',
+        'application name': 'applicationName',
+        'application intent': 'applicationIntent',
+        'attachdbfilename': 'attachDbFilename',
+        'extended properties': 'attachDbFilename',
+        'initial file name': 'attachDbFilename',
+        'authentication': 'authenticationType',
+        'connect timeout': 'connectTimeout',
+        'connection timeout': 'connectTimeout',
+        'timeout': 'connectTimeout',
+        'connection lifetime': 'loadBalanceTimeout',
+        'load balance timeout': 'loadBalanceTimeout',
+        'connectretrycount': 'connectRetryCount',
+        'connectretryinterval': 'connectRetryInterval',
+        'current language': 'currentLanguage',
+        'language': 'currentLanguage',
+        'data source': 'server',
+        'server': 'server',
+        'network address': 'server',
+        'encrypt': 'encrypt',
+        'failover partner': 'failoverPartner',
+        'initial catalog': 'database',
+        'database': 'database',
+        'max pool size': 'maxPoolSize',
+        'min pool size': 'minPoolSize',
+        'mutipleactiveresultsets': 'mutipleActiveResultSets',
+        'multisubnetfailover': 'multiSubnetFailover',
+        'packet size': 'packetSize',
+        'password': 'password',
+        'pwd': 'password',
+        'persist security info': 'persistSecurityInfo',
+        'persistsecurityinfo': 'persistSecurityInfo',
+        'pooling': 'pooling',
+        'replication': 'replication',
+        'trustservercertificate': 'trustServerCertificate',
+        'type system version': 'typeSystemVersion',
+        'user id': 'user',
+        'uid': 'user',
+        'workstation id': 'workstationId',
+        'wsid': 'workstationId'
+    };
+
+    // // private static createConnectionDetailsFromConnectionString(connectionString: string): ConnectionDetails {
+    // //     let connectionDetails: ConnectionDetails = new ConnectionDetails();
+    // //     let connectionStringParts = connectionString.split(';');
+    // //     connectionStringParts.forEach(parameter => {
+    // //         let splitIndex = parameter.indexOf('=');
+    // //         let key = parameter.slice(0, splitIndex);
+    // //         let value = parameter.slice(splitIndex + 1);
+    // //         connectionDetails.options[key] = value;
+    // //     });
+
+    // //     return connectionDetails;
+    // // }
 }
 

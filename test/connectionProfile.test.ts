@@ -42,7 +42,8 @@ function createTestCredentials(): IConnectionCredentials {
         multiSubnetFailover:            false,
         multipleActiveResultSets:       false,
         packetSize:                     8192,
-        typeSystemVersion:              'Latest'
+        typeSystemVersion:              'Latest',
+        connectionString:               ''
     };
     return creds;
 }

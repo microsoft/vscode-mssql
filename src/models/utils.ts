@@ -225,6 +225,9 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
     } else if (currentProfile.profileName) {
         // This has a profile name but expected does not - can break early
         return false;
+    } else if (currentProfile.connectionString || expectedProfile.connectionString) {
+        // If either profile uses connection strings, compare them directly
+        return currentProfile.connectionString === expectedProfile.connectionString;
     }
     return expectedProfile.server === currentProfile.server
         && isSameDatabase(expectedProfile.database, currentProfile.database)

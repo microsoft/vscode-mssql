@@ -519,6 +519,11 @@ export default class ConnectionManager {
                 }
             });
 
+            // Process a connection string if present
+            if (connectionCreds.connectionString) {
+                connectionCreds = ConnectionCredentials.createConnectionCredentialsFromString(connectionCreds.connectionString);
+            }
+
             // package connection details for request message
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
             let connectParams = new ConnectionContracts.ConnectParams();

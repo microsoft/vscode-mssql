@@ -113,14 +113,19 @@ export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials)
  */
 export function getConnectionDisplayString(creds: Interfaces.IConnectionCredentials): string {
     // Update the connection text
-    let text: string = creds.server;
-    if (creds.database !== '') {
-        text = appendIfNotEmpty(text, creds.database);
+    let text: string;
+    if (creds.connectionString) {
+        text = creds.connectionString;
     } else {
-        text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
+        text = creds.server;
+        if (creds.database !== '') {
+            text = appendIfNotEmpty(text, creds.database);
+        } else {
+            text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
+        }
+        let user: string = getUserNameOrDomainLogin(creds);
+        text = appendIfNotEmpty(text, user);
     }
-    let user: string = getUserNameOrDomainLogin(creds);
-    text = appendIfNotEmpty(text, user);
 
     // Limit the maximum length of displayed text
     if (text.length > Constants.maxDisplayedStatusTextLength) {
