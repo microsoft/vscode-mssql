@@ -1,10 +1,10 @@
 {
   "name": "mssql",
   "displayName": "mssql",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
-  "preview": true,
+  "preview": false,
   "license": "SEE LICENSE IN LICENSE.txt",
   "aiKey": "AIF-5574968e-856d-40d2-af67-c89a14e76412",
   "icon": "images/sqlserver.png",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.4.0"
+    "vscode": "^1.9.0"
   },
   "categories": [
     "Languages"
@@ -85,7 +85,7 @@
     "typemoq": "^0.3.2",
     "typescript": "^2.1.5",
     "uglify-js": "mishoo/UglifyJS2#harmony",
-    "vscode": "^0.11.0",
+    "vscode": "^1.0.5",
     "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
     "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
@@ -189,7 +189,7 @@
       },
       {
         "command": "extension.newQuery",
-        "title": "New query",
+        "title": "New Query",
         "category": "MS SQL"
       },
       {
@@ -416,7 +416,8 @@
             "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",
-            "event.saveAsCSV": ""
+            "event.saveAsCSV": "",
+            "event.saveAsExcel": ""
           }
         },
         "mssql.messagesDefaultOpen": {
@@ -503,6 +504,31 @@
           "type": "boolean",
           "default": true,
           "description": "Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'"
+        },
+        "mssql.intelliSense.enableIntelliSense": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense be enabled"
+        },
+        "mssql.intelliSense.enableErrorChecking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense error checking be enabled"
+        },
+        "mssql.intelliSense.enableSuggestions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense suggestions be enabled"
+        },
+        "mssql.intelliSense.enableQuickInfo": {
+          "type": "boolean",
+          "default": true,
+          "description": "Should IntelliSense quick info be enabled"
+        },
+        "mssql.intelliSense.lowerCaseSuggestions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Should IntelliSense suggestions be lowercase"
         }
       }
     }

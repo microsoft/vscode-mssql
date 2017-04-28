@@ -3,9 +3,7 @@ import { ResultSetSubset } from './../../src/js/interfaces';
 const rows: ResultSetSubset = {
     rowCount: 50,
     rows: [
-        [
-            'data'
-        ]
+        [{displayValue: 'data', isNull: false}]
     ]
 };
 

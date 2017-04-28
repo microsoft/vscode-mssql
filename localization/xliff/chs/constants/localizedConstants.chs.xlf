@@ -1,11 +1,390 @@
-<?xml version="1.0" ?>
-<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en-US" target-language="chs">
+<?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="zh-Hans">
     <body>
-      <trans-unit id="recentConnectionsPlaceholder">
-        <source xml:lang="en-US">Choose a connection profile from the list below</source>
-        <target>从下面的列表中选择一个连接配置文件</target>
-      </trans-unit>
+        <trans-unit id="configMyConnectionsNoServerName">
+            <source xml:lang="en">Missing server name in user preferences connection: </source>
+            <target>在用户设定的连接中缺少服务器名称:</target>
+        </trans-unit>
+        <trans-unit id="msgLocalWebserviceStaticContent">
+            <source xml:lang="en">LocalWebService: added static html content path: </source>
+            <target>LocalWebService︰ 静态html的内容已添加:</target>
+        </trans-unit>
+        <trans-unit id="msgLocalWebserviceStarted">
+            <source xml:lang="en">LocalWebService listening on port </source>
+            <target>LocalWebService 侦听端口</target>
+        </trans-unit>
+        <trans-unit id="msgStartedExecute">
+            <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
+            <target>已开始执行对于文档&quot;{0}&quot;的查询</target>
+        </trans-unit>
+        <trans-unit id="msgFinishedExecute">
+            <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
+            <target>对于文档&quot;{0}&quot;的查询已完成</target>
+        </trans-unit>
+        <trans-unit id="msgRunQueryInProgress">
+            <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
+            <target>当前编辑器的会话中有正在执行的查询，请取消该查询或者等待查询执行完毕</target>
+        </trans-unit>
+        <trans-unit id="runQueryBatchStartMessage">
+            <source xml:lang="en">Started executing query at </source>
+            <target>开始执行查询于</target>
+        </trans-unit>
+        <trans-unit id="runQueryBatchStartLine">
+            <source xml:lang="en">Line {0}</source>
+            <target>第 {0} 行</target>
+        </trans-unit>
+        <trans-unit id="msgCancelQueryFailed">
+            <source xml:lang="en">Canceling the query failed: {0}</source>
+            <target>取消查询失败︰ {0}</target>
+        </trans-unit>
+        <trans-unit id="msgCancelQueryNotRunning">
+            <source xml:lang="en">Cannot cancel query as no query is running.</source>
+            <target>取消查询失败，没有正在运行的查询</target>
+        </trans-unit>
+        <trans-unit id="msgChooseDatabaseNotConnected">
+            <source xml:lang="en">No connection was found. Please connect to a server first.</source>
+            <target>找不到任何连接。请先连接到服务器。</target>
+        </trans-unit>
+        <trans-unit id="msgChooseDatabasePlaceholder">
+            <source xml:lang="en">Choose a database from the list below</source>
+            <target>从下面的列表中选择一个数据库</target>
+        </trans-unit>
+        <trans-unit id="msgConnectionError">
+            <source xml:lang="en">Error {0}: {1}</source>
+            <target>错误 {0}: {1}</target>
+        </trans-unit>
+        <trans-unit id="msgConnectionError2">
+            <source xml:lang="en">Failed to connect: {0}</source>
+            <target>连接失败︰ {0}</target>
+        </trans-unit>
+        <trans-unit id="msgConnectionErrorPasswordExpired">
+            <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
+            <target>错误 {0}: {1} 请以其他用户身份登录并使用 ALTER LOGIN 更改密码。</target>
+        </trans-unit>
+        <trans-unit id="connectionErrorChannelName">
+            <source xml:lang="en">Connection Errors</source>
+            <target>连接错误</target>
+        </trans-unit>
+        <trans-unit id="msgPromptCancelConnect">
+            <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
+            <target>正在连接服务器。要取消吗？</target>
+        </trans-unit>
+        <trans-unit id="msgPromptClearRecentConnections">
+            <source xml:lang="en">Confirm to clear recent connections list</source>
+            <target>确认要清除最近连接列表</target>
+        </trans-unit>
+        <trans-unit id="extensionActivated">
+            <source xml:lang="en">activated.</source>
+            <target>激活。</target>
+        </trans-unit>
+        <trans-unit id="extensionDeactivated">
+            <source xml:lang="en">de-activated.</source>
+            <target>取消激活。</target>
+        </trans-unit>
+        <trans-unit id="msgOpenSqlFile">
+            <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
+            <target>若要使用此命令，打开一个 .sql 文件 -或- 更改编辑器语言为 &quot; SQL &quot; -或- 在运行中的 SQL 编辑器选取 T-SQL 文字。</target>
+        </trans-unit>
+        <trans-unit id="recentConnectionsPlaceholder">
+            <source xml:lang="en">Choose a connection profile from the list below</source>
+            <target>从下面的列表中选择一个连接配置文件</target>
+        </trans-unit>
+        <trans-unit id="CreateProfileFromConnectionsListLabel">
+            <source xml:lang="en">Create Connection Profile</source>
+            <target>创建连接配置文件</target>
+        </trans-unit>
+        <trans-unit id="CreateProfileLabel">
+            <source xml:lang="en">Create</source>
+            <target>创建</target>
+        </trans-unit>
+        <trans-unit id="ClearRecentlyUsedLabel">
+            <source xml:lang="en">Clear Recent Connections List</source>
+            <target>清除最近连接列表</target>
+        </trans-unit>
+        <trans-unit id="EditProfilesLabel">
+            <source xml:lang="en">Edit</source>
+            <target>编辑</target>
+        </trans-unit>
+        <trans-unit id="RemoveProfileLabel">
+            <source xml:lang="en">Remove</source>
+            <target>删除</target>
+        </trans-unit>
+        <trans-unit id="ManageProfilesPrompt">
+            <source xml:lang="en">Manage Connection Profiles</source>
+            <target>管理连接配置文件</target>
+        </trans-unit>
+        <trans-unit id="SampleServerName">
+            <source xml:lang="en">{{put-server-name-here}}</source>
+            <target>{{在此处填入服务器的名称}}</target>
+        </trans-unit>
+        <trans-unit id="serverPrompt">
+            <source xml:lang="en">Server name</source>
+            <target>服务器名称</target>
+        </trans-unit>
+        <trans-unit id="serverPlaceholder">
+            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net</source>
+            <target>hostname\\instance 或 &lt; 服务器 &gt;。 database.windows.net</target>
+        </trans-unit>
+        <trans-unit id="databasePrompt">
+            <source xml:lang="en">Database name</source>
+            <target>数据库名称</target>
+        </trans-unit>
+        <trans-unit id="databasePlaceholder">
+            <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
+            <target>[可选]要连接的数据库 （按 enter 键以连接到 &lt; 默认 &gt; 数据库）</target>
+        </trans-unit>
+        <trans-unit id="authTypePrompt">
+            <source xml:lang="en">Authentication Type</source>
+            <target>身份验证类型</target>
+        </trans-unit>
+        <trans-unit id="authTypeIntegrated">
+            <source xml:lang="en">Integrated</source>
+            <target>集成</target>
+        </trans-unit>
+        <trans-unit id="authTypeSql">
+            <source xml:lang="en">SQL Login</source>
+            <target>SQL 登录</target>
+        </trans-unit>
+        <trans-unit id="usernamePrompt">
+            <source xml:lang="en">User name</source>
+            <target>用户名称</target>
+        </trans-unit>
+        <trans-unit id="usernamePlaceholder">
+            <source xml:lang="en">User name (SQL Login)</source>
+            <target>用户名 （SQL 登录名）</target>
+        </trans-unit>
+        <trans-unit id="passwordPrompt">
+            <source xml:lang="en">Password</source>
+            <target>密码</target>
+        </trans-unit>
+        <trans-unit id="passwordPlaceholder">
+            <source xml:lang="en">Password (SQL Login)</source>
+            <target>密码 （SQL 登录名）</target>
+        </trans-unit>
+        <trans-unit id="msgSavePassword">
+            <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
+            <target>保存密码吗？如果 [否]，每次连接时将会需要输入密码</target>
+        </trans-unit>
+        <trans-unit id="profileNamePrompt">
+            <source xml:lang="en">Profile Name</source>
+            <target>配置文件名称</target>
+        </trans-unit>
+        <trans-unit id="profileNamePlaceholder">
+            <source xml:lang="en">[Optional] Enter a name for this profile</source>
+            <target>[可选]为该配置文件输入一个名称</target>
+        </trans-unit>
+        <trans-unit id="filepathPrompt">
+            <source xml:lang="en">File path</source>
+            <target>文件路径</target>
+        </trans-unit>
+        <trans-unit id="filepathMessage">
+            <source xml:lang="en">File name</source>
+            <target>文件名称</target>
+        </trans-unit>
+        <trans-unit id="overwritePrompt">
+            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
+            <target>具有此名称的文件已存在。您要取代现有文件吗？</target>
+        </trans-unit>
+        <trans-unit id="overwritePlaceholder">
+            <source xml:lang="en">A file with this name already exists</source>
+            <target>具有此名称的文件已存在</target>
+        </trans-unit>
+        <trans-unit id="msgCannotOpenContent">
+            <source xml:lang="en">Error occurred opening content in editor.</source>
+            <target>在编辑器中打开內容时发生错误。</target>
+        </trans-unit>
+        <trans-unit id="msgSaveStarted">
+            <source xml:lang="en">Started saving results to </source>
+            <target>开始保存结果至</target>
+        </trans-unit>
+        <trans-unit id="msgSaveFailed">
+            <source xml:lang="en">Failed to save results. </source>
+            <target>未能保存结果。</target>
+        </trans-unit>
+        <trans-unit id="msgSaveSucceeded">
+            <source xml:lang="en">Successfully saved results to </source>
+            <target>已成功保存结果至</target>
+        </trans-unit>
+        <trans-unit id="msgSelectProfileToRemove">
+            <source xml:lang="en">Select profile to remove</source>
+            <target>选择要移除的配置文件</target>
+        </trans-unit>
+        <trans-unit id="confirmRemoveProfilePrompt">
+            <source xml:lang="en">Confirm to remove this profile.</source>
+            <target>确认要删除此配置文件。</target>
+        </trans-unit>
+        <trans-unit id="msgNoProfilesSaved">
+            <source xml:lang="en">No connection profile to remove.</source>
+            <target>沒有可删除的连接配置文件。</target>
+        </trans-unit>
+        <trans-unit id="msgProfileRemoved">
+            <source xml:lang="en">Profile removed successfully</source>
+            <target>已成功删除配置文件</target>
+        </trans-unit>
+        <trans-unit id="msgProfileCreated">
+            <source xml:lang="en">Profile created successfully</source>
+            <target>已成功创建配置文件</target>
+        </trans-unit>
+        <trans-unit id="msgProfileCreatedAndConnected">
+            <source xml:lang="en">Profile created and connected</source>
+            <target>创建并连接配置文件</target>
+        </trans-unit>
+        <trans-unit id="msgClearedRecentConnections">
+            <source xml:lang="en">Recent connections list cleared</source>
+            <target>已清空最近的连接列表</target>
+        </trans-unit>
+        <trans-unit id="msgIsRequired">
+            <source xml:lang="en"> is required.</source>
+            <target>是必需的。</target>
+        </trans-unit>
+        <trans-unit id="msgError">
+            <source xml:lang="en">Error: </source>
+            <target>错误︰</target>
+        </trans-unit>
+        <trans-unit id="msgYes">
+            <source xml:lang="en">Yes</source>
+            <target>是</target>
+        </trans-unit>
+        <trans-unit id="msgNo">
+            <source xml:lang="en">No</source>
+            <target>否</target>
+        </trans-unit>
+        <trans-unit id="defaultDatabaseLabel">
+            <source xml:lang="en">&lt;default&gt;</source>
+            <target>&lt; 默认 &gt;</target>
+        </trans-unit>
+        <trans-unit id="notConnectedLabel">
+            <source xml:lang="en">Disconnected</source>
+            <target>断开连接</target>
+        </trans-unit>
+        <trans-unit id="notConnectedTooltip">
+            <source xml:lang="en">Click to connect to a database</source>
+            <target>单击以连接到数据库</target>
+        </trans-unit>
+        <trans-unit id="connectingLabel">
+            <source xml:lang="en">Connecting</source>
+            <target>连接中</target>
+        </trans-unit>
+        <trans-unit id="connectingTooltip">
+            <source xml:lang="en">Connecting to: </source>
+            <target>正在连接至︰</target>
+        </trans-unit>
+        <trans-unit id="connectErrorLabel">
+            <source xml:lang="en">Connection error</source>
+            <target>连接错误</target>
+        </trans-unit>
+        <trans-unit id="connectErrorTooltip">
+            <source xml:lang="en">Error connecting to: </source>
+            <target>连接到此处时出错︰</target>
+        </trans-unit>
+        <trans-unit id="connectErrorCode">
+            <source xml:lang="en">Error code: </source>
+            <target>错误代码︰</target>
+        </trans-unit>
+        <trans-unit id="connectErrorMessage">
+            <source xml:lang="en">Error Message: </source>
+            <target>错误信息︰</target>
+        </trans-unit>
+        <trans-unit id="executeQueryLabel">
+            <source xml:lang="en">Executing query </source>
+            <target>执行查询</target>
+        </trans-unit>
+        <trans-unit id="cancelingQueryLabel">
+            <source xml:lang="en">Canceling query </source>
+            <target>取消查询</target>
+        </trans-unit>
+        <trans-unit id="updatingIntelliSenseLabel">
+            <source xml:lang="en">Updating IntelliSense...</source>
+            <target>正在更新 IntelliSense...</target>
+        </trans-unit>
+        <trans-unit id="extensionNotInitializedError">
+            <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
+            <target>扩展组件正在初始化中，无法执行此命令。请稍后再试</target>
+        </trans-unit>
+        <trans-unit id="untitledScheme">
+            <source xml:lang="en">untitled</source>
+            <target>无标题</target>
+        </trans-unit>
+        <trans-unit id="msgChangeLanguageMode">
+            <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
+            <target>若要使用此命令，您必須将语言设定为 &quot;SQL&quot;。确认更改语言模式。</target>
+        </trans-unit>
+        <trans-unit id="msgChangedDatabaseContext">
+            <source xml:lang="en">Changed database context to &quot;{0}&quot; for document &quot;{1}&quot;</source>
+            <target>已将文档&quot;{1}&quot;的数据库上下文切换至&quot;{0}&quot;</target>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryCreateProfile">
+            <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+            <target>错误︰ 无法使用所提供的连接信息进行连接。重新创建配置文件？</target>
+        </trans-unit>
+        <trans-unit id="retryLabel">
+            <source xml:lang="en">Retry</source>
+            <target>重试</target>
+        </trans-unit>
+        <trans-unit id="msgConnecting">
+            <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
+            <target>在文档&quot;{1}&quot; 上连接至服务器 &quot;{0}&quot;。</target>
+        </trans-unit>
+        <trans-unit id="msgConnectedServerInfo">
+            <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
+            <target>在文档&quot;{1}&quot; 已连接至服务器&quot;{0}&quot;.  服务器信息︰ {2} </target>
+        </trans-unit>
+        <trans-unit id="msgConnectionFailed">
+            <source xml:lang="en">Error connecting to server &quot;{0}&quot;. Details: {1}</source>
+            <target>连接到服务器&quot;{0}&quot;时出错。详细信息︰ {1}</target>
+        </trans-unit>
+        <trans-unit id="msgChangingDatabase">
+            <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
+            <target>在文挡 &quot;{2}&quot; 上的服务器 &quot;{1}&quot; 中的数据库上下文改为 &quot;{0}&quot;。</target>
+        </trans-unit>
+        <trans-unit id="msgChangedDatabase">
+            <source xml:lang="en">Changed database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
+            <target>已将在文挡 &quot;{2}&quot; 上的服务器 &quot;{1}&quot; 中的数据库上下文改为 &quot;{0}&quot;。</target>
+        </trans-unit>
+        <trans-unit id="msgDisconnected">
+            <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
+            <target>已断开文档 &quot;{0}&quot;的连接</target>
+        </trans-unit>
+        <trans-unit id="msgErrorReadingConfigFile">
+            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
+            <target>错误︰ 无法从 [{0}] 加载连接配置文件。请检查该文件的格式是否正确。</target>
+        </trans-unit>
+        <trans-unit id="titleResultsPane">
+            <source xml:lang="en">Results: {0}</source>
+            <target>结果︰ {0}</target>
+        </trans-unit>
+        <trans-unit id="macOpenSslErrorMessage">
+            <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
+            <target>连接需要 OpenSSL 版本 &gt; = 1.0.1 。</target>
+        </trans-unit>
+        <trans-unit id="macOpenSslHelpButton">
+            <source xml:lang="en">Help</source>
+            <target>帮助</target>
+        </trans-unit>
+        <trans-unit id="gettingDefinitionMessage">
+            <source xml:lang="en">Getting definition ...</source>
+            <target>获取定义...</target>
+        </trans-unit>
+        <trans-unit id="definitionRequestedStatus">
+            <source xml:lang="en">DefinitionRequested</source>
+            <target>DefinitionRequested</target>
+        </trans-unit>
+        <trans-unit id="definitionRequestCompletedStatus">
+            <source xml:lang="en">DefinitionRequestCompleted</source>
+            <target>DefinitionRequestCompleted</target>
+        </trans-unit>
+        <trans-unit id="updatingIntelliSenseStatus">
+            <source xml:lang="en">updatingIntelliSense</source>
+            <target>updatingIntelliSense</target>
+        </trans-unit>
+        <trans-unit id="intelliSenseUpdatedStatus">
+            <source xml:lang="en">intelliSenseUpdated</source>
+            <target>intelliSenseUpdated</target>
+        </trans-unit>
+        <trans-unit id="testLocalizationConstant">
+            <source xml:lang="en">test</source>
+            <target>测试</target>
+        </trans-unit>
     </body>
   </file>
 </xliff>

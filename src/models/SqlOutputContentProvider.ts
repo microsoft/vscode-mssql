@@ -1,7 +1,6 @@
 'use strict';
 import vscode = require('vscode');
 import path = require('path');
-import os = require('os');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import LocalWebService from '../controllers/localWebService';
@@ -19,7 +18,7 @@ const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
 
 // holds information about the state of a query runner
 class QueryRunnerState {
-    timeout: number;
+    timeout: NodeJS.Timer;
     flaggedForDeletion: boolean;
     constructor (public queryRunner: QueryRunner) {
         this.flaggedForDeletion = false;
@@ -35,7 +34,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     // CONSTANTS ///////////////////////////////////////////////////////////
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
-    public static tempFileCount: number = 1;
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
@@ -345,7 +343,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Cancel the query
         queryRunner.cancel().then(success => undefined, error => {
             // On error, show error message
-            self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error));
+            self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error.message));
         });
     }
 
@@ -392,7 +390,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }
     }
 
-    private setRunnerDeletionTimeout(uri: string): number {
+    private setRunnerDeletionTimeout(uri: string): NodeJS.Timer {
         const self = this;
         return setTimeout(() => {
             let queryRunnerState = self._queryResultsMap.get(uri);
@@ -454,8 +452,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     public openLink(content: string, columnName: string, linkType: string): void {
         const self = this;
-        let tempFileName = self.getXmlTempFileName(columnName, linkType);
-        let uri = vscode.Uri.parse('untitled:' + tempFileName);
         if (linkType === 'xml') {
             try {
                 content = pd.xml(content);
@@ -475,7 +471,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             }
         }
 
-        vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+        vscode.workspace.openTextDocument({ language: linkType }).then((doc: vscode.TextDocument) => {
             vscode.window.showTextDocument(doc, 1, false).then(editor => {
                 editor.edit(edit => {
                     edit.insert(new vscode.Position(0, 0), content);
@@ -515,25 +511,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     private getResultsUri(srcUri: string): string {
         // NOTE: The results uri will be encoded when we parse it to a uri
         return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
-    }
-
-    /**
-     * Return temp file name for opening a link
-     */
-    private getXmlTempFileName(columnName: string, linkType: string): string {
-        if (columnName === 'XML Showplan') {
-            columnName = 'Showplan';
-        }
-        let baseFileName = columnName + '-';
-        let retryCount: number = 200;
-        for (let i = 0; i < retryCount; i++) {
-            let tempFileName = path.join(os.tmpdir(), baseFileName + SqlOutputContentProvider.tempFileCount + '.' + linkType);
-            SqlOutputContentProvider.tempFileCount++;
-            if (!Utils.isFileExisting(tempFileName)) {
-                return tempFileName;
-            }
-        }
-        return path.join(os.tmpdir(), columnName + '_' + String(Math.floor( Date.now() / 1000)) + String(process.pid) + '.' + linkType);
     }
 
     /**

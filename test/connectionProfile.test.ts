@@ -174,39 +174,39 @@ suite('Connection Profile tests', () => {
         const details = ConnectionCredentials.createConnectionDetails(creds);
 
         // Server name should be in the format <address>,<port>
-        assert.strictEqual(details.serverName, 'my-server,1234');
+        assert.strictEqual(details.options['server'], 'my-server,1234');
     });
 
     test('All connection details properties can be set from connection credentials', () => {
         const creds = createTestCredentials();
         const details = ConnectionCredentials.createConnectionDetails(creds);
 
-        assert.notStrictEqual(typeof details.applicationIntent, 'undefined');
-        assert.notStrictEqual(typeof details.applicationName, 'undefined');
-        assert.notStrictEqual(typeof details.attachDbFilename, 'undefined');
-        assert.notStrictEqual(typeof details.authenticationType, 'undefined');
-        assert.notStrictEqual(typeof details.connectRetryCount, 'undefined');
-        assert.notStrictEqual(typeof details.connectRetryInterval, 'undefined');
-        assert.notStrictEqual(typeof details.connectTimeout, 'undefined');
-        assert.notStrictEqual(typeof details.currentLanguage, 'undefined');
-        assert.notStrictEqual(typeof details.databaseName, 'undefined');
-        assert.notStrictEqual(typeof details.encrypt, 'undefined');
-        assert.notStrictEqual(typeof details.failoverPartner, 'undefined');
-        assert.notStrictEqual(typeof details.loadBalanceTimeout, 'undefined');
-        assert.notStrictEqual(typeof details.maxPoolSize, 'undefined');
-        assert.notStrictEqual(typeof details.minPoolSize, 'undefined');
-        assert.notStrictEqual(typeof details.multipleActiveResultSets, 'undefined');
-        assert.notStrictEqual(typeof details.multiSubnetFailover, 'undefined');
-        assert.notStrictEqual(typeof details.packetSize, 'undefined');
-        assert.notStrictEqual(typeof details.password, 'undefined');
-        assert.notStrictEqual(typeof details.persistSecurityInfo, 'undefined');
-        assert.notStrictEqual(typeof details.pooling, 'undefined');
-        assert.notStrictEqual(typeof details.replication, 'undefined');
-        assert.notStrictEqual(typeof details.serverName, 'undefined');
-        assert.notStrictEqual(typeof details.trustServerCertificate, 'undefined');
-        assert.notStrictEqual(typeof details.typeSystemVersion, 'undefined');
-        assert.notStrictEqual(typeof details.userName, 'undefined');
-        assert.notStrictEqual(typeof details.workstationId, 'undefined');
+        assert.notStrictEqual(typeof details.options['applicationIntent'], 'undefined');
+        assert.notStrictEqual(typeof details.options['applicationName'], 'undefined');
+        assert.notStrictEqual(typeof details.options['attachDbFilename'], 'undefined');
+        assert.notStrictEqual(typeof details.options['authenticationType'], 'undefined');
+        assert.notStrictEqual(typeof details.options['connectRetryCount'], 'undefined');
+        assert.notStrictEqual(typeof details.options['connectRetryInterval'], 'undefined');
+        assert.notStrictEqual(typeof details.options['connectTimeout'], 'undefined');
+        assert.notStrictEqual(typeof details.options['currentLanguage'], 'undefined');
+        assert.notStrictEqual(typeof details.options['database'], 'undefined');
+        assert.notStrictEqual(typeof details.options['encrypt'], 'undefined');
+        assert.notStrictEqual(typeof details.options['failoverPartner'], 'undefined');
+        assert.notStrictEqual(typeof details.options['loadBalanceTimeout'], 'undefined');
+        assert.notStrictEqual(typeof details.options['maxPoolSize'], 'undefined');
+        assert.notStrictEqual(typeof details.options['minPoolSize'], 'undefined');
+        assert.notStrictEqual(typeof details.options['multipleActiveResultSets'], 'undefined');
+        assert.notStrictEqual(typeof details.options['multiSubnetFailover'], 'undefined');
+        assert.notStrictEqual(typeof details.options['packetSize'], 'undefined');
+        assert.notStrictEqual(typeof details.options['password'], 'undefined');
+        assert.notStrictEqual(typeof details.options['persistSecurityInfo'], 'undefined');
+        assert.notStrictEqual(typeof details.options['pooling'], 'undefined');
+        assert.notStrictEqual(typeof details.options['replication'], 'undefined');
+        assert.notStrictEqual(typeof details.options['server'], 'undefined');
+        assert.notStrictEqual(typeof details.options['trustServerCertificate'], 'undefined');
+        assert.notStrictEqual(typeof details.options['typeSystemVersion'], 'undefined');
+        assert.notStrictEqual(typeof details.options['user'], 'undefined');
+        assert.notStrictEqual(typeof details.options['workstationId'], 'undefined');
     });
 
     test('Profile is connected to and validated prior to saving', done => {

@@ -29,3 +29,14 @@ export function htmlEntities(str: string): string {
         ? str.replace(/[\u00A0-\u9999<>\&"']/gim, (i) => { return `&#${i.charCodeAt(0)};`; })
         : undefined;
 }
+
+/**
+ * Determines if an object is a DbCellValue based on the properties it exposes
+ * @param object The object to check
+ * @returns True if the object is a DbCellValue, false otherwise
+ */
+export function isDbCellValue(object: any): boolean {
+    return object !== undefined
+        && object.displayValue !== undefined
+        && object.isNull !== undefined;
+}

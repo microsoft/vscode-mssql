@@ -19,7 +19,8 @@ class MockDataService {
         'event.maximizeGrid': 'ctrl+shift+alt+y',
         'event.selectAll': 'alt+y',
         'event.saveAsJSON': 'shift+up',
-        'event.saveAsCSV': ''
+        'event.saveAsCSV': '',
+        'event.saveAsExcel': ''
     };
     public doNotResolve: boolean = false;
     private resolveObject;

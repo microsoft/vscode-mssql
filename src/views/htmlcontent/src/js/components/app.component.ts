@@ -196,18 +196,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.slickgrids.toArray()[this.activeGrid].selection = true;
         },
         'event.saveAsCSV': () => {
-            let activeGrid = this.activeGrid;
-            let batchId = this.renderedDataSets[activeGrid].batchId;
-            let resultId = this.renderedDataSets[activeGrid].resultId;
-            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-            this.dataService.sendSaveRequest(batchId, resultId, 'csv', selection);
+            this.sendSaveRequest('csv');
         },
         'event.saveAsJSON': () => {
-            let activeGrid = this.activeGrid;
-            let batchId = this.renderedDataSets[activeGrid].batchId;
-            let resultId = this.renderedDataSets[activeGrid].resultId;
-            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-            this.dataService.sendSaveRequest(batchId, resultId, 'json', selection);
+            this.sendSaveRequest('json');
+        },
+        'event.saveAsExcel': () => {
+            this.sendSaveRequest('excel');
         }
     };
     // tslint:disable-next-line:no-unused-variable
@@ -249,6 +244,19 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'savejson', batchId: batchId, resultId: resultId, index: index, selection: selection});
+                } else {
+                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
+                }
+            }
+        },
+        {
+            showCondition: () => { return true; },
+            icon: () => { return 'saveExcel'; },
+            hoverText: () => { return Constants.saveExcelLabel; },
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                if (selection.length <= 1) {
+                    this.handleContextClick({type: 'saveexcel', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -356,7 +364,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     let maxHeight = resultSet.rowCount < self._defaultNumShowingRows
                         ? Math.max((resultSet.rowCount + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
                         : 'inherit';
-                    let minHeight = resultSet.rowCount > self._defaultNumShowingRows
+                    let minHeight = resultSet.rowCount >= self._defaultNumShowingRows
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
 
@@ -381,7 +389,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                 id: i.toString(),
                                 name: c.columnName === 'Microsoft SQL Server 2005 XML Showplan'
                                     ? 'XML Showplan'
-                                    : c.columnName,
+                                    : Utils.htmlEntities(c.columnName),
                                 type: self.stringToFieldType('string'),
                                 formatter: isLinked ? self.hyperLinkFormatter : self.textFormatter,
                                 asyncPostRender: isLinked ? self.linkHandler(linkType) : undefined
@@ -440,6 +448,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'savejson':
                 this.dataService.sendSaveRequest(event.batchId, event.resultId, 'json', event.selection);
                 break;
+            case 'saveexcel':
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'excel', event.selection);
+                break;
             case 'selectall':
                 this.activeGrid = event.index;
                 this.shortcutfunc['event.selectAll']();
@@ -458,6 +469,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
         this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
+    }
+
+    private sendSaveRequest(format: string): void {
+        let activeGrid = this.activeGrid;
+        let batchId = this.renderedDataSets[activeGrid].batchId;
+        let resultId = this.renderedDataSets[activeGrid].resultId;
+        let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+        this.dataService.sendSaveRequest(batchId, resultId, format, selection);
     }
 
     /**
@@ -518,22 +537,37 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Add handler for clicking on xml link
      */
     xmlLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
-        const self = this;
-        let value = dataContext[colDef.field];
-        $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.name, 'xml');
-        });
+        this.handleLink(cellRef, row, dataContext, colDef, 'xml');
     }
 
     /**
      * Add handler for clicking on json link
      */
     jsonLinkHandler = (cellRef: string, row: number, dataContext: JSON, colDef: any) => {
+        this.handleLink(cellRef, row, dataContext, colDef, 'json');
+    }
+
+    private handleLink(cellRef: string, row: number, dataContext: JSON, colDef: any, linkType: string): void {
         const self = this;
-        let value = dataContext[colDef.field];
+        let value = self.getCellValueString(dataContext, colDef);
         $(cellRef).children('.xmlLink').click(function(): void {
-            self.dataService.openLink(value, colDef.name, 'json');
+            self.dataService.openLink(value, colDef.name, linkType);
         });
+    }
+
+    private getCellValueString(dataContext: JSON, colDef: any): string {
+        let returnVal = '';
+        if (!dataContext) {
+            return returnVal;
+        }
+
+        let value = dataContext[colDef.field];
+        if (Utils.isDbCellValue(value)) {
+            returnVal = value.displayValue;
+        } else if (typeof value === 'string') {
+            returnVal = value;
+        }
+        return returnVal;
     }
 
     /**
@@ -545,35 +579,38 @@ export class AppComponent implements OnInit, AfterViewChecked {
         } else if (type === 'json') {
             return this.jsonLinkHandler;
         }
-
     }
 
     /**
      * Format xml field into a hyperlink and performs HTML entity encoding
      */
-    public hyperLinkFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        let valueToDisplay = value;
+    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
-        if (value) {
+        let valueToDisplay: string;
+        if (Utils.isDbCellValue(value)) {
             cellClasses += ' xmlLink';
-            valueToDisplay = Utils.htmlEntities(value);
+            valueToDisplay = Utils.htmlEntities(value.displayValue);
             return `<a class="${cellClasses}" href="#" >${valueToDisplay}</a>`;
-        } else {
-            cellClasses += ' missing-value';
-            return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;
         }
+
+        // If we make it to here, we don't have a DbCellValue
+        cellClasses += ' missing-value';
+        return `<span class="${cellClasses}"></span>`;
     }
 
     /**
      * Format all text to replace all new lines with spaces and performs HTML entity encoding
      */
-    textFormatter(row: number, cell: any, value: string, columnDef: any, dataContext: any): string {
-        let valueToDisplay = value;
+    textFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
-        if (value) {
-            valueToDisplay = Utils.htmlEntities(value.replace(/(\r\n|\n|\r)/g, ' '));
+        let valueToDisplay: string;
+        if (Utils.isDbCellValue(value)) {
+            valueToDisplay = Utils.htmlEntities(value.displayValue.replace(/(\r\n|\n|\r)/g, ' '));
+            if (value.isNull) {
+                cellClasses += ' missing-value';
+            }
         } else {
-            cellClasses += ' missing-value';
+            valueToDisplay = '';
         }
 
         return `<span title="${valueToDisplay}" class="${cellClasses}">${valueToDisplay}</span>`;

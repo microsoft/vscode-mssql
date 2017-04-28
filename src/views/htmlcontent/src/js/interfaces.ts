@@ -41,9 +41,14 @@ export interface IDbColumn {
     dataTypeName: string;
 }
 
+export class DbCellValue {
+    displayValue: string;
+    isNull: boolean;
+}
+
 export class ResultSetSubset {
     rowCount: number;
-    rows: any[][];
+    rows: DbCellValue[][];
 }
 
 export class ResultSetSummary {
