@@ -131,8 +131,8 @@ export class ConnectionStore {
                 // Don't try to lookup a saved password if savePassword is set to false for the credential
                 resolve(credentialsItem);
             } else if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
-                    && Utils.isEmpty(credentialsItem.connectionCreds.password)) {
-
+                    && Utils.isEmpty(credentialsItem.connectionCreds.password)
+                    && credentialsItem.connectionCreds['emptyPasswordInput'] === false) {
                 let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
                 self._credentialStore.readCredential(credentialId)
                 .then(savedCred => {
