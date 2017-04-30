@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 1.0
-* Release date: April, 2017
+* Release date: May 2, 2017
 * Release status: GA
 
 ## What's new in this version

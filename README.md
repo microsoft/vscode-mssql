@@ -6,7 +6,7 @@
 
 # mssql for Visual Studio Code
 
-Welcome to **mssql** <sup>preview</sup> for Visual Studio Code! An extension for developing Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere with a rich set of functionalities, including:
+Welcome to **mssql** for Visual Studio Code! An extension for developing Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere with a rich set of functionalities, including:
 
 * Connect to Microsoft SQL Server, Azure SQL Database and SQL Data Warehouses.
 * Create and manage connection profiles and most recently used connections.
