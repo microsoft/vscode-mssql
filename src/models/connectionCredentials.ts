@@ -116,7 +116,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     let profile: IConnectionProfile = <IConnectionProfile>credentials;
 
                     // If this is a profile, and the user has set save password to true and either
-                    // stored the password in the config file or purposefully set an empty password
+                    // stored the password in the config file or purposefully set an empty password,
                     // then transfer the password to the credential store
                     if (profile.savePassword && (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)) {
                         // Remove profile, then save profile without plain text password
@@ -221,10 +221,13 @@ export class ConnectionCredentials implements IConnectionCredentials {
     // Prompt for password if this is a password based credential and the password for the profile was empty
     // and not explicitly set as empty. If it was explicitly set as empty, only prompt if pw not saved
     private static shouldPromptForPassword(credentials: IConnectionCredentials): boolean {
+        let isSavedEmptyPassword: boolean = (<IConnectionProfile>credentials).emptyPasswordInput
+            && (<IConnectionProfile>credentials).savePassword;
+
         return utils.isEmpty(credentials.password)
             && ConnectionCredentials.isPasswordBasedCredential(credentials)
-            && (!((<IConnectionProfile>credentials).emptyPasswordInput) ||
-             ((<IConnectionProfile>credentials).emptyPasswordInput && !(<IConnectionProfile>credentials).savePassword));
+            && !isSavedEmptyPassword;
+
     }
 
     public static isPasswordBasedCredential(credentials: IConnectionCredentials): boolean {
