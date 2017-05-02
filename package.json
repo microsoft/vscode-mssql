@@ -398,6 +398,10 @@
               "savePassword": {
                 "type": "boolean",
                 "description": "[Optional] When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows."
+              },
+              "emptyPasswordInput": {
+                "type": "boolean",
+                "description": "[Optional] Indicates whether this profile has an empty password explicitly set."
               }
             }
           }
