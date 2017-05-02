@@ -35,7 +35,18 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 ### Contributions and "thank you"
 We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
 * Wujun Zhou, for adding the `Save as Excel` feature
-* The many contributors to our community localization. A full list is available on [this TechNet post](https://blogs.technet.microsoft.com/dataplatforminsider/2017/04/13/crossplatform-tools-for-sql-server-opened-for-community-localization/). Particular thanks to Mona Nasr for coordinating our community localization efforts.
+* The many contributors to our community localization discussed on [this TechNet post](https://blogs.technet.microsoft.com/dataplatforminsider/2017/04/13/crossplatform-tools-for-sql-server-opened-for-community-localization/). Please see the [full contributors list](https://aka.ms/crossplattoolsforsqlserverloccontributors).  Particular thanks to Mona Nasr for coordinating our community localization efforts and the following top contributors per language.
+  *	Brazilian Portuguese: Bruno Sonnino, Roberto Fonseca
+  *	Chinese Simplified: Geng Liu, Alan Tsai
+  *	Chinese Traditional: Wei-Ting Shih, Alan Tsai
+  *	French: Antoine Griffard, Bruno Lewin
+  *	German: Jens Suessmeyer, Thomas Hütter
+  *	Italian: Cristiano Gasparotto, Sergio Govoni
+  *	Japanese Rio Fujita, Tanaka_733
+  *	Korean: Jungsun Kim, Eric Kang
+  *	Russian: Alekesy Nemiro, Anatoli Dubko
+  *	Spanish: Christian Eduardo Palomares Peralta, Daniel Canton
+
 
 ## What's new in 0.3.0
 * T-SQL formatting support is now included. This is a highly requested feature, and this release includes a basic parser
