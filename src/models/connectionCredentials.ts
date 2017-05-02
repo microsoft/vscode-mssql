@@ -207,7 +207,9 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 },
                 onAnswered: (value) => {
                     credentials.password = value;
-                    (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                    if (typeof((<IConnectionProfile>credentials)) !== 'undefined') {
+                        (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                    }
                 }
             }
         ];

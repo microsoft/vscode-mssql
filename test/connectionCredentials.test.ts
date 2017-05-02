@@ -79,9 +79,8 @@ suite('ConnectionCredentials Tests', () => {
     }
 
     function ensureRequestAndSavePassword(emptyPassword: boolean): (done: MochaDone) => void {
-
         return (done: MochaDone) => {
-            // Setup Profile Information to have savePassword off and blank
+            // Setup Profile Information to have savePassword on and blank
             let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
                 savePassword: true,
                 emptyPasswordInput: emptyPassword,

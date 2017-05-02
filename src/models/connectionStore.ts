@@ -126,16 +126,14 @@ export class ConnectionStore {
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
         let self = this;
         return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
-            let isEmptyPasswordInput: boolean = typeof(credentialsItem.connectionCreds['emptyPasswordInput'] !== 'undefined')
-                && credentialsItem.connectionCreds['emptyPasswordInput'];
-
             if (typeof(credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
                 credentialsItem.connectionCreds['savePassword'] === false) {
                 // Don't try to lookup a saved password if savePassword is set to false for the credential
                 resolve(credentialsItem);
+            // Note that 'emptyPasswordInput' property is only present for connection profiles
             } else if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
                     && Utils.isEmpty(credentialsItem.connectionCreds.password)
-                    && !isEmptyPasswordInput) {
+                    && credentialsItem.connectionCreds['emptyPasswordInput']) {
                 let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
                 self._credentialStore.readCredential(credentialId)
                 .then(savedCred => {
