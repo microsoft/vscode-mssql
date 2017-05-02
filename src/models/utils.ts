@@ -237,7 +237,7 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
 
 /**
  * Compares 2 connections to see if they match. Logic for matching:
- * match on all key properties (server, db, auth type, user) being identical.
+ * match on all key properties (connectionString or server, db, auth type, user) being identical.
  * Other properties are ignored for this purpose
  *
  * @param {IConnectionCredentials} conn the connection to check
@@ -245,7 +245,8 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
  * @returns boolean that is true if the connections match
  */
 export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
-    return expectedConn.server === conn.server
+    return conn.connectionString || expectedConn.connectionString ? conn.connectionString === expectedConn.connectionString :
+        expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
         && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
         && expectedConn.user === conn.user;
