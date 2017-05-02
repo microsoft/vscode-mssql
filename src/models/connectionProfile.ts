@@ -13,6 +13,7 @@ import * as utils from './utils';
 export class ConnectionProfile extends ConnectionCredentials implements IConnectionProfile {
     public profileName: string;
     public savePassword: boolean;
+    public emptyPasswordInput: boolean;
 
     /**
      * Creates a new profile by prompting the user for information.
@@ -22,14 +23,14 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
      */
     public static createProfile(prompter: IPrompter, defaultProfileValues?: IConnectionProfile): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
-        // Ensure all core propertiesare entered
+        // Ensure all core properties are entered
         let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
         if (authOptions.length === 1) {
             // Set default value as there is only 1 option
             profile.authenticationType = authOptions[0].value;
         }
 
-        let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true, true, defaultProfileValues);
+        let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true, false, defaultProfileValues);
         // Check if password needs to be saved
         questions.push(
             {
