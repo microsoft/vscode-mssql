@@ -159,9 +159,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
         let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
 
-        let connectionStringSet: () => boolean = () => {
-            return Boolean(credentials.connectionString);
-        };
+        let connectionStringSet: () => boolean = () => Boolean(credentials.connectionString);
 
         let questions: IQuestion[] = [
             // Server or connection string must be present

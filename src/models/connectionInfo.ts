@@ -116,7 +116,7 @@ export function getConnectionDisplayString(creds: Interfaces.IConnectionCredenti
     // Update the connection text
     let text: string;
     if (creds.connectionString) {
-        // If a connection string is present, try to display the profile name instead
+        // If a connection string is present, try to display the profile name
         if ((<IConnectionProfile>creds).profileName) {
             text = (<IConnectionProfile>creds).profileName;
             text = appendIfNotEmpty(text, creds.connectionString);
