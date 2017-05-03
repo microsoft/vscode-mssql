@@ -179,7 +179,7 @@ export function getUserNameOrDomainLogin(creds: Interfaces.IConnectionCredential
  */
 export function getTooltip(connCreds: Interfaces.IConnectionCredentials, serverInfo?: ConnectionContracts.ServerInfo): string {
     let tooltip: string =
-           connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString :
+           connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString + '\r\n' :
            ('Server name: ' + connCreds.server + '\r\n' +
            'Database name: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
            'Login name: ' + connCreds.user + '\r\n' +

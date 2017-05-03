@@ -245,7 +245,7 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
  * @returns boolean that is true if the connections match
  */
 export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
-    return conn.connectionString || expectedConn.connectionString ? conn.connectionString === expectedConn.connectionString :
+    return (conn.connectionString || expectedConn.connectionString) ? conn.connectionString === expectedConn.connectionString :
         expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
         && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)

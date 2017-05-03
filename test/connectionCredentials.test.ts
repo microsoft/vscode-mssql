@@ -199,5 +199,46 @@ suite('ConnectionCredentials Tests', () => {
     // confirm password is prompted for and saved correctly for an empty password
     test('ensureRequiredPropertiesSet should request password and save it correctly for empty passswords', ensureRequestAndSavePassword(true));
 
+    // A connection string should override any other ConnectionCredentials properties for createConnectionDetails
+    test('createConnectionDetails should return only the connection string if given', () => {
+        let credentials = new ConnectionCredentials();
+        credentials.connectionString = 'server=some-server';
+        credentials.server = 'some-server';
+
+        let connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
+        assert.equal(connectionDetails.options.connectionString, credentials.connectionString);
+        assert.notEqual(connectionDetails.options.server, credentials.server);
+    });
+
+    test('Subsequent connection credential questions are skipped if a connection string is given', () => {
+        let credentials = new ConnectionCredentials();
+        let questions = ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false);
+        let serverQuestion = questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0];
+
+        let connectionString = 'server=some-server';
+        serverQuestion.onAnswered(connectionString);
+
+        // Verify that the remaining questions will not prompt
+        let otherQuestions = questions.filter(question => question.name !== LocalizedConstants.serverPrompt);
+        otherQuestions.forEach(question => assert.equal(question.shouldPrompt({}), false));
+    });
+
+    test('Server question properly handles connection strings', () => {
+        let credentials = new ConnectionCredentials();
+        let questions = ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false);
+        let serverQuestion = questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0];
+
+        let connectionString = 'server=some-server';
+        serverQuestion.onAnswered(connectionString);
+
+        // Verify that the question updated the connection string
+        assert.equal(credentials.connectionString, connectionString);
+        assert.notEqual(credentials.server, connectionString);
+
+        let serverName = 'some-server';
+        serverQuestion.onAnswered(serverName);
+        assert.equal(credentials.server, serverName);
+        assert.notEqual(credentials.connectionString, serverName);
+    });
 });
 

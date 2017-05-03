@@ -296,5 +296,23 @@ suite('Connection Profile tests', () => {
             done(err);
         });
     });
+
+    test('Profile can be created from a connection string', done => {
+        let answers = {};
+        answers[LocalizedConstants.serverPrompt] = 'Server=my-server';
+
+        // Set up the prompter to answer the server prompt with the connection string
+        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny())).returns(questions => {
+            questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0].onAnswered(answers[LocalizedConstants.serverPrompt]);
+            return Promise.resolve(answers);
+        });
+
+        // Verify that a profile was created
+        ConnectionProfile.createProfile(prompter.object).then( profile => {
+            assert.equal(Boolean(profile), true);
+            done();
+        });
+    });
 });
 
