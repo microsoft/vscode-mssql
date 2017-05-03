@@ -391,6 +391,11 @@
                 ],
                 "description": "[Optional] Indicates which server type the provider will expose through the DataReader."
               },
+              "connectionString": {
+                "type": "string",
+                "default": "",
+                "description": "[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection."
+              },
               "profileName": {
                 "type": "string",
                 "description": "[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code."
