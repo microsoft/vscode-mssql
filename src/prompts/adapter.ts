@@ -152,7 +152,7 @@ export default class CodeAdapter implements IPrompter {
         }, Promise.resolve());
 
         return promptResult.catch(err => {
-            if (err instanceof EscapeException) {
+            if (err instanceof EscapeException || err instanceof TypeError) {
                 return;
             }
 
