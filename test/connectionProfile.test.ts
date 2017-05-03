@@ -305,6 +305,11 @@ suite('Connection Profile tests', () => {
         let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter.setup(x => x.prompt(TypeMoq.It.isAny())).returns(questions => {
             questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0].onAnswered(answers[LocalizedConstants.serverPrompt]);
+            questions.filter(question => question.name !== LocalizedConstants.serverPrompt && question.name !== LocalizedConstants.profileNamePrompt)
+                .forEach(question => {
+                    // Verify that none of the other questions prompt once a connection string is given
+                    assert.equal(question.shouldPrompt(answers), false);
+                });
             return Promise.resolve(answers);
         });
 
