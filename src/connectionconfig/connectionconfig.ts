@@ -69,8 +69,8 @@ export class ConnectionConfig implements IConnectionConfig {
         let profiles: IConnectionProfile[] = [];
         let compareProfileFunc = (a, b) => {
             // Sort by profile name if available, otherwise fall back to server name or connection string
-            let nameA = a.profileName ? a.profileName : a.server ? a.server : a.connectionString;
-            let nameB = b.profileName ? b.profileName : b.server ? b.server : b.connectionString;
+            let nameA = a.profileName ? a.profileName : (a.server ? a.server : a.connectionString);
+            let nameB = b.profileName ? b.profileName : (b.server ? b.server : b.connectionString);
             return nameA.localeCompare(nameB);
         };
 

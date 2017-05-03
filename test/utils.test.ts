@@ -64,7 +64,7 @@ suite('Utility Tests - isSameConnection', () => {
         expect(Utils.isSameConnection(connection1, connection2)).to.equal(true);
     });
 
-    test('should return true for non-matching non-connectionstring connections', () => {
+    test('should return false for non-matching non-connectionstring connections', () => {
         connection2.server = 'some-other-server';
         expect(Utils.isSameConnection(connection1, connection2)).to.equal(false);
     });
