@@ -331,10 +331,6 @@ export default class QueryRunner {
         // Windows(CRLF): \r\n
         // Linux(LF)/Modern MacOS: \n
         // Old MacOs: \r
-        if (!inputString) {
-            return 'null';
-        }
-
         let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');
         return outputString;
     }
