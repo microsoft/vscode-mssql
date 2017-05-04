@@ -90,10 +90,10 @@
             <source xml:lang="en">{{put-server-name-here}}</source>
         </trans-unit>
         <trans-unit id="serverPrompt">
-            <source xml:lang="en">Server name</source>
+            <source xml:lang="en">Server name or ADO.NET connection string</source>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
-            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net</source>
+            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
         </trans-unit>
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>

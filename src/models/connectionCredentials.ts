@@ -37,12 +37,20 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public multipleActiveResultSets: boolean;
     public packetSize: number;
     public typeSystemVersion: string;
+    public connectionString: string;
 
     /**
      * Create a connection details contract from connection credentials.
      */
     public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
         let details: ConnectionDetails = new ConnectionDetails();
+
+        // If there is a connection string, use it to connect
+        if (credentials.connectionString) {
+            details.options['connectionString'] = credentials.connectionString;
+            return details;
+        }
+
         details.options['server'] = credentials.server;
         if (credentials.port && details.options['server'].indexOf(',') === -1) {
             // Port is appended to the server name in a connection string
@@ -94,6 +102,10 @@ export class ConnectionCredentials implements IConnectionCredentials {
             name: LocalizedConstants.msgSavePassword,
             message: LocalizedConstants.msgSavePassword,
             shouldPrompt: (answers) => {
+                if (credentials.connectionString) {
+                    return false;
+                }
+
                 if (isProfile) {
                     // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
                     return ConnectionCredentials.isPasswordBasedCredential(credentials) &&
@@ -148,8 +160,10 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
         let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
 
+        let connectionStringSet: () => boolean = () => Boolean(credentials.connectionString);
+
         let questions: IQuestion[] = [
-            // Server must be present
+            // Server or connection string must be present
             {
                 type: QuestionTypes.input,
                 name: LocalizedConstants.serverPrompt,
@@ -158,7 +172,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 default: defaultProfileValues ? defaultProfileValues.server : undefined,
                 shouldPrompt: (answers) => utils.isEmpty(credentials.server),
                 validate: (value) => ConnectionCredentials.validateRequiredString(LocalizedConstants.serverPrompt, value),
-                onAnswered: (value) => credentials.server = value
+                onAnswered: (value) => ConnectionCredentials.processServerOrConnectionString(value, credentials)
             },
             // Database name is not required, prompt is optional
             {
@@ -167,7 +181,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 message: LocalizedConstants.databasePrompt,
                 placeHolder: LocalizedConstants.databasePlaceholder,
                 default: defaultProfileValues ? defaultProfileValues.database : undefined,
-                shouldPrompt: (answers) => promptForDbName,
+                shouldPrompt: (answers) => !connectionStringSet() && promptForDbName,
                 onAnswered: (value) => credentials.database = value
             },
             // AuthenticationType is required if there is more than 1 option on this platform
@@ -176,7 +190,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 name: LocalizedConstants.authTypePrompt,
                 message: LocalizedConstants.authTypePrompt,
                 choices: authenticationChoices,
-                shouldPrompt: (answers) => utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
+                shouldPrompt: (answers) => !connectionStringSet() && utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
                 onAnswered: (value) => {
                     credentials.authenticationType = value;
                 }
@@ -188,7 +202,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 message: LocalizedConstants.usernamePrompt,
                 placeHolder: LocalizedConstants.usernamePlaceholder,
                 default: defaultProfileValues ? defaultProfileValues.user : undefined,
-                shouldPrompt: (answers) => ConnectionCredentials.shouldPromptForUser(credentials),
+                shouldPrompt: (answers) => !connectionStringSet() && ConnectionCredentials.shouldPromptForUser(credentials),
                 validate: (value) => ConnectionCredentials.validateRequiredString(LocalizedConstants.usernamePrompt, value),
                 onAnswered: (value) => credentials.user = value
             },
@@ -198,7 +212,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 name: LocalizedConstants.passwordPrompt,
                 message: LocalizedConstants.passwordPrompt,
                 placeHolder: LocalizedConstants.passwordPlaceholder,
-                shouldPrompt: (answers) => ConnectionCredentials.shouldPromptForPassword(credentials),
+                shouldPrompt: (answers) => !connectionStringSet() && ConnectionCredentials.shouldPromptForPassword(credentials),
                 validate: (value) => {
                     if (isPasswordRequired) {
                         return ConnectionCredentials.validateRequiredString(LocalizedConstants.passwordPrompt, value);
@@ -214,6 +228,19 @@ export class ConnectionCredentials implements IConnectionCredentials {
             }
         ];
         return questions;
+    }
+
+    // Detect if a given value is a server name or a connection string, and assign the result accordingly
+    private static processServerOrConnectionString(value: string, credentials: IConnectionCredentials): void {
+        // If the value contains a connection string server name key, assume it is a connection string
+        const dataSourceKeys = ['data source=', 'server=', 'address=', 'addr=', 'network address='];
+        let isConnectionString = dataSourceKeys.some(key => value.toLowerCase().indexOf(key) !== -1);
+
+        if (isConnectionString) {
+            credentials.connectionString = value;
+        } else {
+            credentials.server = value;
+        }
     }
 
     private static shouldPromptForUser(credentials: IConnectionCredentials): boolean {

@@ -66,17 +66,18 @@ export class ConnectionConfig implements IConnectionConfig {
      * and next alphabetically by profile/server name.
      */
     public getConnections(getWorkspaceConnections: boolean): IConnectionProfile[] {
-        let profiles = [];
+        let profiles: IConnectionProfile[] = [];
         let compareProfileFunc = (a, b) => {
-            // Sort by profile name if available, otherwise fall back to server name
-            let nameA = a.profileName ? a.profileName : a.server;
-            let nameB = b.profileName ? b.profileName : b.server;
+            // Sort by profile name if available, otherwise fall back to server name or connection string
+            let nameA = a.profileName ? a.profileName : (a.server ? a.server : a.connectionString);
+            let nameB = b.profileName ? b.profileName : (b.server ? b.server : b.connectionString);
             return nameA.localeCompare(nameB);
         };
 
         // Read from user settings
         let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
         let userProfiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+
         userProfiles.sort(compareProfileFunc);
         profiles = profiles.concat(userProfiles);
 
@@ -90,8 +91,8 @@ export class ConnectionConfig implements IConnectionConfig {
 
         if (profiles.length > 0) {
             profiles = profiles.filter(conn => {
-                // filter any connection missing a server name or the sample that's shown by default
-                return !!(conn.server) && conn.server !== LocalizedConstants.SampleServerName;
+                // filter any connection missing a connection string and server name or the sample that's shown by default
+                return conn.connectionString || !!(conn.server) && conn.server !== LocalizedConstants.SampleServerName;
             });
         }
 

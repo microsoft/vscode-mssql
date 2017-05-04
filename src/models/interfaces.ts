@@ -187,6 +187,11 @@ export interface IConnectionCredentials {
      * Gets or sets a string value that indicates the type system the application expects.
      */
     typeSystemVersion: string;
+
+    /**
+     * Gets or sets the connection string to use for this connection
+     */
+    connectionString: string;
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional

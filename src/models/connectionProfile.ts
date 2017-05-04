@@ -37,7 +37,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 type: QuestionTypes.confirm,
                 name: LocalizedConstants.msgSavePassword,
                 message: LocalizedConstants.msgSavePassword,
-                shouldPrompt: (answers) => ConnectionCredentials.isPasswordBasedCredential(profile),
+                shouldPrompt: (answers) => !profile.connectionString && ConnectionCredentials.isPasswordBasedCredential(profile),
                 onAnswered: (value) => profile.savePassword = value
             },
             {
@@ -61,8 +61,12 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         });
     }
 
-    // Assumption: having server + profile name indicates all requirements were met
+    // Assumption: having connection string or server + profile name indicates all requirements were met
     private isValidProfile(): boolean {
+        if (this.connectionString) {
+            return true;
+        }
+
         if (this.authenticationType) {
             if (this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated]) {
                 return utils.isNotEmpty(this.server);

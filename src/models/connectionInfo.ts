@@ -2,6 +2,7 @@
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import Interfaces = require('./interfaces');
+import { IConnectionProfile } from '../models/interfaces';
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from './utils';
 
@@ -75,7 +76,7 @@ export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials, i
     if (profile.profileName) {
         return profile.profileName;
     } else {
-        return connCreds.server;
+        return connCreds.server ? connCreds.server : connCreds.connectionString;
     }
 }
 
@@ -113,14 +114,25 @@ export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials)
  */
 export function getConnectionDisplayString(creds: Interfaces.IConnectionCredentials): string {
     // Update the connection text
-    let text: string = creds.server;
-    if (creds.database !== '') {
-        text = appendIfNotEmpty(text, creds.database);
+    let text: string;
+    if (creds.connectionString) {
+        // If a connection string is present, try to display the profile name
+        if ((<IConnectionProfile>creds).profileName) {
+            text = (<IConnectionProfile>creds).profileName;
+            text = appendIfNotEmpty(text, creds.connectionString);
+        } else {
+            text = creds.connectionString;
+        }
     } else {
-        text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
+        text = creds.server;
+        if (creds.database !== '') {
+            text = appendIfNotEmpty(text, creds.database);
+        } else {
+            text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
+        }
+        let user: string = getUserNameOrDomainLogin(creds);
+        text = appendIfNotEmpty(text, user);
     }
-    let user: string = getUserNameOrDomainLogin(creds);
-    text = appendIfNotEmpty(text, user);
 
     // Limit the maximum length of displayed text
     if (text.length > Constants.maxDisplayedStatusTextLength) {
@@ -167,10 +179,11 @@ export function getUserNameOrDomainLogin(creds: Interfaces.IConnectionCredential
  */
 export function getTooltip(connCreds: Interfaces.IConnectionCredentials, serverInfo?: ConnectionContracts.ServerInfo): string {
     let tooltip: string =
-           'Server name: ' + connCreds.server + '\r\n' +
+           connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString + '\r\n' :
+           ('Server name: ' + connCreds.server + '\r\n' +
            'Database name: ' + (connCreds.database ? connCreds.database : '<connection default>') + '\r\n' +
            'Login name: ' + connCreds.user + '\r\n' +
-           'Connection encryption: ' + (connCreds.encrypt ? 'Encrypted' : 'Not encrypted') + '\r\n';
+           'Connection encryption: ' + (connCreds.encrypt ? 'Encrypted' : 'Not encrypted') + '\r\n');
     if (serverInfo && serverInfo.serverVersion) {
         tooltip += 'Server version: ' + serverInfo.serverVersion + '\r\n';
     }

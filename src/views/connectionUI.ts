@@ -383,6 +383,13 @@ export class ConnectionUI {
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+        // If a connection string is present, don't prompt for any other info
+        if (selection.connectionCreds.connectionString) {
+            return new Promise<IConnectionCredentials> ((resolve, reject) => {
+                resolve(selection.connectionCreds);
+            });
+        }
+
         const passwordEmptyInConfigFile: boolean = Utils.isEmpty(selection.connectionCreds.password);
         return this._connectionStore.addSavedPassword(selection)
         .then(sel => {
