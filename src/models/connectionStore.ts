@@ -421,7 +421,7 @@ export class ConnectionStore {
                     let connection = ConnInfo.fixupConnectionCredentials(element);
                     connections.push(connection);
                 } else {
-                    Utils.logDebug(LocalizedConstants.configMyConnectionsNoServerName + ' index (' + index + '): ' + element.toString());
+                    Utils.logDebug(`Missing server name in user preferences connection: index ( ${index} ): ${element.toString()}`);
                 }
             }
         }

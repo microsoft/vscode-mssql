@@ -80,7 +80,7 @@ export default class MainController implements vscode.Disposable {
      * Deactivates the extension
      */
     public deactivate(): void {
-        Utils.logDebug(LocalizedConstants.extensionDeactivated);
+        Utils.logDebug('de-activated.');
         this.onDisconnect();
         this._statusview.dispose();
     }
@@ -168,7 +168,7 @@ export default class MainController implements vscode.Disposable {
 
                 self.showReleaseNotesPrompt();
 
-                Utils.logDebug(LocalizedConstants.extensionActivated);
+                Utils.logDebug('activated.');
                 self._initialized = true;
                 resolve(true);
             }).catch(err => {
