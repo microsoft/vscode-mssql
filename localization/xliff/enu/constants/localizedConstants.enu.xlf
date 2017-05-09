@@ -2,15 +2,6 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en">
     <body>
-        <trans-unit id="configMyConnectionsNoServerName">
-            <source xml:lang="en">Missing server name in user preferences connection: </source>
-        </trans-unit>
-        <trans-unit id="msgLocalWebserviceStaticContent">
-            <source xml:lang="en">LocalWebService: added static html content path: </source>
-        </trans-unit>
-        <trans-unit id="msgLocalWebserviceStarted">
-            <source xml:lang="en">LocalWebService listening on port </source>
-        </trans-unit>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document "{0}"</source>
         </trans-unit>
@@ -55,12 +46,6 @@
         </trans-unit>
         <trans-unit id="msgPromptClearRecentConnections">
             <source xml:lang="en">Confirm to clear recent connections list</source>
-        </trans-unit>
-        <trans-unit id="extensionActivated">
-            <source xml:lang="en">activated.</source>
-        </trans-unit>
-        <trans-unit id="extensionDeactivated">
-            <source xml:lang="en">de-activated.</source>
         </trans-unit>
         <trans-unit id="msgOpenSqlFile">
             <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
