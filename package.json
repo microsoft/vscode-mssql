@@ -84,7 +84,7 @@
     "tslint": "^3.14.0",
     "typemoq": "^0.3.2",
     "typescript": "^2.1.5",
-    "uglify-js": "mishoo/UglifyJS2#harmony",
+    "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode": "^1.0.5",
     "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
     "xmldom": "^0.1.27",
