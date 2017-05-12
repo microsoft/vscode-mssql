@@ -212,6 +212,20 @@ gulp.task('html:copy:assets', (done) => {
             })
         })
     );
+    promises.push(new Promise((resolve) => {
+            gulp.src([
+                config.paths.html.root + '/src/js/**/*.js',
+            ])
+            .pipe(srcmap.init())
+            .pipe(minifier({mangle: false}, uglifyjs))
+            .pipe(srcmap.write('.', {
+                sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent/src/js'; }
+            }))
+            .pipe(gulp.dest(config.paths.html.out + '/dist/js'))
+            .on('end', () => {
+                resolve();
+            })
+        }));
 
     Promise.all(promises).then(() => done());
 });
