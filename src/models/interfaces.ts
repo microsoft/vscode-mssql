@@ -31,6 +31,12 @@ export enum AuthenticationTypes {
     ActiveDirectoryUniversal = 3
 }
 
+export enum ServerTypes {
+    MSSQL = 0,
+    MySQL = 1,
+    PgSQL = 2
+}
+
 export const ContentTypes = [
     Constants.outputContentTypeRoot,
     Constants.outputContentTypeMessages,
@@ -54,6 +60,11 @@ export interface IConnectionCredentials {
      * server name
      */
     server: string;
+
+    /**
+     * server type;
+     */
+    serverType: ServerType;
 
     /**
      * database name

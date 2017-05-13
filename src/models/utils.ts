@@ -159,6 +159,10 @@ export function authTypeToString(value: interfaces.AuthenticationTypes): string 
     return interfaces.AuthenticationTypes[value];
 }
 
+export function serverTypeToString(value: interfaces.ServerTypes): string {
+    return interfaces.ServerTypes[value];
+}
+
 /**
  * Format a string. Behaves like C#'s string.Format() function.
  */

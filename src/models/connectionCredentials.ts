@@ -1,7 +1,7 @@
 'use strict';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { ConnectionDetails } from './contracts/connection';
-import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes, ServerTypes } from './interfaces';
 import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
@@ -11,6 +11,7 @@ import os = require('os');
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
     public server: string;
+    public serverType: ServerTypes;
     public database: string;
     public user: string;
     public password: string;
@@ -81,6 +82,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         details.options['multipleActiveResultSets'] = credentials.multipleActiveResultSets;
         details.options['packetSize'] = credentials.packetSize;
         details.options['typeSystemVersion'] = credentials.typeSystemVersion;
+        details.options['serverType'] = credentials.serverType;
 
         return details;
     }
@@ -160,9 +162,20 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
         let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
 
+        let serverTypeChoices: INameValueChoice[] = ConnectionCredentials.getServerTypeChoices();
+
         let connectionStringSet: () => boolean = () => Boolean(credentials.connectionString);
 
         let questions: IQuestion[] = [
+            // first ask for server type
+            {
+                type: QuestionTypes.expand,
+                name: 'Server Type',
+                message: 'Server Type',
+                choices: serverTypeChoices,
+                shouldPrompt: (answers) => utils.isEmpty(credentials.serverType),
+                onAnswered: (value) => credentials.serverType = value
+            },
             // Server or connection string must be present
             {
                 type: QuestionTypes.input,
@@ -287,6 +300,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
         // TODO When Azure Active Directory is supported, add this here
 
         return choices;
+    }
+
+    public static getServerTypeChoices(): INameValueChoice[] {
+        return [
+            { name: LocalizedConstants.serverTypeMssql, value: utils.serverTypeToString(ServerTypes.MSSQL)},
+            { name: LocalizedConstants.serverTypePg, value: utils.serverTypeToString(ServerTypes.PgSQL)},
+            { name: LocalizedConstants.serverTypeMssql, value: utils.serverTypeToString(ServerTypes.MySQL)}
+        ]
     }
 }
 
