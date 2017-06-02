@@ -13,7 +13,7 @@ install:
   - set BUILDMACHINE=true
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
-  - npm install -g npm
+  - npm install -g npm@4
   # show versions
   - npm --version
   - node --version
