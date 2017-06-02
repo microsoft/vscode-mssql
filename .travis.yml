@@ -24,7 +24,7 @@ before_install:
     fi
   - export BUILDMACHINE=true
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
-  - npm install -g npm
+  - npm install -g npm@4
 install:
   - npm install -g --silent gulp-cli
   - npm install -g --silent xvfb-maybe@0.1.3
