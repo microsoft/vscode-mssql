@@ -246,7 +246,7 @@
 		"prefix": "sqlListColumns",
 		"body": [
 			"-- List columns and their types of all tables whose name like '${TableName}'",
-			"select ",
+			"SELECT ",
     			"TableName = tbl.table_schema + '.' + tbl.table_name, ",
     			"ColumnName = col.column_name, ",
     			"ColumnDataType = col.data_type",
