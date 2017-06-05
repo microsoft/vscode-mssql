@@ -240,5 +240,24 @@
 			"GO"
 		],
 		"description": "List databases"
+	},
+	
+	"List columns": {
+		"prefix": "sqlListColumns",
+		"body": [
+			"-- List columns and their types of all tables whose name like '${TableName}'",
+			"SELECT ",
+    			"TableName = tbl.table_schema + '.' + tbl.table_name, ",
+    			"ColumnName = col.column_name, ",
+    			"ColumnDataType = col.data_type",
+			"FROM information_schema.tables tbl",
+			"INNER JOIN information_schema.columns col ",
+    			"ON col.table_name = tbl.table_name",
+			"AND col.table_schema = tbl.table_schema",
+			"",
+			"WHERE tbl.table_type = 'base table' and tbl.table_name like '%${TableName}%'",
+			"GO"
+		],
+		"description": "Lists all the columns and their types of a table" 
 	}
 }
