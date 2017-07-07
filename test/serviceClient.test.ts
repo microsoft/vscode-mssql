@@ -15,9 +15,9 @@ interface IFixture {
 
 suite('Service Client tests', () => {
 
-    let testServiceProvider: TypeMoq.Mock<ServerProvider>;
+    let testServiceProvider: TypeMoq.IMock<ServerProvider>;
     let logger = new Logger(text => console.log(text));
-    let testStatusView: TypeMoq.Mock<StatusView>;
+    let testStatusView: TypeMoq.IMock<StatusView>;
 
     setup(() => {
         testServiceProvider = TypeMoq.Mock.ofType(ServerProvider, TypeMoq.MockBehavior.Strict);

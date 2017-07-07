@@ -4,7 +4,7 @@ import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import QueryRunner from '../src/controllers/QueryRunner';
 import { ISelectionData } from '../src/models/interfaces';
-import { QueryExecuteSubsetResult } from '../src/models/contracts/queryExecute';
+import { QueryExecuteSubsetResult, ResultSetSubset } from '../src/models/contracts/queryExecute';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';
 import vscode = require('vscode');
@@ -12,12 +12,12 @@ import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 
 suite('Web Service Request Handler Tests', () => {
-    let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
-    let context: TypeMoq.Mock<vscode.ExtensionContext>;
-    let statusView: TypeMoq.Mock<StatusView>;
-    let result: TypeMoq.Mock<stubs.ExpressResult>;
-    let queryRunner: TypeMoq.Mock<QueryRunner>;
+    let context: TypeMoq.IMock<vscode.ExtensionContext>;
+    let statusView: TypeMoq.IMock<StatusView>;
+    let result: TypeMoq.IMock<stubs.ExpressResult>;
+    let queryRunner: TypeMoq.IMock<QueryRunner>;
 
     setup(() => {
 
@@ -99,7 +99,11 @@ suite('Web Service Request Handler Tests', () => {
         .returns( () => {
             return new Promise<QueryExecuteSubsetResult>((reject, resolve) => {
                 // returning a blank resultSubset Message
-                resolve({message: '', resultSubset: {rowCount: 0, rows: [[]]}});
+                let subsetResult = new QueryExecuteSubsetResult();
+                subsetResult.resultSubset = new ResultSetSubset();
+                subsetResult.resultSubset.rowCount = 0;
+                subsetResult.resultSubset.rows = [[]];
+                resolve(subsetResult);
             });
         });
 

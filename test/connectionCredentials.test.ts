@@ -20,11 +20,11 @@ import assert = require('assert');
 
 suite('ConnectionCredentials Tests', () => {
     let defaultProfile: interfaces.IConnectionProfile;
-    let prompter: TypeMoq.Mock<IPrompter>;
-    let context: TypeMoq.Mock<vscode.ExtensionContext>;
-    let credentialStore: TypeMoq.Mock<CredentialStore>;
-    let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
-    let connectionStore: TypeMoq.Mock<ConnectionStore>;
+    let prompter: TypeMoq.IMock<IPrompter>;
+    let context: TypeMoq.IMock<vscode.ExtensionContext>;
+    let credentialStore: TypeMoq.IMock<CredentialStore>;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let connectionStore: TypeMoq.IMock<ConnectionStore>;
 
     setup(() => {
         defaultProfile = Object.assign(new ConnectionProfile(), {

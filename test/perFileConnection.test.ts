@@ -67,8 +67,8 @@ function createTestConnectionManager(
     statusView?: StatusView,
     connectionStore?: ConnectionStore): ConnectionManager {
 
-    let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
-    let prompterMock: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+    let contextMock: TypeMoq.IMock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+    let prompterMock: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
     if (!statusView) {
         statusView = TypeMoq.Mock.ofType(StatusView).object;
     }
@@ -102,7 +102,7 @@ suite('Per File Connection Tests', () => {
         let manager: ConnectionManager = createTestConnectionManager();
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 manager.handleConnectionCompleteNotification().call(manager, createTestConnectionResult(params.ownerUri));
@@ -141,7 +141,7 @@ suite('Per File Connection Tests', () => {
         let manager: ConnectionManager = createTestConnectionManager();
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 manager.handleConnectionCompleteNotification().call(manager, createTestConnectionResult(params.ownerUri));
@@ -195,7 +195,7 @@ suite('Per File Connection Tests', () => {
         let manager: ConnectionManager = createTestConnectionManager();
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 manager.handleConnectionCompleteNotification().call(manager, createTestConnectionResult(params.ownerUri));
@@ -260,7 +260,7 @@ suite('Per File Connection Tests', () => {
         let manager: ConnectionManager = createTestConnectionManager();
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 manager.handleConnectionCompleteNotification().call(manager, createTestConnectionResult(params.ownerUri));
@@ -282,7 +282,7 @@ suite('Per File Connection Tests', () => {
             quickPickItemType: Interfaces.CredentialsQuickPickItemType.Mru
         };
 
-        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.callBase = true;
         vscodeWrapperMock.setup(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .returns(() => Promise.resolve(newDatabaseChoice));
@@ -326,11 +326,11 @@ suite('Per File Connection Tests', () => {
 
     test('Prompts for new connection before running query if disconnected', () => {
         // Setup mocking
-        let contextMock: TypeMoq.Mock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
-        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        let contextMock: TypeMoq.IMock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => true);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'file://my/test/file.sql');
-        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
         connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(false));
@@ -350,7 +350,7 @@ suite('Per File Connection Tests', () => {
         let connectionManager: ConnectionManager = createTestConnectionManager();
 
         // Setup mocking
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 connectionManager.handleConnectionCompleteNotification().call(connectionManager, createTestConnectionResult(params.ownerUri));
@@ -401,14 +401,14 @@ suite('Per File Connection Tests', () => {
         let myResult = createConnectionResultForCreds(connectionCreds, expectedDbName);
         myResult.ownerUri = testFile;
 
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 manager.handleConnectionCompleteNotification().call(manager, myResult);
                             })
                             .returns(() => Promise.resolve(true));
 
-        let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
+        let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         let actualDbName = undefined;
         statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .callback((fileUri, creds: IConnectionCredentials, server: ConnectionContracts.ServerInfo) => {
@@ -460,14 +460,14 @@ suite('Per File Connection Tests', () => {
         let myResult = createConnectionResultForCreds(connectionCreds, expectedDbName);
         myResult.ownerUri = testFile;
 
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 manager.handleConnectionCompleteNotification().call(manager, myResult);
                             })
                             .returns(() => Promise.resolve(true));
 
-        let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
+        let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         let actualDbName = undefined;
         statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .callback((fileUri, creds: IConnectionCredentials) => {
@@ -503,8 +503,8 @@ suite('Per File Connection Tests', () => {
         const testFile = 'file:///my/test/file.sql';
 
         let manager: ConnectionManager = createTestConnectionManager();
-        let statusViewMock: TypeMoq.Mock<StatusView> = TypeMoq.Mock.ofType(StatusView);
-        let serviceClientMock: TypeMoq.Mock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                             .callback((type, params: ConnectionContracts.ConnectParams) => {
                                 manager.handleConnectionCompleteNotification().call(manager, createTestConnectionResult(params.ownerUri));

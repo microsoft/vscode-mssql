@@ -57,7 +57,7 @@ suite('Connection Profile tests', () => {
 
     test('CreateProfile should ask questions in correct order', done => {
         // Given
-        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
         let profileQuestions: IQuestion[];
         let profileReturned: IConnectionProfile;
@@ -99,7 +99,7 @@ suite('Connection Profile tests', () => {
 
     test('CreateProfile - SqlPassword should be default auth type', done => {
         // Given
-        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
         let profileQuestions: IQuestion[];
         let profileReturned: IConnectionProfile;
@@ -126,7 +126,7 @@ suite('Connection Profile tests', () => {
 
     test('CreateProfile - Integrated auth support', done => {
         // Given
-        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
         let profileQuestions: IQuestion[];
         let profileReturned: IConnectionProfile;
@@ -211,13 +211,13 @@ suite('Connection Profile tests', () => {
     });
 
     test('Profile is connected to and validated prior to saving', done => {
-        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
 
         let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
         connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
-        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
                 .returns(questions => {
                     let answers: {[key: string]: string} = {};
@@ -254,13 +254,13 @@ suite('Connection Profile tests', () => {
     });
 
     test('Profile is not saved when connection validation fails', done => {
-        let connectionManagerMock: TypeMoq.Mock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
 
         let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
         connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
-        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
                 .returns(questions => {
                     let answers: {[key: string]: string} = {};
@@ -302,7 +302,7 @@ suite('Connection Profile tests', () => {
         answers[LocalizedConstants.serverPrompt] = 'Server=my-server';
 
         // Set up the prompter to answer the server prompt with the connection string
-        let prompter: TypeMoq.Mock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter.setup(x => x.prompt(TypeMoq.It.isAny())).returns(questions => {
             questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0].onAnswered(answers[LocalizedConstants.serverPrompt]);
             questions.filter(question => question.name !== LocalizedConstants.serverPrompt && question.name !== LocalizedConstants.profileNamePrompt)

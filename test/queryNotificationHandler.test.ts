@@ -9,7 +9,7 @@ suite('QueryNotificationHandler tests', () => {
 
     let notificationHandler: QueryNotificationHandler;
     let eventData: any;
-    let runnerMock: TypeMoq.Mock<QueryRunner>;
+    let runnerMock: TypeMoq.IMock<QueryRunner>;
 
     let batchStartHandlerCalled: boolean;
     let messageHandlerCalled: boolean;

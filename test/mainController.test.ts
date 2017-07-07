@@ -16,8 +16,8 @@ suite('MainController Tests', () => {
     let document: vscode.TextDocument;
     let newDocument: vscode.TextDocument;
     let mainController: MainController;
-    let connectionManager: TypeMoq.Mock<ConnectionManager>;
-    let untitledSqlDocumentService: TypeMoq.Mock<UntitledSqlDocumentService>;
+    let connectionManager: TypeMoq.IMock<ConnectionManager>;
+    let untitledSqlDocumentService: TypeMoq.IMock<UntitledSqlDocumentService>;
     let docUri: string;
     let newDocUri: string;
     let docUriCallback: string;
@@ -184,8 +184,8 @@ suite('MainController Tests', () => {
     });
 
     test('TextDocument Events should handle non-initialized connection manager' , done => {
-        let contextMock: TypeMoq.Mock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
-        let vscodeWrapperMock: TypeMoq.Mock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         let controller: MainController = new MainController(contextMock.object,
             undefined,  // ConnectionManager
             vscodeWrapperMock.object);
