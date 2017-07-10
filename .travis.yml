@@ -23,6 +23,7 @@ before_install:
       export CHROME_BIN=/Applications/Google\ Chrome.app;
     fi
   - export BUILDMACHINE=true
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install xclip; fi
   - npm install -g npm@4
 install:
