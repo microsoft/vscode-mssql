@@ -324,7 +324,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let queryRunner: QueryRunner;
 
         if (typeof input === 'string') {
-            if(this.isResultsUri(input) && this._queryResultsMap.has(input)) {
+            if (this.isResultsUri(input) && this._queryResultsMap.has(input)) {
                 // Option 1: The string is a results URI (the results tab has focus)
                 queryRunner = this._queryResultsMap.get(input).queryRunner;
             } else {

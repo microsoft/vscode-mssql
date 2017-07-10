@@ -242,7 +242,7 @@ suite('SqlOutputProvider Tests', () => {
     test('cancelQuery should cancel the execution of a query by result pane URI', done => {
         let title = 'Test_Title';
         let uri = 'Test_URI';
-        let resultUri = 'tsqloutput:Test_URI'
+        let resultUri = 'tsqloutput:Test_URI';
         let querySelection: ISelectionData = {
             endColumn: 0,
             endLine: 0,
