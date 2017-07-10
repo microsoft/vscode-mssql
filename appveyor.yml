@@ -1,5 +1,8 @@
 environment:
   nodejs_version: "6.9.1"
+  # Temporary Code version due to https://github.com/Microsoft/vscode-extension-vscode/issues/64
+  CODE_VERSION: 1.12.2
+
 
 # safelist
 branches:
