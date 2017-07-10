@@ -286,7 +286,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should have started showing messages after the batch start message', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             fixture.detectChanges();
 
@@ -302,7 +303,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should have initialized the grids correctly', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
             dataService.sendWSEvent(messageResultSet);
@@ -340,7 +342,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should be visible after a batch starts', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             fixture.detectChanges();
 
@@ -350,7 +353,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should be be visible after a result completes', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
             dataService.sendWSEvent(messageResultSet);
@@ -362,7 +366,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should be hidden after a query completes', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
             dataService.sendWSEvent(messageResultSet);
@@ -394,7 +399,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should hide message pane on click when there is data', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
             dataService.sendWSEvent(messageResultSet);
@@ -410,7 +416,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should hide the results pane on click when there is data', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
             dataService.sendWSEvent(messageResultSet);
@@ -426,7 +433,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should render all grids when there are alot but only subset of data', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             sendDataSets(dataService, messageBatchStart, messageResultSet, resultSetBig, 20);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
@@ -435,7 +443,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should render all grids when there are alot but only subset of data', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             sendDataSets(dataService, messageBatchStart, messageResultSet, resultSetSmall, 20);
             dataService.sendWSEvent(completeEvent);
             fixture.detectChanges();
@@ -444,7 +453,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should open context menu when event is fired', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
             dataService.sendWSEvent(messageResultSet);
@@ -460,7 +470,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should open messages context menu when event is fired', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
             dataService.sendWSEvent(messageResultSet);
@@ -499,7 +510,8 @@ describe('AppComponent', function (): void {
 
         it('Correctly Displays Simple Messages', () => {
             // Send a message that doesn't have error, indentation, or links
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageSimple);
             fixture.detectChanges();
 
@@ -519,7 +531,8 @@ describe('AppComponent', function (): void {
 
         it('Correctly Displays Messages With Links', () => {
             // Send a message that contains a link
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             fixture.detectChanges();
 
@@ -539,7 +552,8 @@ describe('AppComponent', function (): void {
 
         it('Correctly Displays Messages With Indentation', () => {
             // Send a message that is indented under a batch start
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageResultSet);
             fixture.detectChanges();
 
@@ -559,7 +573,8 @@ describe('AppComponent', function (): void {
 
         it('Correctly Displays Messages With Errors', () => {
             // Send a message that is an error
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageError);
             fixture.detectChanges();
 
@@ -587,7 +602,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should send save requests when the icons are clicked', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             spyOn(dataService, 'sendSaveRequest');
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetSmall);
@@ -608,7 +624,8 @@ describe('AppComponent', function (): void {
         });
 
         it('should have maximized the grid when the icon is clicked', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetBig);
             dataService.sendWSEvent(messageResultSet);
@@ -641,8 +658,10 @@ describe('AppComponent', function (): void {
         });
 
         it('correctly handles custom events', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleResultPane'));
             dataService.sendWSEvent(messageBatchStart);
@@ -670,8 +689,10 @@ describe('AppComponent', function (): void {
         });
 
         it('event toggle result pane', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleResultPane'));
             dataService.sendWSEvent(messageBatchStart);
@@ -690,8 +711,10 @@ describe('AppComponent', function (): void {
         });
 
         it('event toggle message pane', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.toggleMessagePane'));
             dataService.sendWSEvent(messageBatchStart);
@@ -712,8 +735,10 @@ describe('AppComponent', function (): void {
         it('event copy selection', (done) => {
             rangy.getSelection().removeAllRanges();
 
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copySelection'));
             spyOn(dataService, 'copyResults');
@@ -731,8 +756,10 @@ describe('AppComponent', function (): void {
         });
 
         it('event copy with headers', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copyWithHeaders'));
             spyOn(dataService, 'copyResults');
@@ -750,8 +777,10 @@ describe('AppComponent', function (): void {
         });
 
         it('event copy messages', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.copySelection'));
             spyOn(dataService, 'copyResults');
@@ -782,8 +811,10 @@ describe('AppComponent', function (): void {
 
         it('event maximize grid', (done) => {
 
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.maximizeGrid'));
             dataService.sendWSEvent(messageBatchStart);
@@ -806,8 +837,10 @@ describe('AppComponent', function (): void {
         });
 
         it('event save as json', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsJSON'));
             spyOn(dataService, 'sendSaveRequest');
@@ -825,8 +858,10 @@ describe('AppComponent', function (): void {
         });
 
         it('event save as csv', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsCSV'));
             spyOn(dataService, 'sendSaveRequest');
@@ -844,8 +879,10 @@ describe('AppComponent', function (): void {
         });
 
         it('event save as excel', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <MockShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let anyShortcutService = fixture.componentRef.injector.get(ShortcutService) as any;
+            let shortcutService = anyShortcutService as MockShortcutService;
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.saveAsExcel'));
             spyOn(dataService, 'sendSaveRequest');
@@ -864,8 +901,9 @@ describe('AppComponent', function (): void {
 
         it('event next grid', (done) => {
 
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <ShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let shortcutService = fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.nextGrid'));
             dataService.sendWSEvent(messageBatchStart);
@@ -891,8 +929,9 @@ describe('AppComponent', function (): void {
         });
 
         it('event prev grid', (done) => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
-            let shortcutService = <ShortcutService> fixture.componentRef.injector.get(ShortcutService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
+            let shortcutService = fixture.componentRef.injector.get(ShortcutService);
             spyOn(shortcutService, 'buildEventString').and.returnValue('');
             spyOn(shortcutService, 'getEvent').and.returnValue(Promise.resolve('event.prevGrid'));
             dataService.sendWSEvent(messageBatchStart);
@@ -919,7 +958,8 @@ describe('AppComponent', function (): void {
         });
 
         it('event select all', () => {
-            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            let anyDataService = fixture.componentRef.injector.get(DataService) as any;
+            let dataService = anyDataService as MockDataService;
             dataService.sendWSEvent(messageBatchStart);
             dataService.sendWSEvent(resultSetBig);
             dataService.sendWSEvent(messageResultSet);
