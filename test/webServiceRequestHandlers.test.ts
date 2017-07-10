@@ -189,7 +189,10 @@ suite('Web Service Request Handler Tests', () => {
         queryRunner.setup(x => x.copyResults(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .callback((selection: any, batchId: any, resultId: any, includeHeaders: any) => {
             // assert that input data has properly propogated
-            assert.equal(selection, request.body);
+            assert.equal(selection.fromCell, request.body.fromCell);
+            assert.equal(selection.toCell, request.body.toCell);
+            assert.equal(selection.fromRow, request.body.fromRow);
+            assert.equal(selection.toRow, request.body.toRow);
             assert.equal(includeHeaders, testQuery.includeHeaders);
             assert.equal(batchId, testQuery.batchId);
             assert.equal(resultId, testQuery.resultId);
