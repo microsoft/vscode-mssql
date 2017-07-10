@@ -16,9 +16,9 @@ interface IFixture {
 
 suite('Server tests', () => {
 
-    let testDownloadProvider: TypeMoq.Mock<ServiceDownloadProvider>;
-    let testStatusView: TypeMoq.Mock<IStatusView>;
-    let testConfig: TypeMoq.Mock<IConfig>;
+    let testDownloadProvider: TypeMoq.IMock<ServiceDownloadProvider>;
+    let testStatusView: TypeMoq.IMock<IStatusView>;
+    let testConfig: TypeMoq.IMock<IConfig>;
 
     setup(() => {
         testDownloadProvider = TypeMoq.Mock.ofType(ServiceDownloadProvider, TypeMoq.MockBehavior.Strict);

@@ -12,10 +12,10 @@ import { ISelectionData } from '../src/models/interfaces';
 
 
 suite('SqlOutputProvider Tests', () => {
-    let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
-    let context: TypeMoq.Mock<vscode.ExtensionContext>;
-    let statusView: TypeMoq.Mock<StatusView>;
+    let context: TypeMoq.IMock<vscode.ExtensionContext>;
+    let statusView: TypeMoq.IMock<StatusView>;
     let setSplitPaneSelectionConfig: (value: string) => void;
     let setCurrentEditorColumn: (column: number) => void;
 

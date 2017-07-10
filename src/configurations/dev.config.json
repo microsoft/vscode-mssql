@@ -1,20 +1,20 @@
 {
     "service": {
         "downloadUrl": "https://github.com/Microsoft/sqltoolsservice/releases/download/v{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
-        "version": "1.0.0-alpha.7",
+        "version": "1.0.0-alpha.45",
         "downloadFileNames": {
-            "Windows_7_86": "win-x86-netcoreapp1.0.zip",
-            "Windows_7_64": "win-x64-netcoreapp1.0.zip",
-            "OSX_10_11_64": "osx-x64-netcoreapp1.0.tar.gz",
-            "CentOS_7": "centos-x64-netcoreapp1.0.tar.gz",
-            "Debian_8": "debian-x64-netcoreapp1.0.tar.gz",
-            "Fedora_23": "fedora-x64-netcoreapp1.0.tar.gz",
-            "OpenSUSE_13_2": "opensuse-x64-netcoreapp1.0.tar.gz",
-            "RHEL_7": "rhel-x64-netcoreapp1.0.tar.gz",
-            "Ubuntu_14": "ubuntu14-x64-netcoreapp1.0.tar.gz",
-            "Ubuntu_16": "ubuntu16-x64-netcoreapp1.0.tar.gz"
+            "Windows_7_86": "win-x86-netcoreapp2.0.zip",
+            "Windows_7_64": "win-x64-netcoreapp2.0.zip",
+            "OSX_10_11_64": "osx-x64-netcoreapp2.0.tar.gz",
+            "CentOS_7": "centos-x64-netcoreapp2.0.tar.gz",
+            "Debian_8": "debian-x64-netcoreapp2.0.tar.gz",
+            "Fedora_23": "fedora-x64-netcoreapp2.0.tar.gz",
+            "OpenSUSE_13_2": "opensuse-x64-netcoreapp2.0.tar.gz",
+            "RHEL_7": "rhel-x64-netcoreapp2.0.tar.gz",
+            "Ubuntu_14": "ubuntu14-x64-netcoreapp2.0.tar.gz",
+            "Ubuntu_16": "ubuntu16-x64-netcoreapp2.0.tar.gz"
         },
         "installDir": "../sqltoolsservice/{#version#}/{#platform#}",
-        "executableFiles": ["Microsoft.SqlTools.ServiceLayer.exe", "Microsoft.SqlTools.ServiceLayer", "Microsoft.SqlTools.ServiceLayer.dll"]
+        "executableFiles": ["MicrosoftSqlToolsServiceLayer.exe", "MicrosoftSqlToolsServiceLayer", "MicrosoftSqlToolsServiceLayer.dll"]
     }
 }

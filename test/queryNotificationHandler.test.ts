@@ -9,7 +9,7 @@ suite('QueryNotificationHandler tests', () => {
 
     let notificationHandler: QueryNotificationHandler;
     let eventData: any;
-    let runnerMock: TypeMoq.Mock<QueryRunner>;
+    let runnerMock: TypeMoq.IMock<QueryRunner>;
 
     let batchStartHandlerCalled: boolean;
     let messageHandlerCalled: boolean;
@@ -29,8 +29,7 @@ suite('QueryNotificationHandler tests', () => {
 
         // Setup mock - Use the same QueryRunner for the whole test - this tests if it can be reused
         runnerMock = TypeMoq.Mock.ofType(QueryRunner, TypeMoq.MockBehavior.Loose);
-        runnerMock.setup(x => x.hasCompleted).callBase();
-        runnerMock.setup(x => x._setHasCompleted()).callBase();
+        runnerMock.callBase = true;
         runnerMock.setup(x => x.handleBatchStart(TypeMoq.It.isAny())).callback((event) => {
             batchStartHandlerCalled = true;
         });
@@ -92,7 +91,7 @@ suite('QueryNotificationHandler tests', () => {
         done();
     });
 
-    test('QueryNotificationHandler handles registerRunner in the middle of th event flow', done => {
+    test('QueryNotificationHandler handles registerRunner in the middle of the event flow', done => {
         resetBools();
 
         // If some notifications are fired before registerRunner

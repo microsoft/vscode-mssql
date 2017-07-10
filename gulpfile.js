@@ -126,6 +126,9 @@ gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:compile'
 
 gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];
+    if (!workspace) {
+        workspace = process.cwd();
+    }
     process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
     cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" --verbose`, (error, stdout, stderr) => {
         if (error) {
