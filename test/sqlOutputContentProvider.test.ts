@@ -239,7 +239,39 @@ suite('SqlOutputProvider Tests', () => {
         done();
     });
 
-    test('cancelQuery should cancel the execution of a query', done => {
+    test('cancelQuery should cancel the execution of a query by result pane URI', done => {
+        let title = 'Test_Title';
+        let uri = 'Test_URI';
+        let resultUri = 'tsqloutput:Test_URI';
+        let querySelection: ISelectionData = {
+            endColumn: 0,
+            endLine: 0,
+            startColumn: 0,
+            startLine: 0
+        };
+
+        // Get properties of contentProvider before we run a query
+        vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
+
+        // Setup the function to call base and run it
+        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
+        contentProvider.runQuery(statusView.object, uri, querySelection, title);
+        contentProvider.cancelQuery(resultUri);
+
+        // Ensure all side effects occured as intended
+        assert.equal(contentProvider.getResultsMap.has(resultUri), true);
+
+        contentProvider.runQuery(statusView.object, uri, querySelection, title);
+
+        // Check that the first one was ran and that a canceling dialogue was opened
+        assert.equal(contentProvider.isRunningQuery(resultUri), true);
+        statusView.verify(x => x.cancelingQuery(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        assert.equal(contentProvider.getResultsMap.size, 1);
+
+        done();
+    });
+
+    test('cancelQuery should cancel the execution of a query by SQL pane URI', done => {
         let title = 'Test_Title';
         let uri = 'Test_URI';
         let querySelection: ISelectionData = {

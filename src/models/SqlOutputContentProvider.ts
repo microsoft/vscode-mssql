@@ -324,9 +324,15 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         let queryRunner: QueryRunner;
 
         if (typeof input === 'string') {
-            let resultsUri = this.getResultsUri(input).toString();
-            if (this._queryResultsMap.has(resultsUri)) {
-                queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
+            if (this.isResultsUri(input) && this._queryResultsMap.has(input)) {
+                // Option 1: The string is a results URI (the results tab has focus)
+                queryRunner = this._queryResultsMap.get(input).queryRunner;
+            } else {
+                // Option 2: The string is a file URI (the SQL file tab has focus)
+                let resultsUri = this.getResultsUri(input).toString();
+                if (this._queryResultsMap.has(resultsUri)) {
+                    queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
+                }
             }
         } else {
             queryRunner = input;
@@ -511,6 +517,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     private getResultsUri(srcUri: string): string {
         // NOTE: The results uri will be encoded when we parse it to a uri
         return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
+    }
+
+    /**
+     * Determines if the provided string is a results pane URI. This is done by checking the schema
+     * at the front of the string against the provider uri
+     */
+    private isResultsUri(srcUri: string): boolean {
+        return srcUri.startsWith(SqlOutputContentProvider.providerUri.toString());
     }
 
     /**
