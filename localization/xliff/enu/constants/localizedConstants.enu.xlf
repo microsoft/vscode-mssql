@@ -275,6 +275,15 @@
         <trans-unit id="testLocalizationConstant">
             <source xml:lang="en">test</source>
         </trans-unit>
+        <trans-unit id="disconnectOptionLabel">
+            <source xml:lang="en">Disconnect</source>
+        </trans-unit>
+        <trans-unit id="disconnectOptionDescription">
+            <source xml:lang="en">Close the current connection</source>
+        </trans-unit>
+        <trans-unit id="disconnectConfirmationMsg">
+            <source xml:lang="en">Are you sure you want to disconnect?</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
