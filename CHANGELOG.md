@@ -1,5 +1,23 @@
 # Change Log
 
+## Version 1.1
+* Release date: July 17, 2017
+* Release status: GA
+
+
+## What's new in this version
+* Support for Integrated Authentication (aka Windows Authentication) on Mac and Linux. To use this you need to create a Kerberos ticket on your Mac or Linux machine - [see this guide](https://aka.ms/vscode-mssql-integratedauth) for the simple process. Once this is set up, you can say goodbye to SQL passwords when connecting to your servers!
+* New code snippets:
+  * `sqlGetSpaceUsed` shows space used by tables. Thanks to Rodolfo Gaspar for this contribution!
+  * `sqlListColumns` shows columns for tables matching a `LIKE` query. Thanks to Emad Alashi for this contribution!
+* Support for connecting using a connection string. When adding a connection profile you can now paste in an ADO.Net connection string instead of specifying server name, database name etc. individually. This makes it easy to get strings from the Azure Portal and use them in the tool.
+* Support for empty passwords when connecting. Password is no longer required, though still recommended! This is useful in local development scenarios.
+* Improved support for SQL Server 2017 syntax by refreshing IntelliSense and SMO dependencies.
+* Fixed all code snippets so that tab ordering is improved and snippets no longer have syntax errors
+* Fixed issue where snippets were not shown when `mssql.intelliSense.enableIntelliSense` was set to `false`.
+* Fixed issue #911 where tools service crashed when Perforce source code provider is enabled in the workspace.
+* Stability fixes to reduce the likelihood of SqlToolsService crashes.
+
 ## Version 1.0
 * Release date: May 2, 2017
 * Release status: GA
