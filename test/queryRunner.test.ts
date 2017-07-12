@@ -34,18 +34,18 @@ const standardSelection: ISelectionData = {startLine: 0, endLine: 0, startColumn
 // TESTS //////////////////////////////////////////////////////////////////////////////////////////
 suite('Query Runner tests', () => {
 
-    let testSqlOutputContentProvider: TypeMoq.Mock<SqlOutputContentProvider>;
-    let testSqlToolsServerClient: TypeMoq.Mock<SqlToolsServerClient>;
-    let testQueryNotificationHandler: TypeMoq.Mock<QueryNotificationHandler>;
-    let testVscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
-    let testStatusView: TypeMoq.Mock<StatusView>;
+    let testSqlOutputContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
+    let testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>;
+    let testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>;
+    let testVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let testStatusView: TypeMoq.IMock<StatusView>;
 
     setup(() => {
-        testSqlOutputContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Strict, {extensionPath: ''});
-        testSqlToolsServerClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Strict);
-        testQueryNotificationHandler = TypeMoq.Mock.ofType(QueryNotificationHandler, TypeMoq.MockBehavior.Strict);
-        testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Strict);
-        testStatusView = TypeMoq.Mock.ofType(StatusView, TypeMoq.MockBehavior.Strict);
+        testSqlOutputContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Loose, {extensionPath: ''});
+        testSqlToolsServerClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Loose);
+        testQueryNotificationHandler = TypeMoq.Mock.ofType(QueryNotificationHandler, TypeMoq.MockBehavior.Loose);
+        testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        testStatusView = TypeMoq.Mock.ofType(StatusView, TypeMoq.MockBehavior.Loose);
 
     });
 
@@ -63,7 +63,7 @@ suite('Query Runner tests', () => {
     test('Handles Query Request Result Properly', () => {
         // Setup:
         // ... Standard service to handle a execute request, standard query notification
-        setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => { return Promise.resolve(new QueryExecuteContracts.QueryExecuteResult); });
+        setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => { return Promise.resolve(new QueryExecuteContracts.QueryExecuteResult()); });
         setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
         // ... Mock up the view and VSCode wrapper to handle requests to update view
@@ -71,7 +71,7 @@ suite('Query Runner tests', () => {
         testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
 
         // ... Mock up a event emitter to accept a start event (only)
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
+        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Loose);
         mockEventEmitter.setup(x => x.emit('start'));
 
         // If:
@@ -636,18 +636,21 @@ suite('Query Runner tests', () => {
  * @param returnCallback Function to execute when query execute request is called
  */
 function setupStandardQueryRequestServiceMock(
-    testSqlToolsServerClient: TypeMoq.Mock<SqlToolsServerClient>,
+    testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>,
     returnCallback: (...x: any[]) => Thenable<QueryDisposeContracts.QueryDisposeResult>
 ): void {
     testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isValue(QueryExecuteContracts.QueryExecuteRequest.type), TypeMoq.It.isAny()))
         .callback((type, details: QueryExecuteParams) => {
             assert.equal(details.ownerUri, standardUri);
-            assert.equal(details.querySelection, standardSelection);
+            assert.equal(details.querySelection.startLine, standardSelection.startLine);
+            assert.equal(details.querySelection.startColumn, standardSelection.startColumn);
+            assert.equal(details.querySelection.endLine, standardSelection.endLine);
+            assert.equal(details.querySelection.endColumn, standardSelection.endColumn);
         })
         .returns(returnCallback);
 }
 
-function setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler: TypeMoq.Mock<QueryNotificationHandler>): void {
+function setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>): void {
     testQueryNotificationHandler.setup(x => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
         .callback((qr, u: string) => {
             assert.equal(u, standardUri);

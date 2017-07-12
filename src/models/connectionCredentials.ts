@@ -6,8 +6,6 @@ import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 
-import os = require('os');
-
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
     public server: string;
@@ -278,13 +276,9 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     public static getAuthenticationTypesChoice(): INameValueChoice[] {
         let choices: INameValueChoice[] = [
-            { name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) }
-        ];
-        // In the case of win32 support integrated. For all others only SqlAuth supported
-        if ('win32' === os.platform()) {
-             choices.push({ name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) });
-        }
-        // TODO When Azure Active Directory is supported, add this here
+            { name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) },
+            { name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) }
+        ];        // TODO When Azure Active Directory is supported, add this here
 
         return choices;
     }

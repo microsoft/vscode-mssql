@@ -14,9 +14,9 @@ suite('save results tests', () => {
 
     const testFile = 'file:///my/test/file.sql';
     let filePath = '';
-    let serverClient: TypeMoq.Mock<SqlToolsServerClient>;
-    let prompter: TypeMoq.Mock<IPrompter>;
-    let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
+    let serverClient: TypeMoq.IMock<SqlToolsServerClient>;
+    let prompter: TypeMoq.IMock<IPrompter>;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     setup(() => {
 
@@ -141,6 +141,12 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
+                                            return Promise.resolve(undefined);
+                                        });
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                                     .returns(() => {
                                         // This will come back as null from the service layer, but tslinter doesn't like that
@@ -216,7 +222,7 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -255,7 +261,7 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))

@@ -19,11 +19,11 @@ import assert = require('assert');
 suite('ConnectionStore tests', () => {
     let defaultNamedProfile: interfaces.IConnectionProfile;
     let defaultUnnamedProfile: interfaces.IConnectionProfile;
-    let context: TypeMoq.Mock<vscode.ExtensionContext>;
-    let globalstate: TypeMoq.Mock<vscode.Memento>;
-    let credentialStore: TypeMoq.Mock<CredentialStore>;
-    let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
-    let connectionConfig: TypeMoq.Mock<ConnectionConfig>;
+    let context: TypeMoq.IMock<vscode.ExtensionContext>;
+    let globalstate: TypeMoq.IMock<vscode.Memento>;
+    let credentialStore: TypeMoq.IMock<CredentialStore>;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let connectionConfig: TypeMoq.IMock<ConnectionConfig>;
 
     setup(() => {
         defaultNamedProfile = Object.assign(new ConnectionProfile(), {

@@ -6,7 +6,7 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 interface IFixture {
     openDocResult: Promise<vscode.TextDocument>;
     showDocResult: Promise<vscode.TextEditor>;
-    vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
+    vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     service: UntitledSqlDocumentService;
     textDocuments: vscode.TextDocument[];
 }
@@ -34,7 +34,7 @@ suite('UntitledSqlDocumentService Tests', () => {
      }
 
      function createUntitledSqlDocumentService(fixture: IFixture): IFixture {
-         let vscodeWrapper: TypeMoq.Mock<VscodeWrapper>;
+         let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
          vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
 
          vscodeWrapper.setup(x => x.textDocuments).returns(() => { return fixture.textDocuments; });

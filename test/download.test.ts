@@ -20,15 +20,15 @@ interface IFixture {
 }
 
 suite('ServiceDownloadProvider Tests', () => {
-    let config: TypeMoq.Mock<IConfig>;
-    let testStatusView: TypeMoq.Mock<IStatusView>;
-    let testHttpClient: TypeMoq.Mock<IHttpClient>;
-    let testDecompressProvider: TypeMoq.Mock<IDecompressProvider>;
-    let testLogger: TypeMoq.Mock<ILogger>;
+    let config: TypeMoq.IMock<IConfig>;
+    let testStatusView: TypeMoq.IMock<IStatusView>;
+    let testHttpClient: TypeMoq.IMock<IHttpClient>;
+    let testDecompressProvider: TypeMoq.IMock<IDecompressProvider>;
+    let testLogger: TypeMoq.IMock<ILogger>;
 
     setup(() => {
         config = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
-        testStatusView = TypeMoq.Mock.ofType(ServerStatusView, TypeMoq.MockBehavior.Strict);
+        testStatusView = TypeMoq.Mock.ofType(ServerStatusView, TypeMoq.MockBehavior.Loose);
         testHttpClient = TypeMoq.Mock.ofType(HttpClient, TypeMoq.MockBehavior.Strict);
         testDecompressProvider = TypeMoq.Mock.ofType(DecompressProvider);
         testLogger = TypeMoq.Mock.ofType(Logger);

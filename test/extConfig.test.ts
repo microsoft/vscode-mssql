@@ -7,9 +7,9 @@ import ExtConfig from  '../src/configurations/extConfig';
 import Config from  '../src/configurations/config';
 
 suite('ExtConfig Tests', () => {
-    let config: TypeMoq.Mock<IConfig>;
-    let extensionConfig: TypeMoq.Mock<WorkspaceConfiguration>;
-    let workspaceConfig: TypeMoq.Mock<WorkspaceConfiguration>;
+    let config: TypeMoq.IMock<IConfig>;
+    let extensionConfig: TypeMoq.IMock<WorkspaceConfiguration>;
+    let workspaceConfig: TypeMoq.IMock<WorkspaceConfiguration>;
     let fromConfig: string = 'fromConfig';
     let fromExtensionConfig: string = 'fromExtensionConfig';
 
