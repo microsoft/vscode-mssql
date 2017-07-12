@@ -1,18 +1,6 @@
 <?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="de">
     <body>
-        <trans-unit id="configMyConnectionsNoServerName">
-            <source xml:lang="en">Missing server name in user preferences connection: </source>
-            <target>Fehlender Servername in den Benutzer-Einstellungen für die Verbindung:</target>
-        </trans-unit>
-        <trans-unit id="msgLocalWebserviceStaticContent">
-            <source xml:lang="en">LocalWebService: added static html content path: </source>
-            <target>LocalWebService: statischer HTML-Pfad wurde hinzugefügt:</target>
-        </trans-unit>
-        <trans-unit id="msgLocalWebserviceStarted">
-            <source xml:lang="en">LocalWebService listening on port </source>
-            <target>LocalWebService empfängt auf Port</target>
-        </trans-unit>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
             <target>Ausführung der Abfrage wurde gestartet für Dokument '{0}'</target>
@@ -73,14 +61,6 @@
             <source xml:lang="en">Confirm to clear recent connections list</source>
             <target>Die Liste der zuletzt verwendeten Verbindungen wird gelöscht. Bitte bestätigen</target>
         </trans-unit>
-        <trans-unit id="extensionActivated">
-            <source xml:lang="en">activated.</source>
-            <target>aktiviert.</target>
-        </trans-unit>
-        <trans-unit id="extensionDeactivated">
-            <source xml:lang="en">de-activated.</source>
-            <target>deaktiviert.</target>
-        </trans-unit>
         <trans-unit id="msgOpenSqlFile">
             <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
             <target>Öffnen Sie zum Verwenden dieses Befehls eine .sql-Datei-Editor Sprache ändern &quot;SQL&quot; - oder - wählen Sie T-SQL-Text - oder - im aktiven SQL Editor.</target>
@@ -118,12 +98,12 @@
             <target>{{Servename-hier-eintragen}}</target>
         </trans-unit>
         <trans-unit id="serverPrompt">
-            <source xml:lang="en">Server name</source>
-            <target>Servername</target>
+            <source xml:lang="en">Server name or ADO.NET connection string</source>
+            <target>Servername oder ADO.NET Verbindungszeichenfolge</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
-            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net</source>
-            <target>Hostname\\instanz oder &lt;server&gt;. database.windows.net</target>
+            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
+            <target>Hostname\\instanz oder &lt;server&gt;. database.windows.net oder ADO.NET Verbindungszeichenfolge</target>
         </trans-unit>
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>
@@ -263,7 +243,7 @@
         </trans-unit>
         <trans-unit id="connectingLabel">
             <source xml:lang="en">Connecting</source>
-            <target>Verbindung wird hergestellt</target>
+            <target>Verbindung wird hergestellt.</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
             <source xml:lang="en">Connecting to: </source>

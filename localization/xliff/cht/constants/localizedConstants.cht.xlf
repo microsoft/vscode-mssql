@@ -1,18 +1,6 @@
 <?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="zh-Hant">
     <body>
-        <trans-unit id="configMyConnectionsNoServerName">
-            <source xml:lang="en">Missing server name in user preferences connection: </source>
-            <target>在&quot;使用者喜好設定&quot;的連線找不到伺服器名稱︰</target>
-        </trans-unit>
-        <trans-unit id="msgLocalWebserviceStaticContent">
-            <source xml:lang="en">LocalWebService: added static html content path: </source>
-            <target>LocalWebService︰ 已加入靜態 html 內容的路徑︰</target>
-        </trans-unit>
-        <trans-unit id="msgLocalWebserviceStarted">
-            <source xml:lang="en">LocalWebService listening on port </source>
-            <target>LocalWebService 正在接聽端點</target>
-        </trans-unit>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
             <target>開始查詢文件&quot;{0}&quot;</target>
@@ -73,14 +61,6 @@
             <source xml:lang="en">Confirm to clear recent connections list</source>
             <target>確認清除最近的連線清單</target>
         </trans-unit>
-        <trans-unit id="extensionActivated">
-            <source xml:lang="en">activated.</source>
-            <target>啟動。</target>
-        </trans-unit>
-        <trans-unit id="extensionDeactivated">
-            <source xml:lang="en">de-activated.</source>
-            <target>取消啟動。</target>
-        </trans-unit>
         <trans-unit id="msgOpenSqlFile">
             <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
             <target>若要使用這項指令，開啟一個 .sql 檔案 -或- 變更編輯器語言為 「 SQL 」 -或- 在開啟中的 SQL 編輯器選取 T-SQL 文字。</target>
@@ -118,12 +98,12 @@
             <target>{{在這裡放入伺服器的名稱}}</target>
         </trans-unit>
         <trans-unit id="serverPrompt">
-            <source xml:lang="en">Server name</source>
-            <target>伺服器名稱</target>
+            <source xml:lang="en">Server name or ADO.NET connection string</source>
+            <target>伺服器名稱或ADO.NET連接字串</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
-            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net</source>
-            <target>主機名稱\\實體 或 &lt;伺服器&gt;.database.windows.net</target>
+            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
+            <target>hostname\\instance 或 &lt;server&gt;.database.windows.net 或 ADO.NET連接字串</target>
         </trans-unit>
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>
