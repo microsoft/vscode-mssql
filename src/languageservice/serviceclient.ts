@@ -308,7 +308,8 @@ export default class SqlToolsServiceClient {
             let applyLocalization = config[Constants.configApplyLocalization];
             if (applyLocalization) {
                 let locale = vscode.env.language;
-                serverArgs.push('--locale ' + locale);
+                serverArgs.push('--locale');
+                serverArgs.push(locale);
             }
         }
 
