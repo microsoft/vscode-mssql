@@ -12,7 +12,6 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import assert = require('assert');
-import os = require('os');
 
 function createTestCredentials(): IConnectionCredentials {
     const creds: IConnectionCredentials = {
@@ -150,18 +149,13 @@ suite('Connection Profile tests', () => {
         // for now, just validates expected behavior on the platform tests are running on
         let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
         let authChoices = <INameValueChoice[]>authQuestion.choices;
-        if ('win32' === os.platform()) {
-            assert.strictEqual(authChoices.length, 2);
-            assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
-            assert.strictEqual(authChoices[1].value, AuthenticationTypes[AuthenticationTypes.Integrated]);
+        assert.strictEqual(authChoices.length, 2);
+        assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
+        assert.strictEqual(authChoices[1].value, AuthenticationTypes[AuthenticationTypes.Integrated]);
 
-            // And on a platform with multiple choices, should prompt for input
-            assert.strictEqual(authQuestion.shouldPrompt(answers), true);
-        } else {
-            assert.strictEqual(authChoices.length, 1);
-            // And on a platform with only 1 choice, should not prompt for input
-            assert.strictEqual(authQuestion.shouldPrompt(answers), false);
-        }
+        // And on a platform with multiple choices, should prompt for input
+        assert.strictEqual(authQuestion.shouldPrompt(answers), true);
+
         done();
     });
 

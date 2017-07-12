@@ -341,7 +341,7 @@ export class ConnectionUI {
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): Promise<Interfaces.IConnectionProfile> {
+    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
         return self.connectionManager.connect(self.vscodeWrapper.activeTextEditorUri, profile).then(result => {
             if (result) {
@@ -456,7 +456,7 @@ export class ConnectionUI {
         return self._prompter.prompt(questions).then(answers => {
             if (answers && answers[confirm]) {
                 let profilePickItem = <IConnectionCredentialsQuickPickItem> answers[chooseProfile];
-                return profilePickItem.connectionCreds;
+                return <IConnectionProfile> profilePickItem.connectionCreds;
             } else {
                 return undefined;
             }
