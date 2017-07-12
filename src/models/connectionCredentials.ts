@@ -6,8 +6,6 @@ import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 
-import os = require('os');
-
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
     public server: string;
