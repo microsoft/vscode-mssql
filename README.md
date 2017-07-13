@@ -21,6 +21,34 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.1
+* Support for Integrated Authentication (aka Windows Authentication) on Mac and Linux. To use this you need to create a Kerberos ticket on your Mac or Linux machine - [see this guide](https://aka.ms/vscode-mssql-integratedauth) for the simple process. Once this is set up, you can say goodbye to SQL passwords when connecting to your servers!
+* New code snippets:
+  * `sqlGetSpaceUsed` shows space used by tables. Thanks to Rodolfo Gaspar for this contribution!
+  * `sqlListColumns` shows columns for tables matching a `LIKE` query. Thanks to Emad Alashi for this contribution!
+* Support for connecting using a connection string. When adding a connection profile you can now paste in an ADO.Net connection string instead of specifying server name, database name etc. individually. This makes it easy to get strings from the Azure Portal and use them in the tool.
+* Support for empty passwords when connecting. Password is no longer required, though still recommended! This is useful in local development scenarios.
+* Improved support for SQL Server 2017 syntax by refreshing IntelliSense and SMO dependencies.
+* Fixed all code snippets so that tab ordering is improved and snippets no longer have syntax errors
+* Fixed issue where snippets were not shown when `mssql.intelliSense.enableIntelliSense` was set to `false`.
+* Fixed issue #911 where tools service crashed when Perforce source code provider is enabled in the workspace.
+* Stability fixes to reduce the likelihood of SqlToolsService crashes.
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* Rodolfo Gaspar and Emad Alashi for their new code snippet contributions.
+* The many contributors to our community localization. Please see the [full contributors list](https://aka.ms/crossplattoolsforsqlserverloccontributors).  Particular thanks to Mona Nasr for coordinating our community localization efforts and the following top contributors per language.
+  *	Brazilian Portuguese: Bruno Sonnino, Roberto Fonseca
+  *	Chinese Simplified: Ji Zhao, Alan Tsai
+  *	Chinese Traditional: Ji Zhao, Alan Tsai
+  *	French: Antoine Griffard
+  *	German: Christian Gräfe, Carsten Kneip
+  *	Italian: Piero Azi, Aldo Donetti
+  *	Japanese : Yosuke Sano,Takayoshi Tanaka
+  *	Korean: Ji Yong Seong, Ian Y. Choi
+  *	Russian: Natalia Lubskaya, Illirik Smirnov
+  *	Spanish: Andy Gonzalez, Alberto Poblacion
+
 ## What's new in 1.0
 * We are please to announce the official GA of the MSSQL extension! This release focuses on stability, localization support, and top customer feedback issues
 * The MSSQL extension is now localized. Use the `Configure Language` command in VSCode to change to your language of choice. Restart the application and the MSSQL extension will now support your language for all commands and messages.
