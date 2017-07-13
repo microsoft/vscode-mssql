@@ -210,8 +210,7 @@ export class ConnectionUI {
             self.vscodeWrapper.showQuickPick<vscode.QuickPickItem>(pickListItems, pickListOptions).then( selection => {
                 if (selection === disconnectItem) {
                     self.handleDisconnectChoice().then(() => resolve(undefined), err => reject(err));
-                }
-                if (typeof selection !== 'undefined') {
+                } else if (typeof selection !== 'undefined') {
                     resolve((selection as Interfaces.IConnectionCredentialsQuickPickItem).connectionCreds);
                 } else {
                     resolve(undefined);
