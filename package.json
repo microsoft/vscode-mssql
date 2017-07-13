@@ -104,6 +104,7 @@
     "getmac": "1.2.1",
     "http-proxy-agent": "^1.0.0",
     "https-proxy-agent": "^1.0.0",
+    "jsonc-parser": "^1.0.0",
     "opener": "1.4.2",
     "pretty-data": "^0.40.0",
     "request": "^2.73.0",

@@ -6,6 +6,8 @@
 
 import fs = require('fs');
 import os = require('os');
+import { parse } from 'jsonc-parser';
+
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from '../models/utils';
@@ -209,7 +211,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 let fileContents: string = fileBuffer.toString();
                 if (!Utils.isEmpty(fileContents)) {
                     try {
-                        let fileObject: any = commentJson.parse(fileContents);
+                        let fileObject: any = parse(fileContents);
                         return fileObject;
                     } catch (e) { // Error parsing JSON
                         this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, filename));
