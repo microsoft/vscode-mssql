@@ -101,6 +101,8 @@ export default class MainController implements vscode.Disposable {
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
         this.registerCommand(Constants.cmdManageConnectionProfiles);
+        this._event.on(Constants.cmdRunCurrentStatement, () => { self.onRunCurrentStatement(); });
+        this.registerCommand(Constants.cmdRunCurrentStatement);
         this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
@@ -255,9 +257,16 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * execute the SQL statement for the current cursor position
+     */
+    public onRunCurrentStatement(): void {
+       this.onRunQuery(true);
+    }
+
+    /**
      * get the T-SQL query from the editor, run it and show output
      */
-    public onRunQuery(): void {
+    public onRunQuery(execStatment: boolean = false): void {
         try {
             if (!this.CanRunCommand()) {
                 return;
@@ -267,7 +276,7 @@ export default class MainController implements vscode.Disposable {
                 // Prompt the user to change the language mode to SQL before running a query
                 this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
                     if (result) {
-                        self.onRunQuery();
+                        self.onRunQuery(execStatment);
                     }
                 }).catch(err => {
                     self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
@@ -276,7 +285,7 @@ export default class MainController implements vscode.Disposable {
                 // If we are disconnected, prompt the user to choose a connection before executing
                 this.onNewConnection().then(result => {
                     if (result) {
-                        self.onRunQuery();
+                        self.onRunQuery(execStatment);
                     }
                 }).catch(err => {
                     self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
@@ -306,6 +315,15 @@ export default class MainController implements vscode.Disposable {
                 }
 
                 Telemetry.sendTelemetryEvent('RunQuery');
+
+                if (execStatment) {
+                    querySelection = {
+                        startLine: editor.selection.start.line,
+                        startColumn: editor.selection.start.character,
+                        endLine: editor.selection.end.line,
+                        endColumn: editor.selection.end.character
+                    };
+                }
 
                 this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
             }

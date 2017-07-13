@@ -7,6 +7,7 @@ export const outputChannelName = 'MSSQL';
 export const connectionConfigFilename = 'settings.json';
 export const connectionsArrayName = 'mssql.connections';
 export const cmdRunQuery = 'extension.runQuery';
+export const cmdRunCurrentStatement = 'extension.runCurrentStatement';
 export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';

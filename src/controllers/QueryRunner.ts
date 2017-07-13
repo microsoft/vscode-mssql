@@ -6,6 +6,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './QueryNotificationHandler';
 import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
+    QueryExecuteStatementParams, QueryExecuteStatementRequest,
     QueryExecuteCompleteNotificationResult, QueryExecuteSubsetResult,
     QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteSubsetParams, QueryExecuteSubsetRequest,
@@ -115,30 +116,46 @@ export default class QueryRunner {
         const self = this;
         this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._uri));
 
-        // Put together the request
-        let queryDetails: QueryExecuteParams = {
-            ownerUri: this._uri,
-            querySelection: selection
-        };
-
         // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
 
-        // Send the request to execute the query
-        return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(result => {
+        let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
             self.eventEmitter.emit('start');
-            self._notificationHandler.registerRunner(self, queryDetails.ownerUri);
-        }, error => {
-            // Attempting to launch the query failed, show the error message
+            self._notificationHandler.registerRunner(self, self._uri);
+        };
+        let onError = (error) => {
             self._statusView.executedQuery(self.uri);
             self._isExecuting = false;
             // TODO: localize
             self._vscodeWrapper.showErrorMessage('Execution failed: ' + error.message);
-        });
+        };
+
+        // should we execute only the current statement
+        if (this.shouldExecuteStatement(selection)) {
+            // Put together the request
+            let queryDetails: QueryExecuteStatementParams = {
+                ownerUri: this._uri,
+                line: selection.startLine,
+                column: selection.startColumn
+            };
+
+             // Send the request to execute the query
+            return this._client.sendRequest(QueryExecuteStatementRequest.type, queryDetails).then(onSuccess, onError);
+
+        } else {
+            // Put together the request
+            let queryDetails: QueryExecuteParams = {
+                ownerUri: this._uri,
+                querySelection: selection
+            };
+
+            // Send the request to execute the query
+            return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(onSuccess, onError);
+        }
     }
 
     // handle the result of the notification
@@ -364,5 +381,12 @@ export default class QueryRunner {
 
     get totalElapsedMilliseconds(): number {
         return this._totalElapsedMilliseconds;
+    }
+
+    // if the selection is only for the cursor position then execute only the current statement
+    private shouldExecuteStatement(selection: ISelectionData): boolean {
+        return selection
+            && selection.startLine === selection.endLine
+            && selection.startColumn === selection.endColumn;
     }
 }

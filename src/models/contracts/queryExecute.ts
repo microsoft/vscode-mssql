@@ -95,9 +95,23 @@ export namespace QueryExecuteRequest {
     };
 }
 
+export namespace QueryExecuteStatementRequest {
+    export const type: RequestType<QueryExecuteStatementParams, QueryExecuteResult, void> = {
+        get method(): string {
+            return 'query/executedocumentstatement';
+        }
+    };
+}
+
 export class QueryExecuteParams {
     ownerUri: string;
     querySelection: ISelectionData;
+}
+
+export class QueryExecuteStatementParams {
+    ownerUri: string;
+    line: number;
+    column: number;
 }
 
 export class QueryExecuteResult {}
