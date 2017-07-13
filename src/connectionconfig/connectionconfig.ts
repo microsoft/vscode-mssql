@@ -212,6 +212,9 @@ export class ConnectionConfig implements IConnectionConfig {
                 if (!Utils.isEmpty(fileContents)) {
                     try {
                         let fileObject: any = parse(fileContents);
+                        // TODO #930 handle case where mssql.connections section of the settings file is corrupt
+                        // the errors from parse only indicate if there were invalid symbols, numbers or properties which
+                        // isn't particularly useful so we'd need to check manually for missing required properties or other corruption.
                         return fileObject;
                     } catch (e) { // Error parsing JSON
                         this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, filename));
