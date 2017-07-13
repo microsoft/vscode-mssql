@@ -8,7 +8,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
 ## Steps to set up Integrated Authentication
 
 ### Step 1: Find Kerberos KDC (Key Distribution Center)
-- **Run on**: Windows Domain/ Windows command line
+- **Run on**: Windows Domain, Windows command line
 - **Action**: `nltest /dsgetdc:DOMAIN.COMPANY.COM` (where “DOMAIN.COMPANY.COM” maps to your domain’s name)
 - **Sample Output**
   ```
