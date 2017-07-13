@@ -12,13 +12,13 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
 - **Action**: `nltest /dsgetdc:DOMAIN.COMPANY.COM` (where “DOMAIN.COMPANY.COM” maps to your domain’s name)
 - **Sample Output**
   ```
-  DC: \\co1-red-dc-33.domain.company.com
+  DC: \\dc-33.domain.company.com
   Address: \\2111:4444:2111:33:1111:ecff:ffff:3333
   ...
   The command completed successfully
   ```
 - **Information to extract**
-  The DC name, in this case `co1-red-dc-33.domain.company.com`
+  The DC name, in this case `dc-33.domain.company.com`
 
 ### Step 2: Configuring KDC in krb5.conf
 - **Run on**: MAC
@@ -29,7 +29,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
    
   [realms]
   DOMAIN.COMPANY.COM = {
-     kdc = co1-red-dc-28.domain.company.com
+     kdc = dc-33.domain.company.com
   }
   ```
   Then save the krb5.conf file and exit
@@ -39,7 +39,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
 ### Step 3: Testing the Ticket Granting Ticket retrieval
 - **Run on**: Mac
 - **Action**:
-  - Use the command `kinit username@REDMOND.CORP.MICROSOFT.COM` to get a TGT from KDC. You will be prompted for your domain password.
+  - Use the command `kinit username@DOMAIN.COMPANY.COM` to get a TGT from KDC. You will be prompted for your domain password.
   - Use `klist` to see the available tickets. If the kinit was successful, you should see a ticket from krbtgt/DOMAIN.COMPANY.COM@ DOMAIN.COMPANY.COM.
 
 ### Step 4: Connect in VSCode
@@ -59,7 +59,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
 - **Action**: `nltest /dsgetdc:DOMAIN.COMPANY.COM` (where “DOMAIN.COMPANY.COM” maps to your domain’s name)
 - **Sample Output**
   ```
-  DC: \\co1-red-dc-33.domain.company.com
+  DC: \\dc-33.domain.company.com
   Address: \\2111:4444:2111:33:1111:ecff:ffff:3333
   ...
   The command completed successfully
@@ -76,7 +76,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
    
   [realms]
   DOMAIN.COMPANY.COM = {
-     kdc = co1-red-dc-28.domain.company.com
+     kdc = dc-33.domain.company.com
   }
   ```
   Then save the krb5.conf file and exit
@@ -86,7 +86,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
 ### Step 3: Testing the Ticket Granting Ticket retrieval
 - **Run on**: Linux
 - **Action**:
-  - Use the command `kinit username@REDMOND.CORP.MICROSOFT.COM` to get a TGT from KDC. You will be prompted for your domain password.
+  - Use the command `kinit username@DOMAIN.COMPANY.COM` to get a TGT from KDC. You will be prompted for your domain password.
   - Use `klist` to see the available tickets. If the kinit was successful, you should see a ticket from krbtgt/DOMAIN.COMPANY.COM@ DOMAIN.COMPANY.COM.
 
 ### Step 4: Connect in VSCode
