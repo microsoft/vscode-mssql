@@ -407,6 +407,8 @@ export default class ConnectionManager {
                         }).catch(err => {
                             reject(err);
                         });
+                    } else {
+                        resolve(false);
                     }
                 }).catch(err => {
                     reject(err);
