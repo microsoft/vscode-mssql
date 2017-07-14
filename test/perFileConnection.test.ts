@@ -324,6 +324,72 @@ suite('Per File Connection Tests', () => {
         });
     });
 
+    test('Can disconnect instead of switching databases', done => {
+        const testFile = 'file:///my/test/file.sql';
+
+        let manager: ConnectionManager = createTestConnectionManager();
+
+        // Setup mocking
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type), TypeMoq.It.isAny()))
+                            .callback((type, params: ConnectionContracts.ConnectParams) => {
+                                manager.handleConnectionCompleteNotification().call(manager, createTestConnectionResult(params.ownerUri));
+                            })
+                            .returns(() => Promise.resolve(true));
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.DisconnectRequest.type), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(true));
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ListDatabasesRequest.type), TypeMoq.It.isAny()))
+                            .returns(() => Promise.resolve(createTestListDatabasesResult()));
+
+        let newDatabaseCredentials = createTestCredentials();
+        newDatabaseCredentials.database = 'master';
+
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.callBase = true;
+        vscodeWrapperMock.setup(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                            .returns(options => Promise.resolve(options.find(option => option.label === LocalizedConstants.disconnectOptionLabel)));
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
+
+        manager.client = serviceClientMock.object;
+        manager.vscodeWrapper = vscodeWrapperMock.object;
+        manager.connectionUI.vscodeWrapper = vscodeWrapperMock.object;
+
+        let prompterMock: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+        prompterMock.setup(x => x.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
+        (manager as any)._prompter = undefined;
+
+        // Open a connection using the connection manager
+        let connectionCreds = createTestCredentials();
+
+        manager.connect(testFile, connectionCreds).then( result => {
+            assert.equal(result, true);
+
+            // Check that the connection was established
+            assert.equal(manager.isConnected(testFile), true);
+            assert.equal(manager.getConnectionInfo(testFile).credentials.database, connectionCreds.database);
+
+            // Change databases
+            manager.onChooseDatabase().then( result2 => {
+                assert.equal(result2, false);
+
+                // Check that databases on the server were listed and the confirmation prompt was shown
+                serviceClientMock.verify(
+                    x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ListDatabasesRequest.type), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                vscodeWrapperMock.verify(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+                prompterMock.verify(x => x.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+                // Check that the database was disconnected
+                assert.equal(manager.isConnected(testFile), false);
+
+                done();
+            }).catch(err => {
+                done(err);
+            });
+        }).catch(err => {
+            done(err);
+        });
+    });
+
     test('Prompts for new connection before running query if disconnected', () => {
         // Setup mocking
         let contextMock: TypeMoq.IMock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
