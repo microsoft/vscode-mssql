@@ -224,7 +224,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // execute the query with a query runner
         this.runQueryCallback(statusView, uri, selection, title,
             (queryRunner) => {
-                queryRunner.runQuery(selection);
+                if (queryRunner) {
+                    queryRunner.runQuery(selection);
+                }
             });
     }
 
@@ -234,7 +236,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // execute the statement with a query runner
         this.runQueryCallback(statusView, uri, selection, title,
             (queryRunner) => {
-                queryRunner.runStatement(selection.startLine, selection.startColumn);
+                if (queryRunner) {
+                    queryRunner.runStatement(selection.startLine, selection.startColumn);
+                }
             });
     }
 
