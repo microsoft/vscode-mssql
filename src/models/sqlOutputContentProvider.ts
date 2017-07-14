@@ -249,12 +249,13 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
         let resultsUri = this.getResultsUri(uri);
         let queryRunner = this.createQueryRunner(statusView, uri, resultsUri, selection, title);
+        if (queryRunner) {
+            queryCallback(queryRunner);
 
-        queryCallback(queryRunner);
-
-        let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
-        // Always run this command even if just updating to avoid a bug - tfs 8686842
-        this.displayResultPane(resultsUri, paneTitle);
+            let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
+            // Always run this command even if just updating to avoid a bug - tfs 8686842
+            this.displayResultPane(resultsUri, paneTitle);
+        }
     }
 
     private createQueryRunner(statusView: any, uri: string, resultsUri: string,
