@@ -6,6 +6,8 @@
 
 import fs = require('fs');
 import os = require('os');
+import { parse } from 'jsonc-parser';
+
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from '../models/utils';
@@ -209,7 +211,10 @@ export class ConnectionConfig implements IConnectionConfig {
                 let fileContents: string = fileBuffer.toString();
                 if (!Utils.isEmpty(fileContents)) {
                     try {
-                        let fileObject: any = commentJson.parse(fileContents);
+                        let fileObject: any = parse(fileContents);
+                        // TODO #930 handle case where mssql.connections section of the settings file is corrupt
+                        // the errors from parse only indicate if there were invalid symbols, numbers or properties which
+                        // isn't particularly useful so we'd need to check manually for missing required properties or other corruption.
                         return fileObject;
                     } catch (e) { // Error parsing JSON
                         this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, filename));
