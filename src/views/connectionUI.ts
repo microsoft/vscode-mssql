@@ -208,7 +208,7 @@ export class ConnectionUI {
 
             // show database picklist, and modify the current connection to switch the active database
             self.vscodeWrapper.showQuickPick<vscode.QuickPickItem>(pickListItems, pickListOptions).then( selection => {
-                if (selection === disconnectItem) {
+                if (selection.label === disconnectItem.label && selection.description === disconnectItem.description) {
                     self.handleDisconnectChoice().then(() => resolve(undefined), err => reject(err));
                 } else if (typeof selection !== 'undefined') {
                     resolve((selection as Interfaces.IConnectionCredentialsQuickPickItem).connectionCreds);
@@ -227,7 +227,7 @@ export class ConnectionUI {
                 name: LocalizedConstants.disconnectConfirmationMsg,
                 message: LocalizedConstants.disconnectConfirmationMsg
             };
-            self._prompter.promptSingle(question).then(result => {
+            self._prompter.promptSingle<boolean>(question).then(result => {
                 if (result === true) {
                     self.connectionManager.onDisconnect().then(() => resolve(), err => reject(err));
                 } else {

@@ -346,17 +346,16 @@ suite('Per File Connection Tests', () => {
 
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.callBase = true;
-        vscodeWrapperMock.setup(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                            .returns(options => Promise.resolve(options.find(option => option.label === LocalizedConstants.disconnectOptionLabel)));
+        vscodeWrapperMock.setup(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(options =>
+            Promise.resolve(options[options.findIndex(option => option.label === LocalizedConstants.disconnectOptionLabel)]));
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
 
         manager.client = serviceClientMock.object;
         manager.vscodeWrapper = vscodeWrapperMock.object;
         manager.connectionUI.vscodeWrapper = vscodeWrapperMock.object;
 
-        let prompterMock: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        prompterMock.setup(x => x.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
-        (manager as any)._prompter = undefined;
+        // Override the promptSingle method to automatically return true
+        (manager.connectionUI as any)._prompter.promptSingle = function(_: any): Promise<boolean> { return Promise.resolve(true); };
 
         // Open a connection using the connection manager
         let connectionCreds = createTestCredentials();
@@ -372,11 +371,10 @@ suite('Per File Connection Tests', () => {
             manager.onChooseDatabase().then( result2 => {
                 assert.equal(result2, false);
 
-                // Check that databases on the server were listed and the confirmation prompt was shown
+                // Check that databases on the server were listed
                 serviceClientMock.verify(
                     x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ListDatabasesRequest.type), TypeMoq.It.isAny()), TypeMoq.Times.once());
                 vscodeWrapperMock.verify(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
-                prompterMock.verify(x => x.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
 
                 // Check that the database was disconnected
                 assert.equal(manager.isConnected(testFile), false);
