@@ -9,7 +9,7 @@ import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import Utils = require('../models/utils');
-import { SqlOutputContentProvider } from '../models/SqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { RebuildIntelliSenseNotification } from '../models/contracts/languageService';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
@@ -101,6 +101,8 @@ export default class MainController implements vscode.Disposable {
         this.registerCommand(Constants.cmdRunQuery);
         this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
         this.registerCommand(Constants.cmdManageConnectionProfiles);
+        this._event.on(Constants.cmdRunCurrentStatement, () => { self.onRunCurrentStatement(); });
+        this.registerCommand(Constants.cmdRunCurrentStatement);
         this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
@@ -255,6 +257,42 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * execute the SQL statement for the current cursor position
+     */
+    public onRunCurrentStatement(): void {
+        try {
+            if (!this.CanRunCommand()) {
+                return;
+            }
+
+            // check if we're connected and editing a SQL file
+            if (this.isRetryRequiredBeforeQuery(this.onRunCurrentStatement)) {
+                return;
+            }
+
+            let editor = this._vscodeWrapper.activeTextEditor;
+            let uri = this._vscodeWrapper.activeTextEditorUri;
+            let title = path.basename(editor.document.fileName);
+            let querySelection: ISelectionData;
+
+            Telemetry.sendTelemetryEvent('RunCurrentStatement');
+
+            // only the start line and column are used to determine the current statement
+            querySelection = {
+                startLine: editor.selection.start.line,
+                startColumn: editor.selection.start.character,
+                endLine: 0,
+                endColumn: 0
+            };
+
+            this._outputContentProvider.runCurrentStatement(this._statusview, uri, querySelection, title);
+        } catch (err) {
+            Telemetry.sendTelemetryEventForException(err, 'onRunCurrentStatement');
+        }
+
+    }
+
+    /**
      * get the T-SQL query from the editor, run it and show output
      */
     public onRunQuery(): void {
@@ -262,57 +300,75 @@ export default class MainController implements vscode.Disposable {
             if (!this.CanRunCommand()) {
                 return;
             }
-            const self = this;
-            if (!this._vscodeWrapper.isEditingSqlFile) {
-                // Prompt the user to change the language mode to SQL before running a query
-                this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
-                    if (result) {
-                        self.onRunQuery();
-                    }
-                }).catch(err => {
-                    self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
-                });
-            } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
-                // If we are disconnected, prompt the user to choose a connection before executing
-                this.onNewConnection().then(result => {
-                    if (result) {
-                        self.onRunQuery();
-                    }
-                }).catch(err => {
-                    self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
-                });
-            } else {
-                let editor = this._vscodeWrapper.activeTextEditor;
-                let uri = this._vscodeWrapper.activeTextEditorUri;
-                let title = path.basename(editor.document.fileName);
-                let querySelection: ISelectionData;
 
-                // Calculate the selection if we have a selection, otherwise we'll use null to indicate
-                // the entire document is the selection
-                if (!editor.selection.isEmpty) {
-                    let selection = editor.selection;
-                    querySelection = {
-                        startLine: selection.start.line,
-                        startColumn: selection.start.character,
-                        endLine: selection.end.line,
-                        endColumn: selection.end.character
-                    };
-                }
-
-                // Trim down the selection. If it is empty after selecting, then we don't execute
-                let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
-                if (editor.document.getText(selectionToTrim).trim().length === 0) {
-                    return;
-                }
-
-                Telemetry.sendTelemetryEvent('RunQuery');
-
-                this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+            // check if we're connected and editing a SQL file
+            if (this.isRetryRequiredBeforeQuery(this.onRunQuery)) {
+                return;
             }
-        } catch (err) {
-            Telemetry.sendTelemetryEventForException(err, 'OnRunquery');
-        }
 
+            let editor = this._vscodeWrapper.activeTextEditor;
+            let uri = this._vscodeWrapper.activeTextEditorUri;
+            let title = path.basename(editor.document.fileName);
+            let querySelection: ISelectionData;
+
+            // Calculate the selection if we have a selection, otherwise we'll use null to indicate
+            // the entire document is the selection
+            if (!editor.selection.isEmpty) {
+                let selection = editor.selection;
+                querySelection = {
+                    startLine: selection.start.line,
+                    startColumn: selection.start.character,
+                    endLine: selection.end.line,
+                    endColumn: selection.end.character
+                };
+            }
+
+            // Trim down the selection. If it is empty after selecting, then we don't execute
+            let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
+            if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                return;
+            }
+
+            Telemetry.sendTelemetryEvent('RunQuery');
+
+            this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+        } catch (err) {
+            Telemetry.sendTelemetryEventForException(err, 'onRunQuery');
+        }
+    }
+
+    /**
+     * Check if the state is ready to execute a query and retry
+     * the query execution method if needed
+     */
+    public isRetryRequiredBeforeQuery(retryMethod: any): boolean {
+        const self = this;
+        if (!this._vscodeWrapper.isEditingSqlFile) {
+            // Prompt the user to change the language mode to SQL before running a query
+            this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
+                if (result) {
+                    retryMethod();
+                }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
+            });
+            return true;
+
+        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+            // If we are disconnected, prompt the user to choose a connection before executing
+            this.onNewConnection().then(result => {
+                if (result) {
+                    retryMethod();
+                }
+            }).catch(err => {
+                self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
+            });
+            return true;
+        } else {
+
+            // we don't need to do anything to configure environment before running query
+            return false;
+        }
     }
 
     /**

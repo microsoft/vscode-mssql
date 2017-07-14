@@ -37,6 +37,7 @@
     "onLanguage:sql",
     "onCommand:extension.connect",
     "onCommand:extension.runQuery",
+    "onCommand:extension.runCurrentStatement",
     "onCommand:extension.disconnect",
     "onCommand:extension.manageProfiles",
     "onCommand:extension.chooseDatabase",
@@ -156,6 +157,11 @@
       {
         "command": "extension.runQuery",
         "title": "Execute Query",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.runCurrentStatement",
+        "title": "Execute Current Statement",
         "category": "MS SQL"
       },
       {

@@ -1,6 +1,6 @@
 'use strict';
 
-import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';

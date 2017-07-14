@@ -1,8 +1,8 @@
 'use strict';
 
-import { SqlOutputContentProvider } from '../src/models/SqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import QueryRunner from '../src/controllers/QueryRunner';
+import QueryRunner from '../src/controllers/queryRunner';
 import { ISelectionData } from '../src/models/interfaces';
 import { QueryExecuteSubsetResult, ResultSetSubset } from '../src/models/contracts/queryExecute';
 import StatusView from '../src/views/statusView';
