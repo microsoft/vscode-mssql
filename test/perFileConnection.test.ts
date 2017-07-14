@@ -354,7 +354,10 @@ suite('Per File Connection Tests', () => {
         manager.vscodeWrapper = vscodeWrapperMock.object;
         manager.connectionUI.vscodeWrapper = vscodeWrapperMock.object;
 
-        // Override the promptSingle method to automatically return true
+        // Override the database list prompt to select the disconnect option and the promptSingle method to automatically return true
+        manager.connectionUI.vscodeWrapper.showQuickPick = function(options: any[]): any {
+            return Promise.resolve(options.find(option => option.label === LocalizedConstants.disconnectOptionLabel));
+        };
         (manager.connectionUI as any)._prompter.promptSingle = function(_: any): Promise<boolean> { return Promise.resolve(true); };
 
         // Open a connection using the connection manager
@@ -374,7 +377,6 @@ suite('Per File Connection Tests', () => {
                 // Check that databases on the server were listed
                 serviceClientMock.verify(
                     x => x.sendRequest(TypeMoq.It.isValue(ConnectionContracts.ListDatabasesRequest.type), TypeMoq.It.isAny()), TypeMoq.Times.once());
-                vscodeWrapperMock.verify(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
                 // Check that the database was disconnected
                 assert.equal(manager.isConnected(testFile), false);

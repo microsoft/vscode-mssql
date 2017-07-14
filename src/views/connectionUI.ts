@@ -208,7 +208,7 @@ export class ConnectionUI {
 
             // show database picklist, and modify the current connection to switch the active database
             self.vscodeWrapper.showQuickPick<vscode.QuickPickItem>(pickListItems, pickListOptions).then( selection => {
-                if (selection.label === disconnectItem.label && selection.description === disconnectItem.description) {
+                if (selection === disconnectItem) {
                     self.handleDisconnectChoice().then(() => resolve(undefined), err => reject(err));
                 } else if (typeof selection !== 'undefined') {
                     resolve((selection as Interfaces.IConnectionCredentialsQuickPickItem).connectionCreds);
