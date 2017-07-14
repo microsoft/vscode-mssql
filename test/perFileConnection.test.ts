@@ -346,8 +346,6 @@ suite('Per File Connection Tests', () => {
 
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.callBase = true;
-        vscodeWrapperMock.setup(x => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(options =>
-            Promise.resolve(options[options.findIndex(option => option.label === LocalizedConstants.disconnectOptionLabel)]));
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
 
         manager.client = serviceClientMock.object;
