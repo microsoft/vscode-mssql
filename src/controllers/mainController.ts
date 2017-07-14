@@ -259,55 +259,62 @@ export default class MainController implements vscode.Disposable {
     /**
      * execute the SQL statement for the current cursor position
      */
-    public onRunCurrentStatement(): void {
+    public onRunCurrentStatement(callbackThis?: MainController): void {
+        // the 'this' context is lost in retry callback, so capture it here
+        let self: MainController = callbackThis ? callbackThis : this;
         try {
-            if (!this.CanRunCommand()) {
+            if (!self.CanRunCommand()) {
                 return;
             }
 
             // check if we're connected and editing a SQL file
-            if (this.isRetryRequiredBeforeQuery(this.onRunCurrentStatement)) {
+            if (self.isRetryRequiredBeforeQuery(self.onRunCurrentStatement)) {
                 return;
             }
 
-            let editor = this._vscodeWrapper.activeTextEditor;
-            let uri = this._vscodeWrapper.activeTextEditorUri;
-            let title = path.basename(editor.document.fileName);
-            let querySelection: ISelectionData;
-
             Telemetry.sendTelemetryEvent('RunCurrentStatement');
 
+            let editor = self._vscodeWrapper.activeTextEditor;
+            let uri = self._vscodeWrapper.activeTextEditorUri;
+            let title = path.basename(editor.document.fileName);
+
+            // return early if the document does contain any text
+            if (editor.document.getText(undefined).trim().length === 0) {
+                return;
+            }
+
             // only the start line and column are used to determine the current statement
-            querySelection = {
+            let querySelection: ISelectionData = {
                 startLine: editor.selection.start.line,
                 startColumn: editor.selection.start.character,
                 endLine: 0,
                 endColumn: 0
             };
 
-            this._outputContentProvider.runCurrentStatement(this._statusview, uri, querySelection, title);
+            self._outputContentProvider.runCurrentStatement(self._statusview, uri, querySelection, title);
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onRunCurrentStatement');
         }
-
     }
 
     /**
      * get the T-SQL query from the editor, run it and show output
      */
-    public onRunQuery(): void {
+    public onRunQuery(callbackThis?: MainController): void {
+        // the 'this' context is lost in retry callback, so capture it here
+        let self: MainController = callbackThis ? callbackThis : this;
         try {
-            if (!this.CanRunCommand()) {
+            if (!self.CanRunCommand()) {
                 return;
             }
 
             // check if we're connected and editing a SQL file
-            if (this.isRetryRequiredBeforeQuery(this.onRunQuery)) {
+            if (self.isRetryRequiredBeforeQuery(self.onRunQuery)) {
                 return;
             }
 
-            let editor = this._vscodeWrapper.activeTextEditor;
-            let uri = this._vscodeWrapper.activeTextEditorUri;
+            let editor = self._vscodeWrapper.activeTextEditor;
+            let uri = self._vscodeWrapper.activeTextEditorUri;
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
 
@@ -331,7 +338,7 @@ export default class MainController implements vscode.Disposable {
 
             Telemetry.sendTelemetryEvent('RunQuery');
 
-            this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+            self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onRunQuery');
         }
@@ -342,23 +349,23 @@ export default class MainController implements vscode.Disposable {
      * the query execution method if needed
      */
     public isRetryRequiredBeforeQuery(retryMethod: any): boolean {
-        const self = this;
-        if (!this._vscodeWrapper.isEditingSqlFile) {
+        let self = this;
+        if (!self._vscodeWrapper.isEditingSqlFile) {
             // Prompt the user to change the language mode to SQL before running a query
-            this._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
+            self._connectionMgr.connectionUI.promptToChangeLanguageMode().then( result => {
                 if (result) {
-                    retryMethod();
+                    retryMethod(self);
                 }
             }).catch(err => {
                 self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
             });
             return true;
 
-        } else if (!this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+        } else if (!self._connectionMgr.isConnected(self._vscodeWrapper.activeTextEditorUri)) {
             // If we are disconnected, prompt the user to choose a connection before executing
-            this.onNewConnection().then(result => {
+            self.onNewConnection().then(result => {
                 if (result) {
-                    retryMethod();
+                    retryMethod(self);
                 }
             }).catch(err => {
                 self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
