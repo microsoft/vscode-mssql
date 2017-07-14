@@ -234,7 +234,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // execute the statement with a query runner
         this.runQueryCallback(statusView, uri, selection, title,
             (queryRunner) => {
-                queryRunner.runCurrentStatement(selection.startLine, selection.startColumn);
+                queryRunner.runStatement(selection.startLine, selection.startColumn);
             });
     }
 
@@ -314,6 +314,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             });
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
+
+        return queryRunner;
     }
 
     // Function to render resultspane content

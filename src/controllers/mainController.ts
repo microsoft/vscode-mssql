@@ -285,7 +285,7 @@ export default class MainController implements vscode.Disposable {
                 endColumn: 0
             };
 
-            this._outputContentProvider.runQuery(this._statusview, uri, querySelection, title);
+            this._outputContentProvider.runCurrentStatement(this._statusview, uri, querySelection, title);
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onRunCurrentStatement');
         }
