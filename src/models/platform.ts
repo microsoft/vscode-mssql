@@ -8,6 +8,8 @@
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
+const semver = require('semver');
+const plist = require('plist');
 
 const unknown = 'unknown';
 
@@ -85,6 +87,16 @@ export class PlatformInformation {
 
     public getRuntimeDisplayName(): string {
         return getRuntimeDisplayName(this.runtimeId);
+    }
+
+    public isMacVersionLessThan(version: string): boolean {
+        if (this.isMacOS) {
+            let versionInfo = plist.parse(fs.readFileSync('/System/Library/CoreServices/SystemVersion.plist', 'utf-8'));
+            if (versionInfo && versionInfo['ProductVersion'] && semver.lt(versionInfo['ProductVersion'], version)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public toString(): string {

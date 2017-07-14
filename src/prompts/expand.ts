@@ -8,6 +8,8 @@ import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 import { INameValueChoice } from './question';
 
+const figures = require('figures');
+
 export default class ExpandPrompt extends Prompt {
 
     constructor(question: any) {
@@ -34,7 +36,7 @@ export default class ExpandPrompt extends Prompt {
                     throw new EscapeException();
                 }
 
-                return result || false;
+                return this.validateAndReturn(result || false);
             });
     }
     private renderNameValueChoice(choices: INameValueChoice[]): any {
@@ -54,7 +56,25 @@ export default class ExpandPrompt extends Prompt {
                 }
 
                 // Note: cannot be used with 0 or false responses
-                return choiceMap[result] || false;
+                let returnVal =  choiceMap[result] || false;
+                return this.validateAndReturn(returnVal);
             });
+    }
+
+    private validateAndReturn(value: any): any {
+        if (!this.validate(value)) {
+            return this.render();
+        }
+        return value;
+    }
+
+    private validate(value: any): boolean {
+        const validationError = this._question.validate ? this._question.validate(value || '') : undefined;
+
+        if (validationError) {
+            this._question.message = `${figures.warning} ${validationError}`;
+            return false;
+        }
+        return true;
     }
 }

@@ -45,6 +45,14 @@ export default class ExtConfig implements IConfig {
         return this.getSqlToolsConfigValue(Constants.sqlToolsServiceVersionConfigKey);
     }
 
+    public useServiceVersion(version: number): void {
+        return this._config.useServiceVersion(version);
+    }
+
+    public getServiceVersion(): number {
+        return this._config.getServiceVersion();
+    }
+
     public getSqlToolsConfigValue(configKey: string): any {
         let configValue: string = <string>this.getExtensionConfig(`${Constants.sqlToolsServiceConfigKey}.${configKey}`);
         if (!configValue) {
