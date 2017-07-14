@@ -1,9 +1,9 @@
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import { EventEmitter } from 'events';
-import QueryRunner from './../src/controllers/QueryRunner';
-import { QueryNotificationHandler } from './../src/controllers/QueryNotificationHandler';
-import { SqlOutputContentProvider } from './../src/models/SqlOutputContentProvider';
+import QueryRunner from './../src/controllers/queryRunner';
+import { QueryNotificationHandler } from './../src/controllers/queryNotificationHandler';
+import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import {
     QueryExecuteParams,
@@ -17,7 +17,7 @@ import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
 import * as Constants from '../src/constants/constants';
 import * as QueryExecuteContracts from '../src/models/contracts/queryExecute';
-import * as QueryDisposeContracts from '../src/models/contracts/QueryDispose';
+import * as QueryDisposeContracts from '../src/models/contracts/queryDispose';
 import {
     ISlickRange,
     ISelectionData

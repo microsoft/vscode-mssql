@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import {QueryNotificationHandler} from './QueryNotificationHandler';
+import {QueryNotificationHandler} from './queryNotificationHandler';
 import VscodeWrapper from './vscodeWrapper';
 import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteStatementParams, QueryExecuteStatementRequest,
@@ -12,8 +12,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteSubsetParams, QueryExecuteSubsetRequest,
     QueryExecuteMessageParams,
     QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
-import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/QueryDispose';
-import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/QueryCancel';
+import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
+import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData } from '../models/interfaces';
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
@@ -112,7 +112,40 @@ export default class QueryRunner {
     }
 
     // Pulls the query text from the current document/selection and initiates the query
+    public runStatement(line: number, column: number): Thenable<void> {
+        return this.doRunQuery(
+            <ISelectionData>{ startLine: line, startColumn: column, endLine: 0, endColumn: 0 },
+            (onSuccess, onError) => {
+                // Put together the request
+                let queryDetails: QueryExecuteStatementParams = {
+                    ownerUri: this._uri,
+                    line: line,
+                    column: column
+                };
+
+                // Send the request to execute the query
+                return this._client.sendRequest(QueryExecuteStatementRequest.type, queryDetails).then(onSuccess, onError);
+            });
+    }
+
+    // Pulls the query text from the current document/selection and initiates the query
     public runQuery(selection: ISelectionData): Thenable<void> {
+        return this.doRunQuery(
+            selection,
+            (onSuccess, onError) => {
+               // Put together the request
+                let queryDetails: QueryExecuteParams = {
+                    ownerUri: this._uri,
+                    querySelection: selection
+                };
+
+                // Send the request to execute the query
+                return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(onSuccess, onError);
+            });
+    }
+
+    // Pulls the query text from the current document/selection and initiates the query
+    private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
         const self = this;
         this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._uri));
 
@@ -134,28 +167,7 @@ export default class QueryRunner {
             self._vscodeWrapper.showErrorMessage('Execution failed: ' + error.message);
         };
 
-        // should we execute only the current statement
-        if (this.shouldExecuteStatement(selection)) {
-            // Put together the request
-            let queryDetails: QueryExecuteStatementParams = {
-                ownerUri: this._uri,
-                line: selection.startLine,
-                column: selection.startColumn
-            };
-
-             // Send the request to execute the query
-            return this._client.sendRequest(QueryExecuteStatementRequest.type, queryDetails).then(onSuccess, onError);
-
-        } else {
-            // Put together the request
-            let queryDetails: QueryExecuteParams = {
-                ownerUri: this._uri,
-                querySelection: selection
-            };
-
-            // Send the request to execute the query
-            return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(onSuccess, onError);
-        }
+        return queryCallback(onSuccess, onError);
     }
 
     // handle the result of the notification
@@ -381,12 +393,5 @@ export default class QueryRunner {
 
     get totalElapsedMilliseconds(): number {
         return this._totalElapsedMilliseconds;
-    }
-
-    // if the selection is only for the cursor position then execute only the current statement
-    private shouldExecuteStatement(selection: ISelectionData): boolean {
-        return selection
-            && selection.startLine === selection.endLine
-            && selection.startColumn === selection.endColumn;
     }
 }

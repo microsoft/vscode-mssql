@@ -2,7 +2,7 @@
 *  Class for handler and distributing notification coming from the
 *  service layer
 */
-import QueryRunner from './QueryRunner';
+import QueryRunner from './queryRunner';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import {
     QueryExecuteCompleteNotification,
