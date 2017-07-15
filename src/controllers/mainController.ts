@@ -197,7 +197,7 @@ export default class MainController implements vscode.Disposable {
      * Choose a new database from the current server
      */
     private onChooseDatabase(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             return this._connectionMgr.onChooseDatabase();
         }
         return Promise.resolve(false);
@@ -207,7 +207,7 @@ export default class MainController implements vscode.Disposable {
      * Close active connection, if any
      */
     private onDisconnect(): Promise<any> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             let fileUri = this._vscodeWrapper.activeTextEditorUri;
             let queryRunner = this._outputContentProvider.getQueryRunner(fileUri);
             if (queryRunner && queryRunner.isExecutingQuery) {
@@ -222,7 +222,7 @@ export default class MainController implements vscode.Disposable {
      * Manage connection profiles (create, edit, remove).
      */
     private onManageProfiles(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             Telemetry.sendTelemetryEvent('ManageProfiles');
             return this._connectionMgr.onManageProfiles();
         }
@@ -233,7 +233,7 @@ export default class MainController implements vscode.Disposable {
      * Let users pick from a list of connections
      */
     public onNewConnection(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             return this._connectionMgr.onNewConnection();
         }
         return Promise.resolve(false);
@@ -243,7 +243,7 @@ export default class MainController implements vscode.Disposable {
      * Clear and rebuild the IntelliSense cache
      */
     public onRebuildIntelliSense(): void {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             const fileUri = this._vscodeWrapper.activeTextEditorUri;
             if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
                 this._statusview.languageServiceStatusChanged(fileUri, LocalizedConstants.updatingIntelliSenseStatus);
@@ -261,10 +261,10 @@ export default class MainController implements vscode.Disposable {
      */
     public onRunCurrentStatement(): void {
         try {
-            if (!this.CanRunCommand()) {
+            if (!this.canRunCommand()) {
                 return;
             }
-            if (!this.CanRunV2Command()) {
+            if (!this.canRunV2Command()) {
                 // Notify the user that this is not supported on this version
                 this._vscodeWrapper.showErrorMessage(LocalizedConstants.macSierraRequiredErrorMessage);
                 return;
@@ -302,7 +302,7 @@ export default class MainController implements vscode.Disposable {
      */
     public onRunQuery(): void {
         try {
-            if (!this.CanRunCommand()) {
+            if (!this.canRunCommand()) {
                 return;
             }
 
@@ -407,7 +407,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Verifies the extension is initilized and if not shows an error message
      */
-    private CanRunCommand(): boolean {
+    private canRunCommand(): boolean {
         if (this._connectionMgr === undefined) {
             Utils.showErrorMsg(LocalizedConstants.extensionNotInitializedError);
             return false;
@@ -418,7 +418,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Verifies the tools service version is high enough to support certain commands
      */
-    private CanRunV2Command(): boolean {
+    private canRunV2Command(): boolean {
         let version: number = SqlToolsServerClient.instance.getServiceVersion();
         return version > 1;
     }
@@ -459,7 +459,7 @@ export default class MainController implements vscode.Disposable {
      * Opens a new query and creates new connection
      */
     public onNewQuery(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             return this._untitledSqlDocumentService.newQuery().then(x => {
                 return this._connectionMgr.onNewConnection();
             });
