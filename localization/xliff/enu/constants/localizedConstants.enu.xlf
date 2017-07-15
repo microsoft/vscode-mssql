@@ -285,7 +285,7 @@
             <source xml:lang="en">Are you sure you want to disconnect?</source>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
-            <source xml:lang="en">A SQL query editor window must have focus before executing this command</source>
+            <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         </trans-unit>
     </body>
   </file>
