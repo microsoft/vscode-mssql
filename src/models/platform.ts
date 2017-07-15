@@ -21,6 +21,7 @@ export enum Runtime {
     Debian_8 = <any>'Debian_8',
     Fedora_23 = <any>'Fedora_23',
     OpenSUSE_13_2 = <any>'OpenSUSE_13_2',
+    SLES_12_2 = <any>'SLES_12_2',
     RHEL_7 = <any>'RHEL_7',
     Ubuntu_14 = <any>'Ubuntu_14',
     Ubuntu_16 = <any>'Ubuntu_16'
@@ -42,6 +43,8 @@ export function getRuntimeDisplayName(runtime: Runtime): string {
             return 'Fedora';
         case Runtime.OpenSUSE_13_2:
             return 'OpenSUSE';
+        case Runtime.SLES_12_2:
+            return 'SLES';
         case Runtime.RHEL_7:
             return 'RHEL';
         case Runtime.Ubuntu_14:
@@ -280,6 +283,8 @@ export class PlatformInformation {
                 return Runtime.Fedora_23;
             case 'opensuse':
                 return Runtime.OpenSUSE_13_2;
+            case 'sles':
+                return Runtime.SLES_12_2;
             case 'rhel':
                 return Runtime.RHEL_7;
             case 'debian':

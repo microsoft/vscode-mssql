@@ -6,7 +6,7 @@ import LocalizedConstants = require('../constants/localizedConstants');
 import LocalWebService from '../controllers/localWebService';
 import Utils = require('./utils');
 import Interfaces = require('./interfaces');
-import QueryRunner from '../controllers/QueryRunner';
+import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
@@ -218,9 +218,49 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             : this._queryResultsMap.get(uri).queryRunner.isExecutingQuery;
     }
 
-    public runQuery(statusView, uri: string, selection: ISelectionData, title: string): void {
-        // Reuse existing query runner if it exists
+    public runQuery(
+            statusView: any, uri: string,
+            selection: ISelectionData, title: string): void {
+        // execute the query with a query runner
+        this.runQueryCallback(statusView, uri, selection, title,
+            (queryRunner) => {
+                if (queryRunner) {
+                    queryRunner.runQuery(selection);
+                }
+            });
+    }
+
+    public runCurrentStatement(
+            statusView: any, uri: string,
+            selection: ISelectionData, title: string): void {
+        // execute the statement with a query runner
+        this.runQueryCallback(statusView, uri, selection, title,
+            (queryRunner) => {
+                if (queryRunner) {
+                    queryRunner.runStatement(selection.startLine, selection.startColumn);
+                }
+            });
+    }
+
+    private runQueryCallback(
+            statusView: any, uri: string,
+            selection: ISelectionData, title: string,
+            queryCallback: any): void {
+
         let resultsUri = this.getResultsUri(uri);
+        let queryRunner = this.createQueryRunner(statusView, uri, resultsUri, selection, title);
+        if (queryRunner) {
+            queryCallback(queryRunner);
+
+            let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
+            // Always run this command even if just updating to avoid a bug - tfs 8686842
+            this.displayResultPane(resultsUri, paneTitle);
+        }
+    }
+
+    private createQueryRunner(statusView: any, uri: string, resultsUri: string,
+                              selection: ISelectionData, title: string): QueryRunner {
+        // Reuse existing query runner if it exists
         let queryRunner: QueryRunner;
 
         if (this._queryResultsMap.has(resultsUri)) {
@@ -280,10 +320,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
             this._queryResultsMap.set(resultsUri, new QueryRunnerState(queryRunner));
         }
 
-        queryRunner.runQuery(selection);
-        let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
-        // Always run this command even if just updating to avoid a bug - tfs 8686842
-        this.displayResultPane(resultsUri, paneTitle);
+        return queryRunner;
     }
 
     // Function to render resultspane content

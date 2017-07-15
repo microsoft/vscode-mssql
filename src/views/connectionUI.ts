@@ -178,7 +178,7 @@ export class ConnectionUI {
                                         databaseNames: Array<string>): Promise<Interfaces.IConnectionCredentials> {
         const self = this;
         return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
-            const pickListItems = databaseNames.map(name => {
+            const pickListItems: vscode.QuickPickItem[] = databaseNames.map(name => {
                 let newCredentials: Interfaces.IConnectionCredentials = <any>{};
                 Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, currentCredentials);
                 if (newCredentials['profileName']) {
@@ -195,18 +195,45 @@ export class ConnectionUI {
                 };
             });
 
+            // Add an option to disconnect from the current server
+            const disconnectItem: vscode.QuickPickItem = {
+                label: LocalizedConstants.disconnectOptionLabel,
+                description: LocalizedConstants.disconnectOptionDescription
+            };
+            pickListItems.push(disconnectItem);
+
             const pickListOptions: vscode.QuickPickOptions = {
                 placeHolder: LocalizedConstants.msgChooseDatabasePlaceholder
             };
 
             // show database picklist, and modify the current connection to switch the active database
-            self.vscodeWrapper.showQuickPick<Interfaces.IConnectionCredentialsQuickPickItem>(pickListItems, pickListOptions).then( selection => {
-                if (typeof selection !== 'undefined') {
-                    resolve(selection.connectionCreds);
+            self.vscodeWrapper.showQuickPick<vscode.QuickPickItem>(pickListItems, pickListOptions).then( selection => {
+                if (selection === disconnectItem) {
+                    self.handleDisconnectChoice().then(() => resolve(undefined), err => reject(err));
+                } else if (typeof selection !== 'undefined') {
+                    resolve((selection as Interfaces.IConnectionCredentialsQuickPickItem).connectionCreds);
                 } else {
                     resolve(undefined);
                 }
             });
+        });
+    }
+
+    private handleDisconnectChoice(): Promise<void> {
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.confirm,
+                name: LocalizedConstants.disconnectConfirmationMsg,
+                message: LocalizedConstants.disconnectConfirmationMsg
+            };
+            self._prompter.promptSingle<boolean>(question).then(result => {
+                if (result === true) {
+                    self.connectionManager.onDisconnect().then(() => resolve(), err => reject(err));
+                } else {
+                    resolve();
+                }
+            }, err => reject(err));
         });
     }
 

@@ -10,6 +10,7 @@
             "Debian_8": "debian-x64-netcoreapp2.0.tar.gz",
             "Fedora_23": "fedora-x64-netcoreapp2.0.tar.gz",
             "OpenSUSE_13_2": "opensuse-x64-netcoreapp2.0.tar.gz",
+            "SLES_12_2": "opensuse-x64-netcoreapp2.0.tar.gz",
             "RHEL_7": "rhel-x64-netcoreapp2.0.tar.gz",
             "Ubuntu_14": "ubuntu14-x64-netcoreapp2.0.tar.gz",
             "Ubuntu_16": "ubuntu16-x64-netcoreapp2.0.tar.gz"
