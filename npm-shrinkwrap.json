@@ -734,6 +734,23 @@
       "from": "pinkie-promise@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/pinkie-promise/-/pinkie-promise-2.0.1.tgz"
     },
+    "plist": {
+      "version": "2.1.0",
+      "from": "plist@latest",
+      "resolved": "https://registry.npmjs.org/plist/-/plist-2.1.0.tgz",
+      "dependencies": {
+        "base64-js": {
+          "version": "1.2.0",
+          "from": "base64-js@1.2.0",
+          "resolved": "https://registry.npmjs.org/base64-js/-/base64-js-1.2.0.tgz"
+        },
+        "xmlbuilder": {
+          "version": "8.2.2",
+          "from": "xmlbuilder@8.2.2",
+          "resolved": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-8.2.2.tgz"
+        }
+      }
+    },
     "pretty-data": {
       "version": "0.40.0",
       "from": "pretty-data@>=0.40.0 <0.41.0",
@@ -798,7 +815,7 @@
     },
     "semver": {
       "version": "5.0.3",
-      "from": "semver@>=5.0.1 <5.1.0",
+      "from": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
       "resolved": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz"
     },
     "send": {
@@ -1013,6 +1030,11 @@
       "version": "1.1.1",
       "from": "ws@>=1.1.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/ws/-/ws-1.1.1.tgz"
+    },
+    "xmldom": {
+      "version": "0.1.27",
+      "from": "xmldom@>=0.1.27 <0.2.0",
+      "resolved": "https://registry.npmjs.org/xmldom/-/xmldom-0.1.27.tgz"
     },
     "xtend": {
       "version": "4.0.1",

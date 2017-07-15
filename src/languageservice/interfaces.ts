@@ -21,6 +21,8 @@ export interface IConfig {
     getExtensionConfig(key: string, defaultValue?: any): any;
     getWorkspaceConfig(key: string, defaultValue?: any): any;
     getSqlToolsConfigValue(configKey: string): any;
+    useServiceVersion(version: number): void;
+    getServiceVersion(): number;
 }
 
 export interface IPackage {
