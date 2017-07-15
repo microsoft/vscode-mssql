@@ -1,7 +1,7 @@
 {
     "service": {
         "downloadUrl": "https://github.com/Microsoft/sqltoolsservice/releases/download/v{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
-        "version": "1.1.0-alpha.5",
+        "version": "1.1.0-alpha.6",
         "downloadFileNames": {
             "Windows_7_86": "win-x86-netcoreapp2.0.zip",
             "Windows_7_64": "win-x64-netcoreapp2.0.zip",
@@ -10,6 +10,7 @@
             "Debian_8": "debian-x64-netcoreapp2.0.tar.gz",
             "Fedora_23": "fedora-x64-netcoreapp2.0.tar.gz",
             "OpenSUSE_13_2": "opensuse-x64-netcoreapp2.0.tar.gz",
+            "SLES_12_2": "opensuse-x64-netcoreapp2.0.tar.gz",
             "RHEL_7": "rhel-x64-netcoreapp2.0.tar.gz",
             "Ubuntu_14": "ubuntu14-x64-netcoreapp2.0.tar.gz",
             "Ubuntu_16": "ubuntu16-x64-netcoreapp2.0.tar.gz"

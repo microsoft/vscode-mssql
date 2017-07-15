@@ -199,15 +199,15 @@ suite('ConnectionCredentials Tests', () => {
     // confirm password is prompted for and saved correctly for an empty password
     test('ensureRequiredPropertiesSet should request password and save it correctly for empty passswords', ensureRequestAndSavePassword(true));
 
-    // A connection string should override any other ConnectionCredentials properties for createConnectionDetails
-    test('createConnectionDetails should return only the connection string if given', () => {
+    // A connection string can be set alongside other properties for createConnectionDetails
+    test('createConnectionDetails sets properties in addition to the connection string', () => {
         let credentials = new ConnectionCredentials();
         credentials.connectionString = 'server=some-server';
-        credentials.server = 'some-server';
+        credentials.database = 'some-db';
 
         let connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
         assert.equal(connectionDetails.options.connectionString, credentials.connectionString);
-        assert.notEqual(connectionDetails.options.server, credentials.server);
+        assert.equal(connectionDetails.options.database, credentials.database);
     });
 
     test('Subsequent connection credential questions are skipped if a connection string is given', () => {
