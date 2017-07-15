@@ -310,11 +310,17 @@ export function parseTimeString(value: string): number | boolean {
     }
     let tempVal = value.split('.');
 
-    if (tempVal.length !== 2) {
+    if (tempVal.length === 1) {
+        // Ideally would handle more cleanly than this but for now handle case where ms not set
+        tempVal = [tempVal[0], '0'];
+    } else if (tempVal.length !== 2) {
         return false;
     }
 
-    let ms = parseInt(tempVal[1].substring(0, 3), 10);
+    let msString = tempVal[1];
+    let msStringEnd = msString.length < 3 ? msString.length : 3;
+    let ms = parseInt(tempVal[1].substring(0, msStringEnd), 10);
+
     tempVal = tempVal[0].split(':');
 
     if (tempVal.length !== 3) {
