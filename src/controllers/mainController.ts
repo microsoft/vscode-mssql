@@ -184,6 +184,9 @@ export default class MainController implements vscode.Disposable {
      * Handles the command to cancel queries
      */
     private onCancelQuery(): void {
+        if (!this.canRunCommand() || !this.validateTextDocumentHasFocus()) {
+            return;
+        }
         try {
             let uri = this._vscodeWrapper.activeTextEditorUri;
             Telemetry.sendTelemetryEvent('CancelQuery');
@@ -197,7 +200,7 @@ export default class MainController implements vscode.Disposable {
      * Choose a new database from the current server
      */
     private onChooseDatabase(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             return this._connectionMgr.onChooseDatabase();
         }
         return Promise.resolve(false);
@@ -207,7 +210,7 @@ export default class MainController implements vscode.Disposable {
      * Close active connection, if any
      */
     private onDisconnect(): Promise<any> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             let fileUri = this._vscodeWrapper.activeTextEditorUri;
             let queryRunner = this._outputContentProvider.getQueryRunner(fileUri);
             if (queryRunner && queryRunner.isExecutingQuery) {
@@ -222,7 +225,7 @@ export default class MainController implements vscode.Disposable {
      * Manage connection profiles (create, edit, remove).
      */
     private onManageProfiles(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             Telemetry.sendTelemetryEvent('ManageProfiles');
             return this._connectionMgr.onManageProfiles();
         }
@@ -233,7 +236,7 @@ export default class MainController implements vscode.Disposable {
      * Let users pick from a list of connections
      */
     public onNewConnection(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             return this._connectionMgr.onNewConnection();
         }
         return Promise.resolve(false);
@@ -243,7 +246,7 @@ export default class MainController implements vscode.Disposable {
      * Clear and rebuild the IntelliSense cache
      */
     public onRebuildIntelliSense(): void {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             const fileUri = this._vscodeWrapper.activeTextEditorUri;
             if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
                 this._statusview.languageServiceStatusChanged(fileUri, LocalizedConstants.updatingIntelliSenseStatus);
@@ -263,7 +266,7 @@ export default class MainController implements vscode.Disposable {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
-            if (!self.CanRunCommand()) {
+            if (!self.canRunCommand() || !self.validateTextDocumentHasFocus()) {
                 return;
             }
 
@@ -304,7 +307,7 @@ export default class MainController implements vscode.Disposable {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
-            if (!self.CanRunCommand()) {
+            if (!self.canRunCommand() || !self.validateTextDocumentHasFocus()) {
                 return;
             }
 
@@ -408,9 +411,20 @@ export default class MainController implements vscode.Disposable {
     /**
      * Verifies the extension is initilized and if not shows an error message
      */
-    private CanRunCommand(): boolean {
+    private canRunCommand(): boolean {
         if (this._connectionMgr === undefined) {
             Utils.showErrorMsg(LocalizedConstants.extensionNotInitializedError);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Return whether or not some text document currently has focus, and display an error message if not
+     */
+    private validateTextDocumentHasFocus(): boolean {
+        if (this._vscodeWrapper.activeTextEditorUri === undefined) {
+            Utils.showErrorMsg(LocalizedConstants.noActiveEditorMsg);
             return false;
         }
         return true;
@@ -452,7 +466,7 @@ export default class MainController implements vscode.Disposable {
      * Opens a new query and creates new connection
      */
     public onNewQuery(): Promise<boolean> {
-        if (this.CanRunCommand()) {
+        if (this.canRunCommand()) {
             return this._untitledSqlDocumentService.newQuery().then(x => {
                 return this._connectionMgr.onNewConnection();
             });
