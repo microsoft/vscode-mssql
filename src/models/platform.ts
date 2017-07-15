@@ -94,9 +94,13 @@ export class PlatformInformation {
 
     public isMacVersionLessThan(version: string): boolean {
         if (this.isMacOS) {
-            let versionInfo = plist.parse(fs.readFileSync('/System/Library/CoreServices/SystemVersion.plist', 'utf-8'));
-            if (versionInfo && versionInfo['ProductVersion'] && semver.lt(versionInfo['ProductVersion'], version)) {
-                return true;
+            try {
+                let versionInfo = plist.parse(fs.readFileSync('/System/Library/CoreServices/SystemVersion.plist', 'utf-8'));
+                if (versionInfo && versionInfo['ProductVersion'] && semver.lt(versionInfo['ProductVersion'], version)) {
+                    return true;
+                }
+            } catch (e) {
+                // do nothing for now. Assume version is supported
             }
         }
         return false;
