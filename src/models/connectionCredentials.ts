@@ -43,12 +43,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
         let details: ConnectionDetails = new ConnectionDetails();
 
-        // If there is a connection string, use it to connect
-        if (credentials.connectionString) {
-            details.options['connectionString'] = credentials.connectionString;
-            return details;
-        }
-
+        details.options['connectionString'] = credentials.connectionString;
         details.options['server'] = credentials.server;
         if (credentials.port && details.options['server'].indexOf(',') === -1) {
             // Port is appended to the server name in a connection string
