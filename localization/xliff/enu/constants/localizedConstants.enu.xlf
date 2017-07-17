@@ -257,6 +257,9 @@
         <trans-unit id="macOpenSslHelpButton">
             <source xml:lang="en">Help</source>
         </trans-unit>
+        <trans-unit id="macSierraRequiredErrorMessage">
+            <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+        </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
         </trans-unit>
@@ -286,6 +289,9 @@
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
             <source xml:lang="en">Batch execution time: {0}</source>
+        </trans-unit>
+        <trans-unit id="noActiveEditorMsg">
+            <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         </trans-unit>
     </body>
   </file>

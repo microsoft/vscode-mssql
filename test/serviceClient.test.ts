@@ -6,6 +6,8 @@ import {Logger} from '../src/models/logger';
 import {PlatformInformation} from '../src/models/platform';
 import StatusView from './../src/views/statusView';
 import * as LanguageServiceContracts from '../src/models/contracts/languageService';
+import { IConfig } from '../src/languageservice/interfaces';
+import ExtConfig from  '../src/configurations/extConfig';
 
 interface IFixture {
     platformInfo: PlatformInformation;
@@ -15,11 +17,13 @@ interface IFixture {
 
 suite('Service Client tests', () => {
 
+    let testConfig: TypeMoq.IMock<IConfig>;
     let testServiceProvider: TypeMoq.IMock<ServerProvider>;
     let logger = new Logger(text => console.log(text));
     let testStatusView: TypeMoq.IMock<StatusView>;
 
     setup(() => {
+        testConfig = TypeMoq.Mock.ofType(ExtConfig, TypeMoq.MockBehavior.Loose);
         testServiceProvider = TypeMoq.Mock.ofType(ServerProvider, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType(StatusView);
     });
@@ -41,7 +45,7 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
@@ -58,7 +62,7 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
@@ -67,7 +71,7 @@ suite('Service Client tests', () => {
         });
     });
 
-    test('initializeForPlatform should fails given unsupported platform', () => {
+    test('initializeForPlatform should fail given unsupported platform', () => {
         let fixture: IFixture = {
             installedServerPath: 'already installed service',
             downloadedServerPath: undefined,
@@ -75,10 +79,64 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).catch( error => {
             return assert.equal(error, 'Invalid Platform');
+        });
+    });
+
+    test('initializeForPlatform should set v1 given mac 10.11 or lower', () => {
+        let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
+        platformInfoMock.callBase = true;
+        platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => true);
+
+        let fixture: IFixture = {
+            installedServerPath: 'already installed service',
+            downloadedServerPath: undefined,
+            platformInfo: platformInfoMock.object
+        };
+
+        let serviceVersion: number = 0;
+        testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
+
+        setupMocks(fixture);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+            assert.equal(serviceVersion, 1);
+            platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.once());
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
+        });
+    });
+
+    test('initializeForPlatform should ignore service version given mac 10.12 or higher', () => {
+        let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
+        platformInfoMock.callBase = true;
+        platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => false);
+
+        let fixture: IFixture = {
+            installedServerPath: 'already installed service',
+            downloadedServerPath: undefined,
+            platformInfo: platformInfoMock.object
+        };
+
+        let serviceVersion: number = 0;
+        testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
+
+        setupMocks(fixture);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+
+        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+            assert.equal(serviceVersion, 0);
+            platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.never());
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
         });
     });
 
@@ -93,7 +151,7 @@ suite('Service Client tests', () => {
             const status = 'new status';
 
             setupMocks(fixture);
-            let serviceClient = new SqlToolsServiceClient(testServiceProvider.object, logger, testStatusView.object);
+            let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
             let statusChangeParams = new LanguageServiceContracts.StatusChangeParams();
             statusChangeParams.ownerUri = testFile;
             statusChangeParams.status = status;
