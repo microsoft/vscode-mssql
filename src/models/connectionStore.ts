@@ -131,9 +131,7 @@ export class ConnectionStore {
                 // Don't try to lookup a saved password if savePassword is set to false for the credential
                 resolve(credentialsItem);
             // Note that 'emptyPasswordInput' property is only present for connection profiles
-            } else if (ConnectionCredentials.isPasswordBasedCredential(credentialsItem.connectionCreds)
-                    && Utils.isEmpty(credentialsItem.connectionCreds.password)
-                    && credentialsItem.connectionCreds['emptyPasswordInput']) {
+            } else if (self.shouldLookupSavedPassword(<IConnectionProfile>credentialsItem.connectionCreds)) {
                 let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
                 self._credentialStore.readCredential(credentialId)
                 .then(savedCred => {
@@ -148,6 +146,22 @@ export class ConnectionStore {
                 resolve(credentialsItem);
             }
         });
+    }
+
+    /**
+     * public for testing purposes. Validates whether a password should be looked up from the credential store or not
+     *
+     * @param {IConnectionProfile} connectionCreds
+     * @returns {boolean}
+     * @memberof ConnectionStore
+     */
+    public shouldLookupSavedPassword(connectionCreds: IConnectionProfile): boolean {
+        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
+            // Only lookup if password isn't saved in the profile, and if it was not explicitly defined
+            // as a blank password
+            return Utils.isEmpty(connectionCreds.password) && !connectionCreds.emptyPasswordInput;
+        }
+        return false;
     }
 
     /**
