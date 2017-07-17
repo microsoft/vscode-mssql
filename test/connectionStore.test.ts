@@ -576,5 +576,69 @@ suite('ConnectionStore tests', () => {
         });
     });
 
+    test('addSavedPassword not lookup password if password already set', (done) => {
+        // Given a profile with emptyPasswordInput set
+        let passwordAlreadySetProfile = Object.assign(new ConnectionProfile(), {
+            profileName: 'defaultNamedProfile',
+            server: 'namedServer',
+            database: 'bcd',
+            authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
+            user: 'cde',
+            password: 'asdf!@#$'
+        });
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
+
+        // When I check whether to add saved password
+        let shouldSave = connectionStore.shouldLookupSavedPassword(passwordAlreadySetProfile);
+
+        // Then should be false
+        assert.equal(shouldSave, false);
+        done();
+    });
+
+    test('addSavedPassword not lookup password if emptyPasswordInput is set', (done) => {
+        // Given a profile with emptyPasswordInput set
+        let emptyPasswordProfile = Object.assign(new ConnectionProfile(), {
+            profileName: 'defaultNamedProfile',
+            server: 'namedServer',
+            database: 'bcd',
+            authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
+            user: 'cde',
+            password: '',
+            emptyPasswordInput: true
+        });
+
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
+
+        // When I check whether to add saved password
+        let shouldSave = connectionStore.shouldLookupSavedPassword(emptyPasswordProfile);
+
+        // Then should be false
+        assert.equal(shouldSave, false);
+        done();
+    });
+
+    test('addSavedPassword not lookup password if password not set and emptyPasswordInput is false', (done) => {
+        // Given a profile with emptyPasswordInput set
+        let emptyPasswordProfile = Object.assign(new ConnectionProfile(), {
+            profileName: 'defaultNamedProfile',
+            server: 'namedServer',
+            database: 'bcd',
+            authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
+            user: 'cde',
+            password: '',
+            emptyPasswordInput: false
+        });
+
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object, vscodeWrapper.object);
+
+        // When I check whether to add saved password
+        let shouldSave = connectionStore.shouldLookupSavedPassword(emptyPasswordProfile);
+
+        // Then should be false
+        assert.equal(shouldSave, true);
+        done();
+    });
+
 });
 
