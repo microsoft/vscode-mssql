@@ -33,7 +33,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 * Improved support for SQL Server 2017 syntax by refreshing IntelliSense and SMO dependencies.
 * Fixed all code snippets so that tab ordering is improved and snippets no longer have syntax errors
 * Fixed issue where snippets were not shown when `mssql.intelliSense.enableIntelliSense` was set to `false`.
-* Fixed issue #911 where tools service crashed when Perforce source code provider is enabled in the workspace.
+* Fixed issue [#911](https://github.com/Microsoft/vscode-mssql/issues/911) where tools service crashed when Perforce source code provider is enabled in the workspace.
 * Stability fixes to reduce the likelihood of SqlToolsService crashes.
 * Fixed issue [#870](https://github.com/Microsoft/vscode-mssql/issues/870). Added an "Execute Current Statement" command that executes only the SQL statement where the cursor is currently located.
 * Fix issue [#939](https://github.com/Microsoft/vscode-mssql/issues/939) "Show execution time for individual batches". To enable open User / Workspace settings and set `mssql.showBatchTime` to `true`.
