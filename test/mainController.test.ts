@@ -219,4 +219,29 @@ suite('MainController Tests', () => {
             done();
         });
     });
+
+    test('validateTextDocumentHasFocus returns false if there is no active text document', () => {
+        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => undefined);
+        let controller: MainController = new MainController(contextMock.object,
+            undefined,  // ConnectionManager
+            vscodeWrapperMock.object);
+
+        let result = (controller as any).validateTextDocumentHasFocus();
+        assert.equal(result, false, 'Expected validateTextDocumentHasFocus to return false when the active document URI is undefined');
+        vscodeWrapperMock.verify(x => x.activeTextEditorUri, TypeMoq.Times.once());
+    });
+
+    test('validateTextDocumentHasFocus returns true if there is an active text document', () => {
+        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test_uri');
+        let controller: MainController = new MainController(contextMock.object,
+            undefined,  // ConnectionManager
+            vscodeWrapperMock.object);
+
+        let result = (controller as any).validateTextDocumentHasFocus();
+        assert.equal(result, true, 'Expected validateTextDocumentHasFocus to return true when the active document URI is not undefined');
+    });
 });
