@@ -24,9 +24,10 @@ import {PlatformInformation} from '../models/platform';
 import {ServerInitializationResult, ServerStatusView} from './serverStatus';
 import StatusView from '../views/statusView';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
+import { IConfig } from '../languageservice/interfaces';
 let vscode = require('vscode');
-
 let opener = require('opener');
+
 let _channel: OutputChannel = undefined;
 
 /**
@@ -123,6 +124,7 @@ export default class SqlToolsServiceClient {
     }
 
     constructor(
+        private _config: IConfig,
         private _server: ServerProvider,
         private _logger: Logger,
         private _statusView: StatusView) {
@@ -141,7 +143,7 @@ export default class SqlToolsServiceClient {
             decompressProvider);
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
             let statusView = new StatusView();
-            this._instance = new SqlToolsServiceClient(serviceProvider, logger, statusView);
+            this._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView);
         }
         return this._instance;
     }
@@ -172,6 +174,10 @@ export default class SqlToolsServiceClient {
                     this._logger.appendLine();
                 }
                 this._logger.appendLine();
+
+                // For macOS we need to ensure the tools service version is set appropriately
+                this.updateServiceVersion(platformInfo);
+
                 this._server.getServerPath(platformInfo.runtimeId).then(serverPath => {
                     if (serverPath === undefined) {
                         // Check if the service already installed and if not open the output channel to show the logs
@@ -196,6 +202,24 @@ export default class SqlToolsServiceClient {
                 });
             }
         });
+    }
+
+    private updateServiceVersion(platformInfo: PlatformInformation): void {
+        if (platformInfo.isMacOS() && platformInfo.isMacVersionLessThan('10.12.0')) {
+            // Version 1.0 is required as this is the last one supporting downlevel macOS versions
+            this._config.useServiceVersion(1);
+        }
+    }
+
+    /**
+     * Gets the known service version of the backing tools service. This can be useful for filtering
+     * commands that are not supported if the tools service is below a certain known version
+     *
+     * @returns {number}
+     * @memberof SqlToolsServiceClient
+     */
+    public getServiceVersion(): number {
+        return this._config.getServiceVersion();
     }
 
     /**

@@ -14,12 +14,19 @@ import {IConfig} from '../languageservice/interfaces';
 */
 export default class Config implements IConfig {
      private static _configJsonContent = undefined;
+     private _sqlToolsServiceConfigKey: string;
+     private version: number;
 
      public static get configJsonContent(): any {
         if (this._configJsonContent === undefined) {
             this._configJsonContent = this.loadConfig();
         }
         return this._configJsonContent;
+    }
+
+    constructor() {
+        this._sqlToolsServiceConfigKey = Constants.sqlToolsServiceConfigKey;
+        this.version = 2;
     }
 
     public getSqlToolsServiceDownloadUrl(): string {
@@ -38,9 +45,24 @@ export default class Config implements IConfig {
         return this.getSqlToolsConfigValue(Constants.sqlToolsServiceVersionConfigKey);
     }
 
+    public useServiceVersion(version: number): void {
+        switch (version) {
+            case 1:
+                this._sqlToolsServiceConfigKey = Constants.v1SqlToolsServiceConfigKey;
+                break;
+            default:
+                this._sqlToolsServiceConfigKey = Constants.sqlToolsServiceConfigKey;
+        }
+        this.version = version;
+    }
+
+    public getServiceVersion(): number {
+        return this.version;
+    }
+
     public getSqlToolsConfigValue(configKey: string): any {
         let json = Config.configJsonContent;
-        let toolsConfig = json[Constants.sqlToolsServiceConfigKey];
+        let toolsConfig = json[this._sqlToolsServiceConfigKey];
         let configValue: string = undefined;
         if (toolsConfig !== undefined) {
             configValue = toolsConfig[configKey];

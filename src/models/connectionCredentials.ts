@@ -5,6 +5,7 @@ import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from 
 import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
+import SqlToolsServerClient from '../languageservice/serviceclient';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
@@ -43,12 +44,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
         let details: ConnectionDetails = new ConnectionDetails();
 
-        // If there is a connection string, use it to connect
-        if (credentials.connectionString) {
-            details.options['connectionString'] = credentials.connectionString;
-            return details;
-        }
-
+        details.options['connectionString'] = credentials.connectionString;
         details.options['server'] = credentials.server;
         if (credentials.port && details.options['server'].indexOf(',') === -1) {
             // Port is appended to the server name in a connection string
@@ -189,6 +185,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
                 message: LocalizedConstants.authTypePrompt,
                 choices: authenticationChoices,
                 shouldPrompt: (answers) => !connectionStringSet() && utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
+                validate: (value) => {
+                    if (value === utils.authTypeToString(AuthenticationTypes.Integrated)
+                        && SqlToolsServerClient.instance.getServiceVersion() === 1
+                    ) {
+                        return LocalizedConstants.macSierraRequiredErrorMessage;
+                    }
+                    return undefined;
+                },
                 onAnswered: (value) => {
                     credentials.authenticationType = value;
                 }

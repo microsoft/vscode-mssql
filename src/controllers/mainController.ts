@@ -266,7 +266,15 @@ export default class MainController implements vscode.Disposable {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
-            if (!self.canRunCommand() || !self.validateTextDocumentHasFocus()) {
+            if (!self.canRunCommand()) {
+                return;
+            }
+            if (!self.canRunV2Command()) {
+                // Notify the user that this is not supported on this version
+                this._vscodeWrapper.showErrorMessage(LocalizedConstants.macSierraRequiredErrorMessage);
+                return;
+            }
+            if (!self.validateTextDocumentHasFocus()) {
                 return;
             }
 
@@ -389,6 +397,7 @@ export default class MainController implements vscode.Disposable {
         return promise.catch(err => {
             self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
             Telemetry.sendTelemetryEventForException(err, handlerName);
+            return undefined;
         });
     }
 
@@ -428,6 +437,14 @@ export default class MainController implements vscode.Disposable {
             return false;
         }
         return true;
+    }
+
+     /*
+     * Verifies the tools service version is high enough to support certain commands
+     */
+    private canRunV2Command(): boolean {
+        let version: number = SqlToolsServerClient.instance.getServiceVersion();
+        return version > 1;
     }
 
     /**
