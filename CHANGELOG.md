@@ -15,8 +15,9 @@
 * Improved support for SQL Server 2017 syntax by refreshing IntelliSense and SMO dependencies.
 * Fixed all code snippets so that tab ordering is improved and snippets no longer have syntax errors
 * Fixed issue where snippets were not shown when `mssql.intelliSense.enableIntelliSense` was set to `false`.
-* Fixed issue #911 where tools service crashed when Perforce source code provider is enabled in the workspace.
+* Fixed issue [#911](https://github.com/Microsoft/vscode-mssql/issues/911) where tools service crashed when Perforce source code provider is enabled in the workspace.
 * Stability fixes to reduce the likelihood of SqlToolsService crashes.
+* Fixed issue [#870](https://github.com/Microsoft/vscode-mssql/issues/870) to add "Execute Current Statement" command that executes only the SQL statement where the cursor is currently located.
 
 ## Version 1.0
 * Release date: May 2, 2017
