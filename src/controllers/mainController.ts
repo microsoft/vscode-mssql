@@ -439,7 +439,7 @@ export default class MainController implements vscode.Disposable {
         return true;
     }
 
-     /*
+    /**
      * Verifies the tools service version is high enough to support certain commands
      */
     private canRunV2Command(): boolean {
