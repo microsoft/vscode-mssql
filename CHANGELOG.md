@@ -20,7 +20,7 @@
 * Fixed issue [#911](https://github.com/Microsoft/vscode-mssql/issues/911) where tools service crashed when Perforce source code provider is enabled in the workspace.
 * Stability fixes to reduce the likelihood of SqlToolsService crashes.
 * Fixed issue [#870](https://github.com/Microsoft/vscode-mssql/issues/870). Added an "Execute Current Statement" command that executes only the SQL statement where the cursor is currently located.
-* Fix issue [#939](https://github.com/Microsoft/vscode-mssql/issues/939) "Show execution time for individual batches". To enable open User / Workspace settings and set `mssql.showBatchTime` to `true`.
+* Fix issue [#939](https://github.com/Microsoft/vscode-mssql/issues/939) "Show execution time for individual batches". To enable open your settings and set `mssql.showBatchTime` to `true`.
 * Fix issue [#904](https://github.com/Microsoft/vscode-mssql/issues/904). Added a "Disconnect" option to the status bar server connection shortcut. Clicking on this now lists databases on the current server and a "Disconnect" option.
 * Fix issue [#913](https://github.com/Microsoft/vscode-mssql/issues/913). OpenSuse Linux distributions are now supported.
 
