@@ -213,7 +213,7 @@ export default class QueryRunner {
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
-        let executionTime =  <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
+        let executionTime = <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
         this._totalElapsedMilliseconds += executionTime;
         if (executionTime > 0) {
             // send a time message in the format used for query complete
@@ -373,7 +373,7 @@ export default class QueryRunner {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         let showBatchTime: boolean = config[Constants.configShowBatchTime];
-        if (!!showBatchTime) {
+        if (showBatchTime) {
             let message: IResultMessage = {
                 batchId: batchId,
                 message: Utils.formatString(LocalizedConstants.elapsedBatchTime, executionTime),
