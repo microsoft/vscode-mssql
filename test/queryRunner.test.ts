@@ -4,6 +4,7 @@ import { EventEmitter } from 'events';
 import QueryRunner from './../src/controllers/queryRunner';
 import { QueryNotificationHandler } from './../src/controllers/queryNotificationHandler';
 import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
+import * as Utils from './../src/models/utils';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import {
     QueryExecuteParams,
@@ -185,14 +186,21 @@ suite('Query Runner tests', () => {
         mockEventEmitter.verify(x => x.emit('batchStart', TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
-    test('Notification - Batch Complete', () => {
+    function testBatchCompleteNotification(sendBatchTime: boolean): void {
         // Setup: Create a batch completion result
+        let configResult: {[key: string]: any} = {};
+        configResult[Constants.configShowBatchTime] = sendBatchTime;
+        setupWorkspaceConfig(configResult);
+
+        let dateNow = new Date();
+        let fiveSecondsAgo = new Date(dateNow.getTime() - 5000);
+        let elapsedTimeString =  Utils.parseNumAsTimeString(5000);
         let batchComplete: QueryExecuteBatchNotificationParams = {
             ownerUri: 'uri',
             batchSummary: {
-                executionElapsed: undefined,
-                executionEnd: new Date().toISOString(),
-                executionStart: new Date().toISOString(),
+                executionElapsed: elapsedTimeString,
+                executionEnd: dateNow.toISOString(),
+                executionStart: fiveSecondsAgo.toISOString(),
                 hasError: false,
                 id: 0,
                 selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
@@ -220,13 +228,14 @@ suite('Query Runner tests', () => {
         };
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
         mockEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
+        mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny()));
         queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleBatchComplete(batchComplete);
 
         // Then: It should the remainder of the information and emit a batch complete notification
         assert.equal(queryRunner.batchSets.length, 1);
         let storedBatch = queryRunner.batchSets[0];
-        assert.equal(storedBatch.executionElapsed, undefined);
+        assert.equal(storedBatch.executionElapsed, elapsedTimeString);
         assert.equal(typeof(storedBatch.executionEnd), typeof(batchComplete.batchSummary.executionEnd));
         assert.equal(typeof(storedBatch.executionStart), typeof(batchComplete.batchSummary.executionStart));
         assert.equal(storedBatch.hasError, batchComplete.batchSummary.hasError);
@@ -236,6 +245,17 @@ suite('Query Runner tests', () => {
         assert.equal(storedBatch.resultSetSummaries.length, 0);
 
         mockEventEmitter.verify(x => x.emit('batchComplete', TypeMoq.It.isAny()), TypeMoq.Times.once());
+        let expectedMessageTimes = sendBatchTime ? TypeMoq.Times.once() : TypeMoq.Times.never();
+        mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny()), expectedMessageTimes);
+
+    }
+
+    test('Notification - Batch Complete no message', () => {
+        testBatchCompleteNotification(false);
+    });
+
+    test('Notification - Batch Complete with message', () => {
+        testBatchCompleteNotification(true);
     });
 
     test('Notification - ResultSet Complete w/no previous results', () => {

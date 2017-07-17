@@ -63,6 +63,7 @@ export const configRecentConnections = 'recentConnections';
 export const configMaxRecentConnections = 'maxRecentConnections';
 export const configCopyRemoveNewLine = 'copyRemoveNewLine';
 export const configSplitPaneSelection = 'splitPaneSelection';
+export const configShowBatchTime = 'showBatchTime';
 export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
 export const sqlToolsServiceInstallDirConfigKey = 'installDir';
 export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';

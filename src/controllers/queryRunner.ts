@@ -14,7 +14,7 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
 import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
-import { ISlickRange, ISelectionData } from '../models/interfaces';
+import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
@@ -213,7 +213,12 @@ export default class QueryRunner {
 
         // Store the batch again to get the rest of the data
         this._batchSets[batch.id] = batch;
-        this._totalElapsedMilliseconds += <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
+        let executionTime = <number>(Utils.parseTimeString(batch.executionElapsed) || 0);
+        this._totalElapsedMilliseconds += executionTime;
+        if (executionTime > 0) {
+            // send a time message in the format used for query complete
+            this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
+        }
         this.eventEmitter.emit('batchComplete', batch);
     }
 
@@ -362,6 +367,22 @@ export default class QueryRunner {
         // Old MacOs: \r
         let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, '');
         return outputString;
+    }
+
+    private sendBatchTimeMessage(batchId: number, executionTime: string): void {
+        // get config copyRemoveNewLine option from vscode config
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let showBatchTime: boolean = config[Constants.configShowBatchTime];
+        if (showBatchTime) {
+            let message: IResultMessage = {
+                batchId: batchId,
+                message: Utils.formatString(LocalizedConstants.elapsedBatchTime, executionTime),
+                time: undefined,
+                isError: false
+            };
+            // Send the message to the results pane
+            this.eventEmitter.emit('message', message);
+        }
     }
 
     /**

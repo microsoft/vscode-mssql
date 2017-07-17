@@ -11,7 +11,6 @@ suite('Utility Tests - parseTimeString', () => {
 
     test('should return false if input does not have only 1 period', () => {
         expect(Utils.parseTimeString('32:13:23.12.1')).to.equal(false);
-        expect(Utils.parseTimeString('12:32:33')).to.equal(false);
     });
 
     test('should return false if input does not have 2 :', () => {
@@ -23,6 +22,8 @@ suite('Utility Tests - parseTimeString', () => {
         expect(Utils.parseTimeString('2:13:30.0')).to.equal(8010000);
         expect(Utils.parseTimeString('0:0:0.220')).to.equal(220);
         expect(Utils.parseTimeString('0:0:0.0')).to.equal(0);
+        // Allow time without milliseconds
+        expect(Utils.parseTimeString('2:13:30')).to.equal(8010000);
     });
 });
 

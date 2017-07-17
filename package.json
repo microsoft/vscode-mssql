@@ -468,6 +468,11 @@
           "description": "[Optional] Configuration options for copying multi-line results from the Results View",
           "default": true
         },
+        "mssql.showBatchTime": {
+          "type": "boolean",
+          "description": "[Optional] Should execution time be shown for individual batches",
+          "default": false
+        },
         "mssql.splitPaneSelection": {
           "type": "string",
           "description": "[Optional] Configuration options for which column new result panes should open in",
