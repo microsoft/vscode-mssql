@@ -182,7 +182,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```0.3.0```. See the [change log] for a detailed list of changes in each version.
+The current version is ```1.1```. See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
