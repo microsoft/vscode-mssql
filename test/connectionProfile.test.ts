@@ -62,7 +62,7 @@ suite('Connection Profile tests', () => {
         let profileReturned: IConnectionProfile;
 
         // When createProfile is called and user cancels out
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .callback(questions => {
                     // Capture questions for verification
                     profileQuestions = questions;
@@ -104,7 +104,7 @@ suite('Connection Profile tests', () => {
         let profileReturned: IConnectionProfile;
 
         // When createProfile is called
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .callback(questions => {
                     // Capture questions for verification
                     profileQuestions = questions;
@@ -129,7 +129,7 @@ suite('Connection Profile tests', () => {
         let answers: {[key: string]: string} = {};
         let profileQuestions: IQuestion[];
         let profileReturned: IConnectionProfile;
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .callback(questions => {
                     // Capture questions for verification
                     profileQuestions = questions;
@@ -212,7 +212,7 @@ suite('Connection Profile tests', () => {
         connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
         let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .returns(questions => {
                     let answers: {[key: string]: string} = {};
                     answers[LocalizedConstants.serverPrompt] = 'my-server';
@@ -255,7 +255,7 @@ suite('Connection Profile tests', () => {
         connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
         let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny()))
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .returns(questions => {
                     let answers: {[key: string]: string} = {};
                     answers[LocalizedConstants.serverPrompt] = 'my-server';
@@ -297,7 +297,7 @@ suite('Connection Profile tests', () => {
 
         // Set up the prompter to answer the server prompt with the connection string
         let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        prompter.setup(x => x.prompt(TypeMoq.It.isAny())).returns(questions => {
+        prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(questions => {
             questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0].onAnswered(answers[LocalizedConstants.serverPrompt]);
             questions.filter(question => question.name !== LocalizedConstants.serverPrompt && question.name !== LocalizedConstants.profileNamePrompt)
                 .forEach(question => {

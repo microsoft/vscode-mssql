@@ -111,16 +111,16 @@ export default class CodeAdapter implements IPrompter {
         }
     }
 
-    public promptSingle<T>(question: IQuestion): Promise<T> {
+    public promptSingle<T>(question: IQuestion, ignoreFocusOut?: boolean): Promise<T> {
         let questions: IQuestion[] = [question];
-        return this.prompt(questions).then(answers => {
+        return this.prompt(questions, ignoreFocusOut).then(answers => {
             if (answers) {
                 return answers[question.name] || false;
             }
         });
     }
 
-    public prompt<T>(questions: IQuestion[]): Promise<{[key: string]: T}> {
+    public prompt<T>(questions: IQuestion[], ignoreFocusOut?: boolean): Promise<{[key: string]: T}> {
         let answers: {[key: string]: T} = {};
 
         // Collapse multiple questions into a set of prompt steps
@@ -128,7 +128,7 @@ export default class CodeAdapter implements IPrompter {
             this.fixQuestion(question);
 
             return promise.then(() => {
-                return PromptFactory.createPrompt(question);
+                return PromptFactory.createPrompt(question, ignoreFocusOut);
             }).then(prompt => {
                 // Original Code: uses jQuery patterns. Keeping for reference
                 // if (!question.when || question.when(answers) === true) {

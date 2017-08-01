@@ -52,7 +52,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
         });
 
-        return prompter.prompt(questions).then(answers => {
+        return prompter.prompt(questions, true).then(answers => {
             if (answers && profile.isValidProfile()) {
                 return profile;
             }

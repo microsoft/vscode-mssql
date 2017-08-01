@@ -3,14 +3,14 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import {window, QuickPickOptions} from 'vscode';
+import { window } from 'vscode';
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 
 export default class ListPrompt extends Prompt {
 
-    constructor(question: any) {
-        super(question);
+    constructor(question: any, ignoreFocusOut?: boolean) {
+        super(question, ignoreFocusOut);
     }
 
     public render(): any {
@@ -19,9 +19,8 @@ export default class ListPrompt extends Prompt {
             return result;
         }, {});
 
-        const options: QuickPickOptions = {
-             placeHolder: this._question.message
-        };
+        let options = this.defaultQuickPickOptions;
+        options.placeHolder = this._question.message;
 
         return window.showQuickPick(Object.keys(choices), options)
             .then(result => {
