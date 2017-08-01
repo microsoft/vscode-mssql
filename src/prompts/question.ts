@@ -52,14 +52,14 @@ export interface IQuestionHandler {
 }
 
 export interface IPrompter {
-    promptSingle<T>(question: IQuestion): Promise<T>;
+    promptSingle<T>(question: IQuestion, ignoreFocusOut?: boolean): Promise<T>;
     /**
      * Prompts for multiple questions
      *
      * @returns {[questionId: string]: T} Map of question IDs to results, or undefined if
      * the user canceled the question session
      */
-    prompt<T>(questions: IQuestion[]): Promise<{[questionId: string]: T}>;
+    prompt<T>(questions: IQuestion[], ignoreFocusOut?: boolean): Promise<{[questionId: string]: T}>;
     promptCallback(questions: IQuestion[], callback: IPromptCallback): void;
 }
 

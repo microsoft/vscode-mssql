@@ -13,12 +13,11 @@ export default class InputPrompt extends Prompt {
 
     protected _options: InputBoxOptions;
 
-    constructor(question: any) {
-        super(question);
+    constructor(question: any, ignoreFocusOut?: boolean) {
+        super(question, ignoreFocusOut);
 
-        this._options = {
-            prompt: this._question.message
-        };
+        this._options = this.defaultInputBoxOptions;
+        this._options.prompt = this._question.message;
     }
 
     // Helper for callers to know the right type to get from the type factory

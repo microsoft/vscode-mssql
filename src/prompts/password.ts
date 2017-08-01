@@ -6,8 +6,8 @@ import InputPrompt from './input';
 
 export default class PasswordPrompt extends InputPrompt {
 
-    constructor(question: any) {
-        super(question);
+    constructor(question: any, ignoreFocusOut?: boolean) {
+        super(question, ignoreFocusOut);
 
         this._options.password = true;
     }

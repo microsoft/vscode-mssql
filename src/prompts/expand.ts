@@ -12,8 +12,8 @@ const figures = require('figures');
 
 export default class ExpandPrompt extends Prompt {
 
-    constructor(question: any) {
-        super(question);
+    constructor(question: any, ignoreFocusOut?: boolean) {
+        super(question, ignoreFocusOut);
     }
 
     public render(): any {
@@ -26,9 +26,8 @@ export default class ExpandPrompt extends Prompt {
     }
 
     private renderQuickPick(choices: vscode.QuickPickItem[]): any {
-        const options: vscode.QuickPickOptions = {
-            placeHolder: this._question.message
-        };
+        let options = this.defaultQuickPickOptions;
+        options.placeHolder = this._question.message;
 
         return vscode.window.showQuickPick(choices, options)
             .then(result => {
@@ -45,9 +44,8 @@ export default class ExpandPrompt extends Prompt {
             return result;
         }, {});
 
-        const options: vscode.QuickPickOptions = {
-            placeHolder: this._question.message
-        };
+        let options = this.defaultQuickPickOptions;
+        options.placeHolder = this._question.message;
 
         return vscode.window.showQuickPick(Object.keys(choiceMap), options)
             .then(result => {
