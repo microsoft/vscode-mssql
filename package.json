@@ -24,7 +24,8 @@
     "vscode": "^1.9.0"
   },
   "categories": [
-    "Languages"
+    "Languages",
+    "Azure"
   ],
   "keywords": [
     "SQL",
