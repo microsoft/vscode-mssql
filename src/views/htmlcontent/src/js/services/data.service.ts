@@ -101,6 +101,23 @@ export class DataService {
     }
 
     /**
+     * send request to get the localized text for given key
+     * @param key The key to get the localized text for
+     */
+    getLocalizedTextRequest(key: string):  Promise<string> {
+        const self = this;
+        let headers = new Headers();
+        let url = '/localizedText?'
+                        + 'key=' + key;
+
+        return new Promise<string>((resolve, reject) => {
+            self.http.get(url, { headers: headers }).subscribe(result => {
+                resolve(result.text());
+            });
+        });
+    }
+
+    /**
      * send request to open content in new editor
      * @param content The content to be opened
      * @param columnName The column name of the content
