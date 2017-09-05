@@ -110,6 +110,9 @@ class MockDataService {
     public copyResults(selection: ISlickRange[], batchId: number, resultId: number): void {
         // no op
     }
+    public getLocalizedTextRequest(key: string): Promise<string> {
+        return Promise.resolve('');
+    }
 }
 
 class MockShortcutService {
