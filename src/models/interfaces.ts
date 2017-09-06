@@ -16,7 +16,7 @@ export enum ContentType {
     ShowError = 9,
     ShowWarning = 10,
     Config = 11,
-    LocalizedText = 12
+    LocalizedTexts = 12
 };
 
 export interface ISlickRange {
@@ -45,7 +45,7 @@ export const ContentTypes = [
     Constants.outputContentTypeShowError,
     Constants.outputContentTypeShowWarning,
     Constants.outputContentTypeConfig,
-    Constants.localizedText
+    Constants.localizedTexts
     ];
 
 /**

@@ -13,6 +13,8 @@ import * as Utils from './../utils';
 import { ResultSetSubset, ISelectionData,
     IResultsConfig, WebSocketEvent } from './../interfaces';
 
+import * as Constants from './../constants';
+
 const WS_URL = 'ws://localhost:' + window.location.port + '/';
 
 /**
@@ -59,6 +61,12 @@ export class DataService {
             let data = JSON.parse(response.data);
             return data;
         });
+
+        this.getLocalizedTextsRequest().then(result => {
+            Object.keys(result).forEach(key => {
+                Constants.loadLocalizedConstant(key, result[key]);
+            });
+        });
     }
 
     /**
@@ -101,18 +109,16 @@ export class DataService {
     }
 
     /**
-     * send request to get the localized text for given key
-     * @param key The key to get the localized text for
+     * send request to get all the localized texts
      */
-    getLocalizedTextRequest(key: string):  Promise<string> {
+    getLocalizedTextsRequest():  Promise<{ [key: string]: any }> {
         const self = this;
         let headers = new Headers();
-        let url = '/localizedText?'
-                        + 'key=' + key;
+        let url = '/localizedText';
 
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<{ [key: string]: any }>((resolve, reject) => {
             self.http.get(url, { headers: headers }).subscribe(result => {
-                resolve(result.text());
+                resolve(result.json());
             });
         });
     }

@@ -120,7 +120,7 @@ gulp.task('ext:copy-appinsights', () => {
 
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
 
-gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json'));
+gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
 gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:compile', 'ext:copy'));
 

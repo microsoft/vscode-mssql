@@ -321,13 +321,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         this.setupResizeBind();
 
-        Constants.ConstantTypes.forEach(element => {
-            this.dataService.getLocalizedTextRequest(element).then(result => {
-                if (result !== '' && result !== undefined) {
-                    Constants.loadLocalizedConstant(element, result);
-                }
-            });
-        });
 
         this.dataService.config.then((config) => {
             this.config = config;

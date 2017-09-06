@@ -17,7 +17,7 @@ function convertDictionaryToJson(dict) {
 }
 
 // converts an xml file into a json object
-function convertXmlToDictionary(xmlInput) {
+function convertXmlToDictionary(xmlInput, escapeChar = true) {
     let xmlDom = new dom().parseFromString(xmlInput);
     let transUnits = xmlDom.getElementsByTagName('trans-unit');
     let dict = {};
@@ -31,14 +31,14 @@ function convertXmlToDictionary(xmlInput) {
         let sourceElement = unit.getElementsByTagName('source');
         let source = '';
         if (sourceElement.length >= 1) {
-            source = escapeChars(sourceElement[0].textContent);
+            source = escapeChars(sourceElement[0].textContent, escapeChar);
         }
 
         // Extract target element if possible
         let targetElement = unit.getElementsByTagName('target');
         let target = '';
         if(targetElement.length >= 1){
-            target = escapeChars(targetElement[0].textContent);
+            target = escapeChars(targetElement[0].textContent, escapeChar);
         }
 
         // Return json with {id:{target,source}} format
@@ -49,8 +49,12 @@ function convertXmlToDictionary(xmlInput) {
 }
 
 // Escapes all characters which need to be escaped (')
-function escapeChars(input) {
-    return input.replace(/'/g, "\\'");
+function escapeChars(input, escapeChar = true) {
+    if (escapeChar) {
+        return input.replace(/'/g, "\\'");
+    } else {
+        return input;
+    }
 }
 
 // converts plain text json into a json object
@@ -121,4 +125,48 @@ gulp.task('ext:localization:xliff-to-ts', function () {
         callback(null, file);
     }))
     .pipe(gulp.dest(config.paths.project.root + '/src/constants/'));
+});
+
+// Generates a localized constants file from the en xliff file
+gulp.task('ext:localization:xliff-to-package.nls', function () {
+    return gulp.src([config.paths.project.localization + '/xliff/**/localizedPackage.json.*.xlf'],  { base: '' })
+    .pipe(through.obj(function (file, enc, callback) {
+        // convert xliff into json document
+        let dict = convertXmlToDictionary(String(file.contents), false);
+
+        var contents = ['{'];
+
+        for (var key in dict) {
+            if (dict.hasOwnProperty(key)) {
+                if (contents.length >= 2) {
+                    contents[contents.length - 1] += ',';
+                }
+                let instantiation = '"' + key + '":"' + dict[key]['source'] + '"';
+                contents.push(instantiation);
+            }
+        }
+        // end the function
+        contents.push('}');
+
+        // Join with new lines in between
+        let fullFileContents = contents.join('\r\n') + '\r\n';
+        file.contents = new Buffer(fullFileContents);
+
+        let indexToStart = 'localizedPackage.json.'.length + 1;
+        let localeIndex = file.basename.indexOf('.', indexToStart);
+        let locale = file.basename.substr(indexToStart - 1, (localeIndex - indexToStart) + 1);
+
+        // Name our file
+        if (locale === 'enu') {
+            file.basename = 'package.nls.json';
+        } else {
+            file.basename = 'package.nls.' + locale +'.json';
+        }
+
+        file.dirname = file.dirname.replace(locale , '');
+
+        // callback to notify we have completed the current file
+        callback(null, file);
+    }))
+    .pipe(gulp.dest(config.paths.project.root));
 });

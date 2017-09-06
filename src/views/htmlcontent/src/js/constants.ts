@@ -22,36 +22,3 @@ export let loadLocalizedConstant = (key: string, value: string) => {
     this[key] = value;
 };
 
-export enum ConstantType {
-    maximizeLabel = 0,
-    restoreLabel = 1,
-    saveCSVLabel = 2,
-    saveJSONLabel = 3,
-    saveExcelLabel = 4,
-    resultPaneLabel = 5,
-    selectAll = 6,
-    copyLabel = 7,
-    copyWithHeadersLabel = 8,
-    executeQueryLabel = 9,
-    messagePaneLabel = 10,
-    lineSelectorFormatted = 11,
-    elapsedTimeLabel = 12,
-    msgCannotSaveMultipleSelections = 13
-}
-
-export const ConstantTypes = [
-    'maximizeLabel',
-    'restoreLabel',
-    'saveCSVLabel',
-    'saveJSONLabel',
-    'saveExcelLabel',
-    'resultPaneLabel',
-    'selectAll',
-    'copyLabel',
-    'copyWithHeadersLabel',
-    'executeQueryLabel',
-    'messagePaneLabel',
-    'lineSelectorFormatted',
-    'elapsedTimeLabel',
-    'msgCannotSaveMultipleSelections'
-];
