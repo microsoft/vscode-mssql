@@ -52,6 +52,8 @@ export const changelogLink = 'https://aka.ms/vscode-mssql-changelog';
 export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedauth';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
 
+export const localizedTexts = 'localizedTexts';
+
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';
 export const configLogDebugInfo = 'logDebugInfo';

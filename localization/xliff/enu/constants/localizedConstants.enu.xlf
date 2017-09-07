@@ -293,6 +293,48 @@
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         </trans-unit>
+        <trans-unit id="maximizeLabel">
+            <source xml:lang="en">Maximize</source>
+        </trans-unit>
+        <trans-unit id="restoreLabel">
+            <source xml:lang="en">Restore</source>
+        </trans-unit>
+        <trans-unit id="saveCSVLabel">
+            <source xml:lang="en">Save as CSV</source>
+        </trans-unit>
+        <trans-unit id="saveJSONLabel">
+            <source xml:lang="en">Save as JSON</source>
+        </trans-unit>
+        <trans-unit id="saveExcelLabel">
+            <source xml:lang="en">Save as Excel</source>
+        </trans-unit>
+        <trans-unit id="resultPaneLabel">
+            <source xml:lang="en">Results</source>
+        </trans-unit>
+        <trans-unit id="selectAll">
+            <source xml:lang="en">Select all</source>
+        </trans-unit>
+        <trans-unit id="copyLabel">
+            <source xml:lang="en">Copy</source>
+        </trans-unit>
+        <trans-unit id="copyWithHeadersLabel">
+            <source xml:lang="en">Copy with Headers</source>
+        </trans-unit>
+        <trans-unit id="executeQueryLabel">
+            <source xml:lang="en">Executing query...</source>
+        </trans-unit>
+        <trans-unit id="messagePaneLabel">
+            <source xml:lang="en">Messages</source>
+        </trans-unit>
+        <trans-unit id="lineSelectorFormatted">
+            <source xml:lang="en">Line {0}</source>
+        </trans-unit>
+        <trans-unit id="elapsedTimeLabel">
+            <source xml:lang="en">Total execution time: {0}</source>
+        </trans-unit>
+        <trans-unit id="msgCannotSaveMultipleSelections">
+            <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

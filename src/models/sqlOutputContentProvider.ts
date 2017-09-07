@@ -66,6 +66,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         this._service.addPostHandler(Interfaces.ContentType.ShowError, (req, res) => this.showErrorRequestHandler(req, res));
         // add http post handler for showing warning to user
         this._service.addPostHandler(Interfaces.ContentType.ShowWarning, (req, res) => this.showWarningRequestHandler(req, res));
+        // add http get handler for getting all localized texts
+        this._service.addHandler(Interfaces.ContentType.LocalizedTexts, (req, res) => {
+            let localizedText = LocalizedConstants;
+            res.send(localizedText);
+        });
+
 
         // start express server on localhost and listen on a random port
         try {

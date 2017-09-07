@@ -18,3 +18,4 @@ test-reports
 .vscode-test
 localization/i18n/
 src/constants/localizedConstants.ts
+package.nls.*.json

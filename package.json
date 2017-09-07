@@ -159,52 +159,52 @@
     "commands": [
       {
         "command": "extension.runQuery",
-        "title": "Execute Query",
+        "title": "%extension.runQuery%",
         "category": "MS SQL"
       },
       {
         "command": "extension.runCurrentStatement",
-        "title": "Execute Current Statement",
+        "title": "%extension.runCurrentStatement%",
         "category": "MS SQL"
       },
       {
         "command": "extension.cancelQuery",
-        "title": "Cancel Query",
+        "title": "%extension.cancelQuery%",
         "category": "MS SQL"
       },
       {
         "command": "extension.connect",
-        "title": "Connect",
+        "title": "%extension.connect%",
         "category": "MS SQL"
       },
       {
         "command": "extension.disconnect",
-        "title": "Disconnect",
+        "title": "%extension.disconnect%",
         "category": "MS SQL"
       },
       {
         "command": "extension.manageProfiles",
-        "title": "Manage Connection Profiles",
+        "title": "%extension.manageProfiles%",
         "category": "MS SQL"
       },
       {
         "command": "extension.chooseDatabase",
-        "title": "Use Database",
+        "title": "%extension.chooseDatabase%",
         "category": "MS SQL"
       },
       {
         "command": "extension.showGettingStarted",
-        "title": "Getting Started Guide",
+        "title": "%extension.showGettingStarted%",
         "category": "MS SQL"
       },
       {
         "command": "extension.newQuery",
-        "title": "New Query",
+        "title": "%extension.newQuery%",
         "category": "MS SQL"
       },
       {
         "command": "extension.rebuildIntelliSenseCache",
-        "title": "Refresh IntelliSense Cache",
+        "title": "%extension.rebuildIntelliSenseCache%",
         "category": "MS SQL"
       }
     ],
@@ -235,12 +235,12 @@
         "mssql.logDebugInfo": {
           "type": "boolean",
           "default": false,
-          "description": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)"
+          "description": "%mssql.logDebugInfo%"
         },
         "mssql.maxRecentConnections": {
           "type": "number",
           "default": 5,
-          "description": "The maximum number of recently used connections to store in the connection list."
+          "description": "%mssql.maxRecentConnections%"
         },
         "mssql.connections": {
           "type": "array",
@@ -252,29 +252,29 @@
               "password": "{{put-password-here}}"
             }
           ],
-          "description": "Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.",
+          "description": "%mssql.connections%",
           "items": {
             "type": "object",
             "properties": {
               "server": {
                 "type": "string",
                 "default": "{{put-server-name-here}}",
-                "description": "[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database."
+                "description": "%mssql.connection.server%"
               },
               "database": {
                 "type": "string",
                 "default": "{{put-database-name-here}}",
-                "description": "[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'."
+                "description": "%mssql.connection.database%"
               },
               "user": {
                 "type": "string",
                 "default": "{{put-username-here}}",
-                "description": "[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again."
+                "description": "%mssql.connection.user%"
               },
               "password": {
                 "type": "string",
                 "default": "{{put-password-here}}",
-                "description": "[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again."
+                "description": "%mssql.connection.password%"
               },
               "authenticationType": {
                 "type": "string",
@@ -283,52 +283,52 @@
                   "Integrated",
                   "SqlLogin"
                 ],
-                "description": "[Optional] Specify the SQL Server authentication type."
+                "description": "%mssql.connection.authenticationType%"
               },
               "port": {
                 "type": "number",
                 "default": 1433,
-                "description": "[Optional] Specify the port number to connect to."
+                "description": "%mssql.connection.port%"
               },
               "encrypt": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection."
+                "description": "%mssql.connection.encrypt%"
               },
               "trustServerCertificate": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection."
+                "description": "%mssql.connection.trustServerCertificate%"
               },
               "persistSecurityInfo": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state."
+                "description": "%mssql.connection.persistSecurityInfo%"
               },
               "connectTimeout": {
                 "type": "number",
                 "default": 15,
-                "description": "[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30."
+                "description": "%mssql.connection.connectTimeout%"
               },
               "connectRetryCount": {
                 "type": "number",
                 "default": 1,
-                "description": "[Optional] Specify the number of attempts to restore connection."
+                "description": "%mssql.connection.connectRetryCount%"
               },
               "connectRetryInterval": {
                 "type": "number",
                 "default": 10,
-                "description": "[Optional] Specify the delay between attempts to restore connection."
+                "description": "%mssql.connection.connectRetryInterval%"
               },
               "applicationName": {
                 "type": "string",
                 "default": "vscode-mssql",
-                "description": "[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql')."
+                "description": "%mssql.connection.applicationName%"
               },
               "workstationId": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] Specify the name of the workstation connecting to SQL Server."
+                "description": "%mssql.connection.workstationId%"
               },
               "applicationIntent": {
                 "type": "string",
@@ -337,93 +337,93 @@
                   "ReadWrite",
                   "ReadOnly"
                 ],
-                "description": "[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail."
+                "description": "%mssql.connection.applicationIntent%"
               },
               "currentLanguage": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] Indicates the SQL Server language settings."
+                "description": "%mssql.connection.currentLanguage%"
               },
               "pooling": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool."
+                "description": "%mssql.connection.pooling%"
               },
               "maxPoolSize": {
                 "type": "number",
                 "default": 100,
-                "description": "[Optional] Specify the maximum number of connections allowed in the pool."
+                "description": "%mssql.connection.maxPoolSize%"
               },
               "minPoolSize": {
                 "type": "number",
                 "default": 0,
-                "description": "[Optional] Specify the minimum number of connections allowed in the pool."
+                "description": "%mssql.connection.minPoolSize%"
               },
               "loadBalanceTimeout": {
                 "type": "number",
                 "default": 0,
-                "description": "[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted."
+                "description": "%mssql.connection.loadBalanceTimeout%"
               },
               "replication": {
                 "type": "boolean",
                 "default": true,
-                "description": "[Optional] Used by SQL Server in replication."
+                "description": "%mssql.connection.replication%"
               },
               "attachDbFilename": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] Specify the name of the primary file, including the full path name, of an attachable database."
+                "description": "%mssql.connection.attachDbFilename%"
               },
               "failoverPartner": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner."
+                "description": "%mssql.connection.failoverPartner%"
               },
               "multiSubnetFailover": {
                 "type": "boolean",
                 "default": true,
-                "description": "[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets."
+                "description": "%mssql.connection.multiSubnetFailover%"
               },
               "multipleActiveResultSets": {
                 "type": "boolean",
                 "default": false,
-                "description": "[Optional] When set to 'true', multiple result sets can be returned and read from on connection."
+                "description": "%mssql.connection.multipleActiveResultSets%"
               },
               "packetSize": {
                 "type": "number",
                 "default": 8192,
-                "description": "[Optional] Specify the size in bytes of the network packets to communicate with SQL Server."
+                "description": "%mssql.connection.packetSize%"
               },
               "typeSystemVersion": {
                 "type": "string",
                 "enum": [
                   "Latest"
                 ],
-                "description": "[Optional] Indicates which server type the provider will expose through the DataReader."
+                "description": "%mssql.connection.typeSystemVersion%"
               },
               "connectionString": {
                 "type": "string",
                 "default": "",
-                "description": "[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection."
+                "description": "%mssql.connection.connectionString%"
               },
               "profileName": {
                 "type": "string",
-                "description": "[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code."
+                "description": "%mssql.connection.profileName%"
               },
               "savePassword": {
                 "type": "boolean",
-                "description": "[Optional] When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows."
+                "description": "%mssql.connection.savePassword%"
               },
               "emptyPasswordInput": {
                 "type": "boolean",
-                "description": "[Optional] Indicates whether this profile has an empty password explicitly set."
+                "description": "%mssql.connection.emptyPasswordInput%"
               }
             }
           }
         },
         "mssql.shortcuts": {
           "type": "object",
-          "description": "Shortcuts related to the results window",
+          "description": "%mssql.shortcuts%",
           "default": {
             "_comment": "Short cuts must follow the format (ctrl)+(shift)+(alt)+[key]",
             "event.toggleResultPane": "ctrl+alt+r",
@@ -441,42 +441,42 @@
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
-          "description": "True for the messages pane to be open by default; false for closed",
+          "description": "%mssql.messagesDefaultOpen%",
           "default": true
         },
         "mssql.resultsFontFamily": {
           "type": "string",
-          "description": "Set the font family for the results grid; set to blank to use the editor font",
+          "description": "%mssql.resultsFontFamily%",
           "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif"
         },
         "mssql.resultsFontSize": {
           "type": "number",
-          "description": "Set the font size for the results grid; set to blank to use the editor size",
+          "description": "%mssql.resultsFontSize%",
           "default": 13
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",
-          "description": "[Optional] When true, column headers are included when saving results as CSV",
+          "description": "%mssql.saveAsCsv.includeHeaders%",
           "default": true
         },
         "mssql.copyIncludeHeaders": {
           "type": "boolean",
-          "description": "[Optional] Configuration options for copying results from the Results View",
+          "description": "%mssql.copyIncludeHeaders%",
           "default": false
         },
         "mssql.copyRemoveNewLine": {
           "type": "boolean",
-          "description": "[Optional] Configuration options for copying multi-line results from the Results View",
+          "description": "%mssql.copyRemoveNewLine%",
           "default": true
         },
         "mssql.showBatchTime": {
           "type": "boolean",
-          "description": "[Optional] Should execution time be shown for individual batches",
+          "description": "%mssql.showBatchTime%",
           "default": false
         },
         "mssql.splitPaneSelection": {
           "type": "string",
-          "description": "[Optional] Configuration options for which column new result panes should open in",
+          "description": "%mssql.splitPaneSelection%",
           "default": "next",
           "enum": [
             "next",
@@ -486,12 +486,12 @@
         },
         "mssql.format.alignColumnDefinitionsInColumns": {
           "type": "boolean",
-          "description": "Should column definitions be aligned?",
+          "description": "%mssql.format.alignColumnDefinitionsInColumns%",
           "default": false
         },
         "mssql.format.datatypeCasing": {
           "type": "string",
-          "description": "Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)",
+          "description": "%mssql.format.datatypeCasing%",
           "default": "none",
           "enum": [
             "none",
@@ -501,7 +501,7 @@
         },
         "mssql.format.keywordCasing": {
           "type": "string",
-          "description": "Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)",
+          "description": "%mssql.format.keywordCasing%",
           "default": "none",
           "enum": [
             "none",
@@ -511,48 +511,48 @@
         },
         "mssql.format.placeCommasBeforeNextStatement": {
           "type": "boolean",
-          "description": "should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'",
+          "description": "%mssql.format.placeCommasBeforeNextStatement%",
           "default": false
         },
         "mssql.format.placeSelectStatementReferencesOnNewLine": {
           "type": "boolean",
-          "description": "Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines",
+          "description": "%mssql.format.placeSelectStatementReferencesOnNewLine%",
           "default": false
         },
         "mssql.applyLocalization": {
           "type": "boolean",
-          "description": "[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)",
+          "description": "%mssql.applyLocalization%",
           "default": false
         },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",
           "default": true,
-          "description": "Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'"
+          "description": "%mssql.query.displayBitAsNumber%"
         },
         "mssql.intelliSense.enableIntelliSense": {
           "type": "boolean",
           "default": true,
-          "description": "Should IntelliSense be enabled"
+          "description": "%mssql.intelliSense.enableIntelliSense%"
         },
         "mssql.intelliSense.enableErrorChecking": {
           "type": "boolean",
           "default": true,
-          "description": "Should IntelliSense error checking be enabled"
+          "description": "%mssql.intelliSense.enableErrorChecking%"
         },
         "mssql.intelliSense.enableSuggestions": {
           "type": "boolean",
           "default": true,
-          "description": "Should IntelliSense suggestions be enabled"
+          "description": "%mssql.intelliSense.enableSuggestions%"
         },
         "mssql.intelliSense.enableQuickInfo": {
           "type": "boolean",
           "default": true,
-          "description": "Should IntelliSense quick info be enabled"
+          "description": "%mssql.intelliSense.enableQuickInfo%"
         },
         "mssql.intelliSense.lowerCaseSuggestions": {
           "type": "boolean",
           "default": false,
-          "description": "Should IntelliSense suggestions be lowercase"
+          "description": "%mssql.intelliSense.lowerCaseSuggestions%"
         }
       }
     }
