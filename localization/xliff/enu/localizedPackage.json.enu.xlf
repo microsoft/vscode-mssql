@@ -38,6 +38,9 @@
         <trans-unit id="mssql.maxRecentConnections">
             <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         </trans-unit>
+        <trans-unit id="mssql.connections">
+            <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
+        </trans-unit>
         <trans-unit id="mssql.connection.server">
             <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
         </trans-unit>

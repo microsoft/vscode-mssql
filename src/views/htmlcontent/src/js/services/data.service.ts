@@ -114,7 +114,7 @@ export class DataService {
     getLocalizedTextsRequest():  Promise<{ [key: string]: any }> {
         const self = this;
         let headers = new Headers();
-        let url = '/localizedText';
+        let url = '/localizedTexts';
 
         return new Promise<{ [key: string]: any }>((resolve, reject) => {
             self.http.get(url, { headers: headers }).subscribe(result => {
