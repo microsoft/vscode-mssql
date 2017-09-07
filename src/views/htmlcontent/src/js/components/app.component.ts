@@ -321,7 +321,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         const self = this;
         this.setupResizeBind();
 
-
         this.dataService.config.then((config) => {
             this.config = config;
             self._messageActive = self.config.messagesDefaultOpen;
