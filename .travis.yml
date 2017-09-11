@@ -15,6 +15,11 @@ os:
   - linux
   - osx
 
+addons:
+  apt:
+    packages:
+      - libsecret-1-dev
+
 before_install:
   - export CHROME_BIN=chromium-browser
 # Set up chrome on osx
