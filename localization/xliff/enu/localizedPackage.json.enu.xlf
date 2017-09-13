@@ -80,6 +80,9 @@
         <trans-unit id="mssql.connection.workstationId">
             <source xml:lang="en">[Optional] Specify the name of the workstation connecting to SQL Server.</source>
         </trans-unit>
+        <trans-unit id="mssql.connection.applicationName">
+            <source xml:lang="en">[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').</source>
+        </trans-unit>
         <trans-unit id="mssql.connection.applicationIntent">
             <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
         </trans-unit>

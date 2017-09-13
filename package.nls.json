@@ -25,6 +25,7 @@
 "mssql.connection.connectRetryCount":"[Optional] Specify the number of attempts to restore connection.",
 "mssql.connection.connectRetryInterval":"[Optional] Specify the delay between attempts to restore connection.",
 "mssql.connection.workstationId":"[Optional] Specify the name of the workstation connecting to SQL Server.",
+"mssql.connection.applicationName":"[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').",
 "mssql.connection.applicationIntent":"[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.",
 "mssql.connection.currentLanguage":"[Optional] Indicates the SQL Server language settings.",
 "mssql.connection.pooling":"[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.",
