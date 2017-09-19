@@ -193,6 +193,11 @@
         "category": "MS SQL"
       },
       {
+        "command": "extension.chooseLanguageFlavor",
+        "title": "%extension.chooseLanguageFlavor%",
+        "category": "MS SQL"
+      },
+      {
         "command": "extension.showGettingStarted",
         "title": "%extension.showGettingStarted%",
         "category": "MS SQL"

@@ -6,6 +6,7 @@
 "extension.disconnect":"Disconnect",
 "extension.manageProfiles":"Manage Connection Profiles",
 "extension.chooseDatabase":"Use Database",
+"extension.chooseLanguageFlavor":"Choose SQL handler for this file",
 "extension.showGettingStarted":"Getting Started Guide",
 "extension.newQuery":"New Query",
 "extension.rebuildIntelliSenseCache":"Refresh IntelliSense Cache",

@@ -2,6 +2,8 @@
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
+export const mssqlProviderName = 'MSSQL';
+export const noneProviderName = 'None';
 export const connectionApplicationName = 'vscode-mssql';
 export const outputChannelName = 'MSSQL';
 export const connectionConfigFilename = 'settings.json';
@@ -12,6 +14,7 @@ export const cmdCancelQuery = 'extension.cancelQuery';
 export const cmdConnect = 'extension.connect';
 export const cmdDisconnect = 'extension.disconnect';
 export const cmdChooseDatabase = 'extension.chooseDatabase';
+export const cmdChooseLanguageFlavor = 'extension.chooseLanguageFlavor';
 export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
 export const cmdShowGettingStarted = 'extension.showGettingStarted';
 export const cmdNewQuery = 'extension.newQuery';

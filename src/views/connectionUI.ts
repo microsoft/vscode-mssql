@@ -23,6 +23,10 @@ enum ManageProfileTask {
     Remove
 }
 
+export interface ISqlProviderItem extends vscode.QuickPickItem {
+    providerId: string;
+}
+
 export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
 
@@ -86,6 +90,34 @@ export class ConnectionUI {
                     }
                 });
             }
+        });
+    }
+
+    public promptLanguageFlavor(): Promise<string> {
+        const self = this;
+        return new Promise<string>((resolve, reject) => {
+            let picklist: ISqlProviderItem[] = [
+                {
+                    label: LocalizedConstants.mssqlProviderName,
+                    description: LocalizedConstants.flavorDescriptionMssql,
+                    providerId: Constants.mssqlProviderName
+                },
+                {
+                    label: LocalizedConstants.noneProviderName,
+                    description: LocalizedConstants.flavorDescriptionNone,
+                    providerId: Constants.noneProviderName
+                }
+            ];
+            self.promptItemChoice({
+                placeHolder: LocalizedConstants.flavorChooseLanguage,
+                matchOnDescription: true
+            }, picklist).then(selection => {
+                if (selection) {
+                    resolve(selection.providerId);
+                } else {
+                    resolve(undefined);
+                }
+            });
         });
     }
 

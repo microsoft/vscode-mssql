@@ -23,6 +23,9 @@
         <trans-unit id="extension.chooseDatabase">
             <source xml:lang="en">Use Database</source>
         </trans-unit>
+        <trans-unit id="extension.chooseLanguageFlavor">
+            <source xml:lang="en">Choose SQL handler for this file</source>
+        </trans-unit>
         <trans-unit id="extension.showGettingStarted">
             <source xml:lang="en">Getting Started Guide</source>
         </trans-unit>

@@ -417,6 +417,27 @@ export default class ConnectionManager {
         });
     }
 
+    public onChooseLanguageFlavor(): Promise<boolean> {
+        const fileUri = this._vscodeWrapper.activeTextEditorUri;
+        if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+            return this._connectionUI.promptLanguageFlavor().then(flavor => {
+                if (!flavor) {
+                    return false;
+                }
+                this.statusView.languageFlavorChanged(fileUri, flavor);
+                SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
+                    <LanguageServiceContracts.DidChangeLanguageFlavorParams> {
+                    uri: fileUri,
+                    language: 'sql',
+                    flavor: flavor
+                });
+            });
+        } else {
+            this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            return Promise.resolve(false);
+        }
+    }
+
     // close active connection, if any
     public onDisconnect(): Promise<boolean> {
         return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
@@ -517,6 +538,7 @@ export default class ConnectionManager {
             this._connections[fileUri] = connectionInfo;
 
             self.statusView.connecting(fileUri, connectionCreds);
+            self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
             self.vscodeWrapper.logToOutputChannel(
                 Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
             );
