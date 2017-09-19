@@ -8,6 +8,7 @@ import StatusView from './../src/views/statusView';
 import * as LanguageServiceContracts from '../src/models/contracts/languageService';
 import { IConfig } from '../src/languageservice/interfaces';
 import ExtConfig from  '../src/configurations/extConfig';
+import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 interface IFixture {
     platformInfo: PlatformInformation;
@@ -21,11 +22,13 @@ suite('Service Client tests', () => {
     let testServiceProvider: TypeMoq.IMock<ServerProvider>;
     let logger = new Logger(text => console.log(text));
     let testStatusView: TypeMoq.IMock<StatusView>;
+    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     setup(() => {
         testConfig = TypeMoq.Mock.ofType(ExtConfig, TypeMoq.MockBehavior.Loose);
         testServiceProvider = TypeMoq.Mock.ofType(ServerProvider, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType(StatusView);
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
     });
 
     function setupMocks(fixture: IFixture): void {
@@ -45,7 +48,7 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
@@ -62,7 +65,7 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
@@ -79,7 +82,7 @@ suite('Service Client tests', () => {
         };
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).catch( error => {
             return assert.equal(error, 'Invalid Platform');
@@ -101,7 +104,7 @@ suite('Service Client tests', () => {
         testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.equal(serviceVersion, 1);
@@ -128,7 +131,7 @@ suite('Service Client tests', () => {
         testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
 
         setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
         return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.equal(serviceVersion, 0);
@@ -151,7 +154,7 @@ suite('Service Client tests', () => {
             const status = 'new status';
 
             setupMocks(fixture);
-            let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object);
+            let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
             let statusChangeParams = new LanguageServiceContracts.StatusChangeParams();
             statusChangeParams.ownerUri = testFile;
             statusChangeParams.status = status;

@@ -5,9 +5,13 @@ import ConnInfo = require('../models/connectionInfo');
 import * as ConnectionContracts from '../models/contracts/connection';
 import Interfaces = require('../models/interfaces');
 import * as Utils from '../models/utils';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 // Status bar element for each file in the editor
 class FileStatusBar {
+    // Item for the language flavor status
+    public statusLanguageFlavor: vscode.StatusBarItem;
+
     // Item for the connection status
     public statusConnection: vscode.StatusBarItem;
 
@@ -27,15 +31,19 @@ export default class StatusView implements vscode.Disposable {
     private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
 
-    constructor() {
+    constructor(private _vscodeWrapper?: VscodeWrapper) {
+        if (!this._vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
         this._statusBars = {};
-        vscode.window.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
-        vscode.workspace.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
+        this._vscodeWrapper.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
+        this._vscodeWrapper.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
     }
 
     dispose(): void {
         for (let bar in this._statusBars) {
             if (this._statusBars.hasOwnProperty(bar)) {
+                this._statusBars[bar].statusLanguageFlavor.dispose();
                 this._statusBars[bar].statusConnection.dispose();
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
@@ -48,6 +56,8 @@ export default class StatusView implements vscode.Disposable {
     // Create status bar item if needed
     private createStatusBar(fileUri: string): void {
         let bar = new FileStatusBar();
+        // set language flavor priority as always 90 since it's to show to the right of the file type
+        bar.statusLanguageFlavor = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
         bar.statusConnection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusLanguageService = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
@@ -57,6 +67,9 @@ export default class StatusView implements vscode.Disposable {
     private destroyStatusBar(fileUri: string): void {
         let bar = this._statusBars[fileUri];
         if (bar) {
+            if (bar.statusLanguageFlavor) {
+                bar.statusLanguageFlavor.dispose();
+            }
             if (bar.statusConnection) {
                 bar.statusConnection.dispose();
             }
@@ -89,6 +102,7 @@ export default class StatusView implements vscode.Disposable {
 
     public show(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
+        this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
@@ -168,6 +182,13 @@ export default class StatusView implements vscode.Disposable {
         });
     }
 
+    public languageFlavorChanged(fileUri: string, flavor: string): void {
+        let bar = this.getStatusBar(fileUri);
+        bar.statusLanguageFlavor.text = flavor;
+        bar.statusLanguageFlavor.command = Constants.cmdChooseLanguageFlavor;
+        this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
+    }
+
     public updateStatusMessage(
         newStatus: string,
         getCurrentStatus: () => string,
@@ -216,6 +237,7 @@ export default class StatusView implements vscode.Disposable {
 
     private hideLastShownStatusBar(): void {
         if (typeof this._lastShownStatusBar !== 'undefined') {
+            this._lastShownStatusBar.statusLanguageFlavor.hide();
             this._lastShownStatusBar.statusConnection.hide();
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
@@ -231,6 +253,7 @@ export default class StatusView implements vscode.Disposable {
             const fileUri = editor.document.uri.toString();
             const bar = this._statusBars[fileUri];
             if (bar) {
+                this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
                 this.showStatusBarItem(fileUri, bar.statusConnection);
                 this.showStatusBarItem(fileUri, bar.statusLanguageService);
             }

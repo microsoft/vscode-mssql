@@ -106,6 +106,8 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
         this.registerCommand(Constants.cmdChooseDatabase);
         this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
+        this.registerCommand(Constants.cmdChooseLanguageFlavor);
+        this._event.on(Constants.cmdChooseLanguageFlavor, () => { self.runAndLogErrors(self.onChooseLanguageFlavor(), 'onChooseLanguageFlavor') ; } );
         this.registerCommand(Constants.cmdCancelQuery);
         this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
         this.registerCommand(Constants.cmdShowGettingStarted);
@@ -146,7 +148,7 @@ export default class MainController implements vscode.Disposable {
                 SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
 
                 // Init status bar
-                self._statusview = new StatusView();
+                self._statusview = new StatusView(self._vscodeWrapper);
 
                 // Init CodeAdapter for use when user response to questions is needed
                 self._prompter = new CodeAdapter();
@@ -169,6 +171,12 @@ export default class MainController implements vscode.Disposable {
                 );
 
                 self.showReleaseNotesPrompt();
+
+                // Handle case where SQL file is the 1st opened document
+                const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+                if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
+                    this.onDidOpenTextDocument(activeTextEditor.document);
+                }
 
                 Utils.logDebug('activated.');
                 self._initialized = true;
@@ -202,6 +210,22 @@ export default class MainController implements vscode.Disposable {
     private onChooseDatabase(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             return this._connectionMgr.onChooseDatabase();
+        }
+        return Promise.resolve(false);
+    }
+
+    /**
+     * Choose a language flavor for the SQL document. Should be either "MSSQL" or "Other"
+     * to indicate that intellisense and other services should not be provided
+     */
+    private onChooseLanguageFlavor(): Promise<boolean> {
+        if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
+                this._connectionMgr.onChooseLanguageFlavor();
+            } else {
+                this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            }
         }
         return Promise.resolve(false);
     }
@@ -577,6 +601,10 @@ export default class MainController implements vscode.Disposable {
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
+
+        if (this._vscodeWrapper.isEditingSqlFile) {
+            this._statusview.languageFlavorChanged(doc.uri.toString(), Constants.mssqlProviderName);
+        }
 
         // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();

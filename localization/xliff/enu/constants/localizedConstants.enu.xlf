@@ -335,6 +335,24 @@
         <trans-unit id="msgCannotSaveMultipleSelections">
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         </trans-unit>
+        <trans-unit id="mssqlProviderName">
+            <source xml:lang="en">MSSQL</source>
+        </trans-unit>
+        <trans-unit id="noneProviderName">
+            <source xml:lang="en">None</source>
+        </trans-unit>
+        <trans-unit id="chooseSqlLang">
+            <source xml:lang="en">Choose SQL Language</source>
+        </trans-unit>
+        <trans-unit id="flavorChooseLanguage">
+            <source xml:lang="en">Choose SQL Language</source>
+        </trans-unit>
+        <trans-unit id="flavorDescriptionMssql">
+            <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+        </trans-unit>
+        <trans-unit id="flavorDescriptionNone">
+            <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

@@ -85,3 +85,30 @@ export class StatusChangeParams {
 
 
 // ------------------------------- </ Status Sent Event > ----------------------------------
+
+// ------------------------------- < Language Flavor Changed Event > ------------------------------------
+/**
+ * Language flavor change event parameters
+ */
+export class DidChangeLanguageFlavorParams {
+    /**
+     * URI identifying the text document
+     */
+    public uri: string;
+    /**
+     * text document's language
+     */
+    public language: string;
+    /**
+     * Sub-flavor for the langauge, e.g. 'MSSQL' for a SQL Server connection or 'Other' for any other SQL flavor
+     */
+    public  flavor: string;
+}
+
+/**
+ * Notification sent when the language flavor is changed
+ */
+export namespace LanguageFlavorChangedNotification {
+    export const type: NotificationType<DidChangeLanguageFlavorParams> = { get method(): string { return 'connection/languageflavorchanged'; } };
+}
+

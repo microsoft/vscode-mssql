@@ -44,13 +44,11 @@ interface IMessage {
  */
 class LanguageClientErrorHandler {
 
-    private vscodeWrapper: VscodeWrapper;
-
     /**
      * Creates an instance of LanguageClientErrorHandler.
      * @memberOf LanguageClientErrorHandler
      */
-    constructor() {
+    constructor(private vscodeWrapper?: VscodeWrapper) {
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
@@ -113,7 +111,6 @@ export default class SqlToolsServiceClient {
 
     // VS Code Language Client
     private _client: LanguageClient = undefined;
-
     // getter method for the Language Client
     private get client(): LanguageClient {
         return this._client;
@@ -127,7 +124,8 @@ export default class SqlToolsServiceClient {
         private _config: IConfig,
         private _server: ServerProvider,
         private _logger: Logger,
-        private _statusView: StatusView) {
+        private _statusView: StatusView,
+        private _vscodeWrapper: VscodeWrapper) {
     }
 
     // gets or creates the singleton SQL Tools service client instance
@@ -142,8 +140,9 @@ export default class SqlToolsServiceClient {
             let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView, httpClient,
             decompressProvider);
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
-            let statusView = new StatusView();
-            this._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView);
+            let vscodeWrapper = new VscodeWrapper();
+            let statusView = new StatusView(vscodeWrapper);
+            this._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView, vscodeWrapper);
         }
         return this._instance;
     }
@@ -281,7 +280,7 @@ export default class SqlToolsServiceClient {
             synchronize: {
                 configurationSection: 'mssql'
             },
-            errorHandler: new LanguageClientErrorHandler()
+            errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
         };
 
         // cache the client instance for later use
