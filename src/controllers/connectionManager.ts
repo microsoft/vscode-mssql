@@ -62,6 +62,15 @@ export class ConnectionInfo {
      * Whether the connection is in the process of connecting.
      */
     public connecting: boolean;
+
+    /**
+     * The MS SQL error number coming from the server
+     */
+    public errorNumber: number;
+
+    public get loginFailed(): boolean {
+        return this.errorNumber && this.errorNumber === Constants.errorLoginFailed;
+    }
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -280,6 +289,7 @@ export default class ConnectionManager {
         connection.connectionId = result.connectionId;
         connection.serverInfo = result.serverInfo;
         connection.credentials = newCredentials;
+        connection.errorNumber = undefined;
 
         this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
         this.statusView.languageServiceStatusChanged(fileUri, LocalizedConstants.updatingIntelliSenseStatus);
@@ -305,11 +315,12 @@ export default class ConnectionManager {
 
     private handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): void {
         if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
+            connection.errorNumber = result.errorNumber;
             // Check if the error is an expired password
             if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
                 // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
-            } else {
+            } else if (result.errorNumber !== Constants.errorLoginFailed) {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
             }
         } else {
@@ -489,8 +500,10 @@ export default class ConnectionManager {
                 self.disconnect(fileUri).then(function(): void {
                     // connect to the server/database
                     self.connect(fileUri, connectionCreds)
-                    .then(function(): void {
-                        resolve(true);
+                    .then(result => {
+                        self.handleConnectionResult(result, fileUri, connectionCreds).then(() => {
+                            resolve(true);
+                        });
                     });
                 });
             } else {
@@ -498,6 +511,34 @@ export default class ConnectionManager {
             }
         });
     }
+
+    /**
+     * Verifies the connection result. If connection failed because of invalid credentials,
+     * tries to connect again by asking user for different credentials
+     * @param result Connection result
+     * @param fileUri file Uri
+     * @param connectionCreds Connection Profile
+     */
+    private handleConnectionResult(result: boolean, fileUri: string, connectionCreds: Interfaces.IConnectionCredentials): Promise<boolean> {
+        const self = this;
+        return new Promise<boolean>((resolve, reject) => {
+            let connection = self._connections[fileUri];
+            if (!result && connection && connection.loginFailed) {
+                self.connectionUI.createProfileWithDifferentCredentials(connectionCreds).then(newConnection => {
+                    if (newConnection) {
+                        self.connect(fileUri, newConnection).then(newResult => {
+                            return self.handleConnectionResult(newResult, fileUri, newConnection);
+                        });
+                    } else {
+                        resolve(true);
+                    }
+                });
+            } else {
+                resolve(true);
+            }
+        });
+    }
+
 
     // let users pick from a picklist of connections
     public onNewConnection(): Promise<boolean> {

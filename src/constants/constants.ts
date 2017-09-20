@@ -29,6 +29,7 @@ export const sqlAuthentication = 'SqlLogin';
 export const defaultDatabase = 'master';
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
+export const errorLoginFailed = 18456;
 export const maxDisplayedStatusTextLength = 50;
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
