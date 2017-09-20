@@ -239,11 +239,11 @@
         </trans-unit>
         <trans-unit id="notConnectedTooltip">
             <source xml:lang="en">Click to connect to a database</source>
-            <target>데이터베이스에 연결을 클릭 합니다.</target>
+            <target>데이터베이스에 연결하려면 클릭하세요.</target>
         </trans-unit>
         <trans-unit id="connectingLabel">
             <source xml:lang="en">Connecting</source>
-            <target>연결</target>
+            <target>연결 중</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
             <source xml:lang="en">Connecting to: </source>
@@ -271,7 +271,7 @@
         </trans-unit>
         <trans-unit id="cancelingQueryLabel">
             <source xml:lang="en">Canceling query </source>
-            <target>쿼리 취소</target>
+            <target>쿼리 취소 중</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseLabel">
             <source xml:lang="en">Updating IntelliSense...</source>
@@ -303,7 +303,7 @@
         </trans-unit>
         <trans-unit id="msgConnecting">
             <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
-            <target>&quot;{1}&quot;을 서버 &quot;{0}&quot;에 연결합니다.</target>
+            <target>문서 &quot;{1}&quot;을 서버 &quot;{0}&quot;에 연결 중입니다.</target>
         </trans-unit>
         <trans-unit id="msgConnectedServerInfo">
             <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
