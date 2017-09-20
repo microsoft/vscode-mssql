@@ -43,7 +43,7 @@ suite('ConnectionConfig tests', () => {
         });
         // Given a connection config object that reads a valid json file
         let config = new ConnectionConfig(vscodeWrapperMock.object);
-        let profiles: IConnectionProfile[] = config.getProfilesFromSettingsFile();
+        let profiles: IConnectionProfile[] = config.getProfilesFromSettings();
 
         // Verify that the profiles were read correctly
         assert.strictEqual(profiles.length, 2);

@@ -39,13 +39,13 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public addConnection(profile: IConnectionProfile): Promise<void> {
 
-        let profiles = this.getProfilesFromSettingsFile();
+        let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set
         profiles = profiles.filter(value => !Utils.isSameProfile(value, profile));
         profiles.push(profile);
 
-        return this.writeProfilesToSettingsFile(profiles);
+        return this.writeProfilesToSettings(profiles);
     }
 
     /**
@@ -63,14 +63,14 @@ export class ConnectionConfig implements IConnectionConfig {
         };
 
         // Read from user settings
-        let userProfiles = this.getProfilesFromSettingsFile();
+        let userProfiles = this.getProfilesFromSettings();
 
         userProfiles.sort(compareProfileFunc);
         profiles = profiles.concat(userProfiles);
 
         if (getWorkspaceConnections) {
             // Read from workspace settings
-            let workspaceProfiles = this.getProfilesFromSettingsFile(false);
+            let workspaceProfiles = this.getProfilesFromSettings(false);
             workspaceProfiles.sort(compareProfileFunc);
             profiles = profiles.concat(workspaceProfiles);
         }
@@ -90,7 +90,7 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public removeConnection(profile: IConnectionProfile): Promise<boolean> {
 
-        let profiles = this.getProfilesFromSettingsFile();
+        let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set
         let found: boolean = false;
@@ -105,7 +105,7 @@ export class ConnectionConfig implements IConnectionConfig {
         });
 
         return new Promise<boolean>((resolve, reject) => {
-            this.writeProfilesToSettingsFile(profiles).then(() => {
+            this.writeProfilesToSettings(profiles).then(() => {
                 resolve(found);
             }).catch(err => {
                 reject(err);
@@ -119,7 +119,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param parsedSettingsFile an object representing the parsed contents of the settings file.
      * @returns the set of connection profiles found in the parsed settings file.
      */
-    public getProfilesFromSettingsFile(global: boolean = true): IConnectionProfile[] {
+    public getProfilesFromSettings(global: boolean = true): IConnectionProfile[] {
         let configuration = this._vscodeWrapper.getConfiguration(Constants.extensionName);
         let profiles: IConnectionProfile[] = [];
 
@@ -142,7 +142,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param parsedSettingsFile an object representing the parsed contents of the settings file.
      * @param profiles the set of profiles to insert into the settings file.
      */
-    private writeProfilesToSettingsFile(profiles: IConnectionProfile[]): Promise<void> {
+    private writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
         // Save the file
         const self = this;
         return new Promise<void>((resolve, reject) => {
