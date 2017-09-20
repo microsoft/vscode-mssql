@@ -232,7 +232,7 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
     return expectedProfile.server === currentProfile.server
         && isSameDatabase(expectedProfile.database, currentProfile.database)
         && isSameAuthenticationType(expectedProfile.authenticationType, currentProfile.authenticationType)
-        && expectedProfile.user === currentProfile.user;
+        && ((isEmpty(expectedProfile.user) && isEmpty(currentProfile.user)) || expectedProfile.user === currentProfile.user);
 }
 
 /**

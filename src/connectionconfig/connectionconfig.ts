@@ -4,18 +4,12 @@
 *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import fs = require('fs');
-import os = require('os');
-import { parse } from 'jsonc-parser';
-
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from '../models/utils';
 import { IConnectionProfile } from '../models/interfaces';
 import { IConnectionConfig } from './iconnectionconfig';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-
-const commentJson = require('comment-json');
 
 /**
  * Implements connection profile file storage.
@@ -25,10 +19,8 @@ export class ConnectionConfig implements IConnectionConfig {
     /**
      * Constructor.
      */
-    public constructor(private _fs?: any, private _vscodeWrapper?: VscodeWrapper) {
-        if (!this._fs) {
-            this._fs = fs;
-        }
+    public constructor(private _vscodeWrapper?: VscodeWrapper) {
+
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
@@ -46,20 +38,14 @@ export class ConnectionConfig implements IConnectionConfig {
      * Add a new connection to the connection config.
      */
     public addConnection(profile: IConnectionProfile): Promise<void> {
-        let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
 
-        // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
-        if (!parsedSettingsFile) {
-            return Promise.reject(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, ConnectionConfig.configFilePath));
-        }
-
-        let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+        let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set
         profiles = profiles.filter(value => !Utils.isSameProfile(value, profile));
         profiles.push(profile);
 
-        return this.writeProfilesToSettingsFile(parsedSettingsFile, profiles);
+        return this.writeProfilesToSettings(profiles);
     }
 
     /**
@@ -77,16 +63,14 @@ export class ConnectionConfig implements IConnectionConfig {
         };
 
         // Read from user settings
-        let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
-        let userProfiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+        let userProfiles = this.getProfilesFromSettings();
 
         userProfiles.sort(compareProfileFunc);
         profiles = profiles.concat(userProfiles);
 
         if (getWorkspaceConnections) {
             // Read from workspace settings
-            parsedSettingsFile = this.readAndParseSettingsFile(this.workspaceSettingsFilePath);
-            let workspaceProfiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+            let workspaceProfiles = this.getProfilesFromSettings(false);
             workspaceProfiles.sort(compareProfileFunc);
             profiles = profiles.concat(workspaceProfiles);
         }
@@ -105,14 +89,8 @@ export class ConnectionConfig implements IConnectionConfig {
      * Remove an existing connection from the connection config.
      */
     public removeConnection(profile: IConnectionProfile): Promise<boolean> {
-        let parsedSettingsFile = this.readAndParseSettingsFile(ConnectionConfig.configFilePath);
 
-        // No op if the settings file could not be parsed; we don't want to overwrite the corrupt file
-        if (!parsedSettingsFile) {
-            return Promise.resolve(false);
-        }
-
-        let profiles = this.getProfilesFromParsedSettingsFile(parsedSettingsFile);
+        let profiles = this.getProfilesFromSettings();
 
         // Remove the profile if already set
         let found: boolean = false;
@@ -127,7 +105,7 @@ export class ConnectionConfig implements IConnectionConfig {
         });
 
         return new Promise<boolean>((resolve, reject) => {
-            this.writeProfilesToSettingsFile(parsedSettingsFile, profiles).then(() => {
+            this.writeProfilesToSettings(profiles).then(() => {
                 resolve(found);
             }).catch(err => {
                 reject(err);
@@ -136,116 +114,24 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Get the directory containing the connection config file.
-     */
-    private static get configFileDirectory(): string {
-        if (os.platform() === 'win32') {
-            // On Windows, settings are located in %APPDATA%\Code\User\
-            return process.env['APPDATA'] + '\\Code\\User\\';
-        } else if (os.platform() === 'darwin') {
-            // On OSX, settings are located in $HOME/Library/Application Support/Code/User/
-            return process.env['HOME'] + '/Library/Application Support/Code/User/';
-        } else {
-            // On Linux, settings are located in $HOME/.config/Code/User/
-            return process.env['HOME'] + '/.config/Code/User/';
-        }
-    }
-
-    /**
-     * Get the path of the file containing workspace settings.
-     */
-    private get workspaceSettingsFilePath(): string {
-        let workspacePath = this.vscodeWrapper.workspaceRootPath;
-        const vscodeSettingsDir = '.vscode';
-
-        let dirSeparator = '/';
-        if (os.platform() === 'win32') {
-            dirSeparator = '\\';
-        }
-
-        if (workspacePath) {
-            return this.vscodeWrapper.workspaceRootPath + dirSeparator +
-                vscodeSettingsDir + dirSeparator +
-                Constants.connectionConfigFilename;
-        } else {
-            return undefined;
-        }
-    }
-
-    /**
-     * Get the full path of the connection config filename.
-     */
-    private static get configFilePath(): string {
-        return this.configFileDirectory + Constants.connectionConfigFilename;
-    }
-    /**
-     * Public for testing purposes.
-     */
-    public createConfigFileDirectory(): Promise<void> {
-        const self = this;
-        const configFileDir: string = ConnectionConfig.configFileDirectory;
-        return new Promise<void>((resolve, reject) => {
-            self._fs.mkdir(configFileDir, err => {
-                // If the directory already exists, ignore the error
-                if (err && err.code !== 'EEXIST') {
-                    reject(err);
-                }
-                resolve();
-            });
-        });
-    }
-
-    /**
-     * Parse the vscode settings file into an object, preserving comments.
-     * This is public for testing only.
-     * @param filename the name of the file to read from
-     * @returns undefined if the settings file could not be read, or an empty object if the file did not exist/was empty
-     */
-    public readAndParseSettingsFile(filename: string): any {
-        if (!filename) {
-            return undefined;
-        }
-        try {
-            let fileBuffer: Buffer = this._fs.readFileSync(filename);
-            if (fileBuffer) {
-                let fileContents: string = fileBuffer.toString();
-                if (!Utils.isEmpty(fileContents)) {
-                    try {
-                        let fileObject: any = parse(fileContents);
-                        // TODO #930 handle case where mssql.connections section of the settings file is corrupt
-                        // the errors from parse only indicate if there were invalid symbols, numbers or properties which
-                        // isn't particularly useful so we'd need to check manually for missing required properties or other corruption.
-                        return fileObject;
-                    } catch (e) { // Error parsing JSON
-                        this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, filename));
-                    }
-                } else {
-                    return {};
-                }
-            }
-        } catch (e) { // Error reading the file
-            if (e.code !== 'ENOENT') { // Ignore error if the file doesn't exist
-                this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgErrorReadingConfigFile, filename));
-            } else {
-                return {};
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
      * Get all profiles from the parsed settings file.
      * This is public for testing only.
      * @param parsedSettingsFile an object representing the parsed contents of the settings file.
      * @returns the set of connection profiles found in the parsed settings file.
      */
-    public getProfilesFromParsedSettingsFile(parsedSettingsFile: any): IConnectionProfile[] {
+    public getProfilesFromSettings(global: boolean = true): IConnectionProfile[] {
+        let configuration = this._vscodeWrapper.getConfiguration(Constants.extensionName);
         let profiles: IConnectionProfile[] = [];
 
-        // Find the profiles object in the parsed settings file
-        if (parsedSettingsFile && parsedSettingsFile.hasOwnProperty(Constants.connectionsArrayName)) {
-            profiles = parsedSettingsFile[Constants.connectionsArrayName];
+        let configValue = configuration.inspect<IConnectionProfile[]>(Constants.connectionsArrayName);
+        if (global) {
+            profiles = configValue.globalValue;
+        } else {
+            profiles = configValue.workspaceValue;
+        }
+
+        if (profiles === undefined) {
+            profiles = [];
         }
 
         return profiles;
@@ -256,22 +142,13 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param parsedSettingsFile an object representing the parsed contents of the settings file.
      * @param profiles the set of profiles to insert into the settings file.
      */
-    private writeProfilesToSettingsFile(parsedSettingsFile: any, profiles: IConnectionProfile[]): Promise<void> {
-        // Insert the new set of profiles
-        parsedSettingsFile[Constants.connectionsArrayName] = profiles;
-
+    private writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
         // Save the file
         const self = this;
         return new Promise<void>((resolve, reject) => {
-            self.createConfigFileDirectory().then(() => {
-                // Format the file using 4 spaces as indentation
-                self._fs.writeFile(ConnectionConfig.configFilePath, commentJson.stringify(parsedSettingsFile, undefined, 4), err => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve();
-                });
-            }).catch(err => {
+            self._vscodeWrapper.getConfiguration(Constants.extensionName).update(Constants.connectionsArrayName, profiles, true).then(() => {
+                resolve();
+            }, err => {
                 reject(err);
             });
         });

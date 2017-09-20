@@ -3,67 +3,47 @@ import * as TypeMoq from 'typemoq';
 import { ConnectionConfig } from '../src/connectionconfig/connectionconfig';
 import { IConnectionProfile } from '../src/models/interfaces';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
+import * as Constants from '../src/constants/constants';
+import * as interfaces from '../src/models/interfaces';
+import { ConnectionProfile } from '../src/models/connectionProfile';
+import * as utils from '../src/models/utils';
 
 import assert = require('assert');
-import fs = require('fs');
+import vscode = require('vscode');
+import * as stubs from './stubs';
 
-const validJson =
-`
-{
-    "mssql.connections": [
-        {
-            "server": "my-server",
-            "database": "my_db",
-            "user": "sa",
-            "password": "12345678"
-        },
-        {
-            "server": "my-other-server",
-            "database": "my_other_db",
-            "user": "sa",
-            "password": "qwertyuiop"
-        }
-    ]
-}
-`;
+let connections: ConnectionProfile[] = [
+    Object.assign(new ConnectionProfile(), {
+        server: 'my-server',
+        database: 'my_db',
+        authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
+        user: 'sa',
+        password: '12345678'
+    }),
+    Object.assign(new ConnectionProfile(), {
+        server: 'my-other-server',
+        database: 'my_other_db',
+        user: 'sa',
+        password: 'qwertyuiop',
+        authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin)
+    })
+];
 
 suite('ConnectionConfig tests', () => {
-    // TODO #930 handle case where mssql.connections section of the settings file is corrupt
-    // test('error message is shown when reading corrupt config file', () => {
-
-    //     const corruptJson =
-    //     `{
-    //         corrupt!@#$%
-    //     ]`;
-    //     let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
-    //     bufferMock.setup(x => x.toString()).returns(() => corruptJson);
-
-    //     let fsMock = TypeMoq.Mock.ofInstance(fs);
-    //     fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
-
-    //     let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-
-    //     // Given a connection config object that reads a corrupt json file
-    //     let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
-    //     config.readAndParseSettingsFile('settings.json');
-
-    //     // Verify that an error message was displayed to the user
-    //     vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());
-    // });
 
     test('no error message is shown when reading valid config file', () => {
-        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
-        bufferMock.setup(x => x.toString()).returns(() => validJson);
-
-        let fsMock = TypeMoq.Mock.ofInstance(fs);
-        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
-
         let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-
+        let workspaceConfiguration: vscode.WorkspaceConfiguration;
+        let configResult: {[key: string]: any} = {};
+        configResult[Constants.connectionsArrayName] = connections;
+        workspaceConfiguration = stubs.createWorkspaceConfiguration(configResult);
+        vscodeWrapperMock.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+        .returns(x => {
+            return workspaceConfiguration;
+        });
         // Given a connection config object that reads a valid json file
-        let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
-        let parseResult = config.readAndParseSettingsFile('settings.json');
-        let profiles: IConnectionProfile[] = config.getProfilesFromParsedSettingsFile(parseResult);
+        let config = new ConnectionConfig(vscodeWrapperMock.object);
+        let profiles: IConnectionProfile[] = config.getProfilesFromSettings();
 
         // Verify that the profiles were read correctly
         assert.strictEqual(profiles.length, 2);
@@ -78,49 +58,5 @@ suite('ConnectionConfig tests', () => {
 
         // Verify that no error message was displayed to the user
         vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.never());
-    });
-
-    test('error is thrown when config directory cannot be created', done => {
-        let fsMock = TypeMoq.Mock.ofInstance(fs);
-        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((path, errorHandler) => {
-                let error = {
-                    code: 'EACCES'
-                };
-                errorHandler(error);
-            });
-
-        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-
-        // Given a connection config object that tries to create a config directory without appropriate permissions
-        let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
-        config.createConfigFileDirectory().then(() => {
-            done('Promise should not resolve successfully');
-        }).catch(err => {
-            // Expect an error to be thrown
-            done();
-        });
-    });
-
-    test('error is not thrown when config directory already exists', done => {
-        let fsMock = TypeMoq.Mock.ofInstance(fs);
-        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((path, errorHandler) => {
-                let error = {
-                    code: 'EEXIST'
-                };
-                errorHandler(error);
-            });
-
-        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-
-        // Given a connection config object that tries to create a config directory when it already exists
-        let config = new ConnectionConfig(fsMock.object, vscodeWrapperMock.object);
-        config.createConfigFileDirectory().then(() => {
-            // Expect no error to be thrown
-            done();
-        }).catch(err => {
-            done(err);
-        });
     });
 });
