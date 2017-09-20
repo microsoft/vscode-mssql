@@ -276,10 +276,10 @@ export class ConnectionUI {
                 if (result) {
                     let connectionWithoutCredentials = Object.assign({}, connection, { user: '', password: '', emptyPasswordInput: false });
                     ConnectionCredentials.ensureRequiredPropertiesSet(
-                        connectionWithoutCredentials,
-                        true,
-                        false,
-                        true,
+                        connectionWithoutCredentials, // connection profile
+                        true,                         // isProfile
+                        false,                        // isPasswordRequired
+                        true,                         // wasPasswordEmptyInConfigFile
                         this._prompter,
                         this._connectionStore, connection).then(connectionResult => {
                             resolve(connectionResult);

@@ -68,6 +68,11 @@ export class ConnectionInfo {
      */
     public errorNumber: number;
 
+    /**
+     * The MS SQL error message coming from the server
+     */
+    public errorMessage: string;
+
     public get loginFailed(): boolean {
         return this.errorNumber && this.errorNumber === Constants.errorLoginFailed;
     }
@@ -79,14 +84,14 @@ export default class ConnectionManager {
     private _statusView: StatusView;
     private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
-    private _connectionUI: ConnectionUI;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
                 prompter: IPrompter,
                 private _client?: SqlToolsServerClient,
                 private _vscodeWrapper?: VscodeWrapper,
-                private _connectionStore?: ConnectionStore) {
+                private _connectionStore?: ConnectionStore,
+                private _connectionUI?: ConnectionUI) {
         this._context = context;
         this._statusView = statusView;
         this._prompter = prompter;
@@ -103,7 +108,9 @@ export default class ConnectionManager {
             this._connectionStore = new ConnectionStore(context);
         }
 
-        this._connectionUI = new ConnectionUI(this, this._connectionStore, prompter, this.vscodeWrapper);
+        if (!this._connectionUI) {
+            this._connectionUI = new ConnectionUI(this, this._connectionStore, prompter, this.vscodeWrapper);
+        }
 
         if (this.client !== undefined) {
             this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
@@ -290,6 +297,7 @@ export default class ConnectionManager {
         connection.serverInfo = result.serverInfo;
         connection.credentials = newCredentials;
         connection.errorNumber = undefined;
+        connection.errorMessage = undefined;
 
         this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
         this.statusView.languageServiceStatusChanged(fileUri, LocalizedConstants.updatingIntelliSenseStatus);
@@ -315,7 +323,6 @@ export default class ConnectionManager {
 
     private handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): void {
         if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
-            connection.errorNumber = result.errorNumber;
             // Check if the error is an expired password
             if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
                 // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
@@ -323,6 +330,8 @@ export default class ConnectionManager {
             } else if (result.errorNumber !== Constants.errorLoginFailed) {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
             }
+            connection.errorNumber = result.errorNumber;
+            connection.errorMessage = result.errorMessage;
         } else {
             PlatformInformation.GetCurrent().then( platformInfo => {
                 if (!platformInfo.isWindows() && result.errorMessage && result.errorMessage.includes('Kerberos')) {
@@ -463,7 +472,9 @@ export default class ConnectionManager {
                 disconnectParams.ownerUri = fileUri;
 
                 self.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams).then((result) => {
-                    self.statusView.notConnected(fileUri);
+                    if (self.statusView) {
+                        self.statusView.notConnected(fileUri);
+                    }
                     if (result) {
                         Telemetry.sendTelemetryEvent('DatabaseDisconnected');
 
@@ -527,7 +538,11 @@ export default class ConnectionManager {
                 self.connectionUI.createProfileWithDifferentCredentials(connectionCreds).then(newConnection => {
                     if (newConnection) {
                         self.connect(fileUri, newConnection).then(newResult => {
-                            return self.handleConnectionResult(newResult, fileUri, newConnection);
+                            connection = self._connections[fileUri];
+                            if (!newResult && connection && connection.loginFailed) {
+                                Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, connection.errorNumber, connection.errorMessage));
+                            }
+                            resolve(newResult);
                         });
                     } else {
                         resolve(true);
@@ -579,9 +594,11 @@ export default class ConnectionManager {
             this._connections[fileUri] = connectionInfo;
 
             // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
-            self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-            self.statusView.connecting(fileUri, connectionCreds);
-            self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+            if (self.statusView) {
+                self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+                self.statusView.connecting(fileUri, connectionCreds);
+                self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+            }
             self.vscodeWrapper.logToOutputChannel(
                 Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
             );
