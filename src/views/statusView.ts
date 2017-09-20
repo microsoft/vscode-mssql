@@ -120,6 +120,7 @@ export default class StatusView implements vscode.Disposable {
 
     public connecting(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
         let bar = this.getStatusBar(fileUri);
+        bar.statusConnection.text = LocalizedConstants.connectingLabel;
         bar.statusConnection.command = Constants.cmdDisconnect;
         bar.statusConnection.tooltip = LocalizedConstants.connectingTooltip + ConnInfo.getTooltip(connCreds);
         this.showStatusBarItem(fileUri, bar.statusConnection);
