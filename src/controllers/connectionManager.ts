@@ -537,8 +537,9 @@ export default class ConnectionManager {
             connectionInfo.connecting = true;
             this._connections[fileUri] = connectionInfo;
 
-            self.statusView.connecting(fileUri, connectionCreds);
+            // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
             self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+            self.statusView.connecting(fileUri, connectionCreds);
             self.vscodeWrapper.logToOutputChannel(
                 Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
             );
