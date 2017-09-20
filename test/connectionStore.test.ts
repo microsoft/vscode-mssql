@@ -2,7 +2,6 @@
 import * as TypeMoq from 'typemoq';
 
 import vscode = require('vscode');
-import fs = require('fs');
 import * as utils from '../src/models/utils';
 import * as connectionInfo from '../src/models/connectionInfo';
 import * as Constants from '../src/constants/constants';
@@ -24,6 +23,7 @@ suite('ConnectionStore tests', () => {
     let credentialStore: TypeMoq.IMock<CredentialStore>;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let connectionConfig: TypeMoq.IMock<ConnectionConfig>;
+    let workspaceConfiguration: vscode.WorkspaceConfiguration;
 
     setup(() => {
         defaultNamedProfile = Object.assign(new ConnectionProfile(), {
@@ -56,10 +56,10 @@ suite('ConnectionStore tests', () => {
         let maxRecent = 5;
         let configResult: {[key: string]: any} = {};
         configResult[Constants.configMaxRecentConnections] = maxRecent;
-        let config = stubs.createWorkspaceConfiguration(configResult);
+        workspaceConfiguration = stubs.createWorkspaceConfiguration(configResult);
         vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
         .returns(x => {
-            return config;
+            return workspaceConfiguration;
         });
     });
 
@@ -263,24 +263,10 @@ suite('ConnectionStore tests', () => {
             profileName: 'named'
         });
 
-        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
-        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
-
+        workspaceConfiguration.update('connections', [defaultNamedProfile, unnamedProfile, namedProfile]);
         let updatedCredentials: interfaces.IConnectionProfile[];
 
-        let fsMock = TypeMoq.Mock.ofInstance(fs);
-        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
-        fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((path, text, handler) => {
-                updatedCredentials = (JSON.parse(text))['mssql.connections'];
-                handler.call(undefined, undefined);
-            });
-        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((name, handler) => {
-                handler.call(undefined, undefined);
-            });
-
-        let config = new ConnectionConfig(fsMock.object, vscodeWrapper.object);
+        let config = new ConnectionConfig(vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
@@ -291,6 +277,7 @@ suite('ConnectionStore tests', () => {
         connectionStore.removeProfile(unnamedProfile)
             .then(success => {
         // Then expect that profile to be removed from the store
+                updatedCredentials = config.getConnections(false);
                 assert.ok(success);
                 assert.strictEqual(2, updatedCredentials.length);
                 assert.ok(updatedCredentials.every(p => p !== unnamedProfile), 'expect profile is removed from creds');
@@ -310,24 +297,11 @@ suite('ConnectionStore tests', () => {
             profileName: 'named'
         });
 
-        let bufferMock = TypeMoq.Mock.ofType(Buffer, TypeMoq.MockBehavior.Loose, 0);
-        bufferMock.setup(x => x.toString()).returns(() => JSON.stringify({'mssql.connections': [defaultNamedProfile, unnamedProfile, namedProfile]}));
+        workspaceConfiguration.update('connections', [defaultNamedProfile, unnamedProfile, namedProfile]);
 
         let updatedCredentials: interfaces.IConnectionProfile[];
 
-        let fsMock = TypeMoq.Mock.ofInstance(fs);
-        fsMock.setup(x => x.readFileSync(TypeMoq.It.isAny())).returns(() => bufferMock.object);
-        fsMock.setup(x => x.writeFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((path, text, handler) => {
-                updatedCredentials = (JSON.parse(text))['mssql.connections'];
-                handler.call(undefined, undefined);
-            });
-        fsMock.setup(x => x.mkdir(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((name, handler) => {
-                handler.call(undefined, undefined);
-            });
-
-        let config = new ConnectionConfig(fsMock.object, vscodeWrapper.object);
+        let config = new ConnectionConfig(vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
@@ -338,6 +312,7 @@ suite('ConnectionStore tests', () => {
         connectionStore.removeProfile(namedProfile)
             .then(success => {
         // Then expect that profile to be removed from the store
+                updatedCredentials = config.getConnections(false);
                 assert.ok(success);
                 assert.strictEqual(2, updatedCredentials.length);
                 assert.ok(updatedCredentials.every(p => p !== namedProfile), 'expect profile is removed from creds');
@@ -356,6 +331,7 @@ suite('ConnectionStore tests', () => {
         let configResult: {[key: string]: any} = {};
         configResult[Constants.configMaxRecentConnections] = maxRecent;
         let config = stubs.createWorkspaceConfiguration(configResult);
+        config.update(Constants.configMaxRecentConnections, maxRecent);
         vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
         .returns(x => {
             return config;

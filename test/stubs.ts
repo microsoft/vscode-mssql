@@ -57,7 +57,7 @@ class TestMemento implements vscode.Memento {
     }
 }
 
-function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.WorkspaceConfiguration {
+function createWorkspaceConfiguration(items: {[key: string]: any}, workspaceItems?: {[key: string]: any}): vscode.WorkspaceConfiguration {
     const result: vscode.WorkspaceConfiguration = {
         has(key: string): boolean {
             return items[key] !== 'undefined';
@@ -70,11 +70,27 @@ function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.Works
             return val;
         },
         inspect<T>(section: string): { key: string; defaultValue?: T; globalValue?: T; workspaceValue?: T } | undefined {
-            return undefined;
+            return {
+                key: undefined,
+                defaultValue: undefined,
+                globalValue: items[section],
+                workspaceValue: workspaceItems === undefined ? undefined : workspaceItems[section]
+            };
         },
         update(section: string, value: any, global?: boolean): Thenable<void> {
             this[section] = value;
-            return undefined;
+
+            global = global === undefined ? true : global;
+            if (!global) {
+                if (workspaceItems === undefined) {
+                    workspaceItems = {};
+                }
+                workspaceItems[section] = value;
+            } else {
+                items[section] = value;
+            }
+
+            return Promise.resolve();
         }
     };
 
@@ -83,7 +99,7 @@ function createWorkspaceConfiguration(items: {[key: string]: any}): vscode.Works
         result.update(key, items[key]);
     });
 
-    return Object.freeze(result);
+    return result;
 }
 
 // Interface for an Result function passed in by an express call
