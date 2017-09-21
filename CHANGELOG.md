@@ -1,5 +1,22 @@
 # Change Log
 
+## Version 1.2
+* Release date: September 22, 2017
+* Release status: GA
+
+
+## What's new in this version
+* Support for macOS High Sierra.
+* VSCode-Insiders users will see their connections are now read from and saved to the Insiders settings file instead of the regular Visual Studio Code location. Fixes [#242](https://github.com/Microsoft/vscode-mssql/issues/242).
+* Saving connections no longer affects comments in the settings file [#959](https://github.com/Microsoft/vscode-mssql/issues/959).
+* Intellisense errors and suggestions can be disabled on a per-file basis [#978](https://github.com/Microsoft/vscode-mssql/issues/978). Use the `MS SQL: Choose SQL Handler for this file` action or click on the `MSSQL` status bar item when a .sql file is open to disable intellisense on that document.
+* Fixed issue [#987](https://github.com/Microsoft/vscode-mssql/issues/987) Cannot change password of a saved profile.
+* Fixed issue [#924](https://github.com/Microsoft/vscode-mssql/issues/924) Database name with $ is not showing up correctly in database list.
+* Fixed issue [#949](https://github.com/Microsoft/vscode-mssql/issues/949) Drop database fails most of the time because the db is in used.
+* Fixed issue `MS SQL: Execute Current Statement` where it did not handle 2 statements on a single line correctly.
+* Improved support for SQL Server 2017 syntax by refreshing IntelliSense and SMO dependencies.
+
+
 ## Version 1.1
 * Release date: July 18, 2017
 * Release status: GA

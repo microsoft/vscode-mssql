@@ -21,6 +21,23 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.2
+* Support for macOS High Sierra.
+* VSCode-Insiders users will see their connections are now read from and saved to the Insiders settings file instead of the regular Visual Studio Code location. Fixes [#242](https://github.com/Microsoft/vscode-mssql/issues/242).
+* Saving connections no longer affects comments in the settings file [#959](https://github.com/Microsoft/vscode-mssql/issues/959).
+* Intellisense errors and suggestions can be disabled on a per-file basis [#978](https://github.com/Microsoft/vscode-mssql/issues/978). Use the `MS SQL: Choose SQL Handler for this file` action or click on the `MSSQL` status bar item when a .sql file is open to disable intellisense on that document.
+* Fixed issue [#987](https://github.com/Microsoft/vscode-mssql/issues/987) Cannot change password of a saved profile.
+* Fixed issue [#924](https://github.com/Microsoft/vscode-mssql/issues/924) Database name with $ is not showing up correctly in database list.
+* Fixed issue [#949](https://github.com/Microsoft/vscode-mssql/issues/949) Drop database fails most of the time because the db is in used.
+* Fixed issue `MS SQL: Execute Current Statement` where it did not handle 2 statements on a single line correctly.
+* Improved support for SQL Server 2017 syntax by refreshing IntelliSense and SMO dependencies.
+
+### Contributions and "thank you"
+We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+mssql for Visual Studio Code was opened for community localization since February 2017 for the following languages French, Italian, German, Spanish, Simplified or Traditional Chinese, Japanese, Korean, Russian, Brazilian Portuguese.
+If you see a string untranslated in your language, you can make an impact and help with translation. You can find out how by checking https://aka.ms/crossplattoolsforsqlservercommunitylocalization.
+
+
 ## What's new in 1.1
 * Preview support for Integrated Authentication (aka Windows Authentication) on Mac and Linux. To use this you need to create a Kerberos ticket on your Mac or Linux machine - [see this guide](https://aka.ms/vscode-mssql-integratedauth) for the simple process. Once this is set up, you can say goodbye to SQL passwords when connecting to your servers!
   * This feature is in preview in .Net Core 2.0. The [corefx repository](https://github.com/dotnet/corefx) tracks issues related to SqlClient and we recommend issues setting up Kerberos tickets be raised there.
@@ -40,7 +57,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 * Fix issue [#904](https://github.com/Microsoft/vscode-mssql/issues/904). Added a "Disconnect" option to the status bar server connection shortcut. Clicking on this now lists databases on the current server and a "Disconnect" option.
 * Fix issue [#913](https://github.com/Microsoft/vscode-mssql/issues/913). OpenSuse Linux distributions are now supported.
 
-### Contributions and "thank you"
+### Contributions and "thank you" for 1.1
 We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
 * Rodolfo Gaspar and Emad Alashi for their new code snippet contributions.
 * The many contributors to our community localization. Please see the [full contributors list](https://aka.ms/crossplattoolsforsqlserverloccontributors).  Particular thanks to Mona Nasr for coordinating our community localization efforts and the following top contributors per language.
