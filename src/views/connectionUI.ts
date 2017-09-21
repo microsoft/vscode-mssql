@@ -269,6 +269,31 @@ export class ConnectionUI {
         });
     }
 
+    public createProfileWithDifferentCredentials(connection: IConnectionCredentials): Promise<IConnectionCredentials> {
+
+        return new Promise<IConnectionCredentials>((resolve, reject) => {
+            this.promptForRetryConnectWithDifferentCredentials().then(result => {
+                if (result) {
+                    let connectionWithoutCredentials = Object.assign({}, connection, { user: '', password: '', emptyPasswordInput: false });
+                    ConnectionCredentials.ensureRequiredPropertiesSet(
+                        connectionWithoutCredentials, // connection profile
+                        true,                         // isProfile
+                        false,                        // isPasswordRequired
+                        true,                         // wasPasswordEmptyInConfigFile
+                        this._prompter,
+                        this._connectionStore, connection).then(connectionResult => {
+                            resolve(connectionResult);
+                        }, error => {
+                            reject(error);
+                        });
+
+                } else {
+                    resolve(undefined);
+                }
+            });
+        });
+    }
+
     private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
@@ -437,6 +462,18 @@ export class ConnectionUI {
                 return ConnectionProfile.createProfile(this._prompter, profile);
             } else {
                 return undefined;
+            }
+        });
+    }
+
+    private promptForRetryConnectWithDifferentCredentials(): PromiseLike<boolean> {
+        // Ask if the user would like to fix the profile
+        return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryConnectionDifferentCredentials
+            , LocalizedConstants.retryLabel).then(result => {
+            if (result === LocalizedConstants.retryLabel) {
+                return true;
+            } else {
+                return false;
             }
         });
     }

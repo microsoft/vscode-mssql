@@ -114,10 +114,10 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Get all profiles from the parsed settings file.
+     * Get all profiles from the settings.
      * This is public for testing only.
-     * @param parsedSettingsFile an object representing the parsed contents of the settings file.
-     * @returns the set of connection profiles found in the parsed settings file.
+     * @param global When `true` profiles come from user settings, otherwise from workspace settings
+     * @returns the set of connection profiles found in the settings.
      */
     public getProfilesFromSettings(global: boolean = true): IConnectionProfile[] {
         let configuration = this._vscodeWrapper.getConfiguration(Constants.extensionName);
@@ -138,8 +138,7 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Replace existing profiles in the settings file with a new set of profiles.
-     * @param parsedSettingsFile an object representing the parsed contents of the settings file.
+     * Replace existing profiles in the user settings with a new set of profiles.
      * @param profiles the set of profiles to insert into the settings file.
      */
     private writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {

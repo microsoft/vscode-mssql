@@ -224,6 +224,9 @@
         <trans-unit id="msgPromptRetryCreateProfile">
             <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         </trans-unit>
+        <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
+            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
+        </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
         </trans-unit>

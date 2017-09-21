@@ -18,11 +18,21 @@ import * as Utils from '../src/models/utils';
 import { TestExtensionContext, TestPrompter } from './stubs';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import LocalizedConstants = require('../src/constants/localizedConstants');
+import { ConnectionUI } from '../src/views/connectionUI';
+import Constants = require('../src/constants/constants');
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {
     let result = new ConnectionContracts.ConnectionCompleteParams();
     result.connectionId = Utils.generateGuid();
     result.messages = '';
+    result.ownerUri = ownerUri;
+    return result;
+}
+
+function createTestFailedConnectionResult(ownerUri?: string, error?: number): ConnectionContracts.ConnectionCompleteParams {
+    let result = new ConnectionContracts.ConnectionCompleteParams();
+    result.errorNumber = error;
+    result.errorMessage = 'connection failed';
     result.ownerUri = ownerUri;
     return result;
 }
@@ -65,7 +75,8 @@ function createTestConnectionManager(
     serviceClient?: SqlToolsServiceClient,
     wrapper?: VscodeWrapper,
     statusView?: StatusView,
-    connectionStore?: ConnectionStore): ConnectionManager {
+    connectionStore?: ConnectionStore,
+    connectionUI?: ConnectionUI): ConnectionManager {
 
     let contextMock: TypeMoq.IMock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
     let prompterMock: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
@@ -80,7 +91,7 @@ function createTestConnectionManager(
         });
         connectionStore = connectionStoreMock.object;
     }
-    return new ConnectionManager(contextMock.object, statusView, prompterMock.object, serviceClient, wrapper, connectionStore);
+    return new ConnectionManager(contextMock.object, statusView, prompterMock.object, serviceClient, wrapper, connectionStore, connectionUI);
 }
 
 function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResult {
@@ -93,6 +104,83 @@ suite('Per File Connection Tests', () => {
     setup(() => {
         // Ensure that telemetry is disabled while testing
         Telemetry.disable();
+    });
+
+    test('onNewConnection should ask user for different credentials if connection failed because of invalid credentials', done => {
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        let none: void;
+        const testFile = 'file:///my/test/file.sql';
+        vscodeWrapperMock.callBase = true;
+        vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => false);
+        vscodeWrapperMock.setup(x => x.logToOutputChannel(TypeMoq.It.isAny())).returns(() => none);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
+
+        let connectionCreds = createTestCredentials();
+
+        let connectionUIMock = TypeMoq.Mock.ofType(ConnectionUI);
+        connectionUIMock.setup(x => x.promptToChangeLanguageMode()).returns(x => Promise.resolve(true));
+        connectionUIMock.setup(x => x.showConnections()).returns(x => Promise.resolve(connectionCreds));
+
+        // Return undefined to simulate the scenario that user doesn't want to enter new credentials
+        connectionUIMock.setup(x => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny())).returns(x => Promise.resolve(undefined));
+        let manager: ConnectionManager = createTestConnectionManager(undefined, vscodeWrapperMock.object, undefined, undefined, connectionUIMock.object);
+
+        // Setup mocking
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                            .callback((type, params: ConnectionContracts.ConnectParams) => {
+                                manager.handleConnectionCompleteNotification().call(manager,
+                                    // Make connection fail with login failed error
+                                    createTestFailedConnectionResult(params.ownerUri, Constants.errorLoginFailed));
+                            })
+                            .returns(() => Promise.resolve(true));
+
+        manager.client = serviceClientMock.object;
+
+        manager.onNewConnection().then( result => {
+            connectionUIMock.verify(x => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            done();
+        }).catch(err => {
+            done(err);
+        });
+    });
+
+    test('onNewConnection only prompt user for new credentials onces even if the connection fails again', done => {
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        let none: void;
+        const testFile = 'file:///my/test/file.sql';
+        vscodeWrapperMock.callBase = true;
+        vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => false);
+        vscodeWrapperMock.setup(x => x.logToOutputChannel(TypeMoq.It.isAny())).returns(() => none);
+        vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
+
+        let connectionCreds = createTestCredentials();
+
+        let connectionUIMock = TypeMoq.Mock.ofType(ConnectionUI);
+        connectionUIMock.setup(x => x.promptToChangeLanguageMode()).returns(x => Promise.resolve(true));
+        connectionUIMock.setup(x => x.showConnections()).returns(x => Promise.resolve(connectionCreds));
+
+        connectionUIMock.setup(x => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny())).returns(x => Promise.resolve(connectionCreds));
+        let manager: ConnectionManager = createTestConnectionManager(undefined, vscodeWrapperMock.object, undefined, undefined, connectionUIMock.object);
+
+        // Setup mocking
+        let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> = TypeMoq.Mock.ofType(SqlToolsServiceClient);
+        serviceClientMock.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                            .callback((type, params: ConnectionContracts.ConnectParams) => {
+                                manager.handleConnectionCompleteNotification().call(manager,
+                                    // Make connection fail with login failed error
+                                    createTestFailedConnectionResult(params.ownerUri, Constants.errorLoginFailed));
+                            })
+                            .returns(() => Promise.resolve(true));
+
+        manager.client = serviceClientMock.object;
+
+        manager.onNewConnection().then( result => {
+            connectionUIMock.verify(x => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            done();
+        }).catch(err => {
+            done(err);
+        });
     });
 
     test('Can create two separate connections for two files', done => {
