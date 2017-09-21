@@ -602,7 +602,7 @@ export default class MainController implements vscode.Disposable {
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
-        if (this._vscodeWrapper.isEditingSqlFile) {
+        if (doc && doc.languageId === Constants.languageId) {
             this._statusview.languageFlavorChanged(doc.uri.toString(), Constants.mssqlProviderName);
         }
 
