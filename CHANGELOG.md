@@ -16,11 +16,15 @@
 * Fixed issue `MS SQL: Execute Current Statement` where it did not handle 2 statements on a single line correctly.
 * Improved support for SQL Server 2017 syntax by refreshing IntelliSense and SMO dependencies.
 
+### Contributions and "thank you"
+We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+mssql for Visual Studio Code was opened for community localization since February 2017 for the following languages French, Italian, German, Spanish, Simplified or Traditional Chinese, Japanese, Korean, Russian, Brazilian Portuguese.
+If you see a string untranslated in your language, you can make an impact and help with translation. You can find out how by checking https://aka.ms/crossplattoolsforsqlservercommunitylocalization.
+
 
 ## Version 1.1
 * Release date: July 18, 2017
 * Release status: GA
-
 
 ## What's new in this version
 * Preview support for Integrated Authentication (aka Windows Authentication) on Mac and Linux. To use this you need to create a Kerberos ticket on your Mac or Linux machine - [see this guide](https://aka.ms/vscode-mssql-integratedauth) for the simple process. Once this is set up, you can say goodbye to SQL passwords when connecting to your servers!
