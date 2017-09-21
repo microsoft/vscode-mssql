@@ -20,6 +20,16 @@
 We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
 mssql for Visual Studio Code was opened for community localization since February 2017 for the following languages French, Italian, German, Spanish, Simplified or Traditional Chinese, Japanese, Korean, Russian, Brazilian Portuguese.
 If you see a string untranslated in your language, you can make an impact and help with translation. You can find out how by checking https://aka.ms/crossplattoolsforsqlservercommunitylocalization.
+* Thank you to the many contributors to our community localization. Please see the [full contributors list](https://aka.ms/crossplattoolsforsqlserverloccontributors).  Particular thanks to Mona Nasr for coordinating our community localization efforts and the following top contributors per language.
+  * Brazilian Portuguese: Roberto Fonseca
+  * Chinese Traditional: Ke-Hsu Chen ; Duran Hsieh
+  * French: Antoine Griffard
+  * German: Markus Ehrenmueller; Carsten Kneip
+  * Italian: Alessandro Alpi ; Aldo Donetti
+  * Japanese : Yoshizawa Tomoaki; Takahito Yamatoya
+  * Korean: Jungsun kim
+  * Russian: Natalia Lubskaya; Maxim Mityutko
+  * Spanish: Roberto Fonseca, Alberto Poblacion
 
 
 ## Version 1.1
