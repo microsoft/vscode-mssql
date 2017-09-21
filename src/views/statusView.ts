@@ -116,6 +116,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusConnection);
         bar.statusLanguageService.text = '';
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
+        this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
     }
 
     public connecting(fileUri: string, connCreds: Interfaces.IConnectionCredentials): void {
