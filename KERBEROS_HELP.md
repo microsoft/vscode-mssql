@@ -52,7 +52,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
 
 ### Step 0: Install krb5-user package
 - **Run on**: Linux
-- **Action**: `apt-get krb5-user`
+- **Action**: `apt-get install krb5-user`
 
 ### Step 1: Find Kerberos KDC (Key Distribution Center)
 - **Run on**: Windows command line
