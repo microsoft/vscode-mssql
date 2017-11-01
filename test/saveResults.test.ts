@@ -196,4 +196,22 @@ suite('save results tests', () => {
         let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
         return saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
     });
+
+    test('canceling out of save file dialog cancels serialization', (done) => {
+        // setup mock filepath prompt
+        vscodeWrapper.setup(x => x.showSaveDialog(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+        // setup mock sql tools server client
+        serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
+
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
+
+        saveResults.onSaveResults(testFile, 0, 0, 'csv', undefined).then(() => {
+            try {
+                serverClient.verify(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
+                done();
+            } catch (error) {
+                done(error);
+            }
+        }, error => done(error));
+    });
 });
