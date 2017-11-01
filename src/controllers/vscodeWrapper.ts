@@ -232,6 +232,16 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Shows a file save dialog to the user which allows to select a file for saving-purposes.
+     *
+     * @param options Configures the behavior of the save dialog
+     * @return A promise that resolves to the selected resource or `undefined`.
+     */
+    public showSaveDialog(options: vscode.SaveDialogOptions): Thenable<vscode.Uri> {
+        return vscode.window.showSaveDialog(options);
+    }
+
+    /**
      * Show the given document in a text editor. A [column](#ViewColumn) can be provided
      * to control where the editor is being shown. Might change the [active editor](#window.activeTextEditor).
      *

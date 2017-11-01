@@ -6,8 +6,6 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
 import {RequestType} from 'vscode-languageclient';
 import * as Utils from '../models/utils';
-import { IPrompter } from '../prompts/question';
-import CodeAdapter from '../prompts/adapter';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import Telemetry from '../models/telemetry';
 
@@ -21,23 +19,17 @@ type SaveAsRequestParams =  Contracts.SaveResultsAsCsvRequestParams | Contracts.
  */
 export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
-    private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
     private _filePath: string;
 
 
-    constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
+    constructor(client?: SqlToolsServerClient, vscodeWrapper?: VscodeWrapper) {
 
         if (client) {
             this._client = client;
         } else {
             this._client = SqlToolsServerClient.instance;
-        }
-        if (prompter) {
-            this._prompter = prompter;
-        } else {
-            this._prompter = new CodeAdapter();
         }
         if (vscodeWrapper) {
             this._vscodeWrapper = vscodeWrapper;
@@ -63,7 +55,12 @@ export default class ResultsSerializer {
             defaultUri: defaultUri,
             filters: fileTypeFilter
         };
-        return vscode.window.showSaveDialog(options).then(uri => uri.scheme === 'file' ? uri.fsPath : uri.path);
+        return this._vscodeWrapper.showSaveDialog(options).then(uri => {
+            if (!uri) {
+                return undefined;
+            }
+            return uri.scheme === 'file' ? uri.fsPath : uri.path;
+        });
     }
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
@@ -194,6 +191,9 @@ export default class ResultsSerializer {
             if (!Utils.isEmpty(filePath)) {
                 self.sendRequestToService(filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
             }
+        }, error => {
+            self._vscodeWrapper.showErrorMessage(error.message);
+            self._vscodeWrapper.logToOutputChannel(error.message);
         });
     }
 
