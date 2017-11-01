@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
   "engines": {
-    "vscode": "^1.9.0"
+    "vscode": "^1.18.0"
   },
   "categories": [
     "Languages",
@@ -32,7 +32,8 @@
     "MSSQL",
     "SQL Server",
     "Azure SQL Database",
-    "Azure SQL Data Warehouse"
+    "Azure SQL Data Warehouse",
+    "multi-root-ready"
   ],
   "activationEvents": [
     "onLanguage:sql",

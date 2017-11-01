@@ -16,9 +16,11 @@ suite('UntitledSqlDocumentService Tests', () => {
      function createTextDocumentObject(fileName: string = ''): vscode.TextDocument {
          return {
             uri: undefined,
+            eol: undefined,
             fileName: fileName,
             getText: undefined,
             getWordRangeAtPosition: undefined,
+            isClosed: undefined,
             isDirty: true,
             isUntitled: true,
             languageId: 'sql',
