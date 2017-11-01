@@ -53,7 +53,7 @@ suite('save results tests', () => {
 
     });
 
-    function testSaveSuccess(format: string, done: () => void): Thenable<void> {
+    function testSaveSuccess(format: string): Thenable<void> {
         // setup mocks
         vscodeWrapper.setup(x => x.showInformationMessage(TypeMoq.It.isAnyString()));
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
@@ -79,14 +79,13 @@ suite('save results tests', () => {
         return saveResults.onSaveResults( testFile, 0, 0, format, undefined).then( () => {
                     // check if information message was displayed
                     vscodeWrapper.verify(x => x.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-                    done();
         });
     }
 
-    function testSaveFailure(format: string, done: () => void): Thenable<void> {
+    function testSaveFailure(format: string): Thenable<void> {
 
         // setup mocks
-        vscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString())).callback(() => done());
+        vscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
         vscodeWrapper.setup(x => x.showSaveDialog(TypeMoq.It.isAny())).returns(() => Promise.resolve(fileUri));
         serverClient.setup(x => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                                 .returns(() => {
@@ -100,31 +99,31 @@ suite('save results tests', () => {
         });
     }
 
-    test('Save as CSV - test if information message is displayed on success', (done) => {
-        testSaveSuccess('csv', done);
+    test('Save as CSV - test if information message is displayed on success', () => {
+        return testSaveSuccess('csv');
     });
 
-    test('Save as CSV - test if error message is displayed on failure to save', (done) => {
-        testSaveFailure('csv', done);
+    test('Save as CSV - test if error message is displayed on failure to save', () => {
+        return testSaveFailure('csv');
     });
 
-    test('Save as JSON - test if information message is displayed on success', (done) => {
-        testSaveSuccess('json', done);
+    test('Save as JSON - test if information message is displayed on success', () => {
+        return testSaveSuccess('json');
     });
 
-    test('Save as JSON - test if error message is displayed on failure to save', (done) => {
-        testSaveFailure('json', done);
+    test('Save as JSON - test if error message is displayed on failure to save', () => {
+        return testSaveFailure('json');
     });
 
-    test('Save as Excel - test if information message is displayed on success', (done) => {
-        testSaveSuccess('excel', done);
+    test('Save as Excel - test if information message is displayed on success', () => {
+        return testSaveSuccess('excel');
     });
 
-    test('Save as Excel - test if error message is displayed on failure to save', (done) => {
-        testSaveFailure('excel', done);
+    test('Save as Excel - test if error message is displayed on failure to save', () => {
+        return testSaveFailure('excel');
     });
 
-    test('Save as with selection - test if selected range is passed in parameters', (done) => {
+    test('Save as with selection - test if selected range is passed in parameters', () => {
 
         let selection: Interfaces.ISlickRange[] = [{
             fromCell: 0,
@@ -138,7 +137,7 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).callback(() => done()).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         vscodeWrapper.setup(x => x.showSaveDialog(TypeMoq.It.isAny())).returns(() => Promise.resolve(fileUri));
@@ -157,10 +156,10 @@ suite('save results tests', () => {
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
-        saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
+        return saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
     });
 
-    test('Save as with selection - test case when right click on single cell - no selection is set in parameters', (done) => {
+    test('Save as with selection - test case when right click on single cell - no selection is set in parameters', () => {
 
         let selection: Interfaces.ISlickRange[] = [{
             fromCell: 0,
@@ -174,7 +173,7 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).callback(() => done()).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         vscodeWrapper.setup(x => x.showSaveDialog(TypeMoq.It.isAny())).returns(() => Promise.resolve(fileUri));
@@ -195,6 +194,6 @@ suite('save results tests', () => {
                                     });
 
         let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
-        saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
+        return saveResults.onSaveResults( testFile, 0, 0, 'csv', selection);
     });
 });
