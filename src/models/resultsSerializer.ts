@@ -1,16 +1,11 @@
-import path = require('path');
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
-import os = require('os');
-import fs = require('fs');
 import Interfaces = require('./interfaces');
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
 import {RequestType} from 'vscode-languageclient';
 import * as Utils from '../models/utils';
-import { QuestionTypes, IQuestion, IPrompter } from '../prompts/question';
-import CodeAdapter from '../prompts/adapter';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import Telemetry from '../models/telemetry';
 
@@ -24,24 +19,17 @@ type SaveAsRequestParams =  Contracts.SaveResultsAsCsvRequestParams | Contracts.
  */
 export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
-    private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
     private _filePath: string;
-    private _isTempFile: boolean;
 
 
-    constructor(client?: SqlToolsServerClient, prompter?: IPrompter, vscodeWrapper?: VscodeWrapper) {
+    constructor(client?: SqlToolsServerClient, vscodeWrapper?: VscodeWrapper) {
 
         if (client) {
             this._client = client;
         } else {
             this._client = SqlToolsServerClient.instance;
-        }
-        if (prompter) {
-            this._prompter = prompter;
-        } else {
-            this._prompter = new CodeAdapter();
         }
         if (vscodeWrapper) {
             this._vscodeWrapper = vscodeWrapper;
@@ -50,60 +38,29 @@ export default class ResultsSerializer {
         }
     }
 
-    private promptForFilepath(): Promise<string> {
-        const self = this;
-        let prompted: boolean = false;
-        let filepathPlaceHolder = self.resolveCurrentDirectory(self._uri);
-        let questions: IQuestion[] = [
-            // prompt user to enter file path
-            {
-                type: QuestionTypes.input,
-                name: LocalizedConstants.filepathPrompt,
-                message: LocalizedConstants.filepathMessage,
-                placeHolder: filepathPlaceHolder,
-                validate: (value) => this.validateFilePath(LocalizedConstants.filepathPrompt, value)
-            },
-            // prompt to overwrite file if file already exists
-            {
-                type: QuestionTypes.confirm,
-                name: LocalizedConstants.overwritePrompt,
-                message: LocalizedConstants.overwritePrompt,
-                placeHolder: LocalizedConstants.overwritePlaceholder,
-                shouldPrompt: (answers) => this.fileExists(answers[LocalizedConstants.filepathPrompt]),
-                onAnswered: (value) => prompted = true
+    private promptForFilepath(format: string): Thenable<string> {
+        let defaultUri = vscode.Uri.parse(this._uri);
+        if (defaultUri.scheme === 'untitled') {
+            defaultUri = undefined;
+        }
+        let fileTypeFilter: { [name: string]: string[] } = {};
+        if (format === 'csv') {
+            fileTypeFilter[LocalizedConstants.fileTypeCSVLabel] = ['csv'];
+        } else if (format === 'json') {
+            fileTypeFilter[LocalizedConstants.fileTypeJSONLabel] = ['json'];
+        } else if (format === 'excel') {
+            fileTypeFilter[LocalizedConstants.fileTypeExcelLabel] = ['xlsx'];
+        }
+        let options = <vscode.SaveDialogOptions> {
+            defaultUri: defaultUri,
+            filters: fileTypeFilter
+        };
+        return this._vscodeWrapper.showSaveDialog(options).then(uri => {
+            if (!uri) {
+                return undefined;
             }
-        ];
-        return this._prompter.prompt(questions).then(answers => {
-            if (answers && answers[LocalizedConstants.filepathPrompt] ) {
-                // return filename if file does not exist or if user opted to overwrite file
-                if (!prompted || (prompted && answers[LocalizedConstants.overwritePrompt])) {
-                     return answers[LocalizedConstants.filepathPrompt];
-                }
-                // call prompt again if user did not opt to overwrite
-                if (prompted && !answers[LocalizedConstants.overwritePrompt]) {
-                    return self.promptForFilepath();
-                }
-            }
+            return uri.scheme === 'file' ? uri.fsPath : uri.path;
         });
-    }
-
-    private fileExists(filePath: string): boolean {
-        const self = this;
-        // resolve filepath
-        if (!path.isAbsolute(filePath)) {
-            filePath = self.resolveFilePath(this._uri, filePath);
-        }
-        if (self._isTempFile) {
-            return false;
-        }
-        // check if file already exists on disk
-        try {
-            fs.statSync(filePath);
-            return true;
-        } catch (err) {
-            return false;
-        }
-
     }
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
@@ -150,52 +107,10 @@ export default class ResultsSerializer {
         return saveResultsParams;
     }
 
-
-    private resolveCurrentDirectory(uri: string): string {
-        const self = this;
-        self._isTempFile = false;
-        let sqlUri = vscode.Uri.parse(uri);
-        let currentDirectory: string;
-
-        // use current directory of the sql file if sql file is saved
-        if (sqlUri.scheme === 'file') {
-            currentDirectory = path.dirname(sqlUri.fsPath);
-        } else if (sqlUri.scheme === 'untitled') {
-            // if sql file is unsaved/untitled but a workspace is open use workspace root
-            if (vscode.workspace.rootPath) {
-                currentDirectory = vscode.workspace.rootPath;
-            } else {
-                // use temp directory
-                currentDirectory = os.tmpdir();
-                self._isTempFile = true;
-            }
-        } else {
-            currentDirectory = path.dirname(sqlUri.path);
-        }
-        return currentDirectory;
-    }
-
-    private resolveFilePath(uri: string, filePath: string): string {
-        const self = this;
-        let currentDirectory = self.resolveCurrentDirectory(uri);
-        return path.normalize(path.join(currentDirectory, filePath));
-    }
-
-    private validateFilePath(property: string, value: string): string {
-        if (Utils.isEmpty(value.trim())) {
-            return property + LocalizedConstants.msgIsRequired;
-        }
-        return undefined;
-    }
-
     private getParameters(filePath: string, batchIndex: number, resultSetNo: number, format: string, selection: Interfaces.ISlickRange): SaveAsRequestParams {
         const self = this;
         let saveResultsParams: SaveAsRequestParams;
-        if (!path.isAbsolute(filePath)) {
-            this._filePath = self.resolveFilePath(this._uri, filePath);
-        } else {
-            this._filePath = filePath;
-        }
+        this._filePath = filePath;
 
         if (format === 'csv') {
             saveResultsParams =  self.getConfigForCsv();
@@ -272,10 +187,13 @@ export default class ResultsSerializer {
         this._uri = uri;
 
         // prompt for filepath
-        return self.promptForFilepath().then(function(filePath): void {
+        return self.promptForFilepath(format).then(function(filePath): void {
             if (!Utils.isEmpty(filePath)) {
                 self.sendRequestToService(filePath, batchIndex, resultSetNo, format, selection ? selection[0] : undefined);
             }
+        }, error => {
+            self._vscodeWrapper.showErrorMessage(error.message);
+            self._vscodeWrapper.logToOutputChannel(error.message);
         });
     }
 
