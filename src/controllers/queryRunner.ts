@@ -348,14 +348,14 @@ export default class QueryRunner {
             return includeHeaders;
         }
         // else get config option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
         includeHeaders = config[Constants.copyIncludeHeaders];
         return !!includeHeaders;
     }
 
     private shouldRemoveNewLines(): boolean {
         // get config copyRemoveNewLine option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
         let removeNewLines: boolean = config[Constants.configCopyRemoveNewLine];
         return removeNewLines;
     }
@@ -371,7 +371,7 @@ export default class QueryRunner {
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
         let showBatchTime: boolean = config[Constants.configShowBatchTime];
         if (showBatchTime) {
             let message: IResultMessage = {

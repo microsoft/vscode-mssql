@@ -198,7 +198,9 @@ export class DataService {
             return Promise.resolve(this._config);
         } else {
             return new Promise<{[key: string]: string}>((resolve, reject) => {
-                self.http.get('/config').map((res): IResultsConfig => {
+                let url = '/config?'
+                    + '&uri=' + self.uri;
+                self.http.get(url).map((res): IResultsConfig => {
                     return res.json();
                 }).subscribe((result: IResultsConfig) => {
                     self._shortcuts = result.shortcuts;
@@ -216,7 +218,9 @@ export class DataService {
             return Promise.resolve(this._shortcuts);
         } else {
             return new Promise<any>((resolve, reject) => {
-                self.http.get('/config').map((res): IResultsConfig => {
+                let url = '/config?'
+                    + '&uri=' + self.uri;
+                self.http.get(url).map((res): IResultsConfig => {
                     return res.json();
                 }).subscribe((result) => {
                     self._shortcuts = result.shortcuts;

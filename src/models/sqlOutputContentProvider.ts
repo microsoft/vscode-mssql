@@ -97,8 +97,12 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         } catch (e) {
             prod = false;
         }
-        let mssqlConfig = this._vscodeWrapper.getConfiguration(Constants.extensionName);
-        let editorConfig = this._vscodeWrapper.getConfiguration('editor', uri);
+        let queryUri: string;
+        if (this._queryResultsMap.has(uri)) {
+            queryUri = this._queryResultsMap.get(uri).queryRunner.uri;
+        }
+        let mssqlConfig = this._vscodeWrapper.getConfiguration(Constants.extensionName, queryUri);
+        let editorConfig = this._vscodeWrapper.getConfiguration('editor', queryUri);
         let extensionFontFamily = mssqlConfig.get<string>(Constants.extConfigResultFontFamily).split('\'').join('').split('"').join('');
         let extensionFontSize = mssqlConfig.get<number>(Constants.extConfigResultFontSize);
         let fontfamily = extensionFontFamily ?
@@ -133,7 +137,8 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     public configRequestHandler(req, res): void {
-        let extConfig = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let queryUri = this._queryResultsMap.get(req.query.uri).queryRunner.uri;
+        let extConfig = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
         let config = new ResultsConfig();
         for (let key of Constants.extConfigResultKeys) {
             config[key] = extConfig[key];
@@ -260,7 +265,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
 
             let paneTitle = Utils.formatString(LocalizedConstants.titleResultsPane, queryRunner.title);
             // Always run this command even if just updating to avoid a bug - tfs 8686842
-            this.displayResultPane(resultsUri, paneTitle);
+            this.displayResultPane(resultsUri, paneTitle, uri);
         }
     }
 
@@ -330,14 +335,14 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     }
 
     // Function to render resultspane content
-    public displayResultPane(resultsUri: string, paneTitle: string): void {
+    public displayResultPane(resultsUri: string, paneTitle: string, queryUri: string): void {
         // Get the active text editor
         let activeTextEditor = this._vscodeWrapper.activeTextEditor;
 
         // Check if the results window already exists
         if (!this.doesResultPaneExist(resultsUri)) {
             // Wrapper tells us where the new results pane should be placed
-            let resultPaneColumn = this.newResultPaneViewColumn();
+            let resultPaneColumn = this.newResultPaneViewColumn(queryUri);
 
             // Try and Open new window then reset focus back to the editor
             vscode.commands.executeCommand('vscode.previewHtml', resultsUri, resultPaneColumn, paneTitle).then(() => {
@@ -586,9 +591,9 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      * @return ViewColumn to be used
      * public for testing purposes
      */
-    public newResultPaneViewColumn(): vscode.ViewColumn {
+    public newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
         // Find configuration options
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
         let splitPaneSelection = config[Constants.configSplitPaneSelection];
         let viewColumn: vscode.ViewColumn;
 

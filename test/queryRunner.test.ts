@@ -490,7 +490,7 @@ suite('Query Runner tests', () => {
 
     function setupWorkspaceConfig(configResult: {[key: string]: any}): void {
         let config = stubs.createWorkspaceConfiguration(configResult);
-        testVscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+        testVscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .returns(x => {
             return config;
         });
