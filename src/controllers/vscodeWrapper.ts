@@ -89,11 +89,19 @@ export default class VscodeWrapper {
     }
 
     /**
-     * Get the configuration for a extensionName; NOT YET IMPLEMENTED
+     * Get the configuration for a extensionName
      * @param extensionName The string name of the extension to get the configuration for
+     * @param resource The optional URI, as a URI object or a string, to use to get resource-scoped configurations
      */
-    public getConfiguration(extensionName: string): vscode.WorkspaceConfiguration {
-        return vscode.workspace.getConfiguration(extensionName);
+    public getConfiguration(extensionName: string, resource?: vscode.Uri | string): vscode.WorkspaceConfiguration {
+        if (typeof resource === 'string') {
+            try {
+                resource = this.parseUri(resource);
+            } catch (e) {
+                resource = undefined;
+            }
+        }
+        return vscode.workspace.getConfiguration(extensionName, resource as vscode.Uri);
     }
 
     /**
