@@ -120,7 +120,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * @returns the set of connection profiles found in the settings.
      */
     public getProfilesFromSettings(global: boolean = true): IConnectionProfile[] {
-        let configuration = this._vscodeWrapper.getConfiguration(Constants.extensionName);
+        let configuration = this._vscodeWrapper.getConfiguration(Constants.extensionName, this._vscodeWrapper.activeTextEditorUri);
         let profiles: IConnectionProfile[] = [];
 
         let configValue = configuration.inspect<IConnectionProfile[]>(Constants.connectionsArrayName);
@@ -128,6 +128,11 @@ export class ConnectionConfig implements IConnectionConfig {
             profiles = configValue.globalValue;
         } else {
             profiles = configValue.workspaceValue;
+            if (profiles !== undefined) {
+                profiles = profiles.concat(configValue.workspaceFolderValue || []);
+            } else {
+                profiles = configValue.workspaceFolderValue;
+            }
         }
 
         if (profiles === undefined) {

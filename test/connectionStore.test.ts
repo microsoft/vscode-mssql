@@ -61,6 +61,10 @@ suite('ConnectionStore tests', () => {
         .returns(x => {
             return workspaceConfiguration;
         });
+        vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(x => {
+            return workspaceConfiguration;
+        });
     });
 
     test('formatCredentialId should handle server, DB and username correctly', () => {
