@@ -240,12 +240,14 @@
         "mssql.logDebugInfo": {
           "type": "boolean",
           "default": false,
-          "description": "%mssql.logDebugInfo%"
+          "description": "%mssql.logDebugInfo%",
+          "scope": "window"
         },
         "mssql.maxRecentConnections": {
           "type": "number",
           "default": 5,
-          "description": "%mssql.maxRecentConnections%"
+          "description": "%mssql.maxRecentConnections%",
+          "scope": "window"
         },
         "mssql.connections": {
           "type": "array",
@@ -424,7 +426,8 @@
                 "description": "%mssql.connection.emptyPasswordInput%"
               }
             }
-          }
+          },
+          "scope": "window"
         },
         "mssql.shortcuts": {
           "type": "object",
@@ -442,42 +445,50 @@
             "event.saveAsJSON": "",
             "event.saveAsCSV": "",
             "event.saveAsExcel": ""
-          }
+          },
+          "scope": "resource"
         },
         "mssql.messagesDefaultOpen": {
           "type": "boolean",
           "description": "%mssql.messagesDefaultOpen%",
-          "default": true
+          "default": true,
+          "scope": "resource"
         },
         "mssql.resultsFontFamily": {
           "type": "string",
           "description": "%mssql.resultsFontFamily%",
-          "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif"
+          "default": "-apple-system,BlinkMacSystemFont,Segoe WPC,Segoe UI,HelveticaNeue-Light,Ubuntu,Droid Sans,sans-serif",
+          "scope": "resource"
         },
         "mssql.resultsFontSize": {
           "type": "number",
           "description": "%mssql.resultsFontSize%",
-          "default": 13
+          "default": 13,
+          "scope": "resource"
         },
         "mssql.saveAsCsv.includeHeaders": {
           "type": "boolean",
           "description": "%mssql.saveAsCsv.includeHeaders%",
-          "default": true
+          "default": true,
+          "scope": "resource"
         },
         "mssql.copyIncludeHeaders": {
           "type": "boolean",
           "description": "%mssql.copyIncludeHeaders%",
-          "default": false
+          "default": false,
+          "scope": "resource"
         },
         "mssql.copyRemoveNewLine": {
           "type": "boolean",
           "description": "%mssql.copyRemoveNewLine%",
-          "default": true
+          "default": true,
+          "scope": "resource"
         },
         "mssql.showBatchTime": {
           "type": "boolean",
           "description": "%mssql.showBatchTime%",
-          "default": false
+          "default": false,
+          "scope": "resource"
         },
         "mssql.splitPaneSelection": {
           "type": "string",
@@ -487,12 +498,14 @@
             "next",
             "current",
             "end"
-          ]
+          ],
+          "scope": "resource"
         },
         "mssql.format.alignColumnDefinitionsInColumns": {
           "type": "boolean",
           "description": "%mssql.format.alignColumnDefinitionsInColumns%",
-          "default": false
+          "default": false,
+          "scope": "window"
         },
         "mssql.format.datatypeCasing": {
           "type": "string",
@@ -502,7 +515,8 @@
             "none",
             "uppercase",
             "lowercase"
-          ]
+          ],
+          "scope": "window"
         },
         "mssql.format.keywordCasing": {
           "type": "string",
@@ -512,52 +526,62 @@
             "none",
             "uppercase",
             "lowercase"
-          ]
+          ],
+          "scope": "window"
         },
         "mssql.format.placeCommasBeforeNextStatement": {
           "type": "boolean",
           "description": "%mssql.format.placeCommasBeforeNextStatement%",
-          "default": false
+          "default": false,
+          "scope": "window"
         },
         "mssql.format.placeSelectStatementReferencesOnNewLine": {
           "type": "boolean",
           "description": "%mssql.format.placeSelectStatementReferencesOnNewLine%",
-          "default": false
+          "default": false,
+          "scope": "window"
         },
         "mssql.applyLocalization": {
           "type": "boolean",
           "description": "%mssql.applyLocalization%",
-          "default": false
+          "default": false,
+          "scope": "window"
         },
         "mssql.query.displayBitAsNumber": {
           "type": "boolean",
           "default": true,
-          "description": "%mssql.query.displayBitAsNumber%"
+          "description": "%mssql.query.displayBitAsNumber%",
+          "scope": "window"
         },
         "mssql.intelliSense.enableIntelliSense": {
           "type": "boolean",
           "default": true,
-          "description": "%mssql.intelliSense.enableIntelliSense%"
+          "description": "%mssql.intelliSense.enableIntelliSense%",
+          "scope": "window"
         },
         "mssql.intelliSense.enableErrorChecking": {
           "type": "boolean",
           "default": true,
-          "description": "%mssql.intelliSense.enableErrorChecking%"
+          "description": "%mssql.intelliSense.enableErrorChecking%",
+          "scope": "window"
         },
         "mssql.intelliSense.enableSuggestions": {
           "type": "boolean",
           "default": true,
-          "description": "%mssql.intelliSense.enableSuggestions%"
+          "description": "%mssql.intelliSense.enableSuggestions%",
+          "scope": "window"
         },
         "mssql.intelliSense.enableQuickInfo": {
           "type": "boolean",
           "default": true,
-          "description": "%mssql.intelliSense.enableQuickInfo%"
+          "description": "%mssql.intelliSense.enableQuickInfo%",
+          "scope": "window"
         },
         "mssql.intelliSense.lowerCaseSuggestions": {
           "type": "boolean",
           "default": false,
-          "description": "%mssql.intelliSense.lowerCaseSuggestions%"
+          "description": "%mssql.intelliSense.lowerCaseSuggestions%",
+          "scope": "window"
         }
       }
     }

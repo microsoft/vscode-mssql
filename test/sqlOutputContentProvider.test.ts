@@ -32,7 +32,7 @@ suite('SqlOutputProvider Tests', () => {
             let configResult: {[key: string]: any} = {};
             configResult[Constants.configSplitPaneSelection] = value;
             let config = stubs.createWorkspaceConfiguration(configResult);
-            vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+            vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(x => {
                 return config;
             });
@@ -74,7 +74,7 @@ suite('SqlOutputProvider Tests', () => {
                 setSplitPaneSelectionConfig(c.config);
                 setCurrentEditorColumn(c.position);
 
-                let resultColumn = contentProvider.newResultPaneViewColumn();
+                let resultColumn = contentProvider.newResultPaneViewColumn('test_uri');
 
                 // Ensure each case properly outputs the result pane
                 assert.equal(resultColumn, c.expectedColumn);

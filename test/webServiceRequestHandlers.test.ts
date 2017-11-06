@@ -51,6 +51,7 @@ suite('Web Service Request Handler Tests', () => {
             startColumn: 0,
             startLine: 0
         };
+        queryRunner.setup(x => x.uri).returns(() => uri);
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
         contentProvider.getResultsMap.get('tsqloutput:' + uri).queryRunner = queryRunner.object;
     });
@@ -117,7 +118,13 @@ suite('Web Service Request Handler Tests', () => {
     });
 
     test('ConfigRequestHandler properly handles request and renders content', done => {
-        let request = new stubs.ExpressRequest();
+        let testQuery = {
+            resultSetNo: 0,
+            uri: 'tsqloutput:test_uri',
+            batchIndex: 0,
+            format: 'test_format'
+        };
+        let request = new stubs.ExpressRequest(testQuery);
         // Run tested function
         contentProvider.configRequestHandler(request, result.object);
 

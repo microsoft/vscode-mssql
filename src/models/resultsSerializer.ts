@@ -65,7 +65,7 @@ export default class ResultsSerializer {
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
         // get save results config from vscode config
-        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this._uri);
         let saveConfig = config[Constants.configSaveAsCsv];
         let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
 
@@ -80,7 +80,7 @@ export default class ResultsSerializer {
 
     private getConfigForJson(): Contracts.SaveResultsAsJsonRequestParams {
         // get save results config from vscode config
-        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this._uri);
         let saveConfig = config[Constants.configSaveAsJson];
         let saveResultsParams = new Contracts.SaveResultsAsJsonRequestParams();
 
@@ -94,7 +94,7 @@ export default class ResultsSerializer {
         // get save results config from vscode config
         // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
         // and we want to have just 1 setting that lists this.
-        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this._uri);
         let saveConfig = config[Constants.configSaveAsCsv];
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 

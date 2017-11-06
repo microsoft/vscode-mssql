@@ -5,13 +5,13 @@ import ResultsSerializer  from './../src/models/resultsSerializer';
 import { SaveResultsAsCsvRequestParams } from './../src/models/contracts';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
-import { Uri } from 'vscode';
+import * as vscode from 'vscode';
 import os = require('os');
 
 suite('save results tests', () => {
 
     const testFile = 'file:///my/test/file.sql';
-    let fileUri: Uri;
+    let fileUri: vscode.Uri;
     let serverClient: TypeMoq.IMock<SqlToolsServerClient>;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
@@ -19,10 +19,13 @@ suite('save results tests', () => {
 
         serverClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Strict);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(extensionName => {
+            return vscode.workspace.getConfiguration(extensionName);
+        });
         if (os.platform() === 'win32') {
-            fileUri = Uri.file('c:\\test.csv');
+            fileUri = vscode.Uri.file('c:\\test.csv');
         } else {
-            fileUri = Uri.file('/test.csv');
+            fileUri = vscode.Uri.file('/test.csv');
         }
     });
 
