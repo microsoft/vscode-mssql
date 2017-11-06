@@ -427,7 +427,7 @@
               }
             }
           },
-          "scope": "resource"
+          "scope": "window"
         },
         "mssql.shortcuts": {
           "type": "object",
