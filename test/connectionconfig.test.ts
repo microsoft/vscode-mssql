@@ -37,7 +37,7 @@ suite('ConnectionConfig tests', () => {
         let configResult: {[key: string]: any} = {};
         configResult[Constants.connectionsArrayName] = connections;
         workspaceConfiguration = stubs.createWorkspaceConfiguration(configResult);
-        vscodeWrapperMock.setup(x => x.getConfiguration(TypeMoq.It.isAny()))
+        vscodeWrapperMock.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .returns(x => {
             return workspaceConfiguration;
         });
@@ -55,6 +55,38 @@ suite('ConnectionConfig tests', () => {
         assert.strictEqual(profiles[1].database, 'my_other_db');
         assert.strictEqual(profiles[1].user, 'sa');
         assert.strictEqual(profiles[1].password, 'qwertyuiop');
+
+        // Verify that no error message was displayed to the user
+        vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.never());
+    });
+
+    test('getProfilesFromSettings displays connections from resource settings', () => {
+        /// Set up the resource setting config to contain its own connection
+        let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
+        let workspaceConfiguration: vscode.WorkspaceConfiguration;
+        let configResult: {[key: string]: any} = {};
+        configResult[Constants.connectionsArrayName] = connections;
+        let resourceProfile = {
+            server: 'testpc',
+            database: 'testdb',
+            user: 'testuser',
+            password: 'abcd',
+            authenticationType: 'SqlLogin',
+            profileName: 'resourceProfile'
+        };
+        configResult[Constants.configMyConnections] = [resourceProfile];
+        workspaceConfiguration = stubs.createWorkspaceConfiguration(configResult);
+        vscodeWrapperMock.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(x => {
+            return workspaceConfiguration;
+        });
+
+        // Given a connection config object that reads a valid json file
+        let config = new ConnectionConfig(vscodeWrapperMock.object);
+        let profiles: IConnectionProfile[] = config.getProfilesFromSettings();
+
+        // Verify that a profile matches the one read from the resource config
+        assert.ok(profiles.some(profile => profile === resourceProfile));
 
         // Verify that no error message was displayed to the user
         vscodeWrapperMock.verify(x => x.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.never());
