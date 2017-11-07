@@ -32,7 +32,8 @@
     "MSSQL",
     "SQL Server",
     "Azure SQL Database",
-    "Azure SQL Data Warehouse"
+    "Azure SQL Data Warehouse",
+    "multi-root ready"
   ],
   "activationEvents": [
     "onLanguage:sql",
