@@ -65,7 +65,7 @@ Access to a Windows domain-joined machine in order to query your Kerberos Domain
   The command completed successfully
   ```
 - **Information to extract**
-  The DC name, in this case `co1-red-dc-33.domain.company.com`
+  The DC name, in this case `dc-33.domain.company.com`
 
 ### Step 2: Configuring KDC in krb5.conf
 - **Run on**: Linux
