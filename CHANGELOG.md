@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 1.2.1
+* Release date: November 8, 2017
+* Release status: GA
+
+## What's new in this version
+* Support for multi-root workspaces in preparation for the feature's release in Visual Studio Code. When running with multi-root workspaces, users will be able to set many configuration options at the folder level, including connection configurations.
+* Exporting results as CSV, JSON, or Excel files now shows the operating system's save-as dialog instead of using text-based dialogs to name the saved file.
+* Fixed issue [#998](https://github.com/Microsoft/vscode-mssql/issues/998) Intellisense against Azure SQL DBs very inconsistent.
+
+
 ## Version 1.2
 * Release date: September 22, 2017
 * Release status: GA
