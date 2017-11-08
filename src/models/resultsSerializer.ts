@@ -8,6 +8,7 @@ import {RequestType} from 'vscode-languageclient';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import Telemetry from '../models/telemetry';
+import * as path from 'path';
 
 let opener = require('opener');
 
@@ -39,9 +40,11 @@ export default class ResultsSerializer {
     }
 
     private promptForFilepath(format: string): Thenable<string> {
-        let defaultUri = vscode.Uri.parse(this._uri);
-        if (defaultUri.scheme === 'untitled') {
+        let defaultUri: vscode.Uri;
+        if (vscode.Uri.parse(this._uri).scheme === 'untitled') {
             defaultUri = undefined;
+        } else {
+            defaultUri = vscode.Uri.parse(path.dirname(this._uri));
         }
         let fileTypeFilter: { [name: string]: string[] } = {};
         if (format === 'csv') {
