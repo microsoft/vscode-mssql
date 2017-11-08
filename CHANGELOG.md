@@ -1,6 +1,6 @@
 # Change Log
 
-## Version 1.3
+## Version 1.2.1
 * Release date: November 8, 2017
 * Release status: GA
 

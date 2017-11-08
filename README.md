@@ -21,7 +21,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
-## What's new in 1.3
+## What's new in 1.2.1
 * Support for multi-root workspaces in preparation for the feature's release in Visual Studio Code. When running with multi-root workspaces, users will be able to set many configuration options at the folder level, including connection configurations.
 * Exporting results as CSV, JSON, or Excel files now shows the operating system's save-as dialog instead of using text-based dialogs to name the saved file.
 * Fixed issue [#998](https://github.com/Microsoft/vscode-mssql/issues/998) Intellisense against Azure SQL DBs very inconsistent.
