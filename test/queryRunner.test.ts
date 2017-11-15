@@ -555,7 +555,7 @@ suite('Query Runner tests', () => {
         });
 
         // ------ Copy tests  -------
-        test('Correctly copy pastes a selection', () => {
+        test('Correctly copy pastes a selection', done => {
             let configResult: {[key: string]: any} = {};
             configResult[Constants.copyIncludeHeaders] = false;
             setupWorkspaceConfig(configResult);
@@ -572,6 +572,7 @@ suite('Query Runner tests', () => {
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
                 let pasteContents = ncp.paste();
                 assert.equal(pasteContents, finalStringNoHeader);
+                done();
             });
         });
 
