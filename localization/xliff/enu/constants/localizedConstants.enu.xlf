@@ -200,9 +200,6 @@
         <trans-unit id="connectErrorMessage">
             <source xml:lang="en">Error Message: </source>
         </trans-unit>
-        <trans-unit id="executeQueryLabel">
-            <source xml:lang="en">Executing query </source>
-        </trans-unit>
         <trans-unit id="cancelingQueryLabel">
             <source xml:lang="en">Canceling query </source>
         </trans-unit>
