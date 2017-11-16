@@ -294,5 +294,25 @@
 			"GO"
 		],
 		"description": "Get Space Used by Tables"
+	},
+
+	"Lists all procedures by schema": {
+		"prefix": "sqlListProcedures",
+		"body": [
+			"-- Lists all procedures by schema ${1:ShemaName}",
+            "SELECT",
+            "SchemaName = s.name,",
+            "ProcedureName = pr.name,",
+            "ProcId = pr.object_id",
+            "FROM",
+            "sys.procedures pr",
+            "INNER JOIN",
+            "sys.schemas s ON pr.schema_id = s.schema_id",
+            "WHERE",
+            "s.name = '${1:ShemaName}'",
+			"GO"
+		],
+		"description": "Lists all procedures by schema"
 	}
+
 }
