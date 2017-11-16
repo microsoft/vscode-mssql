@@ -313,6 +313,35 @@
 			"GO"
 		],
 		"description": "Lists all procedures by schema"
+	},
+
+
+	"Makes Header Documentation for SQL Stored Procedure": {
+		"prefix": "sqlDocProcedure",
+		"body": [
+            "--",
+            "-- STORED PROCEDURE",
+            "--     ${1:ProcedureName}",
+            "--",
+            "-- DESCRIPTION",
+            "--     ${2:BusinessProcedureDescription}",
+            "--",
+            "-- PARAMETERS",
+            "--     @${3:ParameterName}",
+            "--         * ${4:ParameterDescriptionHowItUsed}",
+            "--",
+            "-- RETURN",
+            "--     ${5:WhatProcedureReturns}",
+            "--",
+            "-- NOTES",
+            "--     ${6:ImportanteNotes}",
+            "--",
+            "-- CHANGE LOG",
+            "--     ${7:day} ${8:Month} ${9:Year} - ${10:WhoMaked}",
+            "--        * ${11:DescritptionOfChange}",
+            "--"
+		],
+		"description": "Makes documentation header for stored procedures SQL"
 	}
 
 }
