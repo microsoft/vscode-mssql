@@ -3,7 +3,12 @@ In order to use Integrated Authentication (aka Windows Authentication) on macOS 
 # Setup Kerberos on Mac
 
 ## Requirements
-Access to a Windows domain-joined machine in order to query your Kerberos Domain Controller
+- Access to a Windows domain-joined machine in order to query your Kerberos Domain Controller
+- SQL Server should be configured to allow Kerberos authentication. For the client driver running on Unix, integrated authentication is only supported using Kerberos. More information on setting up Sql Server to authenticate using Kerberos can be found [here](https://support.microsoft.com/en-us/help/319723/how-to-use-kerberos-authentication-in-sql-server). There should be SPNs registered for each instance of Sql Server you are trying to connect to. Details about the format of SQL Server SPNs are listed [here](https://technet.microsoft.com/en-us/library/ms191153%28v=sql.105%29.aspx#SPN%20Formats)
+- 
+### Checking if Sql Server has Kerberos Setup
+- Login to the host machine of Sql Server. From Windows Command Prompt use the `setspn -L %COMPUTERNAME%` to list all the Service Principal Names for the host. You should see entries which begin with MSSQLSvc/HostName.Domain.com which means that Sql Server has registered an SPN and is ready to accept Kerberos authentication. 
+- If you don't have access to the Host of the Sql Server, then from any other Windows OS joined to the same Active Directory, you could use the command `setspn -L <SQLSERVER_NETBIOS>` where <SQLSERVER_NETBIOS> is the computer name of the hsot of the Sql Server.
 
 ## Steps to set up Integrated Authentication
 
