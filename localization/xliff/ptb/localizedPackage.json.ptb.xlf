@@ -31,6 +31,7 @@
         </trans-unit>
         <trans-unit id="extension.chooseLanguageFlavor">
             <source xml:lang="en">Choose SQL handler for this file</source>
+            <target>Escolha o manipulador SQL para este arquivo</target>
         </trans-unit>
         <trans-unit id="extension.showGettingStarted">
             <source xml:lang="en">Getting Started Guide</source>

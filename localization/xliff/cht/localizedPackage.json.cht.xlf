@@ -3,18 +3,23 @@
     <body>
         <trans-unit id="extension.runQuery">
             <source xml:lang="en">Execute Query</source>
+            <target>執行查詢</target>
         </trans-unit>
         <trans-unit id="extension.runCurrentStatement">
             <source xml:lang="en">Execute Current Statement</source>
+            <target>執行目前的陳述式</target>
         </trans-unit>
         <trans-unit id="extension.cancelQuery">
             <source xml:lang="en">Cancel Query</source>
+            <target>取消查詢</target>
         </trans-unit>
         <trans-unit id="extension.connect">
             <source xml:lang="en">Connect</source>
+            <target>連線</target>
         </trans-unit>
         <trans-unit id="extension.disconnect">
             <source xml:lang="en">Disconnect</source>
+            <target>中斷連線</target>
         </trans-unit>
         <trans-unit id="extension.manageProfiles">
             <source xml:lang="en">Manage Connection Profiles</source>
@@ -22,27 +27,34 @@
         </trans-unit>
         <trans-unit id="extension.chooseDatabase">
             <source xml:lang="en">Use Database</source>
+            <target>使用資料庫</target>
         </trans-unit>
         <trans-unit id="extension.chooseLanguageFlavor">
             <source xml:lang="en">Choose SQL handler for this file</source>
+            <target>選擇此檔案的 SQL 處理器</target>
         </trans-unit>
         <trans-unit id="extension.showGettingStarted">
             <source xml:lang="en">Getting Started Guide</source>
+            <target>快速入門指南</target>
         </trans-unit>
         <trans-unit id="extension.newQuery">
             <source xml:lang="en">New Query</source>
+            <target>新查詢</target>
         </trans-unit>
         <trans-unit id="extension.rebuildIntelliSenseCache">
             <source xml:lang="en">Refresh IntelliSense Cache</source>
+            <target>更新 IntelliSense 快取</target>
         </trans-unit>
         <trans-unit id="mssql.logDebugInfo">
             <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source>
+            <target>[選項] 記錄除錯輸出至 VS Code 主控台 (說明 -&gt; 切換開發人員工具)</target>
         </trans-unit>
         <trans-unit id="mssql.maxRecentConnections">
             <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         </trans-unit>
         <trans-unit id="mssql.connections">
             <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
+            <target>連接檔案資料定義於 「使用者設定」 位於命令面板的 「MS SQL: 連線」 命令之下</target>
         </trans-unit>
         <trans-unit id="mssql.connection.server">
             <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
@@ -58,9 +70,11 @@
         </trans-unit>
         <trans-unit id="mssql.connection.authenticationType">
             <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source>
+            <target>[選用] 指定 SQL Server 驗證類型。</target>
         </trans-unit>
         <trans-unit id="mssql.connection.port">
             <source xml:lang="en">[Optional] Specify the port number to connect to.</source>
+            <target>[選用] 指定欲連接的埠號。</target>
         </trans-unit>
         <trans-unit id="mssql.connection.encrypt">
             <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source>
@@ -82,6 +96,7 @@
         </trans-unit>
         <trans-unit id="mssql.connection.workstationId">
             <source xml:lang="en">[Optional] Specify the name of the workstation connecting to SQL Server.</source>
+            <target>[選用] 指定連接 SQL Server 工作站的名稱。</target>
         </trans-unit>
         <trans-unit id="mssql.connection.applicationName">
             <source xml:lang="en">[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').</source>
@@ -91,15 +106,18 @@
         </trans-unit>
         <trans-unit id="mssql.connection.currentLanguage">
             <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
+            <target>[選用] 標示 SQL Server 語言設定。</target>
         </trans-unit>
         <trans-unit id="mssql.connection.pooling">
             <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
         </trans-unit>
         <trans-unit id="mssql.connection.maxPoolSize">
             <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>
+            <target>[選用] 指定 pool 中允許的最大連線數。</target>
         </trans-unit>
         <trans-unit id="mssql.connection.minPoolSize">
             <source xml:lang="en">[Optional] Specify the minimum number of connections allowed in the pool.</source>
+            <target>[選用] 指定 pool 中允許的最小連線數。</target>
         </trans-unit>
         <trans-unit id="mssql.connection.loadBalanceTimeout">
             <source xml:lang="en">[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.</source>
@@ -109,6 +127,7 @@
         </trans-unit>
         <trans-unit id="mssql.connection.attachDbFilename">
             <source xml:lang="en">[Optional] Specify the name of the primary file, including the full path name, of an attachable database.</source>
+            <target>[選用] 指定可附加資料庫主要檔案名稱，包含完整路徑名稱。</target>
         </trans-unit>
         <trans-unit id="mssql.connection.failoverPartner">
             <source xml:lang="en">[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner.</source>
@@ -187,18 +206,23 @@
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableIntelliSense">
             <source xml:lang="en">Should IntelliSense be enabled</source>
+            <target>是否啟用IntelliSense</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableErrorChecking">
             <source xml:lang="en">Should IntelliSense error checking be enabled</source>
+            <target>是否啟用 IntelliSense 錯誤檢查</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableSuggestions">
             <source xml:lang="en">Should IntelliSense suggestions be enabled</source>
+            <target>是否啟用 IntelliSense 建議</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableQuickInfo">
             <source xml:lang="en">Should IntelliSense quick info be enabled</source>
+            <target>是否啟用 IntelliSense 快速諮詢</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
             <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
+            <target>是否設定 IntelliSense 建議為小寫</target>
         </trans-unit>
     </body>
   </file>

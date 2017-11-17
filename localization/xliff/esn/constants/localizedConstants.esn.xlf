@@ -265,10 +265,6 @@
             <source xml:lang="en">Error Message: </source>
             <target>Mensaje de error:</target>
         </trans-unit>
-        <trans-unit id="executeQueryLabel">
-            <source xml:lang="en">Executing query </source>
-            <target>Ejecutando la consulta</target>
-        </trans-unit>
         <trans-unit id="cancelingQueryLabel">
             <source xml:lang="en">Canceling query </source>
             <target>Cancelando la consulta</target>
@@ -296,6 +292,9 @@
         <trans-unit id="msgPromptRetryCreateProfile">
             <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
             <target>Error: No se puede conectar con la información de conexión proporcionada. ¿Desea volver a intentar la creación del perfil?</target>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
+            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
@@ -341,6 +340,9 @@
             <source xml:lang="en">Help</source>
             <target>Ayuda</target>
         </trans-unit>
+        <trans-unit id="macSierraRequiredErrorMessage">
+            <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+        </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
             <target>Obteniendo definición...</target>
@@ -364,6 +366,92 @@
         <trans-unit id="testLocalizationConstant">
             <source xml:lang="en">test</source>
             <target>prueba</target>
+        </trans-unit>
+        <trans-unit id="disconnectOptionLabel">
+            <source xml:lang="en">Disconnect</source>
+            <target>Desconectar</target>
+        </trans-unit>
+        <trans-unit id="disconnectOptionDescription">
+            <source xml:lang="en">Close the current connection</source>
+        </trans-unit>
+        <trans-unit id="disconnectConfirmationMsg">
+            <source xml:lang="en">Are you sure you want to disconnect?</source>
+        </trans-unit>
+        <trans-unit id="elapsedBatchTime">
+            <source xml:lang="en">Batch execution time: {0}</source>
+        </trans-unit>
+        <trans-unit id="noActiveEditorMsg">
+            <source xml:lang="en">A SQL editor must have focus before executing this command</source>
+        </trans-unit>
+        <trans-unit id="maximizeLabel">
+            <source xml:lang="en">Maximize</source>
+        </trans-unit>
+        <trans-unit id="restoreLabel">
+            <source xml:lang="en">Restore</source>
+        </trans-unit>
+        <trans-unit id="saveCSVLabel">
+            <source xml:lang="en">Save as CSV</source>
+        </trans-unit>
+        <trans-unit id="saveJSONLabel">
+            <source xml:lang="en">Save as JSON</source>
+        </trans-unit>
+        <trans-unit id="saveExcelLabel">
+            <source xml:lang="en">Save as Excel</source>
+        </trans-unit>
+        <trans-unit id="fileTypeCSVLabel">
+            <source xml:lang="en">CSV</source>
+        </trans-unit>
+        <trans-unit id="fileTypeJSONLabel">
+            <source xml:lang="en">JSON</source>
+        </trans-unit>
+        <trans-unit id="fileTypeExcelLabel">
+            <source xml:lang="en">Excel</source>
+        </trans-unit>
+        <trans-unit id="resultPaneLabel">
+            <source xml:lang="en">Results</source>
+        </trans-unit>
+        <trans-unit id="selectAll">
+            <source xml:lang="en">Select all</source>
+        </trans-unit>
+        <trans-unit id="copyLabel">
+            <source xml:lang="en">Copy</source>
+        </trans-unit>
+        <trans-unit id="copyWithHeadersLabel">
+            <source xml:lang="en">Copy with Headers</source>
+        </trans-unit>
+        <trans-unit id="executeQueryLabel">
+            <source xml:lang="en">Executing query...</source>
+        </trans-unit>
+        <trans-unit id="messagePaneLabel">
+            <source xml:lang="en">Messages</source>
+        </trans-unit>
+        <trans-unit id="lineSelectorFormatted">
+            <source xml:lang="en">Line {0}</source>
+            <target>Línea {0}</target>
+        </trans-unit>
+        <trans-unit id="elapsedTimeLabel">
+            <source xml:lang="en">Total execution time: {0}</source>
+        </trans-unit>
+        <trans-unit id="msgCannotSaveMultipleSelections">
+            <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+        </trans-unit>
+        <trans-unit id="mssqlProviderName">
+            <source xml:lang="en">MSSQL</source>
+        </trans-unit>
+        <trans-unit id="noneProviderName">
+            <source xml:lang="en">None</source>
+        </trans-unit>
+        <trans-unit id="chooseSqlLang">
+            <source xml:lang="en">Choose SQL Language</source>
+        </trans-unit>
+        <trans-unit id="flavorChooseLanguage">
+            <source xml:lang="en">Choose SQL Language</source>
+        </trans-unit>
+        <trans-unit id="flavorDescriptionMssql">
+            <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+        </trans-unit>
+        <trans-unit id="flavorDescriptionNone">
+            <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         </trans-unit>
     </body>
   </file>
