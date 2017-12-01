@@ -295,6 +295,7 @@
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
+            <target>Error: Falló el inicio de sesión. ¿Reintentar utilizando credenciales diferentes?</target>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
@@ -342,6 +343,7 @@
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
             <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+            <target>Para utilizar esta función se requiere macOS Sierra o superior.</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
@@ -373,57 +375,75 @@
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
             <source xml:lang="en">Close the current connection</source>
+            <target>Cerrar la conexión actual</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
             <source xml:lang="en">Are you sure you want to disconnect?</source>
+            <target>¿Está seguro de que desea desconectar?</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
             <source xml:lang="en">Batch execution time: {0}</source>
+            <target>Tiempo de ejecución por lotes: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source>
+            <target>Un editor de SQL debe tener foco antes de ejecutar este comando</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
             <source xml:lang="en">Maximize</source>
+            <target>Maximizar</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
             <source xml:lang="en">Restore</source>
+            <target>Restaurar</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
             <source xml:lang="en">Save as CSV</source>
+            <target>Guardar como CSV</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source>
+            <target>Guardar como JSON</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
             <source xml:lang="en">Save as Excel</source>
+            <target>Guardar como Excel</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
             <source xml:lang="en">CSV</source>
+            <target>CSV</target>
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
             <source xml:lang="en">JSON</source>
+            <target>JSON</target>
         </trans-unit>
         <trans-unit id="fileTypeExcelLabel">
             <source xml:lang="en">Excel</source>
+            <target>Excel</target>
         </trans-unit>
         <trans-unit id="resultPaneLabel">
             <source xml:lang="en">Results</source>
+            <target>Resultados</target>
         </trans-unit>
         <trans-unit id="selectAll">
             <source xml:lang="en">Select all</source>
+            <target>Seleccionar todo</target>
         </trans-unit>
         <trans-unit id="copyLabel">
             <source xml:lang="en">Copy</source>
+            <target>Copiar</target>
         </trans-unit>
         <trans-unit id="copyWithHeadersLabel">
             <source xml:lang="en">Copy with Headers</source>
+            <target>Copiar con encabezados</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query...</source>
+            <target>Ejecutando la consulta...</target>
         </trans-unit>
         <trans-unit id="messagePaneLabel">
             <source xml:lang="en">Messages</source>
+            <target>Mensajes</target>
         </trans-unit>
         <trans-unit id="lineSelectorFormatted">
             <source xml:lang="en">Line {0}</source>
@@ -431,27 +451,35 @@
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
             <source xml:lang="en">Total execution time: {0}</source>
+            <target>Tiempo total de ejecución: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+            <target>El comando para salvar resultados no se puede utilizar con selecciones múltiples.</target>
         </trans-unit>
         <trans-unit id="mssqlProviderName">
             <source xml:lang="en">MSSQL</source>
+            <target>MSSQL</target>
         </trans-unit>
         <trans-unit id="noneProviderName">
             <source xml:lang="en">None</source>
+            <target>Ninguno</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>Elegir lenguaje SQL</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>Elegir lenguaje SQL</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
             <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+            <target>Usar intellisense y comprobación de errores sintácticos de T-SQL sobre el documento actual.</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionNone">
             <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
+            <target>Deshabilitar intellisense y comprobación de errores sintácticos de T-SQL sobre el documento actual.</target>
         </trans-unit>
     </body>
   </file>

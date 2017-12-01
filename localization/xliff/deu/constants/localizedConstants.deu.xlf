@@ -295,6 +295,7 @@
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
+            <target>Fehler: Anmeldung fehlgeschlagen. Mit unterschiedlichen Anmeldeinformationen wiederholen?</target>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
@@ -342,6 +343,7 @@
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
             <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+            <target>MacOS Sierra oder neuer ist erforderlich, um diese Funktion zu nutzen.</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
@@ -373,15 +375,19 @@
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
             <source xml:lang="en">Close the current connection</source>
+            <target>Aktuelle Verbindung schließen.</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
             <source xml:lang="en">Are you sure you want to disconnect?</source>
+            <target>Sind Sie sicher, dass Sie die Verbindung trennen möchten?</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
             <source xml:lang="en">Batch execution time: {0}</source>
+            <target>Batch-Ausführungszeit: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source>
+            <target>Ein SQL-Editor muss den Fokus haben vor der Ausführung dieses Befehls</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
             <source xml:lang="en">Maximize</source>
@@ -393,12 +399,15 @@
         </trans-unit>
         <trans-unit id="saveCSVLabel">
             <source xml:lang="en">Save as CSV</source>
+            <target>Als CSV speichern</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source>
+            <target>Als JSON speichern</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
             <source xml:lang="en">Save as Excel</source>
+            <target>Als Excel-Datei speichern</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
             <source xml:lang="en">CSV</source>
@@ -406,6 +415,7 @@
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
             <source xml:lang="en">JSON</source>
+            <target>JSON</target>
         </trans-unit>
         <trans-unit id="fileTypeExcelLabel">
             <source xml:lang="en">Excel</source>
@@ -417,6 +427,7 @@
         </trans-unit>
         <trans-unit id="selectAll">
             <source xml:lang="en">Select all</source>
+            <target>Alles auswählen</target>
         </trans-unit>
         <trans-unit id="copyLabel">
             <source xml:lang="en">Copy</source>
@@ -440,12 +451,15 @@
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
             <source xml:lang="en">Total execution time: {0}</source>
+            <target>Gesamte Ausführungszeit: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+            <target>Der Befehl &quot;Ergebnisse speichern&quot; kann nicht mit Mehrfachauswahlen verwendet werden.</target>
         </trans-unit>
         <trans-unit id="mssqlProviderName">
             <source xml:lang="en">MSSQL</source>
+            <target>MSSQL</target>
         </trans-unit>
         <trans-unit id="noneProviderName">
             <source xml:lang="en">None</source>
@@ -453,15 +467,19 @@
         </trans-unit>
         <trans-unit id="chooseSqlLang">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>Wählen Sie SQL-Sprache</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>Wählen Sie SQL-Sprache</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
             <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+            <target>Intellisense und Syntax-Fehlerüberprüfung im aktuellen Dokument verwenden</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionNone">
             <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
+            <target>Intellisense und Syntax-Fehlerüberprüfung im aktuellen Dokument deaktivieren</target>
         </trans-unit>
     </body>
   </file>

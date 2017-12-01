@@ -295,6 +295,7 @@
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
+            <target>错误: 登录失败。使用不同的凭据再试一次？</target>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
@@ -342,6 +343,7 @@
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
             <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+            <target>需要macOS Sierra或更高版本才能使用该功能。</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
@@ -373,57 +375,75 @@
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
             <source xml:lang="en">Close the current connection</source>
+            <target>关闭当前连接</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
             <source xml:lang="en">Are you sure you want to disconnect?</source>
+            <target>确定要断开连接？</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
             <source xml:lang="en">Batch execution time: {0}</source>
+            <target>批处理执行时间: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source>
+            <target>在执行这个命令前，必须有一个SQL编辑器得到焦点。</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
             <source xml:lang="en">Maximize</source>
+            <target>最大化</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
             <source xml:lang="en">Restore</source>
+            <target>还原</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
             <source xml:lang="en">Save as CSV</source>
+            <target>另存为 CSV</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source>
+            <target>另存为 JSON</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
             <source xml:lang="en">Save as Excel</source>
+            <target>另存为 Excel</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
             <source xml:lang="en">CSV</source>
+            <target>CSV</target>
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
             <source xml:lang="en">JSON</source>
+            <target>JSON</target>
         </trans-unit>
         <trans-unit id="fileTypeExcelLabel">
             <source xml:lang="en">Excel</source>
+            <target>Excel</target>
         </trans-unit>
         <trans-unit id="resultPaneLabel">
             <source xml:lang="en">Results</source>
+            <target>结果</target>
         </trans-unit>
         <trans-unit id="selectAll">
             <source xml:lang="en">Select all</source>
+            <target>选择全部</target>
         </trans-unit>
         <trans-unit id="copyLabel">
             <source xml:lang="en">Copy</source>
+            <target>复制</target>
         </trans-unit>
         <trans-unit id="copyWithHeadersLabel">
             <source xml:lang="en">Copy with Headers</source>
+            <target>连同标题一起复制</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query...</source>
+            <target>正在执行查询...</target>
         </trans-unit>
         <trans-unit id="messagePaneLabel">
             <source xml:lang="en">Messages</source>
+            <target>消息</target>
         </trans-unit>
         <trans-unit id="lineSelectorFormatted">
             <source xml:lang="en">Line {0}</source>
@@ -431,27 +451,35 @@
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
             <source xml:lang="en">Total execution time: {0}</source>
+            <target>总执行时间: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+            <target>多选时不能使用保存结果命令。</target>
         </trans-unit>
         <trans-unit id="mssqlProviderName">
             <source xml:lang="en">MSSQL</source>
+            <target>MSSQL</target>
         </trans-unit>
         <trans-unit id="noneProviderName">
             <source xml:lang="en">None</source>
+            <target>无</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>选择 SQL 语言</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>选择 SQL 语言</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
             <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+            <target>在当前文档使用 T-SQL Intellisense 和语法错误检查</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionNone">
             <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
+            <target>在当前文档禁用 T-SQL Intellisense 和语法错误检查</target>
         </trans-unit>
     </body>
   </file>

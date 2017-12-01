@@ -295,6 +295,7 @@
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
+            <target>エラー: ログインに失敗しました。別の資格情報を使用して再試行しますか?</target>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
@@ -342,6 +343,7 @@
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
             <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+            <target>macOS Sierra 以降ではこの機能を使用することが求められます。</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source>
@@ -369,60 +371,79 @@
         </trans-unit>
         <trans-unit id="disconnectOptionLabel">
             <source xml:lang="en">Disconnect</source>
+            <target>切断</target>
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
             <source xml:lang="en">Close the current connection</source>
+            <target>現在の接続を閉じる</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
             <source xml:lang="en">Are you sure you want to disconnect?</source>
+            <target>切断してよろしいですか?</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
             <source xml:lang="en">Batch execution time: {0}</source>
+            <target>バッチ実行時間: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source>
+            <target>SQL エディターは、このコマンドを実行する前にフォーカスされている必要があります。</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
             <source xml:lang="en">Maximize</source>
+            <target>最大化</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
             <source xml:lang="en">Restore</source>
+            <target>復元</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
             <source xml:lang="en">Save as CSV</source>
+            <target>CSV として保存</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source>
+            <target>JSON として保存</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
             <source xml:lang="en">Save as Excel</source>
+            <target>Excel として保存</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
             <source xml:lang="en">CSV</source>
+            <target>CSV</target>
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
             <source xml:lang="en">JSON</source>
+            <target>JSON</target>
         </trans-unit>
         <trans-unit id="fileTypeExcelLabel">
             <source xml:lang="en">Excel</source>
+            <target>Excel</target>
         </trans-unit>
         <trans-unit id="resultPaneLabel">
             <source xml:lang="en">Results</source>
+            <target>結果</target>
         </trans-unit>
         <trans-unit id="selectAll">
             <source xml:lang="en">Select all</source>
+            <target>すべてを選択</target>
         </trans-unit>
         <trans-unit id="copyLabel">
             <source xml:lang="en">Copy</source>
+            <target>コピー</target>
         </trans-unit>
         <trans-unit id="copyWithHeadersLabel">
             <source xml:lang="en">Copy with Headers</source>
+            <target>ヘッダーとともにコピー</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query...</source>
+            <target>クエリを実行中...</target>
         </trans-unit>
         <trans-unit id="messagePaneLabel">
             <source xml:lang="en">Messages</source>
+            <target>メッセージ</target>
         </trans-unit>
         <trans-unit id="lineSelectorFormatted">
             <source xml:lang="en">Line {0}</source>
@@ -430,27 +451,35 @@
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
             <source xml:lang="en">Total execution time: {0}</source>
+            <target>総実行時間: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
+            <target>結果の保存コマンドは、複数が選択された状態では使用できません。</target>
         </trans-unit>
         <trans-unit id="mssqlProviderName">
             <source xml:lang="en">MSSQL</source>
+            <target>MSSQL</target>
         </trans-unit>
         <trans-unit id="noneProviderName">
             <source xml:lang="en">None</source>
+            <target>なし</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>SQL 言語の選択</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
             <source xml:lang="en">Choose SQL Language</source>
+            <target>SQL 言語の選択</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
             <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+            <target>現在のドキュメントで T-SQL インテリセンスと構文エラー チェックを使用する</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionNone">
             <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
+            <target>現在のドキュメントで T-SQL インテリセンスと構文エラー チェックを無効にする</target>
         </trans-unit>
     </body>
   </file>
