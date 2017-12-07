@@ -157,6 +157,7 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
         let dict = convertXmlToDictionary(String(file.contents), false);
 
         var contents = ['{'];
+        var regxForReplacingQuots = new RegExp('"', 'g');
 
         // Get all the keys from package.nls.json which is the English version and get the localized value from xlf
         // Use the English value if not translated, right now there's no fall back to English if the text is not localized.
@@ -172,6 +173,10 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
             }
             if (value === '') {
                 value = packageAllKeys[key];
+            }
+
+            if(value && value.indexOf('"') >= 0) {
+                value = value.replace(regxForReplacingQuots, '\'');
             }
             let instantiation = '"' + key + '":"' + value + '"';
             contents.push(instantiation);
