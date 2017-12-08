@@ -1,5 +1,22 @@
 # Change Log
 
+## Version 1.3.0
+* Release date: December 8, 2017
+* Release status: GA
+
+## What's new in this version
+* Fixed an issue where peek definition and go to definition failed for stored procedures.
+* Improved performance for peek definition and go to definition.
+* Added support for `GO N` syntax.
+* Fixed issue [#1025](https://github.com/Microsoft/vscode-mssql/issues/1025) where query execution would fail when executing from file paths containing special characters
+* Fixed issue [#785](https://github.com/Microsoft/vscode-mssql/issues/785) Inactive connection can't reconnect with out VS Code restart
+* A community-contributed fix for snippets that failed on databases with case-sensitive collations.
+
+
+### Contributions and "thank you"
+* Thank you to Stefán Jökull Sigurðarson for contributing the fix for snippets that failed with case-sensitive collations, which was ported here from the SQL Operations Studio repository.
+* We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+
 ## Version 1.2.1
 * Release date: November 8, 2017
 * Release status: GA
