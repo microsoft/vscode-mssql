@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 1.3.0
-* Release date: December 8, 2017
+* Release date: December 11, 2017
 * Release status: GA
 
 ## What's new in this version
