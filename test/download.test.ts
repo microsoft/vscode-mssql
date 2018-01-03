@@ -5,7 +5,6 @@ import ServiceDownloadProvider from '../src/languageservice/serviceDownloadProvi
 import HttpClient from '../src/languageservice/httpClient';
 import DecompressProvider from '../src/languageservice/decompressProvider';
 import Config from  '../src/configurations/config';
-import {ServerStatusView} from '../src/languageservice/serverStatus';
 import {Runtime} from '../src/models/platform';
 import * as path from 'path';
 import  {ILogger} from '../src/models/interfaces';
@@ -28,7 +27,7 @@ suite('ServiceDownloadProvider Tests', () => {
 
     setup(() => {
         config = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
-        testStatusView = TypeMoq.Mock.ofType(ServerStatusView, TypeMoq.MockBehavior.Loose);
+        testStatusView = TypeMoq.Mock.ofType<IStatusView>();
         testHttpClient = TypeMoq.Mock.ofType(HttpClient, TypeMoq.MockBehavior.Strict);
         testDecompressProvider = TypeMoq.Mock.ofType(DecompressProvider);
         testLogger = TypeMoq.Mock.ofType(Logger);
