@@ -504,7 +504,7 @@ suite('Query Runner tests', () => {
                             '3' + TAB + '4' + CLRF +
                             '5' + TAB + '6' + CLRF +
                             '7' + TAB + '8' + CLRF +
-                            '9' + TAB + '10';
+                            '9' + TAB + '10 ∞';
 
         const finalStringWithHeader = 'Col1' + TAB + 'Col2' + CLRF + finalStringNoHeader;
 
@@ -517,10 +517,11 @@ suite('Query Runner tests', () => {
                     [{isNull: false, displayValue: '3'}, {isNull: false, displayValue: '4'}],
                     [{isNull: false, displayValue: '5'}, {isNull: false, displayValue: '6'}],
                     [{isNull: false, displayValue: '7'}, {isNull: false, displayValue: '8'}],
-                    [{isNull: false, displayValue: '9'}, {isNull: false, displayValue: '10'}]
+                    [{isNull: false, displayValue: '9'}, {isNull: false, displayValue: '10 ∞'}]
                 ]
             }
         };
+        process.env['LANG'] = 'C';
 
         let testRange: ISlickRange[] = [{fromCell: 0, fromRow: 0, toCell: 1, toRow: 4}];
 
