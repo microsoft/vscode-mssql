@@ -571,7 +571,7 @@ suite('Query Runner tests', () => {
             );
             queryRunner.uri = testuri;
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
-                let pasteContents = ncp.paste();
+                let pasteContents = pasteCopiedString();
                 assert.equal(pasteContents, finalStringNoHeader);
             });
         });
@@ -594,7 +594,7 @@ suite('Query Runner tests', () => {
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleQueryComplete(result);
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
-                let pasteContents = ncp.paste();
+                let pasteContents = pasteCopiedString();
                 assert.equal(pasteContents, finalStringWithHeader);
             });
         });
@@ -619,7 +619,7 @@ suite('Query Runner tests', () => {
 
             // call copyResults with additional parameter indicating to include headers
             return queryRunner.copyResults(testRange, 0, 0, true).then(() => {
-                let pasteContents = ncp.paste();
+                let pasteContents = pasteCopiedString();
                 assert.equal(pasteContents, finalStringWithHeader);
             });
         });
@@ -644,7 +644,7 @@ suite('Query Runner tests', () => {
 
             // call copyResults with additional parameter indicating to not include headers
             return queryRunner.copyResults(testRange, 0, 0, false).then(() => {
-                let pasteContents = ncp.paste();
+                let pasteContents = pasteCopiedString();
                 assert.equal(pasteContents, finalStringNoHeader);
             });
         });
@@ -676,4 +676,17 @@ function setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler:
         .callback((qr, u: string) => {
             assert.equal(u, standardUri);
         });
+}
+
+function pasteCopiedString(): string {
+    let oldLang: string;
+    if (process.platform === 'darwin') {
+        oldLang = process.env['LANG'];
+        process.env['LANG'] = 'en_US.UTF-8';
+    }
+    let pastedString = ncp.paste();
+    if (process.platform === 'darwin') {
+        process.env['LANG'] = oldLang;
+    }
+    return pastedString;
 }
