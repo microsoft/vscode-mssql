@@ -335,7 +335,15 @@ export default class QueryRunner {
                 p = p.then(tasks[i]);
             }
             p.then(() => {
+                let oldLang: string;
+                if (process.platform === 'darwin') {
+                    oldLang = process.env['LANG'];
+                    process.env['LANG'] = 'en_US.UTF-8';
+                }
                 ncp.copy(copyString, () => {
+                    if (process.platform === 'darwin') {
+                        process.env['LANG'] = oldLang;
+                    }
                     resolve();
                 });
             });
