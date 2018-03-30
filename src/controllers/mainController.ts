@@ -142,8 +142,8 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-                // Initialize telemetry
-                Telemetry.initialize(self._context);
+                // Ensure telemetry is disabled
+                Telemetry.disable();
 
                 SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
 
