@@ -21,6 +21,19 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.3.1
+* Fixed issue [#1036](https://github.com/Microsoft/vscode-mssql/issues/1036) where copy/pasting Unicode text can fail on Mac depending on the active locale environment variable
+* Fixed issue [#1066](https://github.com/Microsoft/vscode-mssql/issues/1066) RAND() function using GO N produces the same result
+* Syntax highlighting more closely matches SSMS for local variables, global system varaibles, unicode string literals, bracketed identifiers, and built in functions
+* Show all error messages instead of just the first one when query execution results in multiple errors
+
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* [@rhires](https://github.com/rhires) for updating and editing the Kerberos help documentation
+* [@zackschuster](https://github.com/zackschuster) for cleaning up the VS Code API wrapper to remove a deprecated function call
+* We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+
 ## What's new in 1.3.0
 * Fixed an issue where peek definition and go to definition failed for stored procedures.
 * Improved performance for peek definition and go to definition.
