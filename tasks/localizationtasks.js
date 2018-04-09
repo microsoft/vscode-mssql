@@ -93,7 +93,13 @@ gulp.task('ext:localization:xliff-to-json', function () {
         // convert xliff into json document
         let dict = convertXmlToDictionary(String(file.contents));
         Object.keys(dict).map(function(key, index) {
-            dict[key] = dict[key]['target']
+            let target = dict[key]['target'];
+            if (target) {
+                dict[key] = target;
+            } else {
+                // Fall back to English
+                dict[key] = dict[key]['source'];
+            }
         });
         file.contents = new Buffer(convertDictionaryToJson(dict));
 
