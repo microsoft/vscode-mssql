@@ -1,269 +1,204 @@
-<?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="es">
     <body>
         <trans-unit id="extension.runQuery">
             <source xml:lang="en">Execute Query</source>
-            <target>Ejecutar la consulta</target>
         </trans-unit>
         <trans-unit id="extension.runCurrentStatement">
-            <source xml:lang="en">Execute Current Statement</source>
-            <target>Ejecutar la instrucción actual</target>
+            <source xml:lang="en">Execute Current Statement</source><target>Ejecutar la instrucción actual</target>
         </trans-unit>
         <trans-unit id="extension.cancelQuery">
-            <source xml:lang="en">Cancel Query</source>
-            <target>Cancelar consulta</target>
+            <source xml:lang="en">Cancel Query</source><target>Cancelar consulta</target>
         </trans-unit>
         <trans-unit id="extension.connect">
-            <source xml:lang="en">Connect</source>
-            <target>Conectar</target>
+            <source xml:lang="en">Connect</source><target>Conectar</target>
         </trans-unit>
         <trans-unit id="extension.disconnect">
-            <source xml:lang="en">Disconnect</source>
-            <target>Desconectar</target>
+            <source xml:lang="en">Disconnect</source><target>Desconectar</target>
         </trans-unit>
         <trans-unit id="extension.manageProfiles">
-            <source xml:lang="en">Manage Connection Profiles</source>
-            <target>Administrar perfiles de conexión</target>
+            <source xml:lang="en">Manage Connection Profiles</source><target>Administrar perfiles de conexión</target>
         </trans-unit>
         <trans-unit id="extension.chooseDatabase">
             <source xml:lang="en">Use Database</source>
-            <target>Utilizar base de datos</target>
         </trans-unit>
         <trans-unit id="extension.chooseLanguageFlavor">
-            <source xml:lang="en">Choose SQL handler for this file</source>
-            <target>Seleccione el manejador SQL para este archivo</target>
+            <source xml:lang="en">Choose SQL handler for this file</source><target>Seleccione el manejador SQL para este archivo</target>
         </trans-unit>
         <trans-unit id="extension.showGettingStarted">
-            <source xml:lang="en">Getting Started Guide</source>
-            <target>Guía introductoria</target>
+            <source xml:lang="en">Getting Started Guide</source><target>Guía introductoria</target>
         </trans-unit>
         <trans-unit id="extension.newQuery">
-            <source xml:lang="en">New Query</source>
-            <target>Nueva consulta</target>
+            <source xml:lang="en">New Query</source><target>Nueva consulta</target>
         </trans-unit>
         <trans-unit id="extension.rebuildIntelliSenseCache">
             <source xml:lang="en">Refresh IntelliSense Cache</source>
-            <target>Actualizar Cache de IntelliSense</target>
         </trans-unit>
         <trans-unit id="mssql.logDebugInfo">
-            <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source>
-            <target>[Opcional] Registrar los resultados de depuración a la consola de VS Code (ayuda-&gt; Interruptor de herramientas de desarrollo)</target>
+            <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source><target>[Opcional] Registrar los resultados de depuración a la consola de VS Code (ayuda-&gt; Interruptor de herramientas de desarrollo)</target>
         </trans-unit>
         <trans-unit id="mssql.maxRecentConnections">
-            <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
-            <target>El número máximo de conexiones recientemente utilizadas que se guardarán en la lista de conexiones.</target>
+            <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source><target>El número máximo de conexiones recientemente utilizadas para almacenar en la lista de conexiones.</target>
         </trans-unit>
         <trans-unit id="mssql.connections">
-            <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
-            <target>Los perfiles de conexión definidos en 'Configuración de usuario' se muestran bajo el comando ' MS SQL: Conect' en la paleta de comandos.</target>
+            <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source><target>Los perfiles de conexión definidos en 'Configuración de usuario' se muestran bajo el comando ' MS SQL: Conect' en la paleta de comandos.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.server">
-            <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
-            <target>[Obligatorio] Especificar el nombre del servidor para conectarse. Utilizar 'nombredehost\\instancia' o '&lt;server&gt;.database.windows.net' para una base de datos de SQL Azure.</target>
+            <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source><target>[Obligatorio] Especificar el nombre del servidor para conectarse. Utilizar 'nombredehost\\instancia' o '&lt;server&gt;.database.windows.net' para una base de datos de SQL Azure.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.database">
-            <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source>
-            <target>[Opcional] Especifique el nombre de la base de datos para conectarse. Si no se especifica la base de datos, se utiliza la configuración de la base de datos de usuario predeterminada, típicamente 'master'.</target>
+            <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source><target>[Opcional] Especifique el nombre de la base de datos para conectarse. Si no se especifica la base de datos, se utiliza la configuración de la base de datos de usuario predeterminada, típicamente 'master'.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.user">
-            <source xml:lang="en">[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.</source>
-            <target>[Opcional] Especifique el nombre de usuario para la autenticación de SQL Server. Si no se especifica nombre de usuario, cuando se conecte se le pedirá otra vez.</target>
+            <source xml:lang="en">[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.</source><target>[Opcional] Especifique el nombre de usuario para la autenticación de SQL Server. Si no se especifica nombre de usuario, cuando se conecte se le pedirá otra vez.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.password">
-            <source xml:lang="en">[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.</source>
-            <target>[Opcional] Especifique la contraseña para la autenticación de SQL Server. Si la contraseña no se especifica o ya está guarda, cuando se conecte se le pedirá otra vez.</target>
+            <source xml:lang="en">[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.</source><target>[Opcional] Especifique la contraseña para la autenticación de SQL Server. Si la contraseña no se especifica o ya está guarda, cuando se conecte se le pedirá otra vez.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.authenticationType">
-            <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source>
-            <target>[Opcional] Especificar el tipo de autenticación de SQL Server.</target>
+            <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source><target>Especifica el tipo de autenticación para SQL Server.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.port">
             <source xml:lang="en">[Optional] Specify the port number to connect to.</source>
-            <target>[Opcional] Especificar el número de puerto para conectarse.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.encrypt">
-            <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source>
-            <target>[Opcional] Cuando está establecido en 'true', SQL Server utiliza encriptación SSL para los datos enviados entre el cliente y el servidor si el servidor tiene un certificado instalado. Establecer 'true' para la conexión de base de datos de SQL Azure.</target>
+            <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source><target>[Opcional] Cuando está establecido en 'true', SQL Server utiliza encriptación SSL para los datos enviados entre el cliente y el servidor si el servidor tiene un certificado instalado. Establecer 'true' para la conexión de base de datos de SQL Azure.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.trustServerCertificate">
-            <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
-            <target>[Opcional] Cuando está establecido en 'true', el certificado SSL del servidor SQL es automáticamente considerado de confianza cuando la capa de la comunicación está cifrada mediante SSL. Configurar como 'false' para la conexión de base de datos de SQL Azure.</target>
+            <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source><target>[Opcional] Cuando está establecido en 'true', el certificado SSL del servidor SQL es automáticamente considerado de confianza cuando la capa de la comunicación está cifrada mediante SSL. Configurar como 'false' para la conexión de base de datos de SQL Azure.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.persistSecurityInfo">
-            <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>
-            <target>[Opcional] Cuando se establece como 'false', la información crítica respecto a la seguridad, como la contraseña, no se devuelve como parte de la conexión si la conexión está abierta o alguna vez ha estado en un estado abierto.</target>
+            <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source><target>[Opcional] Cuando se establece como 'false', la información crítica respecto a la seguridad, como la contraseña, no se devuelve como parte de la conexión si la conexión está abierta o alguna vez ha estado en un estado abierto.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.connectTimeout">
-            <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-            <target>[Opcional] Especificar la cantidad de tiempo en segundos durante la que se espera una conexión al servidor antes de que caduque el tiempo de espera. El valor de tiempo de espera predeterminado para la base de datos de SQL Azure es 30.</target>
+            <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source><target>[Opcional] Especificar la cantidad de tiempo en segundos durante la que se espera una conexión al servidor antes de que caduque el tiempo de espera. El valor de tiempo de espera predeterminado para la base de datos de SQL Azure es 30.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.connectRetryCount">
             <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>
-            <target>[Opcional] Especificar el número de intentos para restablecer la conexión.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.connectRetryInterval">
-            <source xml:lang="en">[Optional] Specify the delay between attempts to restore connection.</source>
-            <target>[Opcional] Especifique el retardo entre intentos de restablecer la conexión.</target>
+            <source xml:lang="en">[Optional] Specify the delay between attempts to restore connection.</source><target>[Opcional] Especifique el retardo entre intentos de restablecer la conexión.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.workstationId">
-            <source xml:lang="en">[Optional] Specify the name of the workstation connecting to SQL Server.</source>
-            <target>[Opcional] Especifique el nombre de la estación de trabajo que se conecta a SQL Server.</target>
+            <source xml:lang="en">[Optional] Specify the name of the workstation connecting to SQL Server.</source><target>[Opcional] Especifique el nombre de la estación de trabajo que se conecta a SQL Server.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.applicationName">
-            <source xml:lang="en">[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').</source>
-            <target>[Opcional] Especifique el nombre de la aplicación utilizada por SQL.</target>
+            <source xml:lang="en">[Optional] Specify the name of the application used for SQL Server to log (default: 'vscode-mssql').</source><target>[Opcional] Especifique el nombre de la aplicación utilizada por SQL.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.applicationIntent">
-            <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
-            <target>[Opcional] Declara el tipo de carga de trabajo de aplicación cuando se conecta a SQL Server tal como ReadWrite o ReadOnly. Para más detalles, consulte SQL Server AlwaysOn.</target>
+            <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source><target>[Opcional] Declara el tipo de carga de trabajo de aplicación cuando se conecta a SQL Server tal como ReadWrite o ReadOnly. Para más detalles, consulte SQL Server AlwaysOn.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.currentLanguage">
-            <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
-            <target>[Opcional] Indica la configuración de idioma de SQL Server.</target>
+            <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source><target>[Opcional] Indica la configuración de idioma de SQL Server.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.pooling">
-            <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-            <target>[Opcional] Cuando está establecido en 'true', el objeto connection se extrae del grupo de conexiones adecuado o, si es necesario, se crea y se agrega al grupo apropiado.</target>
+            <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source><target>[Opcional] Cuando está establecido en 'true', el objeto connection se extrae del grupo de conexiones adecuado o, si es necesario, se crea y se agrega al grupo apropiado.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.maxPoolSize">
-            <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>
-            <target>[Opcional] Especificar el número máximo de conexiones permitidas en el grupo de conexiones.</target>
+            <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source><target>[Opcional] Especificar el número máximo de conexiones permitidas en el grupo de conexiones.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.minPoolSize">
-            <source xml:lang="en">[Optional] Specify the minimum number of connections allowed in the pool.</source>
-            <target>[Opcional] Especificar el número mínimo de conexiones permitidas en el grupo de conexiones.</target>
+            <source xml:lang="en">[Optional] Specify the minimum number of connections allowed in the pool.</source><target>[Opcional] Especificar el número mínimo de conexiones permitidas en el grupo de conexiones.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.loadBalanceTimeout">
-            <source xml:lang="en">[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.</source>
-            <target>[Opcional] Especificar la cantidad mínima de tiempo de vida de la conexión dentro del grupo, en segundos, antes de ser eliminada o borrada.</target>
+            <source xml:lang="en">[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.</source><target>[Opcional] Especificar la cantidad mínima de tiempo de vida de la conexión dentro del grupo, en segundos, antes de ser eliminada o borrada.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.replication">
-            <source xml:lang="en">[Optional] Used by SQL Server in replication.</source>
-            <target>[Opcional] Utilizada por SQL Server en la replicación.</target>
+            <source xml:lang="en">[Optional] Used by SQL Server in replication.</source><target>[Opcional] Utilizada por SQL Server en la replicación.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.attachDbFilename">
-            <source xml:lang="en">[Optional] Specify the name of the primary file, including the full path name, of an attachable database.</source>
-            <target>[Opcional] Especifique el nombre del archivo principal, incluyendo la ruta de acceso completa, de una base de datos adjuntable.</target>
+            <source xml:lang="en">[Optional] Specify the name of the primary file, including the full path name, of an attachable database.</source><target>[Opcional] Especifique el nombre del archivo principal, incluyendo la ruta de acceso completa, de una base de datos adjuntable.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.failoverPartner">
-            <source xml:lang="en">[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner.</source>
-            <target>[Opcional] Especificar el nombre o dirección de red de la instancia de SQL Server que actúa como socio de conmutación por error.</target>
+            <source xml:lang="en">[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner.</source><target>[Opcional] Especificar el nombre o dirección de red de la instancia de SQL Server que actúa como socio de conmutación por error.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.multiSubnetFailover">
-            <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
-            <target>[Opcional] Cuando se establece en 'true', la detección y conexión con el servidor activo es más rápida si el grupo de disponibilidad de AlwaysOn está configurado en diferentes subredes.</target>
+            <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source><target>[Opcional] Cuando se establece en 'true', la detección y conexión con el servidor activo es más rápida si el grupo de disponibilidad de AlwaysOn está configurado en diferentes subredes.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.multipleActiveResultSets">
-            <source xml:lang="en">[Optional] When set to 'true', multiple result sets can be returned and read from on connection.</source>
-            <target>[Opcional] Cuando se establece en 'true', se pueden devolver y leer múltiples conjuntos de resultados a través de la conexión.</target>
+            <source xml:lang="en">[Optional] When set to 'true', multiple result sets can be returned and read from on connection.</source><target>[Opcional] Cuando se establece en 'true', se pueden devolver y leer múltiples conjuntos de resultados a través de la conexión.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.packetSize">
             <source xml:lang="en">[Optional] Specify the size in bytes of the network packets to communicate with SQL Server.</source>
-            <target>[Opcional] Especifique el tamaño en bytes de los paquetes de red para comunicarse con SQL Server.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.typeSystemVersion">
-            <source xml:lang="en">[Optional] Indicates which server type the provider will expose through the DataReader.</source>
-            <target>[Opcional] Indica qué tipo de servidor expondrá el proveedor a través del DataReader.</target>
+            <source xml:lang="en">[Optional] Indicates which server type the provider will expose through the DataReader.</source><target>[Opcional] Indica qué tipo de servidor expondrá el proveedor a través del DataReader.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.connectionString">
-            <source xml:lang="en">[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection.</source>
-            <target>[Opcional] La cadena de conexión ADO.NET que se utilizará para la conexión. Reemplaza cualesquiera otras opciones establecidas en esta conexión.</target>
+            <source xml:lang="en">[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection.</source><target>[Opcional] La cadena de conexión ADO.NET que se utilizará para la conexión. Reemplaza cualesquiera otras opciones establecidas en esta conexión.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.profileName">
-            <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
-            <target>[Opcional] Especificar un nombre personalizado para este perfil de conexión para navegar fácilmente y buscar en la paleta de comandos de Visual Studio Code.</target>
+            <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source><target>[Opcional] Especificar un nombre personalizado para este perfil de conexión para navegar fácilmente y buscar en la paleta de comandos de Visual Studio Code.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.savePassword">
-            <source xml:lang="en">[Optional] When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.</source>
-            <target>[Opcional] Cuando se establece en 'true', la contraseña para autenticación de SQL Server se guarda en el almacén seguro de su sistema operativo tal como KeyChain en MacOS o Secure Store en Windows.</target>
+            <source xml:lang="en">[Optional] When set to 'true', the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.</source><target>[Opcional] Cuando se establece en 'true', la contraseña para autenticación de SQL Server se guarda en el almacén seguro de su sistema operativo tal como KeyChain en MacOS o Secure Store en Windows.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.emptyPasswordInput">
-            <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
-            <target>[Opcional] Indica si este perfil tiene una contraseña vacía establecida explícitamente</target>
+            <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source><target>[Opcional] Indica si este perfil tiene una contraseña vacía establecida explícitamente</target>
         </trans-unit>
         <trans-unit id="mssql.shortcuts">
             <source xml:lang="en">Shortcuts related to the results window</source>
-            <target>Accesos directos relacionados con la ventana de resultados</target>
         </trans-unit>
         <trans-unit id="mssql.messagesDefaultOpen">
-            <source xml:lang="en">True for the messages pane to be open by default; false for closed</source>
-            <target>True para que el panel de mensajes esté abierto de forma predeterminada; false para que esté cerrado</target>
+            <source xml:lang="en">True for the messages pane to be open by default; false for closed</source><target>True para que el panel de mensajes esté abierto de forma predeterminada; false para que esté cerrado</target>
         </trans-unit>
         <trans-unit id="mssql.resultsFontFamily">
-            <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
-            <target>Establece la familia de fuentes para la grilla de resultados; dejarlo en blanco para usar la fuente del editor</target>
+            <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source><target>Establece la familia de fuentes para la grilla de resultados; dejarlo en blanco para usar la fuente del editor</target>
         </trans-unit>
         <trans-unit id="mssql.resultsFontSize">
-            <source xml:lang="en">Set the font size for the results grid; set to blank to use the editor size</source>
-            <target>Establecer el tamaño de fuente para la grilla de resultados; Dejar en blanco para utilizar el tamaño del editor</target>
+            <source xml:lang="en">Set the font size for the results grid; set to blank to use the editor size</source><target>Establecer el tamaño de fuente para la grilla de resultados; Dejar en blanco para utilizar el tamaño del editor</target>
         </trans-unit>
         <trans-unit id="mssql.saveAsCsv.includeHeaders">
-            <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source>
-            <target>[Opcional] Cuando se esteblece en true, los encabezados de columna se incluyen al guardar resultados como CSV</target>
+            <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source><target>[Opcional] Cuando se esteblece en true, los encabezados de columna se incluyen al guardar resultados como CSV</target>
         </trans-unit>
         <trans-unit id="mssql.copyIncludeHeaders">
-            <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
-            <target>[Opcional] Opciones de configuración para copiar resultados desde la vista de resultados</target>
+            <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source><target>[Opcional] Opciones de configuración para copiar resultados desde la vista de resultados</target>
         </trans-unit>
         <trans-unit id="mssql.copyRemoveNewLine">
-            <source xml:lang="en">[Optional] Configuration options for copying multi-line results from the Results View</source>
-            <target>[Opcional] Opciones de configuración para copiar resultados de varias líneas desde la vista de resultados</target>
+            <source xml:lang="en">[Optional] Configuration options for copying multi-line results from the Results View</source><target>[Opcional] Opciones de configuración para copiar resultados de varias líneas desde la vista de resultados</target>
         </trans-unit>
         <trans-unit id="mssql.showBatchTime">
-            <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source>
-            <target>[Opcional] Debe mostrarse el tiempo de ejecución para lotes individuales</target>
+            <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source><target>[Opcional] Si el tiempo de ejecución se mostrará para lotes individuales</target>
         </trans-unit>
         <trans-unit id="mssql.splitPaneSelection">
-            <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
-            <target>[Opcional] Opciones de configuración para en cual columna se deben abrir los nuevos páneles de resultados</target>
+            <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source><target>[Opcional] Opciones de configuración para en cual columna se deben abrir los nuevos páneles de resultados</target>
         </trans-unit>
         <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
-            <source xml:lang="en">Should column definitions be aligned?</source>
-            <target>¿Se deben alinear las definiciones de columna?</target>
+            <source xml:lang="en">Should column definitions be aligned?</source><target>¿Se deben alinear las definiciones de columna?</target>
         </trans-unit>
         <trans-unit id="mssql.format.datatypeCasing">
-            <source xml:lang="en">Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-            <target>Los tipos de dato deben ser formateados como MAYÚSCULAS, minúsculas, o ninguno (sin formato)</target>
+            <source xml:lang="en">Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source><target>Los tipos de dato deben ser formateados como MAYÚSCULAS, minúsculas, o ninguno (sin formato)</target>
         </trans-unit>
         <trans-unit id="mssql.format.keywordCasing">
-            <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-            <target>Las palabras clave deben tener formato como MAYÚSCULAS, minúsculas, o ninguno (sin formato)</target>
+            <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source><target>Las palabras clave deben tener formato como MAYÚSCULAS, minúsculas, o ninguno (sin formato)</target>
         </trans-unit>
         <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
-            <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
-            <target>Las comas deben colocarse al principio de cada frase en una lista por ejemplo, ', mycolumn2' en vez de al final por ejemplo, 'mycolumn1',</target>
+            <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source><target>Las comas deben colocarse al principio de cada frase en una lista por ejemplo, ', mycolumn2' en vez de al final por ejemplo, 'mycolumn1',</target>
         </trans-unit>
         <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
-            <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
-            <target>¿Deben dividirse las referencias a objetos en en sentencias select en líneas separadas? Por ejemplo, para 'SELECT C1, C2 FROM T1' C1 y C2 estarán en líneas separadas</target>
+            <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source><target>¿Deben dividirse las referencias a objetos en en sentencias select en líneas separadas? Por ejemplo, para 'SELECT C1, C2 FROM T1' C1 y C2 estarán en líneas separadas</target>
         </trans-unit>
         <trans-unit id="mssql.applyLocalization">
-            <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-            <target>[Opcional] Opciones de configuración para localización en la configuración regional configurada en VSCode (debe reiniciar VSCode para que la configuración surta efecto)</target>
+            <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source><target>[Opcional] Opciones de configuración para localización en la configuración regional configurada en VSCode (debe reiniciar VSCode para que la configuración surta efecto)</target>
         </trans-unit>
         <trans-unit id="mssql.query.displayBitAsNumber">
-            <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'</source>
-            <target>¿Se deben mostrar las columnas BIT como números (1 o 0)? Si es false, las columnas BIT se mostrarán como 'true' o 'false'</target>
+            <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'</source><target>¿Se deben mostrar las columnas BIT como números (1 o 0)? Si es false, las columnas BIT se mostrarán como 'true' o 'false'</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableIntelliSense">
             <source xml:lang="en">Should IntelliSense be enabled</source>
-            <target>Debe habilitar IntelliSense</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableErrorChecking">
-            <source xml:lang="en">Should IntelliSense error checking be enabled</source>
-            <target>Debe habilitar la comprobación de errores de IntelliSense </target>
+            <source xml:lang="en">Should IntelliSense error checking be enabled</source><target>Debe habilitar la comprobación de errores de IntelliSense </target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableSuggestions">
-            <source xml:lang="en">Should IntelliSense suggestions be enabled</source>
-            <target>Debe habilitar las sugerencias de IntelliSense</target>
+            <source xml:lang="en">Should IntelliSense suggestions be enabled</source><target>Debe habilitar las sugerencias de IntelliSense</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.enableQuickInfo">
-            <source xml:lang="en">Should IntelliSense quick info be enabled</source>
-            <target>Debe habilitar la información rápida de IntelliSense</target>
+            <source xml:lang="en">Should IntelliSense quick info be enabled</source><target>Debe habilitar la información rápida de IntelliSense</target>
         </trans-unit>
         <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
-            <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
-            <target>Las sugerencias de IntelliSense debe estar en minúsculas</target>
+            <source xml:lang="en">Should IntelliSense suggestions be lowercase</source><target>Las sugerencias de IntelliSense debe estar en minúsculas</target>
         </trans-unit>
     </body>
   </file>

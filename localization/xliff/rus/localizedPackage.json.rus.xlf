@@ -1,4 +1,5 @@
-<?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ru">
     <body>
         <trans-unit id="extension.runQuery">
@@ -11,14 +12,13 @@
             <source xml:lang="en">Cancel Query</source>
         </trans-unit>
         <trans-unit id="extension.connect">
-            <source xml:lang="en">Connect</source>
+            <source xml:lang="en">Connect</source><target>Подключить</target>
         </trans-unit>
         <trans-unit id="extension.disconnect">
-            <source xml:lang="en">Disconnect</source>
+            <source xml:lang="en">Disconnect</source><target>Отключить</target>
         </trans-unit>
         <trans-unit id="extension.manageProfiles">
-            <source xml:lang="en">Manage Connection Profiles</source>
-            <target>Управление профилями подключения</target>
+            <source xml:lang="en">Manage Connection Profiles</source><target>Управление профилями подключения</target>
         </trans-unit>
         <trans-unit id="extension.chooseDatabase">
             <source xml:lang="en">Use Database</source>
@@ -30,7 +30,7 @@
             <source xml:lang="en">Getting Started Guide</source>
         </trans-unit>
         <trans-unit id="extension.newQuery">
-            <source xml:lang="en">New Query</source>
+            <source xml:lang="en">New Query</source><target>Создать запрос</target>
         </trans-unit>
         <trans-unit id="extension.rebuildIntelliSenseCache">
             <source xml:lang="en">Refresh IntelliSense Cache</source>

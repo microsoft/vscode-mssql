@@ -1,483 +1,366 @@
-<?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="zh-Hant">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="zh-HANT">
     <body>
         <trans-unit id="msgStartedExecute">
-            <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
-            <target>開始查詢文件&quot;{0}&quot;</target>
+            <source xml:lang="en">Started query execution for document "{0}"</source><target>開始查詢文件"{0}"</target>
         </trans-unit>
         <trans-unit id="msgFinishedExecute">
-            <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
-            <target>已完成查詢文件&quot;{0}&quot;</target>
+            <source xml:lang="en">Finished query execution for document "{0}"</source><target>已完成查詢文件"{0}"</target>
         </trans-unit>
         <trans-unit id="msgRunQueryInProgress">
-            <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
-            <target>此編輯器工作階段已經在執行查詢。請取消這項查詢，或等待其完成。</target>
+            <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source><target>此編輯器工作階段已經在執行查詢。請取消這項查詢，或等待其完成。</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartMessage">
-            <source xml:lang="en">Started executing query at </source>
-            <target>開始執行查詢，在</target>
+            <source xml:lang="en">Started executing query at </source><target>開始執行查詢，在</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartLine">
-            <source xml:lang="en">Line {0}</source>
-            <target>第 {0} 行</target>
+            <source xml:lang="en">Line {0}</source><target>第 {0} 行</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryFailed">
-            <source xml:lang="en">Canceling the query failed: {0}</source>
-            <target>取消查詢失敗︰ {0}</target>
+            <source xml:lang="en">Canceling the query failed: {0}</source><target>取消查詢失敗︰ {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryNotRunning">
-            <source xml:lang="en">Cannot cancel query as no query is running.</source>
-            <target>沒有查詢正在執行時，不能取消查詢。</target>
+            <source xml:lang="en">Cannot cancel query as no query is running.</source><target>沒有查詢正在執行時，不能取消查詢。</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabaseNotConnected">
-            <source xml:lang="en">No connection was found. Please connect to a server first.</source>
-            <target>找不到連接。請先連接到伺服器。</target>
+            <source xml:lang="en">No connection was found. Please connect to a server first.</source><target>找不到連接。請先連接到伺服器。</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabasePlaceholder">
-            <source xml:lang="en">Choose a database from the list below</source>
-            <target>請從下列清單選擇資料庫</target>
+            <source xml:lang="en">Choose a database from the list below</source><target>請從下列清單選擇資料庫</target>
         </trans-unit>
         <trans-unit id="msgConnectionError">
-            <source xml:lang="en">Error {0}: {1}</source>
-            <target>錯誤 {0}: {1}</target>
+            <source xml:lang="en">Error {0}: {1}</source><target>錯誤 {0}: {1}</target>
         </trans-unit>
         <trans-unit id="msgConnectionError2">
-            <source xml:lang="en">Failed to connect: {0}</source>
-            <target>連線失敗︰ {0}</target>
+            <source xml:lang="en">Failed to connect: {0}</source><target>連線失敗︰ {0}</target>
         </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
-            <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
-            <target>錯誤 {0}: {1} 請以不同的使用者登入，並使用 ALTER LOGIN 變更密碼。</target>
+            <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source><target>錯誤 {0}: {1} 請以不同的使用者登入，並使用 ALTER LOGIN 變更密碼。</target>
         </trans-unit>
         <trans-unit id="connectionErrorChannelName">
-            <source xml:lang="en">Connection Errors</source>
-            <target>連線錯誤</target>
+            <source xml:lang="en">Connection Errors</source><target>連線錯誤</target>
         </trans-unit>
         <trans-unit id="msgPromptCancelConnect">
-            <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
-            <target>伺服器連線正在進行中。您確定要取消嗎？</target>
+            <source xml:lang="en">Server connection in progress. Do you want to cancel?</source><target>伺服器連線正在進行中。您確定要取消嗎？</target>
         </trans-unit>
         <trans-unit id="msgPromptClearRecentConnections">
-            <source xml:lang="en">Confirm to clear recent connections list</source>
-            <target>確認清除最近的連線清單</target>
+            <source xml:lang="en">Confirm to clear recent connections list</source><target>確認清除最近的連線清單</target>
         </trans-unit>
         <trans-unit id="msgOpenSqlFile">
-            <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
-            <target>若要使用這項指令，開啟一個 .sql 檔案 -或- 變更編輯器語言為 「 SQL 」 -或- 在開啟中的 SQL 編輯器選取 T-SQL 文字。</target>
+            <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source><target>若要使用這項指令，開啟一個 .sql 檔案 -或- 變更編輯器語言為 「 SQL 」 -或- 在開啟中的 SQL 編輯器選取 T-SQL 文字。</target>
         </trans-unit>
         <trans-unit id="recentConnectionsPlaceholder">
-            <source xml:lang="en">Choose a connection profile from the list below</source>
-            <target>從下列清單中選擇一個連線設定檔</target>
+            <source xml:lang="en">Choose a connection profile from the list below</source><target>從下列清單中選擇一個連線設定檔</target>
         </trans-unit>
         <trans-unit id="CreateProfileFromConnectionsListLabel">
-            <source xml:lang="en">Create Connection Profile</source>
-            <target>建立連線設定檔</target>
+            <source xml:lang="en">Create Connection Profile</source><target>建立連線設定檔</target>
         </trans-unit>
         <trans-unit id="CreateProfileLabel">
-            <source xml:lang="en">Create</source>
-            <target>建立</target>
+            <source xml:lang="en">Create</source><target>建立</target>
         </trans-unit>
         <trans-unit id="ClearRecentlyUsedLabel">
-            <source xml:lang="en">Clear Recent Connections List</source>
-            <target>清除最近的連線記錄</target>
+            <source xml:lang="en">Clear Recent Connections List</source><target>清除最近的連線記錄</target>
         </trans-unit>
         <trans-unit id="EditProfilesLabel">
-            <source xml:lang="en">Edit</source>
-            <target>編輯</target>
+            <source xml:lang="en">Edit</source><target>編輯</target>
         </trans-unit>
         <trans-unit id="RemoveProfileLabel">
-            <source xml:lang="en">Remove</source>
-            <target>移除</target>
+            <source xml:lang="en">Remove</source><target>移除</target>
         </trans-unit>
         <trans-unit id="ManageProfilesPrompt">
-            <source xml:lang="en">Manage Connection Profiles</source>
-            <target>管理連線設定檔</target>
+            <source xml:lang="en">Manage Connection Profiles</source><target>管理連線設定檔</target>
         </trans-unit>
         <trans-unit id="SampleServerName">
-            <source xml:lang="en">{{put-server-name-here}}</source>
-            <target>{{在這裡放入伺服器的名稱}}</target>
+            <source xml:lang="en">{{put-server-name-here}}</source><target>{{在這裡放入伺服器的名稱}}</target>
         </trans-unit>
         <trans-unit id="serverPrompt">
-            <source xml:lang="en">Server name or ADO.NET connection string</source>
-            <target>伺服器名稱或ADO.NET連接字串</target>
+            <source xml:lang="en">Server name or ADO.NET connection string</source><target>伺服器名稱或ADO.NET連接字串</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
-            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
-            <target>hostname\\instance 或 &lt;server&gt;.database.windows.net 或 ADO.NET連接字串</target>
+            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source><target>hostname\\instance 或 &lt;server&gt;.database.windows.net 或 ADO.NET連接字串</target>
         </trans-unit>
         <trans-unit id="databasePrompt">
-            <source xml:lang="en">Database name</source>
-            <target>資料庫名稱</target>
+            <source xml:lang="en">Database name</source><target>資料庫名稱</target>
         </trans-unit>
         <trans-unit id="databasePlaceholder">
-            <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
-            <target>[選用] 欲連接的資料庫 （按下 Enter 以連接到 &lt; 預設的 &gt; 資料庫）</target>
+            <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source><target>[選用] 欲連接的資料庫 （按下 Enter 以連接到 &lt; 預設的 &gt; 資料庫）</target>
         </trans-unit>
         <trans-unit id="authTypePrompt">
-            <source xml:lang="en">Authentication Type</source>
-            <target>驗證類型</target>
+            <source xml:lang="en">Authentication Type</source><target>驗證類型</target>
         </trans-unit>
         <trans-unit id="authTypeIntegrated">
-            <source xml:lang="en">Integrated</source>
-            <target>整合</target>
+            <source xml:lang="en">Integrated</source><target>整合</target>
         </trans-unit>
         <trans-unit id="authTypeSql">
-            <source xml:lang="en">SQL Login</source>
-            <target>SQL 登入</target>
+            <source xml:lang="en">SQL Login</source><target>SQL 登入</target>
         </trans-unit>
         <trans-unit id="usernamePrompt">
-            <source xml:lang="en">User name</source>
-            <target>使用者名稱</target>
+            <source xml:lang="en">User name</source><target>使用者名稱</target>
         </trans-unit>
         <trans-unit id="usernamePlaceholder">
-            <source xml:lang="en">User name (SQL Login)</source>
-            <target>使用者名稱 （SQL 登入）</target>
+            <source xml:lang="en">User name (SQL Login)</source><target>使用者名稱 （SQL 登入）</target>
         </trans-unit>
         <trans-unit id="passwordPrompt">
-            <source xml:lang="en">Password</source>
-            <target>密碼</target>
+            <source xml:lang="en">Password</source><target>密碼</target>
         </trans-unit>
         <trans-unit id="passwordPlaceholder">
-            <source xml:lang="en">Password (SQL Login)</source>
-            <target>密碼 （SQL 登入）</target>
+            <source xml:lang="en">Password (SQL Login)</source><target>密碼 （SQL 登入）</target>
         </trans-unit>
         <trans-unit id="msgSavePassword">
-            <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
-            <target>儲存密碼？如果 [否]，每次連線時將會需要輸入密碼</target>
+            <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source><target>儲存密碼？如果 [否]，每次連線時將會需要輸入密碼</target>
         </trans-unit>
         <trans-unit id="profileNamePrompt">
-            <source xml:lang="en">Profile Name</source>
-            <target>設定檔名稱</target>
+            <source xml:lang="en">Profile Name</source><target>設定檔名稱</target>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
-            <source xml:lang="en">[Optional] Enter a name for this profile</source>
-            <target>[選用] 替這個設定檔取一個名稱</target>
+            <source xml:lang="en">[Optional] Enter a name for this profile</source><target>[選用] 替這個設定檔取一個名稱</target>
         </trans-unit>
         <trans-unit id="filepathPrompt">
-            <source xml:lang="en">File path</source>
-            <target>檔案路徑</target>
+            <source xml:lang="en">File path</source><target>檔案路徑</target>
         </trans-unit>
         <trans-unit id="filepathMessage">
-            <source xml:lang="en">File name</source>
-            <target>檔案名稱</target>
+            <source xml:lang="en">File name</source><target>檔案名稱</target>
         </trans-unit>
         <trans-unit id="overwritePrompt">
-            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
-            <target>同名的檔案已經存在。您要取代現有的檔案嗎？</target>
+            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source><target>同名的檔案已經存在。您要取代現有的檔案嗎？</target>
         </trans-unit>
         <trans-unit id="overwritePlaceholder">
-            <source xml:lang="en">A file with this name already exists</source>
-            <target>同名的檔案已經存在</target>
+            <source xml:lang="en">A file with this name already exists</source><target>同名的檔案已經存在</target>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
-            <source xml:lang="en">Error occurred opening content in editor.</source>
-            <target>在編輯器中開啟內容時發生錯誤。</target>
+            <source xml:lang="en">Error occurred opening content in editor.</source><target>在編輯器中開啟內容時發生錯誤。</target>
         </trans-unit>
         <trans-unit id="msgSaveStarted">
-            <source xml:lang="en">Started saving results to </source>
-            <target>開始儲存結果</target>
+            <source xml:lang="en">Started saving results to </source><target>開始儲存結果</target>
         </trans-unit>
         <trans-unit id="msgSaveFailed">
-            <source xml:lang="en">Failed to save results. </source>
-            <target>無法儲存結果。</target>
+            <source xml:lang="en">Failed to save results. </source><target>無法儲存結果。</target>
         </trans-unit>
         <trans-unit id="msgSaveSucceeded">
-            <source xml:lang="en">Successfully saved results to </source>
-            <target>已成功儲存結果至</target>
+            <source xml:lang="en">Successfully saved results to </source><target>已成功儲存結果至</target>
         </trans-unit>
         <trans-unit id="msgSelectProfileToRemove">
-            <source xml:lang="en">Select profile to remove</source>
-            <target>選取要移除的設定檔</target>
+            <source xml:lang="en">Select profile to remove</source><target>選取要移除的設定檔</target>
         </trans-unit>
         <trans-unit id="confirmRemoveProfilePrompt">
-            <source xml:lang="en">Confirm to remove this profile.</source>
-            <target>請確認要移除這個設定檔。</target>
+            <source xml:lang="en">Confirm to remove this profile.</source><target>請確認要移除這個設定檔。</target>
         </trans-unit>
         <trans-unit id="msgNoProfilesSaved">
-            <source xml:lang="en">No connection profile to remove.</source>
-            <target>沒有可移除的連線設定檔。</target>
+            <source xml:lang="en">No connection profile to remove.</source><target>沒有可移除的連線設定檔。</target>
         </trans-unit>
         <trans-unit id="msgProfileRemoved">
-            <source xml:lang="en">Profile removed successfully</source>
-            <target>成功移除了設定檔</target>
+            <source xml:lang="en">Profile removed successfully</source><target>成功移除了設定檔</target>
         </trans-unit>
         <trans-unit id="msgProfileCreated">
-            <source xml:lang="en">Profile created successfully</source>
-            <target>成功建立了設定檔</target>
+            <source xml:lang="en">Profile created successfully</source><target>成功建立了設定檔</target>
         </trans-unit>
         <trans-unit id="msgProfileCreatedAndConnected">
-            <source xml:lang="en">Profile created and connected</source>
-            <target>建立並連接的設定檔</target>
+            <source xml:lang="en">Profile created and connected</source><target>建立並連接的設定檔</target>
         </trans-unit>
         <trans-unit id="msgClearedRecentConnections">
-            <source xml:lang="en">Recent connections list cleared</source>
-            <target>清除最近的連線清單</target>
+            <source xml:lang="en">Recent connections list cleared</source><target>清除最近的連線清單</target>
         </trans-unit>
         <trans-unit id="msgIsRequired">
-            <source xml:lang="en"> is required.</source>
-            <target>是必要的。</target>
+            <source xml:lang="en"> is required.</source><target>是必要的。</target>
         </trans-unit>
         <trans-unit id="msgError">
-            <source xml:lang="en">Error: </source>
-            <target>錯誤︰</target>
+            <source xml:lang="en">Error: </source><target>錯誤︰</target>
         </trans-unit>
         <trans-unit id="msgYes">
-            <source xml:lang="en">Yes</source>
-            <target>是</target>
+            <source xml:lang="en">Yes</source><target>是</target>
         </trans-unit>
         <trans-unit id="msgNo">
-            <source xml:lang="en">No</source>
-            <target>否</target>
+            <source xml:lang="en">No</source><target>否</target>
         </trans-unit>
         <trans-unit id="defaultDatabaseLabel">
-            <source xml:lang="en">&lt;default&gt;</source>
-            <target>&lt; 預設 &gt;</target>
+            <source xml:lang="en">&lt;default&gt;</source><target>&lt;預設&gt;</target>
         </trans-unit>
         <trans-unit id="notConnectedLabel">
-            <source xml:lang="en">Disconnected</source>
-            <target>中斷連線</target>
+            <source xml:lang="en">Disconnected</source><target>中斷連線</target>
         </trans-unit>
         <trans-unit id="notConnectedTooltip">
-            <source xml:lang="en">Click to connect to a database</source>
-            <target>按一下以連接至資料庫</target>
+            <source xml:lang="en">Click to connect to a database</source><target>按一下以連接至資料庫</target>
         </trans-unit>
         <trans-unit id="connectingLabel">
-            <source xml:lang="en">Connecting</source>
-            <target>連線中</target>
+            <source xml:lang="en">Connecting</source><target>連線中</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
-            <source xml:lang="en">Connecting to: </source>
-            <target>正在連線到︰</target>
+            <source xml:lang="en">Connecting to: </source><target>正在連線到︰</target>
         </trans-unit>
         <trans-unit id="connectErrorLabel">
-            <source xml:lang="en">Connection error</source>
-            <target>連接錯誤</target>
+            <source xml:lang="en">Connection error</source><target>連接錯誤</target>
         </trans-unit>
         <trans-unit id="connectErrorTooltip">
-            <source xml:lang="en">Error connecting to: </source>
-            <target>連線到此處時發生錯誤︰</target>
+            <source xml:lang="en">Error connecting to: </source><target>連線到此處時發生錯誤︰</target>
         </trans-unit>
         <trans-unit id="connectErrorCode">
-            <source xml:lang="en">Error code: </source>
-            <target>錯誤代碼:</target>
+            <source xml:lang="en">Error code: </source><target>錯誤代碼:</target>
         </trans-unit>
         <trans-unit id="connectErrorMessage">
-            <source xml:lang="en">Error Message: </source>
-            <target>錯誤訊息:</target>
+            <source xml:lang="en">Error Message: </source><target>錯誤訊息:</target>
         </trans-unit>
         <trans-unit id="cancelingQueryLabel">
-            <source xml:lang="en">Canceling query </source>
-            <target>取消查詢</target>
+            <source xml:lang="en">Canceling query </source><target>取消查詢</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseLabel">
-            <source xml:lang="en">Updating IntelliSense...</source>
-            <target>正在更新 IntelliSense...</target>
+            <source xml:lang="en">Updating IntelliSense...</source><target>正在更新 IntelliSense...</target>
         </trans-unit>
         <trans-unit id="extensionNotInitializedError">
-            <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
-            <target>當副檔名正在初始化時無法執行命令。請稍後再試。</target>
+            <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source><target>當副檔名正在初始化時無法執行命令。請稍後再試。</target>
         </trans-unit>
         <trans-unit id="untitledScheme">
-            <source xml:lang="en">untitled</source>
-            <target>未命名</target>
+            <source xml:lang="en">untitled</source><target>未命名</target>
         </trans-unit>
         <trans-unit id="msgChangeLanguageMode">
-            <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
-            <target>若要使用這項指令，您必須將語言設定為&quot;SQL&quot;。確認變更語言模式。</target>
+            <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source><target>若要使用這項指令，您必須將語言設定為"SQL"。確認變更語言模式。</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabaseContext">
-            <source xml:lang="en">Changed database context to &quot;{0}&quot; for document &quot;{1}&quot;</source>
-            <target>已對文件{1}資料庫內容{0}進行變更</target>
+            <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source><target>已對文件{1}資料庫內容{0}進行變更</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryCreateProfile">
-            <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
-            <target>錯誤︰ 無法使用所提供的連線資訊連接。重新建立設定檔嗎？</target>
+            <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source><target>錯誤︰ 無法使用所提供的連線資訊連接。重新建立設定檔嗎？</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
-            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
-            <target>錯誤: 登入失敗。 使用不同認證重試？</target>
+            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source><target>錯誤: 登入失敗。 使用不同認證重試？</target>
         </trans-unit>
         <trans-unit id="retryLabel">
-            <source xml:lang="en">Retry</source>
-            <target>再試一次</target>
+            <source xml:lang="en">Retry</source><target>重試</target>
         </trans-unit>
         <trans-unit id="msgConnecting">
-            <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
-            <target>正在連線伺服器&quot;{0}&quot;的文件&quot;{1}&quot;</target>
+            <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source><target>正在連線伺服器"{0}"的文件"{1}"</target>
         </trans-unit>
         <trans-unit id="msgConnectedServerInfo">
-            <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
-            <target>已在文件&quot;{1}&quot; . 伺服器資訊︰ {2}上連線到伺服器&quot;{0}&quot;。</target>
+            <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source><target>已在文件"{1}" . 伺服器資訊︰ {2}上連線到伺服器"{0}"。</target>
         </trans-unit>
         <trans-unit id="msgConnectionFailed">
-            <source xml:lang="en">Error connecting to server &quot;{0}&quot;. Details: {1}</source>
-            <target>連線到伺服器&quot;{0}&quot;時發生錯誤。詳細資料︰ {1}</target>
+            <source xml:lang="en">Error connecting to server "{0}". Details: {1}</source><target>連線到伺服器"{0}"時發生錯誤。詳細資料︰ {1}</target>
         </trans-unit>
         <trans-unit id="msgChangingDatabase">
-            <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
-            <target>正在從伺服器&quot;{1}&quot;的文件&quot;{2}&quot;變更資料庫內容為&quot;{0}&quot;</target>
+            <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source><target>正在從伺服器"{1}"的文件"{2}"變更資料庫內容為"{0}"</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabase">
-            <source xml:lang="en">Changed database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
-            <target>已變更伺服器&quot;{1}&quot;上文件&quot;{2}&quot;的資料庫內容為&quot;{0}&quot;</target>
+            <source xml:lang="en">Changed database context to "{0}" on server "{1}" on document "{2}".</source><target>已變更伺服器"{1}"上文件"{2}"的資料庫內容為"{0}"</target>
         </trans-unit>
         <trans-unit id="msgDisconnected">
-            <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
-            <target>已中斷文件&quot;{0}&quot;的連線</target>
+            <source xml:lang="en">Disconnected on document "{0}"</source><target>已中斷文件"{0}"的連線</target>
         </trans-unit>
         <trans-unit id="msgErrorReadingConfigFile">
-            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-            <target>錯誤︰ 無法從 [{0}] 載入連線設定檔。請檢查檔案的格式是否正確。</target>
+            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source><target>錯誤︰ 無法從 [{0}] 載入連線設定檔。請檢查檔案的格式是否正確。</target>
         </trans-unit>
         <trans-unit id="titleResultsPane">
-            <source xml:lang="en">Results: {0}</source>
-            <target>結果︰ {0}</target>
+            <source xml:lang="en">Results: {0}</source><target>結果︰ {0}</target>
         </trans-unit>
         <trans-unit id="macOpenSslErrorMessage">
-            <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
-            <target>OpenSSL 版本 &gt; = 1.0.1，才能連線。</target>
+            <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source><target>OpenSSL 版本 &gt; = 1.0.1，才能連線。</target>
         </trans-unit>
         <trans-unit id="macOpenSslHelpButton">
-            <source xml:lang="en">Help</source>
-            <target>說明</target>
+            <source xml:lang="en">Help</source><target>說明</target>
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
-            <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
-            <target>需要 macOS Sierra或更新版本才能使用此功能。</target>
+            <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source><target>需要 macOS Sierra或更新版本才能使用此功能。</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
-            <source xml:lang="en">Getting definition ...</source>
-            <target>取得定義...</target>
+            <source xml:lang="en">Getting definition ...</source><target>取得定義...</target>
         </trans-unit>
         <trans-unit id="definitionRequestedStatus">
-            <source xml:lang="en">DefinitionRequested</source>
-            <target>已請求定義</target>
+            <source xml:lang="en">DefinitionRequested</source><target>已請求定義</target>
         </trans-unit>
         <trans-unit id="definitionRequestCompletedStatus">
-            <source xml:lang="en">DefinitionRequestCompleted</source>
-            <target>已完成定義請求</target>
+            <source xml:lang="en">DefinitionRequestCompleted</source><target>已完成定義請求</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseStatus">
-            <source xml:lang="en">updatingIntelliSense</source>
-            <target>正在更新IntelliSense</target>
+            <source xml:lang="en">updatingIntelliSense</source><target>正在更新IntelliSense</target>
         </trans-unit>
         <trans-unit id="intelliSenseUpdatedStatus">
-            <source xml:lang="en">intelliSenseUpdated</source>
-            <target>intelliSense已更新</target>
+            <source xml:lang="en">intelliSenseUpdated</source><target>intelliSense已更新</target>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
-            <source xml:lang="en">test</source>
-            <target>測試</target>
+            <source xml:lang="en">test</source><target>測試</target>
         </trans-unit>
         <trans-unit id="disconnectOptionLabel">
-            <source xml:lang="en">Disconnect</source>
-            <target>中斷連線</target>
+            <source xml:lang="en">Disconnect</source><target>中斷連線</target>
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
-            <source xml:lang="en">Close the current connection</source>
-            <target>關閉目前連線。</target>
+            <source xml:lang="en">Close the current connection</source><target>關閉目前連線。</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
-            <source xml:lang="en">Are you sure you want to disconnect?</source>
-            <target>您確定要中斷目前連線？</target>
+            <source xml:lang="en">Are you sure you want to disconnect?</source><target>您確定要中斷目前連線？</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
-            <source xml:lang="en">Batch execution time: {0}</source>
-            <target>批次執行時間: {0}</target>
+            <source xml:lang="en">Batch execution time: {0}</source><target>批次執行時間: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
-            <source xml:lang="en">A SQL editor must have focus before executing this command</source>
+            <source xml:lang="en">A SQL editor must have focus before executing this command</source><target>在執行此命令之前, SQL 編輯器必須聚焦</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
-            <source xml:lang="en">Maximize</source>
-            <target>最大化</target>
+            <source xml:lang="en">Maximize</source><target>最大化</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
-            <source xml:lang="en">Restore</source>
-            <target>還原</target>
+            <source xml:lang="en">Restore</source><target>還原</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
-            <source xml:lang="en">Save as CSV</source>
-            <target>另存為 CSV</target>
+            <source xml:lang="en">Save as CSV</source><target>另存為 CSV</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
-            <source xml:lang="en">Save as JSON</source>
-            <target>另存為 JSON</target>
+            <source xml:lang="en">Save as JSON</source><target>另存為 JSON</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
-            <source xml:lang="en">Save as Excel</source>
-            <target>另存為 Excel</target>
+            <source xml:lang="en">Save as Excel</source><target>另存為 Excel</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
-            <source xml:lang="en">CSV</source>
-            <target>CSV</target>
+            <source xml:lang="en">CSV</source><target>CSV</target>
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
-            <source xml:lang="en">JSON</source>
-            <target>JSON</target>
+            <source xml:lang="en">JSON</source><target>JSON</target>
         </trans-unit>
         <trans-unit id="fileTypeExcelLabel">
-            <source xml:lang="en">Excel</source>
-            <target>Excel</target>
+            <source xml:lang="en">Excel</source><target>Excel</target>
         </trans-unit>
         <trans-unit id="resultPaneLabel">
-            <source xml:lang="en">Results</source>
+            <source xml:lang="en">Results</source><target>結果</target>
         </trans-unit>
         <trans-unit id="selectAll">
-            <source xml:lang="en">Select all</source>
-            <target>全選</target>
+            <source xml:lang="en">Select all</source><target>全選</target>
         </trans-unit>
         <trans-unit id="copyLabel">
-            <source xml:lang="en">Copy</source>
-            <target>複製</target>
+            <source xml:lang="en">Copy</source><target>複製</target>
         </trans-unit>
         <trans-unit id="copyWithHeadersLabel">
-            <source xml:lang="en">Copy with Headers</source>
-            <target>隨著標題複製</target>
+            <source xml:lang="en">Copy with Headers</source><target>隨標頭一同複製</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
-            <source xml:lang="en">Executing query...</source>
-            <target>執行查詢中...</target>
+            <source xml:lang="en">Executing query...</source><target>執行查詢中...</target>
         </trans-unit>
         <trans-unit id="messagePaneLabel">
-            <source xml:lang="en">Messages</source>
-            <target>訊息</target>
+            <source xml:lang="en">Messages</source><target>訊息</target>
         </trans-unit>
         <trans-unit id="lineSelectorFormatted">
-            <source xml:lang="en">Line {0}</source>
-            <target>第 {0} 行</target>
+            <source xml:lang="en">Line {0}</source><target>第 {0} 行</target>
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
-            <source xml:lang="en">Total execution time: {0}</source>
-            <target>總執行時間: {0}</target>
+            <source xml:lang="en">Total execution time: {0}</source><target>總執行時間: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
-            <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
-            <target>儲存結果指令無法使用於多重選擇中</target>
+            <source xml:lang="en">Save results command cannot be used with multiple selections.</source><target>儲存結果指令無法使用於多重選擇中</target>
         </trans-unit>
         <trans-unit id="mssqlProviderName">
-            <source xml:lang="en">MSSQL</source>
-            <target>MSSQL</target>
+            <source xml:lang="en">MSSQL</source><target>MSSQL</target>
         </trans-unit>
         <trans-unit id="noneProviderName">
-            <source xml:lang="en">None</source>
-            <target>無</target>
+            <source xml:lang="en">None</source><target>無</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
-            <source xml:lang="en">Choose SQL Language</source>
-            <target>選擇 SQL 語言</target>
+            <source xml:lang="en">Choose SQL Language</source><target>選擇 SQL 語言 </target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
-            <source xml:lang="en">Choose SQL Language</source>
-            <target>選擇 SQL 語言 </target>
+            <source xml:lang="en">Choose SQL Language</source><target>選擇 SQL 語言 </target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
-            <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
-            <target>對目前文件使用 T-SQL intellisense 與語法錯誤檢查</target>
+            <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source><target>對目前文件使用 T-SQL intellisense 與語法錯誤檢查</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionNone">
-            <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
-            <target>關閉對目前文件 intellisense 與語法錯誤檢查</target>
+            <source xml:lang="en">Disable intellisense and syntax error checking on current document</source><target>關閉對目前文件 intellisense 與語法錯誤檢查</target>
         </trans-unit>
     </body>
   </file>

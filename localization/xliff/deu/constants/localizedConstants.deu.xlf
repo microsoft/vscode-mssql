@@ -1,485 +1,366 @@
-<?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="de">
     <body>
         <trans-unit id="msgStartedExecute">
-            <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
-            <target>Ausführung der Abfrage wurde gestartet für Dokument '{0}'</target>
+            <source xml:lang="en">Started query execution for document "{0}"</source><target>Ausführung der Abfrage wurde gestartet für Dokument '{0}'</target>
         </trans-unit>
         <trans-unit id="msgFinishedExecute">
-            <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
-            <target>Ausführung der Abfrage beendet für Dokument '{0}'</target>
+            <source xml:lang="en">Finished query execution for document "{0}"</source><target>Ausführung der Abfrage beendet für Dokument '{0}'</target>
         </trans-unit>
         <trans-unit id="msgRunQueryInProgress">
-            <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
-            <target>Eine Abfrage wird für diese Editorsitzung bereits ausgeführt. Brechen Sie diese Abfrage ab, oder warten Sie auf das Ergebnis.</target>
+            <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source><target>Eine Abfrage wird für diese Editorsitzung bereits ausgeführt. Brechen Sie diese Abfrage ab, oder warten Sie auf das Ergebnis.</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartMessage">
-            <source xml:lang="en">Started executing query at </source>
-            <target>Ausführung der Abfrage gestartet ab</target>
+            <source xml:lang="en">Started executing query at </source><target>Ausführung der Abfrage gestartet ab</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartLine">
-            <source xml:lang="en">Line {0}</source>
-            <target>Zeile {0}</target>
+            <source xml:lang="en">Line {0}</source><target>Linie {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryFailed">
-            <source xml:lang="en">Canceling the query failed: {0}</source>
-            <target>Abbrechen der Abfrage fehlgeschlagen: {0}</target>
+            <source xml:lang="en">Canceling the query failed: {0}</source><target>Abbrechen der Abfrage fehlgeschlagen: {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryNotRunning">
-            <source xml:lang="en">Cannot cancel query as no query is running.</source>
-            <target>Kann die Abfrage nicht abbrechen, da keine Abfrage ausgeführt wird.</target>
+            <source xml:lang="en">Cannot cancel query as no query is running.</source><target>Kann die Abfrage nicht abbrechen, da keine Abfrage ausgeführt wird.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabaseNotConnected">
-            <source xml:lang="en">No connection was found. Please connect to a server first.</source>
-            <target>Es wurde keine Verbindung gefunden. Bitte zunächst mit einem Server verbinden.</target>
+            <source xml:lang="en">No connection was found. Please connect to a server first.</source><target>Es wurde keine Verbindung gefunden. Bitte zunächst mit einem Server verbinden.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabasePlaceholder">
-            <source xml:lang="en">Choose a database from the list below</source>
-            <target>Wählen Sie eine Datenbank aus der Liste</target>
+            <source xml:lang="en">Choose a database from the list below</source><target>Wählen Sie eine Datenbank aus der Liste</target>
         </trans-unit>
         <trans-unit id="msgConnectionError">
-            <source xml:lang="en">Error {0}: {1}</source>
-            <target>Fehler {0}: {1}</target>
+            <source xml:lang="en">Error {0}: {1}</source><target>Fehler {0}: {1}</target>
         </trans-unit>
         <trans-unit id="msgConnectionError2">
-            <source xml:lang="en">Failed to connect: {0}</source>
-            <target>Verbindung fehlgeschlagen: {0}</target>
+            <source xml:lang="en">Failed to connect: {0}</source><target>Verbindung fehlgeschlagen: {0}</target>
         </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
-            <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
-            <target>Fehler {0}: {1} melden Sie sich als anderer Benutzer an und ändern Sie das Kennwort mit ALTER LOGIN.</target>
+            <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source><target>Fehler {0}: {1} melden Sie sich als anderer Benutzer an und ändern Sie das Kennwort mit ALTER LOGIN.</target>
         </trans-unit>
         <trans-unit id="connectionErrorChannelName">
-            <source xml:lang="en">Connection Errors</source>
-            <target>Verbindungsfehler</target>
+            <source xml:lang="en">Connection Errors</source><target>Verbindungsfehler</target>
         </trans-unit>
         <trans-unit id="msgPromptCancelConnect">
-            <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
-            <target>Die Verbindung zum Server wird aufgebaut. Möchten Sie wirklich abbrechen?</target>
+            <source xml:lang="en">Server connection in progress. Do you want to cancel?</source><target>Die Verbindung zum Server wird aufgebaut. Möchten Sie wirklich abbrechen?</target>
         </trans-unit>
         <trans-unit id="msgPromptClearRecentConnections">
-            <source xml:lang="en">Confirm to clear recent connections list</source>
-            <target>Die Liste der zuletzt verwendeten Verbindungen wird gelöscht. Bitte bestätigen</target>
+            <source xml:lang="en">Confirm to clear recent connections list</source><target>Die Liste der zuletzt verwendeten Verbindungen wird gelöscht. Bitte bestätigen</target>
         </trans-unit>
         <trans-unit id="msgOpenSqlFile">
-            <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
-            <target>Öffnen Sie zum Verwenden dieses Befehls eine .sql-Datei-Editor Sprache ändern &quot;SQL&quot; - oder - wählen Sie T-SQL-Text - oder - im aktiven SQL Editor.</target>
+            <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source><target>Öffnen Sie zum Verwenden dieses Befehls eine .sql-Datei-Editor Sprache ändern "SQL" - oder - wählen Sie T-SQL-Text - oder - im aktiven SQL Editor.</target>
         </trans-unit>
         <trans-unit id="recentConnectionsPlaceholder">
-            <source xml:lang="en">Choose a connection profile from the list below</source>
-            <target>Wählen Sie ein Profil aus der Liste</target>
+            <source xml:lang="en">Choose a connection profile from the list below</source><target>Wählen Sie ein Profil aus der Liste</target>
         </trans-unit>
         <trans-unit id="CreateProfileFromConnectionsListLabel">
-            <source xml:lang="en">Create Connection Profile</source>
-            <target>Verbindungsprofil erstellen</target>
+            <source xml:lang="en">Create Connection Profile</source><target>Verbindungsprofil erstellen</target>
         </trans-unit>
         <trans-unit id="CreateProfileLabel">
-            <source xml:lang="en">Create</source>
-            <target>Erstellen</target>
+            <source xml:lang="en">Create</source><target>Erstellen</target>
         </trans-unit>
         <trans-unit id="ClearRecentlyUsedLabel">
-            <source xml:lang="en">Clear Recent Connections List</source>
-            <target>Liste der zuletzt verwendeten Verbindungen löschen.</target>
+            <source xml:lang="en">Clear Recent Connections List</source><target>Liste der zuletzt verwendeten Verbindungen löschen.</target>
         </trans-unit>
         <trans-unit id="EditProfilesLabel">
-            <source xml:lang="en">Edit</source>
-            <target>Bearbeiten</target>
+            <source xml:lang="en">Edit</source><target>Bearbeiten</target>
         </trans-unit>
         <trans-unit id="RemoveProfileLabel">
-            <source xml:lang="en">Remove</source>
-            <target>Entfernen</target>
+            <source xml:lang="en">Remove</source><target>Entfernen</target>
         </trans-unit>
         <trans-unit id="ManageProfilesPrompt">
-            <source xml:lang="en">Manage Connection Profiles</source>
-            <target>Verbindungsprofile verwalten</target>
+            <source xml:lang="en">Manage Connection Profiles</source><target>Verbindungsprofile verwalten</target>
         </trans-unit>
         <trans-unit id="SampleServerName">
-            <source xml:lang="en">{{put-server-name-here}}</source>
-            <target>{{Servernamen-hier-eintragen}}</target>
+            <source xml:lang="en">{{put-server-name-here}}</source><target>{{Servernamen-hier-eintragen}}</target>
         </trans-unit>
         <trans-unit id="serverPrompt">
-            <source xml:lang="en">Server name or ADO.NET connection string</source>
-            <target>Servername oder ADO.NET Verbindungszeichenfolge</target>
+            <source xml:lang="en">Server name or ADO.NET connection string</source><target>Servername oder ADO.NET Verbindungszeichenfolge</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
-            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
-            <target>Hostname\\instanz oder &lt;server&gt;. database.windows.net oder ADO.NET Verbindungszeichenfolge</target>
+            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source><target>Hostname\\instanz oder &lt;server&gt;. database.windows.net oder ADO.NET Verbindungszeichenfolge</target>
         </trans-unit>
         <trans-unit id="databasePrompt">
-            <source xml:lang="en">Database name</source>
-            <target>Datenbankname</target>
+            <source xml:lang="en">Database name</source><target>Datenbankname</target>
         </trans-unit>
         <trans-unit id="databasePlaceholder">
-            <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
-            <target>[Optional] Datenbankverbindung (EINGABETASTE drücken, um mit &lt;default&gt; -Datenbank zu verbinden)</target>
+            <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source><target>[Optional] Datenbankverbindung (EINGABETASTE drücken, um mit &lt;default&gt; -Datenbank zu verbinden)</target>
         </trans-unit>
         <trans-unit id="authTypePrompt">
-            <source xml:lang="en">Authentication Type</source>
-            <target>Authentifizierungstyp</target>
+            <source xml:lang="en">Authentication Type</source><target>Authentifizierungstyp</target>
         </trans-unit>
         <trans-unit id="authTypeIntegrated">
-            <source xml:lang="en">Integrated</source>
-            <target>Integriert</target>
+            <source xml:lang="en">Integrated</source><target>Integriert</target>
         </trans-unit>
         <trans-unit id="authTypeSql">
-            <source xml:lang="en">SQL Login</source>
-            <target>SQL-Login</target>
+            <source xml:lang="en">SQL Login</source><target>SQL-Login</target>
         </trans-unit>
         <trans-unit id="usernamePrompt">
-            <source xml:lang="en">User name</source>
-            <target>Benutzername</target>
+            <source xml:lang="en">User name</source><target>Benutzername</target>
         </trans-unit>
         <trans-unit id="usernamePlaceholder">
-            <source xml:lang="en">User name (SQL Login)</source>
-            <target>Benutzername (SQL-Login)</target>
+            <source xml:lang="en">User name (SQL Login)</source><target>Benutzername (SQL-Login)</target>
         </trans-unit>
         <trans-unit id="passwordPrompt">
-            <source xml:lang="en">Password</source>
-            <target>Kennwort</target>
+            <source xml:lang="en">Password</source><target>Kennwort</target>
         </trans-unit>
         <trans-unit id="passwordPlaceholder">
-            <source xml:lang="en">Password (SQL Login)</source>
-            <target>Kennwort (SQL-Login)</target>
+            <source xml:lang="en">Password (SQL Login)</source><target>Kennwort (SQL-Login)</target>
         </trans-unit>
         <trans-unit id="msgSavePassword">
-            <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
-            <target>Kennwort speichern? Wenn 'Nein', ist bei jeder Verbindung das Kennwort erforderlich</target>
+            <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source><target>Kennwort speichern? Wenn 'Nein', ist bei jeder Verbindung das Kennwort erforderlich</target>
         </trans-unit>
         <trans-unit id="profileNamePrompt">
-            <source xml:lang="en">Profile Name</source>
-            <target>Profilname</target>
+            <source xml:lang="en">Profile Name</source><target>Profilname</target>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
-            <source xml:lang="en">[Optional] Enter a name for this profile</source>
-            <target>[Optional] Geben Sie einen Namen für dieses Profil ein</target>
+            <source xml:lang="en">[Optional] Enter a name for this profile</source><target>[Optional] Geben Sie einen Namen für dieses Profil ein</target>
         </trans-unit>
         <trans-unit id="filepathPrompt">
-            <source xml:lang="en">File path</source>
-            <target>Dateipfad</target>
+            <source xml:lang="en">File path</source><target>Dateipfad</target>
         </trans-unit>
         <trans-unit id="filepathMessage">
-            <source xml:lang="en">File name</source>
-            <target>Dateiname</target>
+            <source xml:lang="en">File name</source><target>Dateiname</target>
         </trans-unit>
         <trans-unit id="overwritePrompt">
-            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
-            <target>Eine Datei mit diesem Namen ist bereits vorhanden. Möchten Sie die vorhandene Datei ersetzen?</target>
+            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source><target>Eine Datei mit diesem Namen ist bereits vorhanden. Möchten Sie die vorhandene Datei ersetzen?</target>
         </trans-unit>
         <trans-unit id="overwritePlaceholder">
-            <source xml:lang="en">A file with this name already exists</source>
-            <target>Eine Datei mit diesem Namen ist bereits vorhanden.</target>
+            <source xml:lang="en">A file with this name already exists</source><target>Eine Datei mit diesem Namen ist bereits vorhanden.</target>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
-            <source xml:lang="en">Error occurred opening content in editor.</source>
-            <target>Fehler beim Öffnen des Inhalts im Editor.</target>
+            <source xml:lang="en">Error occurred opening content in editor.</source><target>Fehler beim Öffnen des Inhalts im Editor.</target>
         </trans-unit>
         <trans-unit id="msgSaveStarted">
-            <source xml:lang="en">Started saving results to </source>
-            <target>Speichern von Ergebnissen in gestartet in</target>
+            <source xml:lang="en">Started saving results to </source><target>Speichern von Ergebnissen in gestartet in</target>
         </trans-unit>
         <trans-unit id="msgSaveFailed">
-            <source xml:lang="en">Failed to save results. </source>
-            <target>Fehler beim Speichern der Ergebnisse.</target>
+            <source xml:lang="en">Failed to save results. </source><target>Fehler beim Speichern der Ergebnisse.</target>
         </trans-unit>
         <trans-unit id="msgSaveSucceeded">
-            <source xml:lang="en">Successfully saved results to </source>
-            <target>Ergebnisse erfolgreich gespeichert in</target>
+            <source xml:lang="en">Successfully saved results to </source><target>Ergebnisse erfolgreich gespeichert in</target>
         </trans-unit>
         <trans-unit id="msgSelectProfileToRemove">
-            <source xml:lang="en">Select profile to remove</source>
-            <target>Wählen Sie das Profil aus, das entfernt werden soll</target>
+            <source xml:lang="en">Select profile to remove</source><target>Wählen Sie das Profil aus, das entfernt werden soll</target>
         </trans-unit>
         <trans-unit id="confirmRemoveProfilePrompt">
-            <source xml:lang="en">Confirm to remove this profile.</source>
-            <target>Löschung des Profis bestätigen</target>
+            <source xml:lang="en">Confirm to remove this profile.</source><target>Löschung des Profis bestätigen</target>
         </trans-unit>
         <trans-unit id="msgNoProfilesSaved">
-            <source xml:lang="en">No connection profile to remove.</source>
-            <target>Kein Profil zu entfernen.</target>
+            <source xml:lang="en">No connection profile to remove.</source><target>Kein Profil zu entfernen.</target>
         </trans-unit>
         <trans-unit id="msgProfileRemoved">
-            <source xml:lang="en">Profile removed successfully</source>
-            <target>Profil wurde erfolgreich entfernt</target>
+            <source xml:lang="en">Profile removed successfully</source><target>Profil wurde erfolgreich entfernt</target>
         </trans-unit>
         <trans-unit id="msgProfileCreated">
-            <source xml:lang="en">Profile created successfully</source>
-            <target>Profil wurde erfolgreich erstellt.</target>
+            <source xml:lang="en">Profile created successfully</source><target>Profil wurde erfolgreich erstellt.</target>
         </trans-unit>
         <trans-unit id="msgProfileCreatedAndConnected">
-            <source xml:lang="en">Profile created and connected</source>
-            <target>Profil erstellt und verbunden</target>
+            <source xml:lang="en">Profile created and connected</source><target>Profil erstellt und verbunden</target>
         </trans-unit>
         <trans-unit id="msgClearedRecentConnections">
-            <source xml:lang="en">Recent connections list cleared</source>
-            <target>Liste der letzten Verbindungen gelöscht</target>
+            <source xml:lang="en">Recent connections list cleared</source><target>Liste der letzten Verbindungen gelöscht</target>
         </trans-unit>
         <trans-unit id="msgIsRequired">
-            <source xml:lang="en"> is required.</source>
-            <target>ist erforderlich.</target>
+            <source xml:lang="en"> is required.</source><target>ist erforderlich.</target>
         </trans-unit>
         <trans-unit id="msgError">
-            <source xml:lang="en">Error: </source>
-            <target>Fehler:</target>
+            <source xml:lang="en">Error: </source><target>Fehler: </target>
         </trans-unit>
         <trans-unit id="msgYes">
-            <source xml:lang="en">Yes</source>
-            <target>Ja</target>
+            <source xml:lang="en">Yes</source><target>Ja</target>
         </trans-unit>
         <trans-unit id="msgNo">
-            <source xml:lang="en">No</source>
-            <target>Nein</target>
+            <source xml:lang="en">No</source><target>Nein</target>
         </trans-unit>
         <trans-unit id="defaultDatabaseLabel">
-            <source xml:lang="en">&lt;default&gt;</source>
-            <target>&lt;Standard&gt;</target>
+            <source xml:lang="en">&lt;default&gt;</source><target>&lt;Standard&gt;</target>
         </trans-unit>
         <trans-unit id="notConnectedLabel">
-            <source xml:lang="en">Disconnected</source>
-            <target>Getrennt</target>
+            <source xml:lang="en">Disconnected</source><target>Getrennt</target>
         </trans-unit>
         <trans-unit id="notConnectedTooltip">
-            <source xml:lang="en">Click to connect to a database</source>
-            <target>Klicken Sie zum Verbinden mit einer Datenbank</target>
+            <source xml:lang="en">Click to connect to a database</source><target>Klicken Sie zum Verbinden mit einer Datenbank</target>
         </trans-unit>
         <trans-unit id="connectingLabel">
-            <source xml:lang="en">Connecting</source>
-            <target>Verbindung wird hergestellt.</target>
+            <source xml:lang="en">Connecting</source><target>Verbindung wird hergestellt.</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
-            <source xml:lang="en">Connecting to: </source>
-            <target>Verbindung mit:</target>
+            <source xml:lang="en">Connecting to: </source><target>Verbindung mit:</target>
         </trans-unit>
         <trans-unit id="connectErrorLabel">
-            <source xml:lang="en">Connection error</source>
-            <target>Verbindungsfehler</target>
+            <source xml:lang="en">Connection error</source><target>Verbindungsfehler</target>
         </trans-unit>
         <trans-unit id="connectErrorTooltip">
-            <source xml:lang="en">Error connecting to: </source>
-            <target>Fehler beim Verbinden mit:</target>
+            <source xml:lang="en">Error connecting to: </source><target>Fehler beim Verbinden mit:</target>
         </trans-unit>
         <trans-unit id="connectErrorCode">
-            <source xml:lang="en">Error code: </source>
-            <target>Fehler Nummer:</target>
+            <source xml:lang="en">Error code: </source><target>Fehler Nummer:</target>
         </trans-unit>
         <trans-unit id="connectErrorMessage">
-            <source xml:lang="en">Error Message: </source>
-            <target>Fehlermeldung:</target>
+            <source xml:lang="en">Error Message: </source><target>Fehlermeldung:</target>
         </trans-unit>
         <trans-unit id="cancelingQueryLabel">
-            <source xml:lang="en">Canceling query </source>
-            <target>Ausführung der Abfrage wird abgebrochen</target>
+            <source xml:lang="en">Canceling query </source><target>Ausführung der Abfrage wird abgebrochen</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseLabel">
-            <source xml:lang="en">Updating IntelliSense...</source>
-            <target>IntelliSense wird aktualisiert...</target>
+            <source xml:lang="en">Updating IntelliSense...</source><target>IntelliSense wird aktualisiert...</target>
         </trans-unit>
         <trans-unit id="extensionNotInitializedError">
-            <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
-            <target>Befehl kann während der Initialisierung der Erweiterung nicht ausgeführt werden. Bitte versuchen Sie es später erneut.</target>
+            <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source><target>Befehl kann während der Initialisierung der Erweiterung nicht ausgeführt werden. Bitte versuchen Sie es später erneut.</target>
         </trans-unit>
         <trans-unit id="untitledScheme">
-            <source xml:lang="en">untitled</source>
-            <target>Unbenannt</target>
+            <source xml:lang="en">untitled</source><target>Unbenannt</target>
         </trans-unit>
         <trans-unit id="msgChangeLanguageMode">
-            <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
-            <target>Um diesen Befehl zu verwenden, müssen Sie die Sprache auf &quot;SQL&quot; festlegen. Sprache ändern bestätigen.</target>
+            <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source><target>Um diesen Befehl zu verwenden, müssen Sie die Sprache auf "SQL" festlegen. Sprache ändern bestätigen.</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabaseContext">
-            <source xml:lang="en">Changed database context to &quot;{0}&quot; for document &quot;{1}&quot;</source>
-            <target>Datenbankkontext &quot;{0}&quot; für das Dokument &quot;{1}&quot; wurde geändert.</target>
+            <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source><target>Datenbankkontext "{0}" für das Dokument "{1}" wurde geändert.</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryCreateProfile">
-            <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
-            <target>Fehler: Es konnte keine Verbindung mit den Verbindungsinformationen hergestellt werden. Wiederholen des Erstellen des Profils?</target>
+            <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source><target>Fehler: Es konnte keine Verbindung mit den Verbindungsinformationen hergestellt werden. Wiederholen des Erstellen des Profils?</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
-            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
-            <target>Fehler: Anmeldung fehlgeschlagen. Mit unterschiedlichen Anmeldeinformationen wiederholen?</target>
+            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source><target>Fehler: Anmeldung fehlgeschlagen. Mit unterschiedlichen Anmeldeinformationen wiederholen?</target>
         </trans-unit>
         <trans-unit id="retryLabel">
-            <source xml:lang="en">Retry</source>
-            <target>Wiederholen</target>
+            <source xml:lang="en">Retry</source><target>Erneut versuchen</target>
         </trans-unit>
         <trans-unit id="msgConnecting">
-            <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
-            <target>Verbindung mit Server '{0}' an Dokument '{1}'.</target>
+            <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source><target>Verbindung mit Server '{0}' an Dokument '{1}'.</target>
         </trans-unit>
         <trans-unit id="msgConnectedServerInfo">
-            <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
-            <target>Verbindung mit Server '{0}' an Dokument '{1}'. Serverinformationen: {2}</target>
+            <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source><target>Verbindung mit Server '{0}' an Dokument '{1}'. Serverinformationen: {2}</target>
         </trans-unit>
         <trans-unit id="msgConnectionFailed">
-            <source xml:lang="en">Error connecting to server &quot;{0}&quot;. Details: {1}</source>
-            <target>Fehler beim Verbinden mit Server '{0}'. Details: {1}</target>
+            <source xml:lang="en">Error connecting to server "{0}". Details: {1}</source><target>Fehler beim Verbinden mit Server '{0}'. Details: {1}</target>
         </trans-unit>
         <trans-unit id="msgChangingDatabase">
-            <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
-            <target>Datenbankkontext mit '{0}' auf Server '{1}' an Dokument '{2}' ändern.</target>
+            <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source><target>Datenbankkontext mit '{0}' auf Server '{1}' an Dokument '{2}' ändern.</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabase">
-            <source xml:lang="en">Changed database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
-            <target>Datenbankkontext mit '{0}' auf Server '{1}' an Dokument '{2}' geändert.</target>
+            <source xml:lang="en">Changed database context to "{0}" on server "{1}" on document "{2}".</source><target>Datenbankkontext mit '{0}' auf Server '{1}' an Dokument '{2}' geändert.</target>
         </trans-unit>
         <trans-unit id="msgDisconnected">
-            <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
-            <target>Dokument '{0}' getrennt</target>
+            <source xml:lang="en">Disconnected on document "{0}"</source><target>Dokument '{0}' getrennt</target>
         </trans-unit>
         <trans-unit id="msgErrorReadingConfigFile">
-            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-            <target>Fehler: Verbindungsprofile von [{0}] können nicht geladen werden. Überprüfen Sie, ob die Datei ordnungsgemäß formatiert ist.</target>
+            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source><target>Fehler: Verbindungsprofile von [{0}] können nicht geladen werden. Überprüfen Sie, ob die Datei ordnungsgemäß formatiert ist.</target>
         </trans-unit>
         <trans-unit id="titleResultsPane">
-            <source xml:lang="en">Results: {0}</source>
-            <target>Ergebnisse: {0}</target>
+            <source xml:lang="en">Results: {0}</source><target>Ergebnisse: {0}</target>
         </trans-unit>
         <trans-unit id="macOpenSslErrorMessage">
-            <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
-            <target>Zum Verbinden wird OpenSSL Version &gt; = 1.0.1 benötigt.</target>
+            <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source><target>Zum Verbinden wird OpenSSL Version &gt; = 1.0.1 benötigt.</target>
         </trans-unit>
         <trans-unit id="macOpenSslHelpButton">
-            <source xml:lang="en">Help</source>
-            <target>Hilfe</target>
+            <source xml:lang="en">Help</source><target>Hilfe</target>
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
             <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
-            <target>MacOS Sierra oder neuer ist erforderlich, um diese Funktion zu nutzen.</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
-            <source xml:lang="en">Getting definition ...</source>
-            <target>Definition wird abgerufen...</target>
+            <source xml:lang="en">Getting definition ...</source><target>Definition wird abgerufen...</target>
         </trans-unit>
         <trans-unit id="definitionRequestedStatus">
-            <source xml:lang="en">DefinitionRequested</source>
-            <target>DefinitionRequested</target>
+            <source xml:lang="en">DefinitionRequested</source><target>DefinitionRequested</target>
         </trans-unit>
         <trans-unit id="definitionRequestCompletedStatus">
-            <source xml:lang="en">DefinitionRequestCompleted</source>
-            <target>DefinitionRequestCompleted</target>
+            <source xml:lang="en">DefinitionRequestCompleted</source><target>DefinitionRequestCompleted</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseStatus">
-            <source xml:lang="en">updatingIntelliSense</source>
-            <target>updatingIntelliSense</target>
+            <source xml:lang="en">updatingIntelliSense</source><target>updatingIntelliSense</target>
         </trans-unit>
         <trans-unit id="intelliSenseUpdatedStatus">
-            <source xml:lang="en">intelliSenseUpdated</source>
-            <target>intelliSenseUpdated</target>
+            <source xml:lang="en">intelliSenseUpdated</source><target>intelliSenseUpdated</target>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
-            <source xml:lang="en">test</source>
-            <target>Test</target>
+            <source xml:lang="en">test</source><target>Test</target>
         </trans-unit>
         <trans-unit id="disconnectOptionLabel">
-            <source xml:lang="en">Disconnect</source>
-            <target>Trennen</target>
+            <source xml:lang="en">Disconnect</source><target>Trennen</target>
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
-            <source xml:lang="en">Close the current connection</source>
-            <target>Aktuelle Verbindung schließen.</target>
+            <source xml:lang="en">Close the current connection</source><target>Aktuelle Verbindung schließen.</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
-            <source xml:lang="en">Are you sure you want to disconnect?</source>
-            <target>Sind Sie sicher, dass Sie die Verbindung trennen möchten?</target>
+            <source xml:lang="en">Are you sure you want to disconnect?</source><target>Sind Sie sicher, dass Sie die Verbindung trennen möchten?</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
             <source xml:lang="en">Batch execution time: {0}</source>
-            <target>Batch-Ausführungszeit: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source>
-            <target>Ein SQL-Editor muss den Fokus haben vor der Ausführung dieses Befehls</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
-            <source xml:lang="en">Maximize</source>
-            <target>Maximieren</target>
+            <source xml:lang="en">Maximize</source><target>Maximieren</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
-            <source xml:lang="en">Restore</source>
-            <target>Wiederherstellen</target>
+            <source xml:lang="en">Restore</source><target>Wiederherstellen</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
             <source xml:lang="en">Save as CSV</source>
-            <target>Als CSV speichern</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
-            <source xml:lang="en">Save as JSON</source>
-            <target>Als JSON speichern</target>
+            <source xml:lang="en">Save as JSON</source><target>Als JSON speichern</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
-            <source xml:lang="en">Save as Excel</source>
-            <target>Als Excel-Datei speichern</target>
+            <source xml:lang="en">Save as Excel</source><target>Als Excel-Datei speichern</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
-            <source xml:lang="en">CSV</source>
-            <target>CSV</target>
+            <source xml:lang="en">CSV</source><target>CSV</target>
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
-            <source xml:lang="en">JSON</source>
-            <target>JSON</target>
+            <source xml:lang="en">JSON</source><target>JSON</target>
         </trans-unit>
         <trans-unit id="fileTypeExcelLabel">
-            <source xml:lang="en">Excel</source>
-            <target>Excel</target>
+            <source xml:lang="en">Excel</source><target>Excel</target>
         </trans-unit>
         <trans-unit id="resultPaneLabel">
-            <source xml:lang="en">Results</source>
-            <target>Ergebnisse</target>
+            <source xml:lang="en">Results</source><target>Ergebnisse</target>
         </trans-unit>
         <trans-unit id="selectAll">
-            <source xml:lang="en">Select all</source>
-            <target>Alles auswählen</target>
+            <source xml:lang="en">Select all</source><target>Alles auswählen</target>
         </trans-unit>
         <trans-unit id="copyLabel">
-            <source xml:lang="en">Copy</source>
-            <target>Kopieren</target>
+            <source xml:lang="en">Copy</source><target>Kopieren</target>
         </trans-unit>
         <trans-unit id="copyWithHeadersLabel">
-            <source xml:lang="en">Copy with Headers</source>
-            <target>Mit Headern kopieren</target>
+            <source xml:lang="en">Copy with Headers</source><target>Mit Headern kopieren</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
-            <source xml:lang="en">Executing query...</source>
-            <target>Abfrage wird ausgeführt...</target>
+            <source xml:lang="en">Executing query...</source><target>Abfrage wird ausgeführt...</target>
         </trans-unit>
         <trans-unit id="messagePaneLabel">
-            <source xml:lang="en">Messages</source>
-            <target>Meldungen</target>
+            <source xml:lang="en">Messages</source><target>Meldungen</target>
         </trans-unit>
         <trans-unit id="lineSelectorFormatted">
-            <source xml:lang="en">Line {0}</source>
-            <target>Linie {0}</target>
+            <source xml:lang="en">Line {0}</source><target>Linie {0}</target>
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
             <source xml:lang="en">Total execution time: {0}</source>
-            <target>Gesamte Ausführungszeit: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
-            <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
-            <target>Der Befehl &quot;Ergebnisse speichern&quot; kann nicht mit Mehrfachauswahlen verwendet werden.</target>
+            <source xml:lang="en">Save results command cannot be used with multiple selections.</source><target>Der Befehl "Ergebnisse speichern" kann nicht mit Mehrfachauswahlen verwendet werden.</target>
         </trans-unit>
         <trans-unit id="mssqlProviderName">
-            <source xml:lang="en">MSSQL</source>
-            <target>MSSQL</target>
+            <source xml:lang="en">MSSQL</source><target>MSSQL</target>
         </trans-unit>
         <trans-unit id="noneProviderName">
-            <source xml:lang="en">None</source>
-            <target>Kein(e)</target>
+            <source xml:lang="en">None</source><target>NONE</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
             <source xml:lang="en">Choose SQL Language</source>
-            <target>Wählen Sie SQL-Sprache</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
             <source xml:lang="en">Choose SQL Language</source>
-            <target>Wählen Sie SQL-Sprache</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
-            <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
-            <target>Intellisense und Syntax-Fehlerüberprüfung im aktuellen Dokument verwenden</target>
+            <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source><target>Intellisense und Syntax-Fehlerüberprüfung im aktuellen Dokument verwenden</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionNone">
-            <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
-            <target>Intellisense und Syntax-Fehlerüberprüfung im aktuellen Dokument deaktivieren</target>
+            <source xml:lang="en">Disable intellisense and syntax error checking on current document</source><target>Intellisense und Syntax-Fehlerüberprüfung im aktuellen Dokument deaktivieren</target>
         </trans-unit>
     </body>
   </file>
