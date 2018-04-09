@@ -1,374 +1,285 @@
-<?xml version="1.0" ?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ru">
     <body>
         <trans-unit id="msgStartedExecute">
-            <source xml:lang="en">Started query execution for document &quot;{0}&quot;</source>
-            <target>Начало выполнения запроса для документа «{0}»</target>
+            <source xml:lang="en">Started query execution for document "{0}"</source><target>Начало выполнения запроса для документа «{0}»</target>
         </trans-unit>
         <trans-unit id="msgFinishedExecute">
-            <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
-            <target>Завершено выполнение запроса для документа «{0}»</target>
+            <source xml:lang="en">Finished query execution for document "{0}"</source><target>Завершено выполнение запроса для документа «{0}»</target>
         </trans-unit>
         <trans-unit id="msgRunQueryInProgress">
-            <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
-            <target>Запрос уже выполняется в активном документе. Отмените запрос или дождитесь окончания его выполнения.</target>
+            <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source><target>Запрос уже выполняется в активном документе. Отмените запрос или дождитесь окончания его выполнения.</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartMessage">
-            <source xml:lang="en">Started executing query at </source>
-            <target>Начало выполнения запроса</target>
+            <source xml:lang="en">Started executing query at </source><target>Начало выполнения запроса</target>
         </trans-unit>
         <trans-unit id="runQueryBatchStartLine">
-            <source xml:lang="en">Line {0}</source>
-            <target>Строка {0}</target>
+            <source xml:lang="en">Line {0}</source><target>Строка {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryFailed">
-            <source xml:lang="en">Canceling the query failed: {0}</source>
-            <target>Ошибка при отмене запроса: {0}</target>
+            <source xml:lang="en">Canceling the query failed: {0}</source><target>Ошибка при отмене запроса: {0}</target>
         </trans-unit>
         <trans-unit id="msgCancelQueryNotRunning">
-            <source xml:lang="en">Cannot cancel query as no query is running.</source>
-            <target>Невозможно отменить запрос, так как ни один запрос не выполняется.</target>
+            <source xml:lang="en">Cannot cancel query as no query is running.</source><target>Невозможно отменить запрос, так как ни один запрос не выполняется.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabaseNotConnected">
-            <source xml:lang="en">No connection was found. Please connect to a server first.</source>
-            <target>Соединение отсутствует. Пожалуйста, подключитесь к серверу.</target>
+            <source xml:lang="en">No connection was found. Please connect to a server first.</source><target>Соединение отсутствует. Пожалуйста, подключитесь к серверу.</target>
         </trans-unit>
         <trans-unit id="msgChooseDatabasePlaceholder">
-            <source xml:lang="en">Choose a database from the list below</source>
-            <target>Выберите базу данных из списка ниже</target>
+            <source xml:lang="en">Choose a database from the list below</source><target>Выберите базу данных из списка ниже</target>
         </trans-unit>
         <trans-unit id="msgConnectionError">
-            <source xml:lang="en">Error {0}: {1}</source>
-            <target>Ошибка {0}: {1}</target>
+            <source xml:lang="en">Error {0}: {1}</source><target>Ошибка {0}: {1}</target>
         </trans-unit>
         <trans-unit id="msgConnectionError2">
-            <source xml:lang="en">Failed to connect: {0}</source>
-            <target>Не удалось установить соединение: {0}</target>
+            <source xml:lang="en">Failed to connect: {0}</source><target>Не удалось установить соединение: {0}</target>
         </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
-            <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
-            <target>Ошибка {0}: {1}. Попробуйте войти под учетной записью другого пользователя и измените пароль с помощью инструкции ALTER LOGIN.</target>
+            <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source><target>Ошибка {0}: {1}. Попробуйте войти под учетной записью другого пользователя и измените пароль с помощью инструкции ALTER LOGIN.</target>
         </trans-unit>
         <trans-unit id="connectionErrorChannelName">
-            <source xml:lang="en">Connection Errors</source>
-            <target>Ошибки подключения</target>
+            <source xml:lang="en">Connection Errors</source><target>Ошибки подключения</target>
         </trans-unit>
         <trans-unit id="msgPromptCancelConnect">
-            <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
-            <target>Выполняется подключение к серверу. Хотите отменить?</target>
+            <source xml:lang="en">Server connection in progress. Do you want to cancel?</source><target>Выполняется подключение к серверу. Хотите отменить?</target>
         </trans-unit>
         <trans-unit id="msgPromptClearRecentConnections">
-            <source xml:lang="en">Confirm to clear recent connections list</source>
-            <target>Подтвердите очистку списка недавних подключений</target>
+            <source xml:lang="en">Confirm to clear recent connections list</source><target>Подтвердите очистку списка недавних подключений</target>
         </trans-unit>
         <trans-unit id="msgOpenSqlFile">
-            <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to &quot;SQL&quot; -or- Select T-SQL text in the active SQL editor.</source>
-            <target>Для использования этой команды, откройте файл .sql, либо измените языковой режим окна редактора на «SQL», либо выберите текст T-SQL в активном окне редактора.</target>
+            <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source><target>Для использования этой команды, откройте файл .sql, либо измените языковой режим окна редактора на «SQL», либо выберите текст T-SQL в активном окне редактора.</target>
         </trans-unit>
         <trans-unit id="recentConnectionsPlaceholder">
-            <source xml:lang="en">Choose a connection profile from the list below</source>
-            <target>Выберите профиль подключения из списка ниже</target>
+            <source xml:lang="en">Choose a connection profile from the list below</source><target>Выберите профиль подключения из списка ниже</target>
         </trans-unit>
         <trans-unit id="CreateProfileFromConnectionsListLabel">
-            <source xml:lang="en">Create Connection Profile</source>
-            <target>Создать профиль подключения</target>
+            <source xml:lang="en">Create Connection Profile</source><target>Создать профиль подключения</target>
         </trans-unit>
         <trans-unit id="CreateProfileLabel">
-            <source xml:lang="en">Create</source>
-            <target>Создать</target>
+            <source xml:lang="en">Create</source><target>Создать</target>
         </trans-unit>
         <trans-unit id="ClearRecentlyUsedLabel">
-            <source xml:lang="en">Clear Recent Connections List</source>
-            <target>Очистить список недавних подключений</target>
+            <source xml:lang="en">Clear Recent Connections List</source><target>Очистить список недавних подключений</target>
         </trans-unit>
         <trans-unit id="EditProfilesLabel">
-            <source xml:lang="en">Edit</source>
-            <target>Изменить</target>
+            <source xml:lang="en">Edit</source><target>Изменить</target>
         </trans-unit>
         <trans-unit id="RemoveProfileLabel">
-            <source xml:lang="en">Remove</source>
-            <target>Удалить</target>
+            <source xml:lang="en">Remove</source><target>Удалить</target>
         </trans-unit>
         <trans-unit id="ManageProfilesPrompt">
-            <source xml:lang="en">Manage Connection Profiles</source>
-            <target>Управление профилями подключения</target>
+            <source xml:lang="en">Manage Connection Profiles</source><target>Управление профилями подключения</target>
         </trans-unit>
         <trans-unit id="SampleServerName">
-            <source xml:lang="en">{{put-server-name-here}}</source>
-            <target>{{введите-имя-сервера-здесь}}</target>
+            <source xml:lang="en">{{put-server-name-here}}</source><target>{{введите-имя-сервера-здесь}}</target>
         </trans-unit>
         <trans-unit id="serverPrompt">
-            <source xml:lang="en">Server name or ADO.NET connection string</source>
-            <target>Имя сервера или ADO.NET Строка соединения</target>
+            <source xml:lang="en">Server name or ADO.NET connection string</source><target>Имя сервера или ADO.NET Строка соединения</target>
         </trans-unit>
         <trans-unit id="serverPlaceholder">
-            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
-            <target>hostname\\instance или &lt;server&gt;.database.windows.net или ADO.NET Строка соединения</target>
+            <source xml:lang="en">hostname\\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source><target>hostname\\instance или &lt;server&gt;.database.windows.net или ADO.NET Строка соединения</target>
         </trans-unit>
         <trans-unit id="databasePrompt">
-            <source xml:lang="en">Database name</source>
-            <target>Имя базы данных</target>
+            <source xml:lang="en">Database name</source><target>Имя базы данных</target>
         </trans-unit>
         <trans-unit id="databasePlaceholder">
-            <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
-            <target>[Опционально] Имя базы данных для подключения (оставьте пустым, чтобы использовать базу данных по умолчанию)</target>
+            <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source><target>[Опционально] Имя базы данных для подключения (оставьте пустым, чтобы использовать базу данных по умолчанию)</target>
         </trans-unit>
         <trans-unit id="authTypePrompt">
-            <source xml:lang="en">Authentication Type</source>
-            <target>Тип проверки подлинности</target>
+            <source xml:lang="en">Authentication Type</source><target>Тип проверки подлинности</target>
         </trans-unit>
         <trans-unit id="authTypeIntegrated">
-            <source xml:lang="en">Integrated</source>
-            <target>Встроенный</target>
+            <source xml:lang="en">Integrated</source><target>Интегрированный</target>
         </trans-unit>
         <trans-unit id="authTypeSql">
-            <source xml:lang="en">SQL Login</source>
-            <target>SQL Login</target>
+            <source xml:lang="en">SQL Login</source><target>SQL Login</target>
         </trans-unit>
         <trans-unit id="usernamePrompt">
-            <source xml:lang="en">User name</source>
-            <target>Имя пользователя</target>
+            <source xml:lang="en">User name</source><target>Имя пользователя</target>
         </trans-unit>
         <trans-unit id="usernamePlaceholder">
-            <source xml:lang="en">User name (SQL Login)</source>
-            <target>Имя пользователя (SQL Login)</target>
+            <source xml:lang="en">User name (SQL Login)</source><target>Имя пользователя (SQL Login)</target>
         </trans-unit>
         <trans-unit id="passwordPrompt">
-            <source xml:lang="en">Password</source>
-            <target>Пароль</target>
+            <source xml:lang="en">Password</source><target>Пароль</target>
         </trans-unit>
         <trans-unit id="passwordPlaceholder">
-            <source xml:lang="en">Password (SQL Login)</source>
-            <target>Пароль (SQL Login)</target>
+            <source xml:lang="en">Password (SQL Login)</source><target>Пароль (SQL Login)</target>
         </trans-unit>
         <trans-unit id="msgSavePassword">
-            <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source>
-            <target>Сохранить пароль? Если «Нет», пароль будет требоваться каждый раз при подключении</target>
+            <source xml:lang="en">Save Password? If 'No', password will be required each time you connect</source><target>Сохранить пароль? Если «Нет», пароль будет требоваться каждый раз при подключении</target>
         </trans-unit>
         <trans-unit id="profileNamePrompt">
-            <source xml:lang="en">Profile Name</source>
-            <target>Имя профиля</target>
+            <source xml:lang="en">Profile Name</source><target>Имя профиля</target>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
-            <source xml:lang="en">[Optional] Enter a name for this profile</source>
-            <target>[Опционально] Введите имя для этого профиля</target>
+            <source xml:lang="en">[Optional] Enter a name for this profile</source><target>[Опционально] Введите имя для этого профиля</target>
         </trans-unit>
         <trans-unit id="filepathPrompt">
-            <source xml:lang="en">File path</source>
-            <target>Путь к файлу</target>
+            <source xml:lang="en">File path</source><target>Путь к файлу</target>
         </trans-unit>
         <trans-unit id="filepathMessage">
-            <source xml:lang="en">File name</source>
-            <target>Имя файла</target>
+            <source xml:lang="en">File name</source><target>Имя файла</target>
         </trans-unit>
         <trans-unit id="overwritePrompt">
-            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
-            <target>Файл с таким именем уже существует. Вы действительно хотите заменить существующий файл?</target>
+            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source><target>Файл с таким именем уже существует. Вы действительно хотите заменить существующий файл?</target>
         </trans-unit>
         <trans-unit id="overwritePlaceholder">
-            <source xml:lang="en">A file with this name already exists</source>
-            <target>Файл с таким именем уже существует</target>
+            <source xml:lang="en">A file with this name already exists</source><target>Файл с таким именем уже существует</target>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
-            <source xml:lang="en">Error occurred opening content in editor.</source>
-            <target>При открытии документа произошла ошибка.</target>
+            <source xml:lang="en">Error occurred opening content in editor.</source><target>При открытии документа произошла ошибка.</target>
         </trans-unit>
         <trans-unit id="msgSaveStarted">
-            <source xml:lang="en">Started saving results to </source>
-            <target>Начало сохранения результатов в</target>
+            <source xml:lang="en">Started saving results to </source><target>Начало сохранения результатов в</target>
         </trans-unit>
         <trans-unit id="msgSaveFailed">
-            <source xml:lang="en">Failed to save results. </source>
-            <target>Не удалось сохранить результаты.</target>
+            <source xml:lang="en">Failed to save results. </source><target>Не удалось сохранить результаты.</target>
         </trans-unit>
         <trans-unit id="msgSaveSucceeded">
-            <source xml:lang="en">Successfully saved results to </source>
-            <target>Результаты успешно сохранены в</target>
+            <source xml:lang="en">Successfully saved results to </source><target>Результаты успешно сохранены в</target>
         </trans-unit>
         <trans-unit id="msgSelectProfileToRemove">
-            <source xml:lang="en">Select profile to remove</source>
-            <target>Выберите профиль для удаления</target>
+            <source xml:lang="en">Select profile to remove</source><target>Выберите профиль для удаления</target>
         </trans-unit>
         <trans-unit id="confirmRemoveProfilePrompt">
-            <source xml:lang="en">Confirm to remove this profile.</source>
-            <target>Подтвердите удаление этого профиля.</target>
+            <source xml:lang="en">Confirm to remove this profile.</source><target>Подтвердите удаление этого профиля.</target>
         </trans-unit>
         <trans-unit id="msgNoProfilesSaved">
-            <source xml:lang="en">No connection profile to remove.</source>
-            <target>Нет профилей для удаления.</target>
+            <source xml:lang="en">No connection profile to remove.</source><target>Нет профилей для удаления.</target>
         </trans-unit>
         <trans-unit id="msgProfileRemoved">
-            <source xml:lang="en">Profile removed successfully</source>
-            <target>Профиль успешно удален</target>
+            <source xml:lang="en">Profile removed successfully</source><target>Профиль успешно удален</target>
         </trans-unit>
         <trans-unit id="msgProfileCreated">
-            <source xml:lang="en">Profile created successfully</source>
-            <target>Профиль успешно создан</target>
+            <source xml:lang="en">Profile created successfully</source><target>Профиль успешно создан</target>
         </trans-unit>
         <trans-unit id="msgProfileCreatedAndConnected">
-            <source xml:lang="en">Profile created and connected</source>
-            <target>Создан новый профиль, подключение установлено</target>
+            <source xml:lang="en">Profile created and connected</source><target>Создан новый профиль, подключение установлено</target>
         </trans-unit>
         <trans-unit id="msgClearedRecentConnections">
-            <source xml:lang="en">Recent connections list cleared</source>
-            <target>Cписок последних подключений очищен</target>
+            <source xml:lang="en">Recent connections list cleared</source><target>Cписок последних подключений очищен</target>
         </trans-unit>
         <trans-unit id="msgIsRequired">
-            <source xml:lang="en"> is required.</source>
-            <target>является обязательным.</target>
+            <source xml:lang="en"> is required.</source><target>является обязательным.</target>
         </trans-unit>
         <trans-unit id="msgError">
-            <source xml:lang="en">Error: </source>
-            <target>Ошибка:</target>
+            <source xml:lang="en">Error: </source><target>Ошибка: </target>
         </trans-unit>
         <trans-unit id="msgYes">
-            <source xml:lang="en">Yes</source>
-            <target>Да</target>
+            <source xml:lang="en">Yes</source><target>Да</target>
         </trans-unit>
         <trans-unit id="msgNo">
-            <source xml:lang="en">No</source>
-            <target>Нет</target>
+            <source xml:lang="en">No</source><target>Нет</target>
         </trans-unit>
         <trans-unit id="defaultDatabaseLabel">
-            <source xml:lang="en">&lt;default&gt;</source>
-            <target>&lt; по умолчанию &gt;</target>
+            <source xml:lang="en">&lt;default&gt;</source><target>&lt; по умолчанию &gt;</target>
         </trans-unit>
         <trans-unit id="notConnectedLabel">
-            <source xml:lang="en">Disconnected</source>
-            <target>Отключен</target>
+            <source xml:lang="en">Disconnected</source><target>Отключен</target>
         </trans-unit>
         <trans-unit id="notConnectedTooltip">
-            <source xml:lang="en">Click to connect to a database</source>
-            <target>Щелкните здесь, чтобы подключиться к базе данных</target>
+            <source xml:lang="en">Click to connect to a database</source><target>Щелкните здесь, чтобы подключиться к базе данных</target>
         </trans-unit>
         <trans-unit id="connectingLabel">
-            <source xml:lang="en">Connecting</source>
-            <target>Подключение</target>
+            <source xml:lang="en">Connecting</source><target>Подключение</target>
         </trans-unit>
         <trans-unit id="connectingTooltip">
-            <source xml:lang="en">Connecting to: </source>
-            <target>Подключение к:</target>
+            <source xml:lang="en">Connecting to: </source><target>Подключение к:</target>
         </trans-unit>
         <trans-unit id="connectErrorLabel">
-            <source xml:lang="en">Connection error</source>
-            <target>Ошибка подключения</target>
+            <source xml:lang="en">Connection error</source><target>Ошибка подключения</target>
         </trans-unit>
         <trans-unit id="connectErrorTooltip">
-            <source xml:lang="en">Error connecting to: </source>
-            <target>Ошибка при подключении к:</target>
+            <source xml:lang="en">Error connecting to: </source><target>Ошибка при подключении к:</target>
         </trans-unit>
         <trans-unit id="connectErrorCode">
-            <source xml:lang="en">Error code: </source>
-            <target>Ошибка:</target>
+            <source xml:lang="en">Error code: </source><target>Ошибка:</target>
         </trans-unit>
         <trans-unit id="connectErrorMessage">
-            <source xml:lang="en">Error Message: </source>
-            <target>Сообщение:</target>
+            <source xml:lang="en">Error Message: </source><target>Сообщение:</target>
         </trans-unit>
         <trans-unit id="cancelingQueryLabel">
-            <source xml:lang="en">Canceling query </source>
-            <target>Отмена запроса</target>
+            <source xml:lang="en">Canceling query </source><target>Отмена запроса</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseLabel">
-            <source xml:lang="en">Updating IntelliSense...</source>
-            <target>Обновление IntelliSense...</target>
+            <source xml:lang="en">Updating IntelliSense...</source><target>Обновление IntelliSense...</target>
         </trans-unit>
         <trans-unit id="extensionNotInitializedError">
-            <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
-            <target>Невозможно выполнить команду в процессе инициализации расширения. Пожалуйста, повторите попытку позже.</target>
+            <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source><target>Невозможно выполнить команду в процессе инициализации расширения. Пожалуйста, повторите попытку позже.</target>
         </trans-unit>
         <trans-unit id="untitledScheme">
-            <source xml:lang="en">untitled</source>
-            <target>без названия</target>
+            <source xml:lang="en">untitled</source><target>без названия</target>
         </trans-unit>
         <trans-unit id="msgChangeLanguageMode">
-            <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
-            <target>Для использования этой команды, в активном окне редактора должен использоваться языковой режим «SQL». Подтвердите изменение языкового режима.</target>
+            <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source><target>Для использования этой команды, в активном окне редактора должен использоваться языковой режим «SQL». Подтвердите изменение языкового режима.</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabaseContext">
-            <source xml:lang="en">Changed database context to &quot;{0}&quot; for document &quot;{1}&quot;</source>
-            <target>Контекст базы данных изменен на «{0}» для документа «{1}»</target>
+            <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source><target>Контекст базы данных изменен на «{0}» для документа «{1}»</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryCreateProfile">
-            <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
-            <target>Ошибка: Не удается подключиться с использованием предоставленных сведений о подключении. Повторить создание профиля?</target>
+            <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source><target>Ошибка: Не удается подключиться с использованием предоставленных сведений о подключении. Повторить создание профиля?</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         </trans-unit>
         <trans-unit id="retryLabel">
-            <source xml:lang="en">Retry</source>
-            <target>Повторить попытку</target>
+            <source xml:lang="en">Retry</source><target>Повторить попытку</target>
         </trans-unit>
         <trans-unit id="msgConnecting">
-            <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
-            <target>Подключение к серверу «{0}» в документе «{1}».</target>
+            <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source><target>Подключение к серверу «{0}» в документе «{1}».</target>
         </trans-unit>
         <trans-unit id="msgConnectedServerInfo">
-            <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
-            <target>Подключение к серверу «{0}» в документе «{1}». Сведения о сервере: {2}</target>
+            <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source><target>Подключение к серверу «{0}» в документе «{1}». Сведения о сервере: {2}</target>
         </trans-unit>
         <trans-unit id="msgConnectionFailed">
-            <source xml:lang="en">Error connecting to server &quot;{0}&quot;. Details: {1}</source>
-            <target>При подключении к серверу «{0}» возникла ошибка: {1}</target>
+            <source xml:lang="en">Error connecting to server "{0}". Details: {1}</source><target>При подключении к серверу «{0}» возникла ошибка: {1}</target>
         </trans-unit>
         <trans-unit id="msgChangingDatabase">
-            <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
-            <target>Подключение к базе данных «{0}» на сервере «{1}» в документе «{2}».</target>
+            <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source><target>Подключение к базе данных «{0}» на сервере «{1}» в документе «{2}».</target>
         </trans-unit>
         <trans-unit id="msgChangedDatabase">
-            <source xml:lang="en">Changed database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
-            <target>Контекст базы данных изменен на «{0}» на сервере «{1}» в документе «{2}».</target>
+            <source xml:lang="en">Changed database context to "{0}" on server "{1}" on document "{2}".</source><target>Контекст базы данных изменен на «{0}» на сервере «{1}» в документе «{2}».</target>
         </trans-unit>
         <trans-unit id="msgDisconnected">
-            <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
-            <target>Завершено соединение для документа «{0}»</target>
+            <source xml:lang="en">Disconnected on document "{0}"</source><target>Завершено соединение для документа «{0}»</target>
         </trans-unit>
         <trans-unit id="msgErrorReadingConfigFile">
-            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-            <target>Ошибка: Не удалось загрузить список профилей из [{0}]. Проверьте корректность формата файла.</target>
+            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source><target>Ошибка: Не удалось загрузить список профилей из [{0}]. Проверьте корректность формата файла.</target>
         </trans-unit>
         <trans-unit id="titleResultsPane">
-            <source xml:lang="en">Results: {0}</source>
-            <target>Результаты: {0}</target>
+            <source xml:lang="en">Results: {0}</source><target>Результаты: {0}</target>
         </trans-unit>
         <trans-unit id="macOpenSslErrorMessage">
-            <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
-            <target>Для подключения требуется OpenSSL версии 1.0.1 или старше.</target>
+            <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source><target>Для подключения требуется OpenSSL версии 1.0.1 или старше.</target>
         </trans-unit>
         <trans-unit id="macOpenSslHelpButton">
-            <source xml:lang="en">Help</source>
-            <target>Справка</target>
+            <source xml:lang="en">Help</source><target>Справка</target>
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
             <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
-            <source xml:lang="en">Getting definition ...</source>
-            <target>Получение определения...</target>
+            <source xml:lang="en">Getting definition ...</source><target>Получение определения...</target>
         </trans-unit>
         <trans-unit id="definitionRequestedStatus">
-            <source xml:lang="en">DefinitionRequested</source>
-            <target>DefinitionRequested</target>
+            <source xml:lang="en">DefinitionRequested</source><target>DefinitionRequested</target>
         </trans-unit>
         <trans-unit id="definitionRequestCompletedStatus">
-            <source xml:lang="en">DefinitionRequestCompleted</source>
-            <target>DefinitionRequestCompleted</target>
+            <source xml:lang="en">DefinitionRequestCompleted</source><target>DefinitionRequestCompleted</target>
         </trans-unit>
         <trans-unit id="updatingIntelliSenseStatus">
-            <source xml:lang="en">updatingIntelliSense</source>
-            <target>updatingIntelliSense</target>
+            <source xml:lang="en">updatingIntelliSense</source><target>updatingIntelliSense</target>
         </trans-unit>
         <trans-unit id="intelliSenseUpdatedStatus">
-            <source xml:lang="en">intelliSenseUpdated</source>
-            <target>intelliSenseUpdated</target>
+            <source xml:lang="en">intelliSenseUpdated</source><target>intelliSenseUpdated</target>
         </trans-unit>
         <trans-unit id="testLocalizationConstant">
-            <source xml:lang="en">test</source>
-            <target>тест</target>
+            <source xml:lang="en">test</source><target>тест</target>
         </trans-unit>
         <trans-unit id="disconnectOptionLabel">
-            <source xml:lang="en">Disconnect</source>
+            <source xml:lang="en">Disconnect</source><target>Отключить</target>
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
             <source xml:lang="en">Close the current connection</source>
@@ -386,10 +297,10 @@
             <source xml:lang="en">Maximize</source>
         </trans-unit>
         <trans-unit id="restoreLabel">
-            <source xml:lang="en">Restore</source>
+            <source xml:lang="en">Restore</source><target>Восстановить</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
-            <source xml:lang="en">Save as CSV</source>
+            <source xml:lang="en">Save as CSV</source><target>Сохранить в формате CSV</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source>
@@ -398,35 +309,34 @@
             <source xml:lang="en">Save as Excel</source>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
-            <source xml:lang="en">CSV</source>
+            <source xml:lang="en">CSV</source><target>CSV</target>
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
-            <source xml:lang="en">JSON</source>
+            <source xml:lang="en">JSON</source><target>JSON</target>
         </trans-unit>
         <trans-unit id="fileTypeExcelLabel">
-            <source xml:lang="en">Excel</source>
+            <source xml:lang="en">Excel</source><target>Excel</target>
         </trans-unit>
         <trans-unit id="resultPaneLabel">
-            <source xml:lang="en">Results</source>
+            <source xml:lang="en">Results</source><target>Результаты</target>
         </trans-unit>
         <trans-unit id="selectAll">
             <source xml:lang="en">Select all</source>
         </trans-unit>
         <trans-unit id="copyLabel">
-            <source xml:lang="en">Copy</source>
+            <source xml:lang="en">Copy</source><target>Копирование</target>
         </trans-unit>
         <trans-unit id="copyWithHeadersLabel">
-            <source xml:lang="en">Copy with Headers</source>
+            <source xml:lang="en">Copy with Headers</source><target>Копировать с заголовками</target>
         </trans-unit>
         <trans-unit id="executeQueryLabel">
-            <source xml:lang="en">Executing query...</source>
+            <source xml:lang="en">Executing query...</source><target>Выполнение запроса...</target>
         </trans-unit>
         <trans-unit id="messagePaneLabel">
-            <source xml:lang="en">Messages</source>
+            <source xml:lang="en">Messages</source><target>Сообщения</target>
         </trans-unit>
         <trans-unit id="lineSelectorFormatted">
-            <source xml:lang="en">Line {0}</source>
-            <target>Строка {0}</target>
+            <source xml:lang="en">Line {0}</source><target>Строка {0}</target>
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
             <source xml:lang="en">Total execution time: {0}</source>
@@ -435,10 +345,10 @@
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         </trans-unit>
         <trans-unit id="mssqlProviderName">
-            <source xml:lang="en">MSSQL</source>
+            <source xml:lang="en">MSSQL</source><target>MSSQL</target>
         </trans-unit>
         <trans-unit id="noneProviderName">
-            <source xml:lang="en">None</source>
+            <source xml:lang="en">None</source><target>NONE</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
             <source xml:lang="en">Choose SQL Language</source>
