@@ -6,7 +6,7 @@
             <source xml:lang="en">Execute Query</source><target>Abfrage ausführen</target>
         </trans-unit>
         <trans-unit id="extension.runCurrentStatement">
-            <source xml:lang="en">Execute Current Statement</source>
+            <source xml:lang="en">Execute Current Statement</source><target>Aktuelle Anweisung ausführen</target>
         </trans-unit>
         <trans-unit id="extension.cancelQuery">
             <source xml:lang="en">Cancel Query</source><target>Abfrage abbrechen</target>
@@ -21,7 +21,7 @@
             <source xml:lang="en">Manage Connection Profiles</source><target>Verbindungsprofile verwalten</target>
         </trans-unit>
         <trans-unit id="extension.chooseDatabase">
-            <source xml:lang="en">Use Database</source>
+            <source xml:lang="en">Use Database</source><target>Datenbank verwenden</target>
         </trans-unit>
         <trans-unit id="extension.chooseLanguageFlavor">
             <source xml:lang="en">Choose SQL handler for this file</source><target>Wählen Sie den SQL-Handler für diese Datei</target>
@@ -33,7 +33,7 @@
             <source xml:lang="en">New Query</source><target>Neue Abfrage</target>
         </trans-unit>
         <trans-unit id="extension.rebuildIntelliSenseCache">
-            <source xml:lang="en">Refresh IntelliSense Cache</source>
+            <source xml:lang="en">Refresh IntelliSense Cache</source><target>IntelliSense Cache aktualisieren</target>
         </trans-unit>
         <trans-unit id="mssql.logDebugInfo">
             <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source><target>[Optional] Protokolliere die Debugausgaben mit der VS Code Konsole (Hilfe -&gt; Entwicklertools umschalten)</target>
@@ -90,7 +90,7 @@
             <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source><target>[Optional] Gibt den Anwendungstyp bei der Verbindung mit SQL Server an, z. B. ReadWrite oder ReadOnly. Mehr Details finden Sie unter SQL Server AlwaysOn.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.currentLanguage">
-            <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
+            <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source><target>[Optional] Zeigt die SQL Server-Spracheinstellungen.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.pooling">
             <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source><target>[Optional] Bei "Ja" wird das Verbindungs-Objekt ist aus dem entsprechenden Pool entnommen oder bei Bedarf erstellt und dem entsprechenden Pool hinzugefügt.</target>
@@ -153,10 +153,10 @@
             <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source><target>[Optional] Bei "Ja" werden die Spaltenüberschriften beim Speichern der Ergebnisse als CSV mit ausgegeben</target>
         </trans-unit>
         <trans-unit id="mssql.copyIncludeHeaders">
-            <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
+            <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source><target>[Optional] Konfigurations-Optionen für das Kopieren von Ergebnissen aus der Ergebnisansicht</target>
         </trans-unit>
         <trans-unit id="mssql.copyRemoveNewLine">
-            <source xml:lang="en">[Optional] Configuration options for copying multi-line results from the Results View</source>
+            <source xml:lang="en">[Optional] Configuration options for copying multi-line results from the Results View</source><target>[Optional] Konfigurations-Optionen für das Kopieren von mehrzeiligen Ergebnisse aus der Ergebnisansicht</target>
         </trans-unit>
         <trans-unit id="mssql.showBatchTime">
             <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source><target>[Optional] Soll die Ausführungszeit für einzelne Aufrufe angezeigt werden</target>

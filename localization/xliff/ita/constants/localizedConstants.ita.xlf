@@ -222,7 +222,7 @@
             <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source><target>Errore: Impossibile connettersi utilizzando le informazioni di connessione fornite. Ritentare la creazione del profilo?</target>
         </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
-            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
+            <source xml:lang="en">Error: Login failed. Retry using different credentials?</source><target>Errore: Accesso non riuscito. Riprovare utilizzando credenziali diverse?</target>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source><target>Riprova</target>
@@ -351,10 +351,10 @@
             <source xml:lang="en">None</source><target>Nessuno</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
-            <source xml:lang="en">Choose SQL Language</source>
+            <source xml:lang="en">Choose SQL Language</source><target>Scegli il Linguaggio SQL</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
-            <source xml:lang="en">Choose SQL Language</source>
+            <source xml:lang="en">Choose SQL Language</source><target>Scegli il Linguaggio SQL</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
             <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source><target>Utilizza intellisense e il controllo degli errori di sintassi T-SQL nel documento corrente</target>

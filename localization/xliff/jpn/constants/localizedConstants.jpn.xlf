@@ -282,7 +282,7 @@
             <source xml:lang="en">Disconnect</source><target>切断</target>
         </trans-unit>
         <trans-unit id="disconnectOptionDescription">
-            <source xml:lang="en">Close the current connection</source>
+            <source xml:lang="en">Close the current connection</source><target>現在の接続を閉じる</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
             <source xml:lang="en">Are you sure you want to disconnect?</source><target>切断してよろしいですか?</target>
@@ -297,7 +297,7 @@
             <source xml:lang="en">Maximize</source><target>最大化</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
-            <source xml:lang="en">Restore</source>
+            <source xml:lang="en">Restore</source><target>復元</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
             <source xml:lang="en">Save as CSV</source><target>CSV として保存</target>

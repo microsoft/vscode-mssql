@@ -285,28 +285,28 @@
             <source xml:lang="en">Close the current connection</source><target>Cerrar la conexión actual</target>
         </trans-unit>
         <trans-unit id="disconnectConfirmationMsg">
-            <source xml:lang="en">Are you sure you want to disconnect?</source>
+            <source xml:lang="en">Are you sure you want to disconnect?</source><target>¿Está seguro de que desea desconectar?</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
-            <source xml:lang="en">Batch execution time: {0}</source>
+            <source xml:lang="en">Batch execution time: {0}</source><target>Tiempo de ejecución por lotes: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source><target>Un editor de SQL debe tener foco antes de ejecutar este comando</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
-            <source xml:lang="en">Maximize</source>
+            <source xml:lang="en">Maximize</source><target>Maximizar</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
-            <source xml:lang="en">Restore</source>
+            <source xml:lang="en">Restore</source><target>Restaurar</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
-            <source xml:lang="en">Save as CSV</source>
+            <source xml:lang="en">Save as CSV</source><target>Guardar como CSV</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source><target>Guardar como JSON</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
-            <source xml:lang="en">Save as Excel</source>
+            <source xml:lang="en">Save as Excel</source><target>Guardar como Excel</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
             <source xml:lang="en">CSV</source><target>CSV</target>
@@ -321,7 +321,7 @@
             <source xml:lang="en">Results</source><target>Resultados</target>
         </trans-unit>
         <trans-unit id="selectAll">
-            <source xml:lang="en">Select all</source>
+            <source xml:lang="en">Select all</source><target>Seleccionar todo</target>
         </trans-unit>
         <trans-unit id="copyLabel">
             <source xml:lang="en">Copy</source><target>Copiar</target>
@@ -351,7 +351,7 @@
             <source xml:lang="en">None</source><target>NONE</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
-            <source xml:lang="en">Choose SQL Language</source>
+            <source xml:lang="en">Choose SQL Language</source><target>Elegir lenguaje SQL</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
             <source xml:lang="en">Choose SQL Language</source><target>Elegir lenguaje SQL</target>
