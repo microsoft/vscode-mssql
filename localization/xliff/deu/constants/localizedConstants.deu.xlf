@@ -258,7 +258,7 @@
             <source xml:lang="en">Help</source><target>Hilfe</target>
         </trans-unit>
         <trans-unit id="macSierraRequiredErrorMessage">
-            <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+            <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source><target>MacOS Sierra oder neuer ist erforderlich, um diese Funktion zu nutzen.</target>
         </trans-unit>
         <trans-unit id="gettingDefinitionMessage">
             <source xml:lang="en">Getting definition ...</source><target>Definition wird abgerufen...</target>
@@ -288,10 +288,10 @@
             <source xml:lang="en">Are you sure you want to disconnect?</source><target>Sind Sie sicher, dass Sie die Verbindung trennen möchten?</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
-            <source xml:lang="en">Batch execution time: {0}</source>
+            <source xml:lang="en">Batch execution time: {0}</source><target>Batch-Ausführungszeit: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
-            <source xml:lang="en">A SQL editor must have focus before executing this command</source>
+            <source xml:lang="en">A SQL editor must have focus before executing this command</source><target>Ein SQL-Editor muss den Fokus haben vor der Ausführung dieses Befehls</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
             <source xml:lang="en">Maximize</source><target>Maximieren</target>
@@ -300,7 +300,7 @@
             <source xml:lang="en">Restore</source><target>Wiederherstellen</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
-            <source xml:lang="en">Save as CSV</source>
+            <source xml:lang="en">Save as CSV</source><target>Als CSV speichern</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source><target>Als JSON speichern</target>
@@ -339,7 +339,7 @@
             <source xml:lang="en">Line {0}</source><target>Linie {0}</target>
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
-            <source xml:lang="en">Total execution time: {0}</source>
+            <source xml:lang="en">Total execution time: {0}</source><target>Gesamte Ausführungszeit: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source><target>Der Befehl "Ergebnisse speichern" kann nicht mit Mehrfachauswahlen verwendet werden.</target>
@@ -351,10 +351,10 @@
             <source xml:lang="en">None</source><target>NONE</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
-            <source xml:lang="en">Choose SQL Language</source>
+            <source xml:lang="en">Choose SQL Language</source><target>Wählen Sie SQL-Sprache</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
-            <source xml:lang="en">Choose SQL Language</source>
+            <source xml:lang="en">Choose SQL Language</source><target>Wählen Sie SQL-Sprache</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
             <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source><target>Intellisense und Syntax-Fehlerüberprüfung im aktuellen Dokument verwenden</target>

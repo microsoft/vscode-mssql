@@ -3,13 +3,13 @@
   <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ko">
     <body>
         <trans-unit id="extension.runQuery">
-            <source xml:lang="en">Execute Query</source>
+            <source xml:lang="en">Execute Query</source><target>쿼리 실행</target>
         </trans-unit>
         <trans-unit id="extension.runCurrentStatement">
-            <source xml:lang="en">Execute Current Statement</source>
+            <source xml:lang="en">Execute Current Statement</source><target>현재 문을 실행합니다</target>
         </trans-unit>
         <trans-unit id="extension.cancelQuery">
-            <source xml:lang="en">Cancel Query</source>
+            <source xml:lang="en">Cancel Query</source><target>쿼리 취소</target>
         </trans-unit>
         <trans-unit id="extension.connect">
             <source xml:lang="en">Connect</source><target>연결</target>
@@ -27,19 +27,19 @@
             <source xml:lang="en">Choose SQL handler for this file</source><target>이 파일에 대한 SQL 핸들러를 선택하십시오</target>
         </trans-unit>
         <trans-unit id="extension.showGettingStarted">
-            <source xml:lang="en">Getting Started Guide</source>
+            <source xml:lang="en">Getting Started Guide</source><target>가이드 시작</target>
         </trans-unit>
         <trans-unit id="extension.newQuery">
             <source xml:lang="en">New Query</source><target>새 쿼리</target>
         </trans-unit>
         <trans-unit id="extension.rebuildIntelliSenseCache">
-            <source xml:lang="en">Refresh IntelliSense Cache</source>
+            <source xml:lang="en">Refresh IntelliSense Cache</source><target>IntelliSense 캐시를 새로 고침</target>
         </trans-unit>
         <trans-unit id="mssql.logDebugInfo">
             <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source><target>[옵션] VS Code 콘솔로 디버그 결과를 기록 (도움말 -&gt; 개발자 도구 설정/해제)</target>
         </trans-unit>
         <trans-unit id="mssql.maxRecentConnections">
-            <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
+            <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source><target>최근에 사용한 연결을 연결 목록에 저장할 최대 수입니다.</target>
         </trans-unit>
         <trans-unit id="mssql.connections">
             <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source><target>'사용자 설정'에 정의 된 연결 프로필은 명령 팔레트의 'MS SQL: Connect' 명령 내에서 확인할 수 있습니다.</target>
@@ -57,10 +57,10 @@
             <source xml:lang="en">[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.</source><target>[옵션] SQL Server 인증을 위한 암호를 지정 합니다. 연결할 때 암호가 지정되지 않거나 저장되어 있지 않으면 다시 요청 될 것입니다</target>
         </trans-unit>
         <trans-unit id="mssql.connection.authenticationType">
-            <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source>
+            <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source><target>[옵션] SQL Server 인증 유형을 지정합니다.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.port">
-            <source xml:lang="en">[Optional] Specify the port number to connect to.</source>
+            <source xml:lang="en">[Optional] Specify the port number to connect to.</source><target>[옵션] 연결할 포트 번호를 지정 합니다.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.encrypt">
             <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source><target>[옵션] 'true'로 설정되면, 서버에 인증서가 설치되어 있을 때  클라이언트와 서버 간에 데이터 전송에  SSL 암호화를 사용합니다. Azure SQL 데이터베이스 연결에 대해서는 'true'로 설정하십시오.</target>
@@ -90,7 +90,7 @@
             <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source><target>[옵션] SQL Server에 연결할 때 ReadWrite 또는 ReadOnly와 같은 응용 프로그램 작업 유형을 선언 합니다. 자세한 내용은 SQL Server AlwaysOn를 참조하십시오.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.currentLanguage">
-            <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
+            <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source><target>[옵션] SQL Server 언어 설정을 나타냅니다.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.pooling">
             <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source><target>[옵션] 'true'로 설정되면, 연결 개체를 적절한 풀에서 가져오거나, 필요한 경우 새로 만들어지거나 적절한 풀에 추가됩니다.</target>
@@ -105,7 +105,7 @@
             <source xml:lang="en">[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.</source><target>[옵션] 연결이 풀에서 제거/삭제되기 전 생존하는 최소 시간을 초 단위로 지정합니다.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.replication">
-            <source xml:lang="en">[Optional] Used by SQL Server in replication.</source>
+            <source xml:lang="en">[Optional] Used by SQL Server in replication.</source><target>[옵션] SQL Server 복제에 사용합니다.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.attachDbFilename">
             <source xml:lang="en">[Optional] Specify the name of the primary file, including the full path name, of an attachable database.</source><target>[옵션] 연결 가능한 데이터베이스의 전체 경로명을 포함한 primary 파일 이름을 지정합니다.</target>
@@ -162,7 +162,7 @@
             <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source><target>[옵션] 개별 일괄 처리에 대한 실행시간 표시 여부</target>
         </trans-unit>
         <trans-unit id="mssql.splitPaneSelection">
-            <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
+            <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source><target>[옵션] 구성 옵션을 열에 대 한 새로운 결과 창에서 열립니다</target>
         </trans-unit>
         <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
             <source xml:lang="en">Should column definitions be aligned?</source><target>열 정의에 대한 정렬 여부</target>

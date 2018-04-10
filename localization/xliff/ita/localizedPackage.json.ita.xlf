@@ -60,7 +60,7 @@
             <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source><target>[Facoltativo] Specifica il tipo di autenticazione di SQL Server.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.port">
-            <source xml:lang="en">[Optional] Specify the port number to connect to.</source>
+            <source xml:lang="en">[Optional] Specify the port number to connect to.</source><target>[Facoltativo] Specificare il numero di porta a cui connettersi.</target>
         </trans-unit>
         <trans-unit id="mssql.connection.encrypt">
             <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source><target>[Facoltativo] Quando impostato a 'true', SQL Server utilizza la crittografia SSL per i dati inviati tra il client e il server se il server ha un certificato installato. Impostare a 'true' per le connessioni a Azure SQL Database.</target>
@@ -153,7 +153,7 @@
             <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source><target>[Facoltativo] Quando è 'true', le intestazioni di colonna sono incluse quando si salvano i risultati come file CSV</target>
         </trans-unit>
         <trans-unit id="mssql.copyIncludeHeaders">
-            <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
+            <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source><target>[Facoltativo] Opzioni di configurazione per copiare i risultati dalla vista dei risultati</target>
         </trans-unit>
         <trans-unit id="mssql.copyRemoveNewLine">
             <source xml:lang="en">[Optional] Configuration options for copying multi-line results from the Results View</source><target>[Facoltativo] Opzioni di configurazione per la copia di risultati multi linea dalla vista dei risultati</target>

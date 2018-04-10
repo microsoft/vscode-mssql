@@ -33,7 +33,7 @@
             <source xml:lang="en">New Query</source><target>Nouvelle requête</target>
         </trans-unit>
         <trans-unit id="extension.rebuildIntelliSenseCache">
-            <source xml:lang="en">Refresh IntelliSense Cache</source>
+            <source xml:lang="en">Refresh IntelliSense Cache</source><target>Actualiser le Cache IntelliSense</target>
         </trans-unit>
         <trans-unit id="mssql.logDebugInfo">
             <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source><target>[Facultatif] Loguer la sortie de débogage dans la console de VS Code (Aide -&gt; Activer/Désactiver les outils de développement)</target>

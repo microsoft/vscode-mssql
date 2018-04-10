@@ -288,25 +288,25 @@
             <source xml:lang="en">Are you sure you want to disconnect?</source><target>정말로 연결을 해제하시겠습니까?</target>
         </trans-unit>
         <trans-unit id="elapsedBatchTime">
-            <source xml:lang="en">Batch execution time: {0}</source>
+            <source xml:lang="en">Batch execution time: {0}</source><target>일괄 처리 실행 시간: {0}</target>
         </trans-unit>
         <trans-unit id="noActiveEditorMsg">
             <source xml:lang="en">A SQL editor must have focus before executing this command</source><target>이 명령을 실행하기 전에 SQL 편집기에 포커스가 있어야 합니다.</target>
         </trans-unit>
         <trans-unit id="maximizeLabel">
-            <source xml:lang="en">Maximize</source>
+            <source xml:lang="en">Maximize</source><target>최대화</target>
         </trans-unit>
         <trans-unit id="restoreLabel">
             <source xml:lang="en">Restore</source><target>복원</target>
         </trans-unit>
         <trans-unit id="saveCSVLabel">
-            <source xml:lang="en">Save as CSV</source>
+            <source xml:lang="en">Save as CSV</source><target>CSV로 저장</target>
         </trans-unit>
         <trans-unit id="saveJSONLabel">
             <source xml:lang="en">Save as JSON</source><target>JSON으로 저장</target>
         </trans-unit>
         <trans-unit id="saveExcelLabel">
-            <source xml:lang="en">Save as Excel</source>
+            <source xml:lang="en">Save as Excel</source><target>Excel로 저장</target>
         </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
             <source xml:lang="en">CSV</source><target>CSV</target>
@@ -321,7 +321,7 @@
             <source xml:lang="en">Results</source><target>결과</target>
         </trans-unit>
         <trans-unit id="selectAll">
-            <source xml:lang="en">Select all</source>
+            <source xml:lang="en">Select all</source><target>모두 선택</target>
         </trans-unit>
         <trans-unit id="copyLabel">
             <source xml:lang="en">Copy</source><target>복사</target>
@@ -339,7 +339,7 @@
             <source xml:lang="en">Line {0}</source><target>줄 {0}</target>
         </trans-unit>
         <trans-unit id="elapsedTimeLabel">
-            <source xml:lang="en">Total execution time: {0}</source>
+            <source xml:lang="en">Total execution time: {0}</source><target>총 실행 시간: {0}</target>
         </trans-unit>
         <trans-unit id="msgCannotSaveMultipleSelections">
             <source xml:lang="en">Save results command cannot be used with multiple selections.</source><target>결과 저장 명령은 다중 선택을 사용할 수 없습니다.</target>
@@ -351,10 +351,10 @@
             <source xml:lang="en">None</source><target>None</target>
         </trans-unit>
         <trans-unit id="chooseSqlLang">
-            <source xml:lang="en">Choose SQL Language</source>
+            <source xml:lang="en">Choose SQL Language</source><target>SQL 언어 선택</target>
         </trans-unit>
         <trans-unit id="flavorChooseLanguage">
-            <source xml:lang="en">Choose SQL Language</source>
+            <source xml:lang="en">Choose SQL Language</source><target>SQL 언어 선택</target>
         </trans-unit>
         <trans-unit id="flavorDescriptionMssql">
             <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source><target>현재 문서에서 T-SQL intellisense와 구문 오류 확인을 사용</target>
