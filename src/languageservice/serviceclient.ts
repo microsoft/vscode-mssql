@@ -276,7 +276,10 @@ export default class SqlToolsServiceClient {
     private createLanguageClient(serverOptions: ServerOptions): LanguageClient {
         // Options to control the language client
         let clientOptions: LanguageClientOptions = {
-            documentSelector: ['sql'],
+            documentSelector: [
+                { language: 'sql', scheme: 'file' },
+                { language: 'sql', scheme: 'untitled' }
+            ],
             synchronize: {
                 configurationSection: 'mssql'
             },
