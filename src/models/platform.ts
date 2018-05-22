@@ -26,7 +26,8 @@ export enum Runtime {
     SLES_12_2 = <any>'SLES_12_2',
     RHEL_7 = <any>'RHEL_7',
     Ubuntu_14 = <any>'Ubuntu_14',
-    Ubuntu_16 = <any>'Ubuntu_16'
+    Ubuntu_16 = <any>'Ubuntu_16',
+    Deepin = <any>'Deepin'
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
@@ -53,6 +54,8 @@ export function getRuntimeDisplayName(runtime: Runtime): string {
             return 'Ubuntu14';
         case Runtime.Ubuntu_16:
             return 'Ubuntu16';
+        case Runtime.Deepin:
+            return 'Deepin';
         default:
         return 'Unknown';
     }
@@ -310,6 +313,8 @@ export class PlatformInformation {
                     return Runtime.Ubuntu_16;
                 }
                 break;
+            case 'Deepin':
+                return Runtime.Debian_8;
             default:
                 return Runtime.UnknownRuntime;
         }
