@@ -26,8 +26,7 @@ export enum Runtime {
     SLES_12_2 = <any>'SLES_12_2',
     RHEL_7 = <any>'RHEL_7',
     Ubuntu_14 = <any>'Ubuntu_14',
-    Ubuntu_16 = <any>'Ubuntu_16',
-    deepin = <any>'deepin'
+    Ubuntu_16 = <any>'Ubuntu_16'
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
@@ -41,7 +40,6 @@ export function getRuntimeDisplayName(runtime: Runtime): string {
         case Runtime.CentOS_7:
             return 'CentOS';
         case Runtime.Debian_8:
-        case Runtime.deepin:
             return 'Debian';
         case Runtime.Fedora_23:
             return 'Fedora';
