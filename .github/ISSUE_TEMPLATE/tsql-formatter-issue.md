@@ -1,5 +1,5 @@
 ---
-name: TSQL Formmater Issue
+name: TSQL Formatter Issue
 about: This is the template for any TSQL Formatter issues
 
 ---
