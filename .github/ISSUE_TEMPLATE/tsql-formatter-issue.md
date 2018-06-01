@@ -1,13 +1,13 @@
 ---
-name: TQSL Formmater Issue
+name: TSQL Formatter Issue
 about: This is the template for any TSQL Formatter issues
 
 ---
 
 **Problem Summary**
 
-    MSSQL Extension Version: <0.3.0>
-    VSCode Version: <1.9.0>
+    MSSQL Extension Version:
+    VSCode Version:
     OS Version:
 
 **Formatter Settings**
