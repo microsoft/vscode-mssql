@@ -1,5 +1,5 @@
 ---
-name: TQSL Formmater Issue
+name: TSQL Formmater Issue
 about: This is the template for any TSQL Formatter issues
 
 ---
