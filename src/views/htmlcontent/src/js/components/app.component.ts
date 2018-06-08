@@ -468,7 +468,37 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+        if (selection.length > 1) {
+            selection = this.tryCombineSelections(selection);
+        }
         this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
+    }
+
+    private tryCombineSelections(selections: ISlickRange[]): ISlickRange[] {
+        // If the selections combine into a single continuous selection, this will be the selection
+        let unifiedSelection: ISlickRange = {
+            fromCell: selections.map(range => range.fromCell).reduce((min, next) => next < min ? next : min),
+            fromRow: selections.map(range => range.fromRow).reduce((min, next) => next < min ? next : min),
+            toCell: selections.map(range => range.toCell).reduce((max, next) => next > max ? next : max),
+            toRow: selections.map(range => range.toRow).reduce((max, next) => next > max ? next : max)
+        };
+
+        // Verify whether all cells in the combined selection have actually been selected
+        let verifiers: ((cell: [number, number]) => boolean)[] = [];
+        selections.forEach(range => {
+            verifiers.push((cell: [number, number]) => {
+                return cell[0] >= range.fromRow && cell[0] <= range.toRow && cell[1] >= range.fromCell && cell[1] <= range.toCell;
+            });
+        });
+        for (let row = unifiedSelection.fromRow; row <= unifiedSelection.toRow; row++) {
+            for (let column = unifiedSelection.fromCell; column <= unifiedSelection.toCell; column++) {
+                // If some cell in the combined selection isn't actually selected, return undefined as the selection
+                if (!verifiers.some(verifier => verifier([row, column]))) {
+                    return undefined;
+                }
+            }
+        }
+        return [unifiedSelection];
     }
 
     private sendSaveRequest(format: string): void {
