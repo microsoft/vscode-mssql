@@ -508,6 +508,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let batchId = this.renderedDataSets[activeGrid].batchId;
         let resultId = this.renderedDataSets[activeGrid].resultId;
         let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+        selection = this.tryCombineSelections(selection);
         this.dataService.sendSaveRequest(batchId, resultId, format, selection);
     }
 
