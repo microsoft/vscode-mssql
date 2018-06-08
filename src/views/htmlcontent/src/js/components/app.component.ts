@@ -470,13 +470,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-        if (selection.length > 1) {
-            selection = this.tryCombineSelections(selection);
-        }
+        selection = this.tryCombineSelections(selection);
         this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
     }
 
     private tryCombineSelections(selections: ISlickRange[]): ISlickRange[] {
+        if (!selections || selections.length === 0) {
+            return selections;
+        }
+
         // If the selections combine into a single continuous selection, this will be the selection
         let unifiedSelection: ISlickRange = {
             fromCell: selections.map(range => range.fromCell).reduce((min, next) => next < min ? next : min),
