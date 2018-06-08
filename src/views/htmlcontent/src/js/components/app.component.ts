@@ -180,12 +180,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
             } else {
                 let activeGrid = this.activeGrid;
                 let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+                selection = this.tryCombineSelections(selection);
                 this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
             }
         },
         'event.copyWithHeaders': () => {
             let activeGrid = this.activeGrid;
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            selection = this.tryCombineSelections(selection);
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId,
                 this.renderedDataSets[activeGrid].resultId, true);
         },
@@ -492,9 +494,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
         });
         for (let row = unifiedSelection.fromRow; row <= unifiedSelection.toRow; row++) {
             for (let column = unifiedSelection.fromCell; column <= unifiedSelection.toCell; column++) {
-                // If some cell in the combined selection isn't actually selected, return undefined as the selection
+                // If some cell in the combined selection isn't actually selected, return the original selections
                 if (!verifiers.some(verifier => verifier([row, column]))) {
-                    return undefined;
+                    return selections;
                 }
             }
         }
