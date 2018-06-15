@@ -40,6 +40,7 @@ export class SqlOutputContentProvider {
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private _vscodeWrapper: VscodeWrapper;
+    private _resultsPanes = new Map<string, vscode.WebviewPanel>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(context: vscode.ExtensionContext, private _statusView: StatusView) {
@@ -189,7 +190,9 @@ export class SqlOutputContentProvider {
             endLine: parseInt(req.query.endLine, 10),
             endColumn: parseInt(req.query.endColumn, 10)
         };
-        this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
+        let activeEditor = vscode.window.visibleTextEditors.find(editor => editor.document.uri === uri);
+        let editorColumn = activeEditor ? activeEditor.viewColumn : undefined;
+        this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection, editorColumn).then(() => {
             res.status = 200;
             res.send();
         });
@@ -339,24 +342,28 @@ export class SqlOutputContentProvider {
         // Get the active text editor
         let activeTextEditor = this._vscodeWrapper.activeTextEditor;
 
-        // Check if the results window already exists
-        if (!this.doesResultPaneExist(resultsUri)) {
-            // Wrapper tells us where the new results pane should be placed
-            let resultPaneColumn = this.newResultPaneViewColumn(queryUri);
+        // Wrapper tells us where the new results pane should be placed
+        let resultPaneColumn = this.newResultPaneViewColumn(queryUri);
 
-            let panel = vscode.window.createWebviewPanel(resultsUri, paneTitle, resultPaneColumn, {
+        // Check if the results window already exists
+        let panel = this._resultsPanes.get(resultsUri);
+        if (!panel) {
+            panel = vscode.window.createWebviewPanel(resultsUri, paneTitle, resultPaneColumn, {
                 retainContextWhenHidden: true,
                 enableScripts: true
             });
-            panel.webview.html = this.provideTextDocumentContent(resultsUri);
-            panel.reveal();
-
-            // Reset focus to the text editor if it's in a different column than the results window
-            if (resultPaneColumn !== activeTextEditor.viewColumn) {
-                this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
-            }
+            this._resultsPanes.set(resultsUri, panel);
         }
-    };
+
+        // Update the results panel's content
+        panel.webview.html = this.provideTextDocumentContent(resultsUri);
+        panel.reveal(resultPaneColumn);
+
+        // Reset focus to the text editor if it's in a different column than the results window
+        if (resultPaneColumn !== activeTextEditor.viewColumn) {
+            this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
+        }
+    }
 
     public cancelQuery(input: QueryRunner | string): void {
         let self = this;
@@ -564,17 +571,6 @@ export class SqlOutputContentProvider {
      */
     private isResultsUri(srcUri: string): boolean {
         return srcUri.startsWith(SqlOutputContentProvider.providerUri.toString());
-    }
-
-    /**
-     * Returns whether or not a result pane with the same URI exists
-     * @param The string value of a Uri.
-     * @return boolean true if pane exists
-     * public for testing purposes
-     */
-    public doesResultPaneExist(resultsUri: string): boolean {
-        let resultPaneURIMatch = this._vscodeWrapper.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
-        return (resultPaneURIMatch !== undefined);
     }
 
     /**

@@ -1,6 +1,7 @@
 'use strict';
 import { EventEmitter } from 'events';
 
+import * as vscode from 'vscode';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './queryNotificationHandler';
@@ -397,11 +398,11 @@ export default class QueryRunner {
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
      */
-    public setEditorSelection(selection: ISelectionData): Thenable<void> {
+    public setEditorSelection(selection: ISelectionData, editorColumn?: vscode.ViewColumn): Thenable<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                self._vscodeWrapper.showTextDocument(doc).then((editor) => {
+                self._vscodeWrapper.showTextDocument(doc, editorColumn).then((editor) => {
                     editor.selection = self._vscodeWrapper.selection(
                                     self._vscodeWrapper.position(selection.startLine, selection.startColumn),
                                     self._vscodeWrapper.position(selection.endLine, selection.endColumn));
