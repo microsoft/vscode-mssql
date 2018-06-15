@@ -475,7 +475,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     private tryCombineSelections(selections: ISlickRange[]): ISlickRange[] {
-        if (!selections || selections.length === 0) {
+        if (!selections || selections.length === 0 || selections.length === 1) {
             return selections;
         }
 
