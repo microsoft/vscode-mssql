@@ -180,12 +180,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
             } else {
                 let activeGrid = this.activeGrid;
                 let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+                selection = this.tryCombineSelections(selection);
                 this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId, this.renderedDataSets[activeGrid].resultId);
             }
         },
         'event.copyWithHeaders': () => {
             let activeGrid = this.activeGrid;
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            selection = this.tryCombineSelections(selection);
             this.dataService.copyResults(selection, this.renderedDataSets[activeGrid].batchId,
                 this.renderedDataSets[activeGrid].resultId, true);
         },
@@ -468,7 +470,39 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     openContextMenu(event: {x: number, y: number}, batchId, resultId, index): void {
         let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+        selection = this.tryCombineSelections(selection);
         this.contextMenu.show(event.x, event.y, batchId, resultId, index, selection);
+    }
+
+    private tryCombineSelections(selections: ISlickRange[]): ISlickRange[] {
+        if (!selections || selections.length === 0 || selections.length === 1) {
+            return selections;
+        }
+
+        // If the selections combine into a single continuous selection, this will be the selection
+        let unifiedSelection: ISlickRange = {
+            fromCell: selections.map(range => range.fromCell).reduce((min, next) => next < min ? next : min),
+            fromRow: selections.map(range => range.fromRow).reduce((min, next) => next < min ? next : min),
+            toCell: selections.map(range => range.toCell).reduce((max, next) => next > max ? next : max),
+            toRow: selections.map(range => range.toRow).reduce((max, next) => next > max ? next : max)
+        };
+
+        // Verify whether all cells in the combined selection have actually been selected
+        let verifiers: ((cell: [number, number]) => boolean)[] = [];
+        selections.forEach(range => {
+            verifiers.push((cell: [number, number]) => {
+                return cell[0] >= range.fromRow && cell[0] <= range.toRow && cell[1] >= range.fromCell && cell[1] <= range.toCell;
+            });
+        });
+        for (let row = unifiedSelection.fromRow; row <= unifiedSelection.toRow; row++) {
+            for (let column = unifiedSelection.fromCell; column <= unifiedSelection.toCell; column++) {
+                // If some cell in the combined selection isn't actually selected, return the original selections
+                if (!verifiers.some(verifier => verifier([row, column]))) {
+                    return selections;
+                }
+            }
+        }
+        return [unifiedSelection];
     }
 
     private sendSaveRequest(format: string): void {
@@ -476,6 +510,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let batchId = this.renderedDataSets[activeGrid].batchId;
         let resultId = this.renderedDataSets[activeGrid].resultId;
         let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+        selection = this.tryCombineSelections(selection);
         this.dataService.sendSaveRequest(batchId, resultId, format, selection);
     }
 
