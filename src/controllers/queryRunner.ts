@@ -1,6 +1,7 @@
 'use strict';
 import { EventEmitter } from 'events';
 
+import * as vscode from 'vscode';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import {QueryNotificationHandler} from './queryNotificationHandler';
@@ -400,8 +401,15 @@ export default class QueryRunner {
     public setEditorSelection(selection: ISelectionData): Thenable<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
+            let column = vscode.ViewColumn.One;
+            let visibleEditors = self._vscodeWrapper.visibleEditors;
+            visibleEditors.forEach(editor => {
+                if (editor.document.uri.toString() === self.uri) {
+                    column = editor.viewColumn;
+                }
+            });
             self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                self._vscodeWrapper.showTextDocument(doc).then((editor) => {
+                self._vscodeWrapper.showTextDocument(doc, column).then((editor) => {
                     editor.selection = self._vscodeWrapper.selection(
                                     self._vscodeWrapper.position(selection.startLine, selection.startColumn),
                                     self._vscodeWrapper.position(selection.endLine, selection.endColumn));
