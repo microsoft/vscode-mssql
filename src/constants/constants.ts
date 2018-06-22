@@ -78,6 +78,7 @@ export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 export const extConfigResultFontFamily = 'resultsFontFamily';
 export const extConfigResultFontSize = 'resultsFontSize';
 export const configApplyLocalization = 'applyLocalization';
+export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';

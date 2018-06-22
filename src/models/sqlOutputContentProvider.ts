@@ -343,11 +343,14 @@ export class SqlOutputContentProvider {
         // Wrapper tells us where the new results pane should be placed
         let resultPaneColumn = this.newResultPaneViewColumn(queryUri);
 
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
+        let retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
+
         // Check if the results window already exists
         let panel = this._resultsPanes.get(resultsUri);
         if (!panel) {
             panel = vscode.window.createWebviewPanel(resultsUri, paneTitle, resultPaneColumn, {
-                retainContextWhenHidden: true,
+                retainContextWhenHidden: retainContextWhenHidden,
                 enableScripts: true
             });
             this._resultsPanes.set(resultsUri, panel);
