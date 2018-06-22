@@ -190,9 +190,7 @@ export class SqlOutputContentProvider {
             endLine: parseInt(req.query.endLine, 10),
             endColumn: parseInt(req.query.endColumn, 10)
         };
-        let activeEditor = vscode.window.visibleTextEditors.find(editor => editor.document.uri === uri);
-        let editorColumn = activeEditor ? activeEditor.viewColumn : undefined;
-        this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection, editorColumn).then(() => {
+        this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection).then(() => {
             res.status = 200;
             res.send();
         });
