@@ -25,6 +25,7 @@ import {
  } from './../src/models/interfaces';
 import * as stubs from './stubs';
 import * as os from 'os';
+import * as vscode from 'vscode';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const ncp = require('copy-paste');
@@ -647,6 +648,38 @@ suite('Query Runner tests', () => {
                 let pasteContents = pasteCopiedString();
                 assert.equal(pasteContents, finalStringNoHeader);
             });
+        });
+
+        test('SetEditorSelection uses an existing editor if it is visible', done => {
+            let queryUri = 'test_uri';
+            let queryColumn = 2;
+            let queryRunner = new QueryRunner(queryUri,
+                queryUri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object);
+            let editor: vscode.TextEditor = {
+                document: {
+                    uri: queryUri
+                },
+                viewColumn: queryColumn,
+                selection: undefined
+            } as any;
+
+            testVscodeWrapper.setup(x => x.visibleEditors).returns(() => [editor]);
+            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+            testVscodeWrapper.setup(x => x.showTextDocument(undefined, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
+
+            // If I try to set a selection for the existing editor
+            queryRunner.setEditorSelection({ startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 }).then(() => {
+                try {
+                    testVscodeWrapper.verify(x => x.showTextDocument(undefined, queryColumn), TypeMoq.Times.once());
+                    done();
+                } catch (err) {
+                    done(err);
+                }
+            }, err => done(err));
         });
     });
 });
