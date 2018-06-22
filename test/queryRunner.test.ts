@@ -713,7 +713,7 @@ suite('Query Runner tests', () => {
                     done(err);
                 }
             }, err => done(err));
-        })
+        });
     });
 });
 
