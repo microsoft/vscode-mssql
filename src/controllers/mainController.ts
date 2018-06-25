@@ -155,8 +155,6 @@ export default class MainController implements vscode.Disposable {
 
                 // Init content provider for results pane
                 self._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview);
-                let registration = vscode.workspace.registerTextDocumentContentProvider(SqlOutputContentProvider.providerName, self._outputContentProvider);
-                self._context.subscriptions.push(registration);
 
                 // Init connection manager and connection MRU
                 self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);

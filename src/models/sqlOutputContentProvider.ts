@@ -30,7 +30,7 @@ class ResultsConfig implements Interfaces.IResultsConfig {
     messagesDefaultOpen: boolean;
 }
 
-export class SqlOutputContentProvider implements vscode.TextDocumentContentProvider {
+export class SqlOutputContentProvider {
     // CONSTANTS ///////////////////////////////////////////////////////////
     public static providerName = 'tsqloutput';
     public static providerUri = vscode.Uri.parse('tsqloutput://');
@@ -40,6 +40,7 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
     private _service: LocalWebService;
     private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private _vscodeWrapper: VscodeWrapper;
+    private _resultsPanes = new Map<string, vscode.WebviewPanel>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(context: vscode.ExtensionContext, private _statusView: StatusView) {
@@ -339,33 +340,31 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         // Get the active text editor
         let activeTextEditor = this._vscodeWrapper.activeTextEditor;
 
+        // Wrapper tells us where the new results pane should be placed
+        let resultPaneColumn = this.newResultPaneViewColumn(queryUri);
+
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
+        let retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
+
         // Check if the results window already exists
-        if (!this.doesResultPaneExist(resultsUri)) {
-            // Wrapper tells us where the new results pane should be placed
-            let resultPaneColumn = this.newResultPaneViewColumn(queryUri);
-
-            // Try and Open new window then reset focus back to the editor
-            vscode.commands.executeCommand('vscode.previewHtml', resultsUri, resultPaneColumn, paneTitle).then(() => {
-                // get the result pane text editor to determine which column it was shown in
-                let resultPaneTextEditor = this._vscodeWrapper.visibleEditors.find(
-                    editor => editor.document.uri.toString() === resultsUri);
-
-                // get the result pane column from the text editor
-                if (resultPaneTextEditor !== undefined) {
-                    resultPaneColumn = resultPaneTextEditor.viewColumn;
-                }
-
-                // only reset focus to the text editor if it's in a different column then the results window
-                if (resultPaneColumn !== undefined
-                    && resultPaneColumn !== activeTextEditor.viewColumn) {
-                    this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
-                }
-            }, err => {
-                // Output to console if an error occurs
-                Utils.logToOutputChannel(err);
+        let panel = this._resultsPanes.get(resultsUri);
+        if (!panel) {
+            panel = vscode.window.createWebviewPanel(resultsUri, paneTitle, resultPaneColumn, {
+                retainContextWhenHidden: retainContextWhenHidden,
+                enableScripts: true
             });
+            this._resultsPanes.set(resultsUri, panel);
         }
-    };
+
+        // Update the results panel's content
+        panel.webview.html = this.provideTextDocumentContent(resultsUri);
+        panel.reveal(resultPaneColumn);
+
+        // Reset focus to the text editor if it's in a different column than the results window
+        if (resultPaneColumn !== activeTextEditor.viewColumn) {
+            this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
+        }
+    }
 
     public cancelQuery(input: QueryRunner | string): void {
         let self = this;
@@ -465,10 +464,10 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
         }, deletionTimeoutTime);
     }
 
-    // Called by VS Code exactly once to load html content in the preview window
-    public provideTextDocumentContent(uri: vscode.Uri): string {
+    // Called exactly once to load html content in the webview
+    public provideTextDocumentContent(uri: string): string {
         // URI needs to be encoded as a component for proper inclusion in a url
-        let encodedUri = encodeURIComponent(uri.toString());
+        let encodedUri = encodeURIComponent(uri);
         console.log(`${LocalWebService.getEndpointUri(Interfaces.ContentType.Root)}?uri=${encodedUri}`);
 
         // Fix for issue #669 "Results Panel not Refreshing Automatically" - always include a unique time
@@ -573,17 +572,6 @@ export class SqlOutputContentProvider implements vscode.TextDocumentContentProvi
      */
     private isResultsUri(srcUri: string): boolean {
         return srcUri.startsWith(SqlOutputContentProvider.providerUri.toString());
-    }
-
-    /**
-     * Returns whether or not a result pane with the same URI exists
-     * @param The string value of a Uri.
-     * @return boolean true if pane exists
-     * public for testing purposes
-     */
-    public doesResultPaneExist(resultsUri: string): boolean {
-        let resultPaneURIMatch = this._vscodeWrapper.textDocuments.find(tDoc => tDoc.uri.toString() === resultsUri);
-        return (resultPaneURIMatch !== undefined);
     }
 
     /**

@@ -221,7 +221,8 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.format.placeCommasBeforeNextStatement": false,
     "mssql.format.placeSelectStatementReferencesOnNewLine": false,
     "mssql.applyLocalization": false,
-    "mssql.query.displayBitAsNumber": true
+    "mssql.query.displayBitAsNumber": true,
+    "mssql.persistQueryResultTabs": false
 }
 ```
 

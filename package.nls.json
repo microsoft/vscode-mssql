@@ -64,5 +64,6 @@
 "mssql.intelliSense.enableErrorChecking":"Should IntelliSense error checking be enabled",
 "mssql.intelliSense.enableSuggestions":"Should IntelliSense suggestions be enabled",
 "mssql.intelliSense.enableQuickInfo":"Should IntelliSense quick info be enabled",
-"mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase"
+"mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase",
+"mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)"
 }
