@@ -21,6 +21,21 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.4.0
+* Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
+* Added support for Deepin Linux
+* Updated query results display to use VS Code's new webview API
+* Added a new experimental setting "mssql.persistQueryResultTabs" which when set to true will save your scroll position and active selection when switching between query result tabs
+  * Note that this option is false by default because it [may cause high memory usage](https://code.visualstudio.com/docs/extensions/webview#_retaincontextwhenhidden
+  * If you use this option and have feedback on it please share it on our [GitHub page](https://github.com/Microsoft/vscode-mssql/issues/916).
+
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* [@ChristianGrimberg](https://github.com/ChristianGrimberg) for adding support for Deepin Linux
+* [@nschonni](https://github.com/nschonni) for closing issue [#704](https://github.com/Microsoft/vscode-mssql/issues/704) by adding a new TSQL formatter issue template
+* We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+
 ## What's new in 1.3.1
 * Fixed issue [#1036](https://github.com/Microsoft/vscode-mssql/issues/1036) where copy/pasting Unicode text can fail on Mac depending on the active locale environment variable
 * Fixed issue [#1066](https://github.com/Microsoft/vscode-mssql/issues/1066) RAND() function using GO N produces the same result
@@ -227,7 +242,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```1.1```. See the [change log] for a detailed list of changes in each version.
+The current version is ```1.4.0```. See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
