@@ -21,7 +21,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
-## What's new in 1.3.2
+## What's new in 1.4.0
 * Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
 * Added support for Deepin Linux
 * Updated query results display to use VS Code's new webview API
@@ -242,7 +242,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```1.3.2```. See the [change log] for a detailed list of changes in each version.
+The current version is ```1.4.0```. See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
