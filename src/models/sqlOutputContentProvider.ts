@@ -354,6 +354,7 @@ export class SqlOutputContentProvider {
                 enableScripts: true
             });
             this._resultsPanes.set(resultsUri, panel);
+            panel.onDidDispose(() => this._resultsPanes.delete(resultsUri));
         }
 
         // Update the results panel's content
@@ -361,9 +362,13 @@ export class SqlOutputContentProvider {
         panel.reveal(resultPaneColumn);
 
         // Reset focus to the text editor if it's in a different column than the results window
-        if (resultPaneColumn !== activeTextEditor.viewColumn) {
-            this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
-        }
+        // Delay it a little bit to give the webview time to open. Unfortunately VS Code doesn't
+        // give us a callback when the webview opens.
+        setTimeout(() => {
+            if (resultPaneColumn !== activeTextEditor.viewColumn) {
+                this._vscodeWrapper.showTextDocument(activeTextEditor.document, activeTextEditor.viewColumn);
+            }
+        }, 500);
     }
 
     public cancelQuery(input: QueryRunner | string): void {
