@@ -1,6 +1,6 @@
 {
   "name": "mssql",
-  "displayName": "mssql",
+  "displayName": "SQL Server (mssql)",
   "version": "1.4.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
