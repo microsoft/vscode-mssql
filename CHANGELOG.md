@@ -1,5 +1,24 @@
 # Change Log
 
+## Version 1.4.0
+* Release date: TBD
+* Release status: Pending
+
+## What's new in 1.4.0
+* Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
+* Added support for Deepin Linux
+* Updated query results display to use VS Code's new webview API
+* Added a new experimental setting "mssql.persistQueryResultTabs" which when set to true will save your scroll position and active selection when switching between query result tabs
+  * Note that this option is false by default because it [may cause high memory usage](https://code.visualstudio.com/docs/extensions/webview#_retaincontextwhenhidden
+  * If you use this option and have feedback on it please share it on our [GitHub page](https://github.com/Microsoft/vscode-mssql/issues/916).
+
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* [@ChristianGrimberg](https://github.com/ChristianGrimberg) for adding support for Deepin Linux
+* [@nschonni](https://github.com/nschonni) for closing issue [#704](https://github.com/Microsoft/vscode-mssql/issues/704) by adding a new TSQL formatter issue template
+* We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+
 ## Version 1.3.1
 * Release date: April 10, 2018
 * Release status: GA
