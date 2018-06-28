@@ -1,8 +1,8 @@
 # Change Log
 
 ## Version 1.4.0
-* Release date: TBD
-* Release status: Pending
+* Release date: June 28, 2018
+* Release status: GA
 
 ## What's new in 1.4.0
 * Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
