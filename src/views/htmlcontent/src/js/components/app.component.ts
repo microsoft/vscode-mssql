@@ -231,6 +231,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: () => { return Constants.saveCSVLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                selection = this.tryCombineSelections(selection);
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'savecsv', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
@@ -244,6 +245,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: () => { return Constants.saveJSONLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                selection = this.tryCombineSelections(selection);
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'savejson', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
@@ -257,6 +259,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             hoverText: () => { return Constants.saveExcelLabel; },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                selection = this.tryCombineSelections(selection);
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'saveexcel', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
