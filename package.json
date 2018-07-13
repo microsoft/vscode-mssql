@@ -476,7 +476,7 @@
         "mssql.saveAsCsv.delimiter": {
           "type": "string",
           "description": "%mssql.saveAsCsv.delimiter%",
-          "default": true,
+          "default": ",",
           "scope": "resource"
         },
         "mssql.copyIncludeHeaders": {
