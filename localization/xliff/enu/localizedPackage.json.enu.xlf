@@ -152,6 +152,9 @@
         <trans-unit id="mssql.saveAsCsv.includeHeaders">
             <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source>
         </trans-unit>
+        <trans-unit id="mssql.saveAsCsv.delimiter">
+            <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
+        </trans-unit>
         <trans-unit id="mssql.copyIncludeHeaders">
             <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         </trans-unit>
