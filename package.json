@@ -473,6 +473,12 @@
           "default": true,
           "scope": "resource"
         },
+        "mssql.saveAsCsv.delimiter": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.delimiter%",
+          "default": ",",
+          "scope": "resource"
+        },
         "mssql.copyIncludeHeaders": {
           "type": "boolean",
           "description": "%mssql.copyIncludeHeaders%",

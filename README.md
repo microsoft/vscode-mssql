@@ -220,6 +220,7 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.messagesDefaultOpen": true,
     "mssql.logDebugInfo": false,
     "mssql.saveAsCSV.includeHeaders": true,
+    "mssql.saveAsCSV.delimiter": ",",
     "mssql.intelliSense.enableIntelliSense": true,
     "mssql.intelliSense.enableErrorChecking": true,
     "mssql.intelliSense.enableSuggestions": true,
