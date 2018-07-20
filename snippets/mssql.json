@@ -328,7 +328,7 @@
 			"--",
 			"-- PARAMETERS",
 			"-- \t@${3:ParameterName}",
-			"--  \t\t* ${4:ParameterDescriptionHowItUsed}",
+			"-- \t\t* ${4:ParameterDescriptionUsage}",
 			"--",
 			"-- RETURN",
 			"-- \t${5:ReturnType}",
@@ -338,7 +338,7 @@
 			"--",
 			"-- CHANGE LOG",
 			"-- \t${7:day} ${8:Month} ${9:Year} - ${10:Creator}",
-			"-- \t\t* ${11:DescribeChange}",
+			"-- \t\t* ${11:ChangeDescription}",
 			"--"
 		],
 		"description": "Makes documentation header for stored procedures SQL"
