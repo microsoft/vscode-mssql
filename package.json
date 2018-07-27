@@ -479,6 +479,24 @@
           "default": ",",
           "scope": "resource"
         },
+        "mssql.saveAsCsv.lineSeperator": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.lineSeperator%",
+          "default": null,
+          "scope": "resource"
+        },
+        "mssql.saveAsCsv.textIdentifier": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.textIdentifier%",
+          "default": "\"",
+          "scope": "resource"
+        },
+        "mssql.saveAsCsv.encoding": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.encoding%",
+          "default": "utf-8",
+          "scope": "resource"
+        },
         "mssql.copyIncludeHeaders": {
           "type": "boolean",
           "description": "%mssql.copyIncludeHeaders%",
