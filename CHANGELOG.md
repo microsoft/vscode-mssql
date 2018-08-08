@@ -1,5 +1,58 @@
 # Change Log
 
+## Version 1.4.0
+* Release date: June 28, 2018
+* Release status: GA
+
+## What's new in 1.4.0
+* Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
+* Added support for Deepin Linux
+* Updated query results display to use VS Code's new webview API
+* Added a new experimental setting "mssql.persistQueryResultTabs" which when set to true will save your scroll position and active selection when switching between query result tabs
+  * Note that this option is false by default because it [may cause high memory usage](https://code.visualstudio.com/docs/extensions/webview#_retaincontextwhenhidden).
+  * If you use this option and have feedback on it please share it on our [GitHub page](https://github.com/Microsoft/vscode-mssql/issues/916).
+
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* [@ChristianGrimberg](https://github.com/ChristianGrimberg) for adding support for Deepin Linux
+* [@nschonni](https://github.com/nschonni) for closing issue [#704](https://github.com/Microsoft/vscode-mssql/issues/704) by adding a new TSQL formatter issue template
+* We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+
+## Version 1.3.1
+* Release date: April 10, 2018
+* Release status: GA
+
+## What's new in this version
+* Fixed issue [#1036](https://github.com/Microsoft/vscode-mssql/issues/1036) where copy/pasting Unicode text can fail on Mac depending on the active locale environment variable
+* Fixed issue [#1066](https://github.com/Microsoft/vscode-mssql/issues/1066) RAND() function using GO N produces the same result
+* Syntax highlighting more closely matches SSMS for local variables, global system varaibles, unicode string literals, bracketed identifiers, and built in functions
+* Show all error messages instead of just the first one when query execution results in multiple errors
+
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* [@rhires](https://github.com/rhires) for updating and editing the Kerberos help documentation
+* [@zackschuster](https://github.com/zackschuster) for cleaning up the VS Code API wrapper to remove a deprecated function call
+* We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+
+## Version 1.3.0
+* Release date: December 11, 2017
+* Release status: GA
+
+## What's new in this version
+* Fixed an issue where peek definition and go to definition failed for stored procedures.
+* Improved performance for peek definition and go to definition.
+* Added support for `GO N` syntax.
+* Fixed issue [#1025](https://github.com/Microsoft/vscode-mssql/issues/1025) where query execution would fail when executing from file paths containing special characters
+* Fixed issue [#785](https://github.com/Microsoft/vscode-mssql/issues/785) Inactive connection can't reconnect with out VS Code restart
+* A community-contributed fix for snippets that failed on databases with case-sensitive collations.
+
+
+### Contributions and "thank you"
+* Thank you to Stefán Jökull Sigurðarson for contributing the fix for snippets that failed with case-sensitive collations, which was ported here from the SQL Operations Studio repository.
+* We would like to thank everyone who contributed to localization for this update and encourage more people to join our [open source community localization effort](https://github.com/Microsoft/Localization/wiki).
+
 ## Version 1.2.1
 * Release date: November 8, 2017
 * Release status: GA

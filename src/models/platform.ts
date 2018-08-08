@@ -304,6 +304,7 @@ export class PlatformInformation {
             case 'rhel':
                 return Runtime.RHEL_7;
             case 'debian':
+            case 'deepin':
                 return Runtime.Debian_8;
             case 'galliumos':
                 if (distributionVersion.startsWith('2.0')) {

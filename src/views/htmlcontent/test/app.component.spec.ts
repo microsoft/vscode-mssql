@@ -462,6 +462,38 @@ describe('AppComponent', function (): void {
             expect(contextmenu.show).toHaveBeenCalledWith(20, 20, 0, 0, 0, []);
         });
 
+        it('should combine selections when opening the context menu', () => {
+            let range1: ISlickRange = {
+                fromCell: 0,
+                fromRow: 0,
+                toCell: 10,
+                toRow: 10
+            };
+            let range2: ISlickRange = {
+                fromCell: range1.fromCell,
+                fromRow: 11,
+                toCell: range1.toCell,
+                toRow: 100
+            };
+            let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
+            dataService.sendWSEvent(messageBatchStart);
+            dataService.sendWSEvent(resultSetSmall);
+            dataService.sendWSEvent(messageResultSet);
+            dataService.sendWSEvent(completeEvent);
+            fixture.detectChanges();
+            let contextmenu = comp.contextMenu;
+            let slickgrid = comp.slickgrids.toArray()[0];
+            spyOn(contextmenu, 'show');
+            spyOn(slickgrid, 'getSelectedRanges').and.returnValue([range1, range2]);
+            slickgrid.contextMenu.emit({x: 20, y: 20});
+            expect(contextmenu.show).toHaveBeenCalledWith(20, 20, 0, 0, 0, [{
+                fromCell: range1.fromCell,
+                fromRow: range1.fromRow,
+                toCell: range1.toCell,
+                toRow: range2.toRow
+            } as ISlickRange]);
+        });
+
         it('should open messages context menu when event is fired', () => {
             let dataService = <MockDataService> fixture.componentRef.injector.get(DataService);
             dataService.sendWSEvent(messageBatchStart);

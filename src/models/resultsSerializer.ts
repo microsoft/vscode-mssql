@@ -2,13 +2,13 @@ import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import Interfaces = require('./interfaces');
+import * as path from 'path';
+import { RequestType } from 'vscode-languageclient';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
-import {RequestType} from 'vscode-languageclient';
-import * as Utils from '../models/utils';
-import VscodeWrapper from '../controllers/vscodeWrapper';
 import Telemetry from '../models/telemetry';
-import * as path from 'path';
+import * as Utils from '../models/utils';
 
 let opener = require('opener');
 
@@ -76,6 +76,9 @@ export default class ResultsSerializer {
         if (saveConfig) {
             if (saveConfig.includeHeaders !== undefined) {
                 saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+            }
+            if (saveConfig.delimiter !== undefined) {
+                saveResultsParams.delimiter = saveConfig.delimiter;
             }
         }
         return saveResultsParams;
