@@ -155,6 +155,15 @@
         <trans-unit id="mssql.saveAsCsv.delimiter">
             <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
         </trans-unit>
+        <trans-unit id="mssql.saveAsCsv.lineSeperator">
+            <source xml:lang="en">[Optional] Character(s) used for seperating rows when saving results as CSV</source>
+        </trans-unit>
+        <trans-unit id="mssql.saveAsCsv.textIdentifier">
+            <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>
+        </trans-unit>
+        <trans-unit id="mssql.saveAsCsv.encoding">
+            <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
+        </trans-unit>
         <trans-unit id="mssql.copyIncludeHeaders">
             <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         </trans-unit>
