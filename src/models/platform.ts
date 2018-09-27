@@ -261,6 +261,7 @@ export class PlatformInformation {
     private static getRuntimeIdHelper(distributionName: string, distributionVersion: string): Runtime {
         switch (distributionName) {
             case 'arch':
+            case 'antergos':
                 // NOTE: currently Arch Linux seems to be compatible enough with Ubuntu 16 that this works,
                 // though in the future this may need to change as Arch follows a rolling release model.
                 return Runtime.Ubuntu_16;
