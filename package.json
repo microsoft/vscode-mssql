@@ -57,7 +57,7 @@
     "coveralls": "^2.11.15",
     "decache": "^4.1.0",
     "del": "^2.2.1",
-    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp": "github:gulpjs/gulp#v4.0.0",
     "gulp-clean-css": "^2.0.13",
     "gulp-concat": "^2.6.0",
     "gulp-filter": "^5.0.0",
@@ -619,6 +619,6 @@
   },
   "scripts": {
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "install-packages": "npm install github:gulpjs/gulp#4.0 && npm install gulp-install && gulp --gulpfile install.js install"
+    "install-packages": "npm install github:gulpjs/gulp#v4.0.0 && npm install gulp-install && gulp --gulpfile install.js install"
   }
 }
