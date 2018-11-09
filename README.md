@@ -39,7 +39,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 ## What's new in 1.3.1
 * Fixed issue [#1036](https://github.com/Microsoft/vscode-mssql/issues/1036) where copy/pasting Unicode text can fail on Mac depending on the active locale environment variable
 * Fixed issue [#1066](https://github.com/Microsoft/vscode-mssql/issues/1066) RAND() function using GO N produces the same result
-* Syntax highlighting more closely matches SSMS for local variables, global system varaibles, unicode string literals, bracketed identifiers, and built in functions
+* Syntax highlighting more closely matches SSMS for local variables, global system variables, unicode string literals, bracketed identifiers, and built in functions
 * Show all error messages instead of just the first one when query execution results in multiple errors
 
 
@@ -60,14 +60,14 @@ We would like to thank all our users who raised issues, and in particular the fo
 ## What's new in 1.2.1
 * Support for multi-root workspaces in preparation for the feature's release in Visual Studio Code. When running with multi-root workspaces, users will be able to set many configuration options at the folder level, including connection configurations.
 * Exporting results as CSV, JSON, or Excel files now shows the operating system's save-as dialog instead of using text-based dialogs to name the saved file.
-* Fixed issue [#998](https://github.com/Microsoft/vscode-mssql/issues/998) Intellisense against Azure SQL DBs very inconsistent.
+* Fixed issue [#998](https://github.com/Microsoft/vscode-mssql/issues/998) IntelliSense against Azure SQL DBs very inconsistent.
 
 
 ## What's new in 1.2
 * Support for macOS High Sierra.
 * VSCode-Insiders users will see their connections are now read from and saved to the Insiders settings file instead of the regular Visual Studio Code location. Fixes [#242](https://github.com/Microsoft/vscode-mssql/issues/242).
 * Saving connections no longer affects comments in the settings file [#959](https://github.com/Microsoft/vscode-mssql/issues/959).
-* Intellisense errors and suggestions can be disabled on a per-file basis [#978](https://github.com/Microsoft/vscode-mssql/issues/978). Use the `MS SQL: Choose SQL Handler for this file` action or click on the `MSSQL` status bar item when a .sql file is open to disable intellisense on that document.
+* IntelliSense errors and suggestions can be disabled on a per-file basis [#978](https://github.com/Microsoft/vscode-mssql/issues/978). Use the `MS SQL: Choose SQL Handler for this file` action or click on the `MSSQL` status bar item when a .sql file is open to disable IntelliSense on that document.
 * Fixed issue [#987](https://github.com/Microsoft/vscode-mssql/issues/987) Cannot change password of a saved profile.
 * Fixed issue [#924](https://github.com/Microsoft/vscode-mssql/issues/924) Database name with $ is not showing up correctly in database list.
 * Fixed issue [#949](https://github.com/Microsoft/vscode-mssql/issues/949) Drop database fails most of the time because the db is in used.
@@ -115,11 +115,11 @@ We would like to thank all our users who raised issues, and in particular the fo
   *	Spanish: Andy Gonzalez, Alberto Poblacion
 
 ## What's new in 1.0
-* We are please to announce the official GA of the MSSQL extension! This release focuses on stability, localization support, and top customer feedback issues
+* We are pleased to announce the official GA of the MSSQL extension! This release focuses on stability, localization support, and top customer feedback issues
 * The MSSQL extension is now localized. Use the `Configure Language` command in VSCode to change to your language of choice. Restart the application and the MSSQL extension will now support your language for all commands and messages.
 * Community-added support for `Save as Excel`, which supports saving to .xlsx format and opening this in the default application for .xlsx files on your machine.
 * Numerous bug fixes:
-  * IntelliSense improvements to support configuration of Intellisense options from user settings, plus keyword fixes.
+  * IntelliSense improvements to support configuration of IntelliSense options from user settings, plus keyword fixes.
   * Query Execution fixes and improvements: [#832](https://github.com/Microsoft/vscode-mssql/issues/832), [#815](https://github.com/Microsoft/vscode-mssql/issues/815), [#803](https://github.com/Microsoft/vscode-mssql/issues/803), [#794](https://github.com/Microsoft/vscode-mssql/issues/794), [#772](https://github.com/Microsoft/vscode-mssql/issues/772)
   * Improved support for downloading and installing the tools service behind proxies
   * Improvements to `Go To Definition` / `Peek Definition` support [#769](https://github.com/Microsoft/vscode-mssql/issues/769)
@@ -148,7 +148,7 @@ with configuration options for some of the most common T-SQL formatting styles.
   * To format part of a document, highlight a selection, right-click and choose `Format Selection`
   * To change the formatting settings, hit F1 and choose `Preferences: Open User Settings`. Type in `mssql.format` and
   change any of the options
-* `Refresh Intellisense Cache` command added. This will rebuild the intellisense for a connected database to include any recent
+* `Refresh IntelliSense Cache` command added. This will rebuild the IntelliSense for a connected database to include any recent
 schema changes
 * `New Query` command added. This opens a new .sql file and connects to a server, making it quicker to get started with your queries
 * Fixed support for SQL Data Warehouse connections.
@@ -167,8 +167,8 @@ schema changes
 * Peek Definition and Go To Definition support for Tables, Views and Stored Procedures.
   * For a query such as `select * from dbo.Person` you can right-click on `Person` and see it as a `CREATE TABLE` script.
   * Note: you must be connected to a database to use this feature.
-* Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.
-* Multiple improvements & fixes to the results view, Intellisense handling, and service installation notification.
+* Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.IntelliSense
+* Multiple improvements & fixes to the results view, IntelliSense handling, and service installation notification.
 * Improved logging to the Output window. Errors and status notifications can be viewed in the SqlToolsService or MSSQL channels.
 * For a full list see the [change log].
 
