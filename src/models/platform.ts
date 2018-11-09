@@ -286,7 +286,7 @@ export class PlatformInformation {
 
                 break;
             case 'linuxmint':
-                if (distributionVersion.startsWith('18')) {
+                if (distributionVersion.startsWith('18') || distributionVersion.startsWith('19')) {
                     // Linux Mint 18 is binary compatible with Ubuntu 16.04
                     return Runtime.Ubuntu_16;
                 }
@@ -313,10 +313,10 @@ export class PlatformInformation {
                 }
                 break;
             default:
-                return Runtime.UnknownRuntime;
+                return Runtime.Ubuntu_16;
         }
 
-        return Runtime.UnknownVersion;
+        return Runtime.Ubuntu_16;
     }
 }
 
