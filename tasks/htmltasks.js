@@ -30,7 +30,8 @@ gulp.task('html:lint', () => {
 gulp.task('html:compile-src', () => {
   return gulp
     .src([config.paths.html.root + '/src/js/**/*.ts',
-    config.paths.html.root + '/typings/**/*.d.ts'])
+    config.paths.html.root + '/typings/**/*.d.ts',
+    '!../../../../node_modules/@types/**/node_modules/**/index.d.ts'])
     .pipe(srcmap.init())
     .pipe(tsProject())
     .pipe(srcmap.write('.', {

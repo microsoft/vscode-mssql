@@ -5,6 +5,7 @@
         "module": "commonjs",
         "sourceMap": true,
         "rootDir": ".",
-        "target": "ES6"
+        "target": "ES6",
+        "types": []
     }
 }
