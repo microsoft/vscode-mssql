@@ -121,10 +121,10 @@ suite('Platform Tests', () => {
         expect(platformInfo.runtimeId).to.equal( undefined);
     });
 
-    test('Compute no RID for fake distro with no ID_LIKE', () => {
+    test('Compute default (Ubuntu_16) RID for fake distro with no ID_LIKE', () => {
         const platformInfo = new PlatformInformation('linux', 'x86_64', distro_unknown_no_id_like());
 
-        expect(platformInfo.runtimeId).to.equal( undefined);
+        expect(platformInfo.runtimeId).to.equal(Runtime.Ubuntu_16.toString());
     });
 });
 
