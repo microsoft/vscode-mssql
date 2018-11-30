@@ -10056,14 +10056,14 @@
       "resolved": "http://registry.npmjs.org/vscode-extension-telemetry/-/vscode-extension-telemetry-0.0.5.tgz",
       "integrity": "sha1-IeKrtMvOMybkad27MiEjs3AvP4U=",
       "requires": {
-        "applicationinsights": "0.15.6",
+        "applicationinsights": "0.15.19",
         "winreg": "0.0.13"
       },
       "dependencies": {
         "applicationinsights": {
-          "version": "0.15.6",
-          "resolved": "http://registry.npmjs.org/applicationinsights/-/applicationinsights-0.15.6.tgz",
-          "integrity": "sha1-IBoGgsBwT+S92aktCyy+NNKuWXI="
+          "version": "0.15.19",
+          "resolved": "http://registry.npmjs.org/applicationinsights/-/applicationinsights-0.15.19.tgz",
+          "integrity": "sha1-n/QCz/+uQVbFOddsvLDXzlVo5I0="
         }
       }
     },
