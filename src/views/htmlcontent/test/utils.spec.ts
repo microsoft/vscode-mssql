@@ -26,6 +26,13 @@ describe('Utility Tests', () => {
             });
         });
 
+        it( 'Does encode all spaces to non-breaking spaces', () => {
+            [' ', '  ', '   '].forEach(item => {
+                let expectedValue = '&nbsp;'.repeat(item.length);
+                expect(Utils.htmlEntities(item)).toEqual(expectedValue);
+            });
+        });
+
         it('Does not attempt encoding if the value is null or undefined', () => {
             // We're explicitly checking null b/c this is what comes back from the service
             [null, undefined].forEach((item) => {                       // tslint:disable-line:no-null-keyword
