@@ -19,15 +19,17 @@ export function isNumber(val: any): boolean {
 
 /**
  * Converts <, >, &, ", ', and any characters that are outside \u00A0 to numeric HTML entity values
- * like &#123;
+ * like &#123;. Also converts whitespace to &nbsp; to ensure all spaces are respected.
  * (Adapted from http://stackoverflow.com/a/18750001)
  * @param str String to convert
  * @return String with characters replaced.
  */
 export function htmlEntities(str: string): string {
-    return typeof(str) === 'string'
-        ? str.replace(/[\u00A0-\u9999<>\&"']/gim, (i) => { return `&#${i.charCodeAt(0)};`; })
-        : undefined;
+    if (typeof(str) !== 'string') { return undefined; }
+
+    let newStr = str.replace(/[\u00A0-\u9999<>\&"']/gim, (i) => { return `&#${i.charCodeAt(0)};`; });
+    newStr = newStr.replace(/\s/g, '&nbsp;');
+    return newStr;
 }
 
 /**
