@@ -4997,11 +4997,57 @@
         "vinyl-sourcemaps-apply": "^0.2.0"
       },
       "dependencies": {
+        "camelcase": {
+          "version": "1.2.1",
+          "resolved": "https://registry.npmjs.org/camelcase/-/camelcase-1.2.1.tgz",
+          "integrity": "sha1-m7UwTS4LVmmLLHWLCKPqqdqlijk=",
+          "dev": true
+        },
+        "cliui": {
+          "version": "2.1.0",
+          "resolved": "https://registry.npmjs.org/cliui/-/cliui-2.1.0.tgz",
+          "integrity": "sha1-S0dXYP+AJkx2LDoXGQMukcf+oNE=",
+          "dev": true,
+          "requires": {
+            "center-align": "^0.1.1",
+            "right-align": "^0.1.1",
+            "wordwrap": "0.0.2"
+          }
+        },
         "lodash": {
           "version": "4.17.11",
           "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.11.tgz",
           "integrity": "sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg==",
           "dev": true
+        },
+        "uglify-js": {
+          "version": "2.8.29",
+          "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-2.8.29.tgz",
+          "integrity": "sha1-KcVzMUgFe7Th913zW3qcty5qWd0=",
+          "dev": true,
+          "requires": {
+            "source-map": "~0.5.1",
+            "uglify-to-browserify": "~1.0.0",
+            "yargs": "~3.10.0"
+          }
+        },
+        "wordwrap": {
+          "version": "0.0.2",
+          "resolved": "https://registry.npmjs.org/wordwrap/-/wordwrap-0.0.2.tgz",
+          "integrity": "sha1-t5Zpu0LstAn4PVg8rVLKF+qhZD8=",
+          "dev": true
+        },
+        "yargs": {
+          "version": "3.10.0",
+          "resolved": "https://registry.npmjs.org/yargs/-/yargs-3.10.0.tgz",
+          "integrity": "sha1-9+572FfdfB0tOMDnTvvWgdFDH9E=",
+          "dev": true,
+          "requires": {
+            "camelcase": "^1.0.2",
+            "cliui": "^2.1.0",
+            "decamelize": "^1.0.0",
+            "window-size": "0.1.0"
+          }
         }
       }
     },
@@ -10056,14 +10102,14 @@
       "resolved": "http://registry.npmjs.org/vscode-extension-telemetry/-/vscode-extension-telemetry-0.0.5.tgz",
       "integrity": "sha1-IeKrtMvOMybkad27MiEjs3AvP4U=",
       "requires": {
-        "applicationinsights": "0.15.19",
+        "applicationinsights": "0.15.6",
         "winreg": "0.0.13"
       },
       "dependencies": {
         "applicationinsights": {
-          "version": "0.15.19",
-          "resolved": "http://registry.npmjs.org/applicationinsights/-/applicationinsights-0.15.19.tgz",
-          "integrity": "sha1-n/QCz/+uQVbFOddsvLDXzlVo5I0="
+          "version": "0.15.6",
+          "resolved": "https://registry.npmjs.org/applicationinsights/-/applicationinsights-0.15.6.tgz",
+          "integrity": "sha1-IBoGgsBwT+S92aktCyy+NNKuWXI="
         }
       }
     },
