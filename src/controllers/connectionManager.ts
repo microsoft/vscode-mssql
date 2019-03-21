@@ -402,7 +402,7 @@ export default class ConnectionManager {
             // Get list of databases on current server
             let listParams = new ConnectionContracts.ListDatabasesParams();
             listParams.ownerUri = fileUri;
-            self.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams).then( result => {
+            self.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams).then((result: any) => {
                 // Then let the user select a new database to connect to
                 self.connectionUI.showDatabasesOnCurrentServer(self._connections[fileUri].credentials, result.databaseNames).then( newDatabaseCredentials => {
                     if (newDatabaseCredentials) {
@@ -471,7 +471,7 @@ export default class ConnectionManager {
                 let disconnectParams = new ConnectionContracts.DisconnectParams();
                 disconnectParams.ownerUri = fileUri;
 
-                self.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams).then((result) => {
+                self.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams).then((result: any) => {
                     if (self.statusView) {
                         self.statusView.notConnected(fileUri);
                     }

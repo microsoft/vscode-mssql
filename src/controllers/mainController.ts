@@ -142,11 +142,10 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-                // Ensure telemetry is disabled
-                Telemetry.disable();
+            // Ensure telemetry is disabled
+            Telemetry.disable();
 
-                SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
-
+            SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
                 // Init status bar
                 self._statusview = new StatusView(self._vscodeWrapper);
 
@@ -158,8 +157,6 @@ export default class MainController implements vscode.Disposable {
 
                 // Init connection manager and connection MRU
                 self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
-
-
 
                 activationTimer.end();
 
@@ -527,7 +524,9 @@ export default class MainController implements vscode.Disposable {
         } catch (err) {
             try {
                 // write out the "first launch" file if it doesn't exist
-                fs.writeFile(filePath, 'launched');
+                fs.writeFile(filePath, 'launched', (err) => {
+                    return;
+                });
             } catch (err) {
                 // ignore errors writing first launch file since there isn't really
                 // anything we can do to recover in this situation.

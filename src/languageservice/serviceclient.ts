@@ -191,7 +191,10 @@ export default class SqlToolsServiceClient {
                         });
                     } else {
                         this.initializeLanguageClient(serverPath, context);
-                        resolve(new ServerInitializationResult(false, true, serverPath));
+
+                        this._client.onReady().then(() => {
+                            resolve(new ServerInitializationResult(false, true, serverPath));
+                        });
                     }
                 }).catch(err => {
                     Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err );
@@ -288,9 +291,9 @@ export default class SqlToolsServiceClient {
         client.onReady().then( () => {
             this.checkServiceCompatibility();
 
+            client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
+            client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
         });
-        client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
-        client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
 
         return client;
     }
@@ -348,7 +351,7 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
+    public sendRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
             return this.client.sendRequest(type, params);
         }
@@ -358,7 +361,7 @@ export default class SqlToolsServiceClient {
      * Send a notification to the service client
      * @param params The params to pass with the notification
      */
-    public sendNotification<P>(type: NotificationType<P>, params?: P): void {
+    public sendNotification<P, R0>(type: NotificationType<P, R0>, params?: P): void {
         if (this.client !== undefined) {
             this.client.sendNotification(type, params);
         }
@@ -369,7 +372,7 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to register the handler for
      * @param handler The handler to register
      */
-    public onNotification<P>(type: NotificationType<P>, handler: NotificationHandler<P>): void {
+    public onNotification<P, R0>(type: NotificationType<P, R0>, handler: NotificationHandler<P>): void {
         if (this._client !== undefined) {
              return this.client.onNotification(type, handler);
         }
