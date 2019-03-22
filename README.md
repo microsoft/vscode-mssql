@@ -220,7 +220,7 @@ See [customize options] and [manage connection profiles] for more details.
     "mssql.logDebugInfo": false,
     "mssql.saveAsCsv.includeHeaders": true,
     "mssql.saveAsCsv.delimiter": ",",
-    "mssql.saveAsCsv.lineSeperator": null,
+    "mssql.saveAsCsv.lineSeparator": null,
     "mssql.saveAsCsv.textIdentifier": "\"",
     "mssql.saveAsCsv.encoding": "utf-8",
     "mssql.intelliSense.enableIntelliSense": true,

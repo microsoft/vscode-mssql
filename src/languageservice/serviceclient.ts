@@ -177,7 +177,7 @@ export default class SqlToolsServiceClient {
                 // For macOS we need to ensure the tools service version is set appropriately
                 this.updateServiceVersion(platformInfo);
 
-                this._server.getServerPath(platformInfo.runtimeId).then(serverPath => {
+                this._server.getServerPath(platformInfo.runtimeId).then(async serverPath => {
                     if (serverPath === undefined) {
                         // Check if the service already installed and if not open the output channel to show the logs
                         if (_channel !== undefined) {
@@ -191,10 +191,8 @@ export default class SqlToolsServiceClient {
                         });
                     } else {
                         this.initializeLanguageClient(serverPath, context);
-
-                        this._client.onReady().then(() => {
-                            resolve(new ServerInitializationResult(false, true, serverPath));
-                        });
+                        await this._client.onReady();
+                        resolve(new ServerInitializationResult(false, true, serverPath));
                     }
                 }).catch(err => {
                     Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err );

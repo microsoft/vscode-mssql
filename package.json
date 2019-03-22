@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
@@ -24,7 +24,7 @@
     "vscode": "^1.23.0"
   },
   "categories": [
-    "Languages",
+    "Programming Languages",
     "Azure"
   ],
   "keywords": [
@@ -480,9 +480,9 @@
           "default": ",",
           "scope": "resource"
         },
-        "mssql.saveAsCsv.lineSeperator": {
+        "mssql.saveAsCsv.lineSeparator": {
           "type": "string",
-          "description": "%mssql.saveAsCsv.lineSeperator%",
+          "description": "%mssql.saveAsCsv.lineSeparator%",
           "default": null,
           "scope": "resource"
         },

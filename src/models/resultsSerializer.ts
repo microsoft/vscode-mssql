@@ -80,8 +80,8 @@ export default class ResultsSerializer {
             if (saveConfig.delimiter !== undefined) {
                 saveResultsParams.delimiter = saveConfig.delimiter;
             }
-            if (saveConfig.lineSeperator !== undefined) {
-                saveResultsParams.lineSeperator = saveConfig.lineSeperator;
+            if (saveConfig.lineSeparator !== undefined) {
+                saveResultsParams.lineSeperator = saveConfig.lineSeparator;
             }
             if (saveConfig.textIdentifier !== undefined) {
                 saveResultsParams.textIdentifier = saveConfig.textIdentifier;
