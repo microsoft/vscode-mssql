@@ -22,7 +22,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 ## What's new in 1.5.0
 * Update vscode-languageclient to fix issue [#1194 Refresh Intellisence cache option don't work](https://github.com/Microsoft/vscode-mssql/issues/1194)
-* Import CSV export options such as setting delimiter, line separater, encoding and include headers
+* Import CSV export options such as setting delimiter, line separator, encoding and include headers
 * Add missing SQL keywords to colorization list
 * Fix Peek Definition\Go to Definition bug on SQL Server 2017
 
