@@ -183,12 +183,10 @@ export default class SqlToolsServiceClient {
                         if (_channel !== undefined) {
                             _channel.show();
                         }
-                        this._server.downloadServerFiles(platformInfo.runtimeId).then ( installedServerPath => {
-                            this.initializeLanguageClient(installedServerPath, context);
-                            resolve(new ServerInitializationResult(true, true, installedServerPath));
-                        }).catch(downloadErr => {
-                            reject(downloadErr);
-                        });
+                        let installedServerPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
+                        this.initializeLanguageClient(installedServerPath, context);
+                        await this._client.onReady();
+                        resolve(new ServerInitializationResult(true, true, installedServerPath));
                     } else {
                         this.initializeLanguageClient(serverPath, context);
                         await this._client.onReady();
