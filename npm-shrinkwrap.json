@@ -1,6 +1,6 @@
 {
   "name": "mssql",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -10577,23 +10577,31 @@
       }
     },
     "vscode-jsonrpc": {
-      "version": "2.4.0",
-      "resolved": "http://registry.npmjs.org/vscode-jsonrpc/-/vscode-jsonrpc-2.4.0.tgz",
-      "integrity": "sha1-UTlgMOExeVVck5t5HClZgFi4+7Q="
+      "version": "3.5.0",
+      "resolved": "https://registry.npmjs.org/vscode-jsonrpc/-/vscode-jsonrpc-3.5.0.tgz",
+      "integrity": "sha1-hyOdnhZrLXNSJFuKgTWXgEwdY6o="
     },
     "vscode-languageclient": {
-      "version": "2.6.3",
-      "resolved": "http://registry.npmjs.org/vscode-languageclient/-/vscode-languageclient-2.6.3.tgz",
-      "integrity": "sha1-mjX1lVRkWI2WaJUxP1FkzpsYTz8=",
+      "version": "3.5.1",
+      "resolved": "https://registry.npmjs.org/vscode-languageclient/-/vscode-languageclient-3.5.1.tgz",
+      "integrity": "sha512-GTQ+hSq/o4c/y6GYmyP9XNrVoIu0NFZ67KltSkqN+tO0eUNDIlrVNX+3DJzzyLhSsrctuGzuYWm3t87mNAcBmQ==",
       "requires": {
-        "vscode-jsonrpc": "^2.4.0",
-        "vscode-languageserver-types": "^1.0.4"
+        "vscode-languageserver-protocol": "3.5.1"
+      }
+    },
+    "vscode-languageserver-protocol": {
+      "version": "3.5.1",
+      "resolved": "https://registry.npmjs.org/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.5.1.tgz",
+      "integrity": "sha512-1fPDIwsAv1difCV+8daOrJEGunClNJWqnUHq/ncWrjhitKWXgGmRCjlwZ3gDUTt54yRcvXz1PXJDaRNvNH6pYA==",
+      "requires": {
+        "vscode-jsonrpc": "3.5.0",
+        "vscode-languageserver-types": "3.5.0"
       }
     },
     "vscode-languageserver-types": {
-      "version": "1.0.4",
-      "resolved": "http://registry.npmjs.org/vscode-languageserver-types/-/vscode-languageserver-types-1.0.4.tgz",
-      "integrity": "sha1-Q5pS8EDInPZZnYjtmhtamr3KEbc="
+      "version": "3.5.0",
+      "resolved": "https://registry.npmjs.org/vscode-languageserver-types/-/vscode-languageserver-types-3.5.0.tgz",
+      "integrity": "sha1-5I15li8LjgLelV4/UkkI4rGcA3Q="
     },
     "vscode-nls": {
       "version": "2.0.2",

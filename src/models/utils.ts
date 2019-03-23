@@ -279,7 +279,7 @@ export class Timer {
         if (!this._startTime) {
             return -1;
         } else if (!this._endTime) {
-            let endTime = process.hrtime(this._startTime);
+            let endTime = process.hrtime(<any>this._startTime);
             return  endTime[0] * 1000 + endTime[1] / 1000000;
         } else {
             return this._endTime[0] * 1000 + this._endTime[1] / 1000000;
@@ -292,7 +292,7 @@ export class Timer {
 
     public end(): void {
         if (!this._endTime) {
-            this._endTime = process.hrtime(this._startTime);
+            this._endTime = process.hrtime(<any>this._startTime);
         }
     }
 }

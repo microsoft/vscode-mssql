@@ -177,20 +177,19 @@ export default class SqlToolsServiceClient {
                 // For macOS we need to ensure the tools service version is set appropriately
                 this.updateServiceVersion(platformInfo);
 
-                this._server.getServerPath(platformInfo.runtimeId).then(serverPath => {
+                this._server.getServerPath(platformInfo.runtimeId).then(async serverPath => {
                     if (serverPath === undefined) {
                         // Check if the service already installed and if not open the output channel to show the logs
                         if (_channel !== undefined) {
                             _channel.show();
                         }
-                        this._server.downloadServerFiles(platformInfo.runtimeId).then ( installedServerPath => {
-                            this.initializeLanguageClient(installedServerPath, context);
-                            resolve(new ServerInitializationResult(true, true, installedServerPath));
-                        }).catch(downloadErr => {
-                            reject(downloadErr);
-                        });
+                        let installedServerPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
+                        this.initializeLanguageClient(installedServerPath, context);
+                        await this._client.onReady();
+                        resolve(new ServerInitializationResult(true, true, installedServerPath));
                     } else {
                         this.initializeLanguageClient(serverPath, context);
+                        await this._client.onReady();
                         resolve(new ServerInitializationResult(false, true, serverPath));
                     }
                 }).catch(err => {
@@ -288,9 +287,9 @@ export default class SqlToolsServiceClient {
         client.onReady().then( () => {
             this.checkServiceCompatibility();
 
+            client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
+            client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
         });
-        client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
-        client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
 
         return client;
     }
@@ -348,7 +347,7 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
+    public sendRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
             return this.client.sendRequest(type, params);
         }
@@ -358,7 +357,7 @@ export default class SqlToolsServiceClient {
      * Send a notification to the service client
      * @param params The params to pass with the notification
      */
-    public sendNotification<P>(type: NotificationType<P>, params?: P): void {
+    public sendNotification<P, R0>(type: NotificationType<P, R0>, params?: P): void {
         if (this.client !== undefined) {
             this.client.sendNotification(type, params);
         }
@@ -369,7 +368,7 @@ export default class SqlToolsServiceClient {
      * @param type The notification type to register the handler for
      * @param handler The handler to register
      */
-    public onNotification<P>(type: NotificationType<P>, handler: NotificationHandler<P>): void {
+    public onNotification<P, R0>(type: NotificationType<P, R0>, handler: NotificationHandler<P>): void {
         if (this._client !== undefined) {
              return this.client.onNotification(type, handler);
         }

@@ -44,7 +44,7 @@ export default class LocalWebService {
 
         // Handle new connections to the web socket server
         this.wss.on('connection', (ws) => {
-            let parse = querystring.parse(url.parse(ws.upgradeReq.url).query);
+            let parse: any = querystring.parse(<string>url.parse(ws.upgradeReq.url).query);
 
             // Attempt to find the mapping for the web socket server
             let mapping = self.wsMap.get(parse.uri);
@@ -128,7 +128,8 @@ export default class LocalWebService {
     }
 
     start(): void {
-        const port = this.server.listen(0).address().port; // 0 = listen on a random port
+        const address: any = this.server.listen(0).address();
+        const port = address.port; // 0 = listen on a random port
         Utils.logDebug(`LocalWebService listening on port ${port}`);
         LocalWebService._servicePort = port.toString();
     }
