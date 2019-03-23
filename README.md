@@ -20,6 +20,25 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.5.0
+* Update vscode-languageclient to fix issue [#1194 Refresh Intellisence cache option don't work](https://github.com/Microsoft/vscode-mssql/issues/1194)
+* Import CSV export options such as setting delimiter, line separator, encoding and include headers
+* Add missing SQL keywords to colorization list
+* Fix Peek Definition\Go to Definition bug on SQL Server 2017
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* [@praveenpi ](https://github.com/praveenpi) for `updated sql2016-crud-demo (#1156)`
+* [@benrr101](https://github.com/benrr101) for `Fix for #1178 by replacing all whitespace with non-breaking spaces. (#1181)`
+* [@eashi](https://github.com/eashi) for `Use correct tag for gulp package (#1154)`
+* [@shaun-hume](https://github.com/shaun-hume) for `Fix spelling errors in README.md (#1148)`
+* [@bruce-dunwiddie ](https://github.com/bruce-dunwiddie) for `Fixed typo on serverproperty. (#1147)`
+* [@franciscocpg ](https://github.com/franciscocpg) for `Adding support for antergos platform (#1144)`
+* [@SebastianPfliegel](https://github.com/SebastianPfliegel) for `Added more saveAsCsv options (#1128)`
+* [@mattmc3](https://github.com/mattmc3) for `Add missing keywords (#1133)`
+* [@ChiragRupani](https://github.com/ChiragRupani) for `Added support for specifying delimiter while exporting query results as CSV (#1120)`
+* [@zackschuster](https://github.com/zackschuster) for `fix typo in CHANGELOG.md (#1119)`
+
 ## What's new in 1.4.0
 * Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
 * Added support for Deepin Linux
