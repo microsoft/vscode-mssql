@@ -10,6 +10,7 @@ import {parse as parseUrl, Url} from 'url';
 import * as https from 'https';
 import * as http from 'http';
 import {getProxyAgent, isBoolean} from './proxy';
+import { getTrustedCertificates } from '../utils/getTrustedCertificates';
 
 let fs = require('fs');
 
@@ -77,11 +78,13 @@ export default class HttpClient implements IHttpClient {
         };
 
         if (url.protocol === 'https:') {
+            let caList = getTrustedCertificates();
             let httpsOptions: https.RequestOptions = {
                     host: url.hostname,
                     path: url.path,
                     agent: agent,
-                    rejectUnauthorized: isBoolean(strictSSL) ? strictSSL : true
+                    rejectUnauthorized: isBoolean(strictSSL) ? strictSSL : true,
+                    ca: caList
             };
             options = httpsOptions;
         }

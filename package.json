@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
@@ -109,16 +109,18 @@
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^2.2.1",
     "jsonc-parser": "^1.0.0",
+    "mac-ca": "^1.0.4",
     "opener": "1.4.2",
     "plist": "^2.1.0",
     "pretty-data": "^0.40.0",
-    "request": "^2.73.0",
+    "request": "^2.88.0",
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.1.1",
     "vscode-languageclient": "3.5.1",
     "vscode-nls": "^2.0.2",
+    "win-ca": "^2.4.1",
     "ws": "^1.1.1"
   },
   "contributes": {

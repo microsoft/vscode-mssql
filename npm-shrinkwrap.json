@@ -1,6 +1,6 @@
 {
   "name": "mssql",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -5971,6 +5971,11 @@
       "integrity": "sha1-pqLzL/0t+wT1yiXs0Pa4PPeYoeE=",
       "dev": true
     },
+    "is-electron": {
+      "version": "2.2.0",
+      "resolved": "https://registry.npmjs.org/is-electron/-/is-electron-2.2.0.tgz",
+      "integrity": "sha512-SpMppC2XR3YdxSzczXReBjqs2zGscWQpBIKqwXYBFic0ERaxNVgwLCHwOLZeESfdJQjX0RDvrJ1lBXX2ij+G1Q=="
+    },
     "is-equal-shallow": {
       "version": "0.1.3",
       "resolved": "https://registry.npmjs.org/is-equal-shallow/-/is-equal-shallow-0.1.3.tgz",
@@ -7064,6 +7069,14 @@
         "yallist": "^2.1.2"
       }
     },
+    "mac-ca": {
+      "version": "1.0.4",
+      "resolved": "https://registry.npmjs.org/mac-ca/-/mac-ca-1.0.4.tgz",
+      "integrity": "sha512-6Yf4IKnH2Irv9nm2QjoQg7DcNY+wYygYeU2EM+xWmQ0M7cwboPv9O3U2eZ378KwAIWJUiVh5BC9QzmcqmTyrPw==",
+      "requires": {
+        "node-forge": "^0.7.5"
+      }
+    },
     "make-dir": {
       "version": "1.3.0",
       "resolved": "https://registry.npmjs.org/make-dir/-/make-dir-1.3.0.tgz",
@@ -7445,6 +7458,11 @@
       "resolved": "http://registry.npmjs.org/next-tick/-/next-tick-1.0.0.tgz",
       "integrity": "sha1-yobR/ogoFpsBICCOPchCS524NCw=",
       "dev": true
+    },
+    "node-forge": {
+      "version": "0.7.6",
+      "resolved": "https://registry.npmjs.org/node-forge/-/node-forge-0.7.6.tgz",
+      "integrity": "sha512-sol30LUpz1jQFBjOKwbjxijiE3b6pjd74YwfD0fJOKPjF+fONKb2Yg8rYgS6+bK6VDl+/wfr4IYpC7jDzLUIfw=="
     },
     "node.extend": {
       "version": "1.1.8",
@@ -10739,6 +10757,27 @@
       "resolved": "https://registry.npmjs.org/which-module/-/which-module-1.0.0.tgz",
       "integrity": "sha1-u6Y8qGGUiZT/MHc2CJ47lgJsKk8=",
       "dev": true
+    },
+    "win-ca": {
+      "version": "2.4.1",
+      "resolved": "https://registry.npmjs.org/win-ca/-/win-ca-2.4.1.tgz",
+      "integrity": "sha512-iuolv0hP96o8kfmSgQBzuNRfOrRGuNZViinm+NbzZ2wCDoJJEhLm2Bb/2KjaOhyo9r4NQui5XN8Q2nEzrD64Zw==",
+      "requires": {
+        "is-electron": "^2.2.0",
+        "make-dir": "^1.3.0",
+        "node-forge": "^0.7.5",
+        "split": "^1.0.1"
+      },
+      "dependencies": {
+        "split": {
+          "version": "1.0.1",
+          "resolved": "https://registry.npmjs.org/split/-/split-1.0.1.tgz",
+          "integrity": "sha512-mTyOoPbrivtXnwnIxZRFYRrPNtEFKlpB2fvjSnCQUiAA6qAZzqwna5envK4uk6OIeP17CsdF3rSBGYVBsU0Tkg==",
+          "requires": {
+            "through": "2"
+          }
+        }
+      }
     },
     "window-size": {
       "version": "0.1.0",
