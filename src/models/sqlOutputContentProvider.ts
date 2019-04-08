@@ -351,7 +351,7 @@ export class SqlOutputContentProvider {
         if (!panel) {
             // create the results grid webview panel using the local web service port
             let servicePort = +LocalWebService._servicePort;
-            panel = vscode.window.createWebviewPanel(resultsUri, paneTitle, resultPaneColumn, <any>{
+            panel = vscode.window.createWebviewPanel(resultsUri, paneTitle, resultPaneColumn, {
                 retainContextWhenHidden: retainContextWhenHidden,
                 enableScripts: true,
                 portMapping: [
