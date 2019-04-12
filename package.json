@@ -141,9 +141,6 @@
         "path": "./syntaxes/SQL.plist"
       }
     ],
-    "outputChannels": [
-      "MSSQL"
-    ],
     "snippets": [
       {
         "language": "sql",
