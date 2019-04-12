@@ -30,14 +30,16 @@ class FileStatusBar {
 export default class StatusView implements vscode.Disposable {
     private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
+    private _onDidChangeActiveTextEditorEvent: vscode.Disposable;
+    private _onDidCloseTextDocumentEvent: vscode.Disposable;
 
     constructor(private _vscodeWrapper?: VscodeWrapper) {
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
         this._statusBars = {};
-        this._vscodeWrapper.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
-        this._vscodeWrapper.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
+        this._onDidChangeActiveTextEditorEvent = this._vscodeWrapper.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
+        this._onDidCloseTextDocumentEvent = this._vscodeWrapper.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
     }
 
     dispose(): void {
@@ -51,6 +53,8 @@ export default class StatusView implements vscode.Disposable {
                 delete this._statusBars[bar];
             }
         }
+        this._onDidChangeActiveTextEditorEvent.dispose();
+        this._onDidCloseTextDocumentEvent.dispose();
     }
 
     // Create status bar item if needed
