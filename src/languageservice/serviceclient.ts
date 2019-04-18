@@ -26,7 +26,6 @@ import StatusView from '../views/statusView';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 let vscode = require('vscode');
-let opener = require('opener');
 
 let _channel: OutputChannel = undefined;
 
@@ -65,7 +64,7 @@ class LanguageClientErrorHandler {
           Constants.sqlToolsServiceCrashMessage,
           Constants.sqlToolsServiceCrashButton).then(action => {
             if (action && action === Constants.sqlToolsServiceCrashButton) {
-                opener(Constants.sqlToolsServiceCrashLink);
+                vscode.env.openExternal(vscode.Uri.parse(Constants.sqlToolsServiceCrashLink));
             }
         });
     }

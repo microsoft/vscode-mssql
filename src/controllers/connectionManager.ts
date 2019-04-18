@@ -17,8 +17,6 @@ import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 import {Runtime, PlatformInformation} from '../models/platform';
 
-let opener = require('opener');
-
 /**
  * Information for a document's connection. Exported for testing purposes.
  */
@@ -340,7 +338,7 @@ export default class ConnectionManager {
                         LocalizedConstants.macOpenSslHelpButton)
                     .then(action => {
                         if (action && action === LocalizedConstants.macOpenSslHelpButton) {
-                            opener(Constants.integratedAuthHelpLink);
+                            vscode.env.openExternal(vscode.Uri.parse(Constants.integratedAuthHelpLink));
                         }
                      });
                 } else if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
@@ -348,7 +346,7 @@ export default class ConnectionManager {
                      this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgConnectionError2,
                      LocalizedConstants.macOpenSslErrorMessage), LocalizedConstants.macOpenSslHelpButton).then(action => {
                         if (action && action === LocalizedConstants.macOpenSslHelpButton) {
-                            opener(Constants.macOpenSslHelpLink);
+                            vscode.env.openExternal(vscode.Uri.parse(Constants.macOpenSslHelpLink));
                         }
                      });
                 } else {

@@ -23,8 +23,6 @@ import { ISelectionData } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 
-let opener = require('opener');
-
 /**
  * The main controller class that initializes the extension
  */
@@ -488,14 +486,14 @@ export default class MainController implements vscode.Disposable {
      * Shows the release notes page in the preview browser
      */
     private launchReleaseNotesPage(): void {
-        opener(Constants.changelogLink);
+        vscode.env.openExternal(vscode.Uri.parse(Constants.changelogLink));
     }
 
      /**
       * Shows the Getting Started page in the preview browser
       */
     private launchGettingStartedPage(): void {
-        opener(Constants.gettingStartedGuideLink);
+        vscode.env.openExternal(vscode.Uri.parse(Constants.gettingStartedGuideLink));
     }
 
     /**
