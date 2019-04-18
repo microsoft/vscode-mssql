@@ -18,19 +18,48 @@ declare module 'vscode' {
 	/**
 	 * Defines a port mapping used for localhost inside the webview.
 	 */
+	/**
+	 * Defines a port mapping used for localhost inside the webview.
+	 */
 	export interface WebviewPortMapping {
 		/**
 		 * Localhost port to remap inside the webview.
 		 */
-		readonly port: number;
+		readonly webviewPort: number;
 
 		/**
-		 * Destination port. The `port` is resolved to this port.
+		 * Destination port. The `webviewPort` is resolved to this port.
 		 */
-		readonly resolvedPort: number;
+		readonly extensionHostPort: number;
 	}
 
+	/**
+	 * Content settings for a webview.
+	 */
 	export interface WebviewOptions {
+		/**
+		 * Controls whether scripts are enabled in the webview content or not.
+		 *
+		 * Defaults to false (scripts-disabled).
+		 */
+		readonly enableScripts?: boolean;
+
+		/**
+		 * Controls whether command uris are enabled in webview content or not.
+		 *
+		 * Defaults to false.
+		 */
+		readonly enableCommandUris?: boolean;
+
+		/**
+		 * Root paths from which the webview can load local (filesystem) resources using the `vscode-resource:` scheme.
+		 *
+		 * Default to the root folders of the current workspace plus the extension's install directory.
+		 *
+		 * Pass in an empty array to disallow access to any local resources.
+		 */
+		readonly localResourceRoots?: ReadonlyArray<Uri>;
+
 		/**
 		 * Mappings of localhost ports used inside the webview.
 		 *
@@ -39,7 +68,7 @@ declare module 'vscode' {
 		 * running on.
 		 *
 		 * If a webview accesses localhost content, we recomend that you specify port mappings even if
-		 * the `port` and `resolvedPort` ports are the same.
+		 * the `webviewPort` and `extensionHostPort` ports are the same.
 		 */
 		readonly portMapping?: ReadonlyArray<WebviewPortMapping>;
 	}

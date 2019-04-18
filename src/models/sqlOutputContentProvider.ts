@@ -355,8 +355,8 @@ export class SqlOutputContentProvider {
                 retainContextWhenHidden: retainContextWhenHidden,
                 enableScripts: true,
                 portMapping: [
-                   { port: servicePort,
-                    resolvedPort: servicePort }
+                   { webviewPort: servicePort,
+                    extensionHostPort: servicePort }
                 ]
             });
             this._resultsPanes.set(resultsUri, panel);
