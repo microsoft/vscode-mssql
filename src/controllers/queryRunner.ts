@@ -339,7 +339,7 @@ export default class QueryRunner {
                     oldLang = process.env['LANG'];
                     process.env['LANG'] = 'en_US.UTF-8';
                 }
-                vscode.env.clipboard.writeText(copyString).then(() => {
+                this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
                     if (process.platform === 'darwin') {
                         process.env['LANG'] = oldLang;
                     }

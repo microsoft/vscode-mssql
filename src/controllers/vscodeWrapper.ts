@@ -300,4 +300,14 @@ export default class VscodeWrapper {
     public uriParse(value: string): vscode.Uri {
         return vscode.Uri.parse(value);
     }
+
+    /**
+     * Write text to the clipboard
+     *
+     * @param text Value to write to the clipboard
+     * @return A promise that is called once the copy is complete
+     */
+    public clipboardWriteText(text: string): Thenable<void> {
+        return vscode.env.clipboard.writeText(text);
+    }
 }

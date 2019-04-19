@@ -24,11 +24,9 @@ import {
     ISelectionData
  } from './../src/models/interfaces';
 import * as stubs from './stubs';
-import * as os from 'os';
 import * as vscode from 'vscode';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
-const ncp = require('copy-paste');
 const standardUri: string = 'uri';
 const standardTitle: string = 'title';
 const standardSelection: ISelectionData = {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3};
@@ -499,16 +497,6 @@ suite('Query Runner tests', () => {
 
     suite('Copy Tests', () => {
         // ------ Common inputs and setup for copy tests  -------
-        const TAB = '\t';
-        const CLRF = os.EOL;
-        const finalStringNoHeader = '1' + TAB + '2' + CLRF +
-                            '3' + TAB + '4' + CLRF +
-                            '5' + TAB + '6' + CLRF +
-                            '7' + TAB + '8' + CLRF +
-                            '9' + TAB + '10 ∞';
-
-        const finalStringWithHeader = 'Col1' + TAB + 'Col2' + CLRF + finalStringNoHeader;
-
         const testuri = 'test';
         let testresult: QueryExecuteSubsetResult = {
             resultSubset: {
@@ -554,6 +542,10 @@ suite('Query Runner tests', () => {
             testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
             testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
             testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+            testVscodeWrapper.setup(x => x.clipboardWriteText(TypeMoq.It.isAnyString())).callback(() => {
+                                                                // testing
+                                                            }).returns(() => { return Promise.resolve(); });
+
         });
 
         // ------ Copy tests  -------
@@ -572,8 +564,7 @@ suite('Query Runner tests', () => {
             );
             queryRunner.uri = testuri;
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
-                let pasteContents = pasteCopiedString();
-                assert.equal(pasteContents, finalStringNoHeader);
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
             });
         });
 
@@ -595,8 +586,7 @@ suite('Query Runner tests', () => {
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleQueryComplete(result);
             return queryRunner.copyResults(testRange, 0, 0).then(() => {
-                let pasteContents = pasteCopiedString();
-                assert.equal(pasteContents, finalStringWithHeader);
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
             });
         });
 
@@ -620,8 +610,7 @@ suite('Query Runner tests', () => {
 
             // call copyResults with additional parameter indicating to include headers
             return queryRunner.copyResults(testRange, 0, 0, true).then(() => {
-                let pasteContents = pasteCopiedString();
-                assert.equal(pasteContents, finalStringWithHeader);
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
             });
         });
 
@@ -645,8 +634,7 @@ suite('Query Runner tests', () => {
 
             // call copyResults with additional parameter indicating to not include headers
             return queryRunner.copyResults(testRange, 0, 0, false).then(() => {
-                let pasteContents = pasteCopiedString();
-                assert.equal(pasteContents, finalStringNoHeader);
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
             });
         });
 
@@ -742,17 +730,4 @@ function setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler:
         .callback((qr, u: string) => {
             assert.equal(u, standardUri);
         });
-}
-
-function pasteCopiedString(): string {
-    let oldLang: string;
-    if (process.platform === 'darwin') {
-        oldLang = process.env['LANG'];
-        process.env['LANG'] = 'en_US.UTF-8';
-    }
-    let pastedString = ncp.paste();
-    if (process.platform === 'darwin') {
-        process.env['LANG'] = oldLang;
-    }
-    return pastedString;
 }
