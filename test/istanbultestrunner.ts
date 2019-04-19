@@ -4,6 +4,7 @@
 
 'use strict';
 import paths = require('path');
+import vscode = require('vscode');
 const fs = require('fs');
 import Mocha = require('mocha');
 import istanbul = require('istanbul');
@@ -59,6 +60,8 @@ function run(testsRoot, clb): any {
         coverageRunner.setupCoverage();
     }
 
+    // Force the extension to activate by running one of our commands
+    vscode.commands.executeCommand('extension.connect').then(() => {
     // Glob test files
     glob('**/**.test.js', { cwd: testsRoot }, function (error, files): any {
         if (error) {
@@ -83,6 +86,7 @@ function run(testsRoot, clb): any {
             return clb(error);
         }
     });
+});
 }
 exports.run = run;
 
