@@ -38,11 +38,13 @@ export class ServerStatusView implements IStatusView, vscode.Disposable  {
     private _numberOfSecondsBeforeHidingMessage = 5000;
     private _statusBarItem: vscode.StatusBarItem = undefined;
     private _progressTimerId: NodeJS.Timer;
+    private _onDidChangeActiveTextEditorEvent: vscode.Disposable;
+    private _onDidCloseTextDocument: vscode.Disposable;
 
     constructor() {
         this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-        vscode.window.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
-        vscode.workspace.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
+        this._onDidChangeActiveTextEditorEvent = vscode.window.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
+        this._onDidCloseTextDocument = vscode.workspace.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
     }
 
     public installingService(): void {
@@ -95,6 +97,8 @@ export class ServerStatusView implements IStatusView, vscode.Disposable  {
 
     dispose(): void {
         this.destroyStatusBar();
+        this._onDidChangeActiveTextEditorEvent.dispose();
+        this._onDidCloseTextDocument.dispose();
     }
 
     private hideLastShownStatusBar(): void {

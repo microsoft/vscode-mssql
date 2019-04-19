@@ -21,8 +21,6 @@ import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
 import * as os from 'os';
 
-const ncp = require('copy-paste');
-
 export interface IResultSet {
     columns: string[];
     totalNumberOfRows: number;
@@ -341,7 +339,7 @@ export default class QueryRunner {
                     oldLang = process.env['LANG'];
                     process.env['LANG'] = 'en_US.UTF-8';
                 }
-                ncp.copy(copyString, () => {
+                this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
                     if (process.platform === 'darwin') {
                         process.env['LANG'] = oldLang;
                     }
