@@ -1,5 +1,4 @@
 import assert = require('assert');
-import vscode = require('vscode');
 import Telemetry from '../src/models/telemetry';
 
 suite('Telemetry Tests', () => {
