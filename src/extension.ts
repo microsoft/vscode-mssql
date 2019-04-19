@@ -28,6 +28,7 @@ export function activate(context: vscode.ExtensionContext): Promise<boolean> {
 export function deactivate(): void {
     if (controller) {
         controller.deactivate();
+        controller.dispose();
     }
 }
 
