@@ -88,41 +88,42 @@ export default class MainController implements vscode.Disposable {
      */
     public activate():  Promise<boolean> {
         const self = this;
-
         let activationTimer = new Utils.Timer();
 
-        // register VS Code commands
-        this.registerCommand(Constants.cmdConnect);
-        this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection(), 'onNewConnection'); });
-        this.registerCommand(Constants.cmdDisconnect);
-        this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect(), 'onDisconnect'); });
-        this.registerCommand(Constants.cmdRunQuery);
-        this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
-        this.registerCommand(Constants.cmdManageConnectionProfiles);
-        this._event.on(Constants.cmdRunCurrentStatement, () => { self.onRunCurrentStatement(); });
-        this.registerCommand(Constants.cmdRunCurrentStatement);
-        this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
-        this.registerCommand(Constants.cmdChooseDatabase);
-        this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
-        this.registerCommand(Constants.cmdChooseLanguageFlavor);
-        this._event.on(Constants.cmdChooseLanguageFlavor, () => { self.runAndLogErrors(self.onChooseLanguageFlavor(), 'onChooseLanguageFlavor') ; } );
-        this.registerCommand(Constants.cmdCancelQuery);
-        this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
-        this.registerCommand(Constants.cmdShowGettingStarted);
-        this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
-        this.registerCommand(Constants.cmdNewQuery);
-        this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
-        this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
-        this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
+        // initialize the language client then register the commands
+        return this.initialize(activationTimer).then((didInitialize) => {
+            if (didInitialize) {
+                // register VS Code commands
+                this.registerCommand(Constants.cmdConnect);
+                this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection(), 'onNewConnection'); });
+                this.registerCommand(Constants.cmdDisconnect);
+                this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect(), 'onDisconnect'); });
+                this.registerCommand(Constants.cmdRunQuery);
+                this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
+                this.registerCommand(Constants.cmdManageConnectionProfiles);
+                this._event.on(Constants.cmdRunCurrentStatement, () => { self.onRunCurrentStatement(); });
+                this.registerCommand(Constants.cmdRunCurrentStatement);
+                this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
+                this.registerCommand(Constants.cmdChooseDatabase);
+                this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
+                this.registerCommand(Constants.cmdChooseLanguageFlavor);
+                this._event.on(Constants.cmdChooseLanguageFlavor, () => { self.runAndLogErrors(self.onChooseLanguageFlavor(), 'onChooseLanguageFlavor') ; } );
+                this.registerCommand(Constants.cmdCancelQuery);
+                this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
+                this.registerCommand(Constants.cmdShowGettingStarted);
+                this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
+                this.registerCommand(Constants.cmdNewQuery);
+                this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
+                this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
+                this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
 
-        // this._vscodeWrapper = new VscodeWrapper();
-
-        // Add handlers for VS Code generated commands
-        this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
-        this._vscodeWrapper.onDidOpenTextDocument(params => this.onDidOpenTextDocument(params));
-        this._vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
-
-        return this.initialize(activationTimer);
+                // Add handlers for VS Code generated commands
+                this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
+                this._vscodeWrapper.onDidOpenTextDocument(params => this.onDidOpenTextDocument(params));
+                this._vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
+                return true;
+            }
+        });
     }
 
     /**
@@ -142,7 +143,6 @@ export default class MainController implements vscode.Disposable {
         return new Promise<boolean>( (resolve, reject) => {
             // Ensure telemetry is disabled
             Telemetry.disable();
-
             SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
                 // Init status bar
                 self._statusview = new StatusView(self._vscodeWrapper);

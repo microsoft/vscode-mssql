@@ -3757,7 +3757,7 @@
           "dev": true,
           "optional": true,
           "requires": {
-            "balanced-match": "^1.0.0",
+            "balanced-match": "1.0.0",
             "concat-map": "0.0.1"
           }
         },
@@ -3930,7 +3930,7 @@
           "dev": true,
           "optional": true,
           "requires": {
-            "brace-expansion": "^1.1.7"
+            "brace-expansion": "1.1.11"
           }
         },
         "minimist": {
@@ -8098,7 +8098,7 @@
     },
     "pretty-hrtime": {
       "version": "1.0.3",
-      "resolved": "http://registry.npmjs.org/pretty-hrtime/-/pretty-hrtime-1.0.3.tgz",
+      "resolved": "https://registry.npmjs.org/pretty-hrtime/-/pretty-hrtime-1.0.3.tgz",
       "integrity": "sha1-t+PqQkNaTJsnWdmeDyAesZWALuE=",
       "dev": true
     },
@@ -9906,7 +9906,7 @@
         },
         "yargs": {
           "version": "3.10.0",
-          "resolved": "http://registry.npmjs.org/yargs/-/yargs-3.10.0.tgz",
+          "resolved": "https://registry.npmjs.org/yargs/-/yargs-3.10.0.tgz",
           "integrity": "sha1-9+572FfdfB0tOMDnTvvWgdFDH9E=",
           "dev": true,
           "requires": {
