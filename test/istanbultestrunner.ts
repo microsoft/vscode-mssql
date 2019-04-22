@@ -32,7 +32,7 @@ function configure(mochaOpts, testOpts): void {
 }
 exports.configure = configure;
 
-function _mkDirIfExists(dir: string): void {
+function mkDirIfExists(dir: string): void {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
@@ -143,7 +143,7 @@ class CoverageRunner {
         let pidExt = includePid ? ('-' + process.pid) : '',
         coverageFile = paths.resolve(reportingDir, 'coverage' + pidExt + '.json');
 
-        _mkDirIfExists(reportingDir); // yes, do this again since some test runners could clean the dir initially created
+        mkDirIfExists(reportingDir); // yes, do this again since some test runners could clean the dir initially created
 
         fs.writeFileSync(coverageFile, JSON.stringify(cov), 'utf8');
 
@@ -164,7 +164,7 @@ class CoverageRunner {
     }
 }
 
-function _readCoverOptions(testsRoot: string): ITestRunnerOptions {
+function readCoverOptions(testsRoot: string): ITestRunnerOptions {
     let coverConfigPath = paths.join(testsRoot, testOptions.coverConfig);
     let coverConfig: ITestRunnerOptions = undefined;
     if (fs.existsSync(coverConfigPath)) {
@@ -179,7 +179,7 @@ function run(testsRoot, clb): any {
     require('source-map-support').install();
 
     // Read configuration for the coverage file
-    let coverOptions: ITestRunnerOptions = _readCoverOptions(testsRoot);
+    let coverOptions: ITestRunnerOptions = readCoverOptions(testsRoot);
     if (coverOptions && coverOptions.enabled) {
         // Setup coverage pre-test, including post-test hook to report
         let coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);

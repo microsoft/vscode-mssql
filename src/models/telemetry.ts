@@ -31,7 +31,7 @@ export namespace Telemetry {
             return Promise.resolve(platformInformation);
         } else {
             return new Promise<PlatformInformation>(resolve => {
-                PlatformInformation.GetCurrent().then(info => {
+                PlatformInformation.getCurrent().then(info => {
                     platformInformation = info;
                     resolve(platformInformation);
                 });
@@ -73,7 +73,7 @@ export namespace Telemetry {
     /**
      * Filters error paths to only include source files. Exported to support testing
      */
-    export function FilterErrorPath(line: string): string {
+    export function filterErrorPath(line: string): string {
         if (line) {
             let values: string[] = line.split('/out/');
             if (values.length <= 1) {
@@ -97,7 +97,7 @@ export namespace Telemetry {
                 stackArray = err.stack.split('\n');
                 if (stackArray !== undefined && stackArray.length >= 2) {
                     firstLine = stackArray[1]; // The fist line is the error message and we don't want to send that telemetry event
-                    firstLine = FilterErrorPath(firstLine);
+                    firstLine = filterErrorPath(firstLine);
                 }
             }
 

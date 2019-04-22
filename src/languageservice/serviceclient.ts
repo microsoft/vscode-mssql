@@ -151,7 +151,7 @@ export default class SqlToolsServiceClient {
     public initialize(context: ExtensionContext): Promise<ServerInitializationResult> {
          this._logger.appendLine(Constants.serviceInitializing);
 
-         return PlatformInformation.GetCurrent().then( platformInfo => {
+         return PlatformInformation.getCurrent().then( platformInfo => {
             return this.initializeForPlatform(platformInfo, context);
          });
     }

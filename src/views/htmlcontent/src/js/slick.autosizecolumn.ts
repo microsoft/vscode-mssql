@@ -4,11 +4,11 @@
 
     $.extend(true, window, {
         'Slick': {
-            'AutoColumnSize': AutoColumnSize
+            'AutoColumnSize': autoColumnSize
         }
     });
 
-    function AutoColumnSize(maxWidth): any {
+    function autoColumnSize(maxWidth): any {
 
         let grid: any;
         let $container: JQuery;

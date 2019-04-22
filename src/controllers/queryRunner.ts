@@ -418,7 +418,7 @@ export default class QueryRunner {
     }
 
     // public for testing only - used to mock handleQueryComplete
-    public _setHasCompleted(): void {
+    public setHasCompleted(): void {
         this._hasCompleted = true;
     }
 

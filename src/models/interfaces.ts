@@ -32,7 +32,7 @@ export enum AuthenticationTypes {
     ActiveDirectoryUniversal = 3
 }
 
-export const ContentTypes = [
+export const contentTypes = [
     Constants.outputContentTypeRoot,
     Constants.outputContentTypeMessages,
     Constants.outputContentTypeResultsetMeta,

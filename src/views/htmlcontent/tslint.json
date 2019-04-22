@@ -1,4 +1,5 @@
 {
+  "extends": "../../../tslint.mssdl.required.json",
   "rules": {
     "align": [
       true,
@@ -14,6 +15,11 @@
     "curly": true,
     "eofline": true,
     "forin": true,
+    "function-name": [
+        true, {
+        "static-method-regex": "^[a-z][\\w\\d]+$"
+        }
+    ],
     "indent": [
       true,
       "spaces"
@@ -106,7 +112,8 @@
     "variable-name": [
       true,
       "allow-leading-underscore",
-      "ban-keywords"
+      "ban-keywords",
+      "check-format"
     ],
     "whitespace": [
       true,

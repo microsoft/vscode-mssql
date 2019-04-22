@@ -9,7 +9,7 @@ import Interfaces = require('../models/interfaces');
 import http = require('http');
 const bodyParser = require('body-parser');
 const express = require('express');
-const WebSocketServer = WebSocket.Server;
+const webSocketServer = WebSocket.Server;
 
 class WebSocketMapping {
     public webSocketServer: WebSocket;
@@ -24,7 +24,7 @@ class WebSocketMessage {
 export default class LocalWebService {
     private app = express();
     private server = http.createServer();
-    private wss = new WebSocketServer({ server: this.server});
+    private wss = new webSocketServer({ server: this.server});
     private wsMap = new Map<string, WebSocketMapping>();
     static _servicePort: string;
     static _vscodeExtensionPath: string;
@@ -78,7 +78,7 @@ export default class LocalWebService {
     }
 
     static getEndpointUri(type: Interfaces.ContentType): string {
-        return this.serviceUrl + '/' + Interfaces.ContentTypes[type];
+        return this.serviceUrl + '/' + Interfaces.contentTypes[type];
     }
 
     broadcast(uri: string, event: string, data?: any): void {
@@ -118,12 +118,12 @@ export default class LocalWebService {
     }
 
     addHandler(type: Interfaces.ContentType, handler: (req, res) => void): void {
-        let segment = '/' + Interfaces.ContentTypes[type];
+        let segment = '/' + Interfaces.contentTypes[type];
         this.app.get(segment, handler);
     }
 
     addPostHandler(type: Interfaces.ContentType, handler: (req, res) => void): void {
-        let segment = '/' + Interfaces.ContentTypes[type];
+        let segment = '/' + Interfaces.contentTypes[type];
         this.app.post(segment, handler);
     }
 
