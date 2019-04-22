@@ -28,11 +28,6 @@ enableProdMode();
 // text selection helper library
 declare let rangy;
 
-enum SelectedTab {
-    Results = 0,
-    Messages = 1,
-}
-
 interface IGridDataSet {
     dataRows: IObservableCollection<IGridDataRow>;
     columnDefinitions: IColumnDefinition[];
@@ -342,7 +337,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.totalElapsedTimeSpan = event.data;
                     self.complete = true;
                     self.messagesAdded = true;
-                break;
+                    break;
                 case 'message':
                     self.messages.push(event.data);
                     break;
@@ -350,7 +345,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     let resultSet = event.data;
 
                     // Setup a function for generating a promise to lookup result subsets
-                    let loadDataFunction = (offset: number, count: number) : Promise<IGridDataRow[]> => {
+                    let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
                         return new Promise<IGridDataRow[]>((resolve, reject) => {
                             self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
                                 let gridData: IGridDataRow[] = [];
@@ -411,10 +406,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.placeHolderDataSets.push(undefinedDataSet);
                     self.messagesAdded = true;
                     self.onScroll(0);
-                break;
+                    break;
                 default:
                     console.error('Unexpected web socket event type "' + event.type + '" sent');
-                break;
+                    break;
             }
         });
     }

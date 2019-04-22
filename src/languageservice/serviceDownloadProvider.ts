@@ -128,12 +128,12 @@ export default class ServiceDownloadProvider {
 
     private createTempFile(pkg: IPackage): Promise<tmp.SynchronousResult> {
         return new Promise<tmp.SynchronousResult>((resolve, reject) => {
-            tmp.file({ prefix: 'package-' }, (err, path, fd, cleanupCallback) => {
+            tmp.file({ prefix: 'package-' }, (err, filePath, fd, cleanupCallback) => {
                 if (err) {
                     return reject(new PackageError('Error from tmp.file', pkg, err));
                 }
 
-                resolve(<tmp.SynchronousResult>{ name: path, fd: fd, removeCallback: cleanupCallback });
+                resolve(<tmp.SynchronousResult>{ name: filePath, fd: fd, removeCallback: cleanupCallback });
             });
         });
     }

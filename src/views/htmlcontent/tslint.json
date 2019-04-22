@@ -1,4 +1,5 @@
 {
+  "extends": "../../../tslint.mssdl.required.json",
   "rules": {
     "align": [
       true,
@@ -14,6 +15,11 @@
     "curly": true,
     "eofline": true,
     "forin": true,
+    "function-name": [
+        true, {
+        "static-method-regex": "^[a-z][\\w\\d]+$"
+        }
+    ],
     "indent": [
       true,
       "spaces"
@@ -21,17 +27,12 @@
     "interface-name": true,
     "jsdoc-format": true,
     "label-position": true,
-    "label-undefined": true,
     "max-line-length": [
       true,
       160
     ],
     "member-access": false,
-    "member-ordering": [
-      false,
-      "static-before-instance",
-      "variables-before-functions"
-    ],
+    "member-ordering": false,
     "no-any": false,
     "no-arg": true,
     "no-bitwise": true,
@@ -48,7 +49,6 @@
     "no-construct": true,
     "no-constructor-vars": false,
     "no-debugger": true,
-    "no-duplicate-key": true,
     "no-duplicate-variable": true,
     "no-empty": true,
     "no-eval": true,
@@ -60,7 +60,6 @@
     "no-string-literal": false,
     "no-switch-case-fall-through": false,
     "no-trailing-whitespace": true,
-    "no-unreachable": true,
     "no-unused-expression": false,
     "no-unused-variable": true,
     "no-use-before-declare": true,
@@ -113,7 +112,8 @@
     "variable-name": [
       true,
       "allow-leading-underscore",
-      "ban-keywords"
+      "ban-keywords",
+      "check-format"
     ],
     "whitespace": [
       true,

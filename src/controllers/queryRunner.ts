@@ -33,8 +33,6 @@ export default class QueryRunner {
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _batchSets: BatchSummary[] = [];
     private _isExecuting: boolean;
-    private _uri: string;
-    private _title: string;
     private _resultLineOffset: number;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
@@ -61,8 +59,6 @@ export default class QueryRunner {
         }
 
         // Store the state
-        this._uri = _ownerUri;
-        this._title = _editorTitle;
         this._isExecuting = false;
         this._totalElapsedMilliseconds = 0;
         this._hasCompleted = false;
@@ -71,19 +67,19 @@ export default class QueryRunner {
     // PROPERTIES //////////////////////////////////////////////////////////
 
     get uri(): string {
-        return this._uri;
+        return this._ownerUri;
     }
 
     set uri(uri: string) {
-        this._uri = uri;
+        this._ownerUri = uri;
     }
 
     get title(): string {
-        return this._title;
+        return this._editorTitle;
     }
 
     set title(title: string) {
-        this._title = title;
+        this._editorTitle = title;
     }
 
     get batchSets(): BatchSummary[] {
@@ -106,7 +102,7 @@ export default class QueryRunner {
 
     public cancel(): Thenable<QueryCancelResult> {
         // Make the request to cancel the query
-        let cancelParams: QueryCancelParams = { ownerUri: this._uri };
+        let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         return this._client.sendRequest(QueryCancelRequest.type, cancelParams);
     }
 
@@ -117,7 +113,7 @@ export default class QueryRunner {
             (onSuccess, onError) => {
                 // Put together the request
                 let queryDetails: QueryExecuteStatementParams = {
-                    ownerUri: this._uri,
+                    ownerUri: this._ownerUri,
                     line: line,
                     column: column
                 };
@@ -134,7 +130,7 @@ export default class QueryRunner {
             (onSuccess, onError) => {
                // Put together the request
                 let queryDetails: QueryExecuteParams = {
-                    ownerUri: this._uri,
+                    ownerUri: this._ownerUri,
                     querySelection: selection
                 };
 
@@ -146,7 +142,7 @@ export default class QueryRunner {
     // Pulls the query text from the current document/selection and initiates the query
     private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
         const self = this;
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._uri));
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
 
         // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
@@ -157,7 +153,7 @@ export default class QueryRunner {
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
             self.eventEmitter.emit('start');
-            self._notificationHandler.registerRunner(self, self._uri);
+            self._notificationHandler.registerRunner(self, self._ownerUri);
         };
         let onError = (error) => {
             self._statusView.executedQuery(self.uri);
@@ -171,7 +167,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._uri));
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._ownerUri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
@@ -422,7 +418,7 @@ export default class QueryRunner {
     }
 
     // public for testing only - used to mock handleQueryComplete
-    public _setHasCompleted(): void {
+    public setHasCompleted(): void {
         this._hasCompleted = true;
     }
 

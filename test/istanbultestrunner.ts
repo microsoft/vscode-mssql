@@ -32,72 +32,10 @@ function configure(mochaOpts, testOpts): void {
 }
 exports.configure = configure;
 
-function _mkDirIfExists(dir: string): void {
+function mkDirIfExists(dir: string): void {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
-}
-
-function _readCoverOptions(testsRoot: string): ITestRunnerOptions {
-    let coverConfigPath = paths.join(testsRoot, testOptions.coverConfig);
-    let coverConfig: ITestRunnerOptions = undefined;
-    if (fs.existsSync(coverConfigPath)) {
-        let configContent = fs.readFileSync(coverConfigPath);
-        coverConfig = JSON.parse(configContent);
-    }
-    return coverConfig;
-}
-
-function run(testsRoot, clb): any {
-    // Enable source map support
-    require('source-map-support').install();
-
-    // Read configuration for the coverage file
-    let coverOptions: ITestRunnerOptions = _readCoverOptions(testsRoot);
-    if (coverOptions && coverOptions.enabled) {
-        // Setup coverage pre-test, including post-test hook to report
-        let coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
-        coverageRunner.setupCoverage();
-    }
-
-    // Force the extension to activate by running one of our commands
-    vscode.commands.executeCommand('extension.connect').then(() => {
-    // Glob test files
-    glob('**/**.test.js', { cwd: testsRoot }, function (error, files): any {
-        if (error) {
-            return clb(error);
-        }
-        try {
-            // Fill into Mocha
-            files.forEach(function (f): Mocha {
-                return mocha.addFile(paths.join(testsRoot, f));
-            });
-            // Run the tests
-            let failureCount = 0;
-
-            mocha.run()
-                .on('fail', function (test, err): void {
-                failureCount++;
-            })
-            .on('end', function (): void {
-                clb(undefined, failureCount);
-            });
-        } catch (error) {
-            return clb(error);
-        }
-    });
-});
-}
-exports.run = run;
-
-interface ITestRunnerOptions {
-    enabled?: boolean;
-    relativeCoverageDir: string;
-    relativeSourcePath: string;
-    ignorePatterns: string[];
-    includePid?: boolean;
-    reports?: string[];
-    verbose?: boolean;
 }
 
 class CoverageRunner {
@@ -107,7 +45,7 @@ class CoverageRunner {
     private matchFn: any = undefined;
     private instrumenter: any = undefined;
 
-    constructor(private options: ITestRunnerOptions, private testsRoot: string, private endRunCallback: any) {
+    constructor(private options: ITestRunnerOptions, private testsRoot: string, endRunCallback: any) {
         if (!options.relativeSourcePath) {
             return endRunCallback('Error - relativeSourcePath must be defined for code coverage to work');
         }
@@ -205,7 +143,7 @@ class CoverageRunner {
         let pidExt = includePid ? ('-' + process.pid) : '',
         coverageFile = paths.resolve(reportingDir, 'coverage' + pidExt + '.json');
 
-        _mkDirIfExists(reportingDir); // yes, do this again since some test runners could clean the dir initially created
+        mkDirIfExists(reportingDir); // yes, do this again since some test runners could clean the dir initially created
 
         fs.writeFileSync(coverageFile, JSON.stringify(cov), 'utf8');
 
@@ -224,5 +162,67 @@ class CoverageRunner {
             console.log(`reports written to ${reportingDir}`);
         });
     }
+}
+
+function readCoverOptions(testsRoot: string): ITestRunnerOptions {
+    let coverConfigPath = paths.join(testsRoot, testOptions.coverConfig);
+    let coverConfig: ITestRunnerOptions = undefined;
+    if (fs.existsSync(coverConfigPath)) {
+        let configContent = fs.readFileSync(coverConfigPath);
+        coverConfig = JSON.parse(configContent);
+    }
+    return coverConfig;
+}
+
+function run(testsRoot, clb): any {
+    // Enable source map support
+    require('source-map-support').install();
+
+    // Read configuration for the coverage file
+    let coverOptions: ITestRunnerOptions = readCoverOptions(testsRoot);
+    if (coverOptions && coverOptions.enabled) {
+        // Setup coverage pre-test, including post-test hook to report
+        let coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
+        coverageRunner.setupCoverage();
+    }
+
+    // Force the extension to activate by running one of our commands
+    vscode.commands.executeCommand('extension.connect').then(() => {
+    // Glob test files
+    glob('**/**.test.js', { cwd: testsRoot }, function (error, files): any {
+        if (error) {
+            return clb(error);
+        }
+        try {
+            // Fill into Mocha
+            files.forEach(function (f): Mocha {
+                return mocha.addFile(paths.join(testsRoot, f));
+            });
+            // Run the tests
+            let failureCount = 0;
+
+            mocha.run()
+                .on('fail', function (test, err): void {
+                failureCount++;
+            })
+            .on('end', function (): void {
+                clb(undefined, failureCount);
+            });
+        } catch (error) {
+            return clb(error);
+        }
+    });
+});
+}
+exports.run = run;
+
+interface ITestRunnerOptions {
+    enabled?: boolean;
+    relativeCoverageDir: string;
+    relativeSourcePath: string;
+    ignorePatterns: string[];
+    includePid?: boolean;
+    reports?: string[];
+    verbose?: boolean;
 }
 

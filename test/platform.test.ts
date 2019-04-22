@@ -4,7 +4,7 @@ import {Runtime, PlatformInformation, LinuxDistribution} from '../src/models/pla
 import Telemetry from '../src/models/telemetry';
 
 function getPlatform(): Promise<Runtime> {
-    return PlatformInformation.GetCurrent().then (platformInfo => {
+    return PlatformInformation.getCurrent().then (platformInfo => {
         return platformInfo.runtimeId;
     });
 }
@@ -141,7 +141,7 @@ HOME_URL="http://www.ubuntu.com/"
 SUPPORT_URL="http://help.ubuntu.com/"
 BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"`;
 
-    return LinuxDistribution.FromReleaseInfo(input, '\n');
+    return LinuxDistribution.fromReleaseInfo(input, '\n');
 }
 
 function distro_ubuntu_14_04_with_quotes(): LinuxDistribution {
@@ -157,7 +157,7 @@ HOME_URL='http://www.ubuntu.com/'
 SUPPORT_URL='http://help.ubuntu.com/'
 BUG_REPORT_URL='http://bugs.launchpad.net/ubuntu/'`;
 
-    return LinuxDistribution.FromReleaseInfo(input, '\n');
+    return LinuxDistribution.fromReleaseInfo(input, '\n');
 }
 
 function distro_fedora_23(): LinuxDistribution {
@@ -180,7 +180,7 @@ PRIVACY_POLICY_URL=https://fedoraproject.org/wiki/Legal:PrivacyPolicy
 VARIANT="Workstation Edition"
 VARIANT_ID=workstation`;
 
-    return LinuxDistribution.FromReleaseInfo(input, '\n');
+    return LinuxDistribution.fromReleaseInfo(input, '\n');
 }
 
 function distro_debian_8(): LinuxDistribution {
@@ -195,7 +195,7 @@ HOME_URL="http://www.debian.org/"
 SUPPORT_URL="http://www.debian.org/support"
 BUG_REPORT_URL="https://bugs.debian.org/"`;
 
-    return LinuxDistribution.FromReleaseInfo(input, '\n');
+    return LinuxDistribution.fromReleaseInfo(input, '\n');
 }
 
 function distro_centos_7(): LinuxDistribution {
@@ -217,7 +217,7 @@ CENTOS_MANTISBT_PROJECT_VERSION="7"
 REDHAT_SUPPORT_PRODUCT="centos"
 REDHAT_SUPPORT_PRODUCT_VERSION="7"`;
 
-    return LinuxDistribution.FromReleaseInfo(input, '\n');
+    return LinuxDistribution.fromReleaseInfo(input, '\n');
 }
 
 function distro_kde_neon_5_8(): LinuxDistribution {
@@ -235,7 +235,7 @@ BUG_REPORT_URL="http://bugs.kde.org/"
 VERSION_CODENAME=xenial
 UBUNTU_CODENAME=xenial`;
 
-    return LinuxDistribution.FromReleaseInfo(input, '\n');
+    return LinuxDistribution.fromReleaseInfo(input, '\n');
 }
 
 function distro_unknown_no_id_like(): LinuxDistribution {
@@ -246,5 +246,5 @@ VERSION_ID="1.0"
 VERSION="1.0 (rogers)"
 ID=MakeBelieve`;
 
-    return LinuxDistribution.FromReleaseInfo(input, '\n');
+    return LinuxDistribution.fromReleaseInfo(input, '\n');
 }

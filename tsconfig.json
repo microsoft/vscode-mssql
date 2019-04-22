@@ -5,6 +5,7 @@
         "target": "ES6",
         "lib": [ "es6" ],
         "sourceMap": true,
+        "allowUnusedLabels": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "rootDir": ".",

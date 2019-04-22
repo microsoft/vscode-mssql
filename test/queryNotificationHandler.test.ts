@@ -44,7 +44,7 @@ suite('QueryNotificationHandler tests', () => {
         });
         runnerMock.setup(x => x.handleQueryComplete(TypeMoq.It.isAny())).callback((event) => {
             queryCompleteHandlerCalled = true;
-            runnerMock.object._setHasCompleted();
+            runnerMock.object.setHasCompleted();
         });
 
         // Get handlers

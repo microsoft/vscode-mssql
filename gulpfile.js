@@ -2,9 +2,10 @@
 var gulp = require('gulp');
 var rename = require('gulp-rename');
 var install = require('gulp-install');
-var tslint = require('gulp-tslint');
+var gulpTsLint = require('gulp-tslint');
 var filter = require('gulp-filter');
 var ts = require('gulp-typescript');
+var tslint = require('tslint');
 var tsProject = ts.createProject('tsconfig.json');
 var del = require('del');
 var srcmap = require('gulp-sourcemaps');
@@ -24,15 +25,17 @@ require('./tasks/htmltasks')
 require('./tasks/packagetasks')
 
 gulp.task('ext:lint', () => {
+    var program = tslint.Linter.createProgram('tsconfig.json');
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
         '!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
         config.paths.project.root + '/test/**/*.ts'
     ])
-    .pipe((tslint({
+    .pipe((gulpTsLint({
+        program,
         formatter: "verbose"
     })))
-    .pipe(tslint.report());
+    .pipe(gulpTsLint.report());
 });
 
 gulp.task('ext:compile-src', (done) => {
@@ -139,3 +142,5 @@ gulp.task('install', function() {
 gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
 });
+
+gulp.task('lint', gulp.series('ext:lint', 'html:lint'));

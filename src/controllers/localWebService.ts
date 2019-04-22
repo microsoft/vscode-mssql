@@ -1,6 +1,6 @@
 'use strict';
 import path = require('path');
-import * as ws from 'ws';
+import * as WebSocket from 'ws';
 import url = require('url');
 import querystring = require('querystring');
 import Utils = require('../models/utils');
@@ -9,10 +9,10 @@ import Interfaces = require('../models/interfaces');
 import http = require('http');
 const bodyParser = require('body-parser');
 const express = require('express');
-const WebSocketServer = ws.Server;
+const webSocketServer = WebSocket.Server;
 
 class WebSocketMapping {
-    public webSocketServer: ws;
+    public webSocketServer: WebSocket;
     public pendingMessages: Array<WebSocketMessage> = [];
 }
 
@@ -24,7 +24,7 @@ class WebSocketMessage {
 export default class LocalWebService {
     private app = express();
     private server = http.createServer();
-    private wss = new WebSocketServer({ server: this.server});
+    private wss = new webSocketServer({ server: this.server});
     private wsMap = new Map<string, WebSocketMapping>();
     static _servicePort: string;
     static _vscodeExtensionPath: string;
@@ -78,7 +78,7 @@ export default class LocalWebService {
     }
 
     static getEndpointUri(type: Interfaces.ContentType): string {
-        return this.serviceUrl + '/' + Interfaces.ContentTypes[type];
+        return this.serviceUrl + '/' + Interfaces.contentTypes[type];
     }
 
     broadcast(uri: string, event: string, data?: any): void {
@@ -98,7 +98,7 @@ export default class LocalWebService {
             this.wsMap.set(uri, mapping);
         } else {
             // Make sure the web socket server is open, then fire away
-            if (mapping.webSocketServer && mapping.webSocketServer.readyState === ws.OPEN) {
+            if (mapping.webSocketServer && mapping.webSocketServer.readyState === WebSocket.OPEN) {
                 mapping.webSocketServer.send(JSON.stringify(message));
             }
         }
@@ -118,12 +118,12 @@ export default class LocalWebService {
     }
 
     addHandler(type: Interfaces.ContentType, handler: (req, res) => void): void {
-        let segment = '/' + Interfaces.ContentTypes[type];
+        let segment = '/' + Interfaces.contentTypes[type];
         this.app.get(segment, handler);
     }
 
     addPostHandler(type: Interfaces.ContentType, handler: (req, res) => void): void {
-        let segment = '/' + Interfaces.ContentTypes[type];
+        let segment = '/' + Interfaces.contentTypes[type];
         this.app.post(segment, handler);
     }
 

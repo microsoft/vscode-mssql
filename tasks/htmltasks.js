@@ -1,6 +1,6 @@
 'use strict';
 var gulp = require('gulp');
-var tslint = require('gulp-tslint');
+var gulpTsLint = require('gulp-tslint');
 var ts = require('gulp-typescript');
 var concat = require('gulp-concat');
 var del = require('del');
@@ -13,17 +13,21 @@ var sysBuilder = require('systemjs-builder');
 var cleanCSS = require('gulp-clean-css');
 var argv = require('yargs').argv;
 var Server = require('karma').Server;
+var tslint = require('tslint');
 
 var min = (argv.min === undefined) ? false : true;
 
 gulp.task('html:lint', () => {
+    var program = tslint.Linter.createProgram(config.paths.html.root + '/tsconfig.json');
     return gulp.src([
-        config.paths.html.root + '/src/**/*.ts'
+        config.paths.html.root + '/src/**/*.ts',
+        config.paths.html.root + '/test/**/*.ts'
     ])
-    .pipe((tslint({
+    .pipe((gulpTsLint({
+        program,
         formatter: "verbose"
     })))
-    .pipe(tslint.report());
+    .pipe(gulpTsLint.report());
 });
 
 // Compile TypeScript to JS

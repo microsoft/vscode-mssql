@@ -17,7 +17,7 @@ export enum ContentType {
     ShowWarning = 10,
     Config = 11,
     LocalizedTexts = 12
-};
+}
 
 export interface ISlickRange {
     fromCell: number;
@@ -32,7 +32,7 @@ export enum AuthenticationTypes {
     ActiveDirectoryUniversal = 3
 }
 
-export const ContentTypes = [
+export const contentTypes = [
     Constants.outputContentTypeRoot,
     Constants.outputContentTypeMessages,
     Constants.outputContentTypeResultsetMeta,
@@ -212,14 +212,14 @@ export enum CredentialsQuickPickItemType {
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
     quickPickItemType: CredentialsQuickPickItemType;
-};
+}
 
 // Obtained from an active connection to show in the status bar
 export interface IConnectionProperties {
     serverVersion: string;
     currentUser: string;
     currentDatabase: string;
-};
+}
 
 export interface IDbColumn {
     allowDBNull?: boolean;

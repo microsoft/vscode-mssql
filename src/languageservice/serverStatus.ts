@@ -22,11 +22,11 @@ export class ServerInitializationResult {
 
     }
 
-    public Clone(): ServerInitializationResult  {
+    public clone(): ServerInitializationResult  {
         return new ServerInitializationResult(this.installedBeforeInitializing, this.isRunning, this.serverPath);
     }
 
-    public WithRunning(isRunning: Boolean): ServerInitializationResult  {
+    public withRunning(isRunning: Boolean): ServerInitializationResult  {
         return new ServerInitializationResult(this.installedBeforeInitializing, isRunning, this.serverPath);
     }
 }
