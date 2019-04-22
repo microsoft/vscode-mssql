@@ -21,8 +21,7 @@ gulp.task('html:lint', () => {
     var program = tslint.Linter.createProgram(config.paths.html.root + '/tsconfig.json');
     return gulp.src([
         config.paths.html.root + '/src/**/*.ts',
-        config.paths.html.root + '/test/**/*.ts',
-        '!' + config.paths.html.root + '/src/js/**/*'
+        config.paths.html.root + '/test/**/*.ts'
     ])
     .pipe((gulpTsLint({
         program,
