@@ -26,7 +26,6 @@ require('./tasks/packagetasks')
 
 gulp.task('ext:lint', () => {
     var program = tslint.Linter.createProgram('tsconfig.json');
-    gulpTsLint
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
         '!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
