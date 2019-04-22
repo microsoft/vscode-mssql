@@ -610,7 +610,7 @@ export class SqlOutputContentProvider {
                 viewColumn = vscode.ViewColumn.Two;
             } else {
                 viewColumn = vscode.ViewColumn.Three;
-            };
+            }
         }
 
         return viewColumn;

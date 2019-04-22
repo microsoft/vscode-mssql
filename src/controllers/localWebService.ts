@@ -1,6 +1,6 @@
 'use strict';
 import path = require('path');
-import * as ws from 'ws';
+import * as WebSocket from 'ws';
 import url = require('url');
 import querystring = require('querystring');
 import Utils = require('../models/utils');
@@ -9,10 +9,10 @@ import Interfaces = require('../models/interfaces');
 import http = require('http');
 const bodyParser = require('body-parser');
 const express = require('express');
-const WebSocketServer = ws.Server;
+const WebSocketServer = WebSocket.Server;
 
 class WebSocketMapping {
-    public webSocketServer: ws;
+    public webSocketServer: WebSocket;
     public pendingMessages: Array<WebSocketMessage> = [];
 }
 
@@ -98,7 +98,7 @@ export default class LocalWebService {
             this.wsMap.set(uri, mapping);
         } else {
             // Make sure the web socket server is open, then fire away
-            if (mapping.webSocketServer && mapping.webSocketServer.readyState === ws.OPEN) {
+            if (mapping.webSocketServer && mapping.webSocketServer.readyState === WebSocket.OPEN) {
                 mapping.webSocketServer.send(JSON.stringify(message));
             }
         }
