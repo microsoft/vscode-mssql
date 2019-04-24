@@ -25,6 +25,7 @@ require('./tasks/htmltasks')
 require('./tasks/packagetasks')
 
 gulp.task('ext:lint', () => {
+    // !! If updating this make sure to check if you need to update the TSA Scan task in ADO !!
     var program = tslint.Linter.createProgram('tsconfig.json');
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
@@ -33,7 +34,8 @@ gulp.task('ext:lint', () => {
     ])
     .pipe((gulpTsLint({
         program,
-        formatter: "verbose"
+        formatter: "verbose",
+        rulesDirectory: "node_modules/tslint-microsoft-contrib"
     })))
     .pipe(gulpTsLint.report());
 });

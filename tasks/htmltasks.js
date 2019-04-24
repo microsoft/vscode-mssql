@@ -18,6 +18,7 @@ var tslint = require('tslint');
 var min = (argv.min === undefined) ? false : true;
 
 gulp.task('html:lint', () => {
+    // !! If updating this make sure to check if you need to update the TSA Scan task in ADO !!
     var program = tslint.Linter.createProgram(config.paths.html.root + '/tsconfig.json');
     return gulp.src([
         config.paths.html.root + '/src/**/*.ts',
@@ -25,9 +26,10 @@ gulp.task('html:lint', () => {
     ])
     .pipe((gulpTsLint({
         program,
-        formatter: "verbose"
+        formatter: "verbose",
+        rulesDirectory: "node_modules/tslint-microsoft-contrib"
     })))
-    .pipe(gulpTsLint.report());
+    .pipe(gulpTsLint.report())
 });
 
 // Compile TypeScript to JS
