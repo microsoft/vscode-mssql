@@ -120,7 +120,7 @@
     "vscode-extension-telemetry": "^0.1.1",
     "vscode-languageclient": "3.5.1",
     "vscode-nls": "^2.0.2",
-    "ws": "^1.1.1"
+    "ws": ">=3.3.1"
   },
   "contributes": {
     "languages": [
