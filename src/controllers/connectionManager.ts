@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 'use strict';
 import vscode = require('vscode');
 import { ConnectionCredentials } from '../models/connectionCredentials';
@@ -498,7 +503,7 @@ export default class ConnectionManager {
     /**
      * Helper to show all connections and perform connect logic.
      */
-    private showConnectionsAndConnect(resolve: any, reject: any, fileUri: string): void {
+    public showConnectionsAndConnect(resolve: any, reject: any, fileUri: string): void {
         const self = this;
 
         // show connection picklist

@@ -22,6 +22,7 @@ import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import { ISelectionData } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
+import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 
 /**
  * The main controller class that initializes the extension
@@ -116,6 +117,11 @@ export default class MainController implements vscode.Disposable {
                 this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
                 this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
+
+                // register the object explorer tree provider
+                this._context.subscriptions.push(
+                    vscode.window.registerTreeDataProvider('objectExplorer', new ObjectExplorerProvider(this._connectionMgr))
+                );
 
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));

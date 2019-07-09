@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 // Collection of Non-localizable Constants
 export const languageId = 'sql';
 export const extensionName = 'mssql';
@@ -20,6 +25,7 @@ export const cmdShowGettingStarted = 'extension.showGettingStarted';
 export const cmdNewQuery = 'extension.newQuery';
 export const cmdManageConnectionProfiles = 'extension.manageProfiles';
 export const cmdRebuildIntelliSenseCache = 'extension.rebuildIntelliSenseCache';
+export const cmdOpenObjectExplorer = 'extension.openObjectExplorer';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;

@@ -36,6 +36,7 @@
     "multi-root ready"
   ],
   "activationEvents": [
+    "onView:objectExplorer",
     "onLanguage:sql",
     "onCommand:extension.connect",
     "onCommand:extension.runQuery",
@@ -123,6 +124,23 @@
     "ws": ">=3.3.1"
   },
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "objectExplorer",
+          "title": "Object Explorer",
+          "icon": "./images/server_page_inverse.svg"
+        }
+      ]
+    },
+    "views": {
+      "objectExplorer": [
+        {
+          "id": "objectExplorer",
+          "name": "Object Explorer"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "sql",
