@@ -37,8 +37,7 @@ export class ObjectExplorerService {
                 self.currentRootNode = result.rootNode;
                 self.currentNode = result.rootNode;
                 self.sessionId = result.sessionId;
-                this._objectExplorerProvider.refresh();
-                return self.currentRootNode;
+                self._objectExplorerProvider.refresh();
             }
         };
         return handler;
@@ -48,8 +47,9 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
+                self.sessionId = result.sessionId;
                 self.childrenMap.set(self.currentNode, result.nodes);
-                this._objectExplorerProvider.refresh();
+                self._objectExplorerProvider.refresh(self.currentNode);
             }
         };
         return handler;
@@ -67,6 +67,7 @@ export class ObjectExplorerService {
         } else {
             if (!this.currentRootNode) {
                 this.sessionId = await this.createSession();
+                return;
             } else {
                 return [this.currentRootNode];
             }
