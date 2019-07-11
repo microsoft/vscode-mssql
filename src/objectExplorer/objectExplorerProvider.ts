@@ -13,6 +13,10 @@ export class TreeNodeInfo extends vscode.TreeItem {
     private _nodePath: string;
     private _nodeStatus: string;
     private _nodeType: string;
+    private _nodeSubType: string;
+    private _isLeaf: boolean;
+    private _errorMessage: string;
+    private _sessionId: string;
 
     constructor(
         label: string,
@@ -20,13 +24,22 @@ export class TreeNodeInfo extends vscode.TreeItem {
         collapsibleState: vscode.TreeItemCollapsibleState,
         nodePath: string,
         nodeStatus: string,
-        nodeType: string
+        nodeType: string,
+        sessionId: string
     ) {
         super(label, collapsibleState);
         this.contextValue = contextValue;
         this._nodePath = nodePath;
         this._nodeStatus = nodeStatus;
         this._nodeType = nodeType;
+        this._sessionId = sessionId;
+    }
+
+    public static fromNodeInfo(nodeInfo: NodeInfo, sessionId: string): TreeNodeInfo {
+        const treeNodeInfo = new TreeNodeInfo(nodeInfo.label, nodeInfo.nodeType,
+            vscode.TreeItemCollapsibleState.Collapsed, nodeInfo.nodePath, nodeInfo.nodeStatus,
+            nodeInfo.nodeType, sessionId);
+        return treeNodeInfo;
     }
 
     /** Getters */
@@ -42,6 +55,22 @@ export class TreeNodeInfo extends vscode.TreeItem {
         return this._nodeType;
     }
 
+    public get sessionId(): string {
+        return this._sessionId;
+    }
+
+    public get nodeSubType(): string {
+        return this._nodeSubType;
+    }
+
+    public get isLeaf(): boolean {
+        return this._isLeaf;
+    }
+
+    public get errorMessage(): string {
+        return this._errorMessage;
+    }
+
     /** Setters */
     public set nodePath(value: string) {
         this._nodePath = value;
@@ -54,8 +83,23 @@ export class TreeNodeInfo extends vscode.TreeItem {
     public set nodeType(value: string) {
         this._nodeType = value;
     }
-}
 
+    public set nodeSubType(value: string) {
+        this._nodeSubType = value;
+    }
+
+    public set isLeaf(value: boolean) {
+        this._isLeaf = value;
+    }
+
+    public set errorMessage(value: string) {
+        this._errorMessage = value;
+    }
+
+    public set sessionId(value: string) {
+        this._sessionId = value;
+    }
+}
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
@@ -68,24 +112,18 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this.objectExplorerService = new ObjectExplorerService(connectionManager, this);
     }
 
-    refresh(nodeInfo?: NodeInfo): void {
+    refresh(nodeInfo?: TreeNodeInfo): void {
         this._onDidChangeTreeData.fire(nodeInfo);
     }
 
-    getTreeItem(node: NodeInfo): TreeNodeInfo {
-        const treeNodeInfo = new TreeNodeInfo(node.label,
-            node.nodeType, vscode.TreeItemCollapsibleState.Collapsed,
-            node.nodePath, node.nodeStatus, node.nodeType);
-        return treeNodeInfo;
+    getTreeItem(node: TreeNodeInfo): TreeNodeInfo {
+        return node;
     }
 
-    async getChildren(element?: NodeInfo): Promise<vscode.TreeItem[]> {
+    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const children = await this.objectExplorerService.getChildren(element);
         if (children) {
-            const childrenItems = children.map((child) => {
-                return this.getTreeItem(child);
-            });
-            return Promise.resolve(childrenItems);
+            return Promise.resolve(children);
         }
     }
 }

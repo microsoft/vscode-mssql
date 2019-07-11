@@ -2,6 +2,7 @@
 "extension.runQuery":"Execute Query",
 "extension.runCurrentStatement":"Execute Current Statement",
 "extension.cancelQuery":"Cancel Query",
+"extension.openObjectExplorer":"Open Object Explorer",
 "extension.connect":"Connect",
 "extension.disconnect":"Disconnect",
 "extension.manageProfiles":"Manage Connection Profiles",

@@ -37,6 +37,7 @@
   ],
   "activationEvents": [
     "onView:objectExplorer",
+    "onCommand:extension.openObjectExplorer",
     "onLanguage:sql",
     "onCommand:extension.connect",
     "onCommand:extension.runQuery",
@@ -229,6 +230,11 @@
         "command": "extension.rebuildIntelliSenseCache",
         "title": "%extension.rebuildIntelliSenseCache%",
         "category": "MS SQL"
+      },
+      {
+        "command": "extension.openObjectExplorer",
+        "title": "%extension.openObjectExplorer%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -249,6 +255,11 @@
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus && editorLangId == 'sql'"
+      },
+      {
+        "command": "extension.openObjectExplorer",
+        "key": "ctrl+shift+o",
+        "mac": "cmd+shift+o"
       }
     ],
     "configuration": {

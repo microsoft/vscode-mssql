@@ -119,9 +119,14 @@ export default class MainController implements vscode.Disposable {
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
 
                 // register the object explorer tree provider
+                const objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
                 this._context.subscriptions.push(
-                    vscode.window.registerTreeDataProvider('objectExplorer', new ObjectExplorerProvider(this._connectionMgr))
+                    vscode.window.registerTreeDataProvider('objectExplorer', objectExplorerProvider)
                 );
+                this.registerCommand(Constants.cmdOpenObjectExplorer);
+                this._event.on(Constants.cmdOpenObjectExplorer, () => {
+                    objectExplorerProvider.getChildren();
+                });
 
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
