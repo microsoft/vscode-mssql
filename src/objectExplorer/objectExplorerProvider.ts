@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerService } from './objectExplorerService';
+import { ConnectionCredentials } from '../models/connectionCredentials';
 
 export class TreeNodeInfo extends vscode.TreeItem {
 
@@ -120,10 +121,31 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return node;
     }
 
-    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const children = await this.objectExplorerService.getChildren(element);
+    getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        const children = this.objectExplorerService.getChildren(element);
         if (children) {
             return Promise.resolve(children);
         }
+    }
+
+    async createSession(): Promise<string> {
+        return await this.objectExplorerService.createSession();
+    }
+
+    public getConnectionCredentials(sessionId: string): ConnectionCredentials {
+        return this.objectExplorerService.getConnectionCredentials(sessionId);
+    }
+
+    public removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {
+        return this.objectExplorerService.removeObjectExplorerNode(node);
+    }
+
+    public refreshNode(node: TreeNodeInfo): Promise<boolean> {
+        return this.objectExplorerService.refreshNode(node);
+    }
+
+    /** Getters */
+    public get currentNode(): TreeNodeInfo {
+        return this.objectExplorerService.currentNode;
     }
 }

@@ -37,7 +37,6 @@
   ],
   "activationEvents": [
     "onView:objectExplorer",
-    "onCommand:extension.openObjectExplorer",
     "onLanguage:sql",
     "onCommand:extension.connect",
     "onCommand:extension.runQuery",
@@ -48,7 +47,9 @@
     "onCommand:extension.cancelQuery",
     "onCommand:extension.showGettingStarted",
     "onCommand:extension.newQuery",
-    "onCommand:extension.rebuildIntelliSenseCache"
+    "onCommand:extension.rebuildIntelliSenseCache",
+    "onCommand:extension.addObjectExplorer",
+    "onCommand:extension.objectExplorerNewQuery"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -138,7 +139,7 @@
       "objectExplorer": [
         {
           "id": "objectExplorer",
-          "name": "Object Explorer"
+          "name": "%extension.connections%"
         }
       ]
     },
@@ -172,6 +173,35 @@
         {
           "command": "extension.runQuery",
           "when": "editorLangId == sql"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "extension.addObjectExplorer",
+          "title": "%extension.addObjectExplorer%",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "viewItem == Server"
+        },
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "viewItem == Database"
+        },
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "viewItem == Table"
+        },
+        {
+          "command": "extension.removeObjectExplorerNode",
+          "when": "viewItem == Server"
+        },
+        {
+          "command": "extension.refreshObjectExplorerNode",
+          "when": "view == objectExplorer"
         }
       ]
     },
@@ -232,8 +262,27 @@
         "category": "MS SQL"
       },
       {
-        "command": "extension.openObjectExplorer",
-        "title": "%extension.openObjectExplorer%",
+        "command": "extension.addObjectExplorer",
+        "title": "%extension.addObjectExplorer%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "images/add_inverse.svg",
+          "light": "images/add.svg"
+        }
+      },
+      {
+        "command": "extension.objectExplorerNewQuery",
+        "title": "%extension.newQuery%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.removeObjectExplorerNode",
+        "title": "%extension.removeObjectExplorerNode%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.refreshObjectExplorerNode",
+        "title": "%extension.refreshObjectExplorerNode%",
         "category": "MS SQL"
       }
     ],
@@ -257,9 +306,10 @@
         "when": "editorTextFocus && editorLangId == 'sql'"
       },
       {
-        "command": "extension.openObjectExplorer",
+        "command": "extension.addObjectExplorer",
         "key": "ctrl+shift+o",
-        "mac": "cmd+shift+o"
+        "mac": "cmd+shift+o",
+        "when": "view == objectExplorer"
       }
     ],
     "configuration": {

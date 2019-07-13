@@ -10,20 +10,24 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ExpandRequest, ExpandParams, ExpandCompleteNotification, ExpandResponse } from '../models/contracts/objectExplorer/expandNodeRequest';
 import { ObjectExplorerProvider, TreeNodeInfo } from './objectExplorerProvider';
 import { TreeItemCollapsibleState } from 'vscode';
+import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
+import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 
 export class ObjectExplorerService {
 
     private _client: SqlToolsServiceClient;
-    private currentNode: TreeNodeInfo;
-    private treeNodeToChildrenMap: Map<TreeNodeInfo, TreeNodeInfo[]>;
-    private rootTreeNodeArray: Array<TreeNodeInfo>;
+    private _currentNode: TreeNodeInfo;
+    private _treeNodeToChildrenMap: Map<TreeNodeInfo, TreeNodeInfo[]>;
+    private _rootTreeNodeArray: Array<TreeNodeInfo>;
+    private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
         this._connectionManager = _connectionManager;
         this._client = this._connectionManager.client;
-        this.treeNodeToChildrenMap = new Map<TreeNodeInfo, TreeNodeInfo[]>();
-        this.rootTreeNodeArray = new Array<TreeNodeInfo>();
+        this._treeNodeToChildrenMap = new Map<TreeNodeInfo, TreeNodeInfo[]>();
+        this._rootTreeNodeArray = new Array<TreeNodeInfo>();
+        this._sessionIdToConnectionCredentialsMap = new Map<string, ConnectionCredentials>();
         this._client.onNotification(CreateSessionCompleteNotification.type,
             this.handleSessionCreatedNotification());
         this._client.onNotification(ExpandCompleteNotification.type,
@@ -34,9 +38,9 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: SessionCreatedParameters) => {
             if (result.success) {
-                self.currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId);
-                self.rootTreeNodeArray.push(self.currentNode);
-                self._objectExplorerProvider.refresh();
+                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId);
+                self._rootTreeNodeArray.push(self.currentNode);
+                return self._objectExplorerProvider.refresh(undefined);
             }
         };
         return handler;
@@ -47,43 +51,12 @@ export class ObjectExplorerService {
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
                 const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self.currentNode.sessionId));
-                self.currentNode.collapsibleState = TreeItemCollapsibleState.Expanded;
-                self.treeNodeToChildrenMap.set(self.currentNode, children);
-                self._objectExplorerProvider.refresh(self.currentNode);
+                self._currentNode.collapsibleState = TreeItemCollapsibleState.Expanded;
+                self._treeNodeToChildrenMap.set(self.currentNode, children);
+                return self._objectExplorerProvider.refresh(self.currentNode);
             }
         };
         return handler;
-    }
-
-    async getChildren(element?: TreeNodeInfo): Promise<TreeNodeInfo[]> {
-        if (element) {
-            if (element !== this.currentNode) {
-                this.currentNode = element;
-            }
-            if (this.treeNodeToChildrenMap.get(element)) {
-                return this.treeNodeToChildrenMap.get(element);
-            } else {
-                await this.expandNode(element, element.sessionId);
-                return;
-            }
-        } else {
-            if (this.rootTreeNodeArray.length === 0) {
-                await this.createSession();
-                return;
-            } else {
-                return this.rootTreeNodeArray;
-            }
-        }
-    }
-
-    private async createSession(): Promise<string> {
-        const connectionUI = this._connectionManager.connectionUI;
-        const connectionCreds = await connectionUI.showConnections();
-        if (connectionCreds) {
-            const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
-            const reponse = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
-            return reponse.sessionId;
-        }
     }
 
     private async expandNode(node: TreeNodeInfo, sessionId: string): Promise<boolean> {
@@ -95,4 +68,82 @@ export class ObjectExplorerService {
         return response;
     }
 
+    async getChildren(element?: TreeNodeInfo): Promise<TreeNodeInfo[]> {
+        if (element) {
+            if (element !== this.currentNode) {
+                this._currentNode = element;
+            }
+            if (this._treeNodeToChildrenMap.get(this._currentNode)) {
+                return this._treeNodeToChildrenMap.get(this._currentNode);
+            } else {
+                // expansion
+                await this.expandNode(element, element.sessionId);
+                return;
+            }
+        } else {
+            if (this._rootTreeNodeArray.length === 0) {
+                this.createSession();
+                return;
+            } else {
+                return this._rootTreeNodeArray;
+            }
+        }
+    }
+
+    public async createSession(): Promise<string> {
+        const connectionUI = this._connectionManager.connectionUI;
+        const connectionCreds = await connectionUI.showConnections();
+        if (connectionCreds) {
+            const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
+            const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
+            this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCreds);
+            return response.sessionId;
+        }
+    }
+
+    public getConnectionCredentials(sessionId: string): ConnectionCredentials {
+        if (this._sessionIdToConnectionCredentialsMap.has(sessionId)) {
+            return this._sessionIdToConnectionCredentialsMap.get(sessionId);
+        }
+        return undefined;
+    }
+
+    public async removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {
+        await this.closeSession(node);
+        const index = this._rootTreeNodeArray.indexOf(node, 0);
+        if (index > -1) {
+            this._rootTreeNodeArray.splice(index, 1);
+        }
+        this._currentNode = undefined;
+        return this._objectExplorerProvider.refresh(undefined);
+    }
+
+    public async refreshNode(node: TreeNodeInfo): Promise<boolean> {
+        const refreshParams: RefreshParams = {
+            sessionId: node.sessionId,
+            nodePath: node.nodePath
+        };
+        const response = await this._connectionManager.client.sendRequest(RefreshRequest.type, refreshParams);
+        return response;
+    }
+
+    private async closeSession(node: TreeNodeInfo): Promise<void> {
+        const closeSessionParams: CloseSessionParams = {
+            sessionId: node.sessionId
+        };
+        const response = await this._connectionManager.client.sendRequest(CloseSessionRequest.type,
+            closeSessionParams);
+        if (response && response.success) {
+            this._sessionIdToConnectionCredentialsMap.delete(response.sessionId);
+            node.sessionId = undefined;
+            this._currentNode = node;
+            this._treeNodeToChildrenMap.set(this._currentNode, undefined);
+            this._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
+        }
+    }
+
+    /** Getters */
+    public get currentNode(): TreeNodeInfo {
+        return this._currentNode;
+    }
 }

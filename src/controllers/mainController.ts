@@ -41,6 +41,8 @@ export default class MainController implements vscode.Disposable {
     private _lastOpenedUri: string;
     private _lastOpenedTimer: Utils.Timer;
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
+    private _objectExplorerProvider: ObjectExplorerProvider;
+    private _objectExplorerSessionExists: boolean;
 
     /**
      * The main controller constructor
@@ -61,7 +63,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Helper method to setup command registrations
      */
-    private registerCommand(command: string): void {
+    public registerCommand(command: string): void {
         const self = this;
         this._context.subscriptions.push(vscode.commands.registerCommand(command, () => {
             self._event.emit(command);
@@ -114,18 +116,36 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdShowGettingStarted);
                 this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
                 this.registerCommand(Constants.cmdNewQuery);
-                this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
+                this._event.on(Constants.cmdNewQuery, (sessionId?: string) => { self.runAndLogErrors(self.onNewQuery(sessionId), 'onNewQuery'); });
                 this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
 
                 // register the object explorer tree provider
-                const objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
+                this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
                 this._context.subscriptions.push(
-                    vscode.window.registerTreeDataProvider('objectExplorer', objectExplorerProvider)
+                    vscode.window.registerTreeDataProvider('objectExplorer', this._objectExplorerProvider)
                 );
-                this.registerCommand(Constants.cmdOpenObjectExplorer);
-                this._event.on(Constants.cmdOpenObjectExplorer, () => {
-                    objectExplorerProvider.getChildren();
+                this.registerCommand(Constants.cmdAddObjectExplorer);
+                this._event.on(Constants.cmdAddObjectExplorer, async () => {
+                    if (self._objectExplorerSessionExists) {
+                        return this._objectExplorerProvider.createSession();
+                    } else {
+                        self._objectExplorerSessionExists = true;
+                        return vscode.commands.executeCommand('workbench.view.extension.objectExplorer');
+                    }
+                });
+                this.registerCommand(Constants.cmdObjectExplorerNewQuery);
+                this._event.on(Constants.cmdObjectExplorerNewQuery, () => {
+                    // emit new query with sessionId for connection
+                    self._event.emit(Constants.cmdNewQuery, this._objectExplorerProvider.currentNode.sessionId);
+                });
+                this.registerCommand(Constants.cmdRemoveObjectExplorerNode);
+                this._event.on(Constants.cmdRemoveObjectExplorerNode, () => {
+                    return this._objectExplorerProvider.removeObjectExplorerNode(this._objectExplorerProvider.currentNode);
+                });
+                this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
+                this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
+                    return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
                 });
 
                 // Add handlers for VS Code generated commands
@@ -510,11 +530,22 @@ export default class MainController implements vscode.Disposable {
     /**
      * Opens a new query and creates new connection
      */
-    public onNewQuery(): Promise<boolean> {
+    public onNewQuery(sessionId?: string): Promise<boolean> {
         if (this.canRunCommand()) {
-            return this._untitledSqlDocumentService.newQuery().then(x => {
-                return this._connectionMgr.onNewConnection();
-            });
+            if (sessionId) {
+                this._untitledSqlDocumentService.newQuery().then((uri) => {
+                    // connect to the node if the command came from the context
+                    if (!this.connectionManager.isConnected(sessionId)) {
+                        const connectionCreds = this._objectExplorerProvider.getConnectionCredentials(sessionId);
+                        this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
+                        return this.connectionManager.connect(uri.toString(), connectionCreds);
+                    }
+                });
+            } else {
+                return this._untitledSqlDocumentService.newQuery().then(x => {
+                    return this._connectionMgr.onNewConnection();
+                });
+            }
         }
         return Promise.resolve(false);
     }
