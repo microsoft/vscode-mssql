@@ -53,6 +53,7 @@ export class ObjectExplorerService {
                 const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self.currentNode.sessionId));
                 self._currentNode.collapsibleState = TreeItemCollapsibleState.Expanded;
                 self._treeNodeToChildrenMap.set(self.currentNode, children);
+                self._objectExplorerProvider.objectExplorerExists = true;
                 return self._objectExplorerProvider.refresh(self.currentNode);
             }
         };
@@ -115,7 +116,7 @@ export class ObjectExplorerService {
             this._rootTreeNodeArray.splice(index, 1);
         }
         this._currentNode = undefined;
-        return this._objectExplorerProvider.refresh(undefined);
+        await this._objectExplorerProvider.refresh(undefined);
     }
 
     public async refreshNode(node: TreeNodeInfo): Promise<boolean> {

@@ -42,7 +42,6 @@ export default class MainController implements vscode.Disposable {
     private _lastOpenedTimer: Utils.Timer;
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
-    private _objectExplorerSessionExists: boolean;
 
     /**
      * The main controller constructor
@@ -127,10 +126,10 @@ export default class MainController implements vscode.Disposable {
                 );
                 this.registerCommand(Constants.cmdAddObjectExplorer);
                 this._event.on(Constants.cmdAddObjectExplorer, async () => {
-                    if (self._objectExplorerSessionExists) {
-                        return this._objectExplorerProvider.createSession();
+                    if (self._objectExplorerProvider.objectExplorerExists) {
+                        return self._objectExplorerProvider.createSession();
                     } else {
-                        self._objectExplorerSessionExists = true;
+                        self._objectExplorerProvider.objectExplorerExists = true;
                         return vscode.commands.executeCommand('workbench.view.extension.objectExplorer');
                     }
                 });
