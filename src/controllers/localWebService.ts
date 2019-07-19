@@ -49,8 +49,6 @@ export default class LocalWebService {
 
         // Handle new connections to the web socket server
         this.wss.on('connection', (ws, req) => {
-            // upgradeReq was removed from the API
-            // See - https://github.com/websockets/ws/pull/1099
             let parse: any = querystring.parse(<string>url.parse(req.url).query);
 
             // Attempt to find the mapping for the web socket server
