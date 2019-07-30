@@ -202,6 +202,10 @@
         {
           "command": "extension.refreshObjectExplorerNode",
           "when": "view == objectExplorer"
+        },
+        {
+          "command": "extension.scriptSelect",
+          "when": "viewItem == Table"
         }
       ]
     },
@@ -283,6 +287,11 @@
       {
         "command": "extension.refreshObjectExplorerNode",
         "title": "%extension.refreshObjectExplorerNode%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.scriptSelect",
+        "title": "%extension.scriptSelect%",
         "category": "MS SQL"
       }
     ],

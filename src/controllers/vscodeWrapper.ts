@@ -174,8 +174,8 @@ export default class VscodeWrapper {
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public openMsSqlTextDocument(): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument({ language: 'sql'});
+    public openMsSqlTextDocument(content?: string): Thenable<vscode.TextDocument> {
+        return vscode.workspace.openTextDocument({ language: 'sql', content: content});
     }
 
     /**

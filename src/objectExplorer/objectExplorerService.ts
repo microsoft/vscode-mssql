@@ -8,10 +8,11 @@ import { CreateSessionCompleteNotification, SessionCreatedParameters, CreateSess
 import { NotificationHandler } from 'vscode-languageclient';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ExpandRequest, ExpandParams, ExpandCompleteNotification, ExpandResponse } from '../models/contracts/objectExplorer/expandNodeRequest';
-import { ObjectExplorerProvider, TreeNodeInfo } from './objectExplorerProvider';
+import { ObjectExplorerProvider } from './objectExplorerProvider';
 import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
+import { TreeNodeInfo } from './treeNodeInfo';
 
 export class ObjectExplorerService {
 
@@ -20,6 +21,7 @@ export class ObjectExplorerService {
     private _treeNodeToChildrenMap: Map<TreeNodeInfo, TreeNodeInfo[]>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
+    private _databaseToTablesMap: Map<string, string>;
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
@@ -27,6 +29,7 @@ export class ObjectExplorerService {
         this._client = this._connectionManager.client;
         this._treeNodeToChildrenMap = new Map<TreeNodeInfo, TreeNodeInfo[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
+        this._databaseToTablesMap = new Map<string, string>();
         this._sessionIdToConnectionCredentialsMap = new Map<string, ConnectionCredentials>();
         this._client.onNotification(CreateSessionCompleteNotification.type,
             this.handleSessionCreatedNotification());
@@ -38,7 +41,7 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: SessionCreatedParameters) => {
             if (result.success) {
-                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId);
+                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, self.currentNode);
                 self._rootTreeNodeArray.push(self.currentNode);
                 return self._objectExplorerProvider.refresh(undefined);
             }
@@ -50,7 +53,7 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
-                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self.currentNode.sessionId));
+                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self.currentNode.sessionId, self.currentNode));
                 self._currentNode.collapsibleState = TreeItemCollapsibleState.Expanded;
                 self._treeNodeToChildrenMap.set(self.currentNode, children);
                 self._objectExplorerProvider.objectExplorerExists = true;
