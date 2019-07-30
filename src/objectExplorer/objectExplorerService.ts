@@ -82,7 +82,7 @@ export class ObjectExplorerService {
             } else {
                 // expansion
                 await this.expandNode(element, element.sessionId);
-                return;
+                return [];
             }
         } else {
             if (this._rootTreeNodeArray.length === 0) {
