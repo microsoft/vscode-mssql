@@ -62,9 +62,8 @@ export class SessionDisconnectedParameters {
  // ------------------------------- < Close Session Request > ----------------------------------------------
 
 /**
- * Establishes an Object Explorer tree session for a specific connection.
- * This will create a connection to a specific server or database, register
- * it for use
+ * Closes an Object Explorer tree session for a specific connection.
+ * This will close a connection to a specific server or database
  */
 export namespace CloseSessionRequest {
     export const type = new RequestType<CloseSessionParams, CloseSessionResponse, void, void>('objectexplorer/closesession');

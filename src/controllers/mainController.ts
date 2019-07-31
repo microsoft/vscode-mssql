@@ -551,9 +551,8 @@ export default class MainController implements vscode.Disposable {
                     return this.connectionManager.connect(uri.toString(), connectionCreds);
                 }
             } else {
-                return this._untitledSqlDocumentService.newQuery().then(uri => {
-                    return this._connectionMgr.onNewConnection();
-                });
+                await this._untitledSqlDocumentService.newQuery();
+                return this._connectionMgr.onNewConnection();
             }
         }
         return Promise.resolve(false);

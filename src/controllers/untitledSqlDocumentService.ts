@@ -16,6 +16,7 @@ export default class UntitledSqlDocumentService {
 
     /**
      * Creates new untitled document for SQL query and opens in new editor tab
+     * with optional content
      */
     public newQuery(content?: string): Promise<Uri> {
         return new Promise<Uri>(async (resolve, reject) => {
