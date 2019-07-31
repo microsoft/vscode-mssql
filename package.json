@@ -207,6 +207,24 @@
           "command": "extension.scriptSelect",
           "when": "viewItem == Table"
         }
+      ],
+      "commandPalette": [
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "view == objectExplorer"
+        },
+        {
+          "command": "extension.removeObjectExplorerNode",
+          "when": "viewItem != null"
+        },
+        {
+          "command": "extension.refreshObjectExplorerNode",
+          "when": "viewItem != null"
+        },
+        {
+          "command": "extension.scriptSelect",
+          "when": "viewItem == Table"
+        }
       ]
     },
     "commands": [
@@ -276,7 +294,7 @@
       },
       {
         "command": "extension.objectExplorerNewQuery",
-        "title": "%extension.newQuery%",
+        "title": "%extension.objectExplorerNewQuery%",
         "category": "MS SQL"
       },
       {

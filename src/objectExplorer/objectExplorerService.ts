@@ -21,7 +21,6 @@ export class ObjectExplorerService {
     private _treeNodeToChildrenMap: Map<TreeNodeInfo, TreeNodeInfo[]>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
-    private _databaseToTablesMap: Map<string, string>;
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
@@ -29,7 +28,6 @@ export class ObjectExplorerService {
         this._client = this._connectionManager.client;
         this._treeNodeToChildrenMap = new Map<TreeNodeInfo, TreeNodeInfo[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
-        this._databaseToTablesMap = new Map<string, string>();
         this._sessionIdToConnectionCredentialsMap = new Map<string, ConnectionCredentials>();
         this._client.onNotification(CreateSessionCompleteNotification.type,
             this.handleSessionCreatedNotification());
@@ -87,7 +85,7 @@ export class ObjectExplorerService {
         } else {
             if (this._rootTreeNodeArray.length === 0) {
                 this.createSession();
-                return;
+                return [];
             } else {
                 return this._rootTreeNodeArray;
             }

@@ -65,4 +65,9 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     public set objectExplorerExists(value: boolean) {
         this._objectExplorerExists = value;
     }
+
+    /* Only for testing purposes */
+    public set objectExplorerService(value: ObjectExplorerService) {
+        this._objectExplorerService = value;
+    }
 }
