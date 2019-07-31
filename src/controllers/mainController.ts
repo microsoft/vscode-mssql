@@ -23,6 +23,7 @@ import { ISelectionData } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
+import { escapeCharacters } from '../utils/escapeCharacters';
 
 /**
  * The main controller class that initializes the extension
@@ -148,9 +149,9 @@ export default class MainController implements vscode.Disposable {
                 });
                 this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdScriptSelect, async (treeNodeInfo) => {
                     const objectNames = treeNodeInfo.label.split('.');
-                    const tableName = `[${objectNames[0]}].[${objectNames[1]}]`;
+                    const tableName = `[${escapeCharacters(objectNames[0])}].[${escapeCharacters(objectNames[1])}]`;
                     const databaseName =  treeNodeInfo.parentNode.parentNode.nodeType === Constants.databaseString ?
-                        `[${treeNodeInfo.parentNode.parentNode.label}].` : '[master].';
+                        `[${escapeCharacters(treeNodeInfo.parentNode.parentNode.label)}].` : '[master].';
                     const selectStatement = Constants.scriptSelectText + databaseName + tableName;
                     self.onNewQuery(treeNodeInfo.sessionId, selectStatement).then((result) => {
                         if (result) {

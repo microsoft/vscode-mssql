@@ -7,7 +7,7 @@ import { ExpandParams } from './expandNodeRequest';
 import { RequestType } from 'vscode-jsonrpc';
 
 /**
- * Parameters to the ExpandRequest.
+ * Parameters to the RefreshRequest.
  */
 export class RefreshParams extends ExpandParams {}
 
