@@ -151,7 +151,8 @@ export default class MainController implements vscode.Disposable {
                     const objectNames = treeNodeInfo.label.split('.');
                     const tableName = `[${escapeCharacters(objectNames[0])}].[${escapeCharacters(objectNames[1])}]`;
                     const databaseName =  treeNodeInfo.parentNode.parentNode.nodeType === Constants.databaseString ?
-                        `[${escapeCharacters(treeNodeInfo.parentNode.parentNode.label)}].` : '[master].';
+                        `[${escapeCharacters(treeNodeInfo.parentNode.parentNode.label)}].` :
+                        `[${escapeCharacters(treeNodeInfo.parentNode.parentNode.parentNode.label)}].`;
                     const selectStatement = Constants.scriptSelectText + databaseName + tableName;
                     self.onNewQuery(treeNodeInfo.sessionId, selectStatement).then((result) => {
                         if (result) {
