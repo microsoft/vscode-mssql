@@ -46,7 +46,8 @@
     "onCommand:extension.cancelQuery",
     "onCommand:extension.showGettingStarted",
     "onCommand:extension.newQuery",
-    "onCommand:extension.rebuildIntelliSenseCache"
+    "onCommand:extension.rebuildIntelliSenseCache",
+    "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -210,6 +211,11 @@
       {
         "command": "extension.rebuildIntelliSenseCache",
         "title": "%extension.rebuildIntelliSenseCache%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.loadCompletionExtension",
+        "title": "%mssql.loadCompletionExtension%",
         "category": "MS SQL"
       }
     ],

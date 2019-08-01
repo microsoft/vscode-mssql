@@ -10,6 +10,7 @@
 "extension.showGettingStarted":"Getting Started Guide",
 "extension.newQuery":"New Query",
 "extension.rebuildIntelliSenseCache":"Refresh IntelliSense Cache",
+"mssql.loadCompletionExtension":"Load completion extension into sql language service",
 "mssql.logDebugInfo":"[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
 "mssql.maxRecentConnections":"The maximum number of recently used connections to store in the connection list.",
 "mssql.connections":"Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.",
