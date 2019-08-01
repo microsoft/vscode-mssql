@@ -362,6 +362,12 @@
         <trans-unit id="flavorDescriptionNone">
             <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         </trans-unit>
+        <trans-unit id="queryOutputDocumentTitle">
+            <source xml:lang="en">Query Output Document</source>
+        </trans-unit>
+        <trans-unit id="queryOutputHostTitle">
+            <source xml:lang="en">Query Output Document Host</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
