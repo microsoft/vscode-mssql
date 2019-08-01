@@ -103,5 +103,5 @@ slick-grid.active .grid .slick-cell.selected {
 }
 
 .shortCut {
-  color: rgb(255, 255, 255);
+  color: var(--color-content);
 }
