@@ -212,11 +212,6 @@
         "command": "extension.rebuildIntelliSenseCache",
         "title": "%extension.rebuildIntelliSenseCache%",
         "category": "MS SQL"
-      },
-      {
-        "command": "mssql.loadCompletionExtension",
-        "title": "%mssql.loadCompletionExtension%",
-        "category": "MS SQL"
       }
     ],
     "keybindings": [

@@ -68,6 +68,16 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Helper method to setup command registrations with arguments
+     */
+    private registerCommandWithArgs(command: string): void {
+        const self = this;
+        this._context.subscriptions.push(vscode.commands.registerCommand(command, (args: any) => {
+            self._event.emit(command, args);
+        }));
+    }
+
+    /**
      * Disposes the controller
      */
     dispose(): void {
@@ -116,7 +126,7 @@ export default class MainController implements vscode.Disposable {
                 this._event.on(Constants.cmdNewQuery, () => { self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'); });
                 this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
-                this.registerCommand(Constants.cmdLoadCompletionExtension);
+                this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
                 this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { self.onLoadCompletionExtension(params); });
 
                 // Add handlers for VS Code generated commands
