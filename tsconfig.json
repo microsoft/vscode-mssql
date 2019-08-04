@@ -9,7 +9,8 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "rootDir": ".",
-        "typeRoots":["./typings"]
+        "typeRoots":["./typings"],
+        "noUnusedLocals": true
     },
     "exclude": [
         "node_modules",

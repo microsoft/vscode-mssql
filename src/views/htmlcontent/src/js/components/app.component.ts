@@ -136,23 +136,15 @@ const template = `
 
 export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
-    // tslint:disable-next-line:no-unused-variable
     private scrollTimeOutTime = 200;
     private windowSize = 50;
-    // tslint:disable-next-line:no-unused-variable
     private maxScrollGrids = 8;
-    // tslint:disable-next-line:no-unused-variable
-    private selectionModel = 'DragRowSelectionModel';
-    // tslint:disable-next-line:no-unused-variable
-    private slickgridPlugins = ['AutoColumnSize'];
-    // tslint:disable-next-line:no-unused-variable
+    protected selectionModel = 'DragRowSelectionModel';
+    protected slickgridPlugins = ['AutoColumnSize'];
     private _rowHeight = 29;
-    // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
-    // tslint:disable-next-line:no-unused-variable
-    private Constants = Constants;
-    // tslint:disable-next-line:no-unused-variable
-    private Utils = Utils;
+    protected Constants = Constants;
+    protected Utils = Utils;
     // the function implementations of keyboard available events
     private shortcutfunc = {
         'event.toggleResultPane': () => {
@@ -263,8 +255,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
-    // tslint:disable-next-line:no-unused-variable
-    private startString = new Date().toLocaleTimeString();
+
+    protected startString = new Date().toLocaleTimeString();
     private config;
 
     // FIELDS
@@ -277,23 +269,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private messages: IMessage[] = [];
     private scrollTimeOut: number;
     private messagesAdded = false;
-    private resizing = false;
-    private resizeHandleTop = 0;
-    private scrollEnabled = true;
-    // tslint:disable-next-line:no-unused-variable
+    protected resizing = false;
+    protected resizeHandleTop = 0;
+    protected scrollEnabled = true;
     private resultActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private _messageActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private firstRender = true;
-    // tslint:disable-next-line:no-unused-variable
-    private resultsScrollTop = 0;
-    // tslint:disable-next-line:no-unused-variable
+    protected resultsScrollTop = 0;
     private activeGrid = 0;
-    private messageShortcut;
-    private resultShortcut;
-    private totalElapsedTimeSpan: number;
-    private complete = false;
+    protected messageShortcut;
+    protected resultShortcut;
+    protected totalElapsedTimeSpan: number;
+    protected complete = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;

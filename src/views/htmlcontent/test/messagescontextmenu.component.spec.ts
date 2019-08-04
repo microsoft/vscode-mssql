@@ -31,13 +31,11 @@ describe('Messages Context Menu', () => {
 
     describe('initialization', () => {
         let fixture: ComponentFixture<MessagesContextMenu>;
-        let comp: MessagesContextMenu;
         let ele: HTMLElement;
 
         beforeEach(() => {
             fixture = TestBed.createComponent<MessagesContextMenu>(MessagesContextMenu);
             fixture.detectChanges();
-            comp = fixture.componentInstance;
             ele = fixture.nativeElement;
         });
 

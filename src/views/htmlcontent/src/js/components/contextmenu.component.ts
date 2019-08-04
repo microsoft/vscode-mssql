@@ -37,10 +37,8 @@ const template = `
 })
 
 export class ContextMenu implements OnInit {
-    // tslint:disable-next-line:no-unused-variable
-    private Utils = Utils;
-    // tslint:disable-next-line:no-unused-variable
-    private Constants = Constants;
+    protected Utils = Utils;
+    protected Constants = Constants;
 
     @Output() clickEvent: EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>
         = new EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>();
@@ -49,8 +47,8 @@ export class ContextMenu implements OnInit {
     private index: number;
     private selection: ISlickRange[];
     private isDisabled: boolean;
-    private position: {x: number, y: number} = {x: 0, y: 0};
-    private visible: boolean = false;
+    protected position: {x: number, y: number} = {x: 0, y: 0};
+    protected visible: boolean = false;
     private keys = {
         'event.saveAsCSV': '',
         'event.saveAsJSON': '',
