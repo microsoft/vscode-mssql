@@ -111,6 +111,7 @@
     "https-proxy-agent": "^2.2.1",
     "jsonc-parser": "^1.0.0",
     "opener": "1.4.2",
+    "pem": "^1.14.2",
     "plist": "^2.1.0",
     "pretty-data": "^0.40.0",
     "request": "^2.73.0",

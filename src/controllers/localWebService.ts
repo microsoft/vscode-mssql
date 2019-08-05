@@ -1,4 +1,6 @@
 'use strict';
+import * as vscode from 'vscode';
+import { EventEmitter } from 'events';
 import path = require('path');
 import * as WebSocket from 'ws';
 import url = require('url');
@@ -6,7 +8,11 @@ import querystring = require('querystring');
 import Utils = require('../models/utils');
 import Constants = require('../constants/constants');
 import Interfaces = require('../models/interfaces');
-import http = require('http');
+import https = require('https');
+import pem = require('pem');
+pem.config({
+    pathOpenSSL: process.env.openSSL
+});
 const bodyParser = require('body-parser');
 const express = require('express');
 const webSocketServer = WebSocket.Server;
@@ -23,9 +29,10 @@ class WebSocketMessage {
 
 export default class LocalWebService {
     private app = express();
-    private server = http.createServer();
-    private wss = new webSocketServer({ server: this.server});
+    private server: https.Server;
+    private wss: WebSocket.Server;
     private wsMap = new Map<string, WebSocketMapping>();
+    public eventEmitter = new EventEmitter();
     static _servicePort: string;
     static _vscodeExtensionPath: string;
     static _htmlContentLocation = 'out/src/views/htmlcontent';
@@ -33,36 +40,13 @@ export default class LocalWebService {
 
     constructor(extensionPath: string) {
         // add static content for express web server to serve
-        const self = this;
         LocalWebService._vscodeExtensionPath = extensionPath;
         LocalWebService._staticContentPath = path.join(extensionPath, LocalWebService._htmlContentLocation);
+        this.createServer();
         this.app.use(express.static(LocalWebService.staticContentPath));
         this.app.use(bodyParser.json({limit: '50mb', type: 'application/json'}));
         this.app.set('view engine', 'ejs');
         Utils.logDebug(`LocalWebService: added static html content path: ${LocalWebService.staticContentPath}`);
-        this.server.on('request', this.app);
-
-        // Handle new connections to the web socket server
-        this.wss.on('connection', (ws, req) => {
-            let parse: any = querystring.parse(<string>url.parse(req.url).query);
-
-            // Attempt to find the mapping for the web socket server
-            let mapping = self.wsMap.get(parse.uri);
-
-            // If the mapping does not exist, create it now
-            if (mapping === undefined) {
-                mapping = new WebSocketMapping();
-                self.wsMap.set(parse.uri, mapping);
-            }
-
-            // Assign the web socket server to the mapping
-            mapping.webSocketServer = ws;
-
-            // Replay all messages to the server
-            mapping.pendingMessages.forEach(m => {
-                ws.send(JSON.stringify(m));
-            });
-        });
     }
 
     static get serviceUrl(): string {
@@ -127,10 +111,47 @@ export default class LocalWebService {
         this.app.post(segment, handler);
     }
 
-    start(): void {
-        const address: any = this.server.listen(0).address();
-        const port = address.port; // 0 = listen on a random port
-        Utils.logDebug(`LocalWebService listening on port ${port}`);
-        LocalWebService._servicePort = port.toString();
+    public start(): void {
+        if (this.server) {
+            const address: any = this.server.listen(0).address();
+            const port = address.port; // 0 = listen on a random port
+            Utils.logDebug(`LocalWebService listening on port ${port}`);
+            LocalWebService._servicePort = port.toString();
+            this.eventEmitter.emit('serverListening');
+        }
+    }
+
+    private createServer(): void {
+        const self = this;
+        pem.createCertificate({selfSigned: false}, (err, keys) => {
+            if (err) {
+                return vscode.window.showErrorMessage(err.message);
+            }
+            self.server = https.createServer({key: keys.serviceKey, cert: keys.certificate });
+            self.server.on('request', self.app);
+            // Handle new connections to the web socket server
+            self.wss = new webSocketServer({ server: self.server });
+            self.wss.on('connection', (ws, req) => {
+                let parse: any = querystring.parse(<string>url.parse(req.url).query);
+
+                // Attempt to find the mapping for the web socket server
+                let mapping = self.wsMap.get(parse.uri);
+
+                // If the mapping does not exist, create it now
+                if (mapping === undefined) {
+                    mapping = new WebSocketMapping();
+                    self.wsMap.set(parse.uri, mapping);
+                }
+
+                // Assign the web socket server to the mapping
+                mapping.webSocketServer = ws;
+
+                // Replay all messages to the server
+                mapping.pendingMessages.forEach(m => {
+                    ws.send(JSON.stringify(m));
+                });
+            });
+            self.eventEmitter.emit('serverCreated');
+        });
     }
 }

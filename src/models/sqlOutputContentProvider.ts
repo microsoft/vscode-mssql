@@ -1,6 +1,7 @@
 'use strict';
 import vscode = require('vscode');
 import path = require('path');
+import { EventEmitter } from 'events';
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import LocalWebService from '../controllers/localWebService';
@@ -76,7 +77,9 @@ export class SqlOutputContentProvider {
 
         // start express server on localhost and listen on a random port
         try {
-            this._service.start();
+            this._service.eventEmitter.on('serverCreated', () => {
+                this._service.start();
+            });
         } catch (error) {
             Utils.showErrorMsg(error);
             throw(error);
@@ -634,5 +637,9 @@ export class SqlOutputContentProvider {
 
     set setResultsMap(setMap: Map<string, QueryRunnerState>) {
         this._queryResultsMap = setMap;
+    }
+
+    get eventEmitter(): EventEmitter {
+        return this._service.eventEmitter;
     }
 }

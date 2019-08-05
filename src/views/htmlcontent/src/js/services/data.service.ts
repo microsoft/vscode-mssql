@@ -15,7 +15,7 @@ import { ResultSetSubset, ISelectionData,
 
 import * as Constants from './../constants';
 
-const WS_URL = 'ws://localhost:' + window.location.port + '/';
+const WS_URL = 'wss://localhost:' + window.location.port + '/';
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.

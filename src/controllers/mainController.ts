@@ -143,7 +143,7 @@ export default class MainController implements vscode.Disposable {
         return new Promise<boolean>( (resolve, reject) => {
             // Ensure telemetry is disabled
             Telemetry.disable();
-            SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
+            SqlToolsServerClient.instance.initialize(self._context).then(async serverResult => {
                 // Init status bar
                 self._statusview = new StatusView(self._vscodeWrapper);
 
@@ -153,27 +153,28 @@ export default class MainController implements vscode.Disposable {
                 // Init content provider for results pane
                 self._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview);
 
-                // Init connection manager and connection MRU
-                self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
+                self._outputContentProvider.eventEmitter.on('serverListening', () => {
+                    // Init connection manager and connection MRU
+                    self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
-                activationTimer.end();
+                    activationTimer.end();
 
-                // telemetry for activation
-                Telemetry.sendTelemetryEvent('ExtensionActivated', {},
-                    { activationTime: activationTimer.getDuration(), serviceInstalled: serverResult.installedBeforeInitializing ? 1 : 0 }
-                );
+                    // telemetry for activation
+                    Telemetry.sendTelemetryEvent('ExtensionActivated', {},
+                        { activationTime: activationTimer.getDuration(), serviceInstalled: serverResult.installedBeforeInitializing ? 1 : 0 }
+                    );
+                    self.showReleaseNotesPrompt();
 
-                self.showReleaseNotesPrompt();
+                    // Handle case where SQL file is the 1st opened document
+                    const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+                    if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
+                        this.onDidOpenTextDocument(activeTextEditor.document);
+                    }
 
-                // Handle case where SQL file is the 1st opened document
-                const activeTextEditor = this._vscodeWrapper.activeTextEditor;
-                if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
-                    this.onDidOpenTextDocument(activeTextEditor.document);
-                }
-
-                Utils.logDebug('activated.');
-                self._initialized = true;
-                resolve(true);
+                    Utils.logDebug('activated.');
+                    self._initialized = true;
+                    resolve(true);
+                });
             }).catch(err => {
                 Telemetry.sendTelemetryEventForException(err, 'initialize');
                 reject(err);
