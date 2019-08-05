@@ -123,7 +123,7 @@ export default class LocalWebService {
 
     private createServer(): void {
         const self = this;
-        pem.createCertificate({selfSigned: false}, (err, keys) => {
+        pem.createCertificate({selfSigned: true}, (err, keys) => {
             if (err) {
                 return vscode.window.showErrorMessage(err.message);
             }
