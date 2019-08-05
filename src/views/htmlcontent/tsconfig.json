@@ -7,7 +7,6 @@
         "sourceMap": true,
         "rootDir": ".",
         "target": "ES6",
-        "types": [],
-        "noUnusedLocals": true
+        "types": []
     }
 }

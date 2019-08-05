@@ -31,15 +31,15 @@ const template = `
 })
 
 export class MessagesContextMenu implements OnInit {
-    protected Utils = Utils;
-    protected Constants = Constants;
+    private Utils = Utils;
+    private Constants = Constants;
 
     @Output() clickEvent: EventEmitter<{type: string, selectedRange: IRange }>
         = new EventEmitter<{type: string, selectedRange: IRange}>();
     private selectedRange: IRange;
     private isDisabled: boolean;
-    protected position: {x: number, y: number} = {x: 0, y: 0};
-    protected visible: boolean = false;
+    private position: {x: number, y: number} = {x: 0, y: 0};
+    private visible: boolean = false;
     private keys = {
         'event.copySelection': ''
     };

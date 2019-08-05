@@ -139,12 +139,12 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private scrollTimeOutTime = 200;
     private windowSize = 50;
     private maxScrollGrids = 8;
-    protected selectionModel = 'DragRowSelectionModel';
-    protected slickgridPlugins = ['AutoColumnSize'];
+    private selectionModel = 'DragRowSelectionModel';
+    private slickgridPlugins = ['AutoColumnSize'];
     private _rowHeight = 29;
     private _defaultNumShowingRows = 8;
-    protected Constants = Constants;
-    protected Utils = Utils;
+    private Constants = Constants;
+    private Utils = Utils;
     // the function implementations of keyboard available events
     private shortcutfunc = {
         'event.toggleResultPane': () => {
@@ -256,7 +256,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
     ];
 
-    protected startString = new Date().toLocaleTimeString();
+    private startString = new Date().toLocaleTimeString();
     private config;
 
     // FIELDS
@@ -269,18 +269,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private messages: IMessage[] = [];
     private scrollTimeOut: number;
     private messagesAdded = false;
-    protected resizing = false;
-    protected resizeHandleTop = 0;
-    protected scrollEnabled = true;
+    private resizing = false;
+    private resizeHandleTop = 0;
+    private scrollEnabled = true;
     private resultActive = true;
     private _messageActive = true;
     private firstRender = true;
-    protected resultsScrollTop = 0;
+    private resultsScrollTop = 0;
     private activeGrid = 0;
-    protected messageShortcut;
-    protected resultShortcut;
-    protected totalElapsedTimeSpan: number;
-    protected complete = false;
+    private messageShortcut;
+    private resultShortcut;
+    private totalElapsedTimeSpan: number;
+    private complete = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
