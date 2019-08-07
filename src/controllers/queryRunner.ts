@@ -235,7 +235,7 @@ export default class QueryRunner {
     }
 
     // get more data rows from the current resultSets from the service layer
-    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Thenable<QueryExecuteSubsetResult> {
+    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Promise<QueryExecuteSubsetResult> {
         const self = this;
         let queryDetails = new QueryExecuteSubsetParams();
         queryDetails.ownerUri = this.uri;

@@ -104,7 +104,7 @@ export interface IResultsConfig {
     messagesDefaultOpen: boolean;
 }
 
-export class WebSocketEvent {
+export class QueryEvent {
     type: string;
     data: any;
 }

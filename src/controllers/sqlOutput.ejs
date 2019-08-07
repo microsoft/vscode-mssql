@@ -1,36 +1,15 @@
 <html>
   <head>
-    <title><%=docTitle%></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-      :root {
-        --background-color: <%=backgroundcolor%>;
-        --color: <%=color%>;
-        --font-family: <%=fontfamily%>;
-        --font-weight: <%=fontweight%>;
-        --font-size: <%=fontsize%>;
-      }
-      body {
-        background-color: var(--background-color);
-        color: var(--color);
-        font-family: var(--font-family);
-        font-weight: var(--font-weight);
-        font-size: var(--font-size);
-      }
-    </style>
+    <base href="<%=basehref%>">
     <link rel="stylesheet" type="text/css" href="lib/css/slick.grid.css"/>
     <link rel="stylesheet" type="text/css" href="lib/css/SlickGrid.css"/>
     <link rel="stylesheet" type="text/css" href="dist/css/styles.min.css"/>
-    <%if (theme === 'vscode-light') { %>
-    <link rel="stylesheet" type="text/css" href="dist/css/color-theme-light.css"/>
-    <%} else { %>
     <link rel="stylesheet" type="text/css" href="dist/css/color-theme-dark.css"/>
-    <% } %>
   </head>
   <!-- 3. Display the application -->
   <body>
-    <div style="display: none;" id="uri"><%=uri%></div>
     <my-app></my-app>
   </body>
     <% if (prod) { %>

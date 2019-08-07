@@ -346,17 +346,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
                     // Setup a function for generating a promise to lookup result subsets
                     let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
-                        return new Promise<IGridDataRow[]>((resolve, reject) => {
-                            self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
-                                let gridData: IGridDataRow[] = [];
-                                for (let row = 0; row < rows.rows.length; row++) {
-                                    // Push row values onto end of gridData for slickgrid
-                                    gridData.push({
-                                        values: rows.rows[row]
-                                    });
-                                }
-                                resolve(gridData);
-                            });
+                        return self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).then(rows => {
+                            let gridData: IGridDataRow[] = [];
+                            for (let row = 0; row < rows.rows.length; row++) {
+                                // Push row values onto end of gridData for slickgrid
+                                gridData.push({
+                                    values: rows.rows[row]
+                                });
+                            }
+                            return gridData;
                         });
                     };
 
@@ -697,7 +695,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * @param uri The URI to send a get request to
      */
     sendGetRequest(uri: string): void {
-        this.dataService.sendGetRequest(uri);
+        throw new Error('Method not implemented');
     }
 
     /**
