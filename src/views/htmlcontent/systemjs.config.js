@@ -28,7 +28,8 @@
   var packages = {
     'app':                        { main: 'main.js',  defaultExtension: 'js' },
     '':                           { main: 'constants.js', defaultExtension: 'js'},
-    'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'}
+    'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'},
+    '/src/controllers':           { defaultExtension: 'js' }
   };
   var meta = {
     '**/*.json' : {

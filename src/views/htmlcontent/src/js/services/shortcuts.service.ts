@@ -6,8 +6,29 @@ import {Injectable, Inject, forwardRef} from '@angular/core';
 
 import { DataService } from './data.service';
 
-const keycodes = require('./../keycodes.json!');
-const displayCodes = require('./../displayCodes.json!');
+const keycodes = {
+    '37': 'left',
+    '38': 'up',
+    '39': 'right',
+    '40': 'down'
+};
+const displayCodes = {
+    'mac': {
+        'ctrl': '⌘',
+        'alt': '⌥',
+        'shift': '⇧'
+    },
+    'windows': {
+        'ctrl': 'Ctrl',
+        'alt': 'Alt',
+        'shift': 'Shift'
+    },
+    'linux': {
+        'ctrl': 'Ctrl',
+        'alt': 'Alt',
+        'shift': 'Shift'
+    }
+};
 
 /**
  * Service which performs the http requests to get the data resultsets from the server.

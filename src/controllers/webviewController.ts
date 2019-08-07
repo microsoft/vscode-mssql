@@ -29,7 +29,7 @@ export class WebviewPanelController {
             retainContextWhenHidden,
             enableScripts: true
         });
-        this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy);
+        this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
     }
 
     public async init(): Promise<void> {

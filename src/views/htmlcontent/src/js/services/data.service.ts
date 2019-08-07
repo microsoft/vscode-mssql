@@ -11,8 +11,8 @@ import { ResultSetSubset, ISelectionData } from './../interfaces';
 
 import * as Constants from './../constants';
 
-import { createProxy, IMessageProtocol, IServerProxy } from '../../../../../controllers/protocol';
-import { Subject } from 'rxjs';
+import { createProxy, IMessageProtocol, IServerProxy } from './../protocol';
+import { Subject } from 'rxjs/Subject';
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void; };
 
@@ -48,7 +48,7 @@ export class DataService {
     constructor() {
         this._proxy = createProxy(createMessageProtocol(), {
             sendEvent: (...args) => this.sendEvent(...args)
-        });
+        }, true);
 
         this.getLocalizedTextsRequest().then(result => {
             Object.keys(result).forEach(key => {
