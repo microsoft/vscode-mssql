@@ -109,6 +109,32 @@ export class QueryEvent {
     data: any;
 }
 
+export interface ISlickRange {
+    fromCell: number;
+    fromRow: number;
+    toCell: number;
+    toRow: number;
+}
+
+export interface IResultsConfig {
+    shortcuts: { [key: string]: string };
+    messagesDefaultOpen: boolean;
+}
+
+export interface ISelectionData {
+    startLine: number;
+    startColumn: number;
+    endLine: number;
+    endColumn: number;
+}
+
+export interface ISlickRange {
+    fromCell: number;
+    fromRow: number;
+    toCell: number;
+    toRow: number;
+}
+
 /**
  * Simplified interface for a Range object returned by the Rangy javascript plugin
  *

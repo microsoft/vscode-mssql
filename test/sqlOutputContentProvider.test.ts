@@ -89,7 +89,6 @@ suite('SqlOutputProvider Tests', () => {
     test('RunQuery properly sets up two queries to be run', done => {
         // Setup internal functions
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
 
         // Run function with properties declared below
         let title = 'Test_Title';
@@ -129,7 +128,6 @@ suite('SqlOutputProvider Tests', () => {
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
 
         // Ensure all side effects occured as intended
@@ -156,7 +154,6 @@ suite('SqlOutputProvider Tests', () => {
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
 
         // Ensure all side effects occured as intended
@@ -186,7 +183,6 @@ suite('SqlOutputProvider Tests', () => {
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
 
         // Ensure all side effects occured as intended
@@ -223,7 +219,6 @@ suite('SqlOutputProvider Tests', () => {
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
 
         // Ensure all side effects occured as intended
@@ -254,7 +249,6 @@ suite('SqlOutputProvider Tests', () => {
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
         contentProvider.cancelQuery(resultUri);
 
@@ -285,7 +279,6 @@ suite('SqlOutputProvider Tests', () => {
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
         contentProvider.cancelQuery(uri);
 
@@ -316,7 +309,6 @@ suite('SqlOutputProvider Tests', () => {
         vscodeWrapper.setup(x => x.textDocuments).returns( () => []);
 
         // Setup the function to call base and run it
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
         contentProvider.runQuery(statusView.object, uri, querySelection, title);
         let testedRunner = contentProvider.getQueryRunner(uri);
 

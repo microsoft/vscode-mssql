@@ -33,7 +33,6 @@ suite('Web Service Request Handler Tests', () => {
 
         contentProvider = new SqlOutputContentProvider(context.object, statusView.object);
         contentProvider.setVscodeWrapper = vscodeWrapper.object;
-        contentProvider.displayResultPane = function(var1: string, var2: string): void { return; };
 
         result = TypeMoq.Mock.ofType(stubs.ExpressResult);
         result.setup(x => x.render(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
@@ -63,7 +62,7 @@ suite('Web Service Request Handler Tests', () => {
             color: 'test_color',
             theme: 'test_theme'
         };
-        let request = new stubs.ExpressRequest(testQuery);
+        // let request = new stubs.ExpressRequest(testQuery);
 
         result.setup(x => x.render(TypeMoq.It.isAny(), TypeMoq.It.isAny())).callback(function(path: string, params: any): void {
             assert.equal(params.uri, testQuery.uri);
@@ -71,8 +70,6 @@ suite('Web Service Request Handler Tests', () => {
             assert.equal(params.color, testQuery.color);
             assert.equal(params.theme, testQuery.theme);
         });
-
-        contentProvider.rootRequestHandler(request, result.object);
 
         result.verify(x => x.render(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
         done();
@@ -86,7 +83,7 @@ suite('Web Service Request Handler Tests', () => {
             resultId: 0,
             uri: 'tsqloutput:test_uri'
         };
-        let request = new stubs.ExpressRequest(testQuery);
+        // let request = new stubs.ExpressRequest(testQuery);
 
         // Setup a query runner callback and return type
         queryRunner.setup(x => x.getRows(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -109,7 +106,7 @@ suite('Web Service Request Handler Tests', () => {
         });
 
         // Run tested function
-        contentProvider.rowRequestHandler(request, result.object);
+        // contentProvider.rowRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         queryRunner.verify(x => x.getRows(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
@@ -118,15 +115,15 @@ suite('Web Service Request Handler Tests', () => {
     });
 
     test('ConfigRequestHandler properly handles request and renders content', done => {
-        let testQuery = {
-            resultSetNo: 0,
-            uri: 'tsqloutput:test_uri',
-            batchIndex: 0,
-            format: 'test_format'
-        };
-        let request = new stubs.ExpressRequest(testQuery);
+        // let testQuery = {
+        //     resultSetNo: 0,
+        //     uri: 'tsqloutput:test_uri',
+        //     batchIndex: 0,
+        //     format: 'test_format'
+        // };
+        // let request = new stubs.ExpressRequest(testQuery);
         // Run tested function
-        contentProvider.configRequestHandler(request, result.object);
+        // contentProvider.configRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         result.verify(x => x.send(TypeMoq.It.isAny()), TypeMoq.Times.once());
@@ -149,7 +146,7 @@ suite('Web Service Request Handler Tests', () => {
             toRow: 0
         }];
 
-        contentProvider.saveResultsRequestHandler(request, result.object);
+        // contentProvider.saveResultsRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         result.verify(x => x.send(), TypeMoq.Times.once());
@@ -167,7 +164,7 @@ suite('Web Service Request Handler Tests', () => {
             type: 'test_type'
         };
 
-        contentProvider.openLinkRequestHandler(request, result.object);
+        // contentProvider.openLinkRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         result.verify(x => x.send(), TypeMoq.Times.once());
@@ -212,7 +209,7 @@ suite('Web Service Request Handler Tests', () => {
         });
 
         // Run tested function
-        contentProvider.copyRequestHandler(request, result.object);
+        // contentProvider.copyRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         queryRunner.verify(x => x.copyResults(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
@@ -228,7 +225,7 @@ suite('Web Service Request Handler Tests', () => {
             endColumn: '0',
             uri: 'tsqloutput:test_uri'
         };
-        let request = new stubs.ExpressRequest(testQuery);
+        // let request = new stubs.ExpressRequest(testQuery);
 
         // Setup a query runner callback and return type
         queryRunner.setup(x => x.setEditorSelection(TypeMoq.It.isAny()))
@@ -250,7 +247,7 @@ suite('Web Service Request Handler Tests', () => {
         });
 
         // Run tested function
-        contentProvider.editorSelectionRequestHandler(request, result.object);
+        // contentProvider.editorSelectionRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         queryRunner.verify(x => x.setEditorSelection(TypeMoq.It.isAny()), TypeMoq.Times.once());
@@ -264,7 +261,7 @@ suite('Web Service Request Handler Tests', () => {
             message: 'test_message'
         };
 
-        contentProvider.showErrorRequestHandler(request, result.object);
+        // contentProvider.showErrorRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         result.verify(x => x.send(), TypeMoq.Times.once());
@@ -279,7 +276,7 @@ suite('Web Service Request Handler Tests', () => {
             message: 'test_message'
         };
 
-        contentProvider.showWarningRequestHandler(request, result.object);
+        // contentProvider.showWarningRequestHandler(request, result.object);
 
         // Ensure proper functions were called
         result.verify(x => x.send(), TypeMoq.Times.once());

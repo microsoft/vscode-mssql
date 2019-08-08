@@ -8,7 +8,7 @@ import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
-import { ISelectionData } from './interfaces';
+import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
 import { IServerProxy } from '../controllers/protocol';
 import { ResultSetSubset } from './contracts/queryExecute';
@@ -145,15 +145,19 @@ export class SqlOutputContentProvider {
 
     private createWebviewController(uri: string, title: string): void {
         const proxy: IServerProxy = {
-            getRows: (...args) => this.rowRequestHandler(uri, ...args),
-            copyResults: (...args) => this.copyRequestHandler(uri, ...args),
+            getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) =>
+                this.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows),
+            copyResults: (batchId: number, resultsId: number, selection: ISlickRange[], includeHeaders?: boolean) =>
+                this.copyRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
             getConfig: () => this.configRequestHandler(uri),
             getLocalizedTexts: () => Promise.resolve(LocalizedConstants),
-            openLink: (...args) => this.openLinkRequestHandler(...args),
-            saveResults: (...args) => this.saveResultsRequestHandler(uri, ...args),
-            setEditorSelection: (...args) => this.editorSelectionRequestHandler(uri, ...args),
-            showError: (...args) => this.showErrorRequestHandler(...args),
-            showWarning: (...args) => this.showWarningRequestHandler(...args)
+            openLink: (content: string, columnName: string, linkType: string) =>
+                this.openLinkRequestHandler(content, columnName, linkType),
+            saveResults: (batchId: number, resultId: number, format: string, selection: ISlickRange[]) =>
+                this.saveResultsRequestHandler(uri, batchId, resultId, format, selection),
+            setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
+            showError: (message: string) => this.showErrorRequestHandler(message),
+            showWarning: (message: string) => this.showWarningRequestHandler(message)
         };
         const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath);
         controller.init();

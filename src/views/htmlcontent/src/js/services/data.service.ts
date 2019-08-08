@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 
 import { ISlickRange } from 'angular2-slickgrid';
 
-import { ResultSetSubset, ISelectionData } from './../interfaces';
+import { ResultSetSubset, ISelectionData, QueryEvent } from './../interfaces';
 
 import * as Constants from './../constants';
 
@@ -47,7 +47,7 @@ export class DataService {
 
     constructor() {
         this._proxy = createProxy(createMessageProtocol(), {
-            sendEvent: (...args) => this.sendEvent(...args)
+            sendEvent: (type, args) => this.sendEvent(type, args)
         }, true);
 
         this.getLocalizedTextsRequest().then(result => {

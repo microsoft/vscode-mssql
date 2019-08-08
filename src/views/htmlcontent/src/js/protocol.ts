@@ -1,6 +1,5 @@
 import { Event } from 'vscode';
-import { ResultSetSubset } from '../models/contracts/queryExecute';
-import { ISlickRange, IResultsConfig, ISelectionData } from '../models/interfaces';
+import { ISlickRange, IResultsConfig, ISelectionData, ResultSetSubset } from './interfaces';
 
 export interface IWebviewProxy {
     sendEvent(type: string, arg: any): void;
@@ -64,13 +63,13 @@ class MessageProxy {
                 // first message
                 if (message === 'ready') {
                     // sanity check
-                    protocol.onMessage(val => this.onRecieve(val));
+                    protocol.onMessage(val => this.onReceive(val));
                     first.dispose();
                     this.ready.resolve();
                 }
             });
         } else {
-            protocol.onMessage(val => this.onRecieve(val));
+            protocol.onMessage(val => this.onReceive(val));
             protocol.sendMessage('ready');
         }
     }
@@ -88,7 +87,7 @@ class MessageProxy {
         this.protocol.sendMessage(JSON.stringify(request));
     }
 
-    private onRecieve(val: string): void {
+    private onReceive(val: string): void {
         const message: IResponse | IRequest = JSON.parse(val);
         if (isResponseMessage(message)) { // is a response
             const deferred = this.responseMap.get(message.originalMessageId);
