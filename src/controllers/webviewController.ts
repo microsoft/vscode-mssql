@@ -33,7 +33,8 @@ export class WebviewPanelController {
     }
 
     public async init(): Promise<void> {
-        const fileContent = await readFile(path.join(__dirname, 'sqlOutput.ejs'));
+        const sqlOutputPath = path.resolve(path.resolve(path.dirname(__dirname)), '../../src/controllers');
+        const fileContent = await readFile(path.join(sqlOutputPath, 'sqlOutput.ejs'));
         const htmlViewPath = ['out', 'src', 'views', 'htmlcontent'];
         const baseUri = `${vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
         const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });

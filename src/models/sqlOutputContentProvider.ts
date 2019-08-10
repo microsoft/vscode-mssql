@@ -130,12 +130,11 @@ export class SqlOutputContentProvider {
     private runQueryCallback(
             statusView: any, uri: string, title: string,
             queryCallback: any): void {
-        let paneTitle = 'title';
         // Always run this command even if just updating to avoid a bug - tfs 8686842
         if (this._panels.has(uri)) {
             this._panels.get(uri).reset();
         } else {
-            this.createWebviewController(uri, paneTitle);
+            this.createWebviewController(uri, title);
         }
         let queryRunner = this.createQueryRunner(statusView, uri, title);
         if (queryRunner) {

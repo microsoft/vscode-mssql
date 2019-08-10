@@ -59,19 +59,20 @@ class MessageProxy {
     private responseMap = new Map<number, Deferred<any>>();
 
     constructor(private protocol: IMessageProtocol, private handler: any, isClient: boolean = false) {
+        const self = this;
         if (!isClient) {
-            const first = protocol.onMessage(message => {
-                // first message
+            const first = self.protocol.onMessage(message => {
                 if (message === 'ready') {
+                    // first message
                     // sanity check
-                    protocol.onMessage(val => this.onRecieve(val));
+                    self.protocol.onMessage(val => self.onReceive(val));
                     first.dispose();
-                    this.ready.resolve();
+                    self.ready.resolve();
                 }
             });
         } else {
-            protocol.onMessage(val => this.onRecieve(val));
-            protocol.sendMessage('ready');
+            this.protocol.onMessage(val => this.onReceive(val));
+            this.protocol.sendMessage('ready');
         }
     }
 
@@ -86,9 +87,10 @@ class MessageProxy {
             passArguments: args
         };
         this.protocol.sendMessage(JSON.stringify(request));
+        return deferred.promise;
     }
 
-    private onRecieve(val: string): void {
+    private onReceive(val: string): void {
         const message: IResponse | IRequest = JSON.parse(val);
         if (isResponseMessage(message)) { // is a response
             const deferred = this.responseMap.get(message.originalMessageId);
@@ -108,7 +110,7 @@ class MessageProxy {
 }
 
 function isResponseMessage(val: any): val is IResponse {
-    return !!val.originalMessageId;
+    return typeof val.originalMessageId === 'number';
 }
 
 export function createProxy(protocol: IMessageProtocol, handler: IServerProxy, isClient: boolean): IWebviewProxy;

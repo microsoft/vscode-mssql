@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 
 import { ISlickRange } from 'angular2-slickgrid';
 
-import { ResultSetSubset, ISelectionData, QueryEvent } from './../interfaces';
+import { ISelectionData, QueryEvent, ResultSetSubset } from './../interfaces';
 
 import * as Constants from './../constants';
 
