@@ -111,6 +111,7 @@ export class SqlOutputContentProvider {
                             editorConfig.get<string>('fontFamily').split('\'').join('').split('"').join('');
         let fontsize = extensionFontSize ? extensionFontSize + 'px' : editorConfig.get<number>('fontSize') + 'px';
         let fontweight = editorConfig.get<string>('fontWeight');
+        let docTitle = LocalizedConstants.queryOutputDocumentTitle;
         res.render(path.join(LocalWebService.staticContentPath, Constants.msgContentProviderSqlOutputHtml),
             {
                 uri: uri,
@@ -120,7 +121,8 @@ export class SqlOutputContentProvider {
                 fontfamily: fontfamily,
                 fontsize: fontsize,
                 fontweight: fontweight,
-                prod: prod
+                prod: prod,
+                docTitle: docTitle
             }
         );
     }
@@ -488,6 +490,7 @@ export class SqlOutputContentProvider {
         return `
         <html>
         <head>
+            <title>${LocalizedConstants.queryOutputHostTitle}</title>
             <script type="text/javascript">
                 window.onload = function(event) {
                     console.log('reloaded results window at time ${timeNow}ms');
