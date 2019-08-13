@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
+
 import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
@@ -131,7 +132,8 @@ const template = `
     .batchMessage {
         padding-left: 20px;
     }
-    `]
+    `],
+    styleUrls: ['../htmlcontent/dist/css/color-theme-dark.css']
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {
