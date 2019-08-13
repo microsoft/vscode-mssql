@@ -71,6 +71,7 @@ class MessageProxy {
             });
         } else {
             this.protocol.onMessage(val => this.onReceive(val));
+            this.ready.resolve();
             this.protocol.sendMessage('ready');
         }
     }

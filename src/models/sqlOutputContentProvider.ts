@@ -47,7 +47,9 @@ export class SqlOutputContentProvider {
     }
 
     public rowRequestHandler(uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number): Promise<ResultSetSubset> {
-       return this._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, batchId, resultId).then(r => r.resultSubset);
+       return this._queryResultsMap.get(uri).queryRunner.getRows(rowStart, numberOfRows, batchId, resultId).then((r) => {
+           return r.resultSubset;
+        });
     }
 
     public configRequestHandler(uri: string): Promise<Interfaces.IResultsConfig> {

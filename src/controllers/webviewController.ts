@@ -13,7 +13,7 @@ function readFile(filePath: string): Promise<Buffer> {
 function createMessageProtocol(webview: vscode.Webview): IMessageProtocol {
     return {
         sendMessage: message => webview.postMessage(message),
-        onMessage: webview.onDidReceiveMessage
+        onMessage: message => webview.onDidReceiveMessage(message)
     };
 }
 
