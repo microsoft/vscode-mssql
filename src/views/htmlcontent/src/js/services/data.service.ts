@@ -16,7 +16,7 @@ import { Subject } from 'rxjs/Subject';
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void; };
 
-const vscode = acquireVsCodeApi();
+export const vscode = acquireVsCodeApi();
 
 function createMessageProtocol(): IMessageProtocol {
     return {
