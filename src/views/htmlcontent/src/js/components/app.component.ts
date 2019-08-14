@@ -132,14 +132,7 @@ const template = `
     .batchMessage {
         padding-left: 20px;
     }
-    `],
-    styleUrls: [
-        // '../htmlcontent/dist/css/color-theme-dark.css',
-        // '../htmlcontent/dist/css/color-theme-light.css'
-        // '../htmlcontent/dist/css/styles.min.css',
-        // '../htmlcontent/lib/css/slick.grid.css',
-        // '../htmlcontent/lib/css/SlickGrid.css'
-    ]
+    `]
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {

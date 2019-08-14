@@ -8,7 +8,6 @@ import {ISlickRange} from 'angular2-slickgrid';
 import {ShortcutService} from './../services/shortcuts.service';
 
 import * as Constants from './../constants';
-import * as Utils from './../utils';
 /**
  * The component that acts as the contextMenu for slick grid
  */
@@ -37,8 +36,6 @@ const template = `
 })
 
 export class ContextMenu implements OnInit {
-    // tslint:disable-next-line:no-unused-variable
-    private Utils = Utils;
     // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
 
