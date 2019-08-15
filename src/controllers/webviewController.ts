@@ -10,6 +10,7 @@ import { readFile as fsreadFile } from 'fs';
 import { promisify } from 'util';
 import * as ejs from 'ejs';
 import * as path from 'path';
+import { Disposable } from 'vscode-jsonrpc';
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);
@@ -22,21 +23,22 @@ function createMessageProtocol(webview: vscode.Webview): IMessageProtocol {
     };
 }
 
-export class WebviewPanelController {
+export class WebviewPanelController implements Disposable {
     public readonly proxy: IWebviewProxy;
     private _panel: vscode.WebviewPanel;
+    private _disposables: Disposable[] = [];
+    private _isDisposed: boolean;
 
     constructor(uri: string, title: string, serverProxy: IServerProxy, private baseUri: string) {
         const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
         const column = newResultPaneViewColumn(uri);
-        this._panel = vscode.window.createWebviewPanel(uri, title, column, {
+        this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title, column, {
             retainContextWhenHidden,
             enableScripts: true
-        });
-        this._panel.onDidChangeViewState((e) => {
-            console.log(e);
-        });
+        }));
+        this._disposables.push(this._panel.onDidChangeViewState((e) => console.log(e)));
+        this._disposables.push(this._panel.onDidDispose(() => this.dispose()));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
     }
 
@@ -49,8 +51,13 @@ export class WebviewPanelController {
         this._panel.webview.html = formattedHTML;
     }
 
-    public reset(): void {
-        // this.proxy.reset();
+    public dispose(): void {
+        this._disposables.forEach(d => d.dispose());
+        this._isDisposed = true;
+    }
+
+    public get isDisposed(): boolean {
+        return this._isDisposed;
     }
 }
 

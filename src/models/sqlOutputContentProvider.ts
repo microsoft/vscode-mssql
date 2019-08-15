@@ -135,9 +135,14 @@ export class SqlOutputContentProvider {
     private runQueryCallback(
             statusView: any, uri: string, title: string,
             queryCallback: any): void {
-        // Always run this command even if just updating to avoid a bug - tfs 8686842
         if (this._panels.has(uri)) {
-            this._panels.get(uri).reset();
+            let panelController = this._panels.get(uri);
+            if (panelController.isDisposed) {
+                this._panels.set(uri, undefined);
+                this.createWebviewController(uri, title);
+            } else {
+                panelController.init();
+            }
         } else {
             this.createWebviewController(uri, title);
         }
