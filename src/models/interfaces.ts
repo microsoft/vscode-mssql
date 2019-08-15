@@ -294,3 +294,13 @@ export interface ILogger {
     append(message?: string): void;
     appendLine(message?: string): void;
 }
+
+export class DbCellValue {
+    displayValue: string;
+    isNull: boolean;
+}
+
+export class ResultSetSubset {
+    rowCount: number;
+    rows: DbCellValue[][];
+}

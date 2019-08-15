@@ -1,4 +1,4 @@
-import { IWebviewProxy, IServerProxy, createProxy, IMessageProtocol } from './protocol';
+import { IWebviewProxy, IServerProxy, createProxy, IMessageProtocol } from '../protocol';
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
 import { readFile as fsreadFile } from 'fs';

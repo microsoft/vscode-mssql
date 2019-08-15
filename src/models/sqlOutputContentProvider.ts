@@ -10,7 +10,7 @@ import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
-import { IServerProxy } from '../controllers/protocol';
+import { IServerProxy } from '../protocol';
 import { ResultSetSubset } from './contracts/queryExecute';
 const pd = require('pretty-data').pd;
 

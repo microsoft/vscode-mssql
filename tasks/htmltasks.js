@@ -32,6 +32,18 @@ gulp.task('html:lint', () => {
     .pipe(gulpTsLint.report())
 });
 
+// Compile protocol for server and client communication
+gulp.task('html:compile-protocol', () => {
+    return gulp
+        .src([config.paths.project.root + '/src/protocol.ts'])
+        .pipe(srcmap.init())
+        .pipe(tsProject())
+        .pipe(srcmap.write('.', {
+            sourceRoot: function(file){ return file.cwd + '/src/'; }
+        }))
+        .pipe(gulp.dest(config.paths.project.out + '/src/'));
+});
+
 // Compile TypeScript to JS
 gulp.task('html:compile-src', () => {
   return gulp
@@ -230,7 +242,7 @@ gulp.task('html:test', function (done) {
   }, done).start();
 });
 
-gulp.task('html:compile', gulp.series('html:compile-src', 'html:compile-test'));
+gulp.task('html:compile', gulp.series('html:compile-src', 'html:compile-protocol', 'html:compile-test'));
 
 gulp.task('html:app', gulp.series(['html:compile', 'html:copy:assets', 'html:bundle:app', 'html:min-js', 'html:bundle:css']));
 

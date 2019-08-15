@@ -11,7 +11,7 @@ import { ISelectionData, QueryEvent, ResultSetSubset } from './../interfaces';
 
 import * as Constants from './../constants';
 
-import { createProxy, IMessageProtocol, IServerProxy } from './../protocol';
+import { createProxy, IMessageProtocol, IServerProxy } from '../../../../../protocol.js';
 import { Subject } from 'rxjs/Subject';
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void; };

@@ -1,6 +1,5 @@
 import { Event } from 'vscode';
-import { ResultSetSubset } from '../models/contracts/queryExecute';
-import { ISlickRange, IResultsConfig, ISelectionData } from '../models/interfaces';
+import { ISlickRange, IResultsConfig, ISelectionData, ResultSetSubset } from './models/interfaces';
 
 export interface IWebviewProxy {
     sendEvent(type: string, arg: any): void;
@@ -62,8 +61,8 @@ class MessageProxy {
         const self = this;
         if (!isClient) {
             const first = self.protocol.onMessage(message => {
+                // first message
                 if (message === 'ready') {
-                    // first message
                     // sanity check
                     self.protocol.onMessage(val => self.onReceive(val));
                     first.dispose();
@@ -72,6 +71,7 @@ class MessageProxy {
             });
         } else {
             this.protocol.onMessage(val => this.onReceive(val));
+            this.ready.resolve();
             this.protocol.sendMessage('ready');
         }
     }
