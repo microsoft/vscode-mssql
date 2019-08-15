@@ -29,6 +29,9 @@ export class WebviewPanelController {
             retainContextWhenHidden,
             enableScripts: true
         });
+        this._panel.onDidChangeViewState((e) => {
+            console.log(e);
+        });
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
     }
 
