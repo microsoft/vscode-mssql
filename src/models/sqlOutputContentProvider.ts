@@ -190,16 +190,8 @@ export class SqlOutputContentProvider {
                 this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
             });
             queryRunner.eventEmitter.on('batchStart', (batch) => {
-                // Build a link for the selection and send it in a message
-                // let encodedUri = encodeURIComponent(uri);
-                // let link = LocalWebService.getEndpointUri(Interfaces.ContentType.EditorSelection) + `?uri=${encodedUri}`;
-                if (batch.selection) {
-                    // link += `&startLine=${batch.selection.startLine}` +
-                    //         `&startColumn=${batch.selection.startColumn}` +
-                    //         `&endLine=${batch.selection.endLine}` +
-                    //         `&endColumn=${batch.selection.endColumn}`;
-                }
-
+                // Build a message for the selection and send the message
+                // from the webview
                 let message = {
                     message: LocalizedConstants.runQueryBatchStartMessage,
                     batchId: undefined,
@@ -207,7 +199,6 @@ export class SqlOutputContentProvider {
                     time: new Date().toLocaleTimeString(),
                     link: {
                         text: Utils.formatString(LocalizedConstants.runQueryBatchStartLine, batch.selection.startLine + 1)
-                        // uri: link
                     }
                 };
                 this._panels.get(uri).proxy.sendEvent('message', message);

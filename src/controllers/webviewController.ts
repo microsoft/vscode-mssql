@@ -33,21 +33,16 @@ export class WebviewPanelController {
     }
 
     public async init(): Promise<void> {
-        await WebviewPanelController.refresh(this._panel, this.baseUri);
+        const sqlOutputPath = path.resolve(path.resolve(path.dirname(__dirname)), '../../src/controllers');
+        const fileContent = await readFile(path.join(sqlOutputPath, 'sqlOutput.ejs'));
+        const htmlViewPath = ['out', 'src', 'views', 'htmlcontent'];
+        const baseUri = `${vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
+        const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
+        this._panel.webview.html = formattedHTML;
     }
 
     public reset(): void {
         // this.proxy.reset();
-    }
-
-    /** Static function to refresh webview from webview */
-    public static async refresh(panel: vscode.WebviewPanel, baseUri: string): Promise<void> {
-        const sqlOutputPath = path.resolve(path.resolve(path.dirname(__dirname)), '../../src/controllers');
-        const fileContent = await readFile(path.join(sqlOutputPath, 'sqlOutput.ejs'));
-        const htmlViewPath = ['out', 'src', 'views', 'htmlcontent'];
-        baseUri = `${vscode.Uri.file(path.join(baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
-        const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
-        panel.webview.html = formattedHTML;
     }
 }
 
