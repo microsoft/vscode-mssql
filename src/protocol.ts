@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from 'vscode';
+import { Event, Disposable } from 'vscode';
 import { ISlickRange, IResultsConfig, ISelectionData, ResultSetSubset } from './models/interfaces';
 
 export interface IWebviewProxy {
@@ -55,12 +55,14 @@ interface IRequest {
     passArguments: any[];
 }
 
-class MessageProxy {
+class MessageProxy implements Disposable {
     private ready = new Deferred();
 
     private messageid = 0;
 
     private responseMap = new Map<number, Deferred<any>>();
+
+    private disposables: Disposable[] = [];
 
     constructor(private protocol: IMessageProtocol, private handler: any, isClient: boolean = false) {
         const self = this;
@@ -69,13 +71,13 @@ class MessageProxy {
                 // first message
                 if (message === 'ready') {
                     // sanity check
-                    self.protocol.onMessage(val => self.onReceive(val));
+                    this.disposables.push(self.protocol.onMessage(val => self.onReceive(val)));
                     first.dispose();
                     self.ready.resolve();
                 }
             });
         } else {
-            this.protocol.onMessage(val => this.onReceive(val));
+            this.disposables.push(this.protocol.onMessage(val => this.onReceive(val)));
             this.ready.resolve();
             this.protocol.sendMessage('ready');
         }
@@ -112,6 +114,10 @@ class MessageProxy {
             });
         }
     }
+
+    public dispose(): void {
+        this.disposables.forEach((d) => d.dispose());
+    }
 }
 
 function isResponseMessage(val: any): val is IResponse {
@@ -130,6 +136,9 @@ export function createProxy(protocol: IMessageProtocol, handler: any, isClient: 
                 };
             }
             return target[name];
+        },
+        dispose: () => {
+            messageProxy.dispose();
         }
     };
     // tslint:disable-next-line: no-null-keyword

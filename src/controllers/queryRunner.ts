@@ -139,6 +139,11 @@ export default class QueryRunner {
             });
     }
 
+    // Refreshes the webview panel with the query results when tabs are changed
+    public refreshQueryTab(): void {
+        this.eventEmitter.emit('refreshTab', undefined);
+    }
+
     // Pulls the query text from the current document/selection and initiates the query
     private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
         const self = this;

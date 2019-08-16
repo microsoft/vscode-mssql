@@ -137,23 +137,20 @@ const template = `
 
 export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
-    // tslint:disable-next-line:no-unused-variable
     private scrollTimeOutTime = 200;
     private windowSize = 50;
-    // tslint:disable-next-line:no-unused-variable
     private maxScrollGrids = 8;
     // tslint:disable-next-line:no-unused-variable
     private selectionModel = 'DragRowSelectionModel';
     // tslint:disable-next-line:no-unused-variable
     private slickgridPlugins = ['AutoColumnSize'];
-    // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
-    // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
     // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
     // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
+
     // the function implementations of keyboard available events
     private shortcutfunc = {
         'event.toggleResultPane': () => {
@@ -203,7 +200,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.sendSaveRequest('excel');
         }
     };
-    // tslint:disable-next-line:no-unused-variable
+
     private dataIcons: IGridIcon[] = [
         {
             showCondition: () => { return this.dataSets.length > 1; },
@@ -281,15 +278,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resizing = false;
     private resizeHandleTop = 0;
     private scrollEnabled = true;
-    // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private _messageActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private firstRender = true;
     // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
-    // tslint:disable-next-line:no-unused-variable
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;
@@ -367,7 +360,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
 
-                    // Store the result set from the event
+                    // Store the result set from the event);
                     let dataSet: IGridDataSet = {
                         resized: undefined,
                         batchId: resultSet.batchId,
@@ -404,6 +397,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     undefinedDataSet.resized = new EventEmitter();
                     self.placeHolderDataSets.push(undefinedDataSet);
                     self.messagesAdded = true;
+                    self.onScroll(0);
+                    break;
+                case 'refreshTab':
                     self.onScroll(0);
                     break;
                 default:

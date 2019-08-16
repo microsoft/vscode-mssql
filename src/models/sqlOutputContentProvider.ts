@@ -42,7 +42,6 @@ export class SqlOutputContentProvider {
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
-    private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
     private _vscodeWrapper: VscodeWrapper;
     private _panels = new Map<string, WebviewPanelController>();
 
@@ -90,16 +89,6 @@ export class SqlOutputContentProvider {
         this._vscodeWrapper.showWarningMessage(message);
     }
 
-    // PROPERTIES //////////////////////////////////////////////////////////
-
-    public get onDidChange(): vscode.Event<vscode.Uri> {
-        return this._onDidChange.event;
-    }
-
-    public update(uri: vscode.Uri): void {
-        this._onDidChange.fire(uri);
-    }
-
     // PUBLIC METHODS //////////////////////////////////////////////////////
 
     public isRunningQuery(uri: string): boolean {
@@ -112,7 +101,7 @@ export class SqlOutputContentProvider {
             statusView: any, uri: string,
             selection: ISelectionData, title: string): void {
         // execute the query with a query runner
-        this.runQueryCallback(statusView, uri, title,
+        this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
             (queryRunner) => {
                 if (queryRunner) {
                     queryRunner.runQuery(selection);
@@ -124,7 +113,7 @@ export class SqlOutputContentProvider {
             statusView: any, uri: string,
             selection: ISelectionData, title: string): void {
         // execute the statement with a query runner
-        this.runQueryCallback(statusView, uri, title,
+        this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
             (queryRunner) => {
                 if (queryRunner) {
                     queryRunner.runStatement(selection.startLine, selection.startColumn);
@@ -135,24 +124,22 @@ export class SqlOutputContentProvider {
     private runQueryCallback(
             statusView: any, uri: string, title: string,
             queryCallback: any): void {
+        let queryRunner = this.createQueryRunner(statusView ? statusView : this._statusView, uri, title);
         if (this._panels.has(uri)) {
             let panelController = this._panels.get(uri);
             if (panelController.isDisposed) {
-                this._panels.set(uri, undefined);
-                this.createWebviewController(uri, title);
-            } else {
-                panelController.init();
+                this._panels.delete(uri);
+                this.createWebviewController(uri, title, queryRunner);
             }
         } else {
-            this.createWebviewController(uri, title);
+            this.createWebviewController(uri, title, queryRunner);
         }
-        let queryRunner = this.createQueryRunner(statusView, uri, title);
         if (queryRunner) {
             queryCallback(queryRunner);
         }
     }
 
-    private createWebviewController(uri: string, title: string): void {
+    private createWebviewController(uri: string, title: string, queryRunner: QueryRunner): void {
         const proxy: IServerProxy = {
             getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) =>
                 this.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows),
@@ -168,7 +155,7 @@ export class SqlOutputContentProvider {
             showError: (message: string) => this.showErrorRequestHandler(message),
             showWarning: (message: string) => this.showWarningRequestHandler(message)
         };
-        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath);
+        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath, queryRunner);
         controller.init();
         this._panels.set(uri, controller);
     }
@@ -191,11 +178,11 @@ export class SqlOutputContentProvider {
             queryRunner.resetHasCompleted();
 
             // update the open pane assuming its open (if its not its a bug covered by the previewhtml command later)
-            this.update(vscode.Uri.parse(uri));
+
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView);
+            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
             queryRunner.eventEmitter.on('resultSet', (resultSet) => {
                 this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
             });
@@ -218,6 +205,9 @@ export class SqlOutputContentProvider {
             });
             queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
                 this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
+            });
+            queryRunner.eventEmitter.on('refreshTab', (message) => {
+                this._panels.get(uri).proxy.sendEvent('refreshTab', message);
             });
             this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
         }

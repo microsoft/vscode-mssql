@@ -10,7 +10,7 @@ import { readFile as fsreadFile } from 'fs';
 import { promisify } from 'util';
 import * as ejs from 'ejs';
 import * as path from 'path';
-import { Disposable } from 'vscode-jsonrpc';
+import QueryRunner from './queryRunner';
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);
@@ -23,13 +23,20 @@ function createMessageProtocol(webview: vscode.Webview): IMessageProtocol {
     };
 }
 
-export class WebviewPanelController implements Disposable {
+export class WebviewPanelController implements vscode.Disposable {
     public readonly proxy: IWebviewProxy;
     private _panel: vscode.WebviewPanel;
-    private _disposables: Disposable[] = [];
+    private _disposables: any[] = [];
     private _isDisposed: boolean;
+    private _cachedContent: string;
 
-    constructor(uri: string, title: string, serverProxy: IServerProxy, private baseUri: string) {
+    constructor(
+        uri: string,
+        title: string,
+        serverProxy: IServerProxy,
+        private baseUri: string,
+        private queryRunner: QueryRunner
+    ) {
         const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
         const column = newResultPaneViewColumn(uri);
@@ -37,9 +44,25 @@ export class WebviewPanelController implements Disposable {
             retainContextWhenHidden,
             enableScripts: true
         }));
-        this._disposables.push(this._panel.onDidChangeViewState((e) => console.log(e)));
-        this._disposables.push(this._panel.onDidDispose(() => this.dispose()));
+        this._disposables.push(this._panel.onDidDispose(() => {
+            this.dispose();
+        }));
+        this._disposables.push(this._panel.onDidChangeViewState((p) => {
+            // if the webview tab changed, cache state
+            if (!p.webviewPanel.visible && !p.webviewPanel.active) {
+                this._cachedContent = p.webviewPanel.webview.html;
+
+            } else if (p.webviewPanel.visible && p.webviewPanel.active) {
+                if (!this.queryRunner.isExecutingQuery) {
+                    this.queryRunner.refreshQueryTab();
+                }
+            }
+        }));
+        this._disposables.push(vscode.workspace.onDidChangeConfiguration(async (change) => {
+            await this.init();
+        }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
+        this._disposables.push(this.proxy);
     }
 
     public async init(): Promise<void> {
@@ -47,7 +70,8 @@ export class WebviewPanelController implements Disposable {
         const fileContent = await readFile(path.join(sqlOutputPath, 'sqlOutput.ejs'));
         const htmlViewPath = ['out', 'src', 'views', 'htmlcontent'];
         const baseUri = `${vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
-        const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
+        const theme = vscode.workspace.getConfiguration('workbench').get('colorTheme');
+        const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false, theme: theme });
         this._panel.webview.html = formattedHTML;
     }
 

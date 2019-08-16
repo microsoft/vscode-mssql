@@ -2,13 +2,20 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' vscode-resource: https:; script-src vscode-resource: 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src vscode-resource: 'self' 'unsafe-inline';"/>
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' vscode-resource: https:;
+              script-src vscode-resource: 'self' 'unsafe-inline' 'unsafe-eval' https:;
+              style-src vscode-resource: 'self' 'unsafe-inline';
+              img-src 'self' vscode-resource: data:"/>
     <base href="<%=basehref%>">
     <link rel="stylesheet" type="text/css" href="lib/css/slick.grid.css"/>
     <link rel="stylesheet" type="text/css" href="lib/css/SlickGrid.css"/>
     <link rel="stylesheet" type="text/css" href="dist/css/styles.min.css"/>
-    <link rel="stylesheet" type="text/css" href="dist/css/color-theme-light.css"/>
-    <link rel="stylesheet" type="text/css" href="dist/css/color-theme-dark.css"/>
+    <%if (theme === 'Default Dark+') { %>
+      <link rel="stylesheet" type="text/css" href="dist/css/color-theme-dark.css"/>
+    <%} else { %>
+      <link rel="stylesheet" type="text/css" href="dist/css/color-theme-light.css"/>
+    <% } %>
   </head>
   <!-- 3. Display the application -->
   <body>
