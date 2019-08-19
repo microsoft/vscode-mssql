@@ -97,11 +97,11 @@ export class SqlOutputContentProvider {
             : this._queryResultsMap.get(uri).queryRunner.isExecutingQuery;
     }
 
-    public runQuery(
+    public async runQuery(
             statusView: any, uri: string,
-            selection: ISelectionData, title: string): void {
+            selection: ISelectionData, title: string): Promise<void> {
         // execute the query with a query runner
-        this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
+        await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
             (queryRunner) => {
                 if (queryRunner) {
                     queryRunner.runQuery(selection);
@@ -109,11 +109,11 @@ export class SqlOutputContentProvider {
             });
     }
 
-    public runCurrentStatement(
+    public async runCurrentStatement(
             statusView: any, uri: string,
-            selection: ISelectionData, title: string): void {
+            selection: ISelectionData, title: string): Promise<void> {
         // execute the statement with a query runner
-        this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
+        await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
             (queryRunner) => {
                 if (queryRunner) {
                     queryRunner.runStatement(selection.startLine, selection.startColumn);
@@ -121,25 +121,27 @@ export class SqlOutputContentProvider {
             });
     }
 
-    private runQueryCallback(
+    private async runQueryCallback(
             statusView: any, uri: string, title: string,
-            queryCallback: any): void {
+            queryCallback: any): Promise<void> {
         let queryRunner = this.createQueryRunner(statusView ? statusView : this._statusView, uri, title);
         if (this._panels.has(uri)) {
             let panelController = this._panels.get(uri);
             if (panelController.isDisposed) {
                 this._panels.delete(uri);
-                this.createWebviewController(uri, title, queryRunner);
+                await this.createWebviewController(uri, title, queryRunner);
+            } else {
+                return queryCallback(queryRunner);
             }
         } else {
-            this.createWebviewController(uri, title, queryRunner);
+            await this.createWebviewController(uri, title, queryRunner);
         }
         if (queryRunner) {
             queryCallback(queryRunner);
         }
     }
 
-    private createWebviewController(uri: string, title: string, queryRunner: QueryRunner): void {
+    private async createWebviewController(uri: string, title: string, queryRunner: QueryRunner): Promise<void> {
         const proxy: IServerProxy = {
             getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) =>
                 this.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows),
@@ -156,7 +158,7 @@ export class SqlOutputContentProvider {
             showWarning: (message: string) => this.showWarningRequestHandler(message)
         };
         const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath, queryRunner);
-        controller.init();
+        await controller.init();
         this._panels.set(uri, controller);
     }
 
@@ -205,9 +207,6 @@ export class SqlOutputContentProvider {
             });
             queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
                 this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
-            });
-            queryRunner.eventEmitter.on('refreshTab', (message) => {
-                this._panels.get(uri).proxy.sendEvent('refreshTab', message);
             });
             this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
         }

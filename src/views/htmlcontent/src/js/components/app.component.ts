@@ -29,7 +29,7 @@ enableProdMode();
 // text selection helper library
 declare let rangy;
 
-interface IGridDataSet {
+export interface IGridDataSet {
     dataRows: IObservableCollection<IGridDataRow>;
     columnDefinitions: IColumnDefinition[];
     resized: EventEmitter<any>;
@@ -309,7 +309,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
 
     /**
-     * Called by Angular when the object is initialized
+     * Called by Angular when the component is initialized
      */
     ngOnInit(): void {
         const self = this;

@@ -2,17 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-
-import { Injectable } from '@angular/core';
-
-import { ISlickRange } from 'angular2-slickgrid';
-
-import { ISelectionData, QueryEvent, ResultSetSubset } from './../interfaces';
-
-import * as Constants from './../constants';
-
-import { createProxy, IMessageProtocol, IServerProxy } from '../../../../../protocol.js';
 import { Subject } from 'rxjs/Subject';
+import { Injectable } from '@angular/core';
+import { ISlickRange } from 'angular2-slickgrid';
+import { ISelectionData, QueryEvent, ResultSetSubset } from './../interfaces';
+import * as Constants from './../constants';
+import { createProxy, IMessageProtocol, IServerProxy } from '../../../../../protocol.js';
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void; };
 

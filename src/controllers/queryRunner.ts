@@ -139,11 +139,6 @@ export default class QueryRunner {
             });
     }
 
-    // Refreshes the webview panel with the query results when tabs are changed
-    public refreshQueryTab(): void {
-        this.eventEmitter.emit('refreshTab', undefined);
-    }
-
     // Pulls the query text from the current document/selection and initiates the query
     private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
         const self = this;
@@ -220,6 +215,29 @@ export default class QueryRunner {
             this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
         }
         this.eventEmitter.emit('batchComplete', batch);
+    }
+
+    // Refreshes the webview panel with the query results when tabs are changed
+    public async refreshQueryTab(): Promise<boolean> {
+        for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
+            const batchSet = this.batchSets[batchId];
+            this.eventEmitter.emit('batchStart', batchSet);
+            let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
+            this._totalElapsedMilliseconds += executionTime;
+            if (executionTime > 0) {
+                // send a time message in the format used for query complete
+                this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));
+            }
+            this.eventEmitter.emit('batchComplete', batchSet);
+            for (let resultSetId = 0; resultSetId < batchSet.resultSetSummaries.length; resultSetId++) {
+                let resultSet = batchSet.resultSetSummaries[resultSetId];
+                this.eventEmitter.emit('resultSet', resultSet, true);
+            }
+        }
+        // We're done with this query so shut down any waiting mechanisms
+        this._statusView.executedQuery(this.uri);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true);
+        return Promise.resolve(true);
     }
 
     public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
@@ -377,7 +395,7 @@ export default class QueryRunner {
         return outputString;
     }
 
-    private sendBatchTimeMessage(batchId: number, executionTime: string): void {
+    private sendBatchTimeMessage(batchId: number, executionTime: string, isRefresh?: boolean): void {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
         let showBatchTime: boolean = config[Constants.configShowBatchTime];
@@ -389,7 +407,7 @@ export default class QueryRunner {
                 isError: false
             };
             // Send the message to the results pane
-            this.eventEmitter.emit('message', message);
+            this.eventEmitter.emit('message', message, isRefresh);
         }
     }
 

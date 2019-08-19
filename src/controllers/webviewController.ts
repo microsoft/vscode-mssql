@@ -28,7 +28,6 @@ export class WebviewPanelController implements vscode.Disposable {
     private _panel: vscode.WebviewPanel;
     private _disposables: any[] = [];
     private _isDisposed: boolean;
-    private _cachedContent: string;
 
     constructor(
         uri: string,
@@ -50,17 +49,22 @@ export class WebviewPanelController implements vscode.Disposable {
         this._disposables.push(this._panel.onDidChangeViewState((p) => {
             // if the webview tab changed, cache state
             if (!p.webviewPanel.visible && !p.webviewPanel.active) {
-                this._cachedContent = p.webviewPanel.webview.html;
+                return;
 
             } else if (p.webviewPanel.visible && p.webviewPanel.active) {
                 if (!this.queryRunner.isExecutingQuery) {
-                    this.queryRunner.refreshQueryTab();
+                    // for refresh
+                    // give a 2 sec delay because the the webview visible event is fired
+                    // before the angular component is actually built. Give time for the
+                    // angular component to show up
+                    setTimeout(async () => await this.queryRunner.refreshQueryTab(), 1700);
                 }
             }
         }));
-        this._disposables.push(vscode.workspace.onDidChangeConfiguration(async (change) => {
-            await this.init();
-        }));
+        // for theme change
+        // this._disposables.push(vscode.workspace.onDidChangeConfiguration(async (change) => {
+        //     await this.init();
+        // }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
         this._disposables.push(this.proxy);
     }
