@@ -31,9 +31,7 @@ const template = `
 })
 
 export class MessagesContextMenu implements OnInit {
-    // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
-    // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
 
     @Output() clickEvent: EventEmitter<{type: string, selectedRange: IRange }>

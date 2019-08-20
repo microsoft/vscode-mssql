@@ -620,11 +620,8 @@ suite('Per File Connection Tests', () => {
                             .returns(() => Promise.resolve(true));
 
         let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
-        let actualDbName = undefined;
         statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-        .callback((fileUri, creds: IConnectionCredentials) => {
-            actualDbName = creds.database;
-        });
+        .callback((fileUri, creds: IConnectionCredentials) => { return; });
 
         // And we store any DBs saved to recent connections
         let savedConnection: IConnectionCredentials = undefined;
