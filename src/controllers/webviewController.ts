@@ -27,7 +27,8 @@ export class WebviewPanelController implements vscode.Disposable {
     public readonly proxy: IWebviewProxy;
     private _panel: vscode.WebviewPanel;
     private _disposables: any[] = [];
-    private _isDisposed: boolean;
+    private _isDisposed: boolean = false;
+    private _isPanelFocused: boolean = true;
 
     constructor(
         uri: string,
@@ -49,9 +50,10 @@ export class WebviewPanelController implements vscode.Disposable {
         this._disposables.push(this._panel.onDidChangeViewState((p) => {
             // if the webview tab changed, cache state
             if (!p.webviewPanel.visible && !p.webviewPanel.active) {
+                this._isPanelFocused = false;
                 return;
 
-            } else if (p.webviewPanel.visible && p.webviewPanel.active) {
+            } else if (p.webviewPanel.visible && p.webviewPanel.active && !this._isPanelFocused) {
                 if (!this.queryRunner.isExecutingQuery) {
                     // for refresh
                     // give a 2 sec delay because the the webview visible event is fired
