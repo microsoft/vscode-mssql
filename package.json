@@ -89,7 +89,7 @@
     "tslint": "^5.16.0",
     "tslint-microsoft-contrib": "^5.2.0",
     "typemoq": "^1.7.0",
-    "typescript": "2.3.4",
+    "typescript": "3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vsce": "^1.58.0",
     "vscode": "^1.1.33",
@@ -119,7 +119,7 @@
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
     "vscode-extension-telemetry": "^0.1.1",
-    "vscode-languageclient": "3.5.1",
+    "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "ws": ">=3.3.1"
   },

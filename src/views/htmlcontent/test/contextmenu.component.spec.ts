@@ -35,13 +35,11 @@ describe('context Menu', () => {
 
     describe('initialization', () => {
         let fixture: ComponentFixture<ContextMenu>;
-        let comp: ContextMenu;
         let ele: HTMLElement;
 
         beforeEach(() => {
             fixture = TestBed.createComponent<ContextMenu>(ContextMenu);
             fixture.detectChanges();
-            comp = fixture.componentInstance;
             ele = fixture.nativeElement;
         });
 

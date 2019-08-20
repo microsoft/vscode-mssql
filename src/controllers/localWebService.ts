@@ -43,8 +43,8 @@ export default class LocalWebService {
         this.server.on('request', this.app);
 
         // Handle new connections to the web socket server
-        this.wss.on('connection', (ws) => {
-            let parse: any = querystring.parse(<string>url.parse(ws.upgradeReq.url).query);
+        this.wss.on('connection', (ws, req) => {
+            let parse: any = querystring.parse(<string>url.parse(req.url).query);
 
             // Attempt to find the mapping for the web socket server
             let mapping = self.wsMap.get(parse.uri);

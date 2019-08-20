@@ -3,7 +3,6 @@ import assert = require('assert');
 import { EventEmitter } from 'events';
 import QueryRunner from './../src/controllers/queryRunner';
 import { QueryNotificationHandler } from './../src/controllers/queryNotificationHandler';
-import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
 import * as Utils from './../src/models/utils';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import {
@@ -34,14 +33,12 @@ const standardSelection: ISelectionData = {startLine: 0, endLine: 0, startColumn
 // TESTS //////////////////////////////////////////////////////////////////////////////////////////
 suite('Query Runner tests', () => {
 
-    let testSqlOutputContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
     let testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>;
     let testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>;
     let testVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let testStatusView: TypeMoq.IMock<StatusView>;
 
     setup(() => {
-        testSqlOutputContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Loose, {extensionPath: ''});
         testSqlToolsServerClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Loose);
         testQueryNotificationHandler = TypeMoq.Mock.ofType(QueryNotificationHandler, TypeMoq.MockBehavior.Loose);
         testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
