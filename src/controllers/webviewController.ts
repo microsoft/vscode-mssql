@@ -63,10 +63,6 @@ export class WebviewPanelController implements vscode.Disposable {
                 }
             }
         }));
-        // for theme change
-        // this._disposables.push(vscode.workspace.onDidChangeConfiguration(async (change) => {
-        //     await this.init();
-        // }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
         this._disposables.push(this.proxy);
     }

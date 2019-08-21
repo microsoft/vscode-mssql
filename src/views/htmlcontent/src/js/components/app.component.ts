@@ -415,9 +415,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.messagesAdded = true;
                     self.onScroll(0);
                     break;
-                case 'refreshTab':
-                    self.onScroll(0);
-                    break;
                 default:
                     console.error('Unexpected web socket event type "' + event.type + '" sent');
                     break;
