@@ -185,6 +185,9 @@ export class SqlOutputContentProvider {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            queryRunner.eventEmitter.on('start', (panelUri) => {
+                this._panels.get(uri).proxy.sendEvent('start', panelUri);
+            });
             queryRunner.eventEmitter.on('resultSet', (resultSet) => {
                 this._panels.get(uri).proxy.sendEvent('resultSet', resultSet);
             });

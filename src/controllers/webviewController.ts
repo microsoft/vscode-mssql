@@ -44,9 +44,9 @@ export class WebviewPanelController implements vscode.Disposable {
             retainContextWhenHidden,
             enableScripts: true
         }));
-        this._disposables.push(this._panel.onDidDispose(() => {
+        this._panel.onDidDispose(() => {
             this.dispose();
-        }));
+        });
         this._disposables.push(this._panel.onDidChangeViewState((p) => {
             // if the webview tab changed, cache state
             if (!p.webviewPanel.visible && !p.webviewPanel.active) {

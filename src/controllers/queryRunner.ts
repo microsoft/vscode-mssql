@@ -152,7 +152,7 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
-            self.eventEmitter.emit('start');
+            self.eventEmitter.emit('start', self.uri);
             self._notificationHandler.registerRunner(self, self._ownerUri);
         };
         let onError = (error) => {
