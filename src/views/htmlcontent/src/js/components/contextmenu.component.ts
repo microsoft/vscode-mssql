@@ -14,7 +14,7 @@ import * as Constants from './../constants';
  */
 
 const template = `
-<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible">
+<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top.px]="position.y" [style.left.px]="position.x">
     <li id="savecsv" (click)="handleContextActionClick('savecsv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsCSV']}}</span></li>
     <li id="savejson" (click)="handleContextActionClick('savejson')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}
@@ -47,6 +47,7 @@ export class ContextMenu implements OnInit {
     private index: number;
     private selection: ISlickRange[];
     private isDisabled: boolean;
+    private position: {x: number, y: number} = {x: 0, y: 0};
     private visible: boolean = false;
     private keys = {
         'event.saveAsCSV': '',
@@ -56,7 +57,9 @@ export class ContextMenu implements OnInit {
         'event.copyWithHeaders': ''
     };
 
-    constructor(@Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService) {
+    constructor(
+        @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService
+    ) {
         const self = this;
         for (let key in this.keys) {
             if (this.keys.hasOwnProperty(key)) {
@@ -80,8 +83,7 @@ export class ContextMenu implements OnInit {
         this.index = index;
         this.selection = selection;
         this.isDisabled = (selection.length > 1);
-        jQuery('.contextMenu').get(0).style.top = `${y.toString()}px`;
-        jQuery('.contextMenu').get(0).style.left = `${x.toString()}px`;
+        this.position = { x: x, y: y};
         this.visible = true;
     }
 
