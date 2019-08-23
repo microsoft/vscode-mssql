@@ -15,7 +15,8 @@ import { MessagesContextMenu } from './messagescontextmenu.component';
 import {
     IGridIcon,
     IMessage,
-    IRange
+    IRange,
+    ISelectionData
 } from './../interfaces';
 
 import * as Constants from './../constants';
@@ -89,11 +90,11 @@ const template = `
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
+            <template ngFor let-message [ngForOf]="messages">
             <tbody>
-                <template ngFor let-message [ngForOf]="messages">
                     <tr class='messageRow'>
                         <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
-                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.link.uri)">{{message.link.text}}</a>
+                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.selection)">{{message.link.text}}</a>
                         </td>
                     </tr>
                 </template>
@@ -340,8 +341,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         self.complete = false;
                         self.messagesAdded = false;
                         self.hasRunQuery = false;
-                        break;
                     }
+                    break;
                 case 'complete':
                     self.totalElapsedTimeSpan = event.data;
                     self.complete = true;
@@ -706,8 +707,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Sends a get request to the provided uri without changing the active page
      * @param uri The URI to send a get request to
      */
-    sendGetRequest(uri: string): void {
-        throw new Error('Method not implemented');
+    sendGetRequest(selectionData: ISelectionData): void {
+        this.dataService.setEditorSelection(selectionData);
     }
 
     /**

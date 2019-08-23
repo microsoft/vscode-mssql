@@ -660,7 +660,8 @@ suite('Query Runner tests', () => {
             testVscodeWrapper.setup(x => x.showTextDocument(undefined, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
 
             // If I try to set a selection for the existing editor
-            queryRunner.setEditorSelection({ startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 }).then(() => {
+            let selection: ISelectionData = { startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 };
+            queryRunner.setEditorSelection(selection).then(() => {
                 try {
                     // Then showTextDocument gets called with the existing editor's column
                     testVscodeWrapper.verify(x => x.showTextDocument(undefined, queryColumn), TypeMoq.Times.once());

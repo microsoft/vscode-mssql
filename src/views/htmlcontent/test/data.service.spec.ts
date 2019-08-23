@@ -151,12 +151,12 @@ describe('data service', () => {
                 done();
             });
 
-            dataservice.editorSelection = {
-                startLine: 0,
-                startColumn: 0,
-                endLine: 6,
-                endColumn: 6
-            };
+            // dataservice.editorSelection = {
+            //     startLine: 0,
+            //     startColumn: 0,
+            //     endLine: 6,
+            //     endColumn: 6
+            // };
         });
     });
 

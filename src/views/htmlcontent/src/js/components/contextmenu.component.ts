@@ -2,10 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-
 import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from '@angular/core';
 import {ISlickRange} from 'angular2-slickgrid';
-
 import {ShortcutService} from './../services/shortcuts.service';
 
 import * as Constants from './../constants';

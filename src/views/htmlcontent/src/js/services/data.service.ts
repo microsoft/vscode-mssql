@@ -5,13 +5,13 @@
 import { Subject } from 'rxjs/Subject';
 import { Injectable } from '@angular/core';
 import { ISlickRange } from 'angular2-slickgrid';
-import { ISelectionData, QueryEvent, ResultSetSubset } from './../interfaces';
+import { QueryEvent, ResultSetSubset, ISelectionData } from './../interfaces';
 import * as Constants from './../constants';
 import { createProxy, IMessageProtocol, IServerProxy } from '../../../../../protocol.js';
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void; };
 
-export const vscode = acquireVsCodeApi();
+export const vscodeApi = acquireVsCodeApi();
 
 function createMessageProtocol(): IMessageProtocol {
     return {
@@ -25,7 +25,7 @@ function createMessageProtocol(): IMessageProtocol {
                 dispose: () => window.removeEventListener('message', windowListener)
             };
         },
-        sendMessage: message => vscode.postMessage(message)
+        sendMessage: message => vscodeApi.postMessage(message)
     };
 }
 
@@ -108,9 +108,9 @@ export class DataService {
 
     /**
      * Sends a request to set the selection in the VScode window
-     * @param selection The selection range in the VSCode window
+     * @param batchId The associated batch for the batch result
      */
-    set editorSelection(selection: ISelectionData) {
+    setEditorSelection(selection: ISelectionData): void {
         this._proxy.setEditorSelection(selection);
     }
 

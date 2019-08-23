@@ -364,9 +364,8 @@ export default class MainController implements vscode.Disposable {
             let uri = self._vscodeWrapper.activeTextEditorUri;
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
-
-            // Calculate the selection if we have a selection, otherwise we'll use null to indicate
-            // the entire document is the selection
+            // Calculate the selection if we have a selection, otherwise we'll treat null as
+            // the entire document's selection
             if (!editor.selection.isEmpty) {
                 let selection = editor.selection;
                 querySelection = {

@@ -46,6 +46,7 @@ export default class QueryRunner {
                 private _client?: SqlToolsServerClient,
                 private _notificationHandler?: QueryNotificationHandler,
                 private _vscodeWrapper?: VscodeWrapper) {
+
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
         }
@@ -415,21 +416,19 @@ export default class QueryRunner {
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
      */
-    public setEditorSelection(selection: ISelectionData): Thenable<void> {
+    public setEditorSelection(selection: ISelectionData): Promise<void> {
         const self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let column = vscode.ViewColumn.One;
-            let visibleEditors = self._vscodeWrapper.visibleEditors;
-            visibleEditors.forEach(editor => {
-                if (editor.document.uri.toString() === self.uri) {
-                    column = editor.viewColumn;
-                }
-            });
             self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                self._vscodeWrapper.showTextDocument(doc, column).then((editor) => {
-                    editor.selection = self._vscodeWrapper.selection(
-                                    self._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                    self._vscodeWrapper.position(selection.endLine, selection.endColumn));
+                self._vscodeWrapper.showTextDocument(doc, column).then(async (editor) => {
+                    let querySelection = new vscode.Selection(
+                        selection.startLine,
+                        selection.startColumn,
+                        selection.endLine,
+                        selection.endColumn);
+                    let activeEditor = vscode.window.activeTextEditor;
+                    activeEditor.selection = querySelection;
                     resolve();
                 });
             });

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event, Disposable } from 'vscode';
-import { ISlickRange, IResultsConfig, ISelectionData, ResultSetSubset } from './models/interfaces';
+import { ISlickRange, IResultsConfig, ResultSetSubset, ISelectionData } from './models/interfaces';
 
 export interface IWebviewProxy {
     sendEvent(type: string, arg: any): void;
@@ -16,7 +16,7 @@ export interface IServerProxy {
     openLink(content: string, columnName: string, linkType: string): void;
     copyResults(batchId: number, resultsId: number, selection: ISlickRange[], includeHeaders?: boolean): void;
     getConfig(): Promise<IResultsConfig>;
-    setEditorSelection(selection: ISelectionData): void;
+    setEditorSelection(selectionData: ISelectionData): void;
     showWarning(message: string): void;
     showError(message: string): void;
     getLocalizedTexts(): Promise<{ [key: string]: any }>;

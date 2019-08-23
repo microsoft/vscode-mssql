@@ -196,7 +196,7 @@ export class SqlOutputContentProvider {
                 // from the webview
                 let message = {
                     message: LocalizedConstants.runQueryBatchStartMessage,
-                    batchId: undefined,
+                    selection: batch.selection,
                     isError: false,
                     time: new Date().toLocaleTimeString(),
                     link: {
