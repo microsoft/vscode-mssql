@@ -49,7 +49,8 @@
     "onCommand:extension.newQuery",
     "onCommand:extension.rebuildIntelliSenseCache",
     "onCommand:extension.addObjectExplorer",
-    "onCommand:extension.objectExplorerNewQuery"
+    "onCommand:extension.objectExplorerNewQuery",
+    "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [

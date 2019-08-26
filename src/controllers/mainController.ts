@@ -10,7 +10,7 @@ import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import Utils = require('../models/utils');
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
-import { RebuildIntelliSenseNotification } from '../models/contracts/languageService';
+import { RebuildIntelliSenseNotification, CompletionExtensionParams, CompletionExtLoadRequest } from '../models/contracts/languageService';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -69,6 +69,16 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Helper method to setup command registrations with arguments
+     */
+    private registerCommandWithArgs(command: string): void {
+        const self = this;
+        this._context.subscriptions.push(vscode.commands.registerCommand(command, (args: any) => {
+            self._event.emit(command, args);
+        }));
+    }
+
+    /**
      * Disposes the controller
      */
     dispose(): void {
@@ -119,6 +129,8 @@ export default class MainController implements vscode.Disposable {
                 });
                 this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
+                this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
+                this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { self.onLoadCompletionExtension(params); });
 
                 // register the object explorer tree provider
                 this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
@@ -317,6 +329,13 @@ export default class MainController implements vscode.Disposable {
                 this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             }
         }
+    }
+
+    /**
+     * Send completion extension load request to language service
+     */
+    public onLoadCompletionExtension(params: CompletionExtensionParams): void {
+        SqlToolsServerClient.instance.sendRequest(CompletionExtLoadRequest.type, params);
     }
 
     /**

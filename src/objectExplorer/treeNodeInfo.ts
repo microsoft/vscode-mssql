@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
+import { ObjectExplorerUtils } from './objectExplorerUtils';
 
 export class TreeNodeInfo extends vscode.TreeItem {
 
@@ -34,6 +35,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._nodeType = nodeType;
         this._sessionId = sessionId;
         this._parentNode = parentNode;
+        this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
     }
 
     public static fromNodeInfo(nodeInfo: NodeInfo, sessionId: string, parentNode: TreeNodeInfo): TreeNodeInfo {
