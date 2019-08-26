@@ -19,7 +19,7 @@ import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
-import { ISelectionData } from './../models/interfaces';
+import { ISelectionData, IConnectionProfile } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
@@ -152,8 +152,12 @@ export default class MainController implements vscode.Disposable {
                     self.runAndLogErrors(self.onNewQuery(this._objectExplorerProvider.currentNode.sessionId), 'onNewQuery');
                 });
                 this.registerCommand(Constants.cmdRemoveObjectExplorerNode);
-                this._event.on(Constants.cmdRemoveObjectExplorerNode, () => {
-                    return this._objectExplorerProvider.removeObjectExplorerNode(this._objectExplorerProvider.currentNode);
+                this._event.on(Constants.cmdRemoveObjectExplorerNode, async () => {
+                    let connProfile = <IConnectionProfile>this._objectExplorerProvider.getConnectionCredentials(
+                        this._objectExplorerProvider.currentNode.sessionId);
+                    await this._connectionMgr.connectionStore.removeProfile(connProfile, false);
+                    await this._objectExplorerProvider.removeObjectExplorerNode(this._objectExplorerProvider.currentNode);
+                    return this._objectExplorerProvider.refresh(undefined);
                 });
                 this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
                 this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {

@@ -373,7 +373,7 @@ export class ConnectionStore {
     }
 
     // Load connections from user preferences
-    private loadAllConnections(): IConnectionCredentialsQuickPickItem[] {
+    public loadAllConnections(): IConnectionCredentialsQuickPickItem[] {
         let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
 
         // Read recently used items from a memento

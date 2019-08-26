@@ -38,8 +38,8 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
     }
 
-    public static fromNodeInfo(nodeInfo: NodeInfo, sessionId: string, parentNode: TreeNodeInfo): TreeNodeInfo {
-        const treeNodeInfo = new TreeNodeInfo(nodeInfo.label, nodeInfo.nodeType,
+    public static fromNodeInfo(nodeInfo: NodeInfo, sessionId: string, parentNode: TreeNodeInfo, label?: string): TreeNodeInfo {
+        const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, nodeInfo.nodeType,
             vscode.TreeItemCollapsibleState.Collapsed, nodeInfo.nodePath, nodeInfo.nodeStatus,
             nodeInfo.nodeType, sessionId, parentNode);
         return treeNodeInfo;

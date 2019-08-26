@@ -19,6 +19,7 @@ export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _currentNode: TreeNodeInfo;
     private _treeNodeToChildrenMap: Map<TreeNodeInfo, TreeNodeInfo[]>;
+    private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
 
@@ -29,6 +30,7 @@ export class ObjectExplorerService {
         this._treeNodeToChildrenMap = new Map<TreeNodeInfo, TreeNodeInfo[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
         this._sessionIdToConnectionCredentialsMap = new Map<string, ConnectionCredentials>();
+        this._nodePathToNodeLabelMap = new Map<string, string>();
         this._client.onNotification(CreateSessionCompleteNotification.type,
             this.handleSessionCreatedNotification());
         this._client.onNotification(ExpandCompleteNotification.type,
@@ -39,8 +41,10 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: SessionCreatedParameters) => {
             if (result.success) {
-                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, self.currentNode);
+                let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
+                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, self.currentNode, nodeLabel);
                 self._rootTreeNodeArray.push(self.currentNode);
+                self._objectExplorerProvider.objectExplorerExists = true;
                 return self._objectExplorerProvider.refresh(undefined);
             }
         };
@@ -54,7 +58,6 @@ export class ObjectExplorerService {
                 const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self.currentNode.sessionId, self.currentNode));
                 self._currentNode.collapsibleState = TreeItemCollapsibleState.Expanded;
                 self._treeNodeToChildrenMap.set(self.currentNode, children);
-                self._objectExplorerProvider.objectExplorerExists = true;
                 return self._objectExplorerProvider.refresh(self.currentNode);
             }
         };
@@ -83,6 +86,21 @@ export class ObjectExplorerService {
                 return [];
             }
         } else {
+            // retrieve saved connections first when opening object explorer
+            // for the first time
+            if (!this._objectExplorerProvider.objectExplorerExists) {
+                let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+                savedConnections.forEach(async (conn) => {
+                    let connectionCredentials = conn.connectionCreds;
+                    this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, conn.label);
+                    if (connectionCredentials) {
+                        const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
+                        const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
+                        this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
+                    }
+                });
+                return;
+            }
             if (this._rootTreeNodeArray.length === 0) {
                 this.createSession();
                 return [];
