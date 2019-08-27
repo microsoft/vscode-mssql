@@ -136,22 +136,14 @@ const template = `
 
 export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
-    // tslint:disable-next-line:no-unused-variable
     private scrollTimeOutTime = 200;
     private windowSize = 50;
-    // tslint:disable-next-line:no-unused-variable
     private maxScrollGrids = 8;
-    // tslint:disable-next-line:no-unused-variable
     private selectionModel = 'DragRowSelectionModel';
-    // tslint:disable-next-line:no-unused-variable
     private slickgridPlugins = ['AutoColumnSize'];
-    // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
-    // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
-    // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
-    // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
     // the function implementations of keyboard available events
     private shortcutfunc = {
@@ -263,7 +255,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
-    // tslint:disable-next-line:no-unused-variable
+
     private startString = new Date().toLocaleTimeString();
     private config;
 
@@ -280,15 +272,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resizing = false;
     private resizeHandleTop = 0;
     private scrollEnabled = true;
-    // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private _messageActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private firstRender = true;
-    // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
-    // tslint:disable-next-line:no-unused-variable
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;

@@ -83,9 +83,7 @@ export class ConnectionInfo {
 
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
-    private _context: vscode.ExtensionContext;
     private _statusView: StatusView;
-    private _prompter: IPrompter;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _objectExplorerSessions: { [sessionId: string]: ConnectionInfo };
 
@@ -96,9 +94,7 @@ export default class ConnectionManager {
                 private _vscodeWrapper?: VscodeWrapper,
                 private _connectionStore?: ConnectionStore,
                 private _connectionUI?: ConnectionUI) {
-        this._context = context;
         this._statusView = statusView;
-        this._prompter = prompter;
         this._connections = {};
         this._objectExplorerSessions = {};
 

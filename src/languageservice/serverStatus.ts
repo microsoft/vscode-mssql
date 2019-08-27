@@ -37,7 +37,6 @@ export class ServerInitializationResult {
 export class ServerStatusView implements IStatusView, vscode.Disposable  {
     private _numberOfSecondsBeforeHidingMessage = 5000;
     private _statusBarItem: vscode.StatusBarItem = undefined;
-    private _progressTimerId: NodeJS.Timer;
     private _onDidChangeActiveTextEditorEvent: vscode.Disposable;
     private _onDidCloseTextDocument: vscode.Disposable;
 
@@ -81,7 +80,7 @@ export class ServerStatusView implements IStatusView, vscode.Disposable  {
         let progressTicks = [ '|', '/', '-', '\\'];
 
 
-        this._progressTimerId = setInterval(() => {
+        setInterval(() => {
             index++;
             if (index > 3) {
                 index = 0;
