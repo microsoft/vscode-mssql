@@ -1,18 +1,19 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
+        "outDir": "./out/",
         "module": "commonjs",
         "target": "ES6",
-        "lib": [ "es6" ],
+        "lib": [ "es6", "dom" ],
         "sourceMap": true,
         "allowUnusedLabels": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "rootDir": ".",
-        "typeRoots":["./typings"]
+        "typeRoots": ["./node_modules/@types"]
+        // "allowJs": true
     },
     "exclude": [
-        "node_modules",
-        "src/views/htmlcontent"
+        "node_modules"
     ]
 }

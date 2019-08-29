@@ -1,5 +1,6 @@
 import * as Utils from './../src/js/utils';
 import { DbCellValue } from './../src/js/interfaces';
+import { describe, it, expect } from 'jasmine-core';
 
 describe('Utility Tests', () => {
     describe('IsNumber', () => {

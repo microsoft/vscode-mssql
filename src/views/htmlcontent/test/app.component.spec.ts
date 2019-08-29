@@ -9,7 +9,7 @@ import { DataService } from './../src/js/services/data.service';
 import { ShortcutService } from './../src/js/services/shortcuts.service';
 import { AppComponent } from './../src/js/components/app.component';
 import * as Constants from './../src/js/constants';
-
+import { describe, expect, it, beforeEach, spyOn } from 'jasmine-core';
 declare let rangy;
 
 // Mock Setup

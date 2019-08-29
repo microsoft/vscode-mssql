@@ -21,6 +21,7 @@ import {
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
+import * as $ from 'jquery';
 
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
@@ -273,7 +274,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // Datasets currently being rendered on the DOM
     private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
     private messages: IMessage[] = [];
-    private scrollTimeOut: number;
+    private scrollTimeOut: any;
     private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;

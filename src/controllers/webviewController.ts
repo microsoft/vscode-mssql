@@ -42,7 +42,11 @@ export class WebviewPanelController implements vscode.Disposable {
         const column = newResultPaneViewColumn(uri);
         this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title, column, {
             retainContextWhenHidden,
-            enableScripts: true
+            enableScripts: true,
+            localResourceRoots: [
+                // vscode.Uri.file(path.join(__dirname, '../../../node_modules')),
+                // vscode.Uri.file(path.join(__dirname, '../views/htmlcontent/src/css'))
+            ]
         }));
         this._panel.onDidDispose(() => {
             this.dispose();
@@ -70,7 +74,7 @@ export class WebviewPanelController implements vscode.Disposable {
     public async init(): Promise<void> {
         const sqlOutputPath = path.resolve(path.resolve(path.dirname(__dirname)), '../../src/controllers');
         const fileContent = await readFile(path.join(sqlOutputPath, 'sqlOutput.ejs'));
-        const htmlViewPath = ['out', 'src', 'views', 'htmlcontent'];
+        const htmlViewPath = ['out', 'src'];
         const baseUri = `${vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
         const theme = vscode.workspace.getConfiguration('workbench').get('colorTheme');
         const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false, theme: theme });

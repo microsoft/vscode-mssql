@@ -21,7 +21,6 @@ var path = require('path');
 var nls = require('vscode-nls-dev');
 var localization = require('./tasks/localizationtasks');
 
-require('./tasks/htmltasks')
 require('./tasks/packagetasks')
 
 gulp.task('ext:lint', () => {
@@ -40,11 +39,12 @@ gulp.task('ext:lint', () => {
     .pipe(gulpTsLint.report());
 });
 
+// Compile source
 gulp.task('ext:compile-src', (done) => {
     return gulp.src([
                 config.paths.project.root + '/src/**/*.ts',
                 config.paths.project.root + '/src/**/*.js',
-                config.paths.project.root + '/typings/**/*.ts',
+                '!' + config.paths.project.root + '/typings/**/*.ts',
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())
                 .pipe(tsProject())
@@ -62,6 +62,41 @@ gulp.task('ext:compile-src', (done) => {
                 .pipe(gulp.dest('out/src/'));
 });
 
+// Compile view source
+gulp.task('ext:compile-view', (done) => {
+    return gulp.src([
+        config.paths.project.root + '/src/views/htmlcontent/**/*.ts'])
+        .pipe(srcmap.init())
+        .pipe(tsProject())
+        .on('error', function() {
+            if (process.env.BUILDMACHINE) {
+                done('Extension Tests failed to build. See Above.');
+                process.exit(1);
+            }
+        })
+        .pipe(nls.rewriteLocalizeCalls())
+        .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
+        .pipe(srcmap.write('.', {
+            sourceRoot: function(file){ return file.cwd + '/src'; }
+        }))
+        .pipe(gulp.dest('out/src/views/htmlcontent'));
+});
+
+// Copy systemjs config
+gulp.task('ext:copy-systemjs-config', (done) => {
+    return gulp.src([
+        config.paths.project.root + '/src/views/htmlcontent/*.js'])
+        .pipe(gulp.dest('out/src/views/htmlcontent'));
+});
+
+// Copy css
+gulp.task('ext:copy-css', (done) => {
+    return gulp.src([
+            config.paths.project.root + '/src/views/htmlcontent/src/css/**/*'])
+        .pipe(gulp.dest('out/src/views/htmlcontent/src/css'));
+});
+
+// Compile tests
 gulp.task('ext:compile-tests', (done) => {
     return gulp.src([
                 config.paths.project.root + '/test/**/*.ts',
@@ -81,7 +116,7 @@ gulp.task('ext:compile-tests', (done) => {
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests'));
+gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:compile-view'));
 
 gulp.task('ext:copy-tests', () => {
     return gulp.src(config.paths.project.root + '/test/resources/**/*')
@@ -103,7 +138,7 @@ gulp.task('ext:copy-js', () => {
         .pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-css'));
 
 gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
@@ -126,7 +161,7 @@ gulp.task('ext:test', (done) => {
     });
 });
 
-gulp.task('test', gulp.series('html:test', 'ext:test'));
+// gulp.task('test', gulp.series('html:test', 'ext:test'));
 
 require('./tasks/covertasks');
 
@@ -134,10 +169,10 @@ gulp.task('clean', function (done) {
     return del('out', done);
 });
 
-gulp.task('build', gulp.series('clean', 'html:build', 'ext:build', 'ext:install-service'));
+gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
 gulp.task('install', function() {
-    return gulp.src(['./package.json', './src/views/htmlcontent/package.json'])
+    return gulp.src(['./package.json'])
                 .pipe(install());
 });
 
@@ -145,4 +180,4 @@ gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
 });
 
-gulp.task('lint', gulp.series('ext:lint', 'html:lint'));
+// gulp.task('lint', gulp.series('ext:lint', 'html:lint'));

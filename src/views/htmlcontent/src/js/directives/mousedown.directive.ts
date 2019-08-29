@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Directive, Output, EventEmitter, ElementRef, Inject, forwardRef } from '@angular/core';
-// import { Observable } from 'rxjs/Rx';
+import * as $ from 'jquery';
 
 @Directive({
   selector: '[mousedown]'
@@ -18,7 +18,7 @@ export class MouseDownDirective {
             $gridCanvas.on('mousedown', () => {
                 self.onMouseDown.emit();
             });
-            let mouseDownFuncs: any[] = $._data($gridCanvas[0], 'events')['mousedown'];
+            let mouseDownFuncs: any[] = $.data($gridCanvas[0], 'events')['mousedown'];
             // reverse the event array so that our event fires first.
             mouseDownFuncs.reverse();
         });

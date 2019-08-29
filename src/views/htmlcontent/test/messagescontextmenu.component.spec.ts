@@ -2,6 +2,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { MessagesContextMenu } from './../src/js/components/messagescontextmenu.component';
 import { ShortcutService } from './../src/js/services/shortcuts.service';
 import { IRange } from './../src/js/interfaces';
+import { describe, beforeEach, it, expect } from 'jasmine-core';
 
 class MockShortCutService {
     private keyToString = {

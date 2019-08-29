@@ -1,5 +1,5 @@
 'use strict';
-import * as getmac from 'getmac';
+import getmac = require('getmac');
 import * as crypto from 'crypto';
 import * as os from 'os';
 import vscode = require('vscode');
