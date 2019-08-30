@@ -9,9 +9,7 @@
         "allowUnusedLabels": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "rootDir": ".",
-        "typeRoots": ["./node_modules/@types"]
-        // "allowJs": true
+        "rootDir": "."
     },
     "exclude": [
         "node_modules"

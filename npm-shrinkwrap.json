@@ -9106,8 +9106,8 @@
       "dev": true
     },
     "slickgrid": {
-      "version": "github:anthonydresser/SlickGrid#bdf93b113385502f9402170261390dc9065f2715",
-      "from": "github:anthonydresser/SlickGrid#2.3.23-2",
+      "version": "github:anthonydresser/SlickGrid#c941811d833504dfaf40b29b69044a42595bfafb",
+      "from": "github:anthonydresser/SlickGrid#2.3.30",
       "requires": {
         "jquery": ">=1.8.0",
         "jquery-ui": ">=1.8.0"

@@ -20,6 +20,8 @@ var jeditor = require("gulp-json-editor");
 var path = require('path');
 var nls = require('vscode-nls-dev');
 var localization = require('./tasks/localizationtasks');
+var argv = require('yargs').argv;
+var min = (argv.min === undefined) ? false : true;
 
 require('./tasks/packagetasks')
 
@@ -92,8 +94,91 @@ gulp.task('ext:copy-systemjs-config', (done) => {
 // Copy css
 gulp.task('ext:copy-css', (done) => {
     return gulp.src([
-            config.paths.project.root + '/src/views/htmlcontent/src/css/**/*'])
+            config.paths.project.root + '/src/views/htmlcontent/src/css/*.css'])
         .pipe(gulp.dest('out/src/views/htmlcontent/src/css'));
+});
+
+// Copy images
+gulp.task('ext:copy-images', (done) => {
+    return gulp.src([
+            config.paths.project.root + '/src/views/htmlcontent/src/images/**/*'])
+        .pipe(gulp.dest('out/src/views/htmlcontent/src/images'));
+});
+
+// Copy and bundle dependencies into one file (vendor/vendors.js)
+// system.config.js can also bundled for convenience
+gulp.task('ext:bundle-dependencies', (done) => {
+    gulp.src([config.paths.project.root + '/node_modules/rxjs/**/*'])
+    .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/rxjs'));
+
+    gulp.src([config.paths.project.root + '/node_modules/angular-in-memory-web-api/**/*'])
+        .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/angular-in-memory-web-api'));
+
+    // concatenate non-angular2 libs, shims & systemjs-config
+    if (min) {
+        gulp.src([
+            config.paths.project.root + '/node_modules/slickgrid/lib/jquery-1.8.3.js',
+            config.paths.project.root + '/node_modules/slickgrid/lib/jquery.event.drag-2.2.js',
+            config.paths.project.root + '/node_modules/slickgrid/lib/jquery-ui-1.9.2.js',
+            config.paths.project.root + '/node_modules/underscore/underscore-min.js',
+            config.paths.project.root + '/node_modules/slickgrid/slick.core.js',
+            config.paths.project.root + '/node_modules/slickgrid/slick.grid.js',
+            config.paths.project.root + '/node_modules/slickgrid/slick.editors.js',
+            config.paths.project.root + '/node_modules/core-js/client/shim.min.js',
+            config.paths.project.root + '/node_modules/zone.js/dist/zone.js',
+            config.paths.project.root + '/node_modules/rangy/lib/rangy-core.js',
+            config.paths.project.root + '/node_modules/rangy/lib/rangy-textrange.js',
+            config.paths.project.root + '/node_modules/reflect-metadata/Reflect.js',
+            config.paths.project.root + '/node_modules/systemjs/dist/system.src.js',
+            config.paths.project.root + '/systemjs.config.js'
+        ])
+            .pipe(concat('vendors.min.js'))
+            .pipe(minifier({}, uglifyjs))
+            .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
+    } else {
+        gulp.src([
+            config.paths.project.root + '/node_modules/slickgrid/lib/jquery-1.8.3.js',
+            config.paths.project.root + '/node_modules/slickgrid/lib/jquery.event.drag-2.2.js',
+            config.paths.project.root + '/node_modules/slickgrid/lib/jquery-ui-1.9.2.js',
+            config.paths.project.root + '/node_modules/underscore/underscore-min.js',
+            config.paths.project.root + '/node_modules/slickgrid/slick.core.js',
+            config.paths.project.root + '/node_modules/slickgrid/slick.grid.js',
+            config.paths.project.root + '/node_modules/slickgrid/slick.editors.js',
+            config.paths.project.root + '/node_modules/core-js/client/shim.min.js',
+            config.paths.project.root + '/node_modules/rangy/lib/rangy-core.js',
+            config.paths.project.root  + '/node_modules/rangy/lib/rangy-textrange.js',
+            config.paths.project.root  + '/node_modules/reflect-metadata/Reflect.js',
+            config.paths.project.root  + '/node_modules/systemjs/dist/system.src.js',
+            config.paths.project.root  + '/src/views/htmlcontent/systemjs.config.extras.js',
+            config.paths.project.root  + '/src/views/htmlcontent/systemjs.config.js'
+        ])
+            .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
+
+        gulp.src([config.paths.project.root + '/node_modules/zone.js/**/*'])
+        .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/zone.js'));
+    }
+
+
+    // copy source maps
+    gulp.src([
+        // config.paths.html.root + '/node_modules/es6-shim/es6-shim.map',
+        config.paths.project.root  + '/node_modules/reflect-metadata/Reflect.js.map',
+        config.paths.project.root + '/node_modules/systemjs/dist/system-polyfills.js.map',
+        config.paths.project.root + '/node_modules/systemjs-plugin-json/json.js'
+    ]).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
+
+    gulp.src([
+        config.paths.project.root  + '/node_modules/angular2-slickgrid/out/css/SlickGrid.css',
+        config.paths.project.root + '/node_modules/slickgrid/slick.grid.css'
+    ]).pipe(gulp.dest('out/src/views/htmlcontent/src/css'));
+
+    gulp.src([
+        config.paths.project.root  + '/node_modules/angular2-slickgrid/out/index.js',
+        config.paths.project.root  + '/node_modules/angular2-slickgrid/out/**/*.js'
+    ], { base: config.paths.project.root + '/node_modules/angular2-slickgrid' }).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/angular2-slickgrid'));
+
+    return gulp.src([config.paths.project.root + '/node_modules/@angular/**/*'])
+        .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/@angular'));
 });
 
 // Compile tests
@@ -116,7 +201,7 @@ gulp.task('ext:compile-tests', (done) => {
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:compile-view'));
+gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests'));
 
 gulp.task('ext:copy-tests', () => {
     return gulp.src(config.paths.project.root + '/test/resources/**/*')
@@ -138,11 +223,11 @@ gulp.task('ext:copy-js', () => {
         .pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-css'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:bundle-dependencies', 'ext:copy-css', 'ext:copy-images'));
 
 gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:compile', 'ext:copy'));
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:copy', 'ext:compile', 'ext:compile-view'));
 
 gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];

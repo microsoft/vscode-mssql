@@ -140,7 +140,7 @@
     "request": "^2.73.0",
     "rxjs": "5.0.0-beta.12",
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
-    "slickgrid": "github:anthonydresser/SlickGrid#2.3.23-2",
+    "slickgrid": "github:anthonydresser/SlickGrid#2.3.30",
     "systemjs": "0.19.40",
     "systemjs-plugin-json": "^0.2.0",
     "tmp": "^0.0.28",

@@ -4,9 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
-import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
-    VirtualizedCollection, FieldType } from 'angular2-slickgrid';
-
+import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
+import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow } from '../interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
@@ -21,7 +20,6 @@ import {
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
-import * as $ from 'jquery';
 
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
@@ -77,7 +75,7 @@ const template = `
             </span>
         </div>
     </div>
-    <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
+    <!-- <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu> -->
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
     <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
@@ -102,7 +100,7 @@ const template = `
                 <tr id='executionSpinner' *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
                     <td>
-                        <img src="dist/images/progress_36x_animation.gif" height="18px" />
+                        <img src="views/htmlcontent/src/images/progress_36x_animation.gif" height="18px" />
                         <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span>
                     </td>
                 </tr>
@@ -693,13 +691,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 }
             }
 
-            if (this.firstRender) {
-                this.firstRender = false;
+            if (self.firstRender) {
+                self.firstRender = false;
                 setTimeout(() => {
-                    this.slickgrids.toArray()[0].setActive();
+                    self.slickgrids.toArray()[0].setActive();
                 });
             } else {
-                this.cd.detectChanges();
+                self.cd.detectChanges();
             }
         }, self.scrollTimeOutTime);
     }

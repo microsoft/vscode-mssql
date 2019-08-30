@@ -3,9 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from '@angular/core';
-import {ISlickRange} from 'angular2-slickgrid';
+import {ISlickRange} from '../interfaces';
 import {ShortcutService} from './../services/shortcuts.service';
-import * as $ from 'jquery';
 import * as Constants from './../constants';
 /**
  * The component that acts as the contextMenu for slick grid

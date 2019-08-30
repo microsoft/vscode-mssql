@@ -135,6 +135,28 @@ export interface ISlickRange {
     toRow: number;
 }
 
+export enum FieldType {
+    String = 0,
+    Boolean = 1,
+    Integer = 2,
+    Decimal = 3,
+    Date = 4,
+    Unknown = 5
+}
+
+export interface IColumnDefinition {
+    id?: string;
+    name: string;
+    type: FieldType;
+    asyncPostRender?: (cellRef: string, row: number, dataContext: JSON, colDef: any) => void;
+    formatter?: (row: number, cell: any, value: any, columnDef: any, dataContext: any) => string;
+}
+
+export interface IGridDataRow {
+    row?: number;
+    values: any[];
+}
+
 /**
  * Simplified interface for a Range object returned by the Rangy javascript plugin
  *

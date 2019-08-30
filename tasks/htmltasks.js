@@ -32,32 +32,6 @@ gulp.task('html:lint', () => {
     .pipe(gulpTsLint.report())
 });
 
-// Compile protocol for server and client communication
-gulp.task('html:compile-protocol', () => {
-    return gulp
-        .src([config.paths.project.root + '/src/protocol.ts'])
-        .pipe(srcmap.init())
-        .pipe(tsProject())
-        .pipe(srcmap.write('.', {
-            sourceRoot: function(file){ return file.cwd + '/src/'; }
-        }))
-        .pipe(gulp.dest(config.paths.project.out + '/src/'));
-});
-
-// Compile TypeScript to JS
-gulp.task('html:compile-src', () => {
-  return gulp
-    .src([config.paths.html.root + '/src/js/**/*.ts',
-    config.paths.html.root + '/typings/**/*.d.ts',
-    '!../../../../node_modules/@types/**/node_modules/**/index.d.ts'])
-    .pipe(srcmap.init())
-    .pipe(tsProject())
-    .pipe(srcmap.write('.', {
-        sourceRoot: function(file){ return file.cwd + '/src/views/htmlcontent'; }
-    }))
-    .pipe(gulp.dest(config.paths.html.out + '/dist/js'));
-});
-
 gulp.task('html:compile-test', () => {
   return gulp
     .src([config.paths.html.root + '/test/**/*.ts',
@@ -173,13 +147,13 @@ gulp.task('html:vendor', (done) => {
     ]).pipe(gulp.dest(config.paths.html.out + '/lib/js'));
 
     gulp.src([
-        config.paths.html.root + '/node_modules/angular2-slickgrid/components/css/SlickGrid.css',
+        config.paths.html.root + '/node_modules/angular2-slickgrid/out/css/SlickGrid.css',
         config.paths.html.root + '/node_modules/slickgrid/slick.grid.css'
     ]).pipe(gulp.dest(config.paths.html.out + '/lib/css'));
 
     gulp.src([
         config.paths.html.root + '/node_modules/angular2-slickgrid/index.js',
-        config.paths.html.root + '/node_modules/angular2-slickgrid/components/**/*.js'
+        config.paths.html.root + '/node_modules/angular2-slickgrid/out/**/*.js'
     ], { base: config.paths.html.root + '/node_modules/angular2-slickgrid' }).pipe(gulp.dest(config.paths.html.out + '/lib/js/angular2-slickgrid'));
 
     return gulp.src([config.paths.html.root + '/node_modules/@angular/**/*'])

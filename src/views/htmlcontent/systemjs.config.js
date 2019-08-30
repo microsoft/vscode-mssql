@@ -4,7 +4,7 @@
  */
 (function(global) {
   var paths = {
-    'npm:': '../../../node_modules/'
+    'npm:': 'views/htmlcontent/src/js/lib/'
   }
   // map tells the System loader where to look for things
   var map = {
@@ -27,8 +27,8 @@
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
     'app':                        { main: 'main.js',  defaultExtension: 'js' },
-    '':                           { main: 'constants.js', defaultExtension: 'js'},
-    'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'},
+    '':                           { main: 'views/htmlcontent/src/js/constants.js', defaultExtension: 'js'},
+    'angular2-slickgrid':         { main: 'out/index.js', defaultExtension: 'js'},
     '/src/controllers':           { defaultExtension: 'js' }
   };
   var meta = {
