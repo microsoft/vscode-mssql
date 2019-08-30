@@ -147,13 +147,13 @@ gulp.task('html:vendor', (done) => {
     ]).pipe(gulp.dest(config.paths.html.out + '/lib/js'));
 
     gulp.src([
-        config.paths.html.root + '/node_modules/angular2-slickgrid/out/css/SlickGrid.css',
+        config.paths.html.root + '/node_modules/angular2-slickgrid/components/css/SlickGrid.css',
         config.paths.html.root + '/node_modules/slickgrid/slick.grid.css'
     ]).pipe(gulp.dest(config.paths.html.out + '/lib/css'));
 
     gulp.src([
         config.paths.html.root + '/node_modules/angular2-slickgrid/index.js',
-        config.paths.html.root + '/node_modules/angular2-slickgrid/out/**/*.js'
+        config.paths.html.root + '/node_modules/angular2-slickgrid/**/**/*.js'
     ], { base: config.paths.html.root + '/node_modules/angular2-slickgrid' }).pipe(gulp.dest(config.paths.html.out + '/lib/js/angular2-slickgrid'));
 
     return gulp.src([config.paths.html.root + '/node_modules/@angular/**/*'])

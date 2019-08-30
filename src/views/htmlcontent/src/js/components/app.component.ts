@@ -75,7 +75,7 @@ const template = `
             </span>
         </div>
     </div>
-    <!-- <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu> -->
+    <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
     <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
@@ -695,9 +695,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 self.firstRender = false;
                 setTimeout(() => {
                     self.slickgrids.toArray()[0].setActive();
+                    self.cd.detectChanges();
                 });
             } else {
-                self.cd.detectChanges();
+                // setTimeout(() => {
+                //     self.slickgrids.toArray()[0].setActive();
+                //     self.cd.detectChanges();
+                // });
             }
         }, self.scrollTimeOutTime);
     }

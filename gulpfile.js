@@ -105,6 +105,10 @@ gulp.task('ext:copy-images', (done) => {
         .pipe(gulp.dest('out/src/views/htmlcontent/src/images'));
 });
 
+gulp.task('ext:clean-angular2-slickgrid', function() {
+    return del(config.paths.project.root + '/node_modules/angular2-slickgrid/**/*.ts');
+});
+
 // Copy and bundle dependencies into one file (vendor/vendors.js)
 // system.config.js can also bundled for convenience
 gulp.task('ext:bundle-dependencies', (done) => {
@@ -158,7 +162,6 @@ gulp.task('ext:bundle-dependencies', (done) => {
         .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/zone.js'));
     }
 
-
     // copy source maps
     gulp.src([
         // config.paths.html.root + '/node_modules/es6-shim/es6-shim.map',
@@ -168,13 +171,13 @@ gulp.task('ext:bundle-dependencies', (done) => {
     ]).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
 
     gulp.src([
-        config.paths.project.root  + '/node_modules/angular2-slickgrid/out/css/SlickGrid.css',
+        config.paths.project.root  + '/node_modules/angular2-slickgrid/components/css/SlickGrid.css',
         config.paths.project.root + '/node_modules/slickgrid/slick.grid.css'
     ]).pipe(gulp.dest('out/src/views/htmlcontent/src/css'));
 
     gulp.src([
-        config.paths.project.root  + '/node_modules/angular2-slickgrid/out/index.js',
-        config.paths.project.root  + '/node_modules/angular2-slickgrid/out/**/*.js'
+        config.paths.project.root  + '/node_modules/angular2-slickgrid/index.js',
+        config.paths.project.root  + '/node_modules/angular2-slickgrid/components/**/*.js'
     ], { base: config.paths.project.root + '/node_modules/angular2-slickgrid' }).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/angular2-slickgrid'));
 
     return gulp.src([config.paths.project.root + '/node_modules/@angular/**/*'])
@@ -227,7 +230,7 @@ gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-con
 
 gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:copy', 'ext:compile', 'ext:compile-view'));
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:copy', 'ext:compile', 'ext:clean-angular2-slickgrid', 'ext:compile-view'));
 
 gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];

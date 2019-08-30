@@ -265,8 +265,8 @@
       "integrity": "sha1-jO+rjU4v7HDMmaPkrLge/RvRfL8="
     },
     "angular2-slickgrid": {
-      "version": "github:microsoft/angular2-slickgrid#09579fdc90b1ec469578ec1040d1515585ce2a11",
-      "from": "github:microsoft/angular2-slickgrid#1.4.6"
+      "version": "github:microsoft/angular2-slickgrid#0365d983475f25d6c51303638ef741b33b759421",
+      "from": "github:microsoft/angular2-slickgrid#packaging"
     },
     "ansi-colors": {
       "version": "1.1.0",
@@ -9106,8 +9106,8 @@
       "dev": true
     },
     "slickgrid": {
-      "version": "github:anthonydresser/SlickGrid#c941811d833504dfaf40b29b69044a42595bfafb",
-      "from": "github:anthonydresser/SlickGrid#2.3.30",
+      "version": "github:anthonydresser/SlickGrid#bdf93b113385502f9402170261390dc9065f2715",
+      "from": "github:anthonydresser/SlickGrid#2.3.23-2",
       "requires": {
         "jquery": ">=1.8.0",
         "jquery-ui": ">=1.8.0"
