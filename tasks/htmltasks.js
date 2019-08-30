@@ -128,7 +128,6 @@ gulp.task('html:vendor', (done) => {
             config.paths.html.root + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.html.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.html.root + '/node_modules/systemjs/dist/system.src.js',
-            config.paths.html.root + '/systemjs.config.extras.js',
             config.paths.html.root + '/systemjs.config.js'
         ])
             .pipe(gulp.dest(config.paths.html.out + '/lib/js'));
@@ -136,7 +135,6 @@ gulp.task('html:vendor', (done) => {
         gulp.src([config.paths.html.root + '/node_modules/zone.js/**/*'])
         .pipe(gulp.dest(config.paths.html.out + '/lib/js/zone.js'));
     }
-
 
     // copy source maps
     gulp.src([

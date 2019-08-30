@@ -105,6 +105,7 @@ gulp.task('ext:copy-images', (done) => {
         .pipe(gulp.dest('out/src/views/htmlcontent/src/images'));
 });
 
+// Clean angular slickgrid library
 gulp.task('ext:clean-angular2-slickgrid', function() {
     return del(config.paths.project.root + '/node_modules/angular2-slickgrid/**/*.ts');
 });
@@ -153,7 +154,6 @@ gulp.task('ext:bundle-dependencies', (done) => {
             config.paths.project.root  + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.project.root  + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.project.root  + '/node_modules/systemjs/dist/system.src.js',
-            config.paths.project.root  + '/src/views/htmlcontent/systemjs.config.extras.js',
             config.paths.project.root  + '/src/views/htmlcontent/systemjs.config.js'
         ])
             .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
