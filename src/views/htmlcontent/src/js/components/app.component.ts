@@ -139,15 +139,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private scrollTimeOutTime = 200;
     private windowSize = 50;
     private maxScrollGrids = 8;
-    // tslint:disable-next-line:no-unused-variable
     private selectionModel = 'DragRowSelectionModel';
-    // tslint:disable-next-line:no-unused-variable
     private slickgridPlugins = ['AutoColumnSize'];
     private _rowHeight = 29;
     private _defaultNumShowingRows = 8;
-    // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
-    // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
 
     // the function implementations of keyboard available events
@@ -260,7 +256,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
-    // tslint:disable-next-line:no-unused-variable
+
     private startString = new Date().toLocaleTimeString();
     private config;
 
@@ -280,7 +276,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private resultActive = true;
     private _messageActive = true;
     private firstRender = true;
-    // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
     private activeGrid = 0;
     private messageShortcut;

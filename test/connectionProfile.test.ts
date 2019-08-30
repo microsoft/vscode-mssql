@@ -96,12 +96,11 @@ suite('Connection Profile tests', () => {
     });
 
 
-    test('CreateProfile - SqlPassword should be default auth type', done => {
+    test('CreateProfile - SqlPassword should be default auth type', async () => {
         // Given
         let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
         let profileQuestions: IQuestion[];
-        let profileReturned: IConnectionProfile;
 
         // When createProfile is called
         prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -109,39 +108,35 @@ suite('Connection Profile tests', () => {
                     // Capture questions for verification
                     profileQuestions = questions;
                 })
-                .returns(questions => {
+                .returns(async questions => {
                     //
-                    return Promise.resolve(answers);
+                    return answers;
                 });
 
-        ConnectionProfile.createProfile(prompter.object)
-            .then(profile => profileReturned = profile);
+        await ConnectionProfile.createProfile(prompter.object);
 
         // Then expect SqlAuth to be the only default type
         let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
         assert.strictEqual(authChoices[0].name, LocalizedConstants.authTypeSql);
-        done();
     });
 
-    test('CreateProfile - Integrated auth support', done => {
+    test('CreateProfile - Integrated auth support', async () => {
         // Given
         let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
         let profileQuestions: IQuestion[];
-        let profileReturned: IConnectionProfile;
         prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .callback(questions => {
                     // Capture questions for verification
                     profileQuestions = questions;
                 })
-                .returns(questions => {
+                .returns(async questions => {
                     //
-                    return Promise.resolve(answers);
+                    return answers;
                 });
 
         // When createProfile is called on an OS
-        ConnectionProfile.createProfile(prompter.object)
-            .then(profile => profileReturned = profile);
+        await ConnectionProfile.createProfile(prompter.object);
 
         // Then integrated auth should/should not be supported
         // TODO if possible the test should mock out the OS dependency but it's not clear
@@ -155,8 +150,6 @@ suite('Connection Profile tests', () => {
 
         // And on a platform with multiple choices, should prompt for input
         assert.strictEqual(authQuestion.shouldPrompt(answers), true);
-
-        done();
     });
 
     test('Port number is applied to server name when connection credentials are transformed into details', () => {
