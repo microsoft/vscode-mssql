@@ -22,7 +22,7 @@ const pd = require('pretty-data').pd;
 const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
 
 // holds information about the state of a query runner
-class QueryRunnerState {
+export class QueryRunnerState {
     timeout: NodeJS.Timer;
     flaggedForDeletion: boolean;
     constructor (public queryRunner: QueryRunner) {
