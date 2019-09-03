@@ -238,7 +238,9 @@ gulp.task('ext:test', (done) => {
         workspace = process.cwd();
     }
     process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
-    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" --verbose`, (error, stdout, stderr) => {
+    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" --verbose`,
+        { maxBuffer: 1024 * 500 },
+        (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
             process.exit(1);
@@ -249,7 +251,7 @@ gulp.task('ext:test', (done) => {
     });
 });
 
-// gulp.task('test', gulp.series('html:test', 'ext:test'));
+gulp.task('test', gulp.series('ext:test'));
 
 require('./tasks/covertasks');
 
