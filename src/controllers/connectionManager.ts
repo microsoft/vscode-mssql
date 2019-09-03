@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 'use strict';
 import vscode = require('vscode');
 import { ConnectionCredentials } from '../models/connectionCredentials';
@@ -80,6 +85,7 @@ export class ConnectionInfo {
 export default class ConnectionManager {
     private _statusView: StatusView;
     private _connections: { [fileUri: string]: ConnectionInfo };
+    private _objectExplorerSessions: { [sessionId: string]: ConnectionInfo };
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -90,6 +96,7 @@ export default class ConnectionManager {
                 private _connectionUI?: ConnectionUI) {
         this._statusView = statusView;
         this._connections = {};
+        this._objectExplorerSessions = {};
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -494,7 +501,7 @@ export default class ConnectionManager {
     /**
      * Helper to show all connections and perform connect logic.
      */
-    private showConnectionsAndConnect(resolve: any, reject: any, fileUri: string): void {
+    public showConnectionsAndConnect(resolve: any, reject: any, fileUri: string): void {
         const self = this;
 
         // show connection picklist
@@ -550,9 +557,9 @@ export default class ConnectionManager {
 
 
     // let users pick from a picklist of connections
-    public onNewConnection(): Promise<boolean> {
+    public onNewConnection(objectExplorerSessionId?: string): Promise<boolean> {
         const self = this;
-        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = objectExplorerSessionId ? objectExplorerSessionId : this.vscodeWrapper.activeTextEditorUri;
 
         return new Promise<boolean>((resolve, reject) => {
             if (!fileUri) {

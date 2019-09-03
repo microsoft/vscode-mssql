@@ -40,48 +40,55 @@ gulp.task('ext:lint', () => {
     .pipe(gulpTsLint.report());
 });
 
+gulp.task('ext:copy-assets', (done) => {
+    return gulp.src([
+        config.paths.project.root + '/src/objectExplorer/objectTypes/*'
+    ])
+    .pipe(gulp.dest('out/src/objectExplorer/objectTypes'));
+});
+
 gulp.task('ext:compile-src', (done) => {
     return gulp.src([
-                config.paths.project.root + '/src/**/*.ts',
-                config.paths.project.root + '/src/**/*.js',
-                config.paths.project.root + '/typings/**/*.ts',
-                '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
-                .pipe(srcmap.init())
-                .pipe(tsProject())
-                .on('error', function() {
-                    if (process.env.BUILDMACHINE) {
-                        done('Extension Tests failed to build. See Above.');
-                        process.exit(1);
-                    }
-                })
-                .pipe(nls.rewriteLocalizeCalls())
-                .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-                .pipe(srcmap.write('.', {
-                   sourceRoot: function(file){ return file.cwd + '/src'; }
-                }))
-                .pipe(gulp.dest('out/src/'));
+        config.paths.project.root + '/src/**/*.ts',
+        config.paths.project.root + '/src/**/*.js',
+        config.paths.project.root + '/typings/**/*.ts',
+        '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
+        .pipe(srcmap.init())
+        .pipe(tsProject())
+        .on('error', function() {
+            if (process.env.BUILDMACHINE) {
+                done('Extension Tests failed to build. See Above.');
+                process.exit(1);
+            }
+        })
+        .pipe(nls.rewriteLocalizeCalls())
+        .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
+        .pipe(srcmap.write('.', {
+            sourceRoot: function(file){ return file.cwd + '/src'; }
+        }))
+        .pipe(gulp.dest('out/src/'));
 });
 
 gulp.task('ext:compile-tests', (done) => {
     return gulp.src([
-                config.paths.project.root + '/test/**/*.ts',
-                config.paths.project.root + '/typings/**/*.ts'])
-                .pipe(srcmap.init())
-                .pipe(tsProject())
-                .on('error', function() {
-                    if (process.env.BUILDMACHINE) {
-                        done('Extension Tests failed to build. See Above.');
-                        process.exit(1);
-                    }
-                })
-                .pipe(srcmap.write('.', {
-                   sourceRoot: function(file){ return file.cwd + '/test'; }
+        config.paths.project.root + '/test/**/*.ts',
+        config.paths.project.root + '/typings/**/*.ts'])
+        .pipe(srcmap.init())
+        .pipe(tsProject())
+        .on('error', function() {
+            if (process.env.BUILDMACHINE) {
+                done('Extension Tests failed to build. See Above.');
+                process.exit(1);
+            }
+        })
+        .pipe(srcmap.write('.', {
+           sourceRoot: function(file){ return file.cwd + '/test'; }
                 }))
-                .pipe(gulp.dest('out/test/'));
+        .pipe(gulp.dest('out/test/'));
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests'));
+gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:copy-assets'));
 
 gulp.task('ext:copy-tests', () => {
     return gulp.src(config.paths.project.root + '/test/resources/**/*')

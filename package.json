@@ -36,6 +36,7 @@
     "multi-root ready"
   ],
   "activationEvents": [
+    "onView:objectExplorer",
     "onLanguage:sql",
     "onCommand:extension.connect",
     "onCommand:extension.runQuery",
@@ -47,6 +48,8 @@
     "onCommand:extension.showGettingStarted",
     "onCommand:extension.newQuery",
     "onCommand:extension.rebuildIntelliSenseCache",
+    "onCommand:extension.addObjectExplorer",
+    "onCommand:extension.objectExplorerNewQuery",
     "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
@@ -124,6 +127,23 @@
     "ws": ">=3.3.1"
   },
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "objectExplorer",
+          "title": "Object Explorer",
+          "icon": "./images/server_page_inverse.svg"
+        }
+      ]
+    },
+    "views": {
+      "objectExplorer": [
+        {
+          "id": "objectExplorer",
+          "name": "%extension.connections%"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "sql",
@@ -154,6 +174,57 @@
         {
           "command": "extension.runQuery",
           "when": "editorLangId == sql"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "extension.addObjectExplorer",
+          "title": "%extension.addObjectExplorer%",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "viewItem == Server"
+        },
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "viewItem == Database"
+        },
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "viewItem == Table"
+        },
+        {
+          "command": "extension.removeObjectExplorerNode",
+          "when": "viewItem == Server"
+        },
+        {
+          "command": "extension.refreshObjectExplorerNode",
+          "when": "view == objectExplorer"
+        },
+        {
+          "command": "extension.scriptSelect",
+          "when": "viewItem == Table"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "extension.objectExplorerNewQuery",
+          "when": "view == objectExplorer"
+        },
+        {
+          "command": "extension.removeObjectExplorerNode",
+          "when": "viewItem != null"
+        },
+        {
+          "command": "extension.refreshObjectExplorerNode",
+          "when": "viewItem != null"
+        },
+        {
+          "command": "extension.scriptSelect",
+          "when": "viewItem == Table"
         }
       ]
     },
@@ -212,6 +283,35 @@
         "command": "extension.rebuildIntelliSenseCache",
         "title": "%extension.rebuildIntelliSenseCache%",
         "category": "MS SQL"
+      },
+      {
+        "command": "extension.addObjectExplorer",
+        "title": "%extension.addObjectExplorer%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "images/add_inverse.svg",
+          "light": "images/add.svg"
+        }
+      },
+      {
+        "command": "extension.objectExplorerNewQuery",
+        "title": "%extension.objectExplorerNewQuery%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.removeObjectExplorerNode",
+        "title": "%extension.removeObjectExplorerNode%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.refreshObjectExplorerNode",
+        "title": "%extension.refreshObjectExplorerNode%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.scriptSelect",
+        "title": "%extension.scriptSelect%",
+        "category": "MS SQL"
       }
     ],
     "keybindings": [
@@ -232,6 +332,12 @@
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus && editorLangId == 'sql'"
+      },
+      {
+        "command": "extension.addObjectExplorer",
+        "key": "ctrl+shift+o",
+        "mac": "cmd+shift+o",
+        "when": "view == objectExplorer"
       }
     ],
     "configuration": {
