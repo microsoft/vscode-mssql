@@ -41,6 +41,14 @@ gulp.task('ext:lint', () => {
     .pipe(gulpTsLint.report());
 });
 
+// Copy icons for OE
+gulp.task('ext:copy-assets', (done) => {
+    return gulp.src([
+        config.paths.project.root + '/src/objectExplorer/objectTypes/*'
+    ])
+    .pipe(gulp.dest('out/src/objectExplorer/objectTypes'));
+});
+
 // Compile source
 gulp.task('ext:compile-src', (done) => {
     return gulp.src([
