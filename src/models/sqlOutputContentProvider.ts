@@ -222,15 +222,9 @@ export class SqlOutputContentProvider {
         let queryRunner: QueryRunner;
 
         if (typeof input === 'string') {
-            if (this.isResultsUri(input) && this._queryResultsMap.has(input)) {
+            if (this._queryResultsMap.has(input)) {
                 // Option 1: The string is a results URI (the results tab has focus)
                 queryRunner = this._queryResultsMap.get(input).queryRunner;
-            } else {
-                // Option 2: The string is a file URI (the SQL file tab has focus)
-                let resultsUri = this.getResultsUri(input).toString();
-                if (this._queryResultsMap.has(resultsUri)) {
-                    queryRunner = this._queryResultsMap.get(resultsUri).queryRunner;
-                }
             }
         } else {
             queryRunner = input;
@@ -260,7 +254,7 @@ export class SqlOutputContentProvider {
      */
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
         // If we don't have any query runners mapped to this uri, don't do anything
-        let untitledResultsUri = decodeURIComponent(this.getResultsUri(untitledUri));
+        let untitledResultsUri = decodeURIComponent(untitledUri);
         if (!this._queryResultsMap.has(untitledResultsUri)) {
             return;
         }
@@ -269,7 +263,7 @@ export class SqlOutputContentProvider {
         // the old uri. As long as we make requests to the service against that uri, we'll be good.
 
         // Remap the query runner in the map
-        let savedResultUri = decodeURIComponent(this.getResultsUri(savedUri));
+        let savedResultUri = decodeURIComponent(savedUri);
         this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
         this._queryResultsMap.delete(untitledResultsUri);
     }
@@ -360,34 +354,14 @@ export class SqlOutputContentProvider {
      * Return the query for a file uri
      */
     public getQueryRunner(uri: string): QueryRunner {
-        let resultsUri = this.getResultsUri(uri).toString();
-        if (this._queryResultsMap.has(resultsUri)) {
-            return  this._queryResultsMap.get(resultsUri).queryRunner;
+        if (this._queryResultsMap.has(uri)) {
+            return  this._queryResultsMap.get(uri).queryRunner;
         } else {
             return undefined;
         }
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
-
-    /**
-     * Generates a URI for the results pane. NOTE: this MUST be encoded using encodeURIComponent()
-     * before outputting as part of a URI (ie, as a query param in an href)
-     * @param srcUri    The URI for the source file where the SQL was executed from
-     * @returns The URI for the results pane
-     */
-    private getResultsUri(srcUri: string): string {
-        // NOTE: The results uri will be encoded when we parse it to a uri
-        return vscode.Uri.parse(SqlOutputContentProvider.providerUri + srcUri).toString();
-    }
-
-    /**
-     * Determines if the provided string is a results pane URI. This is done by checking the schema
-     * at the front of the string against the provider uri
-     */
-    private isResultsUri(srcUri: string): boolean {
-        return srcUri.startsWith(SqlOutputContentProvider.providerUri.toString());
-    }
 
     /**
      * Returns which column should be used for a new result pane
