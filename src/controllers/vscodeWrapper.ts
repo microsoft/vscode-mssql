@@ -170,12 +170,12 @@ export default class VscodeWrapper {
      *
      * Uris with other schemes will make this method return a rejected promise.
      *
-     * @param uri Identifies the resource to open.
+     * @param content The optional content the document will open with
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public openMsSqlTextDocument(): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument({ language: 'sql'});
+    public openMsSqlTextDocument(content?: string): Thenable<vscode.TextDocument> {
+        return vscode.workspace.openTextDocument({ language: 'sql', content: content});
     }
 
     /**

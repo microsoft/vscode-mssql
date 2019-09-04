@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 'use strict';
 import * as TypeMoq from 'typemoq';
 
@@ -199,10 +204,10 @@ suite('MainController Tests', () => {
 
     test('onNewQuery should call the new query and new connection' , () => {
 
-        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(true));
+        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(undefined));
         connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(true));
 
-        return mainController.onNewQuery().then(result => {
+        return mainController.onNewQuery(undefined).then(result => {
             untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
             connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.once());
         });
@@ -210,10 +215,10 @@ suite('MainController Tests', () => {
 
     test('onNewQuery should not call the new connection if new query fails' , done => {
 
-        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<boolean>('error'); } );
+        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<vscode.Uri>('error'); } );
         connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(true); } );
 
-        mainController.onNewQuery().catch(error => {
+        mainController.onNewQuery(undefined).catch(error => {
             untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
             connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.never());
             done();
