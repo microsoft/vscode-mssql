@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 // Collection of Non-localizable Constants
 export const languageId = 'sql';
 export const extensionName = 'mssql';
