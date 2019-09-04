@@ -36,9 +36,6 @@ class ResultsConfig implements Interfaces.IResultsConfig {
 }
 
 export class SqlOutputContentProvider {
-    // CONSTANTS ///////////////////////////////////////////////////////////
-    public static providerName = 'tsqloutput';
-    public static providerUri = vscode.Uri.parse('tsqloutput://');
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
