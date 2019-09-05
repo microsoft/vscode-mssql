@@ -89,8 +89,8 @@ const template = `
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
-            <template ngFor let-message [ngForOf]="messages">
             <tbody>
+                <template ngFor let-message [ngForOf]="messages">
                     <tr class='messageRow'>
                         <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
                         <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.selection)">{{message.link.text}}</a>
