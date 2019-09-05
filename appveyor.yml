@@ -29,7 +29,6 @@ build_script:
   - gulp build
 
 test_script:
-  - ./node_modules/.bin/karma start
   - node ./node_modules/vscode/bin/test
 
 on_finish:
