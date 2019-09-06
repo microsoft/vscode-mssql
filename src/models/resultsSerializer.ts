@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
@@ -175,7 +180,7 @@ export default class ResultsSerializer {
 
         self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
 
-        // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
+        // send message to the sqlserverclient for converting results to the requested format and saving to filepath
         return self._client.sendRequest( type, saveResultsParams).then( (result: any) => {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + result.messages);

@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import * as TypeMoq from 'typemoq';
 import vscode = require('vscode');
 import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
@@ -59,7 +64,7 @@ suite('UntitledSqlDocumentService Tests', () => {
         };
         fixture = createUntitledSqlDocumentService(fixture);
 
-        return fixture.service.newQuery().then(result => {
+        fixture.service.newQuery().then(result => {
             fixture.vscodeWrapper.verify(x => x.openMsSqlTextDocument(), TypeMoq.Times.once());
             fixture.vscodeWrapper.verify(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
