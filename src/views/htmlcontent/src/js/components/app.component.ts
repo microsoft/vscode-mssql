@@ -692,11 +692,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.slickgrids.toArray()[0].setActive();
                     self.cd.detectChanges();
                 });
-            } else {
-                // setTimeout(() => {
-                //     self.slickgrids.toArray()[0].setActive();
-                //     self.cd.detectChanges();
-                // });
             }
         }, self.scrollTimeOutTime);
     }
