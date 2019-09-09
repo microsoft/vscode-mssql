@@ -26,7 +26,7 @@ function createMessageProtocol(webview: vscode.Webview): IMessageProtocol {
 export class WebviewPanelController implements vscode.Disposable {
     public readonly proxy: IWebviewProxy;
     private _panel: vscode.WebviewPanel;
-    private _disposables: any[] = [];
+    private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
     private _isPanelFocused: boolean = true;
 
@@ -64,7 +64,6 @@ export class WebviewPanelController implements vscode.Disposable {
             }
         }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
-        this._disposables.push(this.proxy);
     }
 
     public async init(): Promise<void> {

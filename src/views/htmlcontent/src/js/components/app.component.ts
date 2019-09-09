@@ -268,7 +268,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // Datasets currently being rendered on the DOM
     private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
     private messages: IMessage[] = [];
-    private scrollTimeOut: any;
+    private scrollTimeOut: NodeJS.Timeout;
     private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;
@@ -371,7 +371,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
 
-                    // Store the result set from the event);
+                    // Store the result set from the event)
                     let dataSet: IGridDataSet = {
                         resized: undefined,
                         batchId: resultSet.batchId,

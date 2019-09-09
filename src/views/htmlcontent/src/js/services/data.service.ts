@@ -108,7 +108,7 @@ export class DataService {
 
     /**
      * Sends a request to set the selection in the VScode window
-     * @param batchId The associated batch for the batch result
+     * @param selection The selection range in the VSCode Window
      */
     setEditorSelection(selection: ISelectionData): void {
         this._proxy.setEditorSelection(selection);

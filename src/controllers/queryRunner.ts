@@ -223,7 +223,9 @@ export default class QueryRunner {
         this.eventEmitter.emit('batchComplete', batch);
     }
 
-    // Refreshes the webview panel with the query results when tabs are changed
+    /**
+     * Refreshes the webview panel with the query results when tabs are changed
+     */
     public async refreshQueryTab(): Promise<boolean> {
         for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
             const batchSet = this.batchSets[batchId];
@@ -263,7 +265,9 @@ export default class QueryRunner {
         this.eventEmitter.emit('message', message);
     }
 
-    // get more data rows from the current resultSets from the service layer
+    /*
+     * Get more data rows from the current resultSets from the service layer
+     */
     public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Promise<QueryExecuteSubsetResult> {
         const self = this;
         let queryDetails = new QueryExecuteSubsetParams();

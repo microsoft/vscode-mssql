@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
-
-import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import * as path from 'path';
+import * as tmp from 'tmp';
+import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import {IConfig, IStatusView, IPackage, PackageError, IHttpClient, IDecompressProvider} from './interfaces';
 import  {ILogger} from '../models/interfaces';
 import Constants = require('../constants/constants');
-import tmp = require('tmp');
 
 let fse = require('fs-extra');
 
