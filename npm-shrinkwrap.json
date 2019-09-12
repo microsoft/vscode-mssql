@@ -260,13 +260,13 @@
       "dev": true
     },
     "angular-in-memory-web-api": {
-      "version": "0.1.17",
-      "resolved": "https://registry.npmjs.org/angular-in-memory-web-api/-/angular-in-memory-web-api-0.1.17.tgz",
-      "integrity": "sha1-jO+rjU4v7HDMmaPkrLge/RvRfL8="
+      "version": "0.1.13",
+      "resolved": "https://registry.npmjs.org/angular-in-memory-web-api/-/angular-in-memory-web-api-0.1.13.tgz",
+      "integrity": "sha1-JKirr+jsZH+Y7jJpvggy0werJA8="
     },
     "angular2-slickgrid": {
-      "version": "github:microsoft/angular2-slickgrid#0365d983475f25d6c51303638ef741b33b759421",
-      "from": "github:microsoft/angular2-slickgrid#packaging"
+      "version": "github:microsoft/angular2-slickgrid#ab2bb2f0af7bdc4948724f18aa555ab218450d2f",
+      "from": "github:microsoft/angular2-slickgrid#1.2.2-patch1"
     },
     "ansi-colors": {
       "version": "1.1.0",
@@ -8963,9 +8963,9 @@
       "dev": true
     },
     "rxjs": {
-      "version": "5.4.2",
-      "resolved": "https://registry.npmjs.org/rxjs/-/rxjs-5.4.2.tgz",
-      "integrity": "sha1-KjI2/L8D31e64G/Wly/ZnlwI/Pc=",
+      "version": "5.0.0-beta.12",
+      "resolved": "https://registry.npmjs.org/rxjs/-/rxjs-5.0.0-beta.12.tgz",
+      "integrity": "sha1-zf3i2MRjnSCud5S/+P3fMtp60zc=",
       "requires": {
         "symbol-observable": "^1.0.1"
       }

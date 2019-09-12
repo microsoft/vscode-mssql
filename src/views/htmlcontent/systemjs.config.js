@@ -29,7 +29,8 @@
     'app':                        { main: 'main.js',  defaultExtension: 'js' },
     '':                           { main: 'views/htmlcontent/src/js/constants.js', defaultExtension: 'js'},
     'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'},
-    '/src/controllers':           { defaultExtension: 'js' }
+    '/src/controllers':           { defaultExtension: 'js' },
+    'rxjs':                       { main: 'Rx.js', defaultExtension: 'js' }
   };
   var meta = {
     '**/*.json' : {

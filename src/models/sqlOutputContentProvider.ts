@@ -121,14 +121,15 @@ export class SqlOutputContentProvider {
     private async runQueryCallback(
             statusView: any, uri: string, title: string,
             queryCallback: any): Promise<void> {
-        let queryRunner = this.createQueryRunner(statusView ? statusView : this._statusView, uri, title);
+        let queryRunner = await this.createQueryRunner(statusView ? statusView : this._statusView, uri, title);
         if (this._panels.has(uri)) {
             let panelController = this._panels.get(uri);
             if (panelController.isDisposed) {
                 this._panels.delete(uri);
                 await this.createWebviewController(uri, title, queryRunner);
             } else {
-                return queryCallback(queryRunner);
+                queryCallback(queryRunner);
+                return;
             }
         } else {
             await this.createWebviewController(uri, title, queryRunner);
@@ -155,8 +156,8 @@ export class SqlOutputContentProvider {
             showWarning: (message: string) => this.showWarningRequestHandler(message)
         };
         const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath, queryRunner);
-        await controller.init();
         this._panels.set(uri, controller);
+        await controller.init();
     }
 
     private createQueryRunner(statusView: any, uri: string, title: string): QueryRunner {
@@ -175,9 +176,6 @@ export class SqlOutputContentProvider {
             // If the query is not in progress, we can reuse the query runner
             queryRunner = existingRunner;
             queryRunner.resetHasCompleted();
-
-            // update the open pane assuming its open (if its not its a bug covered by the previewhtml command later)
-
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri

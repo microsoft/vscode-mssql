@@ -148,7 +148,7 @@ export default class QueryRunner {
     // Pulls the query text from the current document/selection and initiates the query
     private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
         const self = this;
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
+        self._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
 
         // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;

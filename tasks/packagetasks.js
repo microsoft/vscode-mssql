@@ -70,7 +70,6 @@ gulp.task('package:offline', () => {
     packages.push({rid: 'rhel.7.2-x64', runtime: Runtime.RHEL_7});
     packages.push({rid: 'ubuntu.14.04-x64', runtime: Runtime.Ubuntu_14});
     packages.push({rid: 'ubuntu.16.04-x64', runtime:  Runtime.Ubuntu_16});
-
     var promise = Promise.resolve();
     cleanServiceInstallFolder().then(() => {
             packages.forEach(data => {
