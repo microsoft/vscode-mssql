@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
-*  Copyright (c) Microsoft Corporation. All rights reserved.
-*  Licensed under the MIT License. See License.txt in the project root for license information.
-*--------------------------------------------------------------------------------------------*/
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 'use strict';
 import vscode = require('vscode');
@@ -25,7 +25,6 @@ export function activate(context: vscode.ExtensionContext): Promise<boolean> {
     if (applyLocalization) {
         LocalizedConstants.loadLocalizedConstants(vscode.env.language);
     }
-
     return controller.activate();
 }
 

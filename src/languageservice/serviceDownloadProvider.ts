@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
-
-import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import * as path from 'path';
+import * as tmp from 'tmp';
+import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import {IConfig, IStatusView, IPackage, PackageError, IHttpClient, IDecompressProvider} from './interfaces';
 import  {ILogger} from '../models/interfaces';
 import Constants = require('../constants/constants');
-import * as tmp from 'tmp';
 
 let fse = require('fs-extra');
 
@@ -126,14 +125,14 @@ export default class ServiceDownloadProvider {
         });
     }
 
-    private createTempFile(pkg: IPackage): Promise<tmp.SynchronousResult> {
-        return new Promise<tmp.SynchronousResult>((resolve, reject) => {
+    private createTempFile(pkg: IPackage): Promise<tmp.SynchrounousResult> {
+        return new Promise<tmp.SynchrounousResult>((resolve, reject) => {
             tmp.file({ prefix: 'package-' }, (err, filePath, fd, cleanupCallback) => {
                 if (err) {
                     return reject(new PackageError('Error from tmp.file', pkg, err));
                 }
 
-                resolve(<tmp.SynchronousResult>{ name: filePath, fd: fd, removeCallback: cleanupCallback });
+                resolve(<tmp.SynchrounousResult>{ name: filePath, fd: fd, removeCallback: cleanupCallback });
             });
         });
     }

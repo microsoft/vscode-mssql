@@ -95,7 +95,7 @@ suite('Query Runner tests', () => {
             testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isValue(queryRunner), TypeMoq.It.isValue(standardUri)), TypeMoq.Times.once());
 
             // ... Start is the only event that should be emitted during successful query start
-            mockEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
+            mockEventEmitter.verify(x => x.emit('start', standardUri), TypeMoq.Times.once());
 
             // ... The VS Code status should be updated
             testStatusView.verify<void>(x => x.executingQuery(standardUri), TypeMoq.Times.once());
@@ -229,7 +229,7 @@ suite('Query Runner tests', () => {
         };
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
         mockEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
-        mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny()));
+        mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny(), TypeMoq.It.isAny()));
         queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleBatchComplete(batchComplete);
 
@@ -247,7 +247,7 @@ suite('Query Runner tests', () => {
 
         mockEventEmitter.verify(x => x.emit('batchComplete', TypeMoq.It.isAny()), TypeMoq.Times.once());
         let expectedMessageTimes = sendBatchTime ? TypeMoq.Times.once() : TypeMoq.Times.never();
-        mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny()), expectedMessageTimes);
+        mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny(), TypeMoq.It.isAny()), expectedMessageTimes);
 
     }
 
@@ -551,7 +551,7 @@ suite('Query Runner tests', () => {
         });
 
         // ------ Copy tests  -------
-        test('Correctly copy pastes a selection', () => {
+        test('Correctly copy pastes a selection', (done) => {
             let configResult: {[key: string]: any} = {};
             configResult[Constants.copyIncludeHeaders] = false;
             setupWorkspaceConfig(configResult);
@@ -565,8 +565,9 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            return queryRunner.copyResults(testRange, 0, 0).then(() => {
+            queryRunner.copyResults(testRange, 0, 0).then(() => {
                 testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+                done();
             });
         });
 
@@ -640,7 +641,7 @@ suite('Query Runner tests', () => {
             });
         });
 
-        test('SetEditorSelection uses an existing editor if it is visible', done => {
+        test('SetEditorSelection uses an existing editor if it is visible', (done) => {
             let queryUri = 'test_uri';
             let queryColumn = 2;
             let queryRunner = new QueryRunner(queryUri,
@@ -662,7 +663,8 @@ suite('Query Runner tests', () => {
             testVscodeWrapper.setup(x => x.showTextDocument(undefined, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
 
             // If I try to set a selection for the existing editor
-            queryRunner.setEditorSelection({ startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 }).then(() => {
+            let selection: ISelectionData = { startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 };
+            queryRunner.setEditorSelection(selection).then(() => {
                 try {
                     // Then showTextDocument gets called with the existing editor's column
                     testVscodeWrapper.verify(x => x.showTextDocument(undefined, queryColumn), TypeMoq.Times.once());
@@ -671,9 +673,10 @@ suite('Query Runner tests', () => {
                     done(err);
                 }
             }, err => done(err));
+            done();
         });
 
-        test('SetEditorSelection uses column 1 by default', done => {
+        test('SetEditorSelection uses column 1 by default', (done) => {
             let queryUri = 'test_uri';
             let queryRunner = new QueryRunner(queryUri,
                 queryUri,
@@ -703,6 +706,7 @@ suite('Query Runner tests', () => {
                     done(err);
                 }
             }, err => done(err));
+            done();
         });
     });
 });

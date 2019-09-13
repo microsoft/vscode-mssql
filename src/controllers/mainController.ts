@@ -345,7 +345,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * execute the SQL statement for the current cursor position
      */
-    public onRunCurrentStatement(callbackThis?: MainController): void {
+    public async onRunCurrentStatement(callbackThis?: MainController): Promise<void> {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
@@ -385,7 +385,7 @@ export default class MainController implements vscode.Disposable {
                 endColumn: 0
             };
 
-            self._outputContentProvider.runCurrentStatement(self._statusview, uri, querySelection, title);
+            await self._outputContentProvider.runCurrentStatement(self._statusview, uri, querySelection, title);
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onRunCurrentStatement');
         }
@@ -394,7 +394,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * get the T-SQL query from the editor, run it and show output
      */
-    public onRunQuery(callbackThis?: MainController): void {
+    public async onRunQuery(callbackThis?: MainController): Promise<void> {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
@@ -411,9 +411,8 @@ export default class MainController implements vscode.Disposable {
             let uri = self._vscodeWrapper.activeTextEditorUri;
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
-
-            // Calculate the selection if we have a selection, otherwise we'll use null to indicate
-            // the entire document is the selection
+            // Calculate the selection if we have a selection, otherwise we'll treat null as
+            // the entire document's selection
             if (!editor.selection.isEmpty) {
                 let selection = editor.selection;
                 querySelection = {
@@ -432,7 +431,7 @@ export default class MainController implements vscode.Disposable {
 
             Telemetry.sendTelemetryEvent('RunQuery');
 
-            self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
+            await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onRunQuery');
         }

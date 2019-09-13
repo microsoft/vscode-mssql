@@ -17,7 +17,7 @@ gulp.task('cover:enableconfig',() => {
     .pipe(gulp.dest("./out", {'overwrite':true}));
 });
 
-gulp.task('cover:enable', gulp.series('cover:clean', 'html:test', 'cover:enableconfig'));
+gulp.task('cover:enable', gulp.series('cover:clean', 'cover:enableconfig'));
 
 gulp.task('cover:disable', () => {
     return gulp.src("./coverconfig.json")
@@ -42,4 +42,4 @@ gulp.task('cover:combine', () => {
 });
 
 // for running on the jenkins build system
-gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'html:test', 'ext:test', 'cover:combine'));
+gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'ext:test', 'cover:combine'));

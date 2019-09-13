@@ -3,18 +3,15 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from '@angular/core';
-import {ISlickRange} from 'angular2-slickgrid';
-
+import {ISlickRange} from '../interfaces';
 import {ShortcutService} from './../services/shortcuts.service';
-
 import * as Constants from './../constants';
-import * as Utils from './../utils';
 /**
  * The component that acts as the contextMenu for slick grid
  */
 
 const template = `
-<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top]="position.y" [style.left]="position.x">
+<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top.px]="position.y" [style.left.px]="position.x">
     <li id="savecsv" (click)="handleContextActionClick('savecsv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsCSV']}}</span></li>
     <li id="savejson" (click)="handleContextActionClick('savejson')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}
@@ -37,7 +34,7 @@ const template = `
 })
 
 export class ContextMenu implements OnInit {
-    private Utils = Utils;
+    // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
 
     @Output() clickEvent: EventEmitter<{type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}>
@@ -57,7 +54,9 @@ export class ContextMenu implements OnInit {
         'event.copyWithHeaders': ''
     };
 
-    constructor(@Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService) {
+    constructor(
+        @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService
+    ) {
         const self = this;
         for (let key in this.keys) {
             if (this.keys.hasOwnProperty(key)) {

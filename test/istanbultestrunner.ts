@@ -4,8 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 
 'use strict';
+import * as vscode from 'vscode';
 import paths = require('path');
-import vscode = require('vscode');
 const fs = require('fs');
 import Mocha = require('mocha');
 import istanbul = require('istanbul');

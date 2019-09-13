@@ -12,7 +12,8 @@ var config = {
     paths: {
         project: {
             root: projectRoot,
-            localization: localization
+            localization: localization,
+            out: outRoot
         },
         extension: {
             root: srcRoot

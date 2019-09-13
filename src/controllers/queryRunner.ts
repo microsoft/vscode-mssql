@@ -1,7 +1,7 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 'use strict';
 import { EventEmitter } from 'events';
@@ -51,6 +51,7 @@ export default class QueryRunner {
                 private _client?: SqlToolsServerClient,
                 private _notificationHandler?: QueryNotificationHandler,
                 private _vscodeWrapper?: VscodeWrapper) {
+
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
         }
@@ -147,7 +148,7 @@ export default class QueryRunner {
     // Pulls the query text from the current document/selection and initiates the query
     private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
         const self = this;
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
+        self._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
 
         // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
@@ -157,7 +158,7 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
-            self.eventEmitter.emit('start');
+            self.eventEmitter.emit('start', self.uri);
             self._notificationHandler.registerRunner(self, self._ownerUri);
         };
         let onError = (error) => {
@@ -222,6 +223,31 @@ export default class QueryRunner {
         this.eventEmitter.emit('batchComplete', batch);
     }
 
+    /**
+     * Refreshes the webview panel with the query results when tabs are changed
+     */
+    public async refreshQueryTab(): Promise<boolean> {
+        for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
+            const batchSet = this.batchSets[batchId];
+            this.eventEmitter.emit('batchStart', batchSet);
+            let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
+            this._totalElapsedMilliseconds += executionTime;
+            if (executionTime > 0) {
+                // send a time message in the format used for query complete
+                this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));
+            }
+            this.eventEmitter.emit('batchComplete', batchSet);
+            for (let resultSetId = 0; resultSetId < batchSet.resultSetSummaries.length; resultSetId++) {
+                let resultSet = batchSet.resultSetSummaries[resultSetId];
+                this.eventEmitter.emit('resultSet', resultSet, true);
+            }
+        }
+        // We're done with this query so shut down any waiting mechanisms
+        this._statusView.executedQuery(this.uri);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true);
+        return Promise.resolve(true);
+    }
+
     public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
@@ -239,8 +265,10 @@ export default class QueryRunner {
         this.eventEmitter.emit('message', message);
     }
 
-    // get more data rows from the current resultSets from the service layer
-    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Thenable<QueryExecuteSubsetResult> {
+    /*
+     * Get more data rows from the current resultSets from the service layer
+     */
+    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Promise<QueryExecuteSubsetResult> {
         const self = this;
         let queryDetails = new QueryExecuteSubsetParams();
         queryDetails.ownerUri = this.uri;
@@ -377,7 +405,7 @@ export default class QueryRunner {
         return outputString;
     }
 
-    private sendBatchTimeMessage(batchId: number, executionTime: string): void {
+    private sendBatchTimeMessage(batchId: number, executionTime: string, isRefresh?: boolean): void {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
         let showBatchTime: boolean = config[Constants.configShowBatchTime];
@@ -389,7 +417,7 @@ export default class QueryRunner {
                 isError: false
             };
             // Send the message to the results pane
-            this.eventEmitter.emit('message', message);
+            this.eventEmitter.emit('message', message, isRefresh);
         }
     }
 
@@ -397,21 +425,19 @@ export default class QueryRunner {
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
      */
-    public setEditorSelection(selection: ISelectionData): Thenable<void> {
+    public setEditorSelection(selection: ISelectionData): Promise<void> {
         const self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let column = vscode.ViewColumn.One;
-            let visibleEditors = self._vscodeWrapper.visibleEditors;
-            visibleEditors.forEach(editor => {
-                if (editor.document.uri.toString() === self.uri) {
-                    column = editor.viewColumn;
-                }
-            });
             self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                self._vscodeWrapper.showTextDocument(doc, column).then((editor) => {
-                    editor.selection = self._vscodeWrapper.selection(
-                                    self._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                    self._vscodeWrapper.position(selection.endLine, selection.endColumn));
+                self._vscodeWrapper.showTextDocument(doc, column).then(async (editor) => {
+                    let querySelection = new vscode.Selection(
+                        selection.startLine,
+                        selection.startColumn,
+                        selection.endLine,
+                        selection.endColumn);
+                    let activeEditor = vscode.window.activeTextEditor;
+                    activeEditor.selection = querySelection;
                     resolve();
                 });
             });

@@ -1,5 +1,4 @@
 // Adapted from https://github.com/naresh-n/slickgrid-column-data-autosize/blob/master/src/slick.autocolumnsize.js
-
 (function($: JQueryStatic): void {
 
     $.extend(true, window, {
