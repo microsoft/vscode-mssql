@@ -1,6 +1,6 @@
 {
   "name": "mssql",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -265,8 +265,8 @@
       "integrity": "sha1-jO+rjU4v7HDMmaPkrLge/RvRfL8="
     },
     "angular2-slickgrid": {
-      "version": "github:microsoft/angular2-slickgrid#0365d983475f25d6c51303638ef741b33b759421",
-      "from": "github:microsoft/angular2-slickgrid#packaging"
+      "version": "github:microsoft/angular2-slickgrid#d4716d9718df5012437cf2b52fcddde70089582d",
+      "from": "github:microsoft/angular2-slickgrid#1.2.2"
     },
     "ansi-colors": {
       "version": "1.1.0",

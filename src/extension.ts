@@ -25,7 +25,6 @@ export function activate(context: vscode.ExtensionContext): Promise<boolean> {
     if (applyLocalization) {
         LocalizedConstants.loadLocalizedConstants(vscode.env.language);
     }
-
     return controller.activate();
 }
 
