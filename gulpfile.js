@@ -10,6 +10,9 @@ var tsProject = ts.createProject('tsconfig.json');
 var del = require('del');
 var srcmap = require('gulp-sourcemaps');
 var config = require('./tasks/config');
+var concat = require('gulp-concat');
+var minifier = require('gulp-uglify/minifier');
+var uglifyjs = require('uglify-js');
 var request = require('request');
 var fs = require('fs');
 var gutil = require('gulp-util');
@@ -72,18 +75,12 @@ gulp.task('ext:compile-src', (done) => {
                 .pipe(gulp.dest('out/src/'));
 });
 
-// Compile view source
+// Compile angular view
 gulp.task('ext:compile-view', (done) => {
     return gulp.src([
         config.paths.project.root + '/src/views/htmlcontent/**/*.ts'])
         .pipe(srcmap.init())
         .pipe(tsProject())
-        .on('error', function() {
-            if (process.env.BUILDMACHINE) {
-                done('Extension Tests failed to build. See Above.');
-                process.exit(1);
-            }
-        })
         .pipe(nls.rewriteLocalizeCalls())
         .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
         .pipe(srcmap.write('.', {
@@ -92,11 +89,18 @@ gulp.task('ext:compile-view', (done) => {
         .pipe(gulp.dest('out/src/views/htmlcontent'));
 });
 
-// Copy systemjs config
+// Copy systemjs config file
 gulp.task('ext:copy-systemjs-config', (done) => {
     return gulp.src([
         config.paths.project.root + '/src/views/htmlcontent/*.js'])
         .pipe(gulp.dest('out/src/views/htmlcontent'));
+});
+
+// Copy html
+gulp.task('ext:copy-html', (done) => {
+    return gulp.src([
+            config.paths.project.root + '/src/controllers/sqlOutput.ejs'])
+        .pipe(gulp.dest('out/src/controllers/'));
 });
 
 // Copy css
@@ -114,13 +118,14 @@ gulp.task('ext:copy-images', (done) => {
 });
 
 // Clean angular slickgrid library
-gulp.task('ext:clean-angular2-slickgrid', function() {
-    return del(config.paths.project.root + '/node_modules/angular2-slickgrid/**/*.ts');
+gulp.task('ext:clean-library-ts-files', function() {
+    del(config.paths.project.root + '/node_modules/angular2-slickgrid/**/*.ts');
+    return del(config.paths.project.root + '/node_modules/rxjs/**/*.ts');
 });
 
 // Copy and bundle dependencies into one file (vendor/vendors.js)
 // system.config.js can also bundled for convenience
-gulp.task('ext:bundle-dependencies', (done) => {
+gulp.task('ext:copy-dependencies', (done) => {
     gulp.src([config.paths.project.root + '/node_modules/rxjs/**/*'])
     .pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/rxjs'));
 
@@ -143,7 +148,7 @@ gulp.task('ext:bundle-dependencies', (done) => {
             config.paths.project.root + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.project.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.project.root + '/node_modules/systemjs/dist/system.src.js',
-            config.paths.project.root + '/systemjs.config.js'
+            config.paths.project.root + '/src/views/htmlcontent/systemjs.config.js'
         ])
             .pipe(concat('vendors.min.js'))
             .pipe(minifier({}, uglifyjs))
@@ -234,11 +239,12 @@ gulp.task('ext:copy-js', () => {
         .pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:bundle-dependencies', 'ext:copy-css', 'ext:copy-images'));
+// Copy the files which aren't used in compilation
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
 
 gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:lint', 'ext:copy', 'ext:compile', 'ext:clean-angular2-slickgrid', 'ext:compile-view'));
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
 
 gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];
@@ -278,4 +284,4 @@ gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
 });
 
-// gulp.task('lint', gulp.series('ext:lint', 'html:lint'));
+// gulp.task('lint', gulp.series('ext:lint'));

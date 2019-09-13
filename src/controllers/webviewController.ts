@@ -67,7 +67,7 @@ export class WebviewPanelController implements vscode.Disposable {
     }
 
     public async init(): Promise<void> {
-        const sqlOutputPath = path.resolve(path.resolve(path.dirname(__dirname)), '../../src/controllers');
+        const sqlOutputPath = path.resolve(__dirname);
         const fileContent = await readFile(path.join(sqlOutputPath, 'sqlOutput.ejs'));
         const htmlViewPath = ['out', 'src'];
         const baseUri = `${vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
