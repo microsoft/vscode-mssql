@@ -124,9 +124,7 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdShowGettingStarted);
                 this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
                 this.registerCommand(Constants.cmdNewQuery);
-                this._event.on(Constants.cmdNewQuery, () => {
-                    self.runAndLogErrors(self.onNewQuery(), 'onNewQuery');
-                });
+                this._event.on(Constants.cmdNewQuery, () => self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'));
                 this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
                 this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
