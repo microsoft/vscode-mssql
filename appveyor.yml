@@ -8,7 +8,6 @@ environment:
 branches:
   only:
     - master
-    - dev
 
   # Install scripts. (runs after repo cloning)
 install:
