@@ -329,7 +329,7 @@ export class SqlOutputContentProvider {
         }
 
         vscode.workspace.openTextDocument({ language: linkType }).then((doc: vscode.TextDocument) => {
-            vscode.window.showTextDocument(doc, 1, false).then(editor => {
+            vscode.window.showTextDocument(doc, 2, false).then(editor => {
                 editor.edit(edit => {
                     edit.insert(new vscode.Position(0, 0), content);
                 }).then(result => {
