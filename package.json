@@ -577,6 +577,7 @@
             "event.nextGrid": "ctrl+down",
             "event.copySelection": "ctrl+c",
             "event.copyWithHeaders": "",
+            "event.copyHeaders": "",
             "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",
