@@ -330,6 +330,34 @@ export default class QueryRunner {
         return new Promise<void>((resolve, reject) => {
             let copyString = '';
 
+            // if just copy headers
+            if (!selection && self.shouldIncludeHeaders(includeHeaders)) {
+                const columns = self.batchSets[batchId].resultSetSummaries[resultId].columnInfo.length;
+                const headerRange: ISlickRange = {
+                    fromRow: 0,
+                    fromCell: 0,
+                    toRow: 0,
+                    toCell: columns
+                };
+                let columnHeaders = self.getColumnHeaders(batchId, resultId, headerRange);
+                if (columnHeaders !== undefined) {
+                    copyString += columnHeaders.join('\t') + os.EOL;
+                }
+                return this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
+                    let oldLang: string;
+                    if (process.platform === 'darwin') {
+                        oldLang = process.env['LANG'];
+                        process.env['LANG'] = 'en_US.UTF-8';
+                    }
+                    this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
+                        if (process.platform === 'darwin') {
+                            process.env['LANG'] = oldLang;
+                        }
+                        resolve();
+                    });
+                });
+            }
+
             // create a mapping of the ranges to get promises
             let tasks = selection.map((range, i) => {
                 return () => {

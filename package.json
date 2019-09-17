@@ -571,11 +571,13 @@
           "default": {
             "_comment": "Short cuts must follow the format (ctrl)+(shift)+(alt)+[key]",
             "event.toggleResultPane": "ctrl+alt+r",
+            "event.focusResultsGrid": "ctrl+alt+g",
             "event.toggleMessagePane": "ctrl+alt+y",
             "event.prevGrid": "ctrl+up",
             "event.nextGrid": "ctrl+down",
             "event.copySelection": "ctrl+c",
             "event.copyWithHeaders": "",
+            "event.copyHeaders": "",
             "event.maximizeGrid": "",
             "event.selectAll": "",
             "event.saveAsJSON": "",

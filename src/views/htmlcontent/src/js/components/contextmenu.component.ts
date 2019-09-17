@@ -24,6 +24,8 @@ const template = `
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copySelection']}}</span></li>
     <li id="copyWithHeaders" (click)="handleContextActionClick('copyWithHeaders')" [class.disabled]="isDisabled"> {{Constants.copyWithHeadersLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copyWithHeaders']}}</span></li>
+    <li id="copyHeaders" (click)="handleContextActionClick('copyHeaders')" [class.disabled]="isDisabled"> {{Constants.copyHeadersLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copyHeaders']}}</span></li>
 </ul>
 `;
 
@@ -51,7 +53,8 @@ export class ContextMenu implements OnInit {
         'event.saveAsJSON': '',
         'event.selectAll': '',
         'event.copySelection': '',
-        'event.copyWithHeaders': ''
+        'event.copyWithHeaders': '',
+        'event.copyHeaders': ''
     };
 
     constructor(

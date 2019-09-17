@@ -112,3 +112,4 @@ export const serviceNotCompatibleError = 'Client is not compatible with the serv
 export const sqlToolsServiceConfigKey = 'service';
 export const v1SqlToolsServiceConfigKey = 'v1Service';
 export const scriptSelectText = 'SELECT TOP (1000) * FROM ';
+export const useDatabaseText = 'USE ';

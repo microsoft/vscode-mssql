@@ -148,6 +148,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     // the function implementations of keyboard available events
     private shortcutfunc = {
+        'event.focusResultsGrid': () => {
+            this.slickgrids.toArray()[this.activeGrid]._grid.setActiveCell(0, 1);
+        },
         'event.toggleResultPane': () => {
             this.resultActive = !this.resultActive;
         },
@@ -463,6 +466,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 break;
             case 'copyWithHeaders':
                 this.dataService.copyResults(event.selection, event.batchId, event.resultId, true);
+                break;
+            case 'copyHeaders':
+                this.dataService.copyResults(undefined, event.batchId, event.resultId, true);
                 break;
             default:
                 break;

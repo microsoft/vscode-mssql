@@ -5,7 +5,6 @@ dist: trusty
 branches:
   only:
     - master
-    - dev
 
 language: node_js
 node_js:

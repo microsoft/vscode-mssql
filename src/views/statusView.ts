@@ -256,11 +256,10 @@ export default class StatusView implements vscode.Disposable {
     }
 
     private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
-        // Hide the most recently shown status bar
-        this.hideLastShownStatusBar();
-
         // Change the status bar to match the open file
         if (typeof editor !== 'undefined') {
+            // Hide the most recently shown status bar
+            this.hideLastShownStatusBar();
             const fileUri = editor.document.uri.toString();
             const bar = this._statusBars[fileUri];
             if (bar) {

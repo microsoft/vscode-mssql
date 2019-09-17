@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
+import * as os from 'os';
 import * as events from 'events';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
@@ -24,6 +25,7 @@ import * as path from 'path';
 import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 import { escapeCharacters } from '../utils/escapeCharacters';
+import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 
 /**
  * The main controller class that initializes the extension
@@ -124,9 +126,7 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdShowGettingStarted);
                 this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
                 this.registerCommand(Constants.cmdNewQuery);
-                this._event.on(Constants.cmdNewQuery, () => {
-                    self.runAndLogErrors(self.onNewQuery(), 'onNewQuery');
-                });
+                this._event.on(Constants.cmdNewQuery, () => self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'));
                 this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
                 this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
@@ -146,11 +146,13 @@ export default class MainController implements vscode.Disposable {
                         return vscode.commands.executeCommand(Constants.cmdOpenObjectExplorerCommand);
                     }
                 });
-                this.registerCommand(Constants.cmdObjectExplorerNewQuery);
-                this._event.on(Constants.cmdObjectExplorerNewQuery, () => {
-                    // emit new query with sessionId for connection
-                    self.runAndLogErrors(self.onNewQuery(this._objectExplorerProvider.currentNode.sessionId), 'onNewQuery');
-                });
+
+                this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo) => {
+                    const databaseName = `${escapeCharacters(self.getDatabaseName(treeNodeInfo))}`;
+                    const useStatement = Constants.useDatabaseText + databaseName + os.EOL;
+                    self.runAndLogErrors(self.onNewQuery(treeNodeInfo.sessionId, useStatement), 'onNewQueryOE');
+                }));
+
                 this.registerCommand(Constants.cmdRemoveObjectExplorerNode);
                 this._event.on(Constants.cmdRemoveObjectExplorerNode, async () => {
                     let connProfile = <IConnectionProfile>this._objectExplorerProvider.getConnectionCredentials(
@@ -166,9 +168,7 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdScriptSelect, async (treeNodeInfo) => {
                     const objectNames = treeNodeInfo.label.split('.');
                     const tableName = `[${escapeCharacters(objectNames[0])}].[${escapeCharacters(objectNames[1])}]`;
-                    const databaseName =  treeNodeInfo.parentNode.parentNode.nodeType === Constants.databaseString ?
-                        `[${escapeCharacters(treeNodeInfo.parentNode.parentNode.label)}].` :
-                        `[${escapeCharacters(treeNodeInfo.parentNode.parentNode.parentNode.label)}].`;
+                    const databaseName = `[${escapeCharacters(self.getDatabaseName(treeNodeInfo))}].`;
                     const selectStatement = Constants.scriptSelectText + databaseName + tableName;
                     self.onNewQuery(treeNodeInfo.sessionId, selectStatement).then((result) => {
                         if (result) {
@@ -254,6 +254,19 @@ export default class MainController implements vscode.Disposable {
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onCancelQuery');
         }
+    }
+
+    /**
+     * Looks for the database name of a node
+     */
+    private getDatabaseName(node: TreeNodeInfo): string {
+        while (node) {
+            if (node.nodeType === Constants.databaseString) {
+                return node.label;
+            }
+            node = node.parentNode;
+        }
+        return 'master';
     }
 
     /**

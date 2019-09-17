@@ -53,6 +53,7 @@ export class WebviewPanelController implements vscode.Disposable {
                 this._isPanelFocused = false;
                 return;
 
+            // if the webview just got focus
             } else if (p.webviewPanel.visible && p.webviewPanel.active && !this._isPanelFocused) {
                 if (!this.queryRunner.isExecutingQuery) {
                     // for refresh
@@ -61,6 +62,10 @@ export class WebviewPanelController implements vscode.Disposable {
                     // angular component to show up
                     setTimeout(async () => await this.queryRunner.refreshQueryTab(), 1700);
                 }
+            // if focus is on text editor
+            } else if (p.webviewPanel.visible && !p.webviewPanel.active) {
+                this._isPanelFocused = true;
+                return;
             }
         }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
