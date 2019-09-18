@@ -19,8 +19,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteMessageParams,
     QueryExecuteBatchNotificationParams,
     QueryExecuteOptionsRequest,
-    QueryExecuteOptionsParams,
-    QueryExecuteOptions} from '../models/contracts/queryExecute';
+    QueryExecutionOptionsParams,
+    QueryExecutionOptions} from '../models/contracts/queryExecute';
 import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
@@ -420,15 +420,12 @@ export default class QueryRunner {
 
 
     public switchSqlCmd(): Thenable<boolean> {
-        const map = new Map<string, any>();
-        map.set('isSqlCmdMode', !this.isSqlCmd);
-        const queryExecuteOptions: QueryExecuteOptions = {
-            options: map
-        }
-        const queryExecuteOptionsParams: QueryExecuteOptionsParams = {
+        const queryExecuteOptions: QueryExecutionOptions = { options: new Map<string, any>() };
+        queryExecuteOptions.options['isSqlCmdMode'] = !this.isSqlCmd;
+        const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
             ownerUri: this.uri,
             options: queryExecuteOptions
-        }
+        };
         return this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams).then(() => {
             this._isSqlCmd = !this._isSqlCmd;
             return true;

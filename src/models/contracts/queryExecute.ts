@@ -120,14 +120,14 @@ export class QueryExecuteSubsetResult {
 
 // ------------------------------- < Query Execution Options Request > ------------------------------------
 export namespace QueryExecuteOptionsRequest {
-    export const type = new RequestType<QueryExecuteOptionsParams, boolean, void, void>('query/setexecutionoptions');
+    export const type = new RequestType<QueryExecutionOptionsParams, boolean, void, void>('query/setexecutionoptions');
 }
 
-export class QueryExecuteOptionsParams {
+export class QueryExecutionOptionsParams {
     ownerUri: string;
-    options: QueryExecuteOptions;
+    options: QueryExecutionOptions;
 }
 
-export class QueryExecuteOptions {
+export class QueryExecutionOptions {
     options: Map<string, any>;
 }
