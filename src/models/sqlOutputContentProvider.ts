@@ -363,7 +363,6 @@ export class SqlOutputContentProvider {
     public switchSqlCmd(uri: string): Thenable<boolean> {
         const queryRunner = this.getQueryRunner(uri);
         return queryRunner.switchSqlCmd().then((result) => {
-            console.log(result);
             return result;
         });
     }
