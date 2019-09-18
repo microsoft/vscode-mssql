@@ -137,7 +137,6 @@ export class ObjectExplorerService {
             this._rootTreeNodeArray.splice(index, 1);
         }
         this._currentNode = undefined;
-        // check if uri
         const nodeUri = node.nodePath + '_' + node.label;
         this._connectionManager.disconnect(nodeUri);
         await this._objectExplorerProvider.refresh(undefined);
