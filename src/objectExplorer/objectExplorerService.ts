@@ -138,7 +138,8 @@ export class ObjectExplorerService {
         }
         this._currentNode = undefined;
         // check if uri
-        this._connectionManager.disconnect(node.nodePath + '_' + node.label);
+        const nodeUri = node.nodePath + '_' + node.label;
+        this._connectionManager.disconnect(nodeUri);
         await this._objectExplorerProvider.refresh(undefined);
     }
 

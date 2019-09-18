@@ -382,13 +382,6 @@ export default class ConnectionManager {
     }
 
     /**
-     * Remove the OE specific connections
-     */
-    public removeObjetExplorerConnection(objectExplorerConnectonUri: string): void {
-
-    }
-
-    /**
      * Clear the recently used connections list in the connection store
      */
     public clearRecentConnectionsList(): Promise<void> {
