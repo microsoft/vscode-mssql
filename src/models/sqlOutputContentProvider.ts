@@ -362,9 +362,12 @@ export class SqlOutputContentProvider {
      */
     public switchSqlCmd(uri: string): Thenable<boolean> {
         const queryRunner = this.getQueryRunner(uri);
-        return queryRunner.switchSqlCmd().then((result) => {
-            return result;
-        });
+        if (queryRunner) {
+            return queryRunner.switchSqlCmd().then((result) => {
+                return result;
+            });
+        }
+        return Promise.resolve(false);
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////

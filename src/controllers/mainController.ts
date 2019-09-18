@@ -246,20 +246,33 @@ export default class MainController implements vscode.Disposable {
      * Handles the command to enable SQLCMD mode
      */
     private async onSwitchSqlCmd(): Promise<boolean> {
+        let isSqlCmd: boolean;
         const queryRunner = this._outputContentProvider.getQueryRunner(this._vscodeWrapper.activeTextEditorUri);
-        if (queryRunner) {
-            const isSqlCmd = queryRunner.isSqlCmd;
-            return  this._outputContentProvider.switchSqlCmd(this._vscodeWrapper.activeTextEditorUri).then((result) => {
-                this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
-                return true;
-            });
-        } else {
-            let uri = await this._untitledSqlDocumentService.newQuery();
-            this._connectionMgr.onNewConnection().then(() => {
-                this._statusview.sqlCmdModeChanged(uri.toString(), true);
-                return true;
-            });
-        }
+        const promise = new Promise<boolean>(async (resolve, reject) => {
+            if (queryRunner) {
+                isSqlCmd = queryRunner.isSqlCmd;
+                this._outputContentProvider.switchSqlCmd(this._vscodeWrapper.activeTextEditorUri).then((result) => {
+                    this._connectionMgr.onChooseLanguageFlavor(!isSqlCmd).then(() => {
+                        this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
+                        resolve(true);
+                    });
+                });
+            } else {
+                isSqlCmd = true;
+                let uri = await this._untitledSqlDocumentService.newQuery();
+                return this._connectionMgr.onNewConnection().then(() => {
+                    this._outputContentProvider.switchSqlCmd(uri.toString()).then((result) => {
+                        if (result) {
+                            this._connectionMgr.onChooseLanguageFlavor(isSqlCmd).then(() => {
+                                this._statusview.sqlCmdModeChanged(uri.toString(), isSqlCmd);
+                                resolve(true);
+                            });
+                        }
+                    });
+                });
+            }
+        });
+        return promise;
     }
 
     /**
