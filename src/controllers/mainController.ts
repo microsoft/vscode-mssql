@@ -131,6 +131,8 @@ export default class MainController implements vscode.Disposable {
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
                 this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
                 this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { self.onLoadCompletionExtension(params); });
+                this.registerCommand(Constants.cmdSwitchSqlCmd);
+                this._event.on(Constants.cmdSwitchSqlCmd, () => { self.onSwitchSqlCmd(); });
 
                 // register the object explorer tree provider
                 this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
@@ -238,6 +240,24 @@ export default class MainController implements vscode.Disposable {
                 reject(err);
             });
         });
+    }
+
+    /**
+     * Handles the command to enable SQLCMD mode
+     */
+    private async onSwitchSqlCmd(): Promise<boolean> {
+        const queryRunner = this._outputContentProvider.getQueryRunner(this._vscodeWrapper.activeTextEditorUri);
+        if (queryRunner) {
+            const isSqlCmd = queryRunner.isSqlCmd;
+            return  this._outputContentProvider.switchSqlCmd(this._vscodeWrapper.activeTextEditorUri).then((result) => {
+                this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
+                return true;
+            });
+        } else {
+            let uri = await this._untitledSqlDocumentService.newQuery();
+            this._statusview.sqlCmdModeChanged(uri.toString(), true);
+            return this._connectionMgr.onNewConnection();
+        }
     }
 
     /**
@@ -588,7 +608,8 @@ export default class MainController implements vscode.Disposable {
                     return this.connectionManager.connect(uri.toString(), connectionCreds);
                 }
             } else {
-                await this._untitledSqlDocumentService.newQuery();
+                let uri = await this._untitledSqlDocumentService.newQuery();
+                this._statusview.sqlCmdModeChanged(uri.toString(), false);
                 return this._connectionMgr.onNewConnection();
             }
         }
