@@ -49,22 +49,22 @@ export default class ProgressIndicator {
             clearInterval(this._interval);
             this._interval = undefined;
         }
-        this.ProgressCounter = 0;
+        this.progressCounter = 0;
     }
 
-    private ProgressText = ['|', '/', '-', '\\', '|', '/', '-', '\\'];
-    private ProgressCounter = 0;
+    private progressText = ['|', '/', '-', '\\', '|', '/', '-', '\\'];
+    private progressCounter = 0;
     private onDisplayProgressIndicator(): void {
         if (this._tasks.length === 0) {
             return;
         }
 
-        let txt = this.ProgressText[this.ProgressCounter];
+        let txt = this.progressText[this.progressCounter];
         this._statusBarItem.text = this._tasks[this._tasks.length - 1] + ' ' + txt;
-        this.ProgressCounter++;
+        this.progressCounter++;
 
-        if (this.ProgressCounter >= this.ProgressText.length - 1) {
-            this.ProgressCounter = 0;
+        if (this.progressCounter >= this.progressText.length - 1) {
+            this.progressCounter = 0;
         }
     }
 }

@@ -5,7 +5,6 @@ dist: trusty
 branches:
   only:
     - master
-    - dev
 
 language: node_js
 node_js:
@@ -39,11 +38,6 @@ install:
 script:
   - gulp build
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then gulp cover:enableconfig; fi
-  - if [ $TRAVIS_OS_NAME == "osx" ]; then
-      sudo xvfb-maybe ./node_modules/.bin/karma start;
-    else
-      xvfb-maybe ./node_modules/.bin/karma start;
-    fi
   - xvfb-maybe node ./node_modules/vscode/bin/test
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       gulp cover:combine;

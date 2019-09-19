@@ -20,6 +20,11 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.6.0
+* Extension install no longer requires reloading VS Code
+* Update Query Results Webview API calls for compatibility with VS Code May release
+* Fix "Save as CSV" exception
+
 ## What's new in 1.5.0
 * Update vscode-languageclient to fix issue [#1194 Refresh Intellisence cache option don't work](https://github.com/Microsoft/vscode-mssql/issues/1194)
 * Import CSV export options such as setting delimiter, line separator, encoding and include headers
@@ -264,7 +269,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```1.4.0```. See the [change log] for a detailed list of changes in each version.
+The current version is ```1.6.0```. See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 

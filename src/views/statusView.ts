@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
@@ -30,14 +35,16 @@ class FileStatusBar {
 export default class StatusView implements vscode.Disposable {
     private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
+    private _onDidChangeActiveTextEditorEvent: vscode.Disposable;
+    private _onDidCloseTextDocumentEvent: vscode.Disposable;
 
     constructor(private _vscodeWrapper?: VscodeWrapper) {
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
         this._statusBars = {};
-        this._vscodeWrapper.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
-        this._vscodeWrapper.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
+        this._onDidChangeActiveTextEditorEvent = this._vscodeWrapper.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
+        this._onDidCloseTextDocumentEvent = this._vscodeWrapper.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
     }
 
     dispose(): void {
@@ -51,6 +58,8 @@ export default class StatusView implements vscode.Disposable {
                 delete this._statusBars[bar];
             }
         }
+        this._onDidChangeActiveTextEditorEvent.dispose();
+        this._onDidCloseTextDocumentEvent.dispose();
     }
 
     // Create status bar item if needed
@@ -247,11 +256,10 @@ export default class StatusView implements vscode.Disposable {
     }
 
     private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
-        // Hide the most recently shown status bar
-        this.hideLastShownStatusBar();
-
         // Change the status bar to match the open file
         if (typeof editor !== 'undefined') {
+            // Hide the most recently shown status bar
+            this.hideLastShownStatusBar();
             const fileUri = editor.document.uri.toString();
             const bar = this._statusBars[fileUri];
             if (bar) {

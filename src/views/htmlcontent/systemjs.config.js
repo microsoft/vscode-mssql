@@ -4,11 +4,11 @@
  */
 (function(global) {
   var paths = {
-    'npm:': 'lib/js/'
+    'npm:': 'views/htmlcontent/src/js/lib/'
   }
   // map tells the System loader where to look for things
   var map = {
-    'app':                        'dist/js', // 'dist',
+    'app':                        'views/htmlcontent/src/js',
     '@angular':                   'npm:@angular',
     'rxjs':                       'npm:rxjs',
     'json':                       'npm:json.js',
@@ -22,13 +22,15 @@
     '@angular/platform-browser-dynamic':  'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
     '@angular/router':            'npm:@angular/router/bundles/router.umd.js',
     '@angular/upgrade':           'npm:@angular/upgrade/bundles/upgrade.umd.js',
-    'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js'
+    'angular-in-memory-web-api':  'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
     'app':                        { main: 'main.js',  defaultExtension: 'js' },
-    '':                           { main: 'constants.js', defaultExtension: 'js'},
-    'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'}
+    '':                           { main: 'views/htmlcontent/src/js/constants.js', defaultExtension: 'js'},
+    'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'},
+    '/src/controllers':           { defaultExtension: 'js' },
+    'rxjs':                       { main: 'Rx.js', defaultExtension: 'js' }
   };
   var meta = {
     '**/*.json' : {

@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
@@ -43,8 +48,8 @@ export class ConnectionStore {
     public static get CRED_DB_PREFIX(): string { return 'db:'; }
     public static get CRED_USER_PREFIX(): string { return 'user:'; }
     public static get CRED_ITEMTYPE_PREFIX(): string { return 'itemtype:'; }
-    public static get CRED_PROFILE_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Profile]; };
-    public static get CRED_MRU_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru]; };
+    public static get CRED_PROFILE_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Profile]; }
+    public static get CRED_MRU_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru]; }
 
     public static formatCredentialIdForCred(creds: IConnectionCredentials, itemType?: CredentialsQuickPickItemType): string {
         if (Utils.isEmpty(creds)) {
@@ -368,7 +373,7 @@ export class ConnectionStore {
     }
 
     // Load connections from user preferences
-    private loadAllConnections(): IConnectionCredentialsQuickPickItem[] {
+    public loadAllConnections(): IConnectionCredentialsQuickPickItem[] {
         let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
 
         // Read recently used items from a memento

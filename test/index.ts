@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 //
 // PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING
 //
@@ -23,7 +28,7 @@ testRunner.configure(
         reporter: 'pm-mocha-jenkins-reporter',
         reporterOptions: {
             junit_report_name: 'Extension Tests',
-            junit_report_path: __dirname + '/../../test-reports/extension_tests.xml',
+            junit_report_path: __dirname + '../test-reports/extension_tests.xml',
             junit_report_stack: 1
         },
         useColors: true         // colored output from test results

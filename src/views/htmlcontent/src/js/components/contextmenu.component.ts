@@ -3,18 +3,15 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from '@angular/core';
-import {ISlickRange} from 'angular2-slickgrid';
-
+import {ISlickRange} from '../interfaces';
 import {ShortcutService} from './../services/shortcuts.service';
-
 import * as Constants from './../constants';
-import * as Utils from './../utils';
 /**
  * The component that acts as the contextMenu for slick grid
  */
 
 const template = `
-<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top]="position.y" [style.left]="position.x">
+<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top.px]="position.y" [style.left.px]="position.x">
     <li id="savecsv" (click)="handleContextActionClick('savecsv')" [class.disabled]="isDisabled"> {{Constants.saveCSVLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.saveAsCSV']}}</span></li>
     <li id="savejson" (click)="handleContextActionClick('savejson')" [class.disabled]="isDisabled"> {{Constants.saveJSONLabel}}
@@ -27,6 +24,8 @@ const template = `
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copySelection']}}</span></li>
     <li id="copyWithHeaders" (click)="handleContextActionClick('copyWithHeaders')" [class.disabled]="isDisabled"> {{Constants.copyWithHeadersLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copyWithHeaders']}}</span></li>
+    <li id="copyHeaders" (click)="handleContextActionClick('copyHeaders')" [class.disabled]="isDisabled"> {{Constants.copyHeadersLabel}}
+        <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copyHeaders']}}</span></li>
 </ul>
 `;
 
@@ -37,8 +36,6 @@ const template = `
 })
 
 export class ContextMenu implements OnInit {
-    // tslint:disable-next-line:no-unused-variable
-    private Utils = Utils;
     // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
 
@@ -56,10 +53,13 @@ export class ContextMenu implements OnInit {
         'event.saveAsJSON': '',
         'event.selectAll': '',
         'event.copySelection': '',
-        'event.copyWithHeaders': ''
+        'event.copyWithHeaders': '',
+        'event.copyHeaders': ''
     };
 
-    constructor(@Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService) {
+    constructor(
+        @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService
+    ) {
         const self = this;
         for (let key in this.keys) {
             if (this.keys.hasOwnProperty(key)) {

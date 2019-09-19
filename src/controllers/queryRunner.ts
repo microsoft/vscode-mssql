@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 'use strict';
 import { EventEmitter } from 'events';
 
@@ -21,8 +26,6 @@ import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
 import * as os from 'os';
 
-const ncp = require('copy-paste');
-
 export interface IResultSet {
     columns: string[];
     totalNumberOfRows: number;
@@ -35,8 +38,6 @@ export default class QueryRunner {
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _batchSets: BatchSummary[] = [];
     private _isExecuting: boolean;
-    private _uri: string;
-    private _title: string;
     private _resultLineOffset: number;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
@@ -50,6 +51,7 @@ export default class QueryRunner {
                 private _client?: SqlToolsServerClient,
                 private _notificationHandler?: QueryNotificationHandler,
                 private _vscodeWrapper?: VscodeWrapper) {
+
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
         }
@@ -63,8 +65,6 @@ export default class QueryRunner {
         }
 
         // Store the state
-        this._uri = _ownerUri;
-        this._title = _editorTitle;
         this._isExecuting = false;
         this._totalElapsedMilliseconds = 0;
         this._hasCompleted = false;
@@ -73,19 +73,19 @@ export default class QueryRunner {
     // PROPERTIES //////////////////////////////////////////////////////////
 
     get uri(): string {
-        return this._uri;
+        return this._ownerUri;
     }
 
     set uri(uri: string) {
-        this._uri = uri;
+        this._ownerUri = uri;
     }
 
     get title(): string {
-        return this._title;
+        return this._editorTitle;
     }
 
     set title(title: string) {
-        this._title = title;
+        this._editorTitle = title;
     }
 
     get batchSets(): BatchSummary[] {
@@ -108,7 +108,7 @@ export default class QueryRunner {
 
     public cancel(): Thenable<QueryCancelResult> {
         // Make the request to cancel the query
-        let cancelParams: QueryCancelParams = { ownerUri: this._uri };
+        let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         return this._client.sendRequest(QueryCancelRequest.type, cancelParams);
     }
 
@@ -119,7 +119,7 @@ export default class QueryRunner {
             (onSuccess, onError) => {
                 // Put together the request
                 let queryDetails: QueryExecuteStatementParams = {
-                    ownerUri: this._uri,
+                    ownerUri: this._ownerUri,
                     line: line,
                     column: column
                 };
@@ -136,7 +136,7 @@ export default class QueryRunner {
             (onSuccess, onError) => {
                // Put together the request
                 let queryDetails: QueryExecuteParams = {
-                    ownerUri: this._uri,
+                    ownerUri: this._ownerUri,
                     querySelection: selection
                 };
 
@@ -148,7 +148,7 @@ export default class QueryRunner {
     // Pulls the query text from the current document/selection and initiates the query
     private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
         const self = this;
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._uri));
+        self._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
 
         // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
@@ -158,8 +158,8 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
-            self.eventEmitter.emit('start');
-            self._notificationHandler.registerRunner(self, self._uri);
+            self.eventEmitter.emit('start', self.uri);
+            self._notificationHandler.registerRunner(self, self._ownerUri);
         };
         let onError = (error) => {
             self._statusView.executedQuery(self.uri);
@@ -173,7 +173,7 @@ export default class QueryRunner {
 
     // handle the result of the notification
     public handleQueryComplete(result: QueryExecuteCompleteNotificationResult): void {
-        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._uri));
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFinishedExecute, this._ownerUri));
 
         // Store the batch sets we got back as a source of "truth"
         this._isExecuting = false;
@@ -223,6 +223,31 @@ export default class QueryRunner {
         this.eventEmitter.emit('batchComplete', batch);
     }
 
+    /**
+     * Refreshes the webview panel with the query results when tabs are changed
+     */
+    public async refreshQueryTab(): Promise<boolean> {
+        for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
+            const batchSet = this.batchSets[batchId];
+            this.eventEmitter.emit('batchStart', batchSet);
+            let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
+            this._totalElapsedMilliseconds += executionTime;
+            if (executionTime > 0) {
+                // send a time message in the format used for query complete
+                this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));
+            }
+            this.eventEmitter.emit('batchComplete', batchSet);
+            for (let resultSetId = 0; resultSetId < batchSet.resultSetSummaries.length; resultSetId++) {
+                let resultSet = batchSet.resultSetSummaries[resultSetId];
+                this.eventEmitter.emit('resultSet', resultSet, true);
+            }
+        }
+        // We're done with this query so shut down any waiting mechanisms
+        this._statusView.executedQuery(this.uri);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true);
+        return Promise.resolve(true);
+    }
+
     public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
@@ -240,8 +265,10 @@ export default class QueryRunner {
         this.eventEmitter.emit('message', message);
     }
 
-    // get more data rows from the current resultSets from the service layer
-    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Thenable<QueryExecuteSubsetResult> {
+    /*
+     * Get more data rows from the current resultSets from the service layer
+     */
+    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Promise<QueryExecuteSubsetResult> {
         const self = this;
         let queryDetails = new QueryExecuteSubsetParams();
         queryDetails.ownerUri = this.uri;
@@ -303,6 +330,34 @@ export default class QueryRunner {
         return new Promise<void>((resolve, reject) => {
             let copyString = '';
 
+            // if just copy headers
+            if (!selection && self.shouldIncludeHeaders(includeHeaders)) {
+                const columns = self.batchSets[batchId].resultSetSummaries[resultId].columnInfo.length;
+                const headerRange: ISlickRange = {
+                    fromRow: 0,
+                    fromCell: 0,
+                    toRow: 0,
+                    toCell: columns
+                };
+                let columnHeaders = self.getColumnHeaders(batchId, resultId, headerRange);
+                if (columnHeaders !== undefined) {
+                    copyString += columnHeaders.join('\t') + os.EOL;
+                }
+                return this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
+                    let oldLang: string;
+                    if (process.platform === 'darwin') {
+                        oldLang = process.env['LANG'];
+                        process.env['LANG'] = 'en_US.UTF-8';
+                    }
+                    this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
+                        if (process.platform === 'darwin') {
+                            process.env['LANG'] = oldLang;
+                        }
+                        resolve();
+                    });
+                });
+            }
+
             // create a mapping of the ranges to get promises
             let tasks = selection.map((range, i) => {
                 return () => {
@@ -341,7 +396,7 @@ export default class QueryRunner {
                     oldLang = process.env['LANG'];
                     process.env['LANG'] = 'en_US.UTF-8';
                 }
-                ncp.copy(copyString, () => {
+                this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
                     if (process.platform === 'darwin') {
                         process.env['LANG'] = oldLang;
                     }
@@ -378,7 +433,7 @@ export default class QueryRunner {
         return outputString;
     }
 
-    private sendBatchTimeMessage(batchId: number, executionTime: string): void {
+    private sendBatchTimeMessage(batchId: number, executionTime: string, isRefresh?: boolean): void {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
         let showBatchTime: boolean = config[Constants.configShowBatchTime];
@@ -390,7 +445,7 @@ export default class QueryRunner {
                 isError: false
             };
             // Send the message to the results pane
-            this.eventEmitter.emit('message', message);
+            this.eventEmitter.emit('message', message, isRefresh);
         }
     }
 
@@ -398,21 +453,19 @@ export default class QueryRunner {
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
      */
-    public setEditorSelection(selection: ISelectionData): Thenable<void> {
+    public setEditorSelection(selection: ISelectionData): Promise<void> {
         const self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let column = vscode.ViewColumn.One;
-            let visibleEditors = self._vscodeWrapper.visibleEditors;
-            visibleEditors.forEach(editor => {
-                if (editor.document.uri.toString() === self.uri) {
-                    column = editor.viewColumn;
-                }
-            });
             self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                self._vscodeWrapper.showTextDocument(doc, column).then((editor) => {
-                    editor.selection = self._vscodeWrapper.selection(
-                                    self._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                                    self._vscodeWrapper.position(selection.endLine, selection.endColumn));
+                self._vscodeWrapper.showTextDocument(doc, column).then(async (editor) => {
+                    let querySelection = new vscode.Selection(
+                        selection.startLine,
+                        selection.startColumn,
+                        selection.endLine,
+                        selection.endColumn);
+                    let activeEditor = vscode.window.activeTextEditor;
+                    activeEditor.selection = querySelection;
                     resolve();
                 });
             });
@@ -424,7 +477,7 @@ export default class QueryRunner {
     }
 
     // public for testing only - used to mock handleQueryComplete
-    public _setHasCompleted(): void {
+    public setHasCompleted(): void {
         this._hasCompleted = true;
     }
 

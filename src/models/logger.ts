@@ -26,7 +26,7 @@ export class Logger implements ILogger {
         Utils.logDebug(message);
     }
 
-    private _appendCore(message: string): void {
+    private appendCore(message: string): void {
         if (this._atLineStart) {
             if (this._indentLevel > 0) {
                 const indent = ' '.repeat(this._indentLevel * this._indentSize);
@@ -55,12 +55,12 @@ export class Logger implements ILogger {
 
     public append(message?: string): void {
         message = message || '';
-        this._appendCore(message);
+        this.appendCore(message);
     }
 
     public appendLine(message?: string): void {
         message = message || '';
-        this._appendCore(message + os.EOL);
+        this.appendCore(message + os.EOL);
         this._atLineStart = true;
     }
 }

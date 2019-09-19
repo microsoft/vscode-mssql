@@ -1,5 +1,17 @@
 # Change Log
 
+## Version 1.6.0
+* Release date: April 22, 2019
+* Release status: GA
+
+## What's new in 1.6.0
+* Extension install no longer requires reloading VS Code
+* Update Query Results Webview API calls for compatibility with VS Code May release
+* Fix "Save as CSV" exception
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues.
+
 ## Version 1.5.0
 * Release date: March 22, 2019
 * Release status: GA
@@ -37,7 +49,6 @@ We would like to thank all our users who raised issues, and in particular the fo
   * Note that this option is false by default because it [may cause high memory usage](https://code.visualstudio.com/docs/extensions/webview#_retaincontextwhenhidden).
   * If you use this option and have feedback on it please share it on our [GitHub page](https://github.com/Microsoft/vscode-mssql/issues/916).
 
-
 ### Contributions and "thank you"
 We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
 * [@ChristianGrimberg](https://github.com/ChristianGrimberg) for adding support for Deepin Linux
@@ -53,7 +64,6 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Fixed issue [#1066](https://github.com/Microsoft/vscode-mssql/issues/1066) RAND() function using GO N produces the same result
 * Syntax highlighting more closely matches SSMS for local variables, global system varaibles, unicode string literals, bracketed identifiers, and built in functions
 * Show all error messages instead of just the first one when query execution results in multiple errors
-
 
 ### Contributions and "thank you"
 We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
@@ -72,7 +82,6 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Fixed issue [#1025](https://github.com/Microsoft/vscode-mssql/issues/1025) where query execution would fail when executing from file paths containing special characters
 * Fixed issue [#785](https://github.com/Microsoft/vscode-mssql/issues/785) Inactive connection can't reconnect with out VS Code restart
 * A community-contributed fix for snippets that failed on databases with case-sensitive collations.
-
 
 ### Contributions and "thank you"
 * Thank you to Stefán Jökull Sigurðarson for contributing the fix for snippets that failed with case-sensitive collations, which was ported here from the SQL Operations Studio repository.

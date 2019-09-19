@@ -58,6 +58,80 @@ export function getRuntimeDisplayName(runtime: Runtime): string {
     }
 }
 
+/**
+ * There is no standard way on Linux to find the distribution name and version.
+ * Recently, systemd has pushed to standardize the os-release file. This has
+ * seen adoption in "recent" versions of all major distributions.
+ * https://www.freedesktop.org/software/systemd/man/os-release.html
+ */
+export class LinuxDistribution {
+    public constructor(
+        public name: string,
+        public version: string,
+        public idLike?: string[]) { }
+
+    public static getCurrent(): Promise<LinuxDistribution> {
+        // Try /etc/os-release and fallback to /usr/lib/os-release per the synopsis
+        // at https://www.freedesktop.org/software/systemd/man/os-release.html.
+        return LinuxDistribution.fromFilePath('/etc/os-release')
+            .catch(() => LinuxDistribution.fromFilePath('/usr/lib/os-release'))
+            .catch(() => Promise.resolve(new LinuxDistribution(unknown, unknown)));
+    }
+
+    public toString(): string {
+        return `name=${this.name}, version=${this.version}`;
+    }
+
+    private static fromFilePath(filePath: string): Promise<LinuxDistribution> {
+        return new Promise<LinuxDistribution>((resolve, reject) => {
+            fs.readFile(filePath, 'utf8', (error, data) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(LinuxDistribution.fromReleaseInfo(data));
+                }
+            });
+        });
+    }
+
+    public static fromReleaseInfo(releaseInfo: string, eol: string = os.EOL): LinuxDistribution {
+        let name = unknown;
+        let version = unknown;
+        let idLike: string[] = undefined;
+
+        const lines = releaseInfo.split(eol);
+        for (let line of lines) {
+            line = line.trim();
+
+            let equalsIndex = line.indexOf('=');
+            if (equalsIndex >= 0) {
+                let key = line.substring(0, equalsIndex);
+                let value = line.substring(equalsIndex + 1);
+
+                // Strip quotes if necessary
+                if (value.length > 1 && value.startsWith('"') && value.endsWith('"')) {
+                    value = value.substring(1, value.length - 1);
+                } else if (value.length > 1 && value.startsWith('\'') && value.endsWith('\'')) {
+                    value = value.substring(1, value.length - 1);
+                }
+
+                if (key === 'ID') {
+                    name = value;
+                } else if (key === 'VERSION_ID') {
+                    version = value;
+                } else if (key === 'ID_LIKE') {
+                    idLike = value.split(' ');
+                }
+
+                if (name !== unknown && version !== unknown && idLike !== undefined) {
+                    break;
+                }
+            }
+        }
+
+        return new LinuxDistribution(name, version, idLike);
+    }
+}
 export class PlatformInformation {
     public runtimeId: Runtime;
 
@@ -128,25 +202,25 @@ export class PlatformInformation {
         return result;
     }
 
-    public static GetCurrent(): Promise<PlatformInformation> {
+    public static getCurrent(): Promise<PlatformInformation> {
         let platform = os.platform();
         let architecturePromise: Promise<string>;
         let distributionPromise: Promise<LinuxDistribution>;
 
         switch (platform) {
             case 'win32':
-                architecturePromise = PlatformInformation.GetWindowsArchitecture();
+                architecturePromise = PlatformInformation.getWindowsArchitecture();
                 distributionPromise = Promise.resolve(undefined);
                 break;
 
             case 'darwin':
-                architecturePromise = PlatformInformation.GetUnixArchitecture();
+                architecturePromise = PlatformInformation.getUnixArchitecture();
                 distributionPromise = Promise.resolve(undefined);
                 break;
 
             case 'linux':
-                architecturePromise = PlatformInformation.GetUnixArchitecture();
-                distributionPromise = LinuxDistribution.GetCurrent();
+                architecturePromise = PlatformInformation.getUnixArchitecture();
+                distributionPromise = LinuxDistribution.getCurrent();
                 break;
 
             default:
@@ -160,7 +234,7 @@ export class PlatformInformation {
         });
     }
 
-    private static GetWindowsArchitecture(): Promise<string> {
+    private static getWindowsArchitecture(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
              if (process.env.PROCESSOR_ARCHITECTURE === 'x86' && process.env.PROCESSOR_ARCHITEW6432 === undefined) {
                  resolve('x86');
@@ -170,7 +244,7 @@ export class PlatformInformation {
         });
     }
 
-    private static GetUnixArchitecture(): Promise<string> {
+    private static getUnixArchitecture(): Promise<string> {
         return this.execChildProcess('uname -m')
             .then(architecture => {
                 if (architecture) {
@@ -317,81 +391,6 @@ export class PlatformInformation {
         }
 
         return Runtime.Ubuntu_16;
-    }
-}
-
-/**
- * There is no standard way on Linux to find the distribution name and version.
- * Recently, systemd has pushed to standardize the os-release file. This has
- * seen adoption in "recent" versions of all major distributions.
- * https://www.freedesktop.org/software/systemd/man/os-release.html
- */
-export class LinuxDistribution {
-    public constructor(
-        public name: string,
-        public version: string,
-        public idLike?: string[]) { }
-
-    public static GetCurrent(): Promise<LinuxDistribution> {
-        // Try /etc/os-release and fallback to /usr/lib/os-release per the synopsis
-        // at https://www.freedesktop.org/software/systemd/man/os-release.html.
-        return LinuxDistribution.FromFilePath('/etc/os-release')
-            .catch(() => LinuxDistribution.FromFilePath('/usr/lib/os-release'))
-            .catch(() => Promise.resolve(new LinuxDistribution(unknown, unknown)));
-    }
-
-    public toString(): string {
-        return `name=${this.name}, version=${this.version}`;
-    }
-
-    private static FromFilePath(filePath: string): Promise<LinuxDistribution> {
-        return new Promise<LinuxDistribution>((resolve, reject) => {
-            fs.readFile(filePath, 'utf8', (error, data) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(LinuxDistribution.FromReleaseInfo(data));
-                }
-            });
-        });
-    }
-
-    public static FromReleaseInfo(releaseInfo: string, eol: string = os.EOL): LinuxDistribution {
-        let name = unknown;
-        let version = unknown;
-        let idLike: string[] = undefined;
-
-        const lines = releaseInfo.split(eol);
-        for (let line of lines) {
-            line = line.trim();
-
-            let equalsIndex = line.indexOf('=');
-            if (equalsIndex >= 0) {
-                let key = line.substring(0, equalsIndex);
-                let value = line.substring(equalsIndex + 1);
-
-                // Strip quotes if necessary
-                if (value.length > 1 && value.startsWith('"') && value.endsWith('"')) {
-                    value = value.substring(1, value.length - 1);
-                } else if (value.length > 1 && value.startsWith('\'') && value.endsWith('\'')) {
-                    value = value.substring(1, value.length - 1);
-                }
-
-                if (key === 'ID') {
-                    name = value;
-                } else if (key === 'VERSION_ID') {
-                    version = value;
-                } else if (key === 'ID_LIKE') {
-                    idLike = value.split(' ');
-                }
-
-                if (name !== unknown && version !== unknown && idLike !== undefined) {
-                    break;
-                }
-            }
-        }
-
-        return new LinuxDistribution(name, version, idLike);
     }
 }
 

@@ -6,11 +6,11 @@ declare let Slick;
     // register namespace
     $.extend(true, window, {
         'Slick': {
-            'DragRowSelectionModel': DragRowSelectionModel
+            'DragRowSelectionModel': dragRowSelectionModel
         }
     });
 
-    function DragRowSelectionModel(): any {
+    function dragRowSelectionModel(): any {
         const keyColResizeIncr = 5;
 
         let _grid;

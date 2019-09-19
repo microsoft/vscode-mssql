@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 'use string';
 import { InputBoxOptions, QuickPickOptions } from 'vscode';
 
@@ -13,7 +18,7 @@ export class PropertyUpdater<T> {
         private propertySetter: (obj: T, input: string) => void) {
     }
 
-    public static CreateQuickPickUpdater<T>(
+    public static createQuickPickUpdater<T>(
         quickPickOptions: QuickPickOptions,
         propertyChecker: (obj: T) => boolean,
         propertySetter: (obj: T, input: string) => void): PropertyUpdater<T> {
@@ -21,7 +26,7 @@ export class PropertyUpdater<T> {
         return new PropertyUpdater<T>(undefined, quickPickOptions, propertyChecker, propertySetter);
     }
 
-    public static CreateInputBoxUpdater<T>(
+    public static createInputBoxUpdater<T>(
         inputBoxOptions: InputBoxOptions,
         propertyChecker: (obj: T) => boolean,
         propertySetter: (obj: T, input: string) => void): PropertyUpdater<T> {

@@ -3,13 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from '@angular/core';
-
 import {ShortcutService} from './../services/shortcuts.service';
-
 import * as Constants from './../constants';
 import * as Utils from './../utils';
-
-
 import { IRange } from './../interfaces';
 
 /**
@@ -31,9 +27,7 @@ const template = `
 })
 
 export class MessagesContextMenu implements OnInit {
-    // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
-    // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
 
     @Output() clickEvent: EventEmitter<{type: string, selectedRange: IRange }>

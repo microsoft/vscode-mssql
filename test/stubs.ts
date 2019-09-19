@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 'use strict';
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 import vscode = require('vscode');
@@ -21,7 +26,9 @@ class TestExtensionContext implements vscode.ExtensionContext {
     workspaceState: vscode.Memento;
     globalState: vscode.Memento;
     extensionPath: string;
-    storagePath;
+    storagePath: string;
+    globalStoragePath: string;
+    logPath: string;
 
     asAbsolutePath(relativePath: string): string {
         return undefined;
@@ -37,11 +44,11 @@ class TestTextEditor implements vscode.TextEditor {
     viewColumn: vscode.ViewColumn;
     visibleRanges: vscode.Range[];
 
-    edit(callback: (editBuilder: vscode.TextEditorEdit) => void): Thenable<boolean> { return undefined; };
-    setDecorations(decorationType: vscode.TextEditorDecorationType, rangesOrOptions: vscode.Range[] | vscode.DecorationOptions[]): void { return undefined; };
-    revealRange(range: vscode.Range, revealType?: vscode.TextEditorRevealType): void { return undefined; };
-    show(column?: vscode.ViewColumn): void { return undefined; };
-    hide(): void { return undefined; };
+    edit(callback: (editBuilder: vscode.TextEditorEdit) => void): Thenable<boolean> { return undefined; }
+    setDecorations(decorationType: vscode.TextEditorDecorationType, rangesOrOptions: vscode.Range[] | vscode.DecorationOptions[]): void { return undefined; }
+    revealRange(range: vscode.Range, revealType?: vscode.TextEditorRevealType): void { return undefined; }
+    show(column?: vscode.ViewColumn): void { return undefined; }
+    hide(): void { return undefined; }
     insertSnippet(snippet: vscode.SnippetString, location?: vscode.Position | vscode.Range | vscode.Position[] | vscode.Range[], options?:
     { undoStopBefore: boolean; undoStopAfter: boolean; }): Thenable<boolean> {
         return undefined;
@@ -144,7 +151,7 @@ class ExpressRequest {
         startLine?: number,
         startColumn?: number,
         endLine?: number,
-        endColumn?: number,
+        endColumn?: number
     };
 
     public body: any;
