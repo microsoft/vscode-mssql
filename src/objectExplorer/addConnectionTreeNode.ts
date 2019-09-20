@@ -13,6 +13,6 @@ export class AddConnectionTreeNode extends vscode.TreeItem {
         this.command = {
             title: 'add connection',
             command: 'extension.addObjectExplorer'
-        }
+        };
     }
 }
