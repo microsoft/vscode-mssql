@@ -17,7 +17,6 @@ import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionCredentials } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
-import * as Utils from '../models/utils';
 
 export class ObjectExplorerService {
 
@@ -27,11 +26,6 @@ export class ObjectExplorerService {
     private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
-
-    private _sessionCreatedEmitter: vscode.EventEmitter<TreeNodeInfo> =
-        new vscode.EventEmitter<TreeNodeInfo>();
-    private readonly _sessionCreatedEvent: vscode.Event<TreeNodeInfo> =
-        this._sessionCreatedEmitter.event;
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
@@ -63,8 +57,6 @@ export class ObjectExplorerService {
                 }
                 self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
-                // return self._objectExplorerProvider.refresh(undefined);
-                // return self.getChildren(self._currentNode);
                 return self._objectExplorerProvider.refresh(undefined);
             } else {
                 // failure
@@ -76,7 +68,6 @@ export class ObjectExplorerService {
                     error += ` : ${result.errorMessage}`;
                 }
                 self._connectionManager.vscodeWrapper.showErrorMessage(error);
-                // self._sessionCreatedEmitter.fire(undefined);
                 return self._objectExplorerProvider.refresh(undefined);
             }
 
