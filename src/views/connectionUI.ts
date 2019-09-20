@@ -183,6 +183,26 @@ export class ConnectionUI {
     }
 
     /**
+     * Prompt the user for password
+     */
+    public promptForPassword(): Promise<string> {
+        const self = this;
+        return new Promise<string>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.password,
+                name: LocalizedConstants.passwordPrompt,
+                message: LocalizedConstants.passwordPrompt,
+                placeHolder: LocalizedConstants.passwordPlaceholder
+            };
+            self._prompter.promptSingle(question).then((result: string) => {
+                resolve(result);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    }
+
+    /**
      * Prompt the user to change language mode to SQL.
      * @returns resolves to true if the user changed the language mode to SQL.
      */

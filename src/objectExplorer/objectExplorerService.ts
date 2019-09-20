@@ -13,6 +13,9 @@ import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
+import { IConnectionCredentials } from '../models/interfaces';
+import LocalizedConstants = require('../constants/localizedConstants');
+import * as Utils from '../models/utils';
 
 export class ObjectExplorerService {
 
@@ -42,10 +45,22 @@ export class ObjectExplorerService {
         const handler = (result: SessionCreatedParameters) => {
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
-                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, self.currentNode, nodeLabel);
-                self._rootTreeNodeArray.push(self.currentNode);
+                // set connection and other things
+                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
+                    self._currentNode, self._currentNode.connectionCredentials, nodeLabel);
+                self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
-                return self._objectExplorerProvider.refresh(undefined);
+                // return self._objectExplorerProvider.refresh(undefined);
+                return self.getChildren(self._currentNode);
+            } else {
+                // failure
+                self._currentNode = undefined;
+                let error = LocalizedConstants.connectErrorLabel;
+                if (result.errorMessage) {
+                    error += ` : ${result.errorMessage}`;
+                }
+                self._connectionManager.vscodeWrapper.showErrorMessage(error);
+                return Promise.reject();
             }
         };
         return handler;
@@ -55,10 +70,12 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
-                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self.currentNode.sessionId, self.currentNode));
+                // same here
+                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self._currentNode.sessionId,
+                    self._currentNode, self._currentNode.connectionCredentials));
                 self._currentNode.collapsibleState = TreeItemCollapsibleState.Expanded;
-                self._treeNodeToChildrenMap.set(self.currentNode, children);
-                return self._objectExplorerProvider.refresh(self.currentNode);
+                self._treeNodeToChildrenMap.set(self._currentNode, children);
+                return self._objectExplorerProvider.refresh(undefined);
             }
         };
         return handler;
@@ -73,50 +90,88 @@ export class ObjectExplorerService {
         return response;
     }
 
+    private updateNode(node: TreeNodeInfo): void {
+        for (let rootTreeNode of this._rootTreeNodeArray) {
+            if (rootTreeNode.connectionCredentials === node.connectionCredentials &&
+                rootTreeNode.label === node.label) {
+                    const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
+                    this._rootTreeNodeArray[index] = node;
+                    return;
+            }
+        }
+        this._rootTreeNodeArray.push(node);
+    }
+
     async getChildren(element?: TreeNodeInfo): Promise<TreeNodeInfo[]> {
         if (element) {
-            if (element !== this.currentNode) {
+            if (element !== this._currentNode) {
                 this._currentNode = element;
             }
+            // get cached children
             if (this._treeNodeToChildrenMap.get(this._currentNode)) {
                 return this._treeNodeToChildrenMap.get(this._currentNode);
             } else {
-                // expansion
-                await this.expandNode(element, element.sessionId);
-                return [];
+                // check if session exists
+                if (element.sessionId) {
+                    // node expansion
+                    this.expandNode(element, element.sessionId);
+                } else {
+                    // start node session
+                    this.createSession(element.connectionCredentials).catch((err) => {
+                        return Promise.reject();
+                    });
+                }
+                return;
             }
         } else {
             // retrieve saved connections first when opening object explorer
             // for the first time
             if (!this._objectExplorerProvider.objectExplorerExists) {
                 let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
-                savedConnections.forEach(async (conn) => {
+                savedConnections.forEach((conn) => {
                     let connectionCredentials = conn.connectionCreds;
                     this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, conn.label);
-                    if (connectionCredentials) {
-                        const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
-                        const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
-                        this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
-                    }
+                    let node = new TreeNodeInfo(conn.label, undefined, TreeItemCollapsibleState.Collapsed,
+                            undefined, undefined, 'Server', undefined, connectionCredentials, undefined);
+                    this._rootTreeNodeArray.push(node);
                 });
+                this._objectExplorerProvider.objectExplorerExists = true;
+                this._objectExplorerProvider.refresh(undefined);
                 return;
             }
             if (this._rootTreeNodeArray.length === 0) {
-                this.createSession();
-                return [];
+                await this.createSession();
             } else {
                 return this._rootTreeNodeArray;
             }
         }
     }
 
-    public async createSession(): Promise<string> {
-        const connectionUI = this._connectionManager.connectionUI;
-        const connectionCreds = await connectionUI.showConnections();
-        if (connectionCreds) {
-            const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
+    /**
+     * Create an OE session for the given connection credentials
+     * otherwise prompt the user to select a connection to make an
+     * OE out of
+     * @param connectionCredentials Connection Credentials for a node
+     */
+    public async createSession(connectionCredentials?: IConnectionCredentials): Promise<string> {
+        if (!connectionCredentials) {
+            const connectionUI = this._connectionManager.connectionUI;
+            connectionCredentials = await connectionUI.showConnections();
+        }
+        if (connectionCredentials) {
+            // show password prompt if SQL Login and password isn't saved
+            const shouldPromptForPassword = ConnectionCredentials.shouldPromptForPassword(connectionCredentials);
+            if (shouldPromptForPassword) {
+                let password = await this._connectionManager.connectionUI.promptForPassword();
+                if (Utils.isEmpty(password)) {
+                    return Promise.reject();
+                }
+                connectionCredentials.password = password;
+            }
+            const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
+            // handle SQL Login with no passwords
             const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
-            this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCreds);
+            this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
             return response.sessionId;
         }
     }

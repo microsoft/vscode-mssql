@@ -29,8 +29,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return node;
     }
 
-    getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const children = this._objectExplorerService.getChildren(element);
+    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        const children = await this._objectExplorerService.getChildren(element);
         if (children) {
             return Promise.resolve(children);
         }

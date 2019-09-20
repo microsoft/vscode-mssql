@@ -160,7 +160,7 @@
       "activitybar": [
         {
           "id": "objectExplorer",
-          "title": "Object Explorer",
+          "title": "SQL Server",
           "icon": "./images/server_page_inverse.svg"
         }
       ]
