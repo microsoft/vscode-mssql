@@ -13,6 +13,7 @@ import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
+import { ConnectionProfile } from '../models/connectionProfile';
 
 export class ObjectExplorerService {
 
@@ -114,6 +115,7 @@ export class ObjectExplorerService {
         const connectionUI = this._connectionManager.connectionUI;
         const connectionCreds = await connectionUI.showConnections();
         if (connectionCreds) {
+            this._nodePathToNodeLabelMap.set(connectionCreds.server, (<ConnectionProfile>connectionCreds).profileName);
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
             const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
             this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCreds);
@@ -135,6 +137,8 @@ export class ObjectExplorerService {
             this._rootTreeNodeArray.splice(index, 1);
         }
         this._currentNode = undefined;
+        const nodeUri = node.nodePath + '_' + node.label;
+        this._connectionManager.disconnect(nodeUri);
         await this._objectExplorerProvider.refresh(undefined);
     }
 
