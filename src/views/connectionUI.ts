@@ -432,7 +432,11 @@ export class ConnectionUI {
      */
     private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
-        return self.connectionManager.connect(self.vscodeWrapper.activeTextEditorUri, profile).then(result => {
+        let uri = self.vscodeWrapper.activeTextEditorUri;
+        if (!uri) {
+            uri = profile.server + '_' + profile.profileName;
+        }
+        return self.connectionManager.connect(uri, profile).then(result => {
             if (result) {
                 // Success! save it
                 return self.saveProfile(profile);
