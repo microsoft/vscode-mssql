@@ -148,9 +148,23 @@ export default class MainController implements vscode.Disposable {
                 });
 
                 this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo) => {
-                    const databaseName = `${escapeCharacters(self.getDatabaseName(treeNodeInfo))}`;
-                    const useStatement = Constants.useDatabaseText + databaseName + os.EOL;
-                    self.runAndLogErrors(self.onNewQuery(treeNodeInfo.sessionId, useStatement), 'onNewQueryOE');
+                    const connectionCredentials = treeNodeInfo.connectionCredentials;
+                    if (connectionCredentials) {
+                        if (treeNodeInfo.nodeType === Constants.databaseString) {
+                            const databaseName = `${escapeCharacters(self.getDatabaseName(treeNodeInfo))}`;
+                            connectionCredentials.database = databaseName;
+                        }
+                    }
+                    // if the node is already connected
+                    if (treeNodeInfo.sessionId) {
+                        return self.runAndLogErrors(self.onNewQuery(treeNodeInfo.sessionId), 'onNewQueryOE');
+                    } else {
+                        const uri = await this._untitledSqlDocumentService.newQuery();
+                        // connect to the node if the command came from the context
+                        this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
+                        this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                        return this.connectionManager.connect(uri.toString(), connectionCredentials);
+                    }
                 }));
 
                 this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
@@ -617,17 +631,21 @@ export default class MainController implements vscode.Disposable {
      */
     public async onNewQuery(sessionId?: string, content?: string): Promise<boolean> {
         if (this.canRunCommand()) {
+            // from the object explorer context menu
             if (sessionId) {
                 const uri = await this._untitledSqlDocumentService.newQuery(content);
                 // connect to the node if the command came from the context
                 if (!this.connectionManager.isConnected(sessionId)) {
                     const connectionCreds = this._objectExplorerProvider.getConnectionCredentials(sessionId);
                     this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
+                    this._statusview.sqlCmdModeChanged(uri.toString(), false);
                     return this.connectionManager.connect(uri.toString(), connectionCreds);
                 }
             } else {
-                let uri = await this._untitledSqlDocumentService.newQuery();
+                // new query command
+                const uri = await this._untitledSqlDocumentService.newQuery();
                 this._connectionMgr.onNewConnection().then((result) => {
+                    // initiate a new OE with same connection
                     if (result) {
                         this._objectExplorerProvider.objectExplorerExists = false;
                         this._objectExplorerProvider.refresh(undefined);
@@ -635,7 +653,6 @@ export default class MainController implements vscode.Disposable {
                     }
                 });
                 this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                return this._connectionMgr.onNewConnection();
             }
         }
         return Promise.resolve(false);
