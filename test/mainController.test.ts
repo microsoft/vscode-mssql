@@ -209,7 +209,7 @@ suite('MainController Tests', () => {
 
         return mainController.onNewQuery(undefined).then(result => {
             untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
-            connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.once());
+            connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
         });
     });
 
