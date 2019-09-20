@@ -356,6 +356,20 @@ export class SqlOutputContentProvider {
         }
     }
 
+    /**
+     * Switches SQLCMD Mode to on/off
+     * @param queryUri Uri of the query
+     */
+    public toggleSqlCmd(uri: string): Thenable<boolean> {
+        const queryRunner = this.getQueryRunner(uri);
+        if (queryRunner) {
+            return queryRunner.toggleSqlCmd().then((result) => {
+                return result;
+            });
+        }
+        return Promise.resolve(false);
+    }
+
     // PRIVATE HELPERS /////////////////////////////////////////////////////
 
     /**

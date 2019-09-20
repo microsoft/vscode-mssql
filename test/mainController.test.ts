@@ -204,7 +204,7 @@ suite('MainController Tests', () => {
 
     test('onNewQuery should call the new query and new connection' , () => {
 
-        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(undefined));
+        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
         connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(true));
 
         return mainController.onNewQuery(undefined).then(result => {
