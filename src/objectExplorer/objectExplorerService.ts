@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
+import * as vscode from 'vscode';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { CreateSessionCompleteNotification, SessionCreatedParameters, CreateSessionRequest } from '../models/contracts/objectExplorer/createSessionRequest';
@@ -15,6 +16,7 @@ import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/obj
 import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionCredentials } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
+import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import * as Utils from '../models/utils';
 
 export class ObjectExplorerService {
@@ -25,6 +27,11 @@ export class ObjectExplorerService {
     private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
+
+    private _sessionCreatedEmitter: vscode.EventEmitter<TreeNodeInfo> =
+        new vscode.EventEmitter<TreeNodeInfo>();
+    private readonly _sessionCreatedEvent: vscode.Event<TreeNodeInfo> =
+        this._sessionCreatedEmitter.event;
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
@@ -51,7 +58,8 @@ export class ObjectExplorerService {
                 self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
                 // return self._objectExplorerProvider.refresh(undefined);
-                return self.getChildren(self._currentNode);
+                // return self.getChildren(self._currentNode);
+                self._sessionCreatedEmitter.fire(self._currentNode);
             } else {
                 // failure
                 self._currentNode = undefined;
@@ -60,8 +68,9 @@ export class ObjectExplorerService {
                     error += ` : ${result.errorMessage}`;
                 }
                 self._connectionManager.vscodeWrapper.showErrorMessage(error);
-                return Promise.reject();
+                self._sessionCreatedEmitter.fire(undefined);
             }
+            return self._objectExplorerProvider.refresh(undefined);
         };
         return handler;
     }
@@ -102,7 +111,7 @@ export class ObjectExplorerService {
         this._rootTreeNodeArray.push(node);
     }
 
-    async getChildren(element?: TreeNodeInfo): Promise<TreeNodeInfo[]> {
+    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
                 this._currentNode = element;
@@ -117,11 +126,18 @@ export class ObjectExplorerService {
                     this.expandNode(element, element.sessionId);
                 } else {
                     // start node session
-                    this.createSession(element.connectionCredentials).catch((err) => {
-                        return Promise.reject();
-                    });
+                    if (!this._objectExplorerProvider.isRefresh){
+                        this._sessionCreatedEvent((node) => {
+                            if (!node) {
+                                this._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
+                                this.updateNode(this._currentNode);
+                                return;
+                            }
+                            return this._objectExplorerProvider.refresh(node);
+                        });
+                        await this.createSession(element.connectionCredentials);
+                    }
                 }
-                return;
             }
         } else {
             // retrieve saved connections first when opening object explorer
@@ -131,19 +147,21 @@ export class ObjectExplorerService {
                 savedConnections.forEach((conn) => {
                     let connectionCredentials = conn.connectionCreds;
                     this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, conn.label);
-                    let node = new TreeNodeInfo(conn.label, undefined, TreeItemCollapsibleState.Collapsed,
+                    let node = new TreeNodeInfo(conn.label, 'Server', TreeItemCollapsibleState.Collapsed,
                             undefined, undefined, 'Server', undefined, connectionCredentials, undefined);
                     this._rootTreeNodeArray.push(node);
                 });
                 this._objectExplorerProvider.objectExplorerExists = true;
                 this._objectExplorerProvider.refresh(undefined);
                 return;
-            }
-            if (this._rootTreeNodeArray.length === 0) {
-                await this.createSession();
             } else {
-                return this._rootTreeNodeArray;
+                if (this._rootTreeNodeArray.length > 0) {
+                    return this._rootTreeNodeArray;
+                } else {
+                    return [new AddConnectionTreeNode()];
+                }
             }
+
         }
     }
 
@@ -153,7 +171,7 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionCredentials Connection Credentials for a node
      */
-    public async createSession(connectionCredentials?: IConnectionCredentials): Promise<string> {
+    public async createSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.showConnections();
@@ -164,15 +182,17 @@ export class ObjectExplorerService {
             if (shouldPromptForPassword) {
                 let password = await this._connectionManager.connectionUI.promptForPassword();
                 if (Utils.isEmpty(password)) {
-                    return Promise.reject();
+                    return;
                 }
                 connectionCredentials.password = password;
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
             // handle SQL Login with no passwords
             const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
-            this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
-            return response.sessionId;
+            if (response) {
+                this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
+            }
+            return;
         }
     }
 
@@ -203,22 +223,29 @@ export class ObjectExplorerService {
     }
 
     private async closeSession(node: TreeNodeInfo): Promise<void> {
-        const closeSessionParams: CloseSessionParams = {
-            sessionId: node.sessionId
-        };
-        const response = await this._connectionManager.client.sendRequest(CloseSessionRequest.type,
-            closeSessionParams);
-        if (response && response.success) {
-            this._sessionIdToConnectionCredentialsMap.delete(response.sessionId);
-            node.sessionId = undefined;
-            this._currentNode = node;
-            this._treeNodeToChildrenMap.set(this._currentNode, undefined);
-            this._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
+        if (node.sessionId) {
+            const closeSessionParams: CloseSessionParams = {
+                sessionId: node.sessionId
+            };
+            const response = await this._connectionManager.client.sendRequest(CloseSessionRequest.type,
+                closeSessionParams);
+            if (response && response.success) {
+                this._sessionIdToConnectionCredentialsMap.delete(response.sessionId);
+                node.sessionId = undefined;
+                this._currentNode = node;
+                this._treeNodeToChildrenMap.set(this._currentNode, undefined);
+                this._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
+            }
         }
+        return;
     }
 
     /** Getters */
     public get currentNode(): TreeNodeInfo {
         return this._currentNode;
+    }
+
+    public get rootTreeNodeArray(): TreeNodeInfo[] {
+        return this._rootTreeNodeArray;
     }
 }

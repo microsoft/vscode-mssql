@@ -38,7 +38,7 @@ suite('Object Explorer Tests', () => {
         objectExplorerService.setup(s => s.createSession()).returns(() => {
             objectExplorerService.setup(s => s.currentNode).returns(() => TypeMoq.It.isAny());
             objectExplorerProvider.objectExplorerExists = true;
-            return Promise.resolve(TypeMoq.It.isAnyString());
+            return Promise.resolve(TypeMoq.It.isAny());
         });
         objectExplorerProvider.createSession().then(sessionId => {
             expect(sessionId, 'Session Id should not be undefined').is.not.equal(undefined);

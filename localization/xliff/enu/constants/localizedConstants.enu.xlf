@@ -368,6 +368,9 @@
         <trans-unit id="queryOutputHostTitle">
             <source xml:lang="en">Query Output Document Host</source>
         </trans-unit>
+        <trans-unit id="msgAddConnection">
+            <source xml:lang="en">Add Connection</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

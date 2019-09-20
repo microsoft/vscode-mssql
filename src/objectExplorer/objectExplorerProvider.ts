@@ -16,12 +16,14 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
     private _objectExplorerExists: boolean;
     private _objectExplorerService: ObjectExplorerService;
+    public isRefresh: boolean = true;
 
     constructor(connectionManager: ConnectionManager) {
         this._objectExplorerService = new ObjectExplorerService(connectionManager, this);
     }
 
     refresh(nodeInfo?: TreeNodeInfo): void {
+        this.isRefresh = nodeInfo ? true : false;
         this._onDidChangeTreeData.fire(nodeInfo);
     }
 
@@ -30,18 +32,22 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        // ask for password here maybe?
         const children = await this._objectExplorerService.getChildren(element);
         if (children) {
             return Promise.resolve(children);
         }
     }
 
-    async createSession(): Promise<string> {
+    async createSession(): Promise<void> {
         return await this._objectExplorerService.createSession();
     }
 
     public getConnectionCredentials(sessionId: string): ConnectionCredentials {
-        return this._objectExplorerService.getConnectionCredentials(sessionId);
+        if (sessionId) {
+            return this._objectExplorerService.getConnectionCredentials(sessionId);
+        }
+        return undefined;
     }
 
     public removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {

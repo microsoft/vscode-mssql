@@ -153,14 +153,13 @@ export default class MainController implements vscode.Disposable {
                     self.runAndLogErrors(self.onNewQuery(treeNodeInfo.sessionId, useStatement), 'onNewQueryOE');
                 }));
 
-                this.registerCommand(Constants.cmdRemoveObjectExplorerNode);
-                this._event.on(Constants.cmdRemoveObjectExplorerNode, async () => {
-                    let connProfile = <IConnectionProfile>this._objectExplorerProvider.getConnectionCredentials(
-                        this._objectExplorerProvider.currentNode.sessionId);
-                    await this._connectionMgr.connectionStore.removeProfile(connProfile, false);
-                    await this._objectExplorerProvider.removeObjectExplorerNode(this._objectExplorerProvider.currentNode);
+                this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
+                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo)
+                    let profile = <IConnectionProfile>treeNodeInfo.connectionCredentials;
+                    await this._connectionMgr.connectionStore.removeProfile(profile, false);
                     return this._objectExplorerProvider.refresh(undefined);
-                });
+                }));
+
                 this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
                 this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
                     return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
