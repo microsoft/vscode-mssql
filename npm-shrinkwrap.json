@@ -3938,7 +3938,7 @@
           "dev": true,
           "optional": true,
           "requires": {
-            "balanced-match": "1.0.0",
+            "balanced-match": "^1.0.0",
             "concat-map": "0.0.1"
           }
         },

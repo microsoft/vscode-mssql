@@ -131,6 +131,8 @@ export default class MainController implements vscode.Disposable {
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
                 this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
                 this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { self.onLoadCompletionExtension(params); });
+                this.registerCommand(Constants.cmdToggleSqlCmd);
+                this._event.on(Constants.cmdToggleSqlCmd, () => { self.onToggleSqlCmd(); });
 
                 // register the object explorer tree provider
                 this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
@@ -152,7 +154,7 @@ export default class MainController implements vscode.Disposable {
                 }));
 
                 this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo)
+                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
                     let profile = <IConnectionProfile>treeNodeInfo.connectionCredentials;
                     await this._connectionMgr.connectionStore.removeProfile(profile, false);
                     return this._objectExplorerProvider.refresh(undefined);
@@ -235,6 +237,39 @@ export default class MainController implements vscode.Disposable {
                 reject(err);
             });
         });
+    }
+
+    /**
+     * Handles the command to enable SQLCMD mode
+     */
+    private async onToggleSqlCmd(): Promise<boolean> {
+        let isSqlCmd: boolean;
+        const queryRunner = this._outputContentProvider.getQueryRunner(this._vscodeWrapper.activeTextEditorUri);
+        const promise = new Promise<boolean>(async (resolve, reject) => {
+            if (queryRunner) {
+                isSqlCmd = queryRunner.isSqlCmd;
+                this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri).then((result) => {
+                    this._connectionMgr.onChooseLanguageFlavor(!isSqlCmd).then(() => {
+                        this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
+                        resolve(true);
+                    });
+                });
+            } else {
+                isSqlCmd = true;
+                let uri = await this._untitledSqlDocumentService.newQuery();
+                return this._connectionMgr.onNewConnection().then(() => {
+                    this._outputContentProvider.toggleSqlCmd(uri.toString()).then((result) => {
+                        if (result) {
+                            this._connectionMgr.onChooseLanguageFlavor(isSqlCmd).then(() => {
+                                this._statusview.sqlCmdModeChanged(uri.toString(), isSqlCmd);
+                                resolve(true);
+                            });
+                        }
+                    });
+                });
+            }
+        });
+        return promise;
     }
 
     /**
@@ -591,7 +626,7 @@ export default class MainController implements vscode.Disposable {
                     return this.connectionManager.connect(uri.toString(), connectionCreds);
                 }
             } else {
-                await this._untitledSqlDocumentService.newQuery();
+                let uri = await this._untitledSqlDocumentService.newQuery();
                 this._connectionMgr.onNewConnection().then((result) => {
                     if (result) {
                         this._objectExplorerProvider.objectExplorerExists = false;
@@ -599,6 +634,8 @@ export default class MainController implements vscode.Disposable {
                         return true;
                     }
                 });
+                this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                return this._connectionMgr.onNewConnection();
             }
         }
         return Promise.resolve(false);

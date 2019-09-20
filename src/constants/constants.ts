@@ -31,6 +31,7 @@ export const cmdRemoveObjectExplorerNode = 'extension.removeObjectExplorerNode';
 export const cmdRefreshObjectExplorerNode = 'extension.refreshObjectExplorerNode';
 export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExplorer';
 export const cmdScriptSelect = 'extension.scriptSelect';
+export const cmdToggleSqlCmd = 'extension.toggleSqlCmd';
 export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
