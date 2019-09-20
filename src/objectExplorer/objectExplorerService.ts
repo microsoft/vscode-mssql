@@ -53,24 +53,33 @@ export class ObjectExplorerService {
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
                 // set connection and other things
-                self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                    self._currentNode, self._currentNode.connectionCredentials, nodeLabel);
+                if (self._currentNode) {
+                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
+                        self._currentNode, self._currentNode.connectionCredentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
+                } else {
+                    const credentials = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
+                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
+                        self._currentNode, credentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
+                }
                 self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
                 // return self._objectExplorerProvider.refresh(undefined);
                 // return self.getChildren(self._currentNode);
-                self._sessionCreatedEmitter.fire(self._currentNode);
+                return self._objectExplorerProvider.refresh(undefined);
             } else {
                 // failure
+                self._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
+                self.updateNode(self._currentNode);
                 self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;
                 if (result.errorMessage) {
                     error += ` : ${result.errorMessage}`;
                 }
                 self._connectionManager.vscodeWrapper.showErrorMessage(error);
-                self._sessionCreatedEmitter.fire(undefined);
+                // self._sessionCreatedEmitter.fire(undefined);
+                return self._objectExplorerProvider.refresh(undefined);
             }
-            return self._objectExplorerProvider.refresh(undefined);
+
         };
         return handler;
     }
@@ -126,24 +135,19 @@ export class ObjectExplorerService {
                     this.expandNode(element, element.sessionId);
                 } else {
                     // start node session
-                    if (!this._objectExplorerProvider.isRefresh){
-                        this._sessionCreatedEvent((node) => {
-                            if (!node) {
-                                this._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
-                                this.updateNode(this._currentNode);
-                                return;
-                            }
-                            return this._objectExplorerProvider.refresh(node);
-                        });
-                        await this.createSession(element.connectionCredentials);
+                    if (!this._objectExplorerProvider.isRefresh) {
+                        this.createSession(element.connectionCredentials);
+                        return;
                     }
                 }
             }
         } else {
             // retrieve saved connections first when opening object explorer
             // for the first time
-            if (!this._objectExplorerProvider.objectExplorerExists) {
-                let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+            let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+            if (!this._objectExplorerProvider.objectExplorerExists ||
+                savedConnections.length !== this._rootTreeNodeArray.length) {
+                this._rootTreeNodeArray = [];
                 savedConnections.forEach((conn) => {
                     let connectionCredentials = conn.connectionCreds;
                     this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, conn.label);
@@ -181,9 +185,6 @@ export class ObjectExplorerService {
             const shouldPromptForPassword = ConnectionCredentials.shouldPromptForPassword(connectionCredentials);
             if (shouldPromptForPassword) {
                 let password = await this._connectionManager.connectionUI.promptForPassword();
-                if (Utils.isEmpty(password)) {
-                    return;
-                }
                 connectionCredentials.password = password;
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
@@ -210,6 +211,8 @@ export class ObjectExplorerService {
             this._rootTreeNodeArray.splice(index, 1);
         }
         this._currentNode = undefined;
+        const nodeUri = node.nodePath + '_' + node.label;
+        this._connectionManager.disconnect(nodeUri);
         await this._objectExplorerProvider.refresh(undefined);
     }
 

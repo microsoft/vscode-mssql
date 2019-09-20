@@ -35,7 +35,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         // ask for password here maybe?
         const children = await this._objectExplorerService.getChildren(element);
         if (children) {
-            return Promise.resolve(children);
+            return children;
         }
     }
 
