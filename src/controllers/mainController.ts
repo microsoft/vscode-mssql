@@ -139,12 +139,10 @@ export default class MainController implements vscode.Disposable {
                 );
                 this.registerCommand(Constants.cmdAddObjectExplorer);
                 this._event.on(Constants.cmdAddObjectExplorer, async () => {
-                    if (self._objectExplorerProvider.objectExplorerExists) {
-                        return self._objectExplorerProvider.createSession();
-                    } else {
+                    if (!self._objectExplorerProvider.objectExplorerExists) {
                         self._objectExplorerProvider.objectExplorerExists = true;
-                        return vscode.commands.executeCommand(Constants.cmdOpenObjectExplorerCommand);
                     }
+                    return self._objectExplorerProvider.createSession();
                 });
 
                 this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo) => {
