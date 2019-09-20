@@ -360,10 +360,10 @@ export class SqlOutputContentProvider {
      * Switches SQLCMD Mode to on/off
      * @param queryUri Uri of the query
      */
-    public switchSqlCmd(uri: string): Thenable<boolean> {
+    public toggleSqlCmd(uri: string): Thenable<boolean> {
         const queryRunner = this.getQueryRunner(uri);
         if (queryRunner) {
-            return queryRunner.switchSqlCmd().then((result) => {
+            return queryRunner.toggleSqlCmd().then((result) => {
                 return result;
             });
         }

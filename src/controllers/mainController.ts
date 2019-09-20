@@ -131,8 +131,8 @@ export default class MainController implements vscode.Disposable {
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
                 this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
                 this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { self.onLoadCompletionExtension(params); });
-                this.registerCommand(Constants.cmdSwitchSqlCmd);
-                this._event.on(Constants.cmdSwitchSqlCmd, () => { self.onSwitchSqlCmd(); });
+                this.registerCommand(Constants.cmdToggleSqlCmd);
+                this._event.on(Constants.cmdToggleSqlCmd, () => { self.onToggleSqlCmd(); });
 
                 // register the object explorer tree provider
                 this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
@@ -243,13 +243,13 @@ export default class MainController implements vscode.Disposable {
     /**
      * Handles the command to enable SQLCMD mode
      */
-    private async onSwitchSqlCmd(): Promise<boolean> {
+    private async onToggleSqlCmd(): Promise<boolean> {
         let isSqlCmd: boolean;
         const queryRunner = this._outputContentProvider.getQueryRunner(this._vscodeWrapper.activeTextEditorUri);
         const promise = new Promise<boolean>(async (resolve, reject) => {
             if (queryRunner) {
                 isSqlCmd = queryRunner.isSqlCmd;
-                this._outputContentProvider.switchSqlCmd(this._vscodeWrapper.activeTextEditorUri).then((result) => {
+                this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri).then((result) => {
                     this._connectionMgr.onChooseLanguageFlavor(!isSqlCmd).then(() => {
                         this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
                         resolve(true);
@@ -259,7 +259,7 @@ export default class MainController implements vscode.Disposable {
                 isSqlCmd = true;
                 let uri = await this._untitledSqlDocumentService.newQuery();
                 return this._connectionMgr.onNewConnection().then(() => {
-                    this._outputContentProvider.switchSqlCmd(uri.toString()).then((result) => {
+                    this._outputContentProvider.toggleSqlCmd(uri.toString()).then((result) => {
                         if (result) {
                             this._connectionMgr.onChooseLanguageFlavor(isSqlCmd).then(() => {
                                 this._statusview.sqlCmdModeChanged(uri.toString(), isSqlCmd);

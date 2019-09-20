@@ -419,7 +419,7 @@ export default class QueryRunner {
     }
 
 
-    public switchSqlCmd(): Thenable<boolean> {
+    public toggleSqlCmd(): Thenable<boolean> {
         const queryExecuteOptions: QueryExecutionOptions = { options: new Map<string, any>() };
         queryExecuteOptions.options['isSqlCmdMode'] = !this.isSqlCmd;
         const queryExecuteOptionsParams: QueryExecutionOptionsParams = {

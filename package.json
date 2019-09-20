@@ -50,7 +50,7 @@
     "onCommand:extension.rebuildIntelliSenseCache",
     "onCommand:extension.addObjectExplorer",
     "onCommand:extension.objectExplorerNewQuery",
-    "onCommand:extension.switchSqlCmd",
+    "onCommand:extension.toggleSqlCmd",
     "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
@@ -315,8 +315,8 @@
         "category": "MS SQL"
       },
       {
-        "command": "extension.switchSqlCmd",
-        "title": "%extension.switchSqlCmd%",
+        "command": "extension.toggleSqlCmd",
+        "title": "%extension.toggleSqlCmd%",
         "category": "MS SQL"
       },
       {
