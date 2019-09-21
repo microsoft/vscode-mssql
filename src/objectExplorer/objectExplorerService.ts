@@ -55,8 +55,8 @@ export class ObjectExplorerService {
                         self._currentNode, self._currentNode.connectionCredentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
                 } else {
                     const credentials = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
-                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        self._currentNode, credentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
+                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, self._currentNode,
+                        credentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
                 }
                 self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
@@ -222,6 +222,10 @@ export class ObjectExplorerService {
         this._currentNode = undefined;
         const nodeUri = node.nodePath + '_' + node.label;
         this._connectionManager.disconnect(nodeUri);
+        this._treeNodeToChildrenMap.delete(node);
+        this._nodePathToNodeLabelMap.delete(node.nodePath);
+        this._sessionIdToConnectionCredentialsMap.delete(node.sessionId);
+        this._sessionIdToPromiseMap.delete(node.sessionId);
         await this._objectExplorerProvider.refresh(undefined);
     }
 
