@@ -17,6 +17,7 @@ import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionCredentials } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
+import { Deferred } from '../protocol';
 
 export class ObjectExplorerService {
 
@@ -26,6 +27,7 @@ export class ObjectExplorerService {
     private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
+    private _sessionIdToPromiseMap: Map<string, Deferred<TreeNodeInfo>>;
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
@@ -39,6 +41,7 @@ export class ObjectExplorerService {
             this.handleSessionCreatedNotification());
         this._client.onNotification(ExpandCompleteNotification.type,
             this.handleExpandSessionNotification());
+        this._sessionIdToPromiseMap = new Map<string, Deferred<TreeNodeInfo>>();
     }
 
     private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
@@ -57,10 +60,14 @@ export class ObjectExplorerService {
                 }
                 self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
-                return self._objectExplorerProvider.refresh(undefined);
+                const promise = self._sessionIdToPromiseMap.get(result.sessionId);
+                if (promise) {
+                    return promise.resolve(self._currentNode);
+                } else {
+                    return this._objectExplorerProvider.refresh(undefined);
+                }
             } else {
                 // failure
-                self._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
                 self.updateNode(self._currentNode);
                 self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;
@@ -68,7 +75,6 @@ export class ObjectExplorerService {
                     error += ` : ${result.errorMessage}`;
                 }
                 self._connectionManager.vscodeWrapper.showErrorMessage(error);
-                return self._objectExplorerProvider.refresh(undefined);
             }
 
         };
@@ -82,7 +88,6 @@ export class ObjectExplorerService {
                 // same here
                 const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self._currentNode.sessionId,
                     self._currentNode, self._currentNode.connectionCredentials));
-                self._currentNode.collapsibleState = TreeItemCollapsibleState.Expanded;
                 self._treeNodeToChildrenMap.set(self._currentNode, children);
                 return self._objectExplorerProvider.refresh(undefined);
             }
@@ -127,8 +132,14 @@ export class ObjectExplorerService {
                 } else {
                     // start node session
                     if (!this._objectExplorerProvider.isRefresh) {
-                        this.createSession(element.connectionCredentials);
-                        return;
+                        let promise = new Deferred<TreeNodeInfo>();
+                        this.createSession(element.connectionCredentials, promise);
+                        return promise.then((node) => {
+                            if (node) {
+                                this._objectExplorerProvider.refresh(node);
+                                return [];
+                            }
+                        });
                     }
                 }
             }
@@ -166,7 +177,7 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionCredentials Connection Credentials for a node
      */
-    public async createSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
+    public async createSession(connectionCredentials?: IConnectionCredentials, promise?: Deferred<TreeNodeInfo>): Promise<void> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.showConnections();
@@ -176,15 +187,22 @@ export class ObjectExplorerService {
             const shouldPromptForPassword = ConnectionCredentials.shouldPromptForPassword(connectionCredentials);
             if (shouldPromptForPassword) {
                 let password = await this._connectionManager.connectionUI.promptForPassword();
+                if (!password) {
+                    if (promise) {
+                        return promise.reject();
+                    }
+                }
                 connectionCredentials.password = password;
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
-            // handle SQL Login with no passwords
             const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
             if (response) {
                 this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
+                if (promise) {
+                    this._sessionIdToPromiseMap.set(response.sessionId, promise);
+                    return;
+                }
             }
-            return;
         }
     }
 
@@ -228,7 +246,6 @@ export class ObjectExplorerService {
                 node.sessionId = undefined;
                 this._currentNode = node;
                 this._treeNodeToChildrenMap.set(this._currentNode, undefined);
-                this._currentNode.collapsibleState = TreeItemCollapsibleState.Collapsed;
             }
         }
         return;

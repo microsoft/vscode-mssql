@@ -40,7 +40,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     async createSession(): Promise<void> {
-        return await this._objectExplorerService.createSession();
+        return this._objectExplorerService.createSession();
     }
 
     public getConnectionCredentials(sessionId: string): ConnectionCredentials {

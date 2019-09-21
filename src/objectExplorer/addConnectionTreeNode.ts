@@ -9,9 +9,9 @@ import * as LocalizedConstants from '../constants/localizedConstants';
 export class AddConnectionTreeNode extends vscode.TreeItem {
 
     constructor() {
-        super('Add Connection', vscode.TreeItemCollapsibleState.None);
+        super(LocalizedConstants.msgAddConnection, vscode.TreeItemCollapsibleState.None);
         this.command = {
-            title: 'add connection',
+            title: LocalizedConstants.msgAddConnection,
             command: 'extension.addObjectExplorer'
         };
     }
