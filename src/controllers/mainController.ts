@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
-import * as os from 'os';
 import * as events from 'events';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
