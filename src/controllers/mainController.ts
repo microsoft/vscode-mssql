@@ -17,6 +17,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
+import { ConnectionCredentials } from '../models/connectionCredentials';
 import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import { ISelectionData, IConnectionProfile } from './../models/interfaces';
@@ -25,6 +26,8 @@ import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 import { escapeCharacters } from '../utils/escapeCharacters';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
+import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
+import { CreateSessionRequest } from '../models/contracts/objectExplorer/createSessionRequest';
 
 /**
  * The main controller class that initializes the extension
@@ -146,7 +149,9 @@ export default class MainController implements vscode.Disposable {
                     return self._objectExplorerProvider.createSession();
                 });
 
-                this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo) => {
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
+                        Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
                     const connectionCredentials = treeNodeInfo.connectionCredentials;
                     if (connectionCredentials) {
                         if (treeNodeInfo.nodeType === Constants.databaseString) {
@@ -166,7 +171,9 @@ export default class MainController implements vscode.Disposable {
                     }
                 }));
 
-                this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
+                        Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
                     await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
                     let profile = <IConnectionProfile>treeNodeInfo.connectionCredentials;
                     await this._connectionMgr.connectionStore.removeProfile(profile, false);
@@ -177,7 +184,9 @@ export default class MainController implements vscode.Disposable {
                 this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
                     return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
                 });
-                this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdScriptSelect, async (treeNodeInfo) => {
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
+                        Constants.cmdScriptSelect, async (treeNodeInfo: TreeNodeInfo) => {
                     const objectNames = treeNodeInfo.label.split('.');
                     const tableName = `[${escapeCharacters(objectNames[0])}].[${escapeCharacters(objectNames[1])}]`;
                     const databaseName = `[${escapeCharacters(self.getDatabaseName(treeNodeInfo))}].`;
@@ -187,6 +196,12 @@ export default class MainController implements vscode.Disposable {
                             self.onRunQuery();
                         }
                     });
+                }));
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
+                        Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
+                    this._objectExplorerProvider.objectExplorerService.signInNodeServer(node.parentNode);
+                    return this._objectExplorerProvider.refresh(undefined);
                 }));
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));

@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
+import Constants = require('../constants/constants');
 import * as LocalizedConstants from '../constants/localizedConstants';
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
@@ -12,7 +13,7 @@ export class AddConnectionTreeNode extends vscode.TreeItem {
         super(LocalizedConstants.msgAddConnection, vscode.TreeItemCollapsibleState.None);
         this.command = {
             title: LocalizedConstants.msgAddConnection,
-            command: 'extension.addObjectExplorer'
+            command: Constants.cmdAddObjectExplorer
         };
     }
 }
