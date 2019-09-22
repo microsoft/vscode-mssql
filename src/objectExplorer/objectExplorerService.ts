@@ -27,7 +27,10 @@ export class ObjectExplorerService {
     private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
+
+    // Deferred promise maps
     private _sessionIdToPromiseMap: Map<string, Deferred<TreeNodeInfo>>;
+    private _expandParamsToPromiseMap: Map<ExpandParams, Deferred<TreeNodeInfo[]>>;
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
@@ -42,6 +45,7 @@ export class ObjectExplorerService {
         this._client.onNotification(ExpandCompleteNotification.type,
             this.handleExpandSessionNotification());
         this._sessionIdToPromiseMap = new Map<string, Deferred<TreeNodeInfo>>();
+        this._expandParamsToPromiseMap = new Map<ExpandParams, Deferred<TreeNodeInfo[]>>();
     }
 
     private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
@@ -85,22 +89,34 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
-                // same here
                 const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self._currentNode.sessionId,
                     self._currentNode, self._currentNode.connectionCredentials));
                 self._treeNodeToChildrenMap.set(self._currentNode, children);
-                return self._objectExplorerProvider.refresh(undefined);
+                const expandParams: ExpandParams = {
+                    sessionId: result.sessionId,
+                    nodePath: result.nodePath
+                }
+                for (let key of self._expandParamsToPromiseMap.keys()) {
+                    if (key.sessionId === expandParams.sessionId &&
+                        key.nodePath === expandParams.nodePath) {
+                        let promise = self._expandParamsToPromiseMap.get(key);
+                        return promise.resolve(children);
+                    }
+                }
             }
         };
         return handler;
     }
 
-    private async expandNode(node: TreeNodeInfo, sessionId: string): Promise<boolean> {
+    private async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
         const expandParams: ExpandParams = {
             sessionId: sessionId,
             nodePath: node.nodePath
         };
         const response = await this._connectionManager.client.sendRequest(ExpandRequest.type, expandParams);
+        if (promise) {
+            this._expandParamsToPromiseMap.set(expandParams, promise);
+        }
         return response;
     }
 
@@ -128,19 +144,23 @@ export class ObjectExplorerService {
                 // check if session exists
                 if (element.sessionId) {
                     // node expansion
-                    this.expandNode(element, element.sessionId);
+                    let promise = new Deferred<TreeNodeInfo[]>();
+                    this.expandNode(element, element.sessionId, promise);
+                    return promise.then((children) => {
+                        if (children) {
+                            return children;
+                        }
+                    })
                 } else {
                     // start node session
-                    if (!this._objectExplorerProvider.isRefresh) {
-                        let promise = new Deferred<TreeNodeInfo>();
-                        this.createSession(element.connectionCredentials, promise);
-                        return promise.then((node) => {
-                            if (node) {
-                                this._objectExplorerProvider.refresh(node);
-                                return [];
-                            }
-                        });
-                    }
+                    let promise = new Deferred<TreeNodeInfo>();
+                    this.createSession(element.connectionCredentials, promise);
+                    return promise.then((node) => {
+                        if (node) {
+                            // then expand
+                            return this.getChildren(node);
+                        }
+                    });
                 }
             }
         } else {
@@ -158,8 +178,7 @@ export class ObjectExplorerService {
                     this._rootTreeNodeArray.push(node);
                 });
                 this._objectExplorerProvider.objectExplorerExists = true;
-                this._objectExplorerProvider.refresh(undefined);
-                return;
+                return this._rootTreeNodeArray;
             } else {
                 if (this._rootTreeNodeArray.length > 0) {
                     return this._rootTreeNodeArray;
