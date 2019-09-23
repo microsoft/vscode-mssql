@@ -18,6 +18,7 @@ import { IConnectionCredentials } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
+import { ConnectTreeNode } from './connectTreeNode';
 import { Deferred } from '../protocol';
 import Constants = require('../constants/constants');
 import { ObjectExplorerUtils } from './objectExplorerUtils';
@@ -265,13 +266,14 @@ export class ObjectExplorerService {
         return undefined;
     }
 
-    public async removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {
+    public async removeObjectExplorerNode(node: TreeNodeInfo, isDisconnect: boolean = false): Promise<void> {
         await this.closeSession(node);
-        const index = this._rootTreeNodeArray.indexOf(node, 0);
-        if (index > -1) {
-            this._rootTreeNodeArray.splice(index, 1);
+        if (!isDisconnect) {
+            const index = this._rootTreeNodeArray.indexOf(node, 0);
+            if (index > -1) {
+                this._rootTreeNodeArray.splice(index, 1);
+            }
         }
-        this._currentNode = undefined;
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
         this._connectionManager.disconnect(nodeUri);
         this._treeNodeToChildrenMap.delete(node);
@@ -279,6 +281,12 @@ export class ObjectExplorerService {
         this._sessionIdToConnectionCredentialsMap.delete(node.sessionId);
         if (this._sessionIdToPromiseMap.has(node.sessionId)) {
             this._sessionIdToPromiseMap.delete(node.sessionId);
+        }
+        this._currentNode = undefined;
+        if (isDisconnect) {
+            this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
+            this.updateNode(node);
+            return this._objectExplorerProvider.refresh(undefined);
         }
     }
 

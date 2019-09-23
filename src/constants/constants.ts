@@ -33,6 +33,7 @@ export const cmdRemoveObjectExplorerNode = 'extension.removeObjectExplorerNode';
 export const cmdRefreshObjectExplorerNode = 'extension.refreshObjectExplorerNode';
 export const cmdDisconnectObjectExplorerNode = 'extension.disconnectObjectExplorerNode';
 export const cmdObjectExplorerNodeSignIn = 'extension.objectExplorerNodeSignIn';
+export const cmdConnectObjectExplorerNode = 'extension.connectObjectExplorerNode';
 export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExplorer';
 export const cmdScriptSelect = 'extension.scriptSelect';
 export const cmdToggleSqlCmd = 'extension.toggleSqlCmd';

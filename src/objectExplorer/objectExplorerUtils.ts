@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 import * as path from 'path';
 import { TreeNodeInfo } from './treeNodeInfo';
-import { IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
+import { IConnectionProfile } from '../models/interfaces';
 
 export class ObjectExplorerUtils {
 
@@ -23,11 +23,6 @@ export class ObjectExplorerUtils {
 
     public static getNodeUriFromProfile(profile: IConnectionProfile): string {
         const uri = profile.server + '_' + profile.profileName;
-        return uri;
-    }
-
-    public static getNodeUriFromQuickPickItem(item: IConnectionCredentialsQuickPickItem): string {
-        const uri = item.connectionCreds.server + '_' + item.label;
         return uri;
     }
 }

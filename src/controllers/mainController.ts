@@ -27,6 +27,7 @@ import { escapeCharacters } from '../utils/escapeCharacters';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
 import { Deferred } from '../protocol';
+import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
 
 /**
  * The main controller class that initializes the extension
@@ -186,6 +187,7 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
                 this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
                     return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
+
                 });
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
@@ -208,8 +210,17 @@ export default class MainController implements vscode.Disposable {
                 }));
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
+                        Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
+                        let promise = new Deferred<TreeNodeInfo>();
+                        await self._objectExplorerProvider.createSession(promise, node.parentNode.connectionCredentials);
+                        return promise.then(() => {
+                            this._objectExplorerProvider.refresh(undefined)
+                        });
+                }));
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
                         Constants.cmdDisconnectObjectExplorerNode, async (node: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(node);
+                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
                 }));
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
@@ -671,7 +682,8 @@ export default class MainController implements vscode.Disposable {
                     if (result) {
                         this._objectExplorerProvider.refresh(undefined);
                     }
-                this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                    this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                });
             }
         }
         return Promise.resolve(false);
