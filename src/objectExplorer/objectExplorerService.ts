@@ -68,7 +68,6 @@ export class ObjectExplorerService {
                     }
                 }
                 // set connection and other things
-                // let credentials = self._currentNode.connectionCredentials;
                 if (self._currentNode) {
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
                         self._currentNode, self._currentNode.connectionCredentials,
