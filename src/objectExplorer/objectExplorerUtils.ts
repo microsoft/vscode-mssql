@@ -3,6 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import * as path from 'path';
+import { TreeNodeInfo } from './treeNodeInfo';
+import { IConnectionProfile, IConnectionCredentialsQuickPickItem } from '../models/interfaces';
 
 export class ObjectExplorerUtils {
 
@@ -12,5 +14,20 @@ export class ObjectExplorerUtils {
         if (label) {
             return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
         }
+    }
+
+    public static getNodeUri(node: TreeNodeInfo): string {
+        const nodeUri = node.nodePath + '_' + node.label;
+        return nodeUri;
+    }
+
+    public static getNodeUriFromProfile(profile: IConnectionProfile): string {
+        const uri = profile.server + '_' + profile.profileName;
+        return uri;
+    }
+
+    public static getNodeUriFromQuickPickItem(item: IConnectionCredentialsQuickPickItem): string {
+        const uri = item.connectionCreds.server + '_' + item.label;
+        return uri;
     }
 }

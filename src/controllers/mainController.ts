@@ -26,6 +26,7 @@ import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider
 import { escapeCharacters } from '../utils/escapeCharacters';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
+import { Deferred } from '../protocol';
 
 /**
  * The main controller class that initializes the extension
@@ -144,7 +145,11 @@ export default class MainController implements vscode.Disposable {
                     if (!self._objectExplorerProvider.objectExplorerExists) {
                         self._objectExplorerProvider.objectExplorerExists = true;
                     }
-                    return self._objectExplorerProvider.createSession();
+                    let promise = new Deferred<TreeNodeInfo>();
+                    await self._objectExplorerProvider.createSession(promise);
+                    return promise.then(() => {
+                        this._objectExplorerProvider.refresh(undefined)
+                    });
                 });
 
                 this._context.subscriptions.push(
@@ -204,8 +209,7 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdDisconnectObjectExplorerNode, async (node: TreeNodeInfo) => {
-                            await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
-                            return this._objectExplorerProvider.refresh(undefined);
+                    await this._objectExplorerProvider.removeObjectExplorerNode(node);
                 }));
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
@@ -662,14 +666,11 @@ export default class MainController implements vscode.Disposable {
             } else {
                 // new query command
                 const uri = await this._untitledSqlDocumentService.newQuery();
-                this._connectionMgr.onNewConnection().then((result) => {
+                this._connectionMgr.onNewConnection().then(async (result) => {
                     // initiate a new OE with same connection
                     if (result) {
-                        this._objectExplorerProvider.objectExplorerExists = false;
                         this._objectExplorerProvider.refresh(undefined);
-                        return true;
                     }
-                });
                 this._statusview.sqlCmdModeChanged(uri.toString(), false);
             }
         }

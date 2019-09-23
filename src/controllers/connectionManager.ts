@@ -523,7 +523,7 @@ export default class ConnectionManager {
                     self.connect(fileUri, connectionCreds)
                     .then(result => {
                         self.handleConnectionResult(result, fileUri, connectionCreds).then(() => {
-                            resolve(true);
+                            resolve(connectionCreds);
                         });
                     });
                 });
@@ -566,22 +566,22 @@ export default class ConnectionManager {
 
 
     // let users pick from a picklist of connections
-    public onNewConnection(objectExplorerSessionId?: string): Promise<boolean> {
+    public onNewConnection(objectExplorerSessionId?: string): Promise<Interfaces.IConnectionCredentials> {
         const self = this;
         const fileUri = objectExplorerSessionId ? objectExplorerSessionId : this.vscodeWrapper.activeTextEditorUri;
 
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
             if (!fileUri) {
                 // A text document needs to be open before we can connect
                 self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
-                resolve(false);
+                resolve(undefined);
                 return;
             } else if (!self.vscodeWrapper.isEditingSqlFile) {
-                self.connectionUI.promptToChangeLanguageMode().then( result => {
+                self.connectionUI.promptToChangeLanguageMode().then(result => {
                     if (result) {
                         self.showConnectionsAndConnect(resolve, reject, fileUri);
                     } else {
-                        resolve(false);
+                        resolve(undefined);
                     }
                 });
                 return;

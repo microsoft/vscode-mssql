@@ -8,6 +8,8 @@ import ConnectionManager from '../controllers/connectionManager';
 import { ObjectExplorerService } from './objectExplorerService';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { TreeNodeInfo } from './treeNodeInfo';
+import { IConnectionCredentials } from '../models/interfaces';
+import { Deferred } from '../protocol';
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
@@ -36,8 +38,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         }
     }
 
-    async createSession(): Promise<void> {
-        return this._objectExplorerService.createSession();
+    async createSession(promise: Deferred<TreeNodeInfo>, connectionCredentials?: IConnectionCredentials): Promise<void> {
+        return this._objectExplorerService.createSession(promise, connectionCredentials);
     }
 
     public getConnectionCredentials(sessionId: string): ConnectionCredentials {
@@ -47,8 +49,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return undefined;
     }
 
-    public removeObjectExplorerNode(node: TreeNodeInfo, isDisconnect: boolean = false): Promise<void> {
-        return this._objectExplorerService.removeObjectExplorerNode(node, isDisconnect);
+    public removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {
+        return this._objectExplorerService.removeObjectExplorerNode(node);
     }
 
     public refreshNode(node: TreeNodeInfo): Promise<void> {

@@ -17,6 +17,7 @@ import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
 
 /**
  * The different tasks for managing connection profiles.
@@ -454,7 +455,7 @@ export class ConnectionUI {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
         if (!uri) {
-            uri = profile.server + '_' + profile.profileName;
+            uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
         return self.connectionManager.connect(uri, profile).then(result => {
             if (result) {
