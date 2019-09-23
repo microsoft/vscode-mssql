@@ -7,7 +7,6 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import { ConnectionCredentials } from '../models/connectionCredentials';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ScriptingService {

@@ -165,7 +165,7 @@ export default class MainController implements vscode.Disposable {
                     }
                     // if the node is already connected
                     if (treeNodeInfo.sessionId) {
-                        return self.runAndLogErrors(self.onNewQuery(treeNodeInfo), 'onNewQueryOE');
+                        return self.runAndLogErrors(self.onNewQuery(treeNodeInfo.sessionId), 'onNewQueryOE');
                     } else {
                         const uri = await this._untitledSqlDocumentService.newQuery();
                         // connect to the node if the command came from the context
@@ -204,7 +204,7 @@ export default class MainController implements vscode.Disposable {
                         this._statusview.sqlCmdModeChanged(uri.toString(), false);
                         await this.connectionManager.connect(uri.toString(), connectionCreds);
                         const selectStatement = await this._scriptingService.scriptSelect(node, uri.toString());
-                        self.onNewQuery(node, selectStatement).then((result) => {
+                        self.onNewQuery(node.sessionId, selectStatement).then((result) => {
                             if (result) {
                                 self.onRunQuery();
                             }
@@ -672,17 +672,18 @@ export default class MainController implements vscode.Disposable {
     /**
      * Opens a new query and creates new connection
      */
-    public async onNewQuery(node?: TreeNodeInfo, content?: string): Promise<boolean> {
+    public async onNewQuery(sessionId?: string, content?: string): Promise<boolean> {
         if (this.canRunCommand()) {
             // from the object explorer context menu
-            if (node) {
+            if (sessionId) {
                 const uri = await this._untitledSqlDocumentService.newQuery(content);
                 // connect to the node if the command came from the context
-                const connectionCreds = node.connectionCredentials;
-                this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                return this.connectionManager.connect(uri.toString(), connectionCreds);
-
+                if (!this.connectionManager.isConnected(sessionId)) {
+                    const connectionCreds = this._objectExplorerProvider.getConnectionCredentials(sessionId);
+                    this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
+                    this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                    return this.connectionManager.connect(uri.toString(), connectionCreds);
+                }
             } else {
                 // new query command
                 const uri = await this._untitledSqlDocumentService.newQuery();
