@@ -216,19 +216,23 @@
       "view/item/context": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem =~ /^(disconnectedServer|Server|Database|Table)$/"
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database|Table)$/",
+          "group": "MS_SQL@1"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "viewItem =~ /^(disconnectedServer|Server)$/"
+          "when": "viewItem =~ /^(disconnectedServer|Server)$/",
+          "group": "MS_SQL@3"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "view == objectExplorer"
+          "when": "view == objectExplorer",
+          "group": "MS_SQL@2"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
-          "when": "viewItem == Server"
+          "when": "viewItem == Server",
+          "group": "MS_SQL@4"
         },
         {
           "command": "extension.scriptSelect",
