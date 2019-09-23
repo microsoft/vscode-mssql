@@ -51,8 +51,12 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.removeObjectExplorerNode(node);
     }
 
-    public refreshNode(node: TreeNodeInfo): Promise<boolean> {
+    public refreshNode(node: TreeNodeInfo): Promise<void> {
         return this._objectExplorerService.refreshNode(node);
+    }
+
+    public signInNodeServer(node: TreeNodeInfo): void {
+        return this._objectExplorerService.signInNodeServer(node);
     }
 
     /** Getters */
@@ -62,10 +66,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
     public get objectExplorerExists(): boolean {
         return this._objectExplorerExists;
-    }
-
-    public get objectExplorerService(): ObjectExplorerService {
-        return this._objectExplorerService;
     }
 
     /** Setters */

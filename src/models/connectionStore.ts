@@ -154,6 +154,21 @@ export class ConnectionStore {
     }
 
     /**
+     * Lookup credential store
+     * @param connectionCredentials Connection credentials of profile for password lookup
+     */
+    public lookupPassword(connectionCredentials: IConnectionCredentials): Promise<string> {
+        const credentialId = ConnectionStore.formatCredentialIdForCred(connectionCredentials);
+        return this._credentialStore.readCredential(credentialId).then((savedCredential) => {
+            if (savedCredential && savedCredential.password) {
+                return savedCredential.password;
+            } else {
+                return undefined;
+            }
+        }).catch((err) => Promise.reject(err));
+    }
+
+    /**
      * public for testing purposes. Validates whether a password should be looked up from the credential store or not
      *
      * @param {IConnectionProfile} connectionCreds

@@ -216,23 +216,19 @@
       "view/item/context": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem == Server"
-        },
-        {
-          "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem == Database"
-        },
-        {
-          "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem == Table"
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database|Table)$/"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "viewItem == Server"
+          "when": "viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
           "when": "view == objectExplorer"
+        },
+        {
+          "command": "extension.disconnectObjectExplorerNode",
+          "when": "viewItem == Server"
         },
         {
           "command": "extension.scriptSelect",
@@ -341,6 +337,11 @@
       {
         "command": "extension.refreshObjectExplorerNode",
         "title": "%extension.refreshObjectExplorerNode%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.disconnectObjectExplorerNode",
+        "title": "%extension.disconnect%",
         "category": "MS SQL"
       },
       {

@@ -17,7 +17,6 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
-import { ConnectionCredentials } from '../models/connectionCredentials';
 import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import { ISelectionData, IConnectionProfile } from './../models/interfaces';
@@ -27,7 +26,6 @@ import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider
 import { escapeCharacters } from '../utils/escapeCharacters';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
-import { CreateSessionRequest } from '../models/contracts/objectExplorer/createSessionRequest';
 
 /**
  * The main controller class that initializes the extension
@@ -200,8 +198,16 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
-                    this._objectExplorerProvider.objectExplorerService.signInNodeServer(node.parentNode);
+                    this._objectExplorerProvider.signInNodeServer(node.parentNode);
                     return this._objectExplorerProvider.refresh(undefined);
+                }));
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
+                        Constants.cmdDisconnectObjectExplorerNode, async (node: TreeNodeInfo) => {
+                            await this._objectExplorerProvider.removeObjectExplorerNode(node);
+                            // let profile = <IConnectionProfile>node.connectionCredentials;
+                            // await this._connectionMgr.connectionStore.removeProfile(profile, false);
+                            return this._objectExplorerProvider.refresh(undefined);
                 }));
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
