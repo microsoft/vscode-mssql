@@ -85,7 +85,8 @@ export class ConnectionInfo {
 export default class ConnectionManager {
     private _statusView: StatusView;
     private _connections: { [fileUri: string]: ConnectionInfo };
-    private _objectExplorerSessions: { [sessionId: string]: ConnectionInfo };
+    private _connectionCredentialsToServerInfoMap:
+        Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -96,7 +97,8 @@ export default class ConnectionManager {
                 private _connectionUI?: ConnectionUI) {
         this._statusView = statusView;
         this._connections = {};
-        this._objectExplorerSessions = {};
+        this._connectionCredentialsToServerInfoMap =
+            new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -267,6 +269,7 @@ export default class ConnectionManager {
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
             connection.connecting = false;
+            this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
 
             let mruConnection: Interfaces.IConnectionCredentials = <any>{};
 
@@ -534,6 +537,16 @@ export default class ConnectionManager {
     }
 
     /**
+     * Get the server info for a connection
+     * @param connectionCreds
+     */
+    public getServerInfo(connectionCredentials: Interfaces.IConnectionCredentials): ConnectionContracts.ServerInfo {
+        if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
+            return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
+        }
+    }
+
+    /**
      * Verifies the connection result. If connection failed because of invalid credentials,
      * tries to connect again by asking user for different credentials
      * @param result Connection result
@@ -721,6 +734,23 @@ export default class ConnectionManager {
             }
         });
     }
+
+    /**
+	 * Gets the connection string to send to the middleware
+	 */
+    public async getConnectionString(connection: Interfaces.IConnectionCredentials): Promise<string> {
+		let connectionString: string;
+
+		if (connection.authenticationType === 'Integrated') {
+            connectionString =
+            `Data Source=${connection.server + (connection.port ? `,${connection.port}` : '')};Initial Catalog=${connection.database};Integrated Security=True`;
+		} else {
+            let password = await this._connectionStore.lookupPassword(connection);
+            connectionString =
+            `Data Source=${connection.server + (connection.port ? `,${connection.port}` : '')};Initial Catalog=${connection.database};Integrated Security=False;User Id=${connection.user};Password=${password}`;
+		}
+		return connectionString;
+	}
 
     private getIsServerLinux(osVersion: string): string {
         if (osVersion) {

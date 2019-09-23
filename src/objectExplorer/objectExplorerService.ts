@@ -55,7 +55,7 @@ export class ObjectExplorerService {
 
     private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
         const self = this;
-        const handler = (result: SessionCreatedParameters) => {
+        const handler = async (result: SessionCreatedParameters) => {
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
                 // if no node label, check if it has a name in saved profiles
@@ -68,12 +68,13 @@ export class ObjectExplorerService {
                     }
                 }
                 // set connection and other things
+                let credentials = self._currentNode.connectionCredentials;
                 if (self._currentNode) {
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
                         self._currentNode, self._currentNode.connectionCredentials,
                         nodeLabel ? nodeLabel : result.rootNode.nodePath);
                 } else {
-                    const credentials = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
+                    credentials = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, self._currentNode,
                         credentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
                 }

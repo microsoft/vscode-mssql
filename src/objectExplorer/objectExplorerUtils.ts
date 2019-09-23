@@ -5,6 +5,7 @@
 import * as path from 'path';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionProfile } from '../models/interfaces';
+import Constants = require('../constants/constants');
 
 export class ObjectExplorerUtils {
 
@@ -15,8 +16,13 @@ export class ObjectExplorerUtils {
             return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
         }
     }
-
     public static getNodeUri(node: TreeNodeInfo): string {
+        while (node) {
+            if (node.nodeType === Constants.serverLabel) {
+                break;
+            }
+            node = node.parentNode;
+        }
         const nodeUri = node.nodePath + '_' + node.label;
         return nodeUri;
     }
