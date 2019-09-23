@@ -64,11 +64,11 @@ suite('Object Explorer Tests', () => {
 
     test('Test remove Object Explorer node', async () => {
         let isNodeDeleted = false;
-        objectExplorerService.setup(s => s.removeObjectExplorerNode(TypeMoq.It.isAny())).returns(() => {
+        objectExplorerService.setup(s => s.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
             isNodeDeleted = true;
             return Promise.resolve(undefined);
         });
-        objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny());
+        objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny());
         expect(isNodeDeleted, 'Node should be deleted').is.equal(true);
     });
 
