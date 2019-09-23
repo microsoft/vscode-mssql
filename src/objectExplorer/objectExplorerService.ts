@@ -20,7 +20,6 @@ import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
 import { Deferred } from '../protocol';
 import Constants = require('../constants/constants');
-import { promises } from 'fs';
 
 export class ObjectExplorerService {
 
@@ -59,6 +58,15 @@ export class ObjectExplorerService {
         const handler = (result: SessionCreatedParameters) => {
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
+                // if no node label, check if it has a name in saved profiles
+                // in case this call came from new query
+                let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+                for (let connection of savedConnections) {
+                    if (connection.connectionCreds.server === result.rootNode.nodePath) {
+                        nodeLabel = connection.label;
+                        break;
+                    }
+                }
                 // set connection and other things
                 if (self._currentNode) {
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
@@ -146,7 +154,7 @@ export class ObjectExplorerService {
         this._rootTreeNodeArray.push(node);
     }
 
-    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    async getChildren(element?: TreeNodeInfo, forceConnection: boolean = true): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
                 this._currentNode = element;
@@ -178,18 +186,20 @@ export class ObjectExplorerService {
                 } else {
                     // start node session
                     let promise = new Deferred<TreeNodeInfo>();
-                    this.createSession(element.connectionCredentials, promise);
-                    return promise.then((node) => {
-                        // If password wasn't given
-                        if (!node) {
-                            const signInNode = new AccountSignInTreeNode(element);
-                            this._treeNodeToChildrenMap.set(element, [signInNode]);
-                            return [signInNode];
-                        }
-                        // otherwise expand the node by refreshing the root
-                        // to add connected context key
-                        this._objectExplorerProvider.refresh(undefined);
-                    });
+                    if (forceConnection) {
+                        this.createSession(element.connectionCredentials, promise);
+                        return promise.then((node) => {
+                            // If password wasn't given
+                            if (!node) {
+                                const signInNode = new AccountSignInTreeNode(element);
+                                this._treeNodeToChildrenMap.set(element, [signInNode]);
+                                return [signInNode];
+                            }
+                            // otherwise expand the node by refreshing the root
+                            // to add connected context key
+                            this._objectExplorerProvider.refresh(undefined);
+                        });
+                    }
                 }
             }
         } else {
@@ -268,7 +278,7 @@ export class ObjectExplorerService {
         return undefined;
     }
 
-    public async removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {
+    public async removeObjectExplorerNode(node: TreeNodeInfo, isDisconnect: boolean = false): Promise<void> {
         await this.closeSession(node);
         const index = this._rootTreeNodeArray.indexOf(node, 0);
         if (index > -1) {
@@ -283,8 +293,6 @@ export class ObjectExplorerService {
         if (this._sessionIdToPromiseMap.has(node.sessionId)) {
             this._sessionIdToPromiseMap.delete(node.sessionId);
         }
-        this._disconnectedSessionIdToNodeMap.set(node.sessionId, node);
-        return this._objectExplorerProvider.refresh(undefined);
     }
 
     public async refreshNode(node: TreeNodeInfo): Promise<void> {
