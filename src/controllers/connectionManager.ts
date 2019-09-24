@@ -391,7 +391,7 @@ export default class ConnectionManager {
         return this.connectionStore.clearRecentlyUsed();
     }
 
-    // choose database to use on current server
+    // choose database to use on current server from UI
     public onChooseDatabase(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
@@ -438,6 +438,27 @@ export default class ConnectionManager {
                     reject(err);
                 });
             });
+        });
+    }
+
+    public async changeDatabase(newDatabaseCredentials: Interfaces.IConnectionCredentials): Promise<boolean> {
+        const self = this;
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        return new Promise<boolean>(async (resolve, reject) => {
+            if (!self.isConnected(fileUri)) {
+                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
+                resolve(false);
+                return;
+            }
+            await self.disconnect(fileUri);
+            await self.connect(fileUri, newDatabaseCredentials);
+            Telemetry.sendTelemetryEvent('UseDatabase');
+            self.vscodeWrapper.logToOutputChannel(
+                Utils.formatString(
+                    LocalizedConstants.msgChangedDatabase,
+                    newDatabaseCredentials.database,
+                    newDatabaseCredentials.server, fileUri));
+            return true;
         });
     }
 
@@ -734,23 +755,6 @@ export default class ConnectionManager {
             }
         });
     }
-
-    /**
-	 * Gets the connection string to send to the middleware
-	 */
-    public async getConnectionString(connection: Interfaces.IConnectionCredentials): Promise<string> {
-		let connectionString: string;
-
-		if (connection.authenticationType === 'Integrated') {
-            connectionString =
-            `Data Source=${connection.server + (connection.port ? `,${connection.port}` : '')};Initial Catalog=${connection.database};Integrated Security=True`;
-		} else {
-            let password = await this._connectionStore.lookupPassword(connection);
-            connectionString =
-            `Data Source=${connection.server + (connection.port ? `,${connection.port}` : '')};Initial Catalog=${connection.database};Integrated Security=False;User Id=${connection.user};Password=${password}`;
-		}
-		return connectionString;
-	}
 
     private getIsServerLinux(osVersion: string): string {
         if (osVersion) {

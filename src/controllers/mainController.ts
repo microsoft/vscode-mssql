@@ -151,7 +151,7 @@ export default class MainController implements vscode.Disposable {
                     let promise = new Deferred<TreeNodeInfo>();
                     await self._objectExplorerProvider.createSession(promise);
                     return promise.then(() => {
-                        this._objectExplorerProvider.refresh(undefined)
+                        this._objectExplorerProvider.refresh(undefined);
                     });
                 });
 
@@ -161,18 +161,12 @@ export default class MainController implements vscode.Disposable {
                     const connectionCredentials = treeNodeInfo.connectionCredentials;
                     if (connectionCredentials) {
                         const databaseName = `${escapeCharacters(self.getDatabaseName(treeNodeInfo))}`;
-                        connectionCredentials.database = databaseName;
+                        if (databaseName !== connectionCredentials.database) {
+                            connectionCredentials.database = databaseName;
+                        }
                     }
-                    // if the node is already connected
-                    if (treeNodeInfo.sessionId) {
-                        return self.runAndLogErrors(self.onNewQuery(treeNodeInfo.sessionId), 'onNewQueryOE');
-                    } else {
-                        const uri = await this._untitledSqlDocumentService.newQuery();
-                        // connect to the node if the command came from the context
-                        this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                        this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                        return this.connectionManager.connect(uri.toString(), connectionCredentials);
-                    }
+                    await self.onNewQuery(treeNodeInfo);
+                    await this._connectionMgr.changeDatabase(connectionCredentials);
                 }));
 
                 this._context.subscriptions.push(
@@ -187,7 +181,6 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
                 this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
                     return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
-
                 });
 
                 // initiate the scripting service
@@ -204,11 +197,10 @@ export default class MainController implements vscode.Disposable {
                         this._statusview.sqlCmdModeChanged(uri.toString(), false);
                         await this.connectionManager.connect(uri.toString(), connectionCreds);
                         const selectStatement = await this._scriptingService.scriptSelect(node, uri.toString());
-                        self.onNewQuery(node.sessionId, selectStatement).then((result) => {
-                            if (result) {
-                                self.onRunQuery();
-                            }
-                        });
+                        let editor = this._vscodeWrapper.activeTextEditor;
+                        editor.edit(editBuilder => {
+                            editBuilder.replace(editor.selection, selectStatement);
+                        }).then(() => this.onRunQuery());
                     }
                 }));
                 this._context.subscriptions.push(
@@ -223,7 +215,7 @@ export default class MainController implements vscode.Disposable {
                         let promise = new Deferred<TreeNodeInfo>();
                         await self._objectExplorerProvider.createSession(promise, node.parentNode.connectionCredentials);
                         return promise.then(() => {
-                            this._objectExplorerProvider.refresh(undefined)
+                            this._objectExplorerProvider.refresh(undefined);
                         });
                 }));
                 this._context.subscriptions.push(
@@ -672,17 +664,18 @@ export default class MainController implements vscode.Disposable {
     /**
      * Opens a new query and creates new connection
      */
-    public async onNewQuery(sessionId?: string, content?: string): Promise<boolean> {
+    public async onNewQuery(node?: TreeNodeInfo, content?: string): Promise<boolean> {
         if (this.canRunCommand()) {
             // from the object explorer context menu
-            if (sessionId) {
+            if (node) {
                 const uri = await this._untitledSqlDocumentService.newQuery(content);
                 // connect to the node if the command came from the context
-                if (!this.connectionManager.isConnected(sessionId)) {
-                    const connectionCreds = this._objectExplorerProvider.getConnectionCredentials(sessionId);
+                if (!this.connectionManager.isConnected(uri.toString())) {
+                    const connectionCreds = node.connectionCredentials;
                     this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
                     this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                    return this.connectionManager.connect(uri.toString(), connectionCreds);
+                    let result = await this.connectionManager.connect(uri.toString(), connectionCreds);
+                    return Promise.resolve(result);
                 }
             } else {
                 // new query command
@@ -693,6 +686,7 @@ export default class MainController implements vscode.Disposable {
                         this._objectExplorerProvider.refresh(undefined);
                     }
                     this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                    return Promise.resolve(true);
                 });
             }
         }
