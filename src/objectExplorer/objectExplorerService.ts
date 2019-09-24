@@ -22,6 +22,7 @@ import { ConnectTreeNode } from './connectTreeNode';
 import { Deferred } from '../protocol';
 import Constants = require('../constants/constants');
 import { ObjectExplorerUtils } from './objectExplorerUtils';
+import { ConnectionStore } from '../models/connectionStore';
 
 export class ObjectExplorerService {
 

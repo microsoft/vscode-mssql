@@ -157,15 +157,18 @@ export class ConnectionStore {
      * Lookup credential store
      * @param connectionCredentials Connection credentials of profile for password lookup
      */
-    public lookupPassword(connectionCredentials: IConnectionCredentials): Promise<string> {
-        const credentialId = ConnectionStore.formatCredentialIdForCred(connectionCredentials);
-        return this._credentialStore.readCredential(credentialId).then((savedCredential) => {
-            if (savedCredential && savedCredential.password) {
-                return savedCredential.password;
-            } else {
-                return undefined;
-            }
-        }).catch((err) => Promise.reject(err));
+    public async lookupPassword(connectionCredentials: IConnectionCredentials): Promise<string> {
+        const databaseName = connectionCredentials.database === '' ? 'master' :
+            connectionCredentials.database;
+        const credentialId = ConnectionStore.formatCredentialId(
+            connectionCredentials.server, databaseName,
+            connectionCredentials.user, ConnectionStore.CRED_MRU_USER);
+        const savedCredential = await this._credentialStore.readCredential(credentialId);
+        if (savedCredential && savedCredential.password) {
+            return savedCredential.password;
+        } else {
+            return undefined;
+        }
     }
 
     /**

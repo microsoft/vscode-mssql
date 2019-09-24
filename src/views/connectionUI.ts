@@ -454,9 +454,6 @@ export class ConnectionUI {
     private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
-        // if (self.vscodeWrapper.isEditingSqlFile) {
-        //     uri = self.vscodeWrapper.activeTextEditorUri;
-        // }
         if (!uri) {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
