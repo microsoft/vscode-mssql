@@ -487,6 +487,9 @@ suite('Per File Connection Tests', () => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => true);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'file://my/test/file.sql');
+        const mockConfig = new Map<string, boolean>();
+        mockConfig.set('enablePreviewFeatures', false);
+        vscodeWrapperMock.setup(v => v.getConfiguration(TypeMoq.It.isAnyString()).returns(mockConfig));
         let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);

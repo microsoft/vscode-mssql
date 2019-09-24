@@ -191,6 +191,9 @@ suite('MainController Tests', () => {
     test('TextDocument Events should handle non-initialized connection manager' , done => {
         let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        const mockConfig = new Map<string, boolean>();
+        mockConfig.set('enablePreviewFeatures', false);
+        vscodeWrapperMock.setup(v => v.getConfiguration(TypeMoq.It.isAnyString()).returns(mockConfig));
         let controller: MainController = new MainController(contextMock.object,
             undefined,  // ConnectionManager
             vscodeWrapperMock.object);
@@ -228,6 +231,9 @@ suite('MainController Tests', () => {
     test('validateTextDocumentHasFocus returns false if there is no active text document', () => {
         let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        const mockConfig = new Map<string, boolean>();
+        mockConfig.set('enablePreviewFeatures', false);
+        vscodeWrapperMock.setup(v => v.getConfiguration(TypeMoq.It.isAnyString()).returns(mockConfig));
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => undefined);
         let controller: MainController = new MainController(contextMock.object,
             undefined,  // ConnectionManager
@@ -241,6 +247,9 @@ suite('MainController Tests', () => {
     test('validateTextDocumentHasFocus returns true if there is an active text document', () => {
         let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        const mockConfig = new Map<string, boolean>();
+        mockConfig.set('enablePreviewFeatures', false);
+        vscodeWrapperMock.setup(v => v.getConfiguration(TypeMoq.It.isAnyString()).returns(mockConfig));
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test_uri');
         let controller: MainController = new MainController(contextMock.object,
             undefined,  // ConnectionManager
