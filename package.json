@@ -211,7 +211,8 @@
         {
           "command": "extension.addObjectExplorer",
           "title": "%extension.addObjectExplorer%",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "enablePreviewFeatures"
         }
       ],
       "view/item/context": [
@@ -256,6 +257,10 @@
         {
           "command": "extension.scriptSelect",
           "when": "enablePreviewFeatures && viewItem == Table"
+        },
+        {
+          "command": "extension.disconnectObjectExplorerNode",
+          "when": "enablePreviewFeatures && viewItem != null"
         }
       ]
     },
@@ -378,7 +383,7 @@
         "command": "extension.addObjectExplorer",
         "key": "ctrl+shift+o",
         "mac": "cmd+shift+o",
-        "when": "view == objectExplorer"
+        "when": "enablePreviewFeatures && view == objectExplorer"
       }
     ],
     "configuration": {
