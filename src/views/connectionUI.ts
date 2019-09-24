@@ -17,6 +17,7 @@ import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
 
 /**
  * The different tasks for managing connection profiles.
@@ -178,6 +179,26 @@ export class ConnectionUI {
                 resolve(result ? true : false);
             }).catch(err => {
                 resolve(false);
+            });
+        });
+    }
+
+    /**
+     * Prompt the user for password
+     */
+    public promptForPassword(): Promise<string> {
+        const self = this;
+        return new Promise<string>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.password,
+                name: LocalizedConstants.passwordPrompt,
+                message: LocalizedConstants.passwordPrompt,
+                placeHolder: LocalizedConstants.passwordPlaceholder
+            };
+            self._prompter.promptSingle(question).then((result: string) => {
+                resolve(result);
+            }).catch(err => {
+                reject(err);
             });
         });
     }
@@ -434,7 +455,7 @@ export class ConnectionUI {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
         if (!uri) {
-            uri = profile.server + '_' + profile.profileName;
+            uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
         return self.connectionManager.connect(uri, profile).then(result => {
             if (result) {

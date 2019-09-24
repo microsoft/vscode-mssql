@@ -161,7 +161,7 @@
       "activitybar": [
         {
           "id": "objectExplorer",
-          "title": "Object Explorer",
+          "title": "SQL Server",
           "icon": "./images/server_page_inverse.svg"
         }
       ]
@@ -216,23 +216,23 @@
       "view/item/context": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem == Server"
-        },
-        {
-          "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem == Database"
-        },
-        {
-          "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem == Table"
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database|Table)$/",
+          "group": "MS_SQL@1"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "viewItem == Server"
+          "when": "viewItem =~ /^(disconnectedServer|Server)$/",
+          "group": "MS_SQL@3"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "view == objectExplorer"
+          "when": "view == objectExplorer",
+          "group": "MS_SQL@2"
+        },
+        {
+          "command": "extension.disconnectObjectExplorerNode",
+          "when": "viewItem == Server",
+          "group": "MS_SQL@4"
         },
         {
           "command": "extension.scriptSelect",
@@ -341,6 +341,11 @@
       {
         "command": "extension.refreshObjectExplorerNode",
         "title": "%extension.refreshObjectExplorerNode%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.disconnectObjectExplorerNode",
+        "title": "%extension.disconnect%",
         "category": "MS SQL"
       },
       {

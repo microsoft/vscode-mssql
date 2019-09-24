@@ -490,7 +490,7 @@ suite('Per File Connection Tests', () => {
         let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
-        connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(false));
+        connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(undefined));
 
         let controller: MainController = new MainController(contextMock.object,
                                                             connectionManagerMock.object,

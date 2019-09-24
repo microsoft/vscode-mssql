@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
+import { IConnectionCredentials } from '../models/interfaces';
 
 export class TreeNodeInfo extends vscode.TreeItem {
 
@@ -17,6 +18,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
     private _errorMessage: string;
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
+    private _connectionCredentials: IConnectionCredentials;
 
     constructor(
         label: string,
@@ -26,6 +28,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         nodeStatus: string,
         nodeType: string,
         sessionId: string,
+        connectionCredentials: IConnectionCredentials,
         parentNode: TreeNodeInfo
     ) {
         super(label, collapsibleState);
@@ -35,13 +38,19 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._nodeType = nodeType;
         this._sessionId = sessionId;
         this._parentNode = parentNode;
+        this._connectionCredentials = connectionCredentials;
         this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
     }
 
-    public static fromNodeInfo(nodeInfo: NodeInfo, sessionId: string, parentNode: TreeNodeInfo, label?: string): TreeNodeInfo {
+    public static fromNodeInfo(
+        nodeInfo: NodeInfo,
+        sessionId: string,
+        parentNode: TreeNodeInfo,
+        connectionCredentials: IConnectionCredentials,
+        label?: string): TreeNodeInfo {
         const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, nodeInfo.nodeType,
             vscode.TreeItemCollapsibleState.Collapsed, nodeInfo.nodePath, nodeInfo.nodeStatus,
-            nodeInfo.nodeType, sessionId, parentNode);
+            nodeInfo.nodeType, sessionId, connectionCredentials, parentNode);
         return treeNodeInfo;
     }
 
@@ -78,6 +87,10 @@ export class TreeNodeInfo extends vscode.TreeItem {
         return this._parentNode;
     }
 
+    public get connectionCredentials(): IConnectionCredentials {
+        return this._connectionCredentials;
+    }
+
     /** Setters */
     public set nodePath(value: string) {
         this._nodePath = value;
@@ -109,5 +122,9 @@ export class TreeNodeInfo extends vscode.TreeItem {
 
     public set parentNode(value: TreeNodeInfo) {
         this._parentNode = value;
+    }
+
+    public set connectionCredentials(value: IConnectionCredentials) {
+        this._connectionCredentials = value;
     }
 }

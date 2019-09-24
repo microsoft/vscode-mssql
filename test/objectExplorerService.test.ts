@@ -35,12 +35,12 @@ suite('Object Explorer Tests', () => {
     test('Test Create Session', () => {
         expect(objectExplorerService.object.currentNode, 'Current Node should be undefined').is.equal(undefined);
         expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer should not exist until started').is.equal(undefined);
-        objectExplorerService.setup(s => s.createSession()).returns(() => {
+        objectExplorerService.setup(s => s.createSession(TypeMoq.It.isAny())).returns(() => {
             objectExplorerService.setup(s => s.currentNode).returns(() => TypeMoq.It.isAny());
             objectExplorerProvider.objectExplorerExists = true;
-            return Promise.resolve(TypeMoq.It.isAnyString());
+            return Promise.resolve(TypeMoq.It.isAny());
         });
-        objectExplorerProvider.createSession().then(sessionId => {
+        objectExplorerProvider.createSession(TypeMoq.It.isAny()).then(sessionId => {
             expect(sessionId, 'Session Id should not be undefined').is.not.equal(undefined);
             expect(objectExplorerService.object.currentNode, 'Current Node should not be undefined').is.not.equal(undefined);
             expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer session should exist').is.equal(true);
@@ -62,15 +62,14 @@ suite('Object Explorer Tests', () => {
         expect(credentials, 'Connection Credentials should not be null').is.not.equal(undefined);
     });
 
-    test('Test remove Object Explorer node', () => {
+    test('Test remove Object Explorer node', async () => {
         let isNodeDeleted = false;
-        objectExplorerService.setup(s => s.removeObjectExplorerNode(TypeMoq.It.isAny())).returns(() => {
+        objectExplorerService.setup(s => s.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
             isNodeDeleted = true;
             return Promise.resolve(undefined);
         });
-        objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny()).then(() => {
-            expect(isNodeDeleted, 'Node should be deleted').is.equal(true);
-        });
+        objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny());
+        expect(isNodeDeleted, 'Node should be deleted').is.equal(true);
     });
 
     test('Test Get Children from Object Explorer Provider', () => {
