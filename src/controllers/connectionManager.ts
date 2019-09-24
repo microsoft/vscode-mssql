@@ -85,7 +85,8 @@ export class ConnectionInfo {
 export default class ConnectionManager {
     private _statusView: StatusView;
     private _connections: { [fileUri: string]: ConnectionInfo };
-    private _objectExplorerSessions: { [sessionId: string]: ConnectionInfo };
+    private _connectionCredentialsToServerInfoMap:
+        Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -96,7 +97,8 @@ export default class ConnectionManager {
                 private _connectionUI?: ConnectionUI) {
         this._statusView = statusView;
         this._connections = {};
-        this._objectExplorerSessions = {};
+        this._connectionCredentialsToServerInfoMap =
+            new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -267,6 +269,7 @@ export default class ConnectionManager {
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
             connection.connecting = false;
+            this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
 
             let mruConnection: Interfaces.IConnectionCredentials = <any>{};
 
@@ -388,7 +391,7 @@ export default class ConnectionManager {
         return this.connectionStore.clearRecentlyUsed();
     }
 
-    // choose database to use on current server
+    // choose database to use on current server from UI
     public onChooseDatabase(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
@@ -435,6 +438,27 @@ export default class ConnectionManager {
                     reject(err);
                 });
             });
+        });
+    }
+
+    public async changeDatabase(newDatabaseCredentials: Interfaces.IConnectionCredentials): Promise<boolean> {
+        const self = this;
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        return new Promise<boolean>(async (resolve, reject) => {
+            if (!self.isConnected(fileUri)) {
+                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
+                resolve(false);
+                return;
+            }
+            await self.disconnect(fileUri);
+            await self.connect(fileUri, newDatabaseCredentials);
+            Telemetry.sendTelemetryEvent('UseDatabase');
+            self.vscodeWrapper.logToOutputChannel(
+                Utils.formatString(
+                    LocalizedConstants.msgChangedDatabase,
+                    newDatabaseCredentials.database,
+                    newDatabaseCredentials.server, fileUri));
+            return true;
         });
     }
 
@@ -523,7 +547,7 @@ export default class ConnectionManager {
                     self.connect(fileUri, connectionCreds)
                     .then(result => {
                         self.handleConnectionResult(result, fileUri, connectionCreds).then(() => {
-                            resolve(true);
+                            resolve(connectionCreds);
                         });
                     });
                 });
@@ -531,6 +555,16 @@ export default class ConnectionManager {
                 resolve(false);
             }
         });
+    }
+
+    /**
+     * Get the server info for a connection
+     * @param connectionCreds
+     */
+    public getServerInfo(connectionCredentials: Interfaces.IConnectionCredentials): ConnectionContracts.ServerInfo {
+        if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
+            return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
+        }
     }
 
     /**
@@ -566,22 +600,22 @@ export default class ConnectionManager {
 
 
     // let users pick from a picklist of connections
-    public onNewConnection(objectExplorerSessionId?: string): Promise<boolean> {
+    public onNewConnection(objectExplorerSessionId?: string): Promise<Interfaces.IConnectionCredentials> {
         const self = this;
         const fileUri = objectExplorerSessionId ? objectExplorerSessionId : this.vscodeWrapper.activeTextEditorUri;
 
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
             if (!fileUri) {
                 // A text document needs to be open before we can connect
                 self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
-                resolve(false);
+                resolve(undefined);
                 return;
             } else if (!self.vscodeWrapper.isEditingSqlFile) {
-                self.connectionUI.promptToChangeLanguageMode().then( result => {
+                self.connectionUI.promptToChangeLanguageMode().then(result => {
                     if (result) {
                         self.showConnectionsAndConnect(resolve, reject, fileUri);
                     } else {
-                        resolve(false);
+                        resolve(undefined);
                     }
                 });
                 return;

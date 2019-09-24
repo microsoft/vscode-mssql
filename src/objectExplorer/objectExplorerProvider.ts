@@ -8,6 +8,8 @@ import ConnectionManager from '../controllers/connectionManager';
 import { ObjectExplorerService } from './objectExplorerService';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { TreeNodeInfo } from './treeNodeInfo';
+import { IConnectionCredentials } from '../models/interfaces';
+import { Deferred } from '../protocol';
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
@@ -29,27 +31,34 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return node;
     }
 
-    getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const children = this._objectExplorerService.getChildren(element);
+    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        const children = await this._objectExplorerService.getChildren(element);
         if (children) {
-            return Promise.resolve(children);
+            return children;
         }
     }
 
-    async createSession(): Promise<string> {
-        return await this._objectExplorerService.createSession();
+    async createSession(promise: Deferred<TreeNodeInfo>, connectionCredentials?: IConnectionCredentials): Promise<void> {
+        return this._objectExplorerService.createSession(promise, connectionCredentials);
     }
 
     public getConnectionCredentials(sessionId: string): ConnectionCredentials {
-        return this._objectExplorerService.getConnectionCredentials(sessionId);
+        if (sessionId) {
+            return this._objectExplorerService.getConnectionCredentials(sessionId);
+        }
+        return undefined;
     }
 
-    public removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {
-        return this._objectExplorerService.removeObjectExplorerNode(node);
+    public removeObjectExplorerNode(node: TreeNodeInfo, isDisconnect: boolean = false): Promise<void> {
+        return this._objectExplorerService.removeObjectExplorerNode(node, isDisconnect);
     }
 
-    public refreshNode(node: TreeNodeInfo): Promise<boolean> {
+    public refreshNode(node: TreeNodeInfo): Promise<void> {
         return this._objectExplorerService.refreshNode(node);
+    }
+
+    public signInNodeServer(node: TreeNodeInfo): void {
+        return this._objectExplorerService.signInNodeServer(node);
     }
 
     /** Getters */

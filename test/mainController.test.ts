@@ -205,18 +205,18 @@ suite('MainController Tests', () => {
     test('onNewQuery should call the new query and new connection' , () => {
 
         untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
-        connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(true));
+        connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
 
         return mainController.onNewQuery(undefined).then(result => {
             untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
-            connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.once());
+            connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
         });
     });
 
     test('onNewQuery should not call the new connection if new query fails' , done => {
 
         untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<vscode.Uri>('error'); } );
-        connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(true); } );
+        connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(TypeMoq.It.isAny()); } );
 
         mainController.onNewQuery(undefined).catch(error => {
             untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
