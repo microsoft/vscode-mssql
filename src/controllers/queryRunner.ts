@@ -17,7 +17,10 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteSubsetParams, QueryExecuteSubsetRequest,
     QueryExecuteMessageParams,
-    QueryExecuteBatchNotificationParams } from '../models/contracts/queryExecute';
+    QueryExecuteBatchNotificationParams,
+    QueryExecuteOptionsRequest,
+    QueryExecutionOptionsParams,
+    QueryExecutionOptions} from '../models/contracts/queryExecute';
 import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
@@ -41,6 +44,7 @@ export default class QueryRunner {
     private _resultLineOffset: number;
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
+    private _isSqlCmd: boolean = false;
     public eventEmitter: EventEmitter = new EventEmitter();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
@@ -102,6 +106,14 @@ export default class QueryRunner {
 
     get hasCompleted(): boolean {
         return this._hasCompleted;
+    }
+
+    get isSqlCmd(): boolean {
+        return this._isSqlCmd;
+    }
+
+    set isSqlCmd(value: boolean) {
+        this._isSqlCmd = value;
     }
 
     // PUBLIC METHODS ======================================================
@@ -406,6 +418,20 @@ export default class QueryRunner {
         });
     }
 
+
+    public toggleSqlCmd(): Thenable<boolean> {
+        const queryExecuteOptions: QueryExecutionOptions = { options: new Map<string, any>() };
+        queryExecuteOptions.options['isSqlCmdMode'] = !this.isSqlCmd;
+        const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
+            ownerUri: this.uri,
+            options: queryExecuteOptions
+        };
+        return this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams).then(() => {
+            this._isSqlCmd = !this._isSqlCmd;
+            return true;
+        });
+    }
+
     private shouldIncludeHeaders(includeHeaders: boolean): boolean {
         if (includeHeaders !== undefined) {
             // Respect the value explicity passed into the method
@@ -433,7 +459,7 @@ export default class QueryRunner {
         return outputString;
     }
 
-    private sendBatchTimeMessage(batchId: number, executionTime: string, isRefresh?: boolean): void {
+    private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
         let showBatchTime: boolean = config[Constants.configShowBatchTime];
@@ -445,7 +471,7 @@ export default class QueryRunner {
                 isError: false
             };
             // Send the message to the results pane
-            this.eventEmitter.emit('message', message, isRefresh);
+            this.eventEmitter.emit('message', message);
         }
     }
 

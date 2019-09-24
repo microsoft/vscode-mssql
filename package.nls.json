@@ -15,6 +15,7 @@
 "extension.showGettingStarted":"Getting Started Guide",
 "extension.newQuery":"New Query",
 "extension.objectExplorerNewQuery":"New Query",
+"extension.toggleSqlCmd":"Toggle SQLCMD Mode",
 "extension.rebuildIntelliSenseCache":"Refresh IntelliSense Cache",
 "mssql.logDebugInfo":"[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
 "mssql.maxRecentConnections":"The maximum number of recently used connections to store in the connection list.",

@@ -6,7 +6,6 @@
 import {RequestType, NotificationType} from 'vscode-languageclient';
 import { IDbColumn, ISelectionData, IResultMessage } from './../interfaces';
 
-
 export class ResultSetSummary {
     id: number;
     batchId: number;
@@ -119,4 +118,16 @@ export class QueryExecuteSubsetResult {
     resultSubset: ResultSetSubset;
 }
 
-// --------------------------------- </ Query Results Request > ------------------------------------------
+// ------------------------------- < Query Execution Options Request > ------------------------------------
+export namespace QueryExecuteOptionsRequest {
+    export const type = new RequestType<QueryExecutionOptionsParams, boolean, void, void>('query/setexecutionoptions');
+}
+
+export class QueryExecutionOptionsParams {
+    ownerUri: string;
+    options: QueryExecutionOptions;
+}
+
+export class QueryExecutionOptions {
+    options: Map<string, any>;
+}
