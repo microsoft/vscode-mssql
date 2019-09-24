@@ -22,13 +22,12 @@ import { ConnectTreeNode } from './connectTreeNode';
 import { Deferred } from '../protocol';
 import Constants = require('../constants/constants');
 import { ObjectExplorerUtils } from './objectExplorerUtils';
-import { ConnectionStore } from '../models/connectionStore';
 
 export class ObjectExplorerService {
 
     private _client: SqlToolsServiceClient;
     private _currentNode: TreeNodeInfo;
-    private _treeNodeToChildrenMap: Map<TreeNodeInfo, vscode.TreeItem[]>;
+    private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
     private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
@@ -41,7 +40,7 @@ export class ObjectExplorerService {
                 private _objectExplorerProvider: ObjectExplorerProvider) {
         this._connectionManager = _connectionManager;
         this._client = this._connectionManager.client;
-        this._treeNodeToChildrenMap = new Map<TreeNodeInfo, vscode.TreeItem[]>();
+        this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
         this._sessionIdToConnectionCredentialsMap = new Map<string, ConnectionCredentials>();
         this._nodePathToNodeLabelMap = new Map<string, string>();
@@ -149,6 +148,19 @@ export class ObjectExplorerService {
             }
         }
         this._rootTreeNodeArray.push(node);
+    }
+
+    /**
+     * Clean all children of the node
+     * @param node Node to cleanup
+     */
+    private cleanNodeChildren(node: TreeNodeInfo): void {
+        if (this._treeNodeToChildrenMap.has(node)) {
+            let children = this._treeNodeToChildrenMap.get(node);
+            if (children) {
+                children.forEach(child => this._treeNodeToChildrenMap.delete(child));
+            }
+        }
     }
 
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
@@ -277,12 +289,13 @@ export class ObjectExplorerService {
         }
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
         this._connectionManager.disconnect(nodeUri);
-        this._treeNodeToChildrenMap.delete(node);
+        this.cleanNodeChildren(node);
         this._nodePathToNodeLabelMap.delete(node.nodePath);
         this._sessionIdToConnectionCredentialsMap.delete(node.sessionId);
         if (this._sessionIdToPromiseMap.has(node.sessionId)) {
             this._sessionIdToPromiseMap.delete(node.sessionId);
         }
+        this._treeNodeToChildrenMap.delete(node);
         this._currentNode = undefined;
         if (isDisconnect) {
             this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);

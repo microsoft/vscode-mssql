@@ -29,6 +29,7 @@ import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
 import { Deferred } from '../protocol';
 import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
+import { ConnectionCredentials } from '../models/connectionCredentials';
 
 /**
  * The main controller class that initializes the extension
@@ -136,7 +137,7 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
                 this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { self.onLoadCompletionExtension(params); });
                 this.registerCommand(Constants.cmdToggleSqlCmd);
-                this._event.on(Constants.cmdToggleSqlCmd, () => { self.onToggleSqlCmd(); });
+                this._event.on(Constants.cmdToggleSqlCmd, async () => { await self.onToggleSqlCmd(); });
 
                 // register the object explorer tree provider
                 this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
@@ -194,8 +195,8 @@ export default class MainController implements vscode.Disposable {
                         const databaseName = `${escapeCharacters(self.getDatabaseName(node))}`;
                         node.connectionCredentials.database = databaseName;
                         this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                        this._statusview.sqlCmdModeChanged(uri.toString(), false);
                         await this.connectionManager.connect(uri.toString(), connectionCreds);
+                        this._statusview.sqlCmdModeChanged(uri.toString(), false);
                         const selectStatement = await this._scriptingService.scriptSelect(node, uri.toString());
                         let editor = this._vscodeWrapper.activeTextEditor;
                         editor.edit(editBuilder => {
@@ -289,34 +290,39 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Helper function to toggle SQLCMD mode
+     */
+    private async toggleSqlCmdMode(isSqlCmd: boolean): Promise<boolean> {
+        return this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri).then(async () => {
+            await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
+            return Promise.resolve(true);
+        });
+    }
+
+
+    /**
      * Handles the command to enable SQLCMD mode
      */
     private async onToggleSqlCmd(): Promise<boolean> {
         let isSqlCmd: boolean;
-        const queryRunner = this._outputContentProvider.getQueryRunner(this._vscodeWrapper.activeTextEditorUri);
+        const uri = this._vscodeWrapper.activeTextEditorUri;
+        const queryRunner = this._outputContentProvider.getQueryRunner(uri);
         const promise = new Promise<boolean>(async (resolve, reject) => {
+            // if a query runner exists, use it
             if (queryRunner) {
                 isSqlCmd = queryRunner.isSqlCmd;
-                this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri).then((result) => {
-                    this._connectionMgr.onChooseLanguageFlavor(!isSqlCmd).then(() => {
-                        this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
-                        resolve(true);
-                    });
-                });
+                const result = await this.toggleSqlCmdMode(!isSqlCmd);
+                resolve(result);
             } else {
-                isSqlCmd = true;
-                let uri = await this._untitledSqlDocumentService.newQuery();
-                return this._connectionMgr.onNewConnection().then(() => {
-                    this._outputContentProvider.toggleSqlCmd(uri.toString()).then((result) => {
-                        if (result) {
-                            this._connectionMgr.onChooseLanguageFlavor(isSqlCmd).then(() => {
-                                this._statusview.sqlCmdModeChanged(uri.toString(), isSqlCmd);
-                                resolve(true);
-                            });
-                        }
-                    });
-                });
+                // otherwise create a new query runner
+                isSqlCmd = false;
+                const editor = this._vscodeWrapper.activeTextEditor;
+                const title = path.basename(editor.document.fileName);
+                this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
+                const result = await this.toggleSqlCmdMode(!isSqlCmd);
+                resolve(result);
             }
+            return this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
         });
         return promise;
     }
@@ -672,22 +678,31 @@ export default class MainController implements vscode.Disposable {
                 // connect to the node if the command came from the context
                 if (!this.connectionManager.isConnected(uri.toString())) {
                     const connectionCreds = node.connectionCredentials;
+                    // if the node isn't connected
+                    if (!node.sessionId) {
+                        // if it requires a password to connect
+                        if (ConnectionCredentials.shouldPromptForPassword(connectionCreds)) {
+                            // lookup saved password
+                            const password = await this.connectionManager.connectionStore.
+                                lookupPassword(connectionCreds)
+                            connectionCreds.password = password;
+                        }
+                    }
                     this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
+                    await this.connectionManager.connect(uri.toString(), connectionCreds);
                     this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                    let result = await this.connectionManager.connect(uri.toString(), connectionCreds);
-                    return Promise.resolve(result);
+                    return Promise.resolve(true);
                 }
             } else {
                 // new query command
                 const uri = await this._untitledSqlDocumentService.newQuery();
-                this._connectionMgr.onNewConnection().then(async (result) => {
-                    // initiate a new OE with same connection
-                    if (result) {
-                        this._objectExplorerProvider.refresh(undefined);
-                    }
-                    this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                    return Promise.resolve(true);
-                });
+                const credentials = await this._connectionMgr.onNewConnection();
+                // initiate a new OE with same connection
+                if (credentials) {
+                    this._objectExplorerProvider.refresh(undefined);
+                }
+                this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                return Promise.resolve(true);
             }
         }
         return Promise.resolve(false);

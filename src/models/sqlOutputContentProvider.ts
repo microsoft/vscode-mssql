@@ -160,7 +160,7 @@ export class SqlOutputContentProvider {
         await controller.init();
     }
 
-    private createQueryRunner(statusView: any, uri: string, title: string): QueryRunner {
+    public createQueryRunner(statusView: any, uri: string, title: string): QueryRunner {
         // Reuse existing query runner if it exists
         let queryRunner: QueryRunner;
 

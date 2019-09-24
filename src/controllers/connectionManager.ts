@@ -462,14 +462,14 @@ export default class ConnectionManager {
         });
     }
 
-    public onChooseLanguageFlavor(isSqlCmd: boolean = false): Promise<boolean> {
+    public onChooseLanguageFlavor(isSqlCmdMode: boolean = false, isSqlCmd: boolean = false): Promise<boolean> {
         const fileUri = this._vscodeWrapper.activeTextEditorUri;
         if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
-            if (isSqlCmd) {
+            if (isSqlCmdMode) {
                 SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
                     <LanguageServiceContracts.DidChangeLanguageFlavorParams> {
                     uri: fileUri,
-                    language: 'sqlcmd',
+                    language: isSqlCmd ? 'sqlcmd' : 'sql',
                     flavor: 'MSSQL'
                 });
                 return Promise.resolve(true);
