@@ -66,7 +66,6 @@ export default class MainController implements vscode.Disposable {
         this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
 
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
-        this._previewEnabled = this._vscodeWrapper.getConfiguration('mssql').get('enablePreviewFeatures');
     }
 
     /**
@@ -832,5 +831,12 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedTimer = new Utils.Timer();
         this._lastSavedTimer.start();
         this._lastSavedUri = savedDocumentUri;
+    }
+
+    /**
+     * set enable preview mode for testing only
+     */
+    public setEnablePreviewMode(): void {
+        this._previewEnabled = false;
     }
 }
