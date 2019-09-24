@@ -62,15 +62,14 @@ suite('Object Explorer Tests', () => {
         expect(credentials, 'Connection Credentials should not be null').is.not.equal(undefined);
     });
 
-    test('Test remove Object Explorer node', () => {
+    test('Test remove Object Explorer node', async () => {
         let isNodeDeleted = false;
-        objectExplorerService.setup(s => s.removeObjectExplorerNode(TypeMoq.It.isAny())).returns(() => {
+        objectExplorerService.setup(s => s.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
             isNodeDeleted = true;
             return Promise.resolve(undefined);
         });
-        objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny()).then(() => {
-            expect(isNodeDeleted, 'Node should be deleted').is.equal(true);
-        });
+        objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny());
+        expect(isNodeDeleted, 'Node should be deleted').is.equal(true);
     });
 
     test('Test Get Children from Object Explorer Provider', () => {
