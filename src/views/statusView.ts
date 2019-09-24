@@ -151,7 +151,6 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.command = Constants.cmdChooseDatabase;
         bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
-        bar.sqlCmdMode.text = 'SQLCMD: Off';
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
@@ -284,7 +283,6 @@ export default class StatusView implements vscode.Disposable {
                 this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
                 this.showStatusBarItem(fileUri, bar.statusConnection);
                 this.showStatusBarItem(fileUri, bar.statusLanguageService);
-                this.showStatusBarItem(fileUri, bar.sqlCmdMode);
             }
         }
     }
