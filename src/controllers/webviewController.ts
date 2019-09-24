@@ -60,7 +60,7 @@ export class WebviewPanelController implements vscode.Disposable {
                     // give a 2 sec delay because the the webview visible event is fired
                     // before the angular component is actually built. Give time for the
                     // angular component to show up
-                    setTimeout(async () => await this.queryRunner.refreshQueryTab(), 1700);
+                    setTimeout(async () => await this.queryRunner.refreshQueryTab(), 2000);
                 }
             // if focus is on text editor
             } else if (p.webviewPanel.visible && !p.webviewPanel.active) {
