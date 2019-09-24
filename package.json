@@ -236,7 +236,7 @@
         },
         {
           "command": "extension.scriptSelect",
-          "when": "viewItem == Table"
+          "when": "viewItem =~ /^(Table|View)$/"
         }
       ],
       "commandPalette": [
