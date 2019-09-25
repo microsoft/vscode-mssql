@@ -155,7 +155,7 @@ export class SqlOutputContentProvider {
             showError: (message: string) => this.showErrorRequestHandler(message),
             showWarning: (message: string) => this.showWarningRequestHandler(message)
         };
-        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath, queryRunner);
+        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath);
         this._panels.set(uri, controller);
         await controller.init();
     }
