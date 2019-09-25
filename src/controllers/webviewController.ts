@@ -28,14 +28,13 @@ export class WebviewPanelController implements vscode.Disposable {
     private _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
-    private _isPanelFocused: boolean = true;
+    private _isActive: boolean;
 
     constructor(
         uri: string,
         title: string,
         serverProxy: IServerProxy,
         private baseUri: string,
-        private queryRunner: QueryRunner
     ) {
         const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
@@ -48,23 +47,14 @@ export class WebviewPanelController implements vscode.Disposable {
             this.dispose();
         });
         this._disposables.push(this._panel.onDidChangeViewState((p) => {
-            // if the webview tab changed, cache state
-            if (!p.webviewPanel.visible && !p.webviewPanel.active) {
-                this._isPanelFocused = false;
+            // occurs when current tab is back in focus
+            if (p.webviewPanel.active && p.webviewPanel.visible) {
+                this._isActive = true;
                 return;
-
-            // if the webview just got focus
-            } else if (p.webviewPanel.visible && p.webviewPanel.active && !this._isPanelFocused) {
-                if (!this.queryRunner.isExecutingQuery) {
-                    // for refresh
-                    // give a 2 sec delay because the the webview visible event is fired
-                    // before the angular component is actually built. Give time for the
-                    // angular component to show up
-                    setTimeout(async () => await this.queryRunner.refreshQueryTab(), 2000);
-                }
-            // if focus is on text editor
-            } else if (p.webviewPanel.visible && !p.webviewPanel.active) {
-                this._isPanelFocused = true;
+            }
+            // occurs when we switch the current tab
+            if (!p.webviewPanel.active && !p.webviewPanel.visible) {
+                this._isActive = false;
                 return;
             }
         }));
@@ -78,6 +68,13 @@ export class WebviewPanelController implements vscode.Disposable {
         const baseUri = `${vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
         const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
         this._panel.webview.html = formattedHTML;
+    }
+
+    /**
+     * Property indicating whether the tab is active
+     */
+    public get isActive(): boolean {
+        return this._isActive;
     }
 
     public dispose(): void {

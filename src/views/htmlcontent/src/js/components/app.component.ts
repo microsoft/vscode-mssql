@@ -418,6 +418,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     break;
             }
         });
+        this.dataService.sendReadyEvent(this.uri);
     }
 
     ngAfterViewChecked(): void {

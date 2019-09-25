@@ -153,9 +153,10 @@ export class SqlOutputContentProvider {
                 this.saveResultsRequestHandler(uri, batchId, resultId, format, selection),
             setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
             showError: (message: string) => this.showErrorRequestHandler(message),
-            showWarning: (message: string) => this.showWarningRequestHandler(message)
+            showWarning: (message: string) => this.showWarningRequestHandler(message),
+            sendReadyEvent: () => this.sendReadyEvent(uri)
         };
-        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath, queryRunner);
+        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath);
         this._panels.set(uri, controller);
         await controller.init();
     }
@@ -280,6 +281,19 @@ export class SqlOutputContentProvider {
             if (doc.uri.toString() === key) {
                 value.timeout = this.setRunnerDeletionTimeout(key);
             }
+        }
+    }
+
+    /**
+     * Ready event sent by the angular app
+     * @param uri
+     */
+    private async sendReadyEvent(uri: string): Promise<boolean> {
+        // in case of a tab switch
+        const panelController = this._panels.get(uri);
+        const queryRunner = this.getQueryRunner(uri);
+        if (panelController.isActive && queryRunner.hasCompleted) {
+            return queryRunner.refreshQueryTab();
         }
     }
 
