@@ -70,6 +70,17 @@ export class WebviewPanelController implements vscode.Disposable {
         this._panel.webview.html = formattedHTML;
     }
 
+    public dispose(): void {
+        this._disposables.forEach(d => d.dispose());
+        this._isDisposed = true;
+    }
+
+    public revealToForeground(): void {
+        this._panel.reveal();
+    }
+
+    /** Getters */
+
     /**
      * Property indicating whether the tab is active
      */
@@ -77,11 +88,10 @@ export class WebviewPanelController implements vscode.Disposable {
         return this._isActive;
     }
 
-    public dispose(): void {
-        this._disposables.forEach(d => d.dispose());
-        this._isDisposed = true;
-    }
-
+    /**
+     * Property indicating whether the panel controller
+     * is disposed or not
+     */
     public get isDisposed(): boolean {
         return this._isDisposed;
     }

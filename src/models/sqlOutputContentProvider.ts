@@ -101,6 +101,10 @@ export class SqlOutputContentProvider {
         await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
             (queryRunner) => {
                 if (queryRunner) {
+                    // if the panel isn't active, bring it to foreground
+                    if (!this._panels.get(uri).isActive) {
+                        this._panels.get(uri).revealToForeground();
+                    }
                     queryRunner.runQuery(selection);
                 }
             });
