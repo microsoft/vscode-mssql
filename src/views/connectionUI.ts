@@ -73,11 +73,11 @@ export class ConnectionUI {
 
     // Helper to let user choose a connection from a picklist
     // Return the ConnectionInfo for the user's choice
-    public showConnections(fromObjectExplorer: boolean = false): Promise<IConnectionCredentials> {
+    public showConnections(showExistingConnections: boolean = true): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             let picklist: IConnectionCredentialsQuickPickItem[];
-            if (!fromObjectExplorer) {
+            if (!showExistingConnections) {
                 picklist = self._connectionStore.getPickListItems();
             } else {
                 picklist = [];

@@ -250,7 +250,7 @@ export class ObjectExplorerService {
     public async createSession(promise: Deferred<vscode.TreeItem>, connectionCredentials?: IConnectionCredentials): Promise<void> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
-            connectionCredentials = await connectionUI.showConnections(true);
+            connectionCredentials = await connectionUI.showConnections(false);
         }
         if (connectionCredentials) {
             // show password prompt if SQL Login and password isn't saved
