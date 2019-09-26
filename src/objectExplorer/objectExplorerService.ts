@@ -345,7 +345,6 @@ export class ObjectExplorerService {
                 }
                 node.nodeType = Constants.disconnectedServerLabel;
                 node.sessionId = undefined;
-                // this.updateNode(node);
                 this._currentNode = node;
                 return;
             }
