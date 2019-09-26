@@ -261,6 +261,10 @@
         {
           "command": "extension.disconnectObjectExplorerNode",
           "when": "enablePreviewFeatures && viewItem != null"
+        },
+        {
+          "command": "extension.toggleSqlCmd",
+          "when": "editorFocus"
         }
       ]
     },
