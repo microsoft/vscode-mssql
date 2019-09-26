@@ -34,7 +34,7 @@ export class WebviewPanelController implements vscode.Disposable {
         uri: string,
         title: string,
         serverProxy: IServerProxy,
-        private baseUri: string,
+        private baseUri: string
     ) {
         const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
