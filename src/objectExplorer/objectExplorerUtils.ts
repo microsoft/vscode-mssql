@@ -17,6 +17,9 @@ export class ObjectExplorerUtils {
         }
     }
     public static getNodeUri(node: TreeNodeInfo): string {
+        if (node.nodeType === Constants.disconnectedServerLabel) {
+            return undefined;
+        }
         while (node) {
             if (node.nodeType === Constants.serverLabel) {
                 break;
