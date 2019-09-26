@@ -170,8 +170,7 @@
       "objectExplorer": [
         {
           "id": "objectExplorer",
-          "name": "%extension.connections%",
-          "when": "enablePreviewFeatures"
+          "name": "%extension.connections%"
         }
       ]
     },
@@ -211,56 +210,55 @@
         {
           "command": "extension.addObjectExplorer",
           "title": "%extension.addObjectExplorer%",
-          "group": "navigation",
-          "when": "enablePreviewFeatures"
+          "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "enablePreviewFeatures && viewItem =~ /^(disconnectedServer|Server|Database|Table)$/",
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database|Table)$/",
           "group": "MS_SQL@1"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "enablePreviewFeatures && viewItem =~ /^(disconnectedServer|Server)$/",
+          "when": "viewItem =~ /^(disconnectedServer|Server)$/",
           "group": "MS_SQL@3"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "enablePreviewFeatures && view == objectExplorer",
+          "when": "view == objectExplorer",
           "group": "MS_SQL@2"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
-          "when": "enablePreviewFeatures && viewItem == Server",
+          "when": "viewItem == Server",
           "group": "MS_SQL@4"
         },
         {
           "command": "extension.scriptSelect",
-          "when": "enablePreviewFeatures && viewItem == Table"
+          "when": "viewItem == Table"
         }
       ],
       "commandPalette": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "enablePreviewFeatures && view == objectExplorer"
+          "when": "view == objectExplorer"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "enablePreviewFeatures && viewItem != null"
+          "when": "viewItem != null"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "enablePreviewFeatures && viewItem != null"
+          "when": "viewItem != null"
         },
         {
           "command": "extension.scriptSelect",
-          "when": "enablePreviewFeatures && viewItem == Table"
+          "when": "viewItem == Table"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
-          "when": "enablePreviewFeatures && viewItem != null"
+          "when": "viewItem != null"
         }
       ]
     },
@@ -383,7 +381,7 @@
         "command": "extension.addObjectExplorer",
         "key": "ctrl+shift+o",
         "mac": "cmd+shift+o",
-        "when": "enablePreviewFeatures && view == objectExplorer"
+        "when": "view == objectExplorer"
       }
     ],
     "configuration": {
@@ -401,11 +399,6 @@
           "default": 5,
           "description": "%mssql.maxRecentConnections%",
           "scope": "window"
-        },
-        "mssql.enablePreviewFeatures": {
-          "type": "boolean",
-          "default": false,
-          "description": "%mssql.enablePreviewFeatures%"
         },
         "mssql.connections": {
           "type": "array",
