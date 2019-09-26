@@ -299,7 +299,7 @@ export class SqlOutputContentProvider {
         if (panelController.isActive && queryRunner.hasCompleted) {
             return queryRunner.refreshQueryTab();
         }
-        return;
+        return false;
     }
 
     private setRunnerDeletionTimeout(uri: string): NodeJS.Timer {
