@@ -68,13 +68,13 @@ export class ObjectExplorerService {
                     }
                 }
                 // set connection and other things
-                if (self._currentNode) {
+                if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        self._currentNode, self._currentNode.connectionCredentials,
+                        undefined, self._currentNode.connectionCredentials,
                         nodeLabel ? nodeLabel : result.rootNode.nodePath);
                 } else {
                     const credentials = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
-                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, self._currentNode,
+                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, undefined,
                         credentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
                 }
                 self.updateNode(self._currentNode);
@@ -107,13 +107,13 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
-                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, self._currentNode.sessionId,
+                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, result.sessionId,
                     self._currentNode, self._currentNode.connectionCredentials));
                 self._treeNodeToChildrenMap.set(self._currentNode, children);
                 const expandParams: ExpandParams = {
                     sessionId: result.sessionId,
                     nodePath: result.nodePath
-                }
+                };
                 for (let key of self._expandParamsToPromiseMap.keys()) {
                     if (key.sessionId === expandParams.sessionId &&
                         key.nodePath === expandParams.nodePath) {
@@ -169,8 +169,8 @@ export class ObjectExplorerService {
                 this._currentNode = element;
             }
             // get cached children
-            if (this._treeNodeToChildrenMap.has(this._currentNode)) {
-                return this._treeNodeToChildrenMap.get(this._currentNode);
+            if (this._treeNodeToChildrenMap.has(element)) {
+                return this._treeNodeToChildrenMap.get(element);
             } else {
                 // check if session exists
                 if (element.sessionId) {
@@ -179,34 +179,34 @@ export class ObjectExplorerService {
 
                     // node expansion
                     let promise = new Deferred<TreeNodeInfo[]>();
-                    this.expandNode(element, element.sessionId, promise);
-                    return promise.then((children) => {
-                        if (children) {
-                            // clean expand session promise
-                            for (const key of this._expandParamsToPromiseMap.keys()) {
-                                if (key.sessionId === element.sessionId &&
-                                    key.nodePath === element.nodePath) {
-                                    this._expandParamsToPromiseMap.delete(key);
-                                }
+                    await this.expandNode(element, element.sessionId, promise);
+                    let children = await promise;
+                    if (children) {
+                        // clean expand session promise
+                        for (const key of this._expandParamsToPromiseMap.keys()) {
+                            if (key.sessionId === element.sessionId &&
+                                key.nodePath === element.nodePath) {
+                                this._expandParamsToPromiseMap.delete(key);
                             }
-                            return children;
                         }
-                    });
+                        return children;
+                    } else {
+                        return undefined;
+                    }
                 } else {
                     // start node session
                     let promise = new Deferred<TreeNodeInfo>();
-                    this.createSession(promise, element.connectionCredentials);
-                    return promise.then((node) => {
-                        // If password wasn't given
-                        if (!node) {
-                            const signInNode = new AccountSignInTreeNode(element);
-                            this._treeNodeToChildrenMap.set(element, [signInNode]);
-                            return [signInNode];
-                        }
-                        // otherwise expand the node by refreshing the root
-                        // to add connected context key
-                        this._objectExplorerProvider.refresh(undefined);
-                    });
+                    await this.createSession(promise, element.connectionCredentials);
+                    let node = await promise;
+                    // If node create session failed
+                    if (!node) {
+                        const signInNode = new AccountSignInTreeNode(element);
+                        this._treeNodeToChildrenMap.set(element, [signInNode]);
+                        return [signInNode];
+                    }
+                    // otherwise expand the node by refreshing the root
+                    // to add connected context key
+                    this._objectExplorerProvider.refresh(undefined);
                 }
             }
         } else {
@@ -246,7 +246,7 @@ export class ObjectExplorerService {
     public async createSession(promise: Deferred<vscode.TreeItem>, connectionCredentials?: IConnectionCredentials): Promise<void> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
-            connectionCredentials = await connectionUI.showConnections();
+            connectionCredentials = await connectionUI.showConnections(true);
         }
         if (connectionCredentials) {
             // show password prompt if SQL Login and password isn't saved
@@ -255,7 +255,7 @@ export class ObjectExplorerService {
                 // look up saved password
                 let password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
                 if (!password) {
-                    let password = await this._connectionManager.connectionUI.promptForPassword();
+                    password = await this._connectionManager.connectionUI.promptForPassword();
                     if (!password) {
                         return promise.resolve(undefined);
                     }
@@ -289,17 +289,10 @@ export class ObjectExplorerService {
         }
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
         this._connectionManager.disconnect(nodeUri);
-        this.cleanNodeChildren(node);
         this._nodePathToNodeLabelMap.delete(node.nodePath);
-        this._sessionIdToConnectionCredentialsMap.delete(node.sessionId);
-        if (this._sessionIdToPromiseMap.has(node.sessionId)) {
-            this._sessionIdToPromiseMap.delete(node.sessionId);
-        }
-        this._treeNodeToChildrenMap.delete(node);
-        this._currentNode = undefined;
         if (isDisconnect) {
             this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
-            this.updateNode(node);
+            // this.updateNode(node);
             return this._objectExplorerProvider.refresh(undefined);
         }
     }
@@ -319,6 +312,10 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Sends a close session request
+     * @param node
+     */
     public async closeSession(node: TreeNodeInfo): Promise<void> {
         if (node.sessionId) {
             const closeSessionParams: CloseSessionParams = {
@@ -328,11 +325,13 @@ export class ObjectExplorerService {
                 closeSessionParams);
             if (response && response.success) {
                 this._sessionIdToConnectionCredentialsMap.delete(response.sessionId);
+                if (this._sessionIdToPromiseMap.has(node.sessionId)) {
+                    this._sessionIdToPromiseMap.delete(node.sessionId);
+                }
                 node.nodeType = Constants.disconnectedServerLabel;
                 node.sessionId = undefined;
-                this.updateNode(node);
+                // this.updateNode(node);
                 this._currentNode = node;
-                this._treeNodeToChildrenMap.set(this._currentNode, undefined);
                 return;
             }
         }
