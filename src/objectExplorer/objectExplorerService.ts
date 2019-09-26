@@ -69,13 +69,16 @@ export class ObjectExplorerService {
                 }
                 // set connection and other things
                 if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
+                    nodeLabel = nodeLabel === result.rootNode.nodePath ?
+                    self.createNodeLabel(self._currentNode.connectionCredentials) : nodeLabel;
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        undefined, self._currentNode.connectionCredentials,
-                        nodeLabel ? nodeLabel : result.rootNode.nodePath);
+                        undefined, self._currentNode.connectionCredentials, nodeLabel);
                 } else {
                     const credentials = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
-                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId, undefined,
-                        credentials, nodeLabel ? nodeLabel : result.rootNode.nodePath);
+                    nodeLabel = nodeLabel === result.rootNode.nodePath ?
+                    self.createNodeLabel(credentials) : nodeLabel;
+                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
+                        undefined, credentials, nodeLabel);
                 }
                 self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
@@ -219,10 +222,11 @@ export class ObjectExplorerService {
                 this._rootTreeNodeArray = [];
                 savedConnections.forEach((conn) => {
                     this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, conn.label);
-                    let node = new TreeNodeInfo(conn.label, Constants.disconnectedServerLabel,
+                    let node = new TreeNodeInfo(this.createNodeLabel(conn.connectionCreds),
+                        Constants.disconnectedServerLabel,
                         TreeItemCollapsibleState.Collapsed,
-                            undefined, undefined, Constants.serverLabel,
-                            undefined, conn.connectionCreds, undefined);
+                        undefined, undefined, Constants.serverLabel,
+                        undefined, conn.connectionCreds, undefined);
                     this._rootTreeNodeArray.push(node);
                 });
                 this._objectExplorerProvider.objectExplorerExists = true;
@@ -290,9 +294,10 @@ export class ObjectExplorerService {
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
         this._connectionManager.disconnect(nodeUri);
         this._nodePathToNodeLabelMap.delete(node.nodePath);
+        this.cleanNodeChildren(node);
         if (isDisconnect) {
             this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
-            // this.updateNode(node);
+            this.updateNode(node);
             return this._objectExplorerProvider.refresh(undefined);
         }
     }
@@ -309,6 +314,16 @@ export class ObjectExplorerService {
     public signInNodeServer(node: TreeNodeInfo): void {
         if (this._treeNodeToChildrenMap.has(node)) {
             this._treeNodeToChildrenMap.delete(node);
+        }
+    }
+
+    private createNodeLabel(credentials: IConnectionCredentials): string {
+        const database = credentials.database;
+        const server = credentials.server;
+        if (database && database !== '') {
+            return `${server} (${database})`;
+        } else {
+            return `${server}`;
         }
     }
 
