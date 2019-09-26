@@ -318,13 +318,17 @@ export class ObjectExplorerService {
     }
 
     private createNodeLabel(credentials: IConnectionCredentials): string {
-        const database = credentials.database;
+        let database = credentials.database;
         const server = credentials.server;
-        if (database && database !== '') {
-            return `${server} (${database})`;
-        } else {
-            return `${server}`;
+        const authType = credentials.authenticationType;
+        let userOrAuthType = authType;
+        if (authType === Constants.sqlAuthentication) {
+            userOrAuthType = credentials.user;
         }
+        if (!database || database === '') {
+            database = Constants.defaultDatabase;
+        }
+        return `${server}, ${database} (${userOrAuthType})`;
     }
 
     /**
