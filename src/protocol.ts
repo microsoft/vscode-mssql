@@ -20,6 +20,7 @@ export interface IServerProxy {
     showWarning(message: string): void;
     showError(message: string): void;
     getLocalizedTexts(): Promise<{ [key: string]: any }>;
+    sendReadyEvent(uri: string): Promise<boolean>;
 }
 
 export interface IMessageProtocol {

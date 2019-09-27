@@ -413,7 +413,7 @@ export default class MainController implements vscode.Disposable {
      */
     public onNewConnection(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            this._connectionMgr.onNewConnection().then((result) => {
+            return this._connectionMgr.onNewConnection().then((result) => {
                 if (result) {
                     this._objectExplorerProvider.objectExplorerExists = false;
                     this._objectExplorerProvider.refresh(undefined);
@@ -515,6 +515,10 @@ export default class MainController implements vscode.Disposable {
 
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
+            if (!self._connectionMgr.isConnected(uri)) {
+                // create new connection
+                await self.onNewConnection();
+            }
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
             // Calculate the selection if we have a selection, otherwise we'll treat null as
