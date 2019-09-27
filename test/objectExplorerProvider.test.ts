@@ -34,36 +34,36 @@ suite('Object Explorer Provider Tests', () => {
         objectExplorerProvider.objectExplorerService = objectExplorerService.object;
     });
 
-    test('Test Create Session', (done) => {
+    test('Test Create Session', () => {
         expect(objectExplorerService.object.currentNode, 'Current Node should be undefined').is.equal(undefined);
         expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer should not exist until started').is.equal(undefined);
         const promise = new Deferred<TreeNodeInfo>();
         objectExplorerService.setup(s => s.createSession(promise, undefined)).returns(() => {
-            objectExplorerService.setup(s => s.currentNode).returns(() => TypeMoq.It.isAny());
-            objectExplorerProvider.objectExplorerExists = true;
-            promise.resolve(new TreeNodeInfo(undefined, undefined,
-                undefined, undefined,
-                undefined, undefined,
-                undefined, undefined,
-                undefined));
-            return Promise.resolve();
-        });
-        objectExplorerProvider.createSession(promise, undefined).then(() => {
-            expect(objectExplorerService.object.currentNode, 'Current Node should not be undefined').is.not.equal(undefined);
-            expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer session should exist').is.equal(true);
-            promise.then((node) => {
-                expect(node, 'Created session node not be undefined').is.not.equal(undefined);
+            return new Promise((resolve, reject) => {
+                objectExplorerService.setup(s => s.currentNode).returns(() => TypeMoq.It.isAny());
+                objectExplorerProvider.objectExplorerExists = true;
+                promise.resolve(new TreeNodeInfo(undefined, undefined,
+                    undefined, undefined,
+                    undefined, undefined,
+                    undefined, undefined,
+                    undefined));
             });
         });
-        done();
+        objectExplorerProvider.createSession(promise, undefined).then(async () => {
+            expect(objectExplorerService.object.currentNode, 'Current Node should not be undefined').is.not.equal(undefined);
+            expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer session should exist').is.equal(true);
+            let node = await promise;
+            expect(node, 'Created session node not be undefined').is.not.equal(undefined);
+        });
     });
 
-    test('Test Refresh Node', () => {
+    test('Test Refresh Node', (done) => {
         let treeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
         objectExplorerService.setup(s => s.refreshNode(TypeMoq.It.isAny())).returns(() => Promise.resolve(TypeMoq.It.isAny()));
         objectExplorerProvider.refreshNode(treeNode.object).then((node) => {
             expect(node, 'Refreshed node should not be undefined').is.not.equal(undefined);
         });
+        done()
     });
 
     test('Test Connection Credentials', () => {
@@ -79,16 +79,17 @@ suite('Object Explorer Provider Tests', () => {
             isNodeDeleted = true;
             return Promise.resolve(undefined);
         });
-        objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny());
+        await objectExplorerProvider.removeObjectExplorerNode(TypeMoq.It.isAny(), TypeMoq.It.isAny());
         expect(isNodeDeleted, 'Node should be deleted').is.equal(true);
     });
 
-    test('Test Get Children from Object Explorer Provider', () => {
+    test('Test Get Children from Object Explorer Provider', (done) => {
         const parentTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
         const childTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
         objectExplorerService.setup(s => s.getChildren(TypeMoq.It.isAny())).returns(() => Promise.resolve([childTreeNode.object]));
         objectExplorerProvider.getChildren(parentTreeNode.object).then((children) => {
             children.forEach((child) => expect(child, 'Children nodes should not be undefined').is.not.equal(undefined));
         });
+        done();
     });
 });
