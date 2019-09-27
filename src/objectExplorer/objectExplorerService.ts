@@ -230,7 +230,7 @@ export class ObjectExplorerService {
                     let node = new TreeNodeInfo(nodeLabel,
                         Constants.disconnectedServerLabel,
                         TreeItemCollapsibleState.Collapsed,
-                        undefined, undefined, Constants.serverLabel,
+                        undefined, undefined, Constants.disconnectedServerLabel,
                         undefined, conn.connectionCreds, undefined);
                     this._rootTreeNodeArray.push(node);
                 });
@@ -301,8 +301,7 @@ export class ObjectExplorerService {
         this._nodePathToNodeLabelMap.delete(node.nodePath);
         this.cleanNodeChildren(node);
         if (isDisconnect) {
-            this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
-            this.updateNode(node);
+            this._treeNodeToChildrenMap.set(this._currentNode, [new ConnectTreeNode(this._currentNode)]);
             return this._objectExplorerProvider.refresh(undefined);
         }
     }
@@ -353,8 +352,14 @@ export class ObjectExplorerService {
                     this._sessionIdToPromiseMap.delete(node.sessionId);
                 }
                 node.nodeType = Constants.disconnectedServerLabel;
+                node.contextValue = Constants.disconnectedServerLabel;
                 node.sessionId = undefined;
-                this._currentNode = node;
+                // make a new node to show disconnected behavior
+                let disconnectedNode = new TreeNodeInfo(node.label, Constants.disconnectedServerLabel,
+                    node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
+                    undefined, node.connectionCredentials, node.parentNode);
+                this.updateNode(disconnectedNode);
+                this._currentNode = disconnectedNode;
                 return;
             }
         }
