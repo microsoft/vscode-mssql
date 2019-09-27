@@ -29,6 +29,7 @@ import {
  } from './../src/models/interfaces';
 import * as stubs from './stubs';
 import * as vscode from 'vscode';
+import { expect } from 'chai';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const standardUri: string = 'uri';
@@ -487,6 +488,23 @@ suite('Query Runner tests', () => {
         return queryRunner.getRows(0, 5, 0, 0).then(undefined, () => {
             testVscodeWrapper.verify(x => x.showErrorMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
+    });
+
+    test('Toggle SQLCMD Mode sends request', async () => {
+        let queryUri = 'test_uri';
+        let queryRunner = new QueryRunner(queryUri,
+            queryUri,
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object);
+        expect(queryRunner.isSqlCmd, 'Query Runner should have SQLCMD false be default').is.equal(false);
+        testSqlToolsServerClient.setup(s => s.sendRequest(QueryExecuteContracts.QueryExecuteOptionsRequest.type, TypeMoq.It.isAny())).returns(() => {
+            return Promise.resolve(true);
+        });
+        await queryRunner.toggleSqlCmd();
+        testSqlToolsServerClient.verify(s => s.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+        expect(queryRunner.isSqlCmd, 'SQLCMD Mode should be switched').is.equal(true);
     });
 
     function setupWorkspaceConfig(configResult: {[key: string]: any}): void {
