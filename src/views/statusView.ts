@@ -152,6 +152,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
         this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.sqlCmdModeChanged(fileUri, false);
     }
 
     public connectError(fileUri: string, credentials: Interfaces.IConnectionCredentials, error: ConnectionContracts.ConnectionCompleteParams): void {
@@ -283,6 +284,7 @@ export default class StatusView implements vscode.Disposable {
                 this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
                 this.showStatusBarItem(fileUri, bar.statusConnection);
                 this.showStatusBarItem(fileUri, bar.statusLanguageService);
+                this.showStatusBarItem(fileUri, bar.sqlCmdMode);
             }
         }
     }
