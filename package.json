@@ -259,6 +259,10 @@
         {
           "command": "extension.disconnectObjectExplorerNode",
           "when": "viewItem != null"
+        },
+        {
+          "command": "extension.toggleSqlCmd",
+          "when": "editorFocus"
         }
       ]
     },
