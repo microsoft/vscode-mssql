@@ -236,7 +236,8 @@
         },
         {
           "command": "extension.scriptSelect",
-          "when": "viewItem =~ /^(Table|View)$/"
+          "when": "viewItem =~ /^(Table|View)$/",
+          "group": "MS_SQL@1"
         }
       ],
       "commandPalette": [
@@ -254,7 +255,7 @@
         },
         {
           "command": "extension.scriptSelect",
-          "when": "viewItem == Table"
+          "when": "viewItem =~ /^(Table|View)$/"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
