@@ -216,7 +216,7 @@
       "view/item/context": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem =~ /^(disconnectedServer|Server|Database|Table)$/",
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database)$/",
           "group": "MS_SQL@1"
         },
         {
