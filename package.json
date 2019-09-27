@@ -226,7 +226,7 @@
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "view == objectExplorer",
+          "when": "viewItem != disconnectedServer",
           "group": "MS_SQL@2"
         },
         {
@@ -243,15 +243,15 @@
       "commandPalette": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "view == objectExplorer"
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database)$/"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "viewItem != null"
+          "when": "viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "viewItem != null"
+          "when": "viewItem != disconnectedServer"
         },
         {
           "command": "extension.scriptSelect",
@@ -259,7 +259,7 @@
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
-          "when": "viewItem != null"
+          "when": "viewItem == Server"
         },
         {
           "command": "extension.toggleSqlCmd",
