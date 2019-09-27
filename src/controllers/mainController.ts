@@ -199,6 +199,7 @@ export default class MainController implements vscode.Disposable {
                         editor.edit(editBuilder => {
                             editBuilder.replace(editor.selection, selectStatement);
                         }).then(() => this.onRunQuery());
+                        return this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
                     }
                 }));
                 this._context.subscriptions.push(
@@ -688,6 +689,7 @@ export default class MainController implements vscode.Disposable {
                     this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
                     await this.connectionManager.connect(uri.toString(), connectionCreds);
                     this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                    await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
                     return Promise.resolve(true);
                 }
             } else {
