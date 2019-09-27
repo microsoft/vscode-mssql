@@ -28,7 +28,7 @@ export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _currentNode: TreeNodeInfo;
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
-    private _serverToNodeLabelMap: Map<string, string>;
+    private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, ConnectionCredentials>;
 
@@ -43,7 +43,7 @@ export class ObjectExplorerService {
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
         this._sessionIdToConnectionCredentialsMap = new Map<string, ConnectionCredentials>();
-        this._serverToNodeLabelMap = new Map<string, string>();
+        this._nodePathToNodeLabelMap = new Map<string, string>();
         this._sessionIdToPromiseMap = new Map<string, Deferred<vscode.TreeItem>>();
         this._expandParamsToPromiseMap = new Map<ExpandParams, Deferred<TreeNodeInfo[]>>();
 
@@ -57,7 +57,7 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: SessionCreatedParameters) => {
             if (result.success) {
-                let nodeLabel = this._serverToNodeLabelMap.get(result.rootNode.nodePath);
+                let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
                 // if no node label, check if it has a name in saved profiles
                 // in case this call came from new query
                 let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
@@ -110,8 +110,9 @@ export class ObjectExplorerService {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
+                const credentials = self._sessionIdToConnectionCredentialsMap.get(result.sessionId);
                 const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, result.sessionId,
-                    self._currentNode, self._currentNode.connectionCredentials));
+                    self._currentNode, credentials));
                 self._treeNodeToChildrenMap.set(self._currentNode, children);
                 const expandParams: ExpandParams = {
                     sessionId: result.sessionId,
@@ -139,6 +140,7 @@ export class ObjectExplorerService {
         if (!response) {
             this._expandParamsToPromiseMap.delete(expandParams);
         }
+        this._currentNode = node;
         return response;
     }
 
@@ -224,7 +226,7 @@ export class ObjectExplorerService {
                 savedConnections.forEach((conn) => {
                     let nodeLabel = conn.label === conn.connectionCreds.server ?
                         this.createNodeLabel(conn.connectionCreds) : conn.label;
-                    this._serverToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
+                    this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
                     let node = new TreeNodeInfo(nodeLabel,
                         Constants.disconnectedServerLabel,
                         TreeItemCollapsibleState.Collapsed,
@@ -296,7 +298,7 @@ export class ObjectExplorerService {
         }
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
         this._connectionManager.disconnect(nodeUri);
-        this._serverToNodeLabelMap.delete(node.connectionCredentials.server);
+        this._nodePathToNodeLabelMap.delete(node.nodePath);
         this.cleanNodeChildren(node);
         if (isDisconnect) {
             this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);

@@ -296,7 +296,7 @@ export class ConnectionStore {
     /**
      * Remove a connection profile from the recently used list.
      */
-    private removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
+    public removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             // Get all profiles
