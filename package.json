@@ -263,7 +263,7 @@
         },
         {
           "command": "extension.toggleSqlCmd",
-          "when": "editorFocus"
+          "when": "editorFocus && editorLangId == 'sql'"
         }
       ]
     },
@@ -381,12 +381,6 @@
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus && editorLangId == 'sql'"
-      },
-      {
-        "command": "extension.addObjectExplorer",
-        "key": "ctrl+shift+o",
-        "mac": "cmd+shift+o",
-        "when": "view == objectExplorer"
       }
     ],
     "configuration": {
