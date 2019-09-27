@@ -160,14 +160,11 @@ export default class MainController implements vscode.Disposable {
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
                     const connectionCredentials = treeNodeInfo.connectionCredentials;
-                    if (connectionCredentials) {
-                        const databaseName = `${escapeCharacters(self.getDatabaseName(treeNodeInfo))}`;
-                        if (databaseName !== connectionCredentials.database) {
-                            connectionCredentials.database = databaseName;
-                        }
+                    const databaseName = `${escapeCharacters(self.getDatabaseName(treeNodeInfo))}`;
+                    if (databaseName !== connectionCredentials.database) {
+                        connectionCredentials.database = databaseName;
                     }
                     await self.onNewQuery(treeNodeInfo);
-                    await this._connectionMgr.changeDatabase(connectionCredentials);
                 }));
 
                 this._context.subscriptions.push(
@@ -191,9 +188,9 @@ export default class MainController implements vscode.Disposable {
                         Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
                     const uri = await this._untitledSqlDocumentService.newQuery();
                     if (!this.connectionManager.isConnected(uri.toString())) {
-                        const connectionCreds = node.connectionCredentials;
+                        let connectionCreds = node.connectionCredentials;
                         const databaseName = `${escapeCharacters(self.getDatabaseName(node))}`;
-                        node.connectionCredentials.database = databaseName;
+                        connectionCreds.database = databaseName;
                         this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
                         await this.connectionManager.connect(uri.toString(), connectionCreds);
                         this._statusview.sqlCmdModeChanged(uri.toString(), false);
@@ -202,6 +199,7 @@ export default class MainController implements vscode.Disposable {
                         editor.edit(editBuilder => {
                             editBuilder.replace(editor.selection, selectStatement);
                         }).then(() => this.onRunQuery());
+                        return this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
                     }
                 }));
                 this._context.subscriptions.push(
@@ -695,6 +693,7 @@ export default class MainController implements vscode.Disposable {
                     this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
                     await this.connectionManager.connect(uri.toString(), connectionCreds);
                     this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                    await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
                     return Promise.resolve(true);
                 }
             } else {

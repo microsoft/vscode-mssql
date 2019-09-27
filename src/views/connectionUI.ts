@@ -77,7 +77,7 @@ export class ConnectionUI {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             let picklist: IConnectionCredentialsQuickPickItem[];
-            if (!showExistingConnections) {
+            if (showExistingConnections) {
                 picklist = self._connectionStore.getPickListItems();
             } else {
                 picklist = [];

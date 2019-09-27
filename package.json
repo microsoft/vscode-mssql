@@ -216,7 +216,7 @@
       "view/item/context": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem =~ /^(disconnectedServer|Server|Database|Table)$/",
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database)$/",
           "group": "MS_SQL@1"
         },
         {
@@ -226,7 +226,7 @@
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "view == objectExplorer",
+          "when": "viewItem != disconnectedServer",
           "group": "MS_SQL@2"
         },
         {
@@ -236,33 +236,34 @@
         },
         {
           "command": "extension.scriptSelect",
-          "when": "viewItem =~ /^(Table|View)$/"
+          "when": "viewItem =~ /^(Table|View)$/",
+          "group": "MS_SQL@1"
         }
       ],
       "commandPalette": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "view == objectExplorer"
+          "when": "viewItem =~ /^(disconnectedServer|Server|Database)$/"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "viewItem != null"
+          "when": "viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "viewItem != null"
+          "when": "viewItem != disconnectedServer"
         },
         {
           "command": "extension.scriptSelect",
-          "when": "viewItem == Table"
+          "when": "viewItem =~ /^(Table|View)$/"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
-          "when": "viewItem != null"
+          "when": "viewItem == Server"
         },
         {
           "command": "extension.toggleSqlCmd",
-          "when": "editorFocus"
+          "when": "editorFocus && editorLangId == 'sql'"
         }
       ]
     },
@@ -380,12 +381,6 @@
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "editorTextFocus && editorLangId == 'sql'"
-      },
-      {
-        "command": "extension.addObjectExplorer",
-        "key": "ctrl+shift+o",
-        "mac": "cmd+shift+o",
-        "when": "view == objectExplorer"
       }
     ],
     "configuration": {
