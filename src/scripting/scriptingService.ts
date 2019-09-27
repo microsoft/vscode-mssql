@@ -7,15 +7,13 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ScriptingService {
 
     private _client: SqlToolsServiceClient;
 
     constructor(
-        private _connectionManager: ConnectionManager,
-        private _vscodeWrapper: VscodeWrapper
+        private _connectionManager: ConnectionManager
     ) {
         this._client = this._connectionManager.client;
     }
@@ -57,8 +55,8 @@ export class ScriptingService {
         const objectNames = this.getObjectNames(node);
         let scriptingObject: ScriptingObject = {
             type: node.nodeType,
-            schema: objectNames[objectNames.length-2],
-            name: objectNames[objectNames.length-1]
+            schema: objectNames[objectNames.length - 2],
+            name: objectNames[objectNames.length - 1]
         };
         let serverInfo = this._connectionManager.getServerInfo(node.connectionCredentials);
         let scriptOptions: ScriptOptions = {
@@ -71,7 +69,7 @@ export class ScriptingService {
             scriptCompatibilityOption: serverInfo.serverMajorVersion ?
                 this.scriptCompatibilityOptionMap[serverInfo.serverMajorVersion] : 'Script140Compat'
         };
-        let scriptingParams : ScriptingParams = {
+        let scriptingParams: ScriptingParams = {
             filePath: undefined,
             scriptDestination: 'ToEditor',
             connectionString: undefined,
@@ -87,7 +85,7 @@ export class ScriptingService {
             ownerURI: uri,
             selectScript: undefined,
             operation: ScriptOperation.Select
-        }
+        };
         const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
         return result.script;
     }

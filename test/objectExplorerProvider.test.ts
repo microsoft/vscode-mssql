@@ -12,7 +12,6 @@ import { expect } from 'chai';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { Deferred } from '../src/protocol';
-import { TreeItem } from 'vscode';
 
 suite('Object Explorer Provider Tests', () => {
 
