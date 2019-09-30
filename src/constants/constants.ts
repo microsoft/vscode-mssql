@@ -45,7 +45,6 @@ export const azureDatabase = 'Azure';
 export const defaultPortNumber = 1433;
 export const sqlAuthentication = 'SqlLogin';
 export const defaultDatabase = 'master';
-export const defaultDatabaseName = '<default>';
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;

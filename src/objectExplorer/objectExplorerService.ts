@@ -358,7 +358,7 @@ export class ObjectExplorerService {
             userOrAuthType = credentials.user;
         }
         if (!database || database === '') {
-            database = Constants.defaultDatabaseName;
+            database = LocalizedConstants.defaultDatabaseLabel;
         }
         return `${server}, ${database} (${userOrAuthType})`;
     }
