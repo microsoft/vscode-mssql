@@ -171,10 +171,11 @@ export class ObjectExplorerService {
 
     /**
      * Sort the array based on server names
+     * Public only for testing purposes
      * @param array array that needs to be sorted
      */
-    private sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
-        const sortedNodeArray = this._rootTreeNodeArray.sort((a, b) => {
+    public sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
+        const sortedNodeArray = array.sort((a, b) => {
             return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
         });
         return sortedNodeArray;
