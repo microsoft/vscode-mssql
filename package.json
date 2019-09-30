@@ -589,7 +589,7 @@
             "event.toggleMessagePane": "ctrl+alt+y",
             "event.prevGrid": "ctrl+up",
             "event.nextGrid": "ctrl+down",
-            "event.copySelection": "ctrl+c",
+            "event.copySelection": "ctrl+C",
             "event.copyWithHeaders": "",
             "event.copyHeaders": "",
             "event.maximizeGrid": "",
