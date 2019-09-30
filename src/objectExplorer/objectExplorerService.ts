@@ -14,7 +14,7 @@ import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
-import { IConnectionCredentials } from '../models/interfaces';
+import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
@@ -274,6 +274,10 @@ export class ObjectExplorerService {
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
             const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
             if (response) {
+                // remove password from node if saved password is false
+                if (!(<IConnectionProfile>connectionCredentials).savePassword) {
+                    connectionCredentials.password = '';
+                }
                 this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
                 this._sessionIdToPromiseMap.set(response.sessionId, promise);
                 return;
@@ -354,6 +358,9 @@ export class ObjectExplorerService {
                 node.nodeType = Constants.disconnectedServerLabel;
                 node.contextValue = Constants.disconnectedServerLabel;
                 node.sessionId = undefined;
+                if (!(<IConnectionProfile>node.connectionCredentials).savePassword) {
+                    node.connectionCredentials.password = '';
+                }
                 // make a new node to show disconnected behavior
                 let disconnectedNode = new TreeNodeInfo(node.label, Constants.disconnectedServerLabel,
                     node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
