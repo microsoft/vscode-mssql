@@ -264,8 +264,10 @@ export class ConnectionStore {
 
             self._context.globalState.update(Constants.configRecentConnections, configValues)
             .then(() => {
-                // Only save if we successfully added the profile
-                self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                // Only save if we successfully added the profile and if savePassword
+                if ((<IConnectionProfile>conn).savePassword) {
+                    self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                }
                 // And resolve / reject at the end of the process
                 resolve(undefined);
             }, err => {
