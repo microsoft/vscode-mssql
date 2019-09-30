@@ -169,6 +169,48 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Sort the array based on server names
+     * @param array array that needs to be sorted
+     */
+    private sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
+        const sortedNodeArray = this._rootTreeNodeArray.sort((a, b) => {
+            return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+        });
+        return sortedNodeArray;
+    }
+
+    /**
+     * Get nodes from saved connections
+     */
+    private getSavedConnections(): void {
+        let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+        savedConnections.forEach((conn) => {
+            let nodeLabel = conn.label === conn.connectionCreds.server ?
+                this.createNodeLabel(conn.connectionCreds) : conn.label;
+            this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
+            let node = new TreeNodeInfo(nodeLabel,
+                Constants.disconnectedServerLabel,
+                TreeItemCollapsibleState.Collapsed,
+                undefined, undefined, Constants.disconnectedServerLabel,
+                undefined, conn.connectionCreds, undefined);
+            this._rootTreeNodeArray.push(node);
+        });
+    }
+
+    /**
+     * Clean up expansion promises for a node
+     * @param node The selected node
+     */
+    private cleanExpansionPromise(node: TreeNodeInfo): void {
+        for (const key of this._expandParamsToPromiseMap.keys()) {
+            if (key.sessionId === node.sessionId &&
+                key.nodePath === node.nodePath) {
+                this._expandParamsToPromiseMap.delete(key);
+            }
+        }
+    }
+
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
@@ -189,12 +231,7 @@ export class ObjectExplorerService {
                     let children = await promise;
                     if (children) {
                         // clean expand session promise
-                        for (const key of this._expandParamsToPromiseMap.keys()) {
-                            if (key.sessionId === element.sessionId &&
-                                key.nodePath === element.nodePath) {
-                                this._expandParamsToPromiseMap.delete(key);
-                            }
-                        }
+                        this.cleanExpansionPromise(element);
                         return children;
                     } else {
                         return undefined;
@@ -223,28 +260,12 @@ export class ObjectExplorerService {
                 savedConnections.length !== this._rootTreeNodeArray.length) &&
                 savedConnections.length > 0) {
                 this._rootTreeNodeArray = [];
-                savedConnections.forEach((conn) => {
-                    let nodeLabel = conn.label === conn.connectionCreds.server ?
-                        this.createNodeLabel(conn.connectionCreds) : conn.label;
-                    this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
-                    let node = new TreeNodeInfo(nodeLabel,
-                        Constants.disconnectedServerLabel,
-                        TreeItemCollapsibleState.Collapsed,
-                        undefined, undefined, Constants.disconnectedServerLabel,
-                        undefined, conn.connectionCreds, undefined);
-                    this._rootTreeNodeArray.push(node);
-                });
+                this.getSavedConnections();
                 this._objectExplorerProvider.objectExplorerExists = true;
-                const sortedNodeArray = this._rootTreeNodeArray.sort((a, b) => {
-                    return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
-                });
-                return sortedNodeArray;
+                return this.sortByServerName(this._rootTreeNodeArray);
             } else {
                 if (this._rootTreeNodeArray.length > 0) {
-                    const sortedNodeArray = this._rootTreeNodeArray.sort((a, b) => {
-                        return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
-                    });
-                    return sortedNodeArray;
+                    return this.sortByServerName(this._rootTreeNodeArray);
                 } else {
                     return [new AddConnectionTreeNode()];
                 }
