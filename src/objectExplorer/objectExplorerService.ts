@@ -235,10 +235,16 @@ export class ObjectExplorerService {
                     this._rootTreeNodeArray.push(node);
                 });
                 this._objectExplorerProvider.objectExplorerExists = true;
-                return this._rootTreeNodeArray;
+                const sortedNodeArray = this._rootTreeNodeArray.sort((a, b) => {
+                    return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+                });
+                return sortedNodeArray;
             } else {
                 if (this._rootTreeNodeArray.length > 0) {
-                    return this._rootTreeNodeArray;
+                    const sortedNodeArray = this._rootTreeNodeArray.sort((a, b) => {
+                        return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+                    });
+                    return sortedNodeArray;
                 } else {
                     return [new AddConnectionTreeNode()];
                 }
