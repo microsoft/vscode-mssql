@@ -212,6 +212,15 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Helper to show the Add Connection node
+     */
+    private getAddConnectionNode(): AddConnectionTreeNode[] {
+        this._rootTreeNodeArray = [];
+        this._objectExplorerProvider.objectExplorerExists = true;
+        return [new AddConnectionTreeNode()];
+    }
+
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
@@ -257,19 +266,23 @@ export class ObjectExplorerService {
             // retrieve saved connections first when opening object explorer
             // for the first time
             let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+            // if there are no saved connections
+            // show the add connection node
+            if (savedConnections.length === 0) {
+                return this.getAddConnectionNode();
+            }
+            // if OE doesn't exist or if there was a change in saved connections
+            // then build the nodes off of saved connections
             if ((!this._objectExplorerProvider.objectExplorerExists ||
-                savedConnections.length !== this._rootTreeNodeArray.length) &&
-                savedConnections.length > 0) {
+                savedConnections.length !== this._rootTreeNodeArray.length)) {
+                // if there are actually saved connections
                 this._rootTreeNodeArray = [];
                 this.getSavedConnections();
                 this._objectExplorerProvider.objectExplorerExists = true;
                 return this.sortByServerName(this._rootTreeNodeArray);
             } else {
-                if (this._rootTreeNodeArray.length > 0) {
-                    return this.sortByServerName(this._rootTreeNodeArray);
-                } else {
-                    return [new AddConnectionTreeNode()];
-                }
+                // otherwise returned the cached nodes
+                return this.sortByServerName(this._rootTreeNodeArray);
             }
         }
     }
@@ -302,10 +315,6 @@ export class ObjectExplorerService {
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
             const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
             if (response) {
-                // remove password from node if saved password is false
-                if (!(<IConnectionProfile>connectionCredentials).savePassword) {
-                    connectionCredentials.password = '';
-                }
                 this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
                 this._sessionIdToPromiseMap.set(response.sessionId, promise);
                 return;

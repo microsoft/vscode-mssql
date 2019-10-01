@@ -121,7 +121,7 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdManageConnectionProfiles);
                 this._event.on(Constants.cmdRunCurrentStatement, () => { self.onRunCurrentStatement(); });
                 this.registerCommand(Constants.cmdRunCurrentStatement);
-                this._event.on(Constants.cmdManageConnectionProfiles, () => { self.runAndLogErrors(self.onManageProfiles(), 'onManageProfiles'); });
+                this._event.on(Constants.cmdManageConnectionProfiles, async () => { await self.onManageProfiles(); });
                 this.registerCommand(Constants.cmdChooseDatabase);
                 this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
                 this.registerCommand(Constants.cmdChooseLanguageFlavor);
@@ -398,12 +398,13 @@ export default class MainController implements vscode.Disposable {
     /**
      * Manage connection profiles (create, edit, remove).
      */
-    private onManageProfiles(): Promise<boolean> {
+    private async onManageProfiles(): Promise<void> {
         if (this.canRunCommand()) {
             Telemetry.sendTelemetryEvent('ManageProfiles');
-            return this._connectionMgr.onManageProfiles();
+            await this._connectionMgr.onManageProfiles();
+            this._objectExplorerProvider.refresh(undefined);
+            return;
         }
-        return Promise.resolve(false);
     }
 
     /**
