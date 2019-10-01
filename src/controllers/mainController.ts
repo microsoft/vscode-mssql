@@ -402,9 +402,9 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand()) {
             Telemetry.sendTelemetryEvent('ManageProfiles');
             await this._connectionMgr.onManageProfiles();
-            return this._objectExplorerProvider.refresh(undefined);
+            this._objectExplorerProvider.refresh(undefined);
+            return;
         }
-        return Promise.resolve();
     }
 
     /**
