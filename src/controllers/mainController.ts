@@ -834,7 +834,7 @@ export default class MainController implements vscode.Disposable {
 
     /**
      * Called by VS Code when user settings are changed
-     * @param
+     * @param ConfigurationChangeEvent event that is fired when config is changed
      */
     public onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): void {
         if (e.affectsConfiguration(Constants.extensionName)) {
