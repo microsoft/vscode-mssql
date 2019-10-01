@@ -60,7 +60,7 @@ export class ObjectExplorerService {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
                 // if no node label, check if it has a name in saved profiles
                 // in case this call came from new query
-                let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+                let savedConnections = this._connectionManager.connectionStore.loadAllConnections(false);
                 for (let connection of savedConnections) {
                     if (connection.connectionCreds.server === result.rootNode.nodePath) {
                         nodeLabel = connection.label;
@@ -185,7 +185,7 @@ export class ObjectExplorerService {
      * Get nodes from saved connections
      */
     private getSavedConnections(): void {
-        let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+        let savedConnections = this._connectionManager.connectionStore.loadAllConnections(false);
         savedConnections.forEach((conn) => {
             let nodeLabel = conn.label === conn.connectionCreds.server ?
                 this.createNodeLabel(conn.connectionCreds) : conn.label;
@@ -256,7 +256,7 @@ export class ObjectExplorerService {
         } else {
             // retrieve saved connections first when opening object explorer
             // for the first time
-            let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+            let savedConnections = this._connectionManager.connectionStore.loadAllConnections(false);
             // if OE doesn't exist or if there was a change in saved connections
             // then build the nodes off of saved connections
             if ((!this._objectExplorerProvider.objectExplorerExists ||
