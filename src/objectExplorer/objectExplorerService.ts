@@ -257,19 +257,24 @@ export class ObjectExplorerService {
             // retrieve saved connections first when opening object explorer
             // for the first time
             let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+            // if OE doesn't exist or if there was a change in saved connections
+            // then build the nodes off of saved connections
             if ((!this._objectExplorerProvider.objectExplorerExists ||
-                savedConnections.length !== this._rootTreeNodeArray.length) &&
-                savedConnections.length > 0) {
-                this._rootTreeNodeArray = [];
-                this.getSavedConnections();
-                this._objectExplorerProvider.objectExplorerExists = true;
-                return this.sortByServerName(this._rootTreeNodeArray);
-            } else {
-                if (this._rootTreeNodeArray.length > 0) {
+                savedConnections.length !== this._rootTreeNodeArray.length)) {
+                // if there are actually saved connections
+                if (savedConnections.length > 0) {
+                    this._rootTreeNodeArray = [];
+                    this.getSavedConnections();
+                    this._objectExplorerProvider.objectExplorerExists = true;
                     return this.sortByServerName(this._rootTreeNodeArray);
                 } else {
+                    // if there are no saved connections or all
+                    // of them were just removed
                     return [new AddConnectionTreeNode()];
                 }
+            } else {
+                // otherwise returned the cached nodes
+                return this.sortByServerName(this._rootTreeNodeArray);
             }
         }
     }
