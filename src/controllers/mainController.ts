@@ -227,6 +227,7 @@ export default class MainController implements vscode.Disposable {
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
                 this._vscodeWrapper.onDidOpenTextDocument(params => this.onDidOpenTextDocument(params));
                 this._vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
+                this._vscodeWrapper.onDidChangeConfiguration(params => this.onDidChangeConfiguration(params));
                 return true;
             }
         });
@@ -829,5 +830,15 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedTimer = new Utils.Timer();
         this._lastSavedTimer.start();
         this._lastSavedUri = savedDocumentUri;
+    }
+
+    /**
+     * Called by VS Code when user settings are changed
+     * @param
+     */
+    public onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): void {
+        if (e.affectsConfiguration(Constants.extensionName)) {
+            this._objectExplorerProvider.refresh(undefined);
+        }
     }
 }
