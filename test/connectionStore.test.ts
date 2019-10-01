@@ -37,7 +37,8 @@ suite('ConnectionStore tests', () => {
             database: 'bcd',
             authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'cde',
-            password: 'asdf!@#$'
+            password: 'asdf!@#$',
+            savePassword: true
         });
 
         defaultUnnamedProfile = Object.assign(new ConnectionProfile(), {
@@ -46,7 +47,8 @@ suite('ConnectionStore tests', () => {
             database: undefined,
             authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'aUser',
-            password: 'asdf!@#$'
+            password: 'asdf!@#$',
+            savePassword: true
         });
 
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
