@@ -351,7 +351,7 @@ export default class MainController implements vscode.Disposable {
             }
             node = node.parentNode;
         }
-        return Constants.defaultDatabase;
+        return LocalizedConstants.defaultDatabaseLabel;
     }
 
     /**
