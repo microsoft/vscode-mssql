@@ -24,7 +24,6 @@ import * as path from 'path';
 import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 import { ScriptingService } from '../scripting/scriptingService';
-import { escapeCharacters } from '../utils/escapeCharacters';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
 import { Deferred } from '../protocol';
@@ -160,7 +159,7 @@ export default class MainController implements vscode.Disposable {
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
                     const connectionCredentials = treeNodeInfo.connectionCredentials;
-                    const databaseName = `${escapeCharacters(self.getDatabaseName(treeNodeInfo))}`;
+                    const databaseName = self.getDatabaseName(treeNodeInfo);
                     if (databaseName !== connectionCredentials.database) {
                         connectionCredentials.database = databaseName;
                     }
@@ -189,7 +188,7 @@ export default class MainController implements vscode.Disposable {
                     const uri = await this._untitledSqlDocumentService.newQuery();
                     if (!this.connectionManager.isConnected(uri.toString())) {
                         let connectionCreds = node.connectionCredentials;
-                        const databaseName = `${escapeCharacters(self.getDatabaseName(node))}`;
+                        const databaseName = self.getDatabaseName(node);
                         connectionCreds.database = databaseName;
                         this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
                         await this.connectionManager.connect(uri.toString(), connectionCreds);
