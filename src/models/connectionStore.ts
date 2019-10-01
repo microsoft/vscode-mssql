@@ -158,7 +158,7 @@ export class ConnectionStore {
      * @param connectionCredentials Connection credentials of profile for password lookup
      */
     public async lookupPassword(connectionCredentials: IConnectionCredentials): Promise<string> {
-        const databaseName = connectionCredentials.database === '' ? 'master' :
+        const databaseName = connectionCredentials.database === '' ? Constants.defaultDatabase :
             connectionCredentials.database;
         const credentialId = ConnectionStore.formatCredentialId(
             connectionCredentials.server, databaseName,
