@@ -158,11 +158,9 @@ export class ConnectionStore {
      * @param connectionCredentials Connection credentials of profile for password lookup
      */
     public async lookupPassword(connectionCredentials: IConnectionCredentials): Promise<string> {
-        const databaseName = connectionCredentials.database === '' ? Constants.defaultDatabase :
-            connectionCredentials.database;
         const credentialId = ConnectionStore.formatCredentialId(
-            connectionCredentials.server, databaseName,
-            connectionCredentials.user, ConnectionStore.CRED_MRU_USER);
+            connectionCredentials.server, connectionCredentials.database,
+            connectionCredentials.user, ConnectionStore.CRED_PROFILE_USER);
         const savedCredential = await this._credentialStore.readCredential(credentialId);
         if (savedCredential && savedCredential.password) {
             return savedCredential.password;
@@ -266,8 +264,10 @@ export class ConnectionStore {
 
             self._context.globalState.update(Constants.configRecentConnections, configValues)
             .then(() => {
-                // Only save if we successfully added the profile
-                self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                // Only save if we successfully added the profile and if savePassword
+                if ((<IConnectionProfile>conn).savePassword) {
+                    self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                }
                 // And resolve / reject at the end of the process
                 resolve(undefined);
             }, err => {
