@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-
+import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import { ObjectExplorerProvider } from '../src/objectExplorer/objectExplorerProvider';
 import { ObjectExplorerService } from '../src/objectExplorer/objectExplorerService';
@@ -12,6 +12,9 @@ import { expect } from 'chai';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { Deferred } from '../src/protocol';
+import { AddConnectionTreeNode } from '../src/objectExplorer/addConnectionTreeNode';
+import * as LocalizedConstants from '../src/constants/localizedConstants';
+import { AccountSignInTreeNode } from '../src/objectExplorer/accountSignInTreeNode';
 
 suite('Object Explorer Provider Tests', () => {
 
@@ -62,7 +65,7 @@ suite('Object Explorer Provider Tests', () => {
         objectExplorerProvider.refreshNode(treeNode.object).then((node) => {
             expect(node, 'Refreshed node should not be undefined').is.not.equal(undefined);
         });
-        done()
+        done();
     });
 
     test('Test Connection Credentials', () => {
@@ -90,5 +93,28 @@ suite('Object Explorer Provider Tests', () => {
             children.forEach((child) => expect(child, 'Children nodes should not be undefined').is.not.equal(undefined));
         });
         done();
+    });
+});
+
+suite('Object Explorer Node Types Test', () => {
+
+    test('Test Add Connection Tree Node', () => {
+        const addConnectionTreeNode = new AddConnectionTreeNode();
+        expect(addConnectionTreeNode.label, 'Label should be the same as constant').is.equal(LocalizedConstants.msgAddConnection);
+        expect(addConnectionTreeNode.command, 'Add Connection Tree Node has a dedicated command').is.not.equal(undefined);
+        expect(addConnectionTreeNode.iconPath, 'Add Connection Tree Node has an icon').is.not.equal(undefined);
+        expect(addConnectionTreeNode.collapsibleState, 'Add Connection Tree Node should have no collapsible state')
+            .is.equal(vscode.TreeItemCollapsibleState.None);
+    });
+
+    test('Test Account Sign In Tree Node', () => {
+        const parentTreeNode = new TreeNodeInfo('parent', undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined, undefined);
+        const accountSignInNode = new AccountSignInTreeNode(parentTreeNode);
+        expect(accountSignInNode.label, 'Label should be the same as constant').is.equal(LocalizedConstants.msgSignIn);
+        expect(accountSignInNode.command, 'Account Sign In Node has a dedicated command').is.not.equal(undefined);
+        expect(accountSignInNode.parentNode, 'Account Sign In Node should have a parent').is.not.equal(undefined);
+        expect(accountSignInNode.collapsibleState, 'Account Sign In Node should have no collapsible state')
+            .is.equal(vscode.TreeItemCollapsibleState.None);
     });
 });
