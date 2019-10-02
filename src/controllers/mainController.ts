@@ -185,21 +185,29 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
-                    const uri = await this._untitledSqlDocumentService.newQuery();
-                    if (!this.connectionManager.isConnected(uri.toString())) {
-                        let connectionCreds = node.connectionCredentials;
-                        const databaseName = self.getDatabaseName(node);
-                        connectionCreds.database = databaseName;
-                        this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                        await this.connectionManager.connect(uri.toString(), connectionCreds);
-                        this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                        const selectStatement = await this._scriptingService.scriptSelect(node, uri.toString());
+                    return this._untitledSqlDocumentService.newQuery().then((uri) => {
                         let editor = this._vscodeWrapper.activeTextEditor;
-                        editor.edit(editBuilder => {
-                            editBuilder.replace(editor.selection, selectStatement);
-                        }).then(() => this.onRunQuery());
-                        return this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
-                    }
+                        if (editor) {
+                            let connectionCreds = node.connectionCredentials;
+                            const databaseName = self.getDatabaseName(node);
+                            connectionCreds.database = databaseName;
+                            this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
+                            return this.connectionManager.connect(uri.toString(), connectionCreds).then(() => {
+                                this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                                return this._scriptingService.scriptSelect(node, uri.toString()).then((selectStatement) => {
+                                    if (editor && !editor.document.isClosed) {
+                                        return editor.edit((editBuilder) => {
+                                            editBuilder.replace(editor.selection, selectStatement);
+                                        }).then(() => {
+                                            return this.onRunQuery().then(() => {
+                                                return this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+                                            });
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                    });
                 }));
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
