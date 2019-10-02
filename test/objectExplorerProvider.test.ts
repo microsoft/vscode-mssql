@@ -15,6 +15,7 @@ import { Deferred } from '../src/protocol';
 import { AddConnectionTreeNode } from '../src/objectExplorer/addConnectionTreeNode';
 import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountSignInTreeNode } from '../src/objectExplorer/accountSignInTreeNode';
+import { ConnectTreeNode } from '../src/objectExplorer/connectTreeNode';
 
 suite('Object Explorer Provider Tests', () => {
 
@@ -115,6 +116,17 @@ suite('Object Explorer Node Types Test', () => {
         expect(accountSignInNode.command, 'Account Sign In Node has a dedicated command').is.not.equal(undefined);
         expect(accountSignInNode.parentNode, 'Account Sign In Node should have a parent').is.not.equal(undefined);
         expect(accountSignInNode.collapsibleState, 'Account Sign In Node should have no collapsible state')
+            .is.equal(vscode.TreeItemCollapsibleState.None);
+    });
+
+    test('Test Connect Tree Node', () => {
+        const parentTreeNode = new TreeNodeInfo('parent', undefined, undefined, undefined,
+        undefined, undefined, undefined, undefined, undefined);
+        const connectNode = new ConnectTreeNode(parentTreeNode);
+        expect(connectNode.label, 'Label should be the same as constant').is.equal(LocalizedConstants.msgConnect);
+        expect(connectNode.command, 'Connect Node has a dedicated command').is.not.equal(undefined);
+        expect(connectNode.parentNode, 'Connect Node should have a parent').is.not.equal(undefined);
+        expect(connectNode.collapsibleState, 'Connect Node should have no collapsible state')
             .is.equal(vscode.TreeItemCollapsibleState.None);
     });
 });
