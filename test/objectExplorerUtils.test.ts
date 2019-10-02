@@ -6,14 +6,13 @@ import * as path from 'path';
 import { ObjectExplorerUtils } from '../src/objectExplorer/objectExplorerUtils';
 import { expect } from 'chai';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
-import { IConnectionProfile } from '../src/models/interfaces';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 
 suite('Object Explorer Utils Tests', () => {
 
     test('Test iconPath function', () => {
-        const testObjects = ['Server', 'Table', 'StoredProcedure'];
-        const expectedPaths = ['Server.svg', 'Table.svg', 'StoredProcedure.svg'];
+        const testObjects = ['Server', 'Table', 'StoredProcedure', 'disconnectedServer'];
+        const expectedPaths = ['Server_green.svg', 'Table.svg', 'StoredProcedure.svg', 'Server_red.svg'];
         for (let i = 0; i < testObjects.length; i++) {
             const iconPath = ObjectExplorerUtils.iconPath(testObjects[i]);
             const fileName = path.basename(iconPath);

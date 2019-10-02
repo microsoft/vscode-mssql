@@ -95,6 +95,32 @@ suite('Object Explorer Provider Tests', () => {
         });
         done();
     });
+
+    test('Test server nodes sorting mechanism', (done) => {
+        const testNode = new TreeNodeInfo('testNode', undefined, undefined,
+            undefined, undefined, undefined, undefined, undefined, undefined);
+        const serverTestNode = new TreeNodeInfo('serverTestNode', undefined, undefined,
+        undefined, undefined, undefined, undefined, undefined, undefined);
+        const testNode2 = new TreeNodeInfo('TESTNODE', undefined, undefined,
+        undefined, undefined, undefined, undefined, undefined, undefined);
+        const testNode3 = new TreeNodeInfo('', undefined, undefined,
+        undefined, undefined, undefined, undefined, undefined, undefined);
+        const testNode4 = new TreeNodeInfo('1234', undefined, undefined,
+        undefined, undefined, undefined, undefined, undefined, undefined);
+        objectExplorerService.setup(s => s.rootTreeNodeArray).returns(() => [testNode, serverTestNode, testNode2, testNode3, testNode4]);
+        objectExplorerService.setup(s => s.sortByServerName(objectExplorerService.object.rootTreeNodeArray)).returns(() => {
+            const sortedNodeArray = objectExplorerService.object.rootTreeNodeArray.sort((a, b) => {
+                return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+            });
+            return sortedNodeArray;
+        });
+        const expectedSortedNodes = [testNode3, testNode4, serverTestNode, testNode, testNode2];
+        let sortedNodes = objectExplorerService.object.sortByServerName(objectExplorerService.object.rootTreeNodeArray);
+        for (let i = 0; i < sortedNodes.length; i++) {
+            expect(sortedNodes[i], 'Sorted nodes should be the same as expected sorted nodes').is.equal(expectedSortedNodes[i]);
+        }
+        done();
+    });
 });
 
 suite('Object Explorer Node Types Test', () => {
@@ -130,29 +156,4 @@ suite('Object Explorer Node Types Test', () => {
             .is.equal(vscode.TreeItemCollapsibleState.None);
     });
 
-    test('Test server nodes sorting mechanism', (done) => {
-        const testNode = new TreeNodeInfo('testNode', undefined, undefined,
-            undefined, undefined, undefined, undefined, undefined, undefined);
-        const serverTestNode = new TreeNodeInfo('serverTestNode', undefined, undefined,
-        undefined, undefined, undefined, undefined, undefined, undefined);
-        const testNode2 = new TreeNodeInfo('TESTNODE', undefined, undefined,
-        undefined, undefined, undefined, undefined, undefined, undefined);
-        const testNode3 = new TreeNodeInfo('', undefined, undefined,
-        undefined, undefined, undefined, undefined, undefined, undefined);
-        const testNode4 = new TreeNodeInfo('1234', undefined, undefined,
-        undefined, undefined, undefined, undefined, undefined, undefined);
-        objectExplorerService.setup(s => s.rootTreeNodeArray).returns(() => [testNode, serverTestNode, testNode2, testNode3, testNode4]);
-        objectExplorerService.setup(s => s.sortByServerName(objectExplorerService.object.rootTreeNodeArray)).returns(() => {
-            const sortedNodeArray = objectExplorerService.object.rootTreeNodeArray.sort((a, b) => {
-                return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
-            });
-            return sortedNodeArray;
-        });
-        const expectedSortedNodes = [testNode3, testNode4, serverTestNode, testNode, testNode2];
-        let sortedNodes = objectExplorerService.object.sortByServerName(objectExplorerService.object.rootTreeNodeArray);
-        for (let i = 0; i < sortedNodes.length; i++) {
-            expect(sortedNodes[i], 'Sorted nodes should be the same as expected sorted nodes').is.equal(expectedSortedNodes[i]);
-        }
-        done();
-    });
 });
