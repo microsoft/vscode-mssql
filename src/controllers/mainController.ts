@@ -185,7 +185,7 @@ export default class MainController implements vscode.Disposable {
                 this._scriptingService = new ScriptingService(this._connectionMgr, this._vscodeWrapper);
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
-                        Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
+                        Constants.cmdScriptSelect, (node: TreeNodeInfo) => {
                     return this._untitledSqlDocumentService.newQuery().then((uri) => {
                         let editor = this._vscodeWrapper.activeTextEditor;
                         if (editor) {
