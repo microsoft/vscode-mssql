@@ -109,7 +109,7 @@ export class ConnectionStore {
      * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
      */
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
-        let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections();
+        let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
         pickListItems.push(<IConnectionCredentialsQuickPickItem> {
             label: LocalizedConstants.CreateProfileFromConnectionsListLabel,
             connectionCreds: undefined,
@@ -391,7 +391,7 @@ export class ConnectionStore {
     }
 
     // Load connections from user preferences
-    public loadAllConnections(addRecentConnections: boolean = true): IConnectionCredentialsQuickPickItem[] {
+    public loadAllConnections(addRecentConnections: boolean = false): IConnectionCredentialsQuickPickItem[] {
         let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
 
         // Read recently used items from a memento
