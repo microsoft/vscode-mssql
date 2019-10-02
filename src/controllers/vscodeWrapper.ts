@@ -315,4 +315,11 @@ export default class VscodeWrapper {
     public clipboardWriteText(text: string): Thenable<void> {
         return vscode.env.clipboard.writeText(text);
     }
+
+    /**
+     * Called when workspace settings are changed
+     */
+    public get onDidChangeConfiguration(): vscode.Event<vscode.ConfigurationChangeEvent> {
+        return vscode.workspace.onDidChangeConfiguration;
+    }
 }
