@@ -72,7 +72,11 @@ class MessageProxy implements Disposable {
                 // first message
                 if (message === 'ready') {
                     // sanity check
-                    this.disposables.push(self.protocol.onMessage(val => self.onReceive(val)));
+                    this.disposables.push(self.protocol.onMessage((val) => {
+                        if (val !== 'ready') {
+                            self.onReceive(val);
+                        }
+                    }));
                     first.dispose();
                     self.ready.resolve();
                 }

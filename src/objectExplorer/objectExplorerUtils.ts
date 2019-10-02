@@ -13,9 +13,17 @@ export class ObjectExplorerUtils {
 
     public static iconPath(label: string): string {
         if (label) {
+            if (label === Constants.disconnectedServerLabel) {
+                // if disconnected
+                label = `${Constants.serverLabel}_red`;
+            } else if (label === Constants.serverLabel) {
+                // if connected
+                label += '_green';
+            }
             return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
         }
     }
+
     public static getNodeUri(node: TreeNodeInfo): string {
         if (node.nodeType === Constants.disconnectedServerLabel) {
             return undefined;
