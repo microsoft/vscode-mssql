@@ -14,7 +14,7 @@ import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
-import { IConnectionCredentials } from '../models/interfaces';
+import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
@@ -169,6 +169,58 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Sort the array based on server names
+     * Public only for testing purposes
+     * @param array array that needs to be sorted
+     */
+    public sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
+        const sortedNodeArray = array.sort((a, b) => {
+            return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+        });
+        return sortedNodeArray;
+    }
+
+    /**
+     * Get nodes from saved connections
+     */
+    private getSavedConnections(): void {
+        let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+        savedConnections.forEach((conn) => {
+            let nodeLabel = conn.label === conn.connectionCreds.server ?
+                this.createNodeLabel(conn.connectionCreds) : conn.label;
+            this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
+            let node = new TreeNodeInfo(nodeLabel,
+                Constants.disconnectedServerLabel,
+                TreeItemCollapsibleState.Collapsed,
+                undefined, undefined, Constants.disconnectedServerLabel,
+                undefined, conn.connectionCreds, undefined);
+            this._rootTreeNodeArray.push(node);
+        });
+    }
+
+    /**
+     * Clean up expansion promises for a node
+     * @param node The selected node
+     */
+    private cleanExpansionPromise(node: TreeNodeInfo): void {
+        for (const key of this._expandParamsToPromiseMap.keys()) {
+            if (key.sessionId === node.sessionId &&
+                key.nodePath === node.nodePath) {
+                this._expandParamsToPromiseMap.delete(key);
+            }
+        }
+    }
+
+    /**
+     * Helper to show the Add Connection node
+     */
+    private getAddConnectionNode(): AddConnectionTreeNode[] {
+        this._rootTreeNodeArray = [];
+        this._objectExplorerProvider.objectExplorerExists = true;
+        return [new AddConnectionTreeNode()];
+    }
+
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
@@ -189,12 +241,7 @@ export class ObjectExplorerService {
                     let children = await promise;
                     if (children) {
                         // clean expand session promise
-                        for (const key of this._expandParamsToPromiseMap.keys()) {
-                            if (key.sessionId === element.sessionId &&
-                                key.nodePath === element.nodePath) {
-                                this._expandParamsToPromiseMap.delete(key);
-                            }
-                        }
+                        this.cleanExpansionPromise(element);
                         return children;
                     } else {
                         return undefined;
@@ -219,29 +266,23 @@ export class ObjectExplorerService {
             // retrieve saved connections first when opening object explorer
             // for the first time
             let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+            // if there are no saved connections
+            // show the add connection node
+            if (savedConnections.length === 0) {
+                return this.getAddConnectionNode();
+            }
+            // if OE doesn't exist or if there was a change in saved connections
+            // then build the nodes off of saved connections
             if ((!this._objectExplorerProvider.objectExplorerExists ||
-                savedConnections.length !== this._rootTreeNodeArray.length) &&
-                savedConnections.length > 0) {
+                savedConnections.length !== this._rootTreeNodeArray.length)) {
+                // if there are actually saved connections
                 this._rootTreeNodeArray = [];
-                savedConnections.forEach((conn) => {
-                    let nodeLabel = conn.label === conn.connectionCreds.server ?
-                        this.createNodeLabel(conn.connectionCreds) : conn.label;
-                    this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
-                    let node = new TreeNodeInfo(nodeLabel,
-                        Constants.disconnectedServerLabel,
-                        TreeItemCollapsibleState.Collapsed,
-                        undefined, undefined, Constants.serverLabel,
-                        undefined, conn.connectionCreds, undefined);
-                    this._rootTreeNodeArray.push(node);
-                });
+                this.getSavedConnections();
                 this._objectExplorerProvider.objectExplorerExists = true;
-                return this._rootTreeNodeArray;
+                return this.sortByServerName(this._rootTreeNodeArray);
             } else {
-                if (this._rootTreeNodeArray.length > 0) {
-                    return this._rootTreeNodeArray;
-                } else {
-                    return [new AddConnectionTreeNode()];
-                }
+                // otherwise returned the cached nodes
+                return this.sortByServerName(this._rootTreeNodeArray);
             }
         }
     }
@@ -301,8 +342,7 @@ export class ObjectExplorerService {
         this._nodePathToNodeLabelMap.delete(node.nodePath);
         this.cleanNodeChildren(node);
         if (isDisconnect) {
-            this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
-            this.updateNode(node);
+            this._treeNodeToChildrenMap.set(this._currentNode, [new ConnectTreeNode(this._currentNode)]);
             return this._objectExplorerProvider.refresh(undefined);
         }
     }
@@ -331,7 +371,7 @@ export class ObjectExplorerService {
             userOrAuthType = credentials.user;
         }
         if (!database || database === '') {
-            database = Constants.defaultDatabase;
+            database = LocalizedConstants.defaultDatabaseLabel;
         }
         return `${server}, ${database} (${userOrAuthType})`;
     }
@@ -353,8 +393,17 @@ export class ObjectExplorerService {
                     this._sessionIdToPromiseMap.delete(node.sessionId);
                 }
                 node.nodeType = Constants.disconnectedServerLabel;
+                node.contextValue = Constants.disconnectedServerLabel;
                 node.sessionId = undefined;
-                this._currentNode = node;
+                if (!(<IConnectionProfile>node.connectionCredentials).savePassword) {
+                    node.connectionCredentials.password = '';
+                }
+                // make a new node to show disconnected behavior
+                let disconnectedNode = new TreeNodeInfo(node.label, Constants.disconnectedServerLabel,
+                    node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
+                    undefined, node.connectionCredentials, node.parentNode);
+                this.updateNode(disconnectedNode);
+                this._currentNode = disconnectedNode;
                 return;
             }
         }
