@@ -126,7 +126,7 @@ export class ShortcutService {
         resString += (e.ctrlKey || e.metaKey) ? 'ctrl+' : '';
         resString += e.altKey ? 'alt+' : '';
         resString += e.shiftKey ? 'shift+' : '';
-        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which).toLowerCase() : keycodes[e.which];
+        resString += e.which >= 65 && e.which <= 90 ? String.fromCharCode(e.which) : keycodes[e.which];
         return resString;
     }
 }
