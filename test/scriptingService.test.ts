@@ -10,6 +10,7 @@ import { ScriptingService } from '../src/scripting/scriptingService';
 import { ScriptingRequest } from '../src/models/contracts/scripting/scriptingRequest';
 import { Script } from 'vm';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
+import { ServerInfo } from '../src/models/contracts/connection';
 
 suite('Scripting Service Tests', () => {
 
@@ -23,12 +24,20 @@ suite('Scripting Service Tests', () => {
         client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
         client.setup(c => c.sendRequest(ScriptingRequest.type, TypeMoq.It.isAny())).returns(() => TypeMoq.It.isAny());
         connectionManager.object.client = client.object;
+        connectionManager.setup(c => c.getServerInfo(TypeMoq.It.isAny())).returns(() => {
+            let serverInfo = new ServerInfo();
+            serverInfo.engineEditionId = 2;
+            serverInfo.serverMajorVersion = 1;
+            serverInfo.isCloud = true;
+            return serverInfo;
+        });
 
     });
 
     test('Test Script Select', () => {
-        // let testNode = new TreeNodeInfo(undefined, undefined, undefined,
-        //     undefined, undefined, 'Table', undefined, {}, {});
+        let testNode = new TreeNodeInfo('master.dbo.test_table', undefined, undefined,
+            undefined, undefined, 'Table', undefined, undefined, undefined);
         scriptingService = new ScriptingService(connectionManager.object);
+        scriptingService.scriptSelect(testNode, 'test_uri');
     });
 });

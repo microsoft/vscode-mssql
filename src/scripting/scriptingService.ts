@@ -65,7 +65,7 @@ export class ScriptingService {
             scriptStatistics: 'ScriptStatsNone',
             targetDatabaseEngineEdition:
             serverInfo.engineEditionId ? this.targetDatabaseEngineEditionMap[serverInfo.engineEditionId] : 'SqlServerEnterpriseEdition',
-            targetDatabaseEngineType: serverInfo.isCloud ? 'SqlAzure': 'SingleInstance',
+            targetDatabaseEngineType: serverInfo.isCloud ? 'SqlAzure' : 'SingleInstance',
             scriptCompatibilityOption: serverInfo.serverMajorVersion ?
                 this.scriptCompatibilityOptionMap[serverInfo.serverMajorVersion] : 'Script140Compat'
         };
