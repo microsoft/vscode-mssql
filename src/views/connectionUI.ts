@@ -490,7 +490,7 @@ export class ConnectionUI {
         return ConnectionProfile.createProfile(this._prompter);
     }
 
-    private promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
+    public promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
         // Ask if the user would like to fix the profile
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryCreateProfile, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {

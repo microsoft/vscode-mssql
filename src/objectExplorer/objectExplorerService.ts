@@ -89,7 +89,10 @@ export class ObjectExplorerService {
                 }
                 return promise.resolve(self._currentNode);
             } else {
-                // failure
+                // create session failure
+                if (self._currentNode.connectionCredentials.password) {
+                    self._currentNode.connectionCredentials.password = '';
+                }
                 self.updateNode(self._currentNode);
                 self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;
@@ -144,7 +147,7 @@ export class ObjectExplorerService {
         return response;
     }
 
-    private updateNode(node: TreeNodeInfo): void {
+    public updateNode(node: TreeNodeInfo): void {
         for (let rootTreeNode of this._rootTreeNodeArray) {
             if (rootTreeNode.connectionCredentials === node.connectionCredentials &&
                 rootTreeNode.label === node.label) {
