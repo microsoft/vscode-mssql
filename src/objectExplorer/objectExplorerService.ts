@@ -90,9 +90,6 @@ export class ObjectExplorerService {
                 return promise.resolve(self._currentNode);
             } else {
                 // create session failure
-                if (self._currentNode.connectionCredentials.password) {
-                    self._currentNode.connectionCredentials.password = '';
-                }
                 self.updateNode(self._currentNode);
                 self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;

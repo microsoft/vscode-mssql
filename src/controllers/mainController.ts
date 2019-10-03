@@ -206,7 +206,8 @@ export default class MainController implements vscode.Disposable {
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
                     this._objectExplorerProvider.signInNodeServer(node.parentNode);
-                    return this._objectExplorerProvider.refresh(undefined);
+                    const profile = <IConnectionProfile>node.parentNode.connectionCredentials;
+                    return this.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
                 }));
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
