@@ -58,7 +58,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public signInNodeServer(node: TreeNodeInfo): void {
-        return this._objectExplorerService.signInNodeServer(node);
+        this._objectExplorerService.signInNodeServer(node);
+    }
+
+    public updateNode(node: TreeNodeInfo): void {
+        this._objectExplorerService.updateNode(node);
     }
 
     /** Getters */
