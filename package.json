@@ -593,7 +593,7 @@
             "event.copyWithHeaders": "",
             "event.copyHeaders": "",
             "event.maximizeGrid": "",
-            "event.selectAll": "",
+            "event.selectAll": "ctrl+A",
             "event.saveAsJSON": "",
             "event.saveAsCSV": "",
             "event.saveAsExcel": ""
