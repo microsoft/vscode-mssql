@@ -19,7 +19,7 @@ import CodeAdapter from '../prompts/adapter';
 import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
-import { ISelectionData, IConnectionProfile } from './../models/interfaces';
+import { ISelectionData, IConnectionProfile, IConnectionCredentials } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
@@ -205,8 +205,14 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
-                    this._objectExplorerProvider.signInNodeServer(node.parentNode);
-                    return this._objectExplorerProvider.refresh(undefined);
+                    let profile = <IConnectionProfile>node.parentNode.connectionCredentials;
+                    profile = await self.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
+                    if (profile) {
+                        node.parentNode.connectionCredentials = <IConnectionCredentials>profile;
+                        self._objectExplorerProvider.updateNode(node.parentNode);
+                        self._objectExplorerProvider.signInNodeServer(node.parentNode);
+                        return self._objectExplorerProvider.refresh(undefined);
+                    }
                 }));
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
