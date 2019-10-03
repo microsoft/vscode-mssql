@@ -49,6 +49,7 @@ export default class MainController implements vscode.Disposable {
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _scriptingService: ScriptingService;
+    private _connectionFromCommand: boolean = false;
 
     /**
      * The main controller constructor
@@ -145,14 +146,15 @@ export default class MainController implements vscode.Disposable {
                 );
                 this.registerCommand(Constants.cmdAddObjectExplorer);
                 this._event.on(Constants.cmdAddObjectExplorer, async () => {
+                    self._connectionFromCommand = true;
                     if (!self._objectExplorerProvider.objectExplorerExists) {
                         self._objectExplorerProvider.objectExplorerExists = true;
                     }
                     let promise = new Deferred<TreeNodeInfo>();
                     await self._objectExplorerProvider.createSession(promise);
-                    return promise.then(() => {
-                        this._objectExplorerProvider.refresh(undefined);
-                    });
+                    await promise;
+                    self._connectionFromCommand = false;
+                    return this._objectExplorerProvider.refresh(undefined);
                 });
 
                 this._context.subscriptions.push(
@@ -411,17 +413,21 @@ export default class MainController implements vscode.Disposable {
     /**
      * Let users pick from a list of connections
      */
-    public onNewConnection(): Promise<boolean> {
+    public async onNewConnection(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            return this._connectionMgr.onNewConnection().then((result) => {
-                if (result) {
-                    this._objectExplorerProvider.objectExplorerExists = false;
-                    this._objectExplorerProvider.refresh(undefined);
-                    return true;
-                }
-            });
+            this._connectionFromCommand = true;
+            let credentials = await this._connectionMgr.onNewConnection();
+            // initiate a new OE with same connection
+            if (credentials) {
+                const promise = new Deferred<TreeNodeInfo>();
+                await this._objectExplorerProvider.createSession(promise, credentials);
+                await promise;
+                this._connectionFromCommand = false;
+                this._objectExplorerProvider.refresh(undefined);
+                return true;
+            }
         }
-        return Promise.resolve(false);
+        return false;
     }
 
     /**
@@ -701,13 +707,19 @@ export default class MainController implements vscode.Disposable {
             } else {
                 // new query command
                 const uri = await this._untitledSqlDocumentService.newQuery();
+                this._connectionFromCommand = true;
                 const credentials = await this._connectionMgr.onNewConnection();
                 // initiate a new OE with same connection
-
                 if (credentials) {
+                    const promise = new Deferred<TreeNodeInfo>();
+                    await this._objectExplorerProvider.createSession(promise, credentials);
+                    await promise;
+                    this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                    this._connectionFromCommand = false;
                     this._objectExplorerProvider.refresh(undefined);
                 }
                 this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                this._connectionFromCommand = false;
                 return Promise.resolve(true);
             }
         }
@@ -837,8 +849,10 @@ export default class MainController implements vscode.Disposable {
      * @param ConfigurationChangeEvent event that is fired when config is changed
      */
     public onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): void {
-        if (e.affectsConfiguration(Constants.extensionName)) {
-            this._objectExplorerProvider.refresh(undefined);
+        if (!this._connectionFromCommand) {
+            if (e.affectsConfiguration(`${Constants.extensionName}.${Constants.connectionsArrayName}`)) {
+                this._objectExplorerProvider.refresh(undefined);
+            }
         }
     }
 }
