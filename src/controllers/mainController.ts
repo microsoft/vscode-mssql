@@ -186,8 +186,9 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
-                    const uri = await this._untitledSqlDocumentService.newQuery();
-                    if (!this.connectionManager.isConnected(uri.toString())) {
+                    let uri = await this._untitledSqlDocumentService.newQuery();
+                    let editor = this._vscodeWrapper.activeTextEditor;
+                    if (editor) {
                         let connectionCreds = node.connectionCredentials;
                         const databaseName = self.getDatabaseName(node);
                         connectionCreds.database = databaseName;
@@ -195,11 +196,13 @@ export default class MainController implements vscode.Disposable {
                         await this.connectionManager.connect(uri.toString(), connectionCreds);
                         this._statusview.sqlCmdModeChanged(uri.toString(), false);
                         const selectStatement = await this._scriptingService.scriptSelect(node, uri.toString());
-                        let editor = this._vscodeWrapper.activeTextEditor;
-                        editor.edit(editBuilder => {
-                            editBuilder.replace(editor.selection, selectStatement);
-                        }).then(() => this.onRunQuery());
-                        return this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+                        if (editor && !editor.document.isClosed) {
+                            await editor.edit((editBuilder) => {
+                                editBuilder.replace(editor.selection, selectStatement);
+                            });
+                            await this.onRunQuery();
+                            await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+                        }
                     }
                 }));
                 this._context.subscriptions.push(
