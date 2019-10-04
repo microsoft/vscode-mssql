@@ -4,6 +4,6 @@
     "relativeCoverageDir": "../../coverage",
     "ignorePatterns": ["**/node_modules/**", "**/libs/**", "**/lib/**", "**/htmlcontent/**/*.js", "**/*.bundle.js"],
     "includePid": false,
-    "reports": ["json", "html"],
+    "reports": ["json"],
     "verbose": false
 }
