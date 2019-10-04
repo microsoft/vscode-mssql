@@ -28,7 +28,7 @@ gulp.task('cover:disable', () => {
     .pipe(gulp.dest("./out", {'overwrite':true}));
 });
 
-gulp.task('cover:combine', () => {
+gulp.task('cover:combine-json', () => {
     return gulp.src(['./coverage/coverage-final.json', './coverage/coverage.json'])
     .pipe(istanbulReport({
         reporterOpts: {
@@ -36,11 +36,22 @@ gulp.task('cover:combine', () => {
         },
         reporters: [
             {'name': 'lcovonly'}, // -> ./coverage/report.txt
-            {'name': 'cobertura'}, // -> ./jsonCov/cov.json
-            {'name': 'html'} // -> ./coverage/index.html
+            {'name': 'cobertura'} // -> ./jsonCov/cov.json
+        ]
+    }));
+});
+
+gulp.task('cover:combine-html', () => {
+    return gulp.src(['**/*.html'])
+    .pipe(istanbulReport({
+        reporterOpts: {
+            dir: './coverage'
+        },
+        reporters: [
+            {'name': 'html'}
         ]
     }));
 });
 
 // for running on the jenkins build system
-gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'ext:test', 'cover:combine'));
+gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'test', 'cover:combine-json'));
