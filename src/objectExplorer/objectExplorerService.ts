@@ -302,20 +302,22 @@ export class ObjectExplorerService {
             connectionCredentials = await connectionUI.showConnections(false);
         }
         if (connectionCredentials) {
-            // show password prompt if SQL Login and password isn't saved
-            let password = connectionCredentials.password;
-            // if password isn't saved
-            if (!(<IConnectionProfile>connectionCredentials).savePassword) {
-                // prompt for password
-                password = await this._connectionManager.connectionUI.promptForPassword();
-                if (!password) {
-                    return promise.resolve(undefined);
+            if (ConnectionCredentials.isPasswordBasedCredential(connectionCredentials)) {
+                // show password prompt if SQL Login and password isn't saved
+                let password = connectionCredentials.password;
+                // if password isn't saved
+                if (!(<IConnectionProfile>connectionCredentials).savePassword) {
+                    // prompt for password
+                    password = await this._connectionManager.connectionUI.promptForPassword();
+                    if (!password) {
+                        return promise.resolve(undefined);
+                    }
+                } else {
+                    // look up saved password
+                    password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
                 }
-            } else {
-                // look up saved password
-                password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
+                connectionCredentials.password = password;
             }
-            connectionCredentials.password = password;
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
             const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
             if (response) {
