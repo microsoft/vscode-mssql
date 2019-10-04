@@ -36,7 +36,8 @@ gulp.task('cover:combine', () => {
         },
         reporters: [
             {'name': 'lcovonly'}, // -> ./coverage/report.txt
-            {'name': 'cobertura'} // -> ./jsonCov/cov.json
+            {'name': 'cobertura'}, // -> ./jsonCov/cov.json
+            {'name': 'html'} // -> ./coverage/index.html
         ]
     }));
 });
