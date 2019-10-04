@@ -156,4 +156,25 @@ suite('Object Explorer Node Types Test', () => {
             .is.equal(vscode.TreeItemCollapsibleState.None);
     });
 
+    test('Test getters and setters for Tree Node', () => {
+        const treeNode = new TreeNodeInfo('test', 'test_value', vscode.TreeItemCollapsibleState.Collapsed, 'test_path',
+        'test_status', 'Server', 'test_session', undefined, undefined);
+        treeNode.nodePath = treeNode.nodePath;
+        expect(treeNode.nodePath, 'Node path should be equal to expected value').is.equal('test_path');
+        treeNode.nodeStatus = treeNode.nodeStatus;
+        expect(treeNode.nodeStatus, 'Node status should be equal to expected value').is.equal('test_status');
+        treeNode.nodeType = treeNode.nodeType;
+        expect(treeNode.nodeType, 'Node type should be equal to expected value').is.equal('Server');
+        treeNode.sessionId = treeNode.sessionId;
+        expect(treeNode.sessionId, 'Session ID should be equal to expected value').is.equal('test_session');
+        treeNode.nodeSubType = treeNode.nodeSubType;
+        expect(treeNode.nodeSubType, 'Node Sub type should be equal to expected value').is.equal(undefined);
+        treeNode.isLeaf = treeNode.isLeaf;
+        expect(treeNode.isLeaf, 'Node should not be a leaf').is.equal(undefined);
+        treeNode.parentNode = treeNode.parentNode;
+        expect(treeNode.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
+        treeNode.connectionCredentials = treeNode.connectionCredentials;
+        expect(treeNode.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+    });
+
 });
