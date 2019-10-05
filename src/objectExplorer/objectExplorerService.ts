@@ -302,16 +302,19 @@ export class ObjectExplorerService {
             connectionCredentials = await connectionUI.showConnections(false);
         }
         if (connectionCredentials) {
-            // show password prompt if SQL Login and password isn't saved
-            const shouldPromptForPassword = ConnectionCredentials.shouldPromptForPassword(connectionCredentials);
-            if (shouldPromptForPassword) {
-                // look up saved password
-                let password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
-                if (!password) {
+            if (ConnectionCredentials.isPasswordBasedCredential(connectionCredentials)) {
+                // show password prompt if SQL Login and password isn't saved
+                let password = connectionCredentials.password;
+                // if password isn't saved
+                if (!(<IConnectionProfile>connectionCredentials).savePassword) {
+                    // prompt for password
                     password = await this._connectionManager.connectionUI.promptForPassword();
                     if (!password) {
                         return promise.resolve(undefined);
                     }
+                } else {
+                    // look up saved password
+                    password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
                 }
                 connectionCredentials.password = password;
             }
