@@ -421,4 +421,12 @@ export class ObjectExplorerService {
     public get rootTreeNodeArray(): TreeNodeInfo[] {
         return this._rootTreeNodeArray;
     }
+
+    public get connectionCredentialsToSessionIdMap(): Map<ConnectionCredentials, string> {
+        const map = new Map<ConnectionCredentials, string>();
+        this._sessionIdToConnectionCredentialsMap.forEach((value, key) => {
+            map.set(value, key);
+        });
+        return map;
+    }
 }

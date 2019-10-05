@@ -150,9 +150,8 @@ export default class MainController implements vscode.Disposable {
                     }
                     let promise = new Deferred<TreeNodeInfo>();
                     await self._objectExplorerProvider.createSession(promise);
-                    return promise.then(() => {
-                        this._objectExplorerProvider.refresh(undefined);
-                    });
+                    await promise;
+                    return this._objectExplorerProvider.refresh(undefined);
                 });
 
                 this._context.subscriptions.push(
@@ -420,17 +419,18 @@ export default class MainController implements vscode.Disposable {
     /**
      * Let users pick from a list of connections
      */
-    public onNewConnection(): Promise<boolean> {
+    public async onNewConnection(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
-            return this._connectionMgr.onNewConnection().then((result) => {
-                if (result) {
-                    this._objectExplorerProvider.objectExplorerExists = false;
-                    this._objectExplorerProvider.refresh(undefined);
-                    return true;
-                }
-            });
+            let credentials = await this._connectionMgr.onNewConnection();
+            if (credentials) {
+                let promise = new Deferred<TreeNodeInfo>();
+                await this._objectExplorerProvider.createSession(promise, credentials);
+                await promise;
+                this._objectExplorerProvider.refresh(undefined);
+                return true;
+            }
         }
-        return Promise.resolve(false);
+        return false;
     }
 
     /**
@@ -714,6 +714,9 @@ export default class MainController implements vscode.Disposable {
                 // initiate a new OE with same connection
 
                 if (credentials) {
+                    let promise = new Deferred<TreeNodeInfo>();
+                    await this._objectExplorerProvider.createSession(promise, credentials);
+                    await promise;
                     this._objectExplorerProvider.refresh(undefined);
                 }
                 this._statusview.sqlCmdModeChanged(uri.toString(), false);
@@ -847,7 +850,9 @@ export default class MainController implements vscode.Disposable {
      */
     public onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): void {
         if (e.affectsConfiguration(Constants.extensionName)) {
-            this._objectExplorerProvider.refresh(undefined);
+            let credentialsMap = this._objectExplorerProvider.objectExplorerService.connectionCredentialsToSessionIdMap;
+            // check for changes and then compare the credentials
+            // this._objectExplorerProvider.refresh(undefined);
         }
     }
 }
