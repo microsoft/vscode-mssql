@@ -16,6 +16,7 @@ import { AddConnectionTreeNode } from '../src/objectExplorer/addConnectionTreeNo
 import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountSignInTreeNode } from '../src/objectExplorer/accountSignInTreeNode';
 import { ConnectTreeNode } from '../src/objectExplorer/connectTreeNode';
+import { NodeInfo } from '../src/models/contracts/objectExplorer/nodeInfo';
 
 suite('Object Explorer Provider Tests', () => {
 
@@ -177,4 +178,27 @@ suite('Object Explorer Node Types Test', () => {
         expect(treeNode.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
     });
 
+    test('Test fromNodeInfo function', () => {
+        const nodeInfo: NodeInfo = {
+            nodePath: 'test_path',
+            nodeStatus: undefined,
+            nodeSubType: undefined,
+            nodeType: undefined,
+            label: 'test_node',
+            isLeaf: false,
+            errorMessage: undefined
+        };
+        const treeNodeInfo = TreeNodeInfo.fromNodeInfo(nodeInfo, 'test_session',
+            undefined, undefined, undefined);
+        treeNodeInfo.errorMessage = 'test_error';
+        expect(treeNodeInfo.nodePath, 'Node path should be equal to expected value').is.equal(nodeInfo.nodePath);
+        expect(treeNodeInfo.nodeStatus, 'Node status should be equal to expected value').is.equal(nodeInfo.nodeStatus);
+        expect(treeNodeInfo.nodeType, 'Node type should be equal to expected value').is.equal(nodeInfo.nodeType);
+        expect(treeNodeInfo.sessionId, 'Session ID should be equal to expected value').is.equal('test_session');
+        expect(treeNodeInfo.nodeSubType, 'Node Sub type should be equal to expected value').is.equal(nodeInfo.nodeSubType);
+        expect(treeNodeInfo.isLeaf, 'Node should not be a leaf').is.equal(nodeInfo.isLeaf);
+        expect(treeNodeInfo.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
+        expect(treeNodeInfo.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+        expect(treeNodeInfo.errorMessage, 'Error message should be equal to expected value').is.equal('test_error');
+    });
 });
