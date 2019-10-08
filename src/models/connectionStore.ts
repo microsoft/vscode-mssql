@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
@@ -43,8 +48,8 @@ export class ConnectionStore {
     public static get CRED_DB_PREFIX(): string { return 'db:'; }
     public static get CRED_USER_PREFIX(): string { return 'user:'; }
     public static get CRED_ITEMTYPE_PREFIX(): string { return 'itemtype:'; }
-    public static get CRED_PROFILE_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Profile]; };
-    public static get CRED_MRU_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru]; };
+    public static get CRED_PROFILE_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Profile]; }
+    public static get CRED_MRU_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru]; }
 
     public static formatCredentialIdForCred(creds: IConnectionCredentials, itemType?: CredentialsQuickPickItemType): string {
         if (Utils.isEmpty(creds)) {
@@ -104,7 +109,7 @@ export class ConnectionStore {
      * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
      */
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
-        let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections();
+        let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
         pickListItems.push(<IConnectionCredentialsQuickPickItem> {
             label: LocalizedConstants.CreateProfileFromConnectionsListLabel,
             connectionCreds: undefined,
@@ -146,6 +151,22 @@ export class ConnectionStore {
                 resolve(credentialsItem);
             }
         });
+    }
+
+    /**
+     * Lookup credential store
+     * @param connectionCredentials Connection credentials of profile for password lookup
+     */
+    public async lookupPassword(connectionCredentials: IConnectionCredentials): Promise<string> {
+        const credentialId = ConnectionStore.formatCredentialId(
+            connectionCredentials.server, connectionCredentials.database,
+            connectionCredentials.user, ConnectionStore.CRED_PROFILE_USER);
+        const savedCredential = await this._credentialStore.readCredential(credentialId);
+        if (savedCredential && savedCredential.password) {
+            return savedCredential.password;
+        } else {
+            return undefined;
+        }
     }
 
     /**
@@ -243,8 +264,10 @@ export class ConnectionStore {
 
             self._context.globalState.update(Constants.configRecentConnections, configValues)
             .then(() => {
-                // Only save if we successfully added the profile
-                self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                // Only save if we successfully added the profile and if savePassword
+                if ((<IConnectionProfile>conn).savePassword) {
+                    self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                }
                 // And resolve / reject at the end of the process
                 resolve(undefined);
             }, err => {
@@ -273,7 +296,7 @@ export class ConnectionStore {
     /**
      * Remove a connection profile from the recently used list.
      */
-    private removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
+    public removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
         const self = this;
         return new Promise<void>((resolve, reject) => {
             // Get all profiles
@@ -368,11 +391,14 @@ export class ConnectionStore {
     }
 
     // Load connections from user preferences
-    private loadAllConnections(): IConnectionCredentialsQuickPickItem[] {
+    public loadAllConnections(addRecentConnections: boolean = false): IConnectionCredentialsQuickPickItem[] {
         let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
 
         // Read recently used items from a memento
-        let recentConnections = this.getConnectionsFromGlobalState(Constants.configRecentConnections);
+        let recentConnections = [];
+        if (addRecentConnections) {
+            recentConnections = this.getConnectionsFromGlobalState(Constants.configRecentConnections);
+        }
 
         // Load connections from user preferences
         // Per this https://code.visualstudio.com/Docs/customization/userandworkspace

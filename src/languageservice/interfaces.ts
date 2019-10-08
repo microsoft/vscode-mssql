@@ -28,7 +28,7 @@ export interface IConfig {
 export interface IPackage {
     url: string;
     installPath?: string;
-    tmpFile: tmp.SynchronousResult;
+    tmpFile: tmp.SynchrounousResult;
 }
 
 export class PackageError extends Error {

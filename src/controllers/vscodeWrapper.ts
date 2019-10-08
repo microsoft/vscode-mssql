@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import vscode = require('vscode');
 
 
@@ -165,12 +170,12 @@ export default class VscodeWrapper {
      *
      * Uris with other schemes will make this method return a rejected promise.
      *
-     * @param uri Identifies the resource to open.
+     * @param content The optional content the document will open with
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public openMsSqlTextDocument(): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument({ language: 'sql'});
+    public openMsSqlTextDocument(content?: string): Thenable<vscode.TextDocument> {
+        return vscode.workspace.openTextDocument({ language: 'sql', content: content});
     }
 
     /**
@@ -299,5 +304,22 @@ export default class VscodeWrapper {
      */
     public uriParse(value: string): vscode.Uri {
         return vscode.Uri.parse(value);
+    }
+
+    /**
+     * Write text to the clipboard
+     *
+     * @param text Value to write to the clipboard
+     * @return A promise that is called once the copy is complete
+     */
+    public clipboardWriteText(text: string): Thenable<void> {
+        return vscode.env.clipboard.writeText(text);
+    }
+
+    /**
+     * Called when workspace settings are changed
+     */
+    public get onDidChangeConfiguration(): vscode.Event<vscode.ConfigurationChangeEvent> {
+        return vscode.workspace.onDidChangeConfiguration;
     }
 }

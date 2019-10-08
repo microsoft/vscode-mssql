@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import QueryRunner from './../src/controllers/queryRunner';
@@ -44,7 +49,7 @@ suite('QueryNotificationHandler tests', () => {
         });
         runnerMock.setup(x => x.handleQueryComplete(TypeMoq.It.isAny())).callback((event) => {
             queryCompleteHandlerCalled = true;
-            runnerMock.object._setHasCompleted();
+            runnerMock.object.setHasCompleted();
         });
 
         // Get handlers

@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
 import { ExtensionContext } from 'vscode';
@@ -485,7 +490,7 @@ suite('Per File Connection Tests', () => {
         let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
-        connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(false));
+        connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(undefined));
 
         let controller: MainController = new MainController(contextMock.object,
                                                             connectionManagerMock.object,
@@ -620,11 +625,8 @@ suite('Per File Connection Tests', () => {
                             .returns(() => Promise.resolve(true));
 
         let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
-        let actualDbName = undefined;
         statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-        .callback((fileUri, creds: IConnectionCredentials) => {
-            actualDbName = creds.database;
-        });
+        .callback((fileUri, creds: IConnectionCredentials) => { return; });
 
         // And we store any DBs saved to recent connections
         let savedConnection: IConnectionCredentials = undefined;

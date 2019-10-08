@@ -1,4 +1,3 @@
-[![Travis CI](https://travis-ci.org/Microsoft/vscode-mssql.svg?branch=master)](https://travis-ci.org/Microsoft/vscode-mssql)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/Microsoft/vscode-mssql?svg=true&retina=true&branch=master)](https://ci.appveyor.com/project/kburtram/vscode-mssql)
 [![Coverage Status](https://coveralls.io/repos/github/Microsoft/vscode-mssql/badge.svg?branch=master)](https://coveralls.io/github/Microsoft/vscode-mssql?branch=master)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
@@ -21,6 +20,30 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.6.0
+* Extension install no longer requires reloading VS Code
+* Update Query Results Webview API calls for compatibility with VS Code May release
+* Fix "Save as CSV" exception
+
+## What's new in 1.5.0
+* Update vscode-languageclient to fix issue [#1194 Refresh Intellisence cache option don't work](https://github.com/Microsoft/vscode-mssql/issues/1194)
+* Import CSV export options such as setting delimiter, line separator, encoding and include headers
+* Add missing SQL keywords to colorization list
+* Fix Peek Definition\Go to Definition bug on SQL Server 2017
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues, and in particular the following users who helped contribute features or localization of the tool:
+* [@praveenpi ](https://github.com/praveenpi) for `updated sql2016-crud-demo (#1156)`
+* [@benrr101](https://github.com/benrr101) for `Fix for #1178 by replacing all whitespace with non-breaking spaces. (#1181)`
+* [@eashi](https://github.com/eashi) for `Use correct tag for gulp package (#1154)`
+* [@shaun-hume](https://github.com/shaun-hume) for `Fix spelling errors in README.md (#1148)`
+* [@bruce-dunwiddie ](https://github.com/bruce-dunwiddie) for `Fixed typo on serverproperty. (#1147)`
+* [@franciscocpg ](https://github.com/franciscocpg) for `Adding support for antergos platform (#1144)`
+* [@SebastianPfliegel](https://github.com/SebastianPfliegel) for `Added more saveAsCsv options (#1128)`
+* [@mattmc3](https://github.com/mattmc3) for `Add missing keywords (#1133)`
+* [@ChiragRupani](https://github.com/ChiragRupani) for `Added support for specifying delimiter while exporting query results as CSV (#1120)`
+* [@zackschuster](https://github.com/zackschuster) for `fix typo in CHANGELOG.md (#1119)`
+
 ## What's new in 1.4.0
 * Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
 * Added support for Deepin Linux
@@ -39,7 +62,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 ## What's new in 1.3.1
 * Fixed issue [#1036](https://github.com/Microsoft/vscode-mssql/issues/1036) where copy/pasting Unicode text can fail on Mac depending on the active locale environment variable
 * Fixed issue [#1066](https://github.com/Microsoft/vscode-mssql/issues/1066) RAND() function using GO N produces the same result
-* Syntax highlighting more closely matches SSMS for local variables, global system varaibles, unicode string literals, bracketed identifiers, and built in functions
+* Syntax highlighting more closely matches SSMS for local variables, global system variables, unicode string literals, bracketed identifiers, and built in functions
 * Show all error messages instead of just the first one when query execution results in multiple errors
 
 
@@ -60,14 +83,14 @@ We would like to thank all our users who raised issues, and in particular the fo
 ## What's new in 1.2.1
 * Support for multi-root workspaces in preparation for the feature's release in Visual Studio Code. When running with multi-root workspaces, users will be able to set many configuration options at the folder level, including connection configurations.
 * Exporting results as CSV, JSON, or Excel files now shows the operating system's save-as dialog instead of using text-based dialogs to name the saved file.
-* Fixed issue [#998](https://github.com/Microsoft/vscode-mssql/issues/998) Intellisense against Azure SQL DBs very inconsistent.
+* Fixed issue [#998](https://github.com/Microsoft/vscode-mssql/issues/998) IntelliSense against Azure SQL DBs very inconsistent.
 
 
 ## What's new in 1.2
 * Support for macOS High Sierra.
 * VSCode-Insiders users will see their connections are now read from and saved to the Insiders settings file instead of the regular Visual Studio Code location. Fixes [#242](https://github.com/Microsoft/vscode-mssql/issues/242).
 * Saving connections no longer affects comments in the settings file [#959](https://github.com/Microsoft/vscode-mssql/issues/959).
-* Intellisense errors and suggestions can be disabled on a per-file basis [#978](https://github.com/Microsoft/vscode-mssql/issues/978). Use the `MS SQL: Choose SQL Handler for this file` action or click on the `MSSQL` status bar item when a .sql file is open to disable intellisense on that document.
+* IntelliSense errors and suggestions can be disabled on a per-file basis [#978](https://github.com/Microsoft/vscode-mssql/issues/978). Use the `MS SQL: Choose SQL Handler for this file` action or click on the `MSSQL` status bar item when a .sql file is open to disable IntelliSense on that document.
 * Fixed issue [#987](https://github.com/Microsoft/vscode-mssql/issues/987) Cannot change password of a saved profile.
 * Fixed issue [#924](https://github.com/Microsoft/vscode-mssql/issues/924) Database name with $ is not showing up correctly in database list.
 * Fixed issue [#949](https://github.com/Microsoft/vscode-mssql/issues/949) Drop database fails most of the time because the db is in used.
@@ -115,11 +138,11 @@ We would like to thank all our users who raised issues, and in particular the fo
   *	Spanish: Andy Gonzalez, Alberto Poblacion
 
 ## What's new in 1.0
-* We are please to announce the official GA of the MSSQL extension! This release focuses on stability, localization support, and top customer feedback issues
+* We are pleased to announce the official GA of the MSSQL extension! This release focuses on stability, localization support, and top customer feedback issues
 * The MSSQL extension is now localized. Use the `Configure Language` command in VSCode to change to your language of choice. Restart the application and the MSSQL extension will now support your language for all commands and messages.
 * Community-added support for `Save as Excel`, which supports saving to .xlsx format and opening this in the default application for .xlsx files on your machine.
 * Numerous bug fixes:
-  * IntelliSense improvements to support configuration of Intellisense options from user settings, plus keyword fixes.
+  * IntelliSense improvements to support configuration of IntelliSense options from user settings, plus keyword fixes.
   * Query Execution fixes and improvements: [#832](https://github.com/Microsoft/vscode-mssql/issues/832), [#815](https://github.com/Microsoft/vscode-mssql/issues/815), [#803](https://github.com/Microsoft/vscode-mssql/issues/803), [#794](https://github.com/Microsoft/vscode-mssql/issues/794), [#772](https://github.com/Microsoft/vscode-mssql/issues/772)
   * Improved support for downloading and installing the tools service behind proxies
   * Improvements to `Go To Definition` / `Peek Definition` support [#769](https://github.com/Microsoft/vscode-mssql/issues/769)
@@ -148,7 +171,7 @@ with configuration options for some of the most common T-SQL formatting styles.
   * To format part of a document, highlight a selection, right-click and choose `Format Selection`
   * To change the formatting settings, hit F1 and choose `Preferences: Open User Settings`. Type in `mssql.format` and
   change any of the options
-* `Refresh Intellisense Cache` command added. This will rebuild the intellisense for a connected database to include any recent
+* `Refresh IntelliSense Cache` command added. This will rebuild the IntelliSense for a connected database to include any recent
 schema changes
 * `New Query` command added. This opens a new .sql file and connects to a server, making it quicker to get started with your queries
 * Fixed support for SQL Data Warehouse connections.
@@ -167,8 +190,8 @@ schema changes
 * Peek Definition and Go To Definition support for Tables, Views and Stored Procedures.
   * For a query such as `select * from dbo.Person` you can right-click on `Person` and see it as a `CREATE TABLE` script.
   * Note: you must be connected to a database to use this feature.
-* Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.
-* Multiple improvements & fixes to the results view, Intellisense handling, and service installation notification.
+* Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.IntelliSense
+* Multiple improvements & fixes to the results view, IntelliSense handling, and service installation notification.
 * Improved logging to the Output window. Errors and status notifications can be viewed in the SqlToolsService or MSSQL channels.
 * For a full list see the [change log].
 
@@ -219,8 +242,11 @@ See [customize options] and [manage connection profiles] for more details.
     },
     "mssql.messagesDefaultOpen": true,
     "mssql.logDebugInfo": false,
-    "mssql.saveAsCSV.includeHeaders": true,
-    "mssql.saveAsCSV.delimiter": ",",
+    "mssql.saveAsCsv.includeHeaders": true,
+    "mssql.saveAsCsv.delimiter": ",",
+    "mssql.saveAsCsv.lineSeparator": null,
+    "mssql.saveAsCsv.textIdentifier": "\"",
+    "mssql.saveAsCsv.encoding": "utf-8",
     "mssql.intelliSense.enableIntelliSense": true,
     "mssql.intelliSense.enableErrorChecking": true,
     "mssql.intelliSense.enableSuggestions": true,
@@ -243,7 +269,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```1.4.0```. See the [change log] for a detailed list of changes in each version.
+The current version is ```1.6.0```. See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Directive, Output, EventEmitter, ElementRef, Inject, forwardRef, Input } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
 
 @Directive({
   selector: '[onScroll]'

@@ -1,13 +1,16 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 'use strict';
 import * as TypeMoq from 'typemoq';
 
-import vscode = require('vscode');
 import * as utils from '../src/models/utils';
 import * as Constants from '../src/constants/constants';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import * as stubs from './stubs';
 import * as interfaces from '../src/models/interfaces';
-import { CredentialStore } from '../src/credentialstore/credentialstore';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionStore } from '../src/models/connectionStore';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
@@ -21,8 +24,6 @@ import assert = require('assert');
 suite('ConnectionCredentials Tests', () => {
     let defaultProfile: interfaces.IConnectionProfile;
     let prompter: TypeMoq.IMock<IPrompter>;
-    let context: TypeMoq.IMock<vscode.ExtensionContext>;
-    let credentialStore: TypeMoq.IMock<CredentialStore>;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
 
@@ -37,8 +38,6 @@ suite('ConnectionCredentials Tests', () => {
 
 
         prompter = TypeMoq.Mock.ofType(TestPrompter);
-        context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
-        credentialStore = TypeMoq.Mock.ofType(CredentialStore);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         connectionStore = TypeMoq.Mock.ofType(ConnectionStore);
 

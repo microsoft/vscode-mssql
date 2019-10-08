@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 'use strict';
 import * as TypeMoq from 'typemoq';
 
@@ -32,7 +37,8 @@ suite('ConnectionStore tests', () => {
             database: 'bcd',
             authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'cde',
-            password: 'asdf!@#$'
+            password: 'asdf!@#$',
+            savePassword: true
         });
 
         defaultUnnamedProfile = Object.assign(new ConnectionProfile(), {
@@ -41,7 +47,8 @@ suite('ConnectionStore tests', () => {
             database: undefined,
             authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'aUser',
-            password: 'asdf!@#$'
+            password: 'asdf!@#$',
+            savePassword: true
         });
 
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
@@ -124,8 +131,8 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
 
         // When SaveProfile is called with savePassword false
-        let profile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: false });
-        return connectionStore.saveProfile(profile)
+        let connectionProfile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: false });
+        return connectionStore.saveProfile(connectionProfile)
             .then(savedProfile => {
                 // Then expect password not saved in either the context object or the credential store
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
@@ -163,9 +170,9 @@ suite('ConnectionStore tests', () => {
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
 
         // When SaveProfile is called with savePassword true
-        let profile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: true });
+        let connectionProfile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: true });
 
-        connectionStore.saveProfile(profile)
+        connectionStore.saveProfile(connectionProfile)
             .then(savedProfile => {
                 // Then expect password saved in the credential store
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);
@@ -509,23 +516,23 @@ suite('ConnectionStore tests', () => {
         assert.equal(items.length, expectedCount);
 
         // Then expect recent items first
-        let i = 0;
+        let idx = 0;
         for (let recentItem of recentlyUsed) {
-            assert.equal(items[i].connectionCreds, recentItem);
-            assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Mru);
-            i++;
+            assert.equal(items[idx].connectionCreds, recentItem);
+            assert.equal(items[idx].quickPickItemType, interfaces.CredentialsQuickPickItemType.Mru);
+            idx++;
         }
         // Then profile items (that aren't already in MRU)
         for (let profile of profiles) {
             if (profile.profileName === defaultNamedProfile.profileName) {
                 continue;
             }
-            assert.equal(items[i].connectionCreds, profile);
-            assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.Profile);
-            i++;
+            assert.equal(items[idx].connectionCreds, profile);
+            assert.equal(items[idx].quickPickItemType, interfaces.CredentialsQuickPickItemType.Profile);
+            idx++;
         }
         // then new connection
-        assert.equal(items[i].quickPickItemType, interfaces.CredentialsQuickPickItemType.NewConnection);
+        assert.equal(items[idx].quickPickItemType, interfaces.CredentialsQuickPickItemType.NewConnection);
 
         // Then test is complete
         done();

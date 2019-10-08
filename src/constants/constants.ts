@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 // Collection of Non-localizable Constants
 export const languageId = 'sql';
 export const extensionName = 'mssql';
@@ -8,6 +13,8 @@ export const connectionApplicationName = 'vscode-mssql';
 export const outputChannelName = 'MSSQL';
 export const connectionConfigFilename = 'settings.json';
 export const connectionsArrayName = 'connections';
+export const disconnectedServerLabel = 'disconnectedServer';
+export const serverLabel = 'Server';
 export const cmdRunQuery = 'extension.runQuery';
 export const cmdRunCurrentStatement = 'extension.runCurrentStatement';
 export const cmdCancelQuery = 'extension.cancelQuery';
@@ -20,6 +27,17 @@ export const cmdShowGettingStarted = 'extension.showGettingStarted';
 export const cmdNewQuery = 'extension.newQuery';
 export const cmdManageConnectionProfiles = 'extension.manageProfiles';
 export const cmdRebuildIntelliSenseCache = 'extension.rebuildIntelliSenseCache';
+export const cmdAddObjectExplorer = 'extension.addObjectExplorer';
+export const cmdObjectExplorerNewQuery = 'extension.objectExplorerNewQuery';
+export const cmdRemoveObjectExplorerNode = 'extension.removeObjectExplorerNode';
+export const cmdRefreshObjectExplorerNode = 'extension.refreshObjectExplorerNode';
+export const cmdDisconnectObjectExplorerNode = 'extension.disconnectObjectExplorerNode';
+export const cmdObjectExplorerNodeSignIn = 'extension.objectExplorerNodeSignIn';
+export const cmdConnectObjectExplorerNode = 'extension.connectObjectExplorerNode';
+export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExplorer';
+export const cmdScriptSelect = 'extension.scriptSelect';
+export const cmdToggleSqlCmd = 'extension.toggleSqlCmd';
+export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -55,7 +73,7 @@ export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 export const changelogLink = 'https://aka.ms/vscode-mssql-changelog';
 export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedauth';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
-
+export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 
 // Configuration Constants
@@ -98,3 +116,4 @@ export const sqlToolsServiceName = 'SQLToolsService';
 export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
 export const sqlToolsServiceConfigKey = 'service';
 export const v1SqlToolsServiceConfigKey = 'v1Service';
+export const scriptSelectText = 'SELECT TOP (1000) * FROM ';

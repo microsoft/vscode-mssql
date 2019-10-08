@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
@@ -80,6 +85,15 @@ export default class ResultsSerializer {
             if (saveConfig.delimiter !== undefined) {
                 saveResultsParams.delimiter = saveConfig.delimiter;
             }
+            if (saveConfig.lineSeparator !== undefined) {
+                saveResultsParams.lineSeperator = saveConfig.lineSeparator;
+            }
+            if (saveConfig.textIdentifier !== undefined) {
+                saveResultsParams.textIdentifier = saveConfig.textIdentifier;
+            }
+            if (saveConfig.encoding !== undefined) {
+                saveResultsParams.encoding = saveConfig.encoding;
+            }
         }
         return saveResultsParams;
     }
@@ -155,7 +169,7 @@ export default class ResultsSerializer {
                                                                                                                                         Thenable<void> {
         const self = this;
         let saveResultsParams =  self.getParameters( filePath, batchIndex, resultSetNo, format, selection);
-        let type: RequestType<Contracts.SaveResultsRequestParams, Contracts.SaveResultRequestResult, void>;
+        let type: RequestType<Contracts.SaveResultsRequestParams, Contracts.SaveResultRequestResult, void, void>;
         if (format === 'csv') {
             type = Contracts.SaveResultsAsCsvRequest.type;
         } else if (format === 'json') {
@@ -166,8 +180,8 @@ export default class ResultsSerializer {
 
         self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
 
-        // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
-        return self._client.sendRequest( type, saveResultsParams).then(result => {
+        // send message to the sqlserverclient for converting results to the requested format and saving to filepath
+        return self._client.sendRequest( type, saveResultsParams).then( (result: any) => {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + result.messages);
                     self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveFailed + result.messages);

@@ -1,4 +1,9 @@
-import {NotificationType} from 'vscode-languageclient';
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import {NotificationType, RequestType} from 'vscode-languageclient';
 import {Telemetry} from '../telemetry';
 
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
@@ -7,7 +12,7 @@ import {Telemetry} from '../telemetry';
  * Event sent when the language service is finished updating after a connection
  */
 export namespace IntelliSenseReadyNotification {
-    export const type: NotificationType<IntelliSenseReadyParams> = { get method(): string { return 'textDocument/intelliSenseReady'; } };
+    export const type = new NotificationType<IntelliSenseReadyParams, void>('textDocument/intelliSenseReady');
 }
 
 /**
@@ -24,7 +29,7 @@ export class IntelliSenseReadyParams {
  * Notification sent when the an IntelliSense cache invalidation is requested
  */
 export namespace RebuildIntelliSenseNotification {
-    export const type: NotificationType<RebuildIntelliSenseParams> = { get method(): string { return 'textDocument/rebuildIntelliSense'; } };
+    export const type = new NotificationType<RebuildIntelliSenseParams, void>('textDocument/rebuildIntelliSense');
 }
 
 /**
@@ -44,7 +49,7 @@ export class RebuildIntelliSenseParams {
  * Event sent when the language service send a telemetry event
  */
 export namespace TelemetryNotification {
-    export const type: NotificationType<TelemetryParams> = { get method(): string { return 'telemetry/sqlevent'; } };
+    export const type = new NotificationType<TelemetryParams, void>('telemetry/sqlevent');
 }
 
 /**
@@ -65,7 +70,7 @@ export class TelemetryParams {
  * Event sent when the language service send a status change event
  */
 export namespace StatusChangedNotification {
-    export const type: NotificationType<StatusChangeParams> = { get method(): string { return 'textDocument/statusChanged'; } };
+    export const type = new NotificationType<StatusChangeParams, void>('textDocument/statusChanged');
 }
 
 /**
@@ -109,6 +114,29 @@ export class DidChangeLanguageFlavorParams {
  * Notification sent when the language flavor is changed
  */
 export namespace LanguageFlavorChangedNotification {
-    export const type: NotificationType<DidChangeLanguageFlavorParams> = { get method(): string { return 'connection/languageflavorchanged'; } };
+    export const type = new NotificationType<DidChangeLanguageFlavorParams, void>('connection/languageflavorchanged');
 }
 
+
+// ------------------------------- < Load Completion Extension Request > ------------------------------------
+/**
+ * Completion extension load parameters
+ */
+export class CompletionExtensionParams {
+    /// <summary>
+    /// Absolute path for the assembly containing the completion extension
+    /// </summary>
+    public assemblyPath: string;
+    /// <summary>
+    /// The type name for the completion extension
+    /// </summary>
+    public typeName: string;
+    /// <summary>
+    /// Property bag for initializing the completion extension
+    /// </summary>
+    public properties: {};
+}
+
+export namespace CompletionExtLoadRequest {
+    export const type = new RequestType<CompletionExtensionParams, boolean, void, void>('completion/extLoad');
+}

@@ -58,7 +58,7 @@ export default class HttpClient implements IHttpClient {
                 });
             });
 
-            request.on('error', error => {
+            request.on('error', (error: any) => {
                 reject(new PackageError(`Request error: ${error.code || 'NONE'}`, pkg, error));
             });
 
@@ -133,7 +133,7 @@ export default class HttpClient implements IHttpClient {
                 resolve();
             });
 
-            response.on('error', err => {
+            response.on('error', (err: any) => {
                 reject(new PackageError(`Response error: ${err.code || 'NONE'}`, pkg, err));
             });
 

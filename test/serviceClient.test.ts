@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import ServerProvider from '../src/languageservice/server';
@@ -40,7 +45,7 @@ suite('Service Client tests', () => {
         });
     }
 
-    test('initializeForPlatform should not install the service if already exists', () => {
+    test('initializeForPlatform should not install the service if already exists', (done) => {
         let fixture: IFixture = {
             installedServerPath: 'already installed service',
             downloadedServerPath: undefined,
@@ -50,14 +55,15 @@ suite('Service Client tests', () => {
         setupMocks(fixture);
         let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.notEqual(result, undefined);
             assert.equal(result.serverPath, fixture.installedServerPath);
             assert.equal(result.installedBeforeInitializing, false);
         });
+        done();
     });
 
-    test('initializeForPlatform should install the service if not exists', () => {
+    test('initializeForPlatform should install the service if not exists', (done) => {
         let fixture: IFixture = {
             installedServerPath: undefined,
             downloadedServerPath: 'downloaded service',
@@ -67,11 +73,12 @@ suite('Service Client tests', () => {
         setupMocks(fixture);
         let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then(result => {
             assert.notEqual(result, undefined);
             assert.equal(result.serverPath, fixture.downloadedServerPath);
             assert.equal(result.installedBeforeInitializing, true);
         });
+        done();
     });
 
     test('initializeForPlatform should fail given unsupported platform', () => {
@@ -89,7 +96,7 @@ suite('Service Client tests', () => {
         });
     });
 
-    test('initializeForPlatform should set v1 given mac 10.11 or lower', () => {
+    test('initializeForPlatform should set v1 given mac 10.11 or lower', (done) => {
         let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
         platformInfoMock.callBase = true;
         platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => true);
@@ -106,7 +113,7 @@ suite('Service Client tests', () => {
         setupMocks(fixture);
         let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.equal(serviceVersion, 1);
             platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
             testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.once());
@@ -114,9 +121,10 @@ suite('Service Client tests', () => {
             assert.equal(result.serverPath, fixture.installedServerPath);
             assert.equal(result.installedBeforeInitializing, false);
         });
+        done();
     });
 
-    test('initializeForPlatform should ignore service version given mac 10.12 or higher', () => {
+    test('initializeForPlatform should ignore service version given mac 10.12 or higher', (done) => {
         let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
         platformInfoMock.callBase = true;
         platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => false);
@@ -133,7 +141,7 @@ suite('Service Client tests', () => {
         setupMocks(fixture);
         let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-        return serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
             assert.equal(serviceVersion, 0);
             platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
             testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.never());
@@ -141,6 +149,7 @@ suite('Service Client tests', () => {
             assert.equal(result.serverPath, fixture.installedServerPath);
             assert.equal(result.installedBeforeInitializing, false);
         });
+        done();
     });
 
     test('handleLanguageServiceStatusNotification should change the UI status', (done) => {

@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
@@ -17,7 +22,7 @@ export enum ContentType {
     ShowWarning = 10,
     Config = 11,
     LocalizedTexts = 12
-};
+}
 
 export interface ISlickRange {
     fromCell: number;
@@ -32,7 +37,7 @@ export enum AuthenticationTypes {
     ActiveDirectoryUniversal = 3
 }
 
-export const ContentTypes = [
+export const contentTypes = [
     Constants.outputContentTypeRoot,
     Constants.outputContentTypeMessages,
     Constants.outputContentTypeResultsetMeta,
@@ -212,14 +217,14 @@ export enum CredentialsQuickPickItemType {
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: IConnectionCredentials;
     quickPickItemType: CredentialsQuickPickItemType;
-};
+}
 
 // Obtained from an active connection to show in the status bar
 export interface IConnectionProperties {
     serverVersion: string;
     currentUser: string;
     currentDatabase: string;
-};
+}
 
 export interface IDbColumn {
     allowDBNull?: boolean;
@@ -293,4 +298,14 @@ export interface ILogger {
     decreaseIndent(): void;
     append(message?: string): void;
     appendLine(message?: string): void;
+}
+
+export class DbCellValue {
+    displayValue: string;
+    isNull: boolean;
+}
+
+export class ResultSetSubset {
+    rowCount: number;
+    rows: DbCellValue[][];
 }

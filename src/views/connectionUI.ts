@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 'use strict';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
@@ -12,6 +17,7 @@ import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
 
 /**
  * The different tasks for managing connection profiles.
@@ -67,10 +73,15 @@ export class ConnectionUI {
 
     // Helper to let user choose a connection from a picklist
     // Return the ConnectionInfo for the user's choice
-    public showConnections(): Promise<IConnectionCredentials> {
+    public showConnections(showExistingConnections: boolean = true): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
+            let picklist: IConnectionCredentialsQuickPickItem[];
+            if (showExistingConnections) {
+                picklist = self._connectionStore.getPickListItems();
+            } else {
+                picklist = [];
+            }
             if (picklist.length === 0) {
                 // No connections - go to the create profile workflow
                 self.createAndSaveProfile().then(resolvedProfile => {
@@ -173,6 +184,26 @@ export class ConnectionUI {
                 resolve(result ? true : false);
             }).catch(err => {
                 resolve(false);
+            });
+        });
+    }
+
+    /**
+     * Prompt the user for password
+     */
+    public promptForPassword(): Promise<string> {
+        const self = this;
+        return new Promise<string>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.password,
+                name: LocalizedConstants.passwordPrompt,
+                message: LocalizedConstants.passwordPrompt,
+                placeHolder: LocalizedConstants.passwordPlaceholder
+            };
+            self._prompter.promptSingle(question).then((result: string) => {
+                resolve(result);
+            }).catch(err => {
+                reject(err);
             });
         });
     }
@@ -427,7 +458,11 @@ export class ConnectionUI {
      */
     private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
-        return self.connectionManager.connect(self.vscodeWrapper.activeTextEditorUri, profile).then(result => {
+        let uri = self.vscodeWrapper.activeTextEditorUri;
+        if (!uri) {
+            uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+        }
+        return self.connectionManager.connect(uri, profile).then(result => {
             if (result) {
                 // Success! save it
                 return self.saveProfile(profile);
@@ -455,7 +490,7 @@ export class ConnectionUI {
         return ConnectionProfile.createProfile(this._prompter);
     }
 
-    private promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
+    public promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
         // Ask if the user would like to fix the profile
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryCreateProfile, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {

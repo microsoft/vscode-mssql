@@ -1,14 +1,13 @@
 environment:
   nodejs_version: "6.9.1"
   # Temporary Code version due to https://github.com/Microsoft/vscode-extension-vscode/issues/64
-  CODE_VERSION: 1.23.0
+  CODE_VERSION: 1.33.0
 
 
 # safelist
 branches:
   only:
     - master
-    - dev
 
   # Install scripts. (runs after repo cloning)
 install:
@@ -29,7 +28,6 @@ build_script:
   - gulp build
 
 test_script:
-  - ./node_modules/.bin/karma start
   - node ./node_modules/vscode/bin/test
 
 on_finish:

@@ -4,9 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
-import { IColumnDefinition, IObservableCollection, IGridDataRow, ISlickRange, SlickGrid,
-    VirtualizedCollection, FieldType } from 'angular2-slickgrid';
-
+import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
+import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow } from '../interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
@@ -15,7 +14,8 @@ import { MessagesContextMenu } from './messagescontextmenu.component';
 import {
     IGridIcon,
     IMessage,
-    IRange
+    IRange,
+    ISelectionData
 } from './../interfaces';
 
 import * as Constants from './../constants';
@@ -28,12 +28,7 @@ enableProdMode();
 // text selection helper library
 declare let rangy;
 
-enum SelectedTab {
-    Results = 0,
-    Messages = 1,
-}
-
-interface IGridDataSet {
+export interface IGridDataSet {
     dataRows: IObservableCollection<IGridDataRow>;
     columnDefinitions: IColumnDefinition[];
     resized: EventEmitter<any>;
@@ -55,7 +50,7 @@ const template = `
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
-            <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+            <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
@@ -98,14 +93,14 @@ const template = `
                 <template ngFor let-message [ngForOf]="messages">
                     <tr class='messageRow'>
                         <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
-                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.link.uri)">{{message.link.text}}</a>
+                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.selection)">{{message.link.text}}</a>
                         </td>
                     </tr>
                 </template>
                 <tr id='executionSpinner' *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
                     <td>
-                        <img src="dist/images/progress_36x_animation.gif" height="18px" />
+                        <img src="views/htmlcontent/src/images/progress_36x_animation.gif" height="18px" />
                         <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span>
                     </td>
                 </tr>
@@ -141,25 +136,21 @@ const template = `
 
 export class AppComponent implements OnInit, AfterViewChecked {
     // CONSTANTS
-    // tslint:disable-next-line:no-unused-variable
     private scrollTimeOutTime = 200;
     private windowSize = 50;
-    // tslint:disable-next-line:no-unused-variable
     private maxScrollGrids = 8;
-    // tslint:disable-next-line:no-unused-variable
     private selectionModel = 'DragRowSelectionModel';
-    // tslint:disable-next-line:no-unused-variable
     private slickgridPlugins = ['AutoColumnSize'];
-    // tslint:disable-next-line:no-unused-variable
     private _rowHeight = 29;
-    // tslint:disable-next-line:no-unused-variable
     private _defaultNumShowingRows = 8;
-    // tslint:disable-next-line:no-unused-variable
     private Constants = Constants;
-    // tslint:disable-next-line:no-unused-variable
     private Utils = Utils;
+
     // the function implementations of keyboard available events
     private shortcutfunc = {
+        'event.focusResultsGrid': () => {
+            this.slickgrids.toArray()[this.activeGrid]._grid.setActiveCell(0, 1);
+        },
         'event.toggleResultPane': () => {
             this.resultActive = !this.resultActive;
         },
@@ -207,7 +198,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.sendSaveRequest('excel');
         }
     };
-    // tslint:disable-next-line:no-unused-variable
+
     private dataIcons: IGridIcon[] = [
         {
             showCondition: () => { return this.dataSets.length > 1; },
@@ -268,7 +259,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         }
     ];
-    // tslint:disable-next-line:no-unused-variable
+
     private startString = new Date().toLocaleTimeString();
     private config;
 
@@ -280,25 +271,22 @@ export class AppComponent implements OnInit, AfterViewChecked {
     // Datasets currently being rendered on the DOM
     private renderedDataSets: IGridDataSet[] = this.placeHolderDataSets;
     private messages: IMessage[] = [];
-    private scrollTimeOut: number;
+    private scrollTimeOut: NodeJS.Timeout;
     private messagesAdded = false;
     private resizing = false;
     private resizeHandleTop = 0;
     private scrollEnabled = true;
-    // tslint:disable-next-line:no-unused-variable
     private resultActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private _messageActive = true;
-    // tslint:disable-next-line:no-unused-variable
     private firstRender = true;
-    // tslint:disable-next-line:no-unused-variable
     private resultsScrollTop = 0;
-    // tslint:disable-next-line:no-unused-variable
     private activeGrid = 0;
     private messageShortcut;
     private resultShortcut;
     private totalElapsedTimeSpan: number;
     private complete = false;
+    private uri: string;
+    private hasRunQuery: boolean = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -320,7 +308,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
 
     /**
-     * Called by Angular when the object is initialized
+     * Called by Angular when the component is initialized
      */
     ngOnInit(): void {
         const self = this;
@@ -338,11 +326,26 @@ export class AppComponent implements OnInit, AfterViewChecked {
         });
         this.dataService.dataEventObs.subscribe(event => {
             switch (event.type) {
+                case 'start':
+                    self.uri = event.data;
+                    // Empty the data set if the query is run
+                    // again on the same panel
+                    if (self.hasRunQuery) {
+                        self.dataSets = [];
+                        self.placeHolderDataSets = [];
+                        self.renderedDataSets = self.placeHolderDataSets;
+                        self.messages = [];
+                        self.complete = false;
+                        self.messagesAdded = false;
+                        self.hasRunQuery = false;
+                    }
+                    break;
                 case 'complete':
                     self.totalElapsedTimeSpan = event.data;
                     self.complete = true;
                     self.messagesAdded = true;
-                break;
+                    self.hasRunQuery = true;
+                    break;
                 case 'message':
                     self.messages.push(event.data);
                     break;
@@ -350,18 +353,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     let resultSet = event.data;
 
                     // Setup a function for generating a promise to lookup result subsets
-                    let loadDataFunction = (offset: number, count: number) : Promise<IGridDataRow[]> => {
-                        return new Promise<IGridDataRow[]>((resolve, reject) => {
-                            self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).subscribe(rows => {
-                                let gridData: IGridDataRow[] = [];
-                                for (let row = 0; row < rows.rows.length; row++) {
-                                    // Push row values onto end of gridData for slickgrid
-                                    gridData.push({
-                                        values: rows.rows[row]
-                                    });
-                                }
-                                resolve(gridData);
-                            });
+                    let loadDataFunction = (offset: number, count: number): Promise<IGridDataRow[]> => {
+                        return self.dataService.getRows(offset, count, resultSet.batchId, resultSet.id).then(rows => {
+                            let gridData: IGridDataRow[] = [];
+                            for (let row = 0; row < rows.rows.length; row++) {
+                                // Push row values onto end of gridData for slickgrid
+                                gridData.push({
+                                    values: rows.rows[row]
+                                });
+                            }
+                            return gridData;
                         });
                     };
 
@@ -373,7 +374,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
 
-                    // Store the result set from the event
+                    // Store the result set from the event)
                     let dataSet: IGridDataSet = {
                         resized: undefined,
                         batchId: resultSet.batchId,
@@ -411,12 +412,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.placeHolderDataSets.push(undefinedDataSet);
                     self.messagesAdded = true;
                     self.onScroll(0);
-                break;
+                    break;
                 default:
                     console.error('Unexpected web socket event type "' + event.type + '" sent');
-                break;
+                    break;
             }
         });
+        this.dataService.sendReadyEvent(this.uri);
     }
 
     ngAfterViewChecked(): void {
@@ -465,6 +467,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 break;
             case 'copyWithHeaders':
                 this.dataService.copyResults(event.selection, event.batchId, event.resultId, true);
+                break;
+            case 'copyHeaders':
+                this.dataService.copyResults(undefined, event.batchId, event.resultId, true);
                 break;
             default:
                 break;
@@ -688,10 +693,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 }
             }
 
-            if (this.firstRender) {
-                this.firstRender = false;
+            if (self.firstRender) {
+                self.firstRender = false;
                 setTimeout(() => {
-                    this.slickgrids.toArray()[0].setActive();
+                    self.slickgrids.toArray()[0].setActive();
+                    self.cd.detectChanges();
                 });
             }
         }, self.scrollTimeOutTime);
@@ -701,8 +707,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Sends a get request to the provided uri without changing the active page
      * @param uri The URI to send a get request to
      */
-    sendGetRequest(uri: string): void {
-        this.dataService.sendGetRequest(uri);
+    sendGetRequest(selectionData: ISelectionData): void {
+        this.dataService.setEditorSelection(selectionData);
     }
 
     /**
@@ -762,15 +768,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      *
      */
-    keyEvent(e): void {
+    keyEvent(e: KeyboardEvent): void {
         const self = this;
-        if (e.detail) {
-            e.which = e.detail.which;
-            e.ctrlKey = e.detail.ctrlKey;
-            e.metaKey = e.detail.metaKey;
-            e.altKey = e.detail.altKey;
-            e.shiftKey = e.detail.shiftKey;
-        }
         let eString = this.shortcuts.buildEventString(e);
         this.shortcuts.getEvent(eString).then((result) => {
             if (result) {

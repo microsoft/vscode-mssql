@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
@@ -24,20 +29,25 @@ class FileStatusBar {
     // Timer used for displaying a progress indicator on queries
     public progressTimerId: NodeJS.Timer;
 
+    // Item for SQLCMD Mode
+    public sqlCmdMode: vscode.StatusBarItem;
+
     public currentLanguageServiceStatus: string;
 }
 
 export default class StatusView implements vscode.Disposable {
     private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
+    private _onDidChangeActiveTextEditorEvent: vscode.Disposable;
+    private _onDidCloseTextDocumentEvent: vscode.Disposable;
 
     constructor(private _vscodeWrapper?: VscodeWrapper) {
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
         this._statusBars = {};
-        this._vscodeWrapper.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
-        this._vscodeWrapper.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
+        this._onDidChangeActiveTextEditorEvent = this._vscodeWrapper.onDidChangeActiveTextEditor((params) => this.onDidChangeActiveTextEditor(params));
+        this._onDidCloseTextDocumentEvent = this._vscodeWrapper.onDidCloseTextDocument((params) => this.onDidCloseTextDocument(params));
     }
 
     dispose(): void {
@@ -47,10 +57,13 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusConnection.dispose();
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
+                this._statusBars[bar].sqlCmdMode.dispose();
                 clearInterval(this._statusBars[bar].progressTimerId);
                 delete this._statusBars[bar];
             }
         }
+        this._onDidChangeActiveTextEditorEvent.dispose();
+        this._onDidCloseTextDocumentEvent.dispose();
     }
 
     // Create status bar item if needed
@@ -61,6 +74,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusLanguageService = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         this._statusBars[fileUri] = bar;
     }
 
@@ -81,6 +95,9 @@ export default class StatusView implements vscode.Disposable {
             }
             if (bar.progressTimerId) {
                 clearInterval(bar.progressTimerId);
+            }
+            if (bar.sqlCmdMode) {
+                bar.sqlCmdMode.dispose();
             }
 
             delete this._statusBars[fileUri];
@@ -106,6 +123,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
+        this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }
 
     public notConnected(fileUri: string): void {
@@ -134,6 +152,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
         this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.sqlCmdModeChanged(fileUri, false);
     }
 
     public connectError(fileUri: string, credentials: Interfaces.IConnectionCredentials, error: ConnectionContracts.ConnectionCompleteParams): void {
@@ -191,6 +210,13 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
     }
 
+    public sqlCmdModeChanged(fileUri: string, isSqlCmd: boolean = false): void {
+        let bar = this.getStatusBar(fileUri);
+        bar.sqlCmdMode.text = isSqlCmd ? 'SQLCMD: On' : 'SQLCMD: Off';
+        bar.sqlCmdMode.command = Constants.cmdToggleSqlCmd;
+        this.showStatusBarItem(fileUri, bar.sqlCmdMode);
+    }
+
     public updateStatusMessage(
         newStatus: string,
         getCurrentStatus: () => string,
@@ -243,21 +269,22 @@ export default class StatusView implements vscode.Disposable {
             this._lastShownStatusBar.statusConnection.hide();
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
+            this._lastShownStatusBar.sqlCmdMode.hide();
         }
     }
 
     private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
-        // Hide the most recently shown status bar
-        this.hideLastShownStatusBar();
-
         // Change the status bar to match the open file
         if (typeof editor !== 'undefined') {
+            // Hide the most recently shown status bar
+            this.hideLastShownStatusBar();
             const fileUri = editor.document.uri.toString();
             const bar = this._statusBars[fileUri];
             if (bar) {
                 this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
                 this.showStatusBarItem(fileUri, bar.statusConnection);
                 this.showStatusBarItem(fileUri, bar.statusLanguageService);
+                this.showStatusBarItem(fileUri, bar.sqlCmdMode);
             }
         }
     }
