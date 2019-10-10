@@ -192,6 +192,16 @@ export default class ConnectionManager {
         return Object.keys(this._connections).length;
     }
 
+    public isActiveConnection(credential: Interfaces.IConnectionCredentials): boolean {
+        const connectedCredentials = Object.keys(this._connections).map((uri) => this._connections[uri].credentials);
+        for (let connectedCredential of connectedCredentials) {
+            if (Utils.isSameConnection(credential, connectedCredential)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public isConnected(fileUri: string): boolean {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
@@ -518,7 +528,6 @@ export default class ConnectionManager {
                     }
 
                     delete self._connections[fileUri];
-
                     resolve(result);
                 });
             } else if (self.isConnecting(fileUri)) {
@@ -598,11 +607,18 @@ export default class ConnectionManager {
         });
     }
 
+    /**
+     * Delete a credential from the credential store
+     */
+    public async deleteCredential(profile: Interfaces.IConnectionProfile): Promise<boolean> {
+        let result = await this._connectionStore.deleteCredential(profile);
+        return result;
+    }
 
     // let users pick from a picklist of connections
-    public onNewConnection(objectExplorerSessionId?: string): Promise<Interfaces.IConnectionCredentials> {
+    public onNewConnection(): Promise<Interfaces.IConnectionCredentials> {
         const self = this;
-        const fileUri = objectExplorerSessionId ? objectExplorerSessionId : this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
         return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
             if (!fileUri) {

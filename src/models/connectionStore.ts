@@ -298,12 +298,18 @@ export class ConnectionStore {
      */
     public removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
         const self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             // Get all profiles
             let configValues = self.getRecentlyUsedConnections();
 
             // Remove the connection from the list if it already exists
             configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, conn));
+
+            // Remove any saved password
+            if (conn.savePassword) {
+                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, ConnectionStore.CRED_MRU_USER);
+                await self._credentialStore.deleteCredential(credentialId);
+            }
 
             // Update the MRU list
             self._context.globalState.update(Constants.configRecentConnections, configValues)
@@ -388,6 +394,16 @@ export class ConnectionStore {
             connectionCreds: item,
             quickPickItemType: itemType
         };
+    }
+
+    /**
+     * Deletes the password for a connection from the credential store
+     * @param connectionCredential
+     */
+    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
+        let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
+        let result = await this._credentialStore.deleteCredential(credentialId);
+        return result;
     }
 
     // Load connections from user preferences

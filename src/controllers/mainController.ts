@@ -28,7 +28,7 @@ import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
 import { Deferred } from '../protocol';
 import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
-import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 
 /**
  * The main controller class that initializes the extension
@@ -148,20 +148,19 @@ export default class MainController implements vscode.Disposable {
                     if (!self._objectExplorerProvider.objectExplorerExists) {
                         self._objectExplorerProvider.objectExplorerExists = true;
                     }
-                    let promise = new Deferred<TreeNodeInfo>();
-                    await self._objectExplorerProvider.createSession(promise);
-                    await promise;
-                    return this._objectExplorerProvider.refresh(undefined);
+                    await self.createObjectExplorerSession();
                 });
 
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
                     const connectionCredentials = treeNodeInfo.connectionCredentials;
-                    const databaseName = self.getDatabaseName(treeNodeInfo);
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel) {
                         connectionCredentials.database = databaseName;
+                    } else if (databaseName == LocalizedConstants.defaultDatabaseLabel) {
+                        connectionCredentials.database = '';
                     }
                     await self.onNewQuery(treeNodeInfo);
                 }));
@@ -189,7 +188,7 @@ export default class MainController implements vscode.Disposable {
                     let editor = this._vscodeWrapper.activeTextEditor;
                     if (editor) {
                         let connectionCreds = node.connectionCredentials;
-                        const databaseName = self.getDatabaseName(node);
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
                         connectionCreds.database = databaseName;
                         this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
                         await this.connectionManager.connect(uri.toString(), connectionCreds);
@@ -219,11 +218,7 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
-                        let promise = new Deferred<TreeNodeInfo>();
-                        await self._objectExplorerProvider.createSession(promise, node.parentNode.connectionCredentials);
-                        return promise.then(() => {
-                            this._objectExplorerProvider.refresh(undefined);
-                        });
+                        await self.createObjectExplorerSession(node.parentNode.connectionCredentials);
                 }));
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
@@ -306,6 +301,16 @@ export default class MainController implements vscode.Disposable {
         });
     }
 
+    /**
+     * Creates a new Object Explorer session
+     */
+    private async createObjectExplorerSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
+        let promise = new Deferred<TreeNodeInfo>();
+        await this._objectExplorerProvider.createSession(promise, connectionCredentials);
+        await promise;
+        this._objectExplorerProvider.refresh(undefined);
+    }
+
 
     /**
      * Handles the command to enable SQLCMD mode
@@ -348,19 +353,6 @@ export default class MainController implements vscode.Disposable {
         } catch (err) {
             Telemetry.sendTelemetryEventForException(err, 'onCancelQuery');
         }
-    }
-
-    /**
-     * Looks for the database name of a node
-     */
-    private getDatabaseName(node: TreeNodeInfo): string {
-        while (node) {
-            if (node.nodeType === Constants.databaseString) {
-                return node.label;
-            }
-            node = node.parentNode;
-        }
-        return LocalizedConstants.defaultDatabaseLabel;
     }
 
     /**
@@ -411,7 +403,6 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand()) {
             Telemetry.sendTelemetryEvent('ManageProfiles');
             await this._connectionMgr.onManageProfiles();
-            this._objectExplorerProvider.refresh(undefined);
             return;
         }
     }
@@ -423,10 +414,7 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             let credentials = await this._connectionMgr.onNewConnection();
             if (credentials) {
-                let promise = new Deferred<TreeNodeInfo>();
-                await this._objectExplorerProvider.createSession(promise, credentials);
-                await promise;
-                this._objectExplorerProvider.refresh(undefined);
+                await this.createObjectExplorerSession(credentials);
                 return true;
             }
         }
@@ -689,35 +677,25 @@ export default class MainController implements vscode.Disposable {
             if (node) {
                 const uri = await this._untitledSqlDocumentService.newQuery(content);
                 // connect to the node if the command came from the context
-                if (!this.connectionManager.isConnected(uri.toString())) {
-                    const connectionCreds = node.connectionCredentials;
-                    // if the node isn't connected
-                    if (!node.sessionId) {
-                        // if it requires a password to connect
-                        if (ConnectionCredentials.shouldPromptForPassword(connectionCreds)) {
-                            // lookup saved password
-                            const password = await this.connectionManager.connectionStore.
-                                lookupPassword(connectionCreds);
-                            connectionCreds.password = password;
-                        }
-                    }
-                    this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                    await this.connectionManager.connect(uri.toString(), connectionCreds);
-                    this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                    await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
-                    return Promise.resolve(true);
+                const connectionCreds = node.connectionCredentials;
+                // if the node isn't connected
+                if (!node.sessionId) {
+                    // connect it first
+                    await this.createObjectExplorerSession(node.connectionCredentials);
                 }
+                this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
+                await this.connectionManager.connect(uri.toString(), connectionCreds);
+                this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+                return Promise.resolve(true);
             } else {
                 // new query command
                 const uri = await this._untitledSqlDocumentService.newQuery();
                 const credentials = await this._connectionMgr.onNewConnection();
-                // initiate a new OE with same connection
 
+                // initiate a new OE with same connection
                 if (credentials) {
-                    let promise = new Deferred<TreeNodeInfo>();
-                    await this._objectExplorerProvider.createSession(promise, credentials);
-                    await promise;
-                    this._objectExplorerProvider.refresh(undefined);
+                    await this.createObjectExplorerSession(credentials);
                 }
                 this._statusview.sqlCmdModeChanged(uri.toString(), false);
                 return Promise.resolve(true);
@@ -848,11 +826,49 @@ export default class MainController implements vscode.Disposable {
      * Called by VS Code when user settings are changed
      * @param ConfigurationChangeEvent event that is fired when config is changed
      */
-    public onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): void {
+    public async onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): Promise<void> {
         if (e.affectsConfiguration(Constants.extensionName)) {
-            let credentialsMap = this._objectExplorerProvider.objectExplorerService.connectionCredentialsToSessionIdMap;
-            // check for changes and then compare the credentials
-            // this._objectExplorerProvider.refresh(undefined);
+            let needsRefresh = false;
+            // user connections is a super set of object explorer connections
+            let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);
+            let objectExplorerConnections = this._objectExplorerProvider.rootNodeConnections;
+
+            // if a connection(s) was/were manually removed
+            if (objectExplorerConnections.length >= userConnections.length) {
+                let staleConnections = objectExplorerConnections.filter((oeConn) => {
+                    return !userConnections.some((userConn) => Utils.isSameConnection(oeConn, userConn));
+                })
+                // remove its/their credentials from the credential store
+                // and MRU
+                for (let conn of staleConnections) {
+                    let profile = <IConnectionProfile>conn;
+                    if (profile.authenticationType === Constants.sqlAuthentication &&
+                        profile.savePassword) {
+                            await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
+                            await this.connectionManager.deleteCredential(profile);
+                        }
+                }
+                // remove them from object explorer
+                await this._objectExplorerProvider.removeStaleConnectionNodes(staleConnections);
+                needsRefresh = true;
+            } else if (userConnections.length > objectExplorerConnections.length) {
+                // new connections added to settings
+                let newConnections = userConnections.filter((userConn) => {
+                    return !objectExplorerConnections.some((oeConn) => Utils.isSameConnection(userConn, oeConn));
+                });
+                for (let conn of newConnections) {
+                    // if a connection is not connected
+                    // that means it was added manually
+                    if (!this.connectionManager.isActiveConnection(conn)) {
+                        // add a disconnected node for it
+                        needsRefresh = true;
+                        this._objectExplorerProvider.addDisconnectedNode(conn);
+                    }
+                }
+            }
+            if (needsRefresh) {
+                this._objectExplorerProvider.refresh(undefined);
+            }
         }
     }
 }

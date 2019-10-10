@@ -6,7 +6,6 @@
 import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
 import { ObjectExplorerService } from './objectExplorerService';
-import { ConnectionCredentials } from '../models/connectionCredentials';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionCredentials } from '../models/interfaces';
 import { Deferred } from '../protocol';
@@ -42,7 +41,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.createSession(promise, connectionCredentials);
     }
 
-    public getConnectionCredentials(sessionId: string): ConnectionCredentials {
+    public getConnectionCredentials(sessionId: string): IConnectionCredentials {
         if (sessionId) {
             return this._objectExplorerService.getConnectionCredentials(sessionId);
         }
@@ -65,6 +64,14 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._objectExplorerService.updateNode(node);
     }
 
+    public async removeStaleConnectionNodes(staleConnections: IConnectionCredentials[]): Promise<void> {
+        await this._objectExplorerService.removeStaleConnectionNodes(staleConnections);
+    }
+
+    public addDisconnectedNode(connectionCredentials: IConnectionCredentials): void {
+        this._objectExplorerService.addDisconnectedNode(connectionCredentials);
+    }
+
     /** Getters */
     public get currentNode(): TreeNodeInfo {
         return this._objectExplorerService.currentNode;
@@ -72,6 +79,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
     public get objectExplorerExists(): boolean {
         return this._objectExplorerExists;
+    }
+
+    public get rootNodeConnections(): IConnectionCredentials[] {
+        return this._objectExplorerService.rootNodeConnections;
     }
 
     /** Setters */
