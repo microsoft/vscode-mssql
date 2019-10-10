@@ -408,6 +408,7 @@ export default class ConnectionManager {
     public onChooseDatabase(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
+
         return new Promise<boolean>( (resolve, reject) => {
             if (!self.isConnected(fileUri)) {
                 self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
@@ -511,6 +512,7 @@ export default class ConnectionManager {
 
     public disconnect(fileUri: string): Promise<boolean> {
         const self = this;
+
         return new Promise<boolean>((resolve, reject) => {
             if (self.isConnected(fileUri)) {
                 let disconnectParams = new ConnectionContracts.DisconnectParams();
@@ -678,7 +680,7 @@ export default class ConnectionManager {
             this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
             self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams).then((result) => {
                 if (!result) {
-                     // Failed to process connect request
+                    // Failed to process connect request
                     resolve(false);
                 }
             }, err => {
