@@ -485,7 +485,11 @@ export default class QueryRunner {
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
         let column = vscode.ViewColumn.One;
         const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this.uri));
-        const editor = await this._vscodeWrapper.showTextDocument(doc, column);
+        const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+        if (activeTextEditor) {
+            column = activeTextEditor.viewColumn;
+        }
+        let editor = await this._vscodeWrapper.showTextDocument(doc, column);
         let querySelection = new vscode.Selection(
             selection.startLine,
             selection.startColumn,
