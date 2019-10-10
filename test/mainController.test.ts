@@ -207,8 +207,8 @@ suite('MainController Tests', () => {
         untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
         connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
 
-        return mainController.onNewQuery(undefined).then(result => {
-            untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
+        return mainController.onNewQuery(undefined, undefined).then(result => {
+            untitledSqlDocumentService.verify(x => x.newQuery(undefined), TypeMoq.Times.once());
             connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
         });
     });
@@ -218,8 +218,8 @@ suite('MainController Tests', () => {
         untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<vscode.TextEditor>('error'); } );
         connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(TypeMoq.It.isAny()); } );
 
-        mainController.onNewQuery(undefined).catch(error => {
-            untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
+        mainController.onNewQuery(undefined, undefined).catch(error => {
+            untitledSqlDocumentService.verify(x => x.newQuery(undefined), TypeMoq.Times.once());
             connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.never());
             done();
         });
