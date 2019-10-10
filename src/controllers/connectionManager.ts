@@ -408,12 +408,13 @@ export default class ConnectionManager {
     public onChooseDatabase(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
-        return new Promise<boolean>((resolve, reject) => {
-            if (!this.isConnected(fileUri)) {
-                this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
+        return new Promise<boolean>( (resolve, reject) => {
+            if (!self.isConnected(fileUri)) {
+                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
                 resolve(false);
                 return;
             }
+
             // Get list of databases on current server
             let listParams = new ConnectionContracts.ListDatabasesParams();
             listParams.ownerUri = fileUri;
@@ -485,7 +486,7 @@ export default class ConnectionManager {
                 });
                 return Promise.resolve(true);
             }
-            this._connectionUI.promptLanguageFlavor().then((flavor) => {
+            return this._connectionUI.promptLanguageFlavor().then(flavor => {
                 if (!flavor) {
                     return false;
                 }
@@ -504,15 +505,14 @@ export default class ConnectionManager {
     }
 
     // close active connection, if any
-    public async onDisconnect(): Promise<boolean> {
-        let result = await this.disconnect(this.vscodeWrapper.activeTextEditorUri);
-        return result;
+    public onDisconnect(): Promise<boolean> {
+        return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
     }
 
     public disconnect(fileUri: string): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
-            if (this.isConnected(fileUri)) {
+            if (self.isConnected(fileUri)) {
                 let disconnectParams = new ConnectionContracts.DisconnectParams();
                 disconnectParams.ownerUri = fileUri;
 
@@ -639,7 +639,7 @@ export default class ConnectionManager {
     public connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
 
-        return new Promise<boolean>(async (resolve, reject) => {
+        return new Promise<boolean>((resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.intelliSenseTimer = new Utils.Timer();
@@ -678,9 +678,11 @@ export default class ConnectionManager {
             this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
             self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams).then((result) => {
                 if (!result) {
+                     // Failed to process connect request
                     resolve(false);
                 }
             }, err => {
+                // Catch unexpected errors and return over the Promise reject callback
                 reject(err);
             });
         });
@@ -699,6 +701,7 @@ export default class ConnectionManager {
         if (!fileUri || Utils.isEmpty(fileUri)) {
             return;
         }
+
         let cancelParams: ConnectionContracts.CancelConnectParams = new ConnectionContracts.CancelConnectParams();
         cancelParams.ownerUri = fileUri;
 
@@ -726,9 +729,8 @@ export default class ConnectionManager {
         });
     }
 
-    public async onRemoveProfile(): Promise<boolean> {
-        const result = this.connectionUI.removeProfile();
-        return result;
+    public onRemoveProfile(): Promise<boolean> {
+        return this.connectionUI.removeProfile();
     }
 
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
@@ -755,6 +757,7 @@ export default class ConnectionManager {
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
         }
+
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: Interfaces.IConnectionCredentials = this._connections[oldFileUri].credentials;
         this.connect(newFileUri, creds).then(result => {
