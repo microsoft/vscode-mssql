@@ -10,6 +10,7 @@ import { readFile as fsreadFile } from 'fs';
 import { promisify } from 'util';
 import * as ejs from 'ejs';
 import * as path from 'path';
+import VscodeWrapper from './vscodeWrapper';
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);
@@ -31,6 +32,7 @@ export class WebviewPanelController implements vscode.Disposable {
     private _rendered: boolean = false;
 
     constructor(
+        private _vscodeWrapper: VscodeWrapper,
         uri: string,
         title: string,
         serverProxy: IServerProxy,
@@ -63,13 +65,13 @@ export class WebviewPanelController implements vscode.Disposable {
 
     private newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
         // Find configuration options
-        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(queryUri));
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
         let splitPaneSelection = config[Constants.configSplitPaneSelection];
         let viewColumn: vscode.ViewColumn;
 
         switch (splitPaneSelection) {
             case 'current':
-                viewColumn = vscode.window.activeTextEditor.viewColumn;
+                viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
                 break;
             case 'end':
                 viewColumn = vscode.ViewColumn.Three;
@@ -77,17 +79,16 @@ export class WebviewPanelController implements vscode.Disposable {
             // default case where splitPaneSelection is next or anything else
             default:
                 // if there's an active text editor
-                if (vscode.window.activeTextEditor) {
-                    viewColumn = vscode.window.activeTextEditor.viewColumn;
+                if (this._vscodeWrapper.isEditingSqlFile) {
+                    viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+                    if (viewColumn === vscode.ViewColumn.One) {
+                        viewColumn = vscode.ViewColumn.Two;
+                    } else {
+                        viewColumn = vscode.ViewColumn.Three;
+                    }
                 } else {
-                    // otherwise take last visible editor column
-                    const lastVisibleEditor = vscode.window.visibleTextEditors[vscode.window.visibleTextEditors.length - 1];
-                    viewColumn = lastVisibleEditor.viewColumn;
-                }
-                if (viewColumn === vscode.ViewColumn.One) {
+                    // otherwise take default results column
                     viewColumn = vscode.ViewColumn.Two;
-                } else {
-                    viewColumn = vscode.ViewColumn.Three;
                 }
         }
         return viewColumn;
