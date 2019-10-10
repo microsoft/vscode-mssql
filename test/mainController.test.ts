@@ -215,7 +215,7 @@ suite('MainController Tests', () => {
 
     test('onNewQuery should not call the new connection if new query fails' , done => {
 
-        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<vscode.Uri>('error'); } );
+        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<vscode.TextEditor>('error'); } );
         connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(TypeMoq.It.isAny()); } );
 
         mainController.onNewQuery(undefined).catch(error => {

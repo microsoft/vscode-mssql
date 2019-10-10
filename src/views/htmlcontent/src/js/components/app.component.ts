@@ -286,7 +286,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private totalElapsedTimeSpan: number;
     private complete = false;
     private uri: string;
-    private hasRunQuery: boolean = false;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -328,23 +327,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
             switch (event.type) {
                 case 'start':
                     self.uri = event.data;
-                    // Empty the data set if the query is run
-                    // again on the same panel
-                    if (self.hasRunQuery) {
-                        self.dataSets = [];
-                        self.placeHolderDataSets = [];
-                        self.renderedDataSets = self.placeHolderDataSets;
-                        self.messages = [];
-                        self.complete = false;
-                        self.messagesAdded = false;
-                        self.hasRunQuery = false;
-                    }
                     break;
                 case 'complete':
                     self.totalElapsedTimeSpan = event.data;
                     self.complete = true;
                     self.messagesAdded = true;
-                    self.hasRunQuery = true;
                     break;
                 case 'message':
                     self.messages.push(event.data);

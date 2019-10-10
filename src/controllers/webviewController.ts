@@ -28,6 +28,7 @@ export class WebviewPanelController implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
     private _isActive: boolean;
+    private _rendered: boolean = false;
 
     constructor(
         uri: string,
@@ -37,7 +38,7 @@ export class WebviewPanelController implements vscode.Disposable {
     ) {
         const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
-        const column = newResultPaneViewColumn(uri);
+        const column = this.newResultPaneViewColumn(uri);
         this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title, column, {
             retainContextWhenHidden,
             enableScripts: true
@@ -58,6 +59,38 @@ export class WebviewPanelController implements vscode.Disposable {
             }
         }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
+    }
+
+    private newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
+        // Find configuration options
+        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(queryUri));
+        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let viewColumn: vscode.ViewColumn;
+
+        switch (splitPaneSelection) {
+            case 'current':
+                viewColumn = vscode.window.activeTextEditor.viewColumn;
+                break;
+            case 'end':
+                viewColumn = vscode.ViewColumn.Three;
+                break;
+            // default case where splitPaneSelection is next or anything else
+            default:
+                // if there's an active text editor
+                if (vscode.window.activeTextEditor) {
+                    viewColumn = vscode.window.activeTextEditor.viewColumn;
+                } else {
+                    // otherwise take last visible editor column
+                    const lastVisibleEditor = vscode.window.visibleTextEditors[vscode.window.visibleTextEditors.length - 1];
+                    viewColumn = lastVisibleEditor.viewColumn;
+                }
+                if (viewColumn === vscode.ViewColumn.One) {
+                    viewColumn = vscode.ViewColumn.Two;
+                } else {
+                    viewColumn = vscode.ViewColumn.Three;
+                }
+        }
+        return viewColumn;
     }
 
     public async init(): Promise<void> {
@@ -94,30 +127,24 @@ export class WebviewPanelController implements vscode.Disposable {
     public get isDisposed(): boolean {
         return this._isDisposed;
     }
-}
 
-function newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
-    // Find configuration options
-    let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(queryUri));
-    let splitPaneSelection = config[Constants.configSplitPaneSelection];
-    let viewColumn: vscode.ViewColumn;
-
-
-    switch (splitPaneSelection) {
-        case 'current':
-            viewColumn = vscode.window.activeTextEditor.viewColumn;
-            break;
-        case 'end':
-            viewColumn = vscode.ViewColumn.Three;
-            break;
-        // default case where splitPaneSelection is next or anything else
-        default:
-            if (vscode.window.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
-                viewColumn = vscode.ViewColumn.Two;
-            } else {
-                viewColumn = vscode.ViewColumn.Three;
-            }
+    /**
+     * Property indicating whether the angular app
+     * has rendered or not
+     */
+    public get rendered(): boolean {
+        return this._rendered;
     }
 
-    return viewColumn;
+    /**
+     * Setters
+     */
+
+    /**
+     * Property indicating whether the angular app
+     * has rendered or not
+     */
+    public set rendered(value: boolean) {
+        this._rendered = value;
+    }
 }
