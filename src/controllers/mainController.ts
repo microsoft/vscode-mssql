@@ -186,34 +186,45 @@ export default class MainController implements vscode.Disposable {
                 this._scriptingService = new ScriptingService(this._connectionMgr, this._vscodeWrapper);
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
-                        Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
-                    const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-                    let connectionCreds = node.connectionCredentials;
-                    const databaseName = self.getDatabaseName(node);
-                    // if not connected or different database
-                    if (!this.connectionManager.isConnected(nodeUri) ||
-                        connectionCreds.database !== databaseName) {
-                        // make a new connection
-                        connectionCreds.database = databaseName;
-                        const promise = new Deferred<boolean>();
-                        await this.connectionManager.connect(nodeUri, connectionCreds, promise);
-                        await promise;
-
-                    }
-                    const selectStatement = await this._scriptingService.scriptSelect(node, nodeUri);
-                    const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
-                    let uri = editor.document.uri.toString();
-                    let title = path.basename(editor.document.fileName);
-                    const queryUriPromise = new Deferred<boolean>();
-                    await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
-                    await queryUriPromise;
-                    this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
-                    this._statusview.sqlCmdModeChanged(uri, false);
-                    const queryPromise = new Deferred<boolean>();
-                    await this._outputContentProvider.runQuery(self._statusview, uri, undefined, title, queryPromise);
-                    await queryPromise;
-                    await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
-                    return true;
+                    Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
+                    let actionPromise = new Promise<boolean>(async (actionResolve, actionReject) => {
+                        const nodeUri = ObjectExplorerUtils.getNodeUri(node);
+                        let connectionCreds = node.connectionCredentials;
+                        const databaseName = self.getDatabaseName(node);
+                        // if not connected or different database
+                        if (!this.connectionManager.isConnected(nodeUri) ||
+                            connectionCreds.database !== databaseName) {
+                            // make a new connection
+                            connectionCreds.database = databaseName;
+                            const promise = new Deferred<boolean>();
+                            await this.connectionManager.connect(nodeUri, connectionCreds, promise);
+                            await promise;
+                        }
+                        const selectPromise = new Promise<boolean>(async (scriptResolve, scriptReject) => {
+                            const selectStatement = await this._scriptingService.scriptSelect(node, nodeUri);
+                            const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
+                            let uri = editor.document.uri.toString();
+                            let title = path.basename(editor.document.fileName);
+                            if (!this.connectionManager.isConnecting(uri)) {
+                                const queryUriPromise = new Deferred<boolean>();
+                                await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
+                                await queryUriPromise;
+                            }
+                            this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
+                            this._statusview.sqlCmdModeChanged(uri, false);
+                            const queryPromise = new Deferred<boolean>();
+                            if (!this._outputContentProvider.isRunningQuery(uri) &&
+                                !this._outputContentProvider.getQueryRunner(uri)) {
+                                await this._outputContentProvider.runQuery(self._statusview, uri, undefined, title, queryPromise);
+                                await queryPromise;
+                                await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+                                scriptResolve(true);
+                            }
+                        });
+                        const result = await selectPromise;
+                        actionResolve(result);
+                    });
+                    await actionPromise;
                 }));
 
                 this._context.subscriptions.push(
