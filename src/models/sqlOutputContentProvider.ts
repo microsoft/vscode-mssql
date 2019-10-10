@@ -127,6 +127,16 @@ export class SqlOutputContentProvider {
             queryCallback: any): Promise<void> {
         let queryRunner = await this.createQueryRunner(statusView ? statusView : this._statusView, uri, title);
         if (this._panels.has(uri)) {
+            let panelController = this._panels.get(uri);
+            if (panelController.isDisposed) {
+                this._panels.delete(uri);
+                await this.createWebviewController(uri, title, queryRunner);
+            } else {
+                queryCallback(queryRunner);
+                return;
+            }
+        } else {
+            await this.createWebviewController(uri, title, queryRunner);
             this._panels.get(uri).dispose();
             this._panels.delete(uri);
         }
