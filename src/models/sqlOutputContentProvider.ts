@@ -137,10 +137,7 @@ export class SqlOutputContentProvider {
             }
         } else {
             await this.createWebviewController(uri, title, queryRunner);
-            this._panels.get(uri).dispose();
-            this._panels.delete(uri);
         }
-        await this.createWebviewController(uri, title, queryRunner);
         if (queryRunner) {
             queryCallback(queryRunner);
         }
@@ -220,7 +217,7 @@ export class SqlOutputContentProvider {
         return queryRunner;
     }
 
-    public async cancelQuery(input: QueryRunner | string): Promise<void> {
+    public cancelQuery(input: QueryRunner | string): void {
         let self = this;
         let queryRunner: QueryRunner;
 
@@ -242,11 +239,10 @@ export class SqlOutputContentProvider {
         this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query
-        try {
-            await queryRunner.cancel();
-        } catch (error) {
+        queryRunner.cancel().then(success => undefined, error => {
+            // On error, show error message
             self._vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgCancelQueryFailed, error.message));
-        }
+        });
     }
 
     /**

@@ -658,7 +658,7 @@ suite('Query Runner tests', () => {
                 selection: undefined
             } as any;
 
-            testVscodeWrapper.setup(x => x.visibleEditors).returns(() => [editor]);
+            testVscodeWrapper.setup(x => x.activeTextEditor).returns(() => editor);
             testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(editor.document));
             testVscodeWrapper.setup(x => x.showTextDocument(editor.document, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
 
@@ -673,7 +673,6 @@ suite('Query Runner tests', () => {
                     done(err);
                 }
             }, err => done(err));
-            done();
         });
 
         test('SetEditorSelection uses column 1 by default', (done) => {
