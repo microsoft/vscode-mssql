@@ -199,7 +199,10 @@ export default class MainController implements vscode.Disposable {
                             if (!this.connectionManager.isConnecting(nodeUri)) {
                                 const promise = new Deferred<boolean>();
                                 await this.connectionManager.connect(nodeUri, connectionCreds, promise);
-                                await promise;
+                                const didScriptConnect = await promise;
+                                if (!didScriptConnect) {
+                                    return;
+                                }
                             }
                         }
                         const selectStatement = await this._scriptingService.scriptSelect(node, nodeUri);
@@ -208,7 +211,10 @@ export default class MainController implements vscode.Disposable {
                         let title = path.basename(editor.document.fileName);
                         const queryUriPromise = new Deferred<boolean>();
                         await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
-                        await queryUriPromise;
+                        const didQueryConnect = await queryUriPromise;
+                        if (!didQueryConnect) {
+                            return;
+                        }
                         this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
                         this._statusview.sqlCmdModeChanged(uri, false);
                         const queryPromise = new Deferred<boolean>();
@@ -539,11 +545,9 @@ export default class MainController implements vscode.Disposable {
 
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
-            if (!self._connectionMgr.isConnected(uri) &&
-                !self._connectionMgr.isConnecting(uri)) {
-                // create new connection
-                await self.onNewConnection();
-            }
+
+            // create new connection
+            await self.onNewConnection();
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
             // Calculate the selection if we have a selection, otherwise we'll treat null as

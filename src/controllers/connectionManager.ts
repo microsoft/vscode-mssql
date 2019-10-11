@@ -297,7 +297,11 @@ export default class ConnectionManager {
                 mruConnection = undefined;
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
-                    promise.reject(result.errorMessage);
+                    if (result.errorMessage) {
+                        promise.reject(result.errorMessage);
+                    } else {
+                        promise.resolve(false);
+                    }
                     self._uriToConnectionPromiseMap.delete(result.ownerUri);
                 }
             }
