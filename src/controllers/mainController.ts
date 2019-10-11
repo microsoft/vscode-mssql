@@ -196,9 +196,11 @@ export default class MainController implements vscode.Disposable {
                             connectionCreds.database !== databaseName) {
                             // make a new connection
                             connectionCreds.database = databaseName;
-                            const promise = new Deferred<boolean>();
-                            await this.connectionManager.connect(nodeUri, connectionCreds, promise);
-                            await promise;
+                            if (!this.connectionManager.isConnecting(nodeUri)) {
+                                const promise = new Deferred<boolean>();
+                                await this.connectionManager.connect(nodeUri, connectionCreds, promise);
+                                await promise;
+                            }
                         }
                         const selectPromise = new Promise<boolean>(async (scriptResolve, scriptReject) => {
                             const selectStatement = await this._scriptingService.scriptSelect(node, nodeUri);
