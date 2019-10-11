@@ -641,7 +641,7 @@ export default class ConnectionManager {
     public connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
 
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.intelliSenseTimer = new Utils.Timer();
