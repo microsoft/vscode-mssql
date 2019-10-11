@@ -255,9 +255,9 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
         expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
         && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
-        && conn.authenticationType === LocalizedConstants.authTypeSql ?
+        && (conn.authenticationType === LocalizedConstants.authTypeSql ?
         conn.user === expectedConn.user :
-        isEmpty(conn.user) === isEmpty(expectedConn.user);
+        isEmpty(conn.user) === isEmpty(expectedConn.user));
 }
 
 /**

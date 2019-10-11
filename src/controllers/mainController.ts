@@ -853,11 +853,16 @@ export default class MainController implements vscode.Disposable {
             if (objectExplorerConnections.length >= userConnections.length) {
                 let staleConnections = objectExplorerConnections.filter((oeConn) => {
                     return !userConnections.some((userConn) => Utils.isSameConnection(oeConn, userConn));
-                })
+                });
+                // disconnect that/those connection(s) and then
                 // remove its/their credentials from the credential store
                 // and MRU
                 for (let conn of staleConnections) {
                     let profile = <IConnectionProfile>conn;
+                    if (this.connectionManager.isActiveConnection(conn)) {
+                        const uri = this.connectionManager.getUriForConnection(conn);
+                        await this.connectionManager.disconnect(uri);
+                    }
                     await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
                     if (profile.authenticationType === Constants.sqlAuthentication &&
                         profile.savePassword) {

@@ -205,6 +205,15 @@ export default class ConnectionManager {
         return false;
     }
 
+    public getUriForConnection(connection: Interfaces.IConnectionCredentials): string {
+        for (let uri of Object.keys(this._connections)) {
+            if (Utils.isSameConnection(this._connections[uri].credentials, connection)) {
+                return uri;
+            }
+        }
+        return undefined;
+    }
+
     public isConnected(fileUri: string): boolean {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
