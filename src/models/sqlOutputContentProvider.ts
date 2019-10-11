@@ -301,7 +301,7 @@ export class SqlOutputContentProvider {
             queryRunner.hasCompleted &&
             panelController.rendered) {
             return queryRunner.refreshQueryTab(uri);
-        } else if (queryRunner.hasCompleted) {
+        } else {
             // first ready event
             panelController.rendered = true;
         }

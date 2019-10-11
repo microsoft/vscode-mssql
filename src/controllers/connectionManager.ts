@@ -642,10 +642,9 @@ export default class ConnectionManager {
     }
 
     // create a new connection with the connectionCreds provided
-    public connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
+    public async connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
-
-        return new Promise<boolean>(async (resolve, reject) => {
+        let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.intelliSenseTimer = new Utils.Timer();
@@ -682,16 +681,18 @@ export default class ConnectionManager {
 
             // send connection request message to service host
             this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
-            self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams).then((result) => {
+            try {
+                const result = await self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
                 if (!result) {
                     // Failed to process connect request
                     resolve(false);
                 }
-            }, err => {
-                // Catch unexpected errors and return over the Promise reject callback
-                reject(err);
-            });
+            } catch (error) {
+                reject(error);
+            }
         });
+        let connectionResult = await connectionPromise;
+        return connectionResult;
     }
 
     public onCancelConnect(): void {

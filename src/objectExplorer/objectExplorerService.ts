@@ -82,7 +82,8 @@ export class ObjectExplorerService {
                 }
                 // make a connection if not connected already
                 const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-                if (!this._connectionManager.isConnected(nodeUri)) {
+                if (!this._connectionManager.isConnected(nodeUri) &&
+                    !this._connectionManager.isConnecting(nodeUri)) {
                     const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
                     await this._connectionManager.connect(nodeUri, profile);
                 }
