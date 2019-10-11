@@ -213,8 +213,7 @@ export default class MainController implements vscode.Disposable {
                             this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
                             this._statusview.sqlCmdModeChanged(uri, false);
                             const queryPromise = new Deferred<boolean>();
-                            if (!this._outputContentProvider.isRunningQuery(uri) &&
-                                !this._outputContentProvider.getQueryRunner(uri)) {
+                            if (!this._outputContentProvider.isRunningQuery(uri)) {
                                 await this._outputContentProvider.runQuery(self._statusview, uri, undefined, title, queryPromise);
                                 await queryPromise;
                                 await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
