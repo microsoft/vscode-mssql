@@ -199,10 +199,7 @@ export default class MainController implements vscode.Disposable {
                             if (!this.connectionManager.isConnecting(nodeUri)) {
                                 const promise = new Deferred<boolean>();
                                 await this.connectionManager.connect(nodeUri, connectionCreds, promise);
-                                const didScriptConnect = await promise;
-                                if (!didScriptConnect) {
-                                    return;
-                                }
+                                await promise;
                             }
                         }
                         const selectStatement = await this._scriptingService.scriptSelect(node, nodeUri);
@@ -211,10 +208,7 @@ export default class MainController implements vscode.Disposable {
                         let title = path.basename(editor.document.fileName);
                         const queryUriPromise = new Deferred<boolean>();
                         await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
-                        const didQueryConnect = await queryUriPromise;
-                        if (!didQueryConnect) {
-                            return;
-                        }
+                        await queryUriPromise;
                         this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
                         this._statusview.sqlCmdModeChanged(uri, false);
                         const queryPromise = new Deferred<boolean>();
@@ -547,7 +541,10 @@ export default class MainController implements vscode.Disposable {
             let uri = self._vscodeWrapper.activeTextEditorUri;
 
             // create new connection
-            await self.onNewConnection();
+            if (!self.connectionManager.isConnected(uri)) {
+                await self.onNewConnection();
+            }
+
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
             // Calculate the selection if we have a selection, otherwise we'll treat null as

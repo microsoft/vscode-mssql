@@ -293,17 +293,19 @@ export default class ConnectionManager {
                     self._uriToConnectionPromiseMap.delete(result.ownerUri);
                 }
             } else {
-                self.handleConnectionErrors(fileUri, connection, result);
                 mruConnection = undefined;
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     if (result.errorMessage) {
+                        self.handleConnectionErrors(fileUri, connection, result);
                         promise.reject(result.errorMessage);
-                    } else {
-                        promise.resolve(false);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                    } else if (result.messages) {
+                        promise.reject(result.messages);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
                     }
-                    self._uriToConnectionPromiseMap.delete(result.ownerUri);
                 }
+                self.handleConnectionErrors(fileUri, connection, result);
             }
 
             self.tryAddMruConnection(connection, mruConnection);
