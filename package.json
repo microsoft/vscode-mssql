@@ -584,9 +584,9 @@
           "description": "%mssql.shortcuts%",
           "default": {
             "_comment": "Short cuts must follow the format (ctrl)+(shift)+(alt)+[key]",
-            "event.toggleResultPane": "ctrl+alt+r",
-            "event.focusResultsGrid": "ctrl+alt+g",
-            "event.toggleMessagePane": "ctrl+alt+y",
+            "event.toggleResultPane": "ctrl+alt+R",
+            "event.focusResultsGrid": "ctrl+alt+G",
+            "event.toggleMessagePane": "ctrl+alt+Y",
             "event.prevGrid": "ctrl+up",
             "event.nextGrid": "ctrl+down",
             "event.copySelection": "ctrl+C",
