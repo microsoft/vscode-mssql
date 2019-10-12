@@ -165,14 +165,14 @@ export class ObjectExplorerService {
      */
     private cleanNodeChildren(node: vscode.TreeItem): void {
         if (this._treeNodeToChildrenMap.has(node)) {
-            let children = this._treeNodeToChildrenMap.get(node);
-            if (children) {
-                children.forEach(child => this.cleanNodeChildren(child));
-                return;
+            let stack = this._treeNodeToChildrenMap.get(node);
+            while (stack.length > 0) {
+                let child = stack.pop();
+                if (this._treeNodeToChildrenMap.has(child)) {
+                    stack.concat(this._treeNodeToChildrenMap.get(child));
+                }
+                this._treeNodeToChildrenMap.delete(child);
             }
-        } else {
-            this._treeNodeToChildrenMap.delete(node);
-            return;
         }
     }
 
