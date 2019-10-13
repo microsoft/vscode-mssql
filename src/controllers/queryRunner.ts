@@ -321,10 +321,7 @@ export default class QueryRunner {
         let disposeDetails = new QueryDisposeParams();
         disposeDetails.ownerUri = this.uri;
         try {
-            const result = await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
-            if (result) {
-                return;
-            }
+            await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
         } catch (error) {
             // TODO: Localize
             this._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error.message);
