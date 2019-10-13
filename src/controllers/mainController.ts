@@ -230,6 +230,7 @@ export default class MainController implements vscode.Disposable {
                     vscode.commands.registerCommand(
                         Constants.cmdDisconnectObjectExplorerNode, async (node: TreeNodeInfo) => {
                     await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
+                    return this._objectExplorerProvider.refresh(undefined);
                 }));
 
                 // Add handlers for VS Code generated commands
