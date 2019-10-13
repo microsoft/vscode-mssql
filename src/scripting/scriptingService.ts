@@ -52,8 +52,27 @@ export class ScriptingService {
     };
 
     /**
+     * Helper to node name from label and metadata
+     */
+    private getObjectName(nameLabel: string, objectName: string, metadata: ObjectMetadata[]): string {
+        if (nameLabel === objectName) {
+            return nameLabel;
+        }
+        // if the names aren't the same, find the closest
+        // name to the name label
+        let closestName = '';
+        for (const obj of metadata) {
+            if (nameLabel.includes(obj.name)) {
+                if (obj.name.length > closestName.length) {
+                    closestName = obj.name;
+                }
+            }
+        }
+        return closestName;
+    }
+
+    /**
      * Helper to get the object name and schema name
-     * @param node
      */
     private async getObjectFromNode(node: TreeNodeInfo, uri: string): Promise<ScriptingObject> {
         const nodeCredentials = node.connectionCredentials;
@@ -70,14 +89,16 @@ export class ScriptingService {
             this._credentialsToMetadataMap.set(newCredentials, metadata);
         }
         for (const obj of metadata) {
+            const objectLabels = node.label.split('.');
+            const schemaLabel = objectLabels[0];
+            const nameLabel = objectLabels[1];
             if (obj.metadataTypeName === node.nodeType &&
-                // get actual name getting rid of
-                // suffices such as (System-Versioned)
-                node.label.includes(obj.name)) {
+                obj.schema === schemaLabel) {
+                const objectName = this.getObjectName(nameLabel, obj.name, metadata);
                 let scriptingObject: ScriptingObject = {
                     type: obj.metadataTypeName,
                     schema: obj.schema,
-                    name: obj.name
+                    name: objectName
                 };
                 return scriptingObject;
             }
