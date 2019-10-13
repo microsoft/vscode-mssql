@@ -163,11 +163,15 @@ export class ObjectExplorerService {
      * Clean all children of the node
      * @param node Node to cleanup
      */
-    private cleanNodeChildren(node: TreeNodeInfo): void {
+    private cleanNodeChildren(node: vscode.TreeItem): void {
         if (this._treeNodeToChildrenMap.has(node)) {
-            let children = this._treeNodeToChildrenMap.get(node);
-            if (children) {
-                children.forEach(child => this._treeNodeToChildrenMap.delete(child));
+            let stack = this._treeNodeToChildrenMap.get(node);
+            while (stack.length > 0) {
+                let child = stack.pop();
+                if (this._treeNodeToChildrenMap.has(child)) {
+                    stack.concat(this._treeNodeToChildrenMap.get(child));
+                }
+                this._treeNodeToChildrenMap.delete(child);
             }
         }
     }
@@ -344,12 +348,11 @@ export class ObjectExplorerService {
             }
         }
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        this._connectionManager.disconnect(nodeUri);
+        await this._connectionManager.disconnect(nodeUri);
         this._nodePathToNodeLabelMap.delete(node.nodePath);
         this.cleanNodeChildren(node);
         if (isDisconnect) {
             this._treeNodeToChildrenMap.set(this._currentNode, [new ConnectTreeNode(this._currentNode)]);
-            return this._objectExplorerProvider.refresh(undefined);
         }
     }
 

@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/** Disable selection in html **/
+* {
+  user-select: none;
+}
+
 /** Light Theme **/
 
 .vscode-light * {
