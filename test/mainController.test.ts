@@ -202,7 +202,7 @@ suite('MainController Tests', () => {
         done();
     });
 
-    test('onNewQuery should call the new query and new connection' , (done) => {
+    test('onNewQuery should call the new query and new connection' , () => {
         let editor: vscode.TextEditor = {
             document: {
                 uri: 'test_uri'
@@ -210,13 +210,12 @@ suite('MainController Tests', () => {
             viewColumn: vscode.ViewColumn.One,
             selection: undefined
         } as any;
-        untitledSqlDocumentService.setup(x => x.newQuery(undefined)).returns(() => Promise.resolve(editor));
-        connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
+        untitledSqlDocumentService.setup(x => x.newQuery(undefined)).returns(() => { return Promise.resolve(editor); });
+        connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(undefined); });
 
         return mainController.onNewQuery(undefined, undefined).then(result => {
             untitledSqlDocumentService.verify(x => x.newQuery(undefined), TypeMoq.Times.once());
             connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
-            done();
         });
     });
 

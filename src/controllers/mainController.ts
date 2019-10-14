@@ -875,7 +875,7 @@ export default class MainController implements vscode.Disposable {
             }
             // remove them from object explorer
             await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
-            needsRefresh = true;
+            needsRefresh = staleConnections.length > 0;
 
 
             // if a connection(s) was/were manually added
