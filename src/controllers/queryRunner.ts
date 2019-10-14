@@ -253,6 +253,8 @@ export default class QueryRunner {
      * Refreshes the webview panel with the query results when tabs are changed
      */
     public async refreshQueryTab(uri: string): Promise<boolean> {
+        this._isExecuting = true;
+        this._hasCompleted = false;
         for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
             const batchSet = this.batchSets[batchId];
             this.eventEmitter.emit('batchStart', batchSet);
@@ -270,6 +272,8 @@ export default class QueryRunner {
         }
         // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(uri);
+        this._isExecuting = false;
+        this._hasCompleted = true;
         this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true);
         return true;
     }
