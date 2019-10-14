@@ -99,6 +99,7 @@ suite('SqlOutputProvider Tests', () => {
         mockContentProvider.setup(p => p.isRunningQuery('Test_URI_New')).returns(() => false);
         mockContentProvider.setup(p => p.cancelQuery(testUri)).returns(() => {
             statusView.object.cancelingQuery(testUri);
+            return Promise.resolve();
         });
         mockContentProvider.setup(p => p.getQueryRunner(testUri)).returns(() => {
             return mockMap.get(testUri);

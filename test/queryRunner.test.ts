@@ -658,22 +658,21 @@ suite('Query Runner tests', () => {
                 selection: undefined
             } as any;
 
-            testVscodeWrapper.setup(x => x.visibleEditors).returns(() => [editor]);
-            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-            testVscodeWrapper.setup(x => x.showTextDocument(undefined, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
+            testVscodeWrapper.setup(x => x.activeTextEditor).returns(() => editor);
+            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(editor.document));
+            testVscodeWrapper.setup(x => x.showTextDocument(editor.document, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
 
             // If I try to set a selection for the existing editor
             let selection: ISelectionData = { startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 };
             queryRunner.setEditorSelection(selection).then(() => {
                 try {
                     // Then showTextDocument gets called with the existing editor's column
-                    testVscodeWrapper.verify(x => x.showTextDocument(undefined, queryColumn), TypeMoq.Times.once());
+                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, queryColumn), TypeMoq.Times.once());
                     done();
                 } catch (err) {
                     done(err);
                 }
             }, err => done(err));
-            done();
         });
 
         test('SetEditorSelection uses column 1 by default', (done) => {
@@ -693,20 +692,19 @@ suite('Query Runner tests', () => {
             } as any;
 
             testVscodeWrapper.setup(x => x.visibleEditors).returns(() => []);
-            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-            testVscodeWrapper.setup(x => x.showTextDocument(undefined, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
+            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(editor.document));
+            testVscodeWrapper.setup(x => x.showTextDocument(editor.document, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
 
             // If I try to set a selection for an editor that is not currently visible
             queryRunner.setEditorSelection({ startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 }).then(() => {
                 try {
                     // Then showTextDocument gets called with the default first column
-                    testVscodeWrapper.verify(x => x.showTextDocument(undefined, 1), TypeMoq.Times.once());
+                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, 1), TypeMoq.Times.once());
                     done();
                 } catch (err) {
                     done(err);
                 }
             }, err => done(err));
-            done();
         });
     });
 });

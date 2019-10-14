@@ -112,10 +112,10 @@ export class ScriptingService {
             scriptCreateDrop: 'ScriptSelect',
             typeOfDataToScript: 'SchemaOnly',
             scriptStatistics: 'ScriptStatsNone',
-            targetDatabaseEngineEdition:
-            serverInfo.engineEditionId ? this.targetDatabaseEngineEditionMap[serverInfo.engineEditionId] : 'SqlServerEnterpriseEdition',
-            targetDatabaseEngineType: serverInfo.isCloud ? 'SqlAzure' : 'SingleInstance',
-            scriptCompatibilityOption: serverInfo.serverMajorVersion ?
+            targetDatabaseEngineEdition: serverInfo && serverInfo.engineEditionId ?
+                this.targetDatabaseEngineEditionMap[serverInfo.engineEditionId] : 'SqlServerEnterpriseEdition',
+            targetDatabaseEngineType: serverInfo && serverInfo.isCloud ? 'SqlAzure' : 'SingleInstance',
+            scriptCompatibilityOption: serverInfo && serverInfo.serverMajorVersion ?
                 this.scriptCompatibilityOptionMap[serverInfo.serverMajorVersion] : 'Script140Compat'
         };
         let scriptingParams: ScriptingParams = {

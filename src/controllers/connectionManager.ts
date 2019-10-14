@@ -21,6 +21,7 @@ import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 import {Runtime, PlatformInformation} from '../models/platform';
+import { Deferred } from '../protocol';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -87,6 +88,7 @@ export default class ConnectionManager {
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionCredentialsToServerInfoMap:
         Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
+    private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -99,6 +101,7 @@ export default class ConnectionManager {
         this._connections = {};
         this._connectionCredentialsToServerInfoMap =
             new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
+        this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -196,7 +199,7 @@ export default class ConnectionManager {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
 
-    private isConnecting(fileUri: string): boolean {
+    public isConnecting(fileUri: string): boolean {
         return (fileUri in this._connections && this._connections[fileUri].connecting);
     }
 
@@ -284,9 +287,25 @@ export default class ConnectionManager {
 
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
                 mruConnection = connection.credentials;
+                const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
+                if (promise) {
+                    promise.resolve(true);
+                    self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                }
             } else {
-                self.handleConnectionErrors(fileUri, connection, result);
                 mruConnection = undefined;
+                const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
+                if (promise) {
+                    if (result.errorMessage) {
+                        self.handleConnectionErrors(fileUri, connection, result);
+                        promise.reject(result.errorMessage);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                    } else if (result.messages) {
+                        promise.reject(result.messages);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                    }
+                }
+                self.handleConnectionErrors(fileUri, connection, result);
             }
 
             self.tryAddMruConnection(connection, mruConnection);
@@ -518,7 +537,6 @@ export default class ConnectionManager {
                     }
 
                     delete self._connections[fileUri];
-
                     resolve(result);
                 });
             } else if (self.isConnecting(fileUri)) {
@@ -626,10 +644,9 @@ export default class ConnectionManager {
     }
 
     // create a new connection with the connectionCreds provided
-    public connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials): Promise<boolean> {
+    public async connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
-
-        return new Promise<boolean>((resolve, reject) => {
+        let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.intelliSenseTimer = new Utils.Timer();
@@ -665,16 +682,19 @@ export default class ConnectionManager {
             connectionInfo.serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
-            self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams).then((result) => {
+            this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
+            try {
+                const result = await self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
                 if (!result) {
                     // Failed to process connect request
                     resolve(false);
                 }
-            }, err => {
-                // Catch unexpected errors and return over the Promise reject callback
-                reject(err);
-            });
+            } catch (error) {
+                reject(error);
+            }
         });
+        let connectionResult = await connectionPromise;
+        return connectionResult;
     }
 
     public onCancelConnect(): void {
