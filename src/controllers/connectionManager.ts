@@ -639,8 +639,7 @@ export default class ConnectionManager {
      * Delete a credential from the credential store
      */
     public async deleteCredential(profile: Interfaces.IConnectionProfile): Promise<boolean> {
-        let result = await this._connectionStore.deleteCredential(profile);
-        return result;
+        return await this._connectionStore.deleteCredential(profile);
     }
 
     // let users pick from a picklist of connections

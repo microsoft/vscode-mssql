@@ -709,7 +709,7 @@ export default class MainController implements vscode.Disposable {
                 await this.connectionManager.connect(uri.toString(), connectionCreds);
                 this._statusview.sqlCmdModeChanged(uri.toString(), false);
                 await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
-                return Promise.resolve(true);
+                return true;
             } else {
                 // new query command
                 const credentials = await this._connectionMgr.onNewConnection();
@@ -719,10 +719,10 @@ export default class MainController implements vscode.Disposable {
                     await this.createObjectExplorerSession(credentials);
                 }
                 this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                return Promise.resolve(true);
+                return true;
             }
         }
-        return Promise.resolve(false);
+        return false;
     }
 
     /**
@@ -875,7 +875,7 @@ export default class MainController implements vscode.Disposable {
                         }
                 }
                 // remove them from object explorer
-                await this._objectExplorerProvider.removeStaleConnectionNodes(staleConnections);
+                await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
                 needsRefresh = true;
             } else if (userConnections.length > objectExplorerConnections.length) {
                 // new connections added to settings

@@ -251,8 +251,7 @@ suite('ConnectionStore tests', () => {
                 assert.ok(success);
                 connectionConfig.verify(x => x.removeConnection(TypeMoq.It.isAny()), TypeMoq.Times.once());
                 if (keepCredentialStore) {
-                    // for MRU
-                    credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
+                    credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.never());
                 } else {
                     // once for MRU and once for user connections
                     credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));

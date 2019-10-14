@@ -291,7 +291,7 @@ export class ConnectionStore {
     /**
      * Remove a connection profile from the recently used list.
      */
-    public removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
+    public removeRecentlyUsed(conn: IConnectionProfile, keepCredentialStore: boolean = false): Promise<void> {
         const self = this;
         return new Promise<void>(async (resolve, reject) => {
             // Get all profiles
@@ -301,7 +301,7 @@ export class ConnectionStore {
             configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, conn));
 
             // Remove any saved password
-            if (conn.savePassword) {
+            if (conn.savePassword && !keepCredentialStore) {
                 let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, ConnectionStore.CRED_MRU_USER);
                 await self._credentialStore.deleteCredential(credentialId);
             }
@@ -362,7 +362,7 @@ export class ConnectionStore {
         }).then(profileFound => {
             // Remove the profile from the recently used list if necessary
             return new Promise<boolean>((resolve, reject) => {
-                self.removeRecentlyUsed(profile).then(() => {
+                self.removeRecentlyUsed(profile, keepCredentialStore).then(() => {
                     resolve(profileFound);
                 }).catch(err => {
                     reject(err);

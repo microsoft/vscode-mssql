@@ -380,8 +380,8 @@ export class ObjectExplorerService {
         this.cleanNodeChildren(node);
     }
 
-    public async removeStaleConnectionNodes(staleConnections: IConnectionCredentials[]): Promise<void> {
-        for (let conn of staleConnections) {
+    public async removeConnectionNodes(connections: IConnectionCredentials[]): Promise<void> {
+        for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
                 if (Utils.isSameConnection(node.connectionCredentials, conn)) {
                     await this.removeObjectExplorerNode(node);

@@ -12,7 +12,6 @@ import Constants = require('../constants/constants');
 import * as interfaces from './interfaces';
 import {ExtensionContext} from 'vscode';
 import fs = require('fs');
-import LocalizedConstants = require('../constants/localizedConstants');
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
@@ -255,7 +254,7 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
         expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
         && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
-        && (conn.authenticationType === LocalizedConstants.authTypeSql ?
+        && (conn.authenticationType === Constants.sqlAuthentication ?
         conn.user === expectedConn.user :
         isEmpty(conn.user) === isEmpty(expectedConn.user))
         && (<interfaces.IConnectionProfile>conn).savePassword ===

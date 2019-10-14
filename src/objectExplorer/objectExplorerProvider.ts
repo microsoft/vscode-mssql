@@ -68,8 +68,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._objectExplorerService.updateNode(node);
     }
 
-    public async removeStaleConnectionNodes(staleConnections: IConnectionCredentials[]): Promise<void> {
-        await this._objectExplorerService.removeStaleConnectionNodes(staleConnections);
+    public async removeConnectionNodes(connections: IConnectionCredentials[]): Promise<void> {
+        await this._objectExplorerService.removeConnectionNodes(connections);
     }
 
     public addDisconnectedNode(connectionCredentials: IConnectionCredentials): void {
