@@ -8,24 +8,16 @@ import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import { MetadataService } from '../metadata/metadataService';
-import { IConnectionCredentials } from '../models/interfaces';
-import { ObjectMetadata, MetadataType } from '../models/contracts/metadata/metadataRequest';
-import Utils = require('../models/utils');
 
 export class ScriptingService {
 
     private _client: SqlToolsServiceClient;
-    private _metdataService: MetadataService;
-    private _credentialsToMetadataMap: Map<IConnectionCredentials, ObjectMetadata[]>;
 
     constructor(
         private _connectionManager: ConnectionManager,
         private _vscodeWrapper: VscodeWrapper
     ) {
         this._client = this._connectionManager.client;
-        this._metdataService = new MetadataService(this._connectionManager);
-        this._credentialsToMetadataMap = new Map<IConnectionCredentials, ObjectMetadata[]>();
     }
 
     // map for the version of SQL Server (default is 140)
@@ -52,57 +44,16 @@ export class ScriptingService {
     };
 
     /**
-     * Helper to node name from label and metadata
-     */
-    private getObjectName(nameLabel: string, objectName: string, metadata: ObjectMetadata[]): string {
-        if (nameLabel === objectName) {
-            return nameLabel;
-        }
-        // if the names aren't the same, find the closest
-        // name to the name label
-        let closestName = '';
-        for (const obj of metadata) {
-            if (nameLabel.includes(obj.name)) {
-                if (obj.name.length > closestName.length) {
-                    closestName = obj.name;
-                }
-            }
-        }
-        return closestName;
-    }
-
-    /**
      * Helper to get the object name and schema name
      */
     private async getObjectFromNode(node: TreeNodeInfo, uri: string): Promise<ScriptingObject> {
-        const nodeCredentials = node.connectionCredentials;
-        let metadata: ObjectMetadata[];
-        for (let credential of this._credentialsToMetadataMap.keys()) {
-            if (Utils.isSameConnection(credential, nodeCredentials)) {
-                metadata = this._credentialsToMetadataMap.get(credential);
-                break;
-            }
-        }
-        if (!metadata) {
-            metadata = await this._metdataService.getMetadata(uri);
-            const newCredentials = Object.assign({}, nodeCredentials);
-            this._credentialsToMetadataMap.set(newCredentials, metadata);
-        }
-        for (const obj of metadata) {
-            const objectLabels = node.label.split('.');
-            const schemaLabel = objectLabels[0];
-            const nameLabel = objectLabels[1];
-            if (obj.metadataTypeName === node.nodeType &&
-                obj.schema === schemaLabel) {
-                const objectName = this.getObjectName(nameLabel, obj.name, metadata);
-                let scriptingObject: ScriptingObject = {
-                    type: obj.metadataTypeName,
-                    schema: obj.schema,
-                    name: objectName
-                };
-                return scriptingObject;
-            }
-        }
+        let metadata = node.metadata;
+        let scriptingObject: ScriptingObject = {
+            type: metadata.metadataTypeName,
+            schema: metadata.schema,
+            name: metadata.name
+        };
+        return scriptingObject;
     }
 
     public async scriptSelect(node: TreeNodeInfo, uri: string): Promise<string> {
