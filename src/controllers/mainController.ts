@@ -855,43 +855,42 @@ export default class MainController implements vscode.Disposable {
             let objectExplorerConnections = this._objectExplorerProvider.rootNodeConnections;
 
             // if a connection(s) was/were manually removed
-            if (objectExplorerConnections.length >= userConnections.length) {
-                let staleConnections = objectExplorerConnections.filter((oeConn) => {
-                    return !userConnections.some((userConn) => Utils.isSameConnection(oeConn, userConn));
-                });
-                // disconnect that/those connection(s) and then
-                // remove its/their credentials from the credential store
-                // and MRU
-                for (let conn of staleConnections) {
-                    let profile = <IConnectionProfile>conn;
-                    if (this.connectionManager.isActiveConnection(conn)) {
-                        const uri = this.connectionManager.getUriForConnection(conn);
-                        await this.connectionManager.disconnect(uri);
-                    }
-                    await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
-                    if (profile.authenticationType === Constants.sqlAuthentication &&
-                        profile.savePassword) {
-                            await this.connectionManager.deleteCredential(profile);
-                        }
+            let staleConnections = objectExplorerConnections.filter((oeConn) => {
+                return !userConnections.some((userConn) => Utils.isSameConnection(oeConn, userConn));
+            });
+            // disconnect that/those connection(s) and then
+            // remove its/their credentials from the credential store
+            // and MRU
+            for (let conn of staleConnections) {
+                let profile = <IConnectionProfile>conn;
+                if (this.connectionManager.isActiveConnection(conn)) {
+                    const uri = this.connectionManager.getUriForConnection(conn);
+                    await this.connectionManager.disconnect(uri);
                 }
-                // remove them from object explorer
-                await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
-                needsRefresh = true;
-            } else if (userConnections.length > objectExplorerConnections.length) {
-                // new connections added to settings
-                let newConnections = userConnections.filter((userConn) => {
-                    return !objectExplorerConnections.some((oeConn) => Utils.isSameConnection(userConn, oeConn));
-                });
-                for (let conn of newConnections) {
-                    // if a connection is not connected
-                    // that means it was added manually
-                    const uri = ObjectExplorerUtils.getNodeUriFromProfile(<IConnectionProfile>conn);
-                    if (!this.connectionManager.isActiveConnection(conn) &&
-                        !this.connectionManager.isConnecting(uri)) {
-                        // add a disconnected node for it
-                        needsRefresh = true;
-                        this._objectExplorerProvider.addDisconnectedNode(conn);
+                await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
+                if (profile.authenticationType === Constants.sqlAuthentication &&
+                    profile.savePassword) {
+                        await this.connectionManager.deleteCredential(profile);
                     }
+            }
+            // remove them from object explorer
+            await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
+            needsRefresh = true;
+
+
+            // if a connection(s) was/were manually added
+            let newConnections = userConnections.filter((userConn) => {
+                return !objectExplorerConnections.some((oeConn) => Utils.isSameConnection(userConn, oeConn));
+            });
+            for (let conn of newConnections) {
+                // if a connection is not connected
+                // that means it was added manually
+                const uri = ObjectExplorerUtils.getNodeUriFromProfile(<IConnectionProfile>conn);
+                if (!this.connectionManager.isActiveConnection(conn) &&
+                    !this.connectionManager.isConnecting(uri)) {
+                    // add a disconnected node for it
+                    needsRefresh = true;
+                    this._objectExplorerProvider.addDisconnectedNode(conn);
                 }
             }
             if (needsRefresh) {
