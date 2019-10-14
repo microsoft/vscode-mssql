@@ -49,6 +49,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         connectionCredentials: IConnectionCredentials,
         label?: string): TreeNodeInfo {
         const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, nodeInfo.nodeType,
+            nodeInfo.isLeaf ? vscode.TreeItemCollapsibleState.None :
             vscode.TreeItemCollapsibleState.Collapsed, nodeInfo.nodePath, nodeInfo.nodeStatus,
             nodeInfo.nodeType, sessionId, connectionCredentials, parentNode);
         return treeNodeInfo;

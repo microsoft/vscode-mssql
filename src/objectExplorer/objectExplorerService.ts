@@ -89,7 +89,10 @@ export class ObjectExplorerService {
                 }
                 return promise.resolve(self._currentNode);
             } else {
-                // failure
+                // create session failure
+                if (self._currentNode.connectionCredentials.password) {
+                    self._currentNode.connectionCredentials.password = '';
+                }
                 self.updateNode(self._currentNode);
                 self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;
@@ -144,7 +147,7 @@ export class ObjectExplorerService {
         return response;
     }
 
-    private updateNode(node: TreeNodeInfo): void {
+    public updateNode(node: TreeNodeInfo): void {
         for (let rootTreeNode of this._rootTreeNodeArray) {
             if (rootTreeNode.connectionCredentials === node.connectionCredentials &&
                 rootTreeNode.label === node.label) {
@@ -160,11 +163,15 @@ export class ObjectExplorerService {
      * Clean all children of the node
      * @param node Node to cleanup
      */
-    private cleanNodeChildren(node: TreeNodeInfo): void {
+    private cleanNodeChildren(node: vscode.TreeItem): void {
         if (this._treeNodeToChildrenMap.has(node)) {
-            let children = this._treeNodeToChildrenMap.get(node);
-            if (children) {
-                children.forEach(child => this._treeNodeToChildrenMap.delete(child));
+            let stack = this._treeNodeToChildrenMap.get(node);
+            while (stack.length > 0) {
+                let child = stack.pop();
+                if (this._treeNodeToChildrenMap.has(child)) {
+                    stack.concat(this._treeNodeToChildrenMap.get(child));
+                }
+                this._treeNodeToChildrenMap.delete(child);
             }
         }
     }
@@ -299,16 +306,19 @@ export class ObjectExplorerService {
             connectionCredentials = await connectionUI.showConnections(false);
         }
         if (connectionCredentials) {
-            // show password prompt if SQL Login and password isn't saved
-            const shouldPromptForPassword = ConnectionCredentials.shouldPromptForPassword(connectionCredentials);
-            if (shouldPromptForPassword) {
-                // look up saved password
-                let password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
-                if (!password) {
+            if (ConnectionCredentials.isPasswordBasedCredential(connectionCredentials)) {
+                // show password prompt if SQL Login and password isn't saved
+                let password = connectionCredentials.password;
+                // if password isn't saved
+                if (!(<IConnectionProfile>connectionCredentials).savePassword) {
+                    // prompt for password
                     password = await this._connectionManager.connectionUI.promptForPassword();
                     if (!password) {
                         return promise.resolve(undefined);
                     }
+                } else {
+                    // look up saved password
+                    password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
                 }
                 connectionCredentials.password = password;
             }
@@ -338,12 +348,11 @@ export class ObjectExplorerService {
             }
         }
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        this._connectionManager.disconnect(nodeUri);
+        await this._connectionManager.disconnect(nodeUri);
         this._nodePathToNodeLabelMap.delete(node.nodePath);
         this.cleanNodeChildren(node);
         if (isDisconnect) {
             this._treeNodeToChildrenMap.set(this._currentNode, [new ConnectTreeNode(this._currentNode)]);
-            return this._objectExplorerProvider.refresh(undefined);
         }
     }
 

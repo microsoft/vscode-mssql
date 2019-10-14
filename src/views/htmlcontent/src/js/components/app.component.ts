@@ -468,7 +468,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'copyWithHeaders':
                 this.dataService.copyResults(event.selection, event.batchId, event.resultId, true);
                 break;
-            case 'copyHeaders':
+            case 'copyAllHeaders':
                 this.dataService.copyResults(undefined, event.batchId, event.resultId, true);
                 break;
             default:
