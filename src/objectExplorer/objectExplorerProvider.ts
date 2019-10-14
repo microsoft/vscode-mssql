@@ -41,6 +41,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.createSession(promise, connectionCredentials);
     }
 
+    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
+        return this._objectExplorerService.expandNode(node, sessionId, promise);
+    }
+
     public getConnectionCredentials(sessionId: string): IConnectionCredentials {
         if (sessionId) {
             return this._objectExplorerService.getConnectionCredentials(sessionId);

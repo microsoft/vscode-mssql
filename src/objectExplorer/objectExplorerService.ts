@@ -134,7 +134,9 @@ export class ObjectExplorerService {
                     if (key.sessionId === expandParams.sessionId &&
                         key.nodePath === expandParams.nodePath) {
                         let promise = self._expandParamsToPromiseMap.get(key);
-                        return promise.resolve(children);
+                        promise.resolve(children);
+                        self._expandParamsToPromiseMap.delete(key);
+                        return;
                     }
                 }
             }
@@ -142,7 +144,7 @@ export class ObjectExplorerService {
         return handler;
     }
 
-    private async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
+    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
         const expandParams: ExpandParams = {
             sessionId: sessionId,
             nodePath: node.nodePath
