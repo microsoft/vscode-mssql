@@ -22,6 +22,7 @@ import { ConnectTreeNode } from './connectTreeNode';
 import { Deferred } from '../protocol';
 import Constants = require('../constants/constants');
 import { ObjectExplorerUtils } from './objectExplorerUtils';
+import Utils = require('../models/utils');
 
 export class ObjectExplorerService {
 
@@ -61,8 +62,9 @@ export class ObjectExplorerService {
                 // if no node label, check if it has a name in saved profiles
                 // in case this call came from new query
                 let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+                let nodeConnection = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
                 for (let connection of savedConnections) {
-                    if (connection.connectionCreds.server === result.rootNode.nodePath) {
+                    if (Utils.isSameConnection(connection.connectionCreds, nodeConnection)) {
                         nodeLabel = connection.label;
                         break;
                     }
@@ -74,11 +76,10 @@ export class ObjectExplorerService {
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
                         undefined, self._currentNode.connectionCredentials, nodeLabel);
                 } else {
-                    const credentials = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
                     nodeLabel = nodeLabel === result.rootNode.nodePath ?
-                    self.createNodeLabel(credentials) : nodeLabel;
+                    self.createNodeLabel(nodeConnection) : nodeLabel;
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        undefined, credentials, nodeLabel);
+                        undefined, nodeConnection, nodeLabel);
                 }
                 // make a connection if not connected already
                 const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
@@ -157,7 +158,7 @@ export class ObjectExplorerService {
 
     public updateNode(node: TreeNodeInfo): void {
         for (let rootTreeNode of this._rootTreeNodeArray) {
-            if (rootTreeNode.connectionCredentials === node.connectionCredentials &&
+            if (Utils.isSameConnection(node.connectionCredentials, rootTreeNode.connectionCredentials) &&
                 rootTreeNode.label === node.label) {
                     const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
                     this._rootTreeNodeArray[index] = node;
