@@ -35,12 +35,12 @@ suite('Object Explorer Tests', () => {
     test('Test Create Session', () => {
         expect(objectExplorerService.object.currentNode, 'Current Node should be undefined').is.equal(undefined);
         expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer should not exist until started').is.equal(undefined);
-        objectExplorerService.setup(s => s.createSession(TypeMoq.It.isAny())).returns(() => {
+        objectExplorerService.setup(s => s.createSession(TypeMoq.It.isAny(), undefined)).returns(() => {
             objectExplorerService.setup(s => s.currentNode).returns(() => TypeMoq.It.isAny());
             objectExplorerProvider.objectExplorerExists = true;
             return Promise.resolve(TypeMoq.It.isAny());
         });
-        objectExplorerProvider.createSession(TypeMoq.It.isAny()).then(sessionId => {
+        objectExplorerProvider.createSession(TypeMoq.It.isAny(), undefined).then(sessionId => {
             expect(sessionId, 'Session Id should not be undefined').is.not.equal(undefined);
             expect(objectExplorerService.object.currentNode, 'Current Node should not be undefined').is.not.equal(undefined);
             expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer session should exist').is.equal(true);

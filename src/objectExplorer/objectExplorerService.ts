@@ -55,7 +55,7 @@ export class ObjectExplorerService {
 
     private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
         const self = this;
-        const handler = (result: SessionCreatedParameters) => {
+        const handler = async (result: SessionCreatedParameters) => {
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
                 // if no node label, check if it has a name in saved profiles
@@ -80,6 +80,14 @@ export class ObjectExplorerService {
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
                         undefined, credentials, nodeLabel);
                 }
+                // make a connection if not connected already
+                const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+                if (!this._connectionManager.isConnected(nodeUri) &&
+                    !this._connectionManager.isConnecting(nodeUri)) {
+                    const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
+                    await this._connectionManager.connect(nodeUri, profile);
+                }
+
                 self.updateNode(self._currentNode);
                 self._objectExplorerProvider.objectExplorerExists = true;
                 const promise = self._sessionIdToPromiseMap.get(result.sessionId);

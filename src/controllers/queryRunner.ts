@@ -28,6 +28,7 @@ import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
 import * as os from 'os';
+import { Deferred } from '../protocol';
 
 export interface IResultSet {
     columns: string[];
@@ -46,6 +47,7 @@ export default class QueryRunner {
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
     public eventEmitter: EventEmitter = new EventEmitter();
+    private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -116,19 +118,24 @@ export default class QueryRunner {
         this._isSqlCmd = value;
     }
 
+    set hasCompleted(value: boolean) {
+        this._hasCompleted = value;
+    }
+
     // PUBLIC METHODS ======================================================
 
-    public cancel(): Thenable<QueryCancelResult> {
+    public async cancel(): Promise<QueryCancelResult> {
         // Make the request to cancel the query
         let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-        return this._client.sendRequest(QueryCancelRequest.type, cancelParams);
+        let queryCancelResult = await this._client.sendRequest(QueryCancelRequest.type, cancelParams);
+        return queryCancelResult;
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    public runStatement(line: number, column: number): Thenable<void> {
-        return this.doRunQuery(
+    public async runStatement(line: number, column: number): Promise<void> {
+        await this.doRunQuery(
             <ISelectionData>{ startLine: line, startColumn: column, endLine: 0, endColumn: 0 },
-            (onSuccess, onError) => {
+            async (onSuccess, onError) => {
                 // Put together the request
                 let queryDetails: QueryExecuteStatementParams = {
                     ownerUri: this._ownerUri,
@@ -137,15 +144,15 @@ export default class QueryRunner {
                 };
 
                 // Send the request to execute the query
-                return this._client.sendRequest(QueryExecuteStatementRequest.type, queryDetails).then(onSuccess, onError);
+                await this._client.sendRequest(QueryExecuteStatementRequest.type, queryDetails).then(onSuccess, onError);
             });
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    public runQuery(selection: ISelectionData): Thenable<void> {
-        return this.doRunQuery(
+    public async runQuery(selection: ISelectionData, promise?: Deferred<boolean>): Promise<void> {
+        await this.doRunQuery(
             selection,
-            (onSuccess, onError) => {
+            async (onSuccess, onError) => {
                // Put together the request
                 let queryDetails: QueryExecuteParams = {
                     ownerUri: this._ownerUri,
@@ -153,14 +160,16 @@ export default class QueryRunner {
                 };
 
                 // Send the request to execute the query
-                return this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(onSuccess, onError);
+                if (promise) {
+                    this._uriToQueryPromiseMap.set(this._ownerUri, promise);
+                }
+                await this._client.sendRequest(QueryExecuteRequest.type, queryDetails).then(onSuccess, onError);
             });
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    private doRunQuery(selection: ISelectionData, queryCallback: any): Thenable<void> {
-        const self = this;
-        self._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
+    private async doRunQuery(selection: ISelectionData, queryCallback: any): Promise<void> {
+        this._vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgStartedExecute, this._ownerUri));
 
         // Update internal state to show that we're executing the query
         this._resultLineOffset = selection ? selection.startLine : 0;
@@ -170,17 +179,17 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
-            self.eventEmitter.emit('start', self.uri);
-            self._notificationHandler.registerRunner(self, self._ownerUri);
+            this.eventEmitter.emit('start', this.uri);
+            this._notificationHandler.registerRunner(this, this._ownerUri);
         };
         let onError = (error) => {
-            self._statusView.executedQuery(self.uri);
-            self._isExecuting = false;
+            this._statusView.executedQuery(this.uri);
+            this._isExecuting = false;
             // TODO: localize
-            self._vscodeWrapper.showErrorMessage('Execution failed: ' + error.message);
+            this._vscodeWrapper.showErrorMessage('Execution failed: ' + error.message);
         };
 
-        return queryCallback(onSuccess, onError);
+        await queryCallback(onSuccess, onError);
     }
 
     // handle the result of the notification
@@ -200,7 +209,12 @@ export default class QueryRunner {
         });
 
         // We're done with this query so shut down any waiting mechanisms
-        this._statusView.executedQuery(this.uri);
+        const promise = this._uriToQueryPromiseMap.get(result.ownerUri);
+        if (promise) {
+            promise.resolve();
+            this._uriToQueryPromiseMap.delete(result.ownerUri);
+        }
+        this._statusView.executedQuery(result.ownerUri);
         this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds));
     }
 
@@ -238,7 +252,7 @@ export default class QueryRunner {
     /**
      * Refreshes the webview panel with the query results when tabs are changed
      */
-    public async refreshQueryTab(): Promise<boolean> {
+    public async refreshQueryTab(uri: string): Promise<boolean> {
         for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
             const batchSet = this.batchSets[batchId];
             this.eventEmitter.emit('batchStart', batchSet);
@@ -255,9 +269,9 @@ export default class QueryRunner {
             }
         }
         // We're done with this query so shut down any waiting mechanisms
-        this._statusView.executedQuery(this.uri);
+        this._statusView.executedQuery(uri);
         this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true);
-        return Promise.resolve(true);
+        return true;
     }
 
     public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
@@ -280,42 +294,39 @@ export default class QueryRunner {
     /*
      * Get more data rows from the current resultSets from the service layer
      */
-    public getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Promise<QueryExecuteSubsetResult> {
-        const self = this;
+    public async getRows(rowStart: number, numberOfRows: number, batchIndex: number, resultSetIndex: number): Promise<QueryExecuteSubsetResult> {
         let queryDetails = new QueryExecuteSubsetParams();
         queryDetails.ownerUri = this.uri;
         queryDetails.resultSetIndex = resultSetIndex;
         queryDetails.rowsCount = numberOfRows;
         queryDetails.rowsStartIndex = rowStart;
         queryDetails.batchIndex = batchIndex;
-        return new Promise<QueryExecuteSubsetResult>((resolve, reject) => {
-            self._client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails).then(result => {
-                resolve(result);
-            }, error => {
-                // TODO: Localize
-                self._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + error.message);
-                reject();
-            });
-        });
+        try {
+            const queryExecuteSubsetResult = await this._client.sendRequest(QueryExecuteSubsetRequest.type, queryDetails);
+            if (queryExecuteSubsetResult) {
+                return queryExecuteSubsetResult;
+            }
+        } catch (error) {
+            // TODO: Localize
+            this._vscodeWrapper.showErrorMessage('Something went wrong getting more rows: ' + error.message);
+            Promise.reject(error);
+        }
     }
 
     /**
      * Disposes the Query from the service client
      * @returns A promise that will be rejected if a problem occured
      */
-    public dispose(): Promise<void> {
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            let disposeDetails = new QueryDisposeParams();
-            disposeDetails.ownerUri = self.uri;
-            self._client.sendRequest(QueryDisposeRequest.type, disposeDetails).then(result => {
-                resolve();
-            }, error => {
-                // TODO: Localize
-                self._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error.message);
-                reject();
-            });
-        });
+    public async dispose(): Promise<void> {
+        let disposeDetails = new QueryDisposeParams();
+        disposeDetails.ownerUri = this.uri;
+        try {
+            await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
+        } catch (error) {
+            // TODO: Localize
+            this._vscodeWrapper.showErrorMessage('Failed disposing query: ' + error.message);
+            Promise.reject(error);
+        }
     }
 
     private getColumnHeaders(batchId: number, resultId: number, range: ISlickRange): string[] {
@@ -337,99 +348,88 @@ export default class QueryRunner {
      * @param resultId The id of the result to copy from
      * @param includeHeaders [Optional]: Should column headers be included in the copy selection
      */
-    public copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): Promise<void> {
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            let copyString = '';
+    public async copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): Promise<void> {
+        let copyString = '';
 
-            // if just copy headers
-            if (!selection && self.shouldIncludeHeaders(includeHeaders)) {
-                const columns = self.batchSets[batchId].resultSetSummaries[resultId].columnInfo.length;
-                const headerRange: ISlickRange = {
-                    fromRow: 0,
-                    fromCell: 0,
-                    toRow: 0,
-                    toCell: columns
-                };
-                let columnHeaders = self.getColumnHeaders(batchId, resultId, headerRange);
-                if (columnHeaders !== undefined) {
-                    copyString += columnHeaders.join('\t') + os.EOL;
-                }
-                return this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
-                    let oldLang: string;
-                    if (process.platform === 'darwin') {
-                        oldLang = process.env['LANG'];
-                        process.env['LANG'] = 'en_US.UTF-8';
-                    }
-                    this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
-                        if (process.platform === 'darwin') {
-                            process.env['LANG'] = oldLang;
-                        }
-                        resolve();
-                    });
-                });
+        // if just copy headers
+        if (!selection && this.shouldIncludeHeaders(includeHeaders)) {
+            const columns = this.batchSets[batchId].resultSetSummaries[resultId].columnInfo.length;
+            const headerRange: ISlickRange = {
+                fromRow: 0,
+                fromCell: 0,
+                toRow: 0,
+                toCell: columns
+            };
+            let columnHeaders = this.getColumnHeaders(batchId, resultId, headerRange);
+            if (columnHeaders !== undefined) {
+                copyString += columnHeaders.join('\t') + os.EOL;
             }
-
-            // create a mapping of the ranges to get promises
-            let tasks = selection.map((range, i) => {
-                return () => {
-                    return self.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId).then((result) => {
-                        if (self.shouldIncludeHeaders(includeHeaders)) {
-                            let columnHeaders = self.getColumnHeaders(batchId, resultId, range);
-                            if (columnHeaders !== undefined) {
-                                copyString += columnHeaders.join('\t') + os.EOL;
-                            }
-                        }
-
-                        // Iterate over the rows to paste into the copy string
-                        for (let rowIndex: number = 0; rowIndex < result.resultSubset.rows.length; rowIndex++) {
-                            let row = result.resultSubset.rows[rowIndex];
-                            let cellObjects = row.slice(range.fromCell, (range.toCell + 1));
-                            // Remove newlines if requested
-                            let cells = self.shouldRemoveNewLines()
-                                ? cellObjects.map(x => self.removeNewLines(x.displayValue))
-                                : cellObjects.map(x => x.displayValue);
-                            copyString += cells.join('\t');
-                            if (rowIndex < result.resultSubset.rows.length - 1) {
-                                copyString += os.EOL;
-                            }
-                        }
-                    });
-                };
-            });
-
-            let p = tasks[0]();
-            for (let i = 1; i < tasks.length; i++) {
-                p = p.then(tasks[i]);
+            await this._vscodeWrapper.clipboardWriteText(copyString);
+            let oldLang: string;
+            if (process.platform === 'darwin') {
+                oldLang = process.env['LANG'];
+                process.env['LANG'] = 'en_US.UTF-8';
             }
-            p.then(() => {
-                let oldLang: string;
-                if (process.platform === 'darwin') {
-                    oldLang = process.env['LANG'];
-                    process.env['LANG'] = 'en_US.UTF-8';
-                }
-                this._vscodeWrapper.clipboardWriteText(copyString).then(() => {
-                    if (process.platform === 'darwin') {
-                        process.env['LANG'] = oldLang;
+            await this._vscodeWrapper.clipboardWriteText(copyString);
+            if (process.platform === 'darwin') {
+                process.env['LANG'] = oldLang;
+            }
+        }
+
+        // create a mapping of the ranges to get promises
+        let tasks = selection.map((range, i) => {
+            return async () => {
+                const result = await this.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId);
+                if (this.shouldIncludeHeaders(includeHeaders)) {
+                    let columnHeaders = this.getColumnHeaders(batchId, resultId, range);
+                    if (columnHeaders !== undefined) {
+                        copyString += columnHeaders.join('\t') + os.EOL;
                     }
-                    resolve();
-                });
-            });
+                }
+
+                // Iterate over the rows to paste into the copy string
+                for (let rowIndex: number = 0; rowIndex < result.resultSubset.rows.length; rowIndex++) {
+                    let row = result.resultSubset.rows[rowIndex];
+                    let cellObjects = row.slice(range.fromCell, (range.toCell + 1));
+                    // Remove newlines if requested
+                    let cells = this.shouldRemoveNewLines()
+                        ? cellObjects.map(x => this.removeNewLines(x.displayValue))
+                        : cellObjects.map(x => x.displayValue);
+                    copyString += cells.join('\t');
+                    if (rowIndex < result.resultSubset.rows.length - 1) {
+                        copyString += os.EOL;
+                    }
+                }
+            };
         });
+
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+        let oldLang: string;
+        if (process.platform === 'darwin') {
+            oldLang = process.env['LANG'];
+            process.env['LANG'] = 'en_US.UTF-8';
+        }
+        await this._vscodeWrapper.clipboardWriteText(copyString);
+        if (process.platform === 'darwin') {
+            process.env['LANG'] = oldLang;
+        }
     }
 
 
-    public toggleSqlCmd(): Thenable<boolean> {
+    public async toggleSqlCmd(): Promise<boolean> {
         const queryExecuteOptions: QueryExecutionOptions = { options: new Map<string, any>() };
         queryExecuteOptions.options['isSqlCmdMode'] = !this.isSqlCmd;
         const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
             ownerUri: this.uri,
             options: queryExecuteOptions
         };
-        return this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams).then(() => {
-            this._isSqlCmd = !this._isSqlCmd;
-            return true;
-        });
+        await this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams);
+        this._isSqlCmd = !this._isSqlCmd;
+        return true;
     }
 
     private shouldIncludeHeaders(includeHeaders: boolean): boolean {
@@ -479,23 +479,21 @@ export default class QueryRunner {
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
      */
-    public setEditorSelection(selection: ISelectionData): Promise<void> {
-        const self = this;
-        return new Promise<void>(async (resolve, reject) => {
-            let column = vscode.ViewColumn.One;
-            self._vscodeWrapper.openTextDocument(self._vscodeWrapper.parseUri(self.uri)).then((doc) => {
-                self._vscodeWrapper.showTextDocument(doc, column).then(async (editor) => {
-                    let querySelection = new vscode.Selection(
-                        selection.startLine,
-                        selection.startColumn,
-                        selection.endLine,
-                        selection.endColumn);
-                    let activeEditor = vscode.window.activeTextEditor;
-                    activeEditor.selection = querySelection;
-                    resolve();
-                });
-            });
-        });
+    public async setEditorSelection(selection: ISelectionData): Promise<void> {
+        let column = vscode.ViewColumn.One;
+        const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this.uri));
+        const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+        if (activeTextEditor) {
+            column = activeTextEditor.viewColumn;
+        }
+        let editor = await this._vscodeWrapper.showTextDocument(doc, column);
+        let querySelection = new vscode.Selection(
+            selection.startLine,
+            selection.startColumn,
+            selection.endLine,
+            selection.endColumn);
+        editor.selection = querySelection;
+        return;
     }
 
     public resetHasCompleted(): void {

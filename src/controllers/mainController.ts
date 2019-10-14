@@ -29,6 +29,7 @@ import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
 import { Deferred } from '../protocol';
 import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 
 /**
  * The main controller class that initializes the extension
@@ -185,26 +186,40 @@ export default class MainController implements vscode.Disposable {
                 this._scriptingService = new ScriptingService(this._connectionMgr, this._vscodeWrapper);
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
-                        Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
-                    let uri = await this._untitledSqlDocumentService.newQuery();
-                    let editor = this._vscodeWrapper.activeTextEditor;
-                    if (editor) {
+                    Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
+                    let actionPromise = new Promise<boolean>(async (resolve, reject) => {
+                        const nodeUri = ObjectExplorerUtils.getNodeUri(node);
                         let connectionCreds = node.connectionCredentials;
                         const databaseName = self.getDatabaseName(node);
-                        connectionCreds.database = databaseName;
-                        this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                        await this.connectionManager.connect(uri.toString(), connectionCreds);
-                        this._statusview.sqlCmdModeChanged(uri.toString(), false);
-                        const selectStatement = await this._scriptingService.scriptSelect(node, uri.toString());
-                        if (editor && !editor.document.isClosed) {
-                            await editor.edit((editBuilder) => {
-                                editBuilder.replace(editor.selection, selectStatement);
-                            });
-                            await this.onRunQuery();
-                            await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+                        // if not connected or different database
+                        if (!this.connectionManager.isConnected(nodeUri) ||
+                            connectionCreds.database !== databaseName) {
+                            // make a new connection
+                            connectionCreds.database = databaseName;
+                            if (!this.connectionManager.isConnecting(nodeUri)) {
+                                const promise = new Deferred<boolean>();
+                                await this.connectionManager.connect(nodeUri, connectionCreds, promise);
+                                await promise;
+                            }
                         }
-                    }
+                        const selectStatement = await this._scriptingService.scriptSelect(node, nodeUri);
+                        const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
+                        let uri = editor.document.uri.toString();
+                        let title = path.basename(editor.document.fileName);
+                        const queryUriPromise = new Deferred<boolean>();
+                        await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
+                        await queryUriPromise;
+                        this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
+                        this._statusview.sqlCmdModeChanged(uri, false);
+                        const queryPromise = new Deferred<boolean>();
+                        await this._outputContentProvider.runQuery(self._statusview, uri, undefined, title, queryPromise);
+                        await queryPromise;
+                        await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+                        return resolve(true);
+                    });
+                    await actionPromise;
                 }));
+
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
@@ -525,10 +540,12 @@ export default class MainController implements vscode.Disposable {
 
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
-            if (!self._connectionMgr.isConnected(uri)) {
-                // create new connection
+
+            // create new connection
+            if (!self.connectionManager.isConnected(uri)) {
                 await self.onNewConnection();
             }
+
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
             // Calculate the selection if we have a selection, otherwise we'll treat null as
@@ -687,10 +704,11 @@ export default class MainController implements vscode.Disposable {
     public async onNewQuery(node?: TreeNodeInfo, content?: string): Promise<boolean> {
         if (this.canRunCommand()) {
             // from the object explorer context menu
+            const editor = await this._untitledSqlDocumentService.newQuery(content);
+            const uri = editor.document.uri.toString();
             if (node) {
-                const uri = await this._untitledSqlDocumentService.newQuery(content);
                 // connect to the node if the command came from the context
-                if (!this.connectionManager.isConnected(uri.toString())) {
+                if (!this.connectionManager.isConnected(uri)) {
                     const connectionCreds = node.connectionCredentials;
                     // if the node isn't connected
                     if (!node.sessionId) {
@@ -702,15 +720,14 @@ export default class MainController implements vscode.Disposable {
                             connectionCreds.password = password;
                         }
                     }
-                    this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                    await this.connectionManager.connect(uri.toString(), connectionCreds);
-                    this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                    this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
+                    await this.connectionManager.connect(uri, connectionCreds);
+                    this._statusview.sqlCmdModeChanged(uri, false);
                     await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
                     return Promise.resolve(true);
                 }
             } else {
                 // new query command
-                const uri = await this._untitledSqlDocumentService.newQuery();
                 const credentials = await this._connectionMgr.onNewConnection();
                 // initiate a new OE with same connection
 

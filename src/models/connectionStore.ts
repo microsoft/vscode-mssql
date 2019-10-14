@@ -279,18 +279,13 @@ export class ConnectionStore {
     /**
      * Clear all recently used connections from the MRU list.
      */
-    public clearRecentlyUsed(): Promise<void> {
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            // Update the MRU list to be empty
-            self._context.globalState.update(Constants.configRecentConnections, [])
-            .then(() => {
-                // And resolve / reject at the end of the process
-                resolve(undefined);
-            }, err => {
-                reject(err);
-            });
-        });
+    public async clearRecentlyUsed(): Promise<void> {
+        // Update the MRU list to be empty
+        try {
+            await this._context.globalState.update(Constants.configRecentConnections, []);
+        } catch (error) {
+            Promise.reject(error);
+        }
     }
 
     /**
