@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 import { IConnectionCredentials } from '../models/interfaces';
+import { ObjectMetadata } from '../models/contracts/metadata/metadataRequest';
 
 export class TreeNodeInfo extends vscode.TreeItem {
 
@@ -19,6 +20,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
     private _connectionCredentials: IConnectionCredentials;
+    private _metadata: ObjectMetadata;
 
     constructor(
         label: string,
@@ -29,7 +31,8 @@ export class TreeNodeInfo extends vscode.TreeItem {
         nodeType: string,
         sessionId: string,
         connectionCredentials: IConnectionCredentials,
-        parentNode: TreeNodeInfo
+        parentNode: TreeNodeInfo,
+        objectMetadata?: ObjectMetadata
     ) {
         super(label, collapsibleState);
         this.contextValue = contextValue;
@@ -39,6 +42,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._sessionId = sessionId;
         this._parentNode = parentNode;
         this._connectionCredentials = connectionCredentials;
+        this._metadata = objectMetadata;
         this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
     }
 
@@ -51,7 +55,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, nodeInfo.nodeType,
             nodeInfo.isLeaf ? vscode.TreeItemCollapsibleState.None :
             vscode.TreeItemCollapsibleState.Collapsed, nodeInfo.nodePath, nodeInfo.nodeStatus,
-            nodeInfo.nodeType, sessionId, connectionCredentials, parentNode);
+            nodeInfo.nodeType, sessionId, connectionCredentials, parentNode, nodeInfo.metadata);
         return treeNodeInfo;
     }
 
@@ -90,6 +94,10 @@ export class TreeNodeInfo extends vscode.TreeItem {
 
     public get connectionCredentials(): IConnectionCredentials {
         return this._connectionCredentials;
+    }
+
+    public get metadata(): ObjectMetadata {
+        return this._metadata;
     }
 
     /** Setters */
