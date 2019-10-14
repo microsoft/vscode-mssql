@@ -31,10 +31,7 @@ export class ObjectExplorerUtils {
     }
 
     public static getNodeUriFromProfile(profile: IConnectionProfile): string {
-        const uri = profile.server + '_' +
-            profile.database + '_' +
-            profile.user + '_' +
-            profile.profileName;
+        const uri = `${profile.server}_${profile.database}_${profile.user}_${profile.profileName}`;
         return uri;
     }
 
