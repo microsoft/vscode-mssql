@@ -254,7 +254,9 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
         expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
         && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
-        && expectedConn.user === conn.user;
+        && expectedConn.user === conn.user
+        && (<interfaces.IConnectionProfile>conn).savePassword ===
+        (<interfaces.IConnectionProfile>expectedConn).savePassword;
 }
 
 /**
