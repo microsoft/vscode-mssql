@@ -46,7 +46,7 @@ export class ScriptingService {
     /**
      * Helper to get the object name and schema name
      */
-    private async getObjectFromNode(node: TreeNodeInfo, uri: string): Promise<ScriptingObject> {
+    private getObjectFromNode(node: TreeNodeInfo, uri: string): ScriptingObject {
         let metadata = node.metadata;
         let scriptingObject: ScriptingObject = {
             type: metadata.metadataTypeName,
@@ -57,7 +57,7 @@ export class ScriptingService {
     }
 
     public async scriptSelect(node: TreeNodeInfo, uri: string): Promise<string> {
-        const scriptingObject = await this.getObjectFromNode(node, uri);
+        const scriptingObject = this.getObjectFromNode(node, uri);
         let serverInfo = this._connectionManager.getServerInfo(node.connectionCredentials);
         let scriptOptions: ScriptOptions = {
             scriptCreateDrop: 'ScriptSelect',
