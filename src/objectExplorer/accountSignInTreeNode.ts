@@ -14,10 +14,10 @@ export class AccountSignInTreeNode extends vscode.TreeItem {
     constructor(
         private _parentNode: TreeNodeInfo,
     ) {
-        super(LocalizedConstants.msgSignIn, vscode.TreeItemCollapsibleState.None);
+        super(LocalizedConstants.msgConnect, vscode.TreeItemCollapsibleState.None);
 
         this.command = {
-            title: LocalizedConstants.msgSignIn,
+            title: LocalizedConstants.msgConnect,
             command: Constants.cmdObjectExplorerNodeSignIn,
             arguments: [this]
         };

@@ -27,7 +27,7 @@ export default class UntitledSqlDocumentService {
         let newPosition = position.with(position.line + 1, 0);
         let newSelection = new vscode.Selection(newPosition, newPosition);
         editor.selection = newSelection;
-        return Promise.resolve(editor);
+        return editor;
     }
 }
 
