@@ -98,4 +98,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     public set objectExplorerService(value: ObjectExplorerService) {
         this._objectExplorerService = value;
     }
+
+    public set currentNode(node: TreeNodeInfo) {
+        this._objectExplorerService.currentNode = node;
+    }
 }

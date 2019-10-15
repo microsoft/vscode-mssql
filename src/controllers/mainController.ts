@@ -232,6 +232,7 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
+                        self._objectExplorerProvider.currentNode = node.parentNode;
                         await self.createObjectExplorerSession(node.parentNode.connectionCredentials);
                 }));
                 this._context.subscriptions.push(
@@ -321,18 +322,14 @@ export default class MainController implements vscode.Disposable {
      */
     private async createObjectExplorerSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
         let createSessionPromise = new Deferred<TreeNodeInfo>();
-        try {
-            await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials);
-            const newNode = await createSessionPromise;
-            if (newNode) {
-                this._objectExplorerProvider.refresh(undefined);
-                let expandSessionPromise = new Deferred<TreeNodeInfo[]>();
-                await this._objectExplorerProvider.expandNode(newNode, newNode.sessionId, expandSessionPromise);
-                await expandSessionPromise;
-                this._objectExplorerProvider.refresh(undefined);
-            }
-        } catch (err) {
-            throw err;
+        await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials);
+        const newNode = await createSessionPromise;
+        if (newNode) {
+            this._objectExplorerProvider.refresh(undefined);
+            let expandSessionPromise = new Deferred<TreeNodeInfo[]>();
+            await this._objectExplorerProvider.expandNode(newNode, newNode.sessionId, expandSessionPromise);
+            await expandSessionPromise;
+            this._objectExplorerProvider.refresh(undefined);
         }
     }
 

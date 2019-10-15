@@ -479,4 +479,11 @@ export class ObjectExplorerService {
         const connections = this._rootTreeNodeArray.map(node => node.connectionCredentials);
         return connections;
     }
+
+    /**
+     * Setters
+     */
+    public set currentNode(node: TreeNodeInfo) {
+        this._currentNode = node;
+    }
 }
