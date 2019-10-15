@@ -139,7 +139,7 @@ suite('Object Explorer Node Types Test', () => {
         const parentTreeNode = new TreeNodeInfo('parent', undefined, undefined, undefined,
             undefined, undefined, undefined, undefined, undefined);
         const accountSignInNode = new AccountSignInTreeNode(parentTreeNode);
-        expect(accountSignInNode.label, 'Label should be the same as constant').is.equal(LocalizedConstants.msgSignIn);
+        expect(accountSignInNode.label, 'Label should be the same as constant').is.equal(LocalizedConstants.msgConnect);
         expect(accountSignInNode.command, 'Account Sign In Node has a dedicated command').is.not.equal(undefined);
         expect(accountSignInNode.parentNode, 'Account Sign In Node should have a parent').is.not.equal(undefined);
         expect(accountSignInNode.collapsibleState, 'Account Sign In Node should have no collapsible state')
