@@ -154,7 +154,7 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                         Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = treeNodeInfo.connectionCredentials;
+                    const connectionCredentials = Object.assign({}, treeNodeInfo.connectionCredentials);
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel) {
