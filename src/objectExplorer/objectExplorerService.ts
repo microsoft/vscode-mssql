@@ -396,7 +396,7 @@ export class ObjectExplorerService {
             nodePath: node.nodePath
         };
         await this._connectionManager.client.sendRequest(RefreshRequest.type, refreshParams);
-        return this._objectExplorerProvider.refresh(node);
+        return this._objectExplorerProvider.refresh(undefined);
     }
 
     public signInNodeServer(node: TreeNodeInfo): void {
