@@ -267,14 +267,22 @@ export class ObjectExplorerService {
                 } else {
                     // start node session
                     let promise = new Deferred<TreeNodeInfo>();
-                    await this.createSession(promise, element.connectionCredentials);
-                    let node = await promise;
-                    // If node create session failed
-                    if (!node) {
+                    try {
+                        await this.createSession(promise, element.connectionCredentials);
+                        let node = await promise;
+                        // if password failed
+                        if (!node) {
+                            const connectNode = new ConnectTreeNode(element);
+                            this._treeNodeToChildrenMap.set(element, [connectNode]);
+                            return [connectNode];
+                        }
+                    } catch (err) {
+                        // If node create session failed
                         const signInNode = new AccountSignInTreeNode(element);
                         this._treeNodeToChildrenMap.set(element, [signInNode]);
                         return [signInNode];
                     }
+
                     // otherwise expand the node by refreshing the root
                     // to add connected context key
                     this._objectExplorerProvider.refresh(undefined);
@@ -341,6 +349,8 @@ export class ObjectExplorerService {
                 this._sessionIdToPromiseMap.set(response.sessionId, promise);
                 return;
             }
+        } else {
+            return Promise.reject();
         }
     }
 
