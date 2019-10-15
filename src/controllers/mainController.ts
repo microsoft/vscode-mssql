@@ -186,7 +186,7 @@ export default class MainController implements vscode.Disposable {
                     Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
                     let actionPromise = new Promise<boolean>(async (resolve, reject) => {
                         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-                        let connectionCreds = node.connectionCredentials;
+                        let connectionCreds = Object.assign({}, node.connectionCredentials);
                         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
                         // if not connected or different database
                         if (!this.connectionManager.isConnected(nodeUri) ||
