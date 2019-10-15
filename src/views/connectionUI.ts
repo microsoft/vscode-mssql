@@ -456,10 +456,10 @@ export class ConnectionUI {
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
+    public validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
-        if (!uri) {
+        if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
         return self.connectionManager.connect(uri, profile).then(result => {

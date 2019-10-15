@@ -6,6 +6,7 @@ import * as path from 'path';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionProfile } from '../models/interfaces';
 import Constants = require('../constants/constants');
+import LocalizedConstants = require('../constants/localizedConstants');
 
 export class ObjectExplorerUtils {
 
@@ -25,21 +26,25 @@ export class ObjectExplorerUtils {
     }
 
     public static getNodeUri(node: TreeNodeInfo): string {
-        if (node.nodeType === Constants.disconnectedServerLabel) {
-            return undefined;
-        }
-        while (node) {
-            if (node.nodeType === Constants.serverLabel) {
-                break;
-            }
-            node = node.parentNode;
-        }
-        const nodeUri = node.nodePath + '_' + node.label;
-        return nodeUri;
+        const profile = <IConnectionProfile>node.connectionCredentials;
+        return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
 
     public static getNodeUriFromProfile(profile: IConnectionProfile): string {
-        const uri = profile.server + '_' + profile.profileName;
+        const uri = `${profile.server}_${profile.database}_${profile.user}_${profile.profileName}`;
         return uri;
+    }
+
+    public static getDatabaseName(node: TreeNodeInfo): string {
+        if (node.nodeType === Constants.serverLabel) {
+            return node.connectionCredentials.database;
+        }
+        while (node) {
+            if (node.nodeType === Constants.databaseString) {
+                return node.label;
+            }
+            node = node.parentNode;
+        }
+        return LocalizedConstants.defaultDatabaseLabel;
     }
 }
