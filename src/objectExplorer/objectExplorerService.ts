@@ -350,6 +350,7 @@ export class ObjectExplorerService {
                 return;
             }
         } else {
+            // no connection was made
             return Promise.reject();
         }
     }
