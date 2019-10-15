@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 import { IConnectionCredentials } from '../models/interfaces';
+import Constants = require('../constants/constants');
 import { ObjectMetadata } from '../models/contracts/metadata/metadataRequest';
 
 export class TreeNodeInfo extends vscode.TreeItem {
@@ -52,9 +53,12 @@ export class TreeNodeInfo extends vscode.TreeItem {
         parentNode: TreeNodeInfo,
         connectionCredentials: IConnectionCredentials,
         label?: string): TreeNodeInfo {
+
         const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, nodeInfo.nodeType,
             nodeInfo.isLeaf ? vscode.TreeItemCollapsibleState.None :
-            vscode.TreeItemCollapsibleState.Collapsed, nodeInfo.nodePath, nodeInfo.nodeStatus,
+            (nodeInfo.nodeType === Constants.serverLabel ? vscode.TreeItemCollapsibleState.Expanded :
+            vscode.TreeItemCollapsibleState.Collapsed),
+            nodeInfo.nodePath, nodeInfo.nodeStatus,
             nodeInfo.nodeType, sessionId, connectionCredentials, parentNode, nodeInfo.metadata);
         return treeNodeInfo;
     }
