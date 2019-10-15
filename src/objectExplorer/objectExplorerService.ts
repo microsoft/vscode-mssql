@@ -267,10 +267,17 @@ export class ObjectExplorerService {
                 } else {
                     // start node session
                     let promise = new Deferred<TreeNodeInfo>();
-                    await this.createSession(promise, element.connectionCredentials);
-                    let node = await promise;
-                    // If node create session failed
-                    if (!node) {
+                    const sessionId = await this.createSession(promise, element.connectionCredentials);
+                    if (sessionId) {
+                        let node = await promise;
+                        // if password failed
+                        if (!node) {
+                            const connectNode = new ConnectTreeNode(element);
+                            this._treeNodeToChildrenMap.set(element, [connectNode]);
+                            return [connectNode];
+                        }
+                    } else {
+                        // If node create session failed
                         const signInNode = new AccountSignInTreeNode(element);
                         this._treeNodeToChildrenMap.set(element, [signInNode]);
                         return [signInNode];
@@ -310,7 +317,7 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionCredentials Connection Credentials for a node
      */
-    public async createSession(promise: Deferred<vscode.TreeItem>, connectionCredentials?: IConnectionCredentials): Promise<void> {
+    public async createSession(promise: Deferred<vscode.TreeItem | undefined>, connectionCredentials?: IConnectionCredentials): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.showConnections(false);
@@ -325,7 +332,8 @@ export class ObjectExplorerService {
                         // prompt for password
                         password = await this._connectionManager.connectionUI.promptForPassword();
                         if (!password) {
-                            return promise.resolve(undefined);
+                            promise.resolve(undefined);
+                            return undefined;
                         }
                     } else {
                         // look up saved password
@@ -339,8 +347,12 @@ export class ObjectExplorerService {
             if (response) {
                 this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
                 this._sessionIdToPromiseMap.set(response.sessionId, promise);
-                return;
+                return response.sessionId;
             }
+        } else {
+            // no connection was made
+            promise.resolve(undefined);
+            return undefined;
         }
     }
 
@@ -467,5 +479,12 @@ export class ObjectExplorerService {
     public get rootNodeConnections(): IConnectionCredentials[] {
         const connections = this._rootTreeNodeArray.map(node => node.connectionCredentials);
         return connections;
+    }
+
+    /**
+     * Setters
+     */
+    public set currentNode(node: TreeNodeInfo) {
+        this._currentNode = node;
     }
 }
