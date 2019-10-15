@@ -317,7 +317,7 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionCredentials Connection Credentials for a node
      */
-    public async createSession(promise: Deferred<vscode.TreeItem>, connectionCredentials?: IConnectionCredentials): Promise<string> {
+    public async createSession(promise: Deferred<vscode.TreeItem | undefined>, connectionCredentials?: IConnectionCredentials): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.showConnections(false);
@@ -351,6 +351,7 @@ export class ObjectExplorerService {
             }
         } else {
             // no connection was made
+            promise.resolve(undefined);
             return undefined;
         }
     }
