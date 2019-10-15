@@ -267,8 +267,8 @@ export class ObjectExplorerService {
                 } else {
                     // start node session
                     let promise = new Deferred<TreeNodeInfo>();
-                    try {
-                        await this.createSession(promise, element.connectionCredentials);
+                    const sessionId = await this.createSession(promise, element.connectionCredentials);
+                    if (sessionId) {
                         let node = await promise;
                         // if password failed
                         if (!node) {
@@ -276,13 +276,12 @@ export class ObjectExplorerService {
                             this._treeNodeToChildrenMap.set(element, [connectNode]);
                             return [connectNode];
                         }
-                    } catch (err) {
+                    } else {
                         // If node create session failed
                         const signInNode = new AccountSignInTreeNode(element);
                         this._treeNodeToChildrenMap.set(element, [signInNode]);
                         return [signInNode];
                     }
-
                     // otherwise expand the node by refreshing the root
                     // to add connected context key
                     this._objectExplorerProvider.refresh(undefined);
@@ -318,7 +317,7 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionCredentials Connection Credentials for a node
      */
-    public async createSession(promise: Deferred<vscode.TreeItem>, connectionCredentials?: IConnectionCredentials): Promise<void> {
+    public async createSession(promise: Deferred<vscode.TreeItem>, connectionCredentials?: IConnectionCredentials): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.showConnections(false);
@@ -333,7 +332,8 @@ export class ObjectExplorerService {
                         // prompt for password
                         password = await this._connectionManager.connectionUI.promptForPassword();
                         if (!password) {
-                            return promise.resolve(undefined);
+                            promise.resolve(undefined);
+                            return undefined;
                         }
                     } else {
                         // look up saved password
@@ -347,11 +347,11 @@ export class ObjectExplorerService {
             if (response) {
                 this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
                 this._sessionIdToPromiseMap.set(response.sessionId, promise);
-                return;
+                return response.sessionId;
             }
         } else {
             // no connection was made
-            return Promise.reject();
+            return undefined;
         }
     }
 
