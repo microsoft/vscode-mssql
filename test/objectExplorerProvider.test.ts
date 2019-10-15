@@ -186,7 +186,8 @@ suite('Object Explorer Node Types Test', () => {
             nodeType: undefined,
             label: 'test_node',
             isLeaf: false,
-            errorMessage: undefined
+            errorMessage: undefined,
+            metadata: undefined
         };
         const treeNodeInfo = TreeNodeInfo.fromNodeInfo(nodeInfo, 'test_session',
             undefined, undefined, undefined);
@@ -200,5 +201,6 @@ suite('Object Explorer Node Types Test', () => {
         expect(treeNodeInfo.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
         expect(treeNodeInfo.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
         expect(treeNodeInfo.errorMessage, 'Error message should be equal to expected value').is.equal('test_error');
+        expect(treeNodeInfo.metadata, 'Node metadata should be the same as nodeInfo metadata').is.equal(nodeInfo.metadata);
     });
 });
