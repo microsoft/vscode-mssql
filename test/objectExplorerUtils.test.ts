@@ -21,16 +21,25 @@ suite('Object Explorer Utils Tests', () => {
     });
 
     test('Test getNodeUri function', () => {
+        const disconnectedProfile = new ConnectionProfile();
+        disconnectedProfile.server = 'disconnected_server';
+        const testProfile = new ConnectionProfile();
+        testProfile.server = 'test_server';
+        testProfile.profileName = 'test_profile';
+        testProfile.database = 'test_database';
+        testProfile.user = 'test_user';
         const disconnectedTestNode = new TreeNodeInfo('disconnectedTest', undefined, undefined, undefined,
-        undefined, 'disconnectedServer', undefined, undefined, undefined);
+        undefined, 'disconnectedServer', undefined, disconnectedProfile, undefined);
         const serverTestNode = new TreeNodeInfo('serverTest', undefined, undefined, 'test_path',
-        undefined, 'Server', undefined, undefined, undefined);
+        undefined, 'Server', undefined, testProfile, undefined);
         const databaseTestNode = new TreeNodeInfo('databaseTest', undefined, undefined, 'test_path',
-        undefined, 'Database', undefined, undefined, serverTestNode);
+        undefined, 'Database', undefined, testProfile, serverTestNode);
         const tableTestNode = new TreeNodeInfo('tableTest', undefined, undefined, 'test_path',
-        undefined, 'Table', undefined, undefined, databaseTestNode);
+        undefined, 'Table', undefined, testProfile, databaseTestNode);
         const testNodes = [disconnectedTestNode, serverTestNode, tableTestNode];
-        const expectedUris = [undefined, 'test_path_serverTest', 'test_path_serverTest'];
+        const expectedUris = ['disconnected_server_undefined_undefined_undefined',
+            'test_server_test_database_test_user_test_profile',
+            'test_server_test_database_test_user_test_profile'];
 
         for (let i = 0; i < testNodes.length; i++) {
             const nodeUri = ObjectExplorerUtils.getNodeUri(testNodes[i]);
@@ -42,11 +51,13 @@ suite('Object Explorer Utils Tests', () => {
         const testProfile = new ConnectionProfile();
         testProfile.server = 'test_server';
         testProfile.profileName = 'test_profile';
+        testProfile.database = 'test_database';
+        testProfile.user = 'test_user';
         const testProfile2 = new ConnectionProfile();
         testProfile2.server = 'test_server2';
         testProfile2.profileName = undefined;
         const testProfiles = [testProfile, testProfile2];
-        const expectedProfiles = ['test_server_test_profile', 'test_server2_undefined'];
+        const expectedProfiles = ['test_server_test_database_test_user_test_profile', 'test_server2_undefined_undefined_undefined'];
 
         for (let i = 0; i < testProfiles.length; i++) {
             const uri = ObjectExplorerUtils.getNodeUriFromProfile(testProfiles[i]);

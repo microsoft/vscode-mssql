@@ -170,8 +170,8 @@ suite('Object Explorer Node Types Test', () => {
         expect(treeNode.sessionId, 'Session ID should be equal to expected value').is.equal('test_session');
         treeNode.nodeSubType = treeNode.nodeSubType;
         expect(treeNode.nodeSubType, 'Node Sub type should be equal to expected value').is.equal(undefined);
-        treeNode.isLeaf = treeNode.isLeaf;
-        expect(treeNode.isLeaf, 'Node should not be a leaf').is.equal(undefined);
+        treeNode.isLeaf = false;
+        expect(treeNode.isLeaf, 'Node should not be a leaf').is.equal(false);
         treeNode.parentNode = treeNode.parentNode;
         expect(treeNode.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
         treeNode.connectionCredentials = treeNode.connectionCredentials;
@@ -197,6 +197,7 @@ suite('Object Explorer Node Types Test', () => {
         expect(treeNodeInfo.nodeType, 'Node type should be equal to expected value').is.equal(nodeInfo.nodeType);
         expect(treeNodeInfo.sessionId, 'Session ID should be equal to expected value').is.equal('test_session');
         expect(treeNodeInfo.nodeSubType, 'Node Sub type should be equal to expected value').is.equal(nodeInfo.nodeSubType);
+        treeNodeInfo.isLeaf = nodeInfo.isLeaf;
         expect(treeNodeInfo.isLeaf, 'Node should not be a leaf').is.equal(nodeInfo.isLeaf);
         expect(treeNodeInfo.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
         expect(treeNodeInfo.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
