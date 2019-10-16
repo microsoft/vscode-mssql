@@ -37,7 +37,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         }
     }
 
-    async createSession(promise: Deferred<TreeNodeInfo>, connectionCredentials?: IConnectionCredentials): Promise<void> {
+    async createSession(promise: Deferred<TreeNodeInfo>, connectionCredentials?: IConnectionCredentials): Promise<string> {
         return this._objectExplorerService.createSession(promise, connectionCredentials);
     }
 
@@ -97,5 +97,9 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     /* Only for testing purposes */
     public set objectExplorerService(value: ObjectExplorerService) {
         this._objectExplorerService = value;
+    }
+
+    public set currentNode(node: TreeNodeInfo) {
+        this._objectExplorerService.currentNode = node;
     }
 }
