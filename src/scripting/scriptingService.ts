@@ -7,15 +7,13 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ScriptingService {
 
     private _client: SqlToolsServiceClient;
 
     constructor(
-        private _connectionManager: ConnectionManager,
-        private _vscodeWrapper: VscodeWrapper
+        private _connectionManager: ConnectionManager
     ) {
         this._client = this._connectionManager.client;
     }

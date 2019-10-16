@@ -180,7 +180,7 @@ export default class MainController implements vscode.Disposable {
                 });
 
                 // initiate the scripting service
-                this._scriptingService = new ScriptingService(this._connectionMgr, this._vscodeWrapper);
+                this._scriptingService = new ScriptingService(this._connectionMgr);
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                     Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
