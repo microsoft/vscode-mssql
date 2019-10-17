@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 import * as path from 'path';
 import { ObjectExplorerUtils } from '../src/objectExplorer/objectExplorerUtils';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 
@@ -62,6 +62,26 @@ suite('Object Explorer Utils Tests', () => {
         for (let i = 0; i < testProfiles.length; i++) {
             const uri = ObjectExplorerUtils.getNodeUriFromProfile(testProfiles[i]);
             expect(uri, 'Node URI should be the same as expected Node URI').is.equal(expectedProfiles[i]);
+        }
+    });
+
+    test('Test getDatabaseName', () => {
+        const testProfile = new ConnectionProfile();
+        testProfile.server = 'test_server';
+        testProfile.profileName = 'test_profile';
+        testProfile.database = 'test_database';
+        testProfile.user = 'test_user';
+        const serverTestNode = new TreeNodeInfo('serverTest', undefined, undefined, 'test_path',
+        undefined, 'Server', undefined, testProfile, undefined);
+        const databaseTestNode = new TreeNodeInfo('databaseTest', undefined, undefined, 'test_path',
+        undefined, 'Database', undefined, undefined, serverTestNode);
+        const tableTestNode = new TreeNodeInfo('tableTest', undefined, undefined, 'test_path',
+        undefined, 'Table', undefined, undefined, databaseTestNode);
+        const testNodes = [serverTestNode, databaseTestNode, tableTestNode];
+        const expectedDatabaseNames = ['test_database', 'databaseTest', 'databaseTest'];
+        for (let i = 0; i < testNodes.length; i++) {
+            let databaseName = ObjectExplorerUtils.getDatabaseName(testNodes[i]);
+            assert.equal(databaseName, expectedDatabaseNames[i]);
         }
     });
 });
