@@ -20,6 +20,17 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## What's new in 1.7.0
+* Announcing IntelliCode support
+* SQL Server Connections viewlet
+* Added support for SQLCMD Mode
+* Updated SqlClient driver
+* Users can adjust size of SQL results window
+* Users can navigate with keyboard away from SQL results screen
+* Fixed copy paste with keyboard shortcut
+* Added Copy Header option to results grid
+* Fix "Save as CSV" exception
+
 ## What's new in 1.6.0
 * Extension install no longer requires reloading VS Code
 * Update Query Results Webview API calls for compatibility with VS Code May release
