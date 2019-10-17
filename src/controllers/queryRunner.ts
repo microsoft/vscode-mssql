@@ -425,7 +425,7 @@ export default class QueryRunner {
 
 
     public async toggleSqlCmd(): Promise<boolean> {
-        const queryExecuteOptions: QueryExecutionOptions = { options: new Map<string, any>() };
+        const queryExecuteOptions: QueryExecutionOptions = { options: {} };
         queryExecuteOptions.options['isSqlCmdMode'] = !this.isSqlCmd;
         const queryExecuteOptionsParams: QueryExecutionOptionsParams = {
             ownerUri: this.uri,
