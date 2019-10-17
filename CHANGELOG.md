@@ -6,6 +6,7 @@
 
 ## What's new in 1.7.0
 * Announcing IntelliCode support
+* SQL Server Connections viewlet
 * Added support for SQLCMD Mode
 * Updated SqlClient driver
 * Users can adjust size of SQL results window
