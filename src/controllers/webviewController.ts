@@ -10,7 +10,7 @@ import { readFile as fsreadFile } from 'fs';
 import { promisify } from 'util';
 import * as ejs from 'ejs';
 import * as path from 'path';
-import QueryRunner from './queryRunner';
+import VscodeWrapper from './vscodeWrapper';
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);
@@ -28,18 +28,19 @@ export class WebviewPanelController implements vscode.Disposable {
     private _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
-    private _isPanelFocused: boolean = true;
+    private _isActive: boolean;
+    private _rendered: boolean = false;
 
     constructor(
+        private _vscodeWrapper: VscodeWrapper,
         uri: string,
         title: string,
         serverProxy: IServerProxy,
-        private baseUri: string,
-        private queryRunner: QueryRunner
+        private baseUri: string
     ) {
-        const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
+        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
-        const column = newResultPaneViewColumn(uri);
+        const column = this.newResultPaneViewColumn(uri);
         this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title, column, {
             retainContextWhenHidden,
             enableScripts: true
@@ -48,27 +49,49 @@ export class WebviewPanelController implements vscode.Disposable {
             this.dispose();
         });
         this._disposables.push(this._panel.onDidChangeViewState((p) => {
-            // if the webview tab changed, cache state
-            if (!p.webviewPanel.visible && !p.webviewPanel.active) {
-                this._isPanelFocused = false;
+            // occurs when current tab is back in focus
+            if (p.webviewPanel.active && p.webviewPanel.visible) {
+                this._isActive = true;
                 return;
-
-            // if the webview just got focus
-            } else if (p.webviewPanel.visible && p.webviewPanel.active && !this._isPanelFocused) {
-                if (!this.queryRunner.isExecutingQuery) {
-                    // for refresh
-                    // give a 2 sec delay because the the webview visible event is fired
-                    // before the angular component is actually built. Give time for the
-                    // angular component to show up
-                    setTimeout(async () => await this.queryRunner.refreshQueryTab(), 2000);
-                }
-            // if focus is on text editor
-            } else if (p.webviewPanel.visible && !p.webviewPanel.active) {
-                this._isPanelFocused = true;
+            }
+            // occurs when we switch the current tab
+            if (!p.webviewPanel.active && !p.webviewPanel.visible) {
+                this._isActive = false;
                 return;
             }
         }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
+    }
+
+    private newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
+        // Find configuration options
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
+        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let viewColumn: vscode.ViewColumn;
+
+        switch (splitPaneSelection) {
+            case 'current':
+                viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+                break;
+            case 'end':
+                viewColumn = vscode.ViewColumn.Three;
+                break;
+            // default case where splitPaneSelection is next or anything else
+            default:
+                // if there's an active text editor
+                if (this._vscodeWrapper.isEditingSqlFile) {
+                    viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+                    if (viewColumn === vscode.ViewColumn.One) {
+                        viewColumn = vscode.ViewColumn.Two;
+                    } else {
+                        viewColumn = vscode.ViewColumn.Three;
+                    }
+                } else {
+                    // otherwise take default results column
+                    viewColumn = vscode.ViewColumn.Two;
+                }
+        }
+        return viewColumn;
     }
 
     public async init(): Promise<void> {
@@ -85,33 +108,44 @@ export class WebviewPanelController implements vscode.Disposable {
         this._isDisposed = true;
     }
 
+    public revealToForeground(): void {
+        this._panel.reveal();
+    }
+
+    /** Getters */
+
+    /**
+     * Property indicating whether the tab is active
+     */
+    public get isActive(): boolean {
+        return this._isActive;
+    }
+
+    /**
+     * Property indicating whether the panel controller
+     * is disposed or not
+     */
     public get isDisposed(): boolean {
         return this._isDisposed;
     }
-}
 
-function newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
-    // Find configuration options
-    let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(queryUri));
-    let splitPaneSelection = config[Constants.configSplitPaneSelection];
-    let viewColumn: vscode.ViewColumn;
-
-
-    switch (splitPaneSelection) {
-        case 'current':
-            viewColumn = vscode.window.activeTextEditor.viewColumn;
-            break;
-        case 'end':
-            viewColumn = vscode.ViewColumn.Three;
-            break;
-        // default case where splitPaneSelection is next or anything else
-        default:
-            if (vscode.window.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
-                viewColumn = vscode.ViewColumn.Two;
-            } else {
-                viewColumn = vscode.ViewColumn.Three;
-            }
+    /**
+     * Property indicating whether the angular app
+     * has rendered or not
+     */
+    public get rendered(): boolean {
+        return this._rendered;
     }
 
-    return viewColumn;
+    /**
+     * Setters
+     */
+
+    /**
+     * Property indicating whether the angular app
+     * has rendered or not
+     */
+    public set rendered(value: boolean) {
+        this._rendered = value;
+    }
 }

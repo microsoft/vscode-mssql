@@ -1,0 +1,43 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
+'use strict';
+import * as TypeMoq from 'typemoq';
+import * as Contracts from '../src/models/contracts';
+import SqlToolsServiceClient from '../src/languageservice/serviceclient';
+import { CredentialStore } from '../src/credentialstore/credentialstore';
+import { ICredentialStore } from '../src/credentialstore/icredentialstore';
+
+suite('Credential Store Tests', () => {
+
+    let client: TypeMoq.IMock<SqlToolsServiceClient>;
+    let credentialStore: ICredentialStore;
+
+    setup(() => {
+        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
+        client.setup(c => c.sendRequest(Contracts.SaveCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
+        client.setup(c => c.sendRequest(Contracts.ReadCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+        client.setup(c => c.sendRequest(Contracts.DeleteCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+        credentialStore = new CredentialStore(client.object);
+    });
+
+    test('Read credential should send a ReadCredentialRequest', () => {
+        credentialStore.readCredential('test_credential').then(() => {
+            client.verify(c => c.sendRequest(Contracts.ReadCredentialRequest.type, TypeMoq.It.isAny()), TypeMoq.Times.once());
+        });
+    });
+
+    test('Save credential should send a SaveCredentialRequest', () => {
+        credentialStore.saveCredential('test_credential', 'test_password').then(() => {
+            client.verify(c => c.sendRequest(Contracts.SaveCredentialRequest.type, TypeMoq.It.isAny()), TypeMoq.Times.once());
+        });
+    });
+
+    test('Delete credential should send a DeleteCredentialRequest', () => {
+        credentialStore.deleteCredential('test_credential').then(() => {
+            client.verify(c => c.sendRequest(Contracts.DeleteCredentialRequest.type, TypeMoq.It.isAny()), TypeMoq.Times.once());
+        });
+    });
+});

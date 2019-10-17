@@ -418,6 +418,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     break;
             }
         });
+        this.dataService.sendReadyEvent(this.uri);
     }
 
     ngAfterViewChecked(): void {
@@ -467,7 +468,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'copyWithHeaders':
                 this.dataService.copyResults(event.selection, event.batchId, event.resultId, true);
                 break;
-            case 'copyHeaders':
+            case 'copyAllHeaders':
                 this.dataService.copyResults(undefined, event.batchId, event.resultId, true);
                 break;
             default:
@@ -767,15 +768,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      *
      */
-    keyEvent(e): void {
+    keyEvent(e: KeyboardEvent): void {
         const self = this;
-        if (e.detail) {
-            e.which = e.detail.which;
-            e.ctrlKey = e.detail.ctrlKey;
-            e.metaKey = e.detail.metaKey;
-            e.altKey = e.detail.altKey;
-            e.shiftKey = e.detail.shiftKey;
-        }
         let eString = this.shortcuts.buildEventString(e);
         this.shortcuts.getEvent(eString).then((result) => {
             if (result) {

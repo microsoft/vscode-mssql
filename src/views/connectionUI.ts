@@ -73,10 +73,15 @@ export class ConnectionUI {
 
     // Helper to let user choose a connection from a picklist
     // Return the ConnectionInfo for the user's choice
-    public showConnections(): Promise<IConnectionCredentials> {
+    public showConnections(showExistingConnections: boolean = true): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
+            let picklist: IConnectionCredentialsQuickPickItem[];
+            if (showExistingConnections) {
+                picklist = self._connectionStore.getPickListItems();
+            } else {
+                picklist = [];
+            }
             if (picklist.length === 0) {
                 // No connections - go to the create profile workflow
                 self.createAndSaveProfile().then(resolvedProfile => {
@@ -451,10 +456,10 @@ export class ConnectionUI {
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
+    public validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
-        if (!uri) {
+        if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
         return self.connectionManager.connect(uri, profile).then(result => {
@@ -485,7 +490,7 @@ export class ConnectionUI {
         return ConnectionProfile.createProfile(this._prompter);
     }
 
-    private promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
+    public promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
         // Ask if the user would like to fix the profile
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryCreateProfile, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {

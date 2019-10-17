@@ -15,7 +15,7 @@ import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
-import { IServerProxy } from '../protocol';
+import { IServerProxy, Deferred } from '../protocol';
 import { ResultSetSubset } from './contracts/queryExecute';
 const pd = require('pretty-data').pd;
 
@@ -96,12 +96,16 @@ export class SqlOutputContentProvider {
 
     public async runQuery(
             statusView: any, uri: string,
-            selection: ISelectionData, title: string): Promise<void> {
+            selection: ISelectionData, title: string, promise?: Deferred<boolean>): Promise<void> {
         // execute the query with a query runner
         await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
-            (queryRunner) => {
+            async (queryRunner) => {
                 if (queryRunner) {
-                    queryRunner.runQuery(selection);
+                    // if the panel isn't active, bring it to foreground
+                    if (!this._panels.get(uri).isActive) {
+                        this._panels.get(uri).revealToForeground();
+                    }
+                    await queryRunner.runQuery(selection, promise);
                 }
             });
     }
@@ -153,9 +157,10 @@ export class SqlOutputContentProvider {
                 this.saveResultsRequestHandler(uri, batchId, resultId, format, selection),
             setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
             showError: (message: string) => this.showErrorRequestHandler(message),
-            showWarning: (message: string) => this.showWarningRequestHandler(message)
+            showWarning: (message: string) => this.showWarningRequestHandler(message),
+            sendReadyEvent: async () => await this.sendReadyEvent(uri)
         };
-        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath, queryRunner);
+        const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath);
         this._panels.set(uri, controller);
         await controller.init();
     }
@@ -281,6 +286,26 @@ export class SqlOutputContentProvider {
                 value.timeout = this.setRunnerDeletionTimeout(key);
             }
         }
+    }
+
+    /**
+     * Ready event sent by the angular app
+     * @param uri
+     */
+    private async sendReadyEvent(uri: string): Promise<boolean> {
+        const panelController = this._panels.get(uri);
+        const queryRunner = this.getQueryRunner(uri);
+        // in case of a tab switch
+        // and if it has rendered before
+        if (panelController.isActive &&
+            queryRunner.hasCompleted &&
+            panelController.rendered) {
+            return queryRunner.refreshQueryTab(uri);
+        } else {
+            // first ready event
+            panelController.rendered = true;
+        }
+        return false;
     }
 
     private setRunnerDeletionTimeout(uri: string): NodeJS.Timer {
