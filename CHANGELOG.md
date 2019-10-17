@@ -1,5 +1,23 @@
 # Change Log
 
+## Version 1.7.0
+* Release date: October 17, 2019
+* Release status: GA
+
+## What's new in 1.7.0
+* Announcing IntelliCode support
+* SQL Server Connections viewlet
+* Added support for SQLCMD Mode
+* Updated SqlClient driver
+* Users can adjust size of SQL results window
+* Users can navigate with keyboard away from SQL results screen
+* Fixed copy paste with keyboard shortcut
+* Added Copy Header option to results grid
+* Fix "Save as CSV" exception
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues.
+
 ## Version 1.6.0
 * Release date: April 22, 2019
 * Release status: GA
