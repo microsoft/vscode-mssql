@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 1.7.0
-* Release date: April 22, 2019
+* Release date: October 17, 2019
 * Release status: GA
 
 ## What's new in 1.7.0
