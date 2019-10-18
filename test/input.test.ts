@@ -58,7 +58,7 @@ suite('Input Prompt Tests', () => {
         vscodeWrapper.setup(v => v.showInputBox(TypeMoq.It.isAny())).returns(() => Promise.resolve(''));
         const validationQuestion = {
             default: 'test',
-            validation: (e) => false
+            validate: (e) => false
         };
         let listPrompt = new InputPrompt(validationQuestion, vscodeWrapper.object);
         listPrompt.render();

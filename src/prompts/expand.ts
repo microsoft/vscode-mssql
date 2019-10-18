@@ -33,7 +33,7 @@ export default class ExpandPrompt extends Prompt {
         let options = this.defaultQuickPickOptions;
         options.placeHolder = this._question.message;
 
-        return vscode.window.showQuickPick(choices, options)
+        return this._vscodeWrapper.showQuickPick(choices, options)
             .then(result => {
                 if (result === undefined) {
                     throw new EscapeException();
@@ -51,7 +51,7 @@ export default class ExpandPrompt extends Prompt {
         let options = this.defaultQuickPickOptions;
         options.placeHolder = this._question.message;
 
-        return vscode.window.showQuickPick(Object.keys(choiceMap), options)
+        return this._vscodeWrapper.showQuickPickStrings(Object.keys(choiceMap), options)
             .then(result => {
                 if (result === undefined) {
                     throw new EscapeException();

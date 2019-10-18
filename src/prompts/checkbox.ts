@@ -3,7 +3,6 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import { window } from 'vscode';
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
@@ -32,7 +31,7 @@ export default class CheckboxPrompt extends Prompt {
         let quickPickOptions = Object.keys(choices);
         quickPickOptions.push(figures.tick);
 
-        return window.showQuickPick(quickPickOptions, options)
+        return this._vscodeWrapper.showQuickPickStrings(quickPickOptions, options)
             .then(result => {
                 if (result === undefined) {
                     throw new EscapeException();
