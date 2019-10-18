@@ -64,4 +64,17 @@ suite('Code Adapter Tests', () => {
         // Error case
         adapter.prompt([{ type: 'test', message: 'test', name: 'test'}]);
     });
+
+    test('prompting a checkbox question should call fixQuestion', () => {
+        let formattedQuestion: IQuestion = {
+            type: 'checkbox',
+            message: 'test',
+            name: 'test_checkbox',
+            choices: [{name: 'test_choice', value: 'test_choice'}]
+        };
+        adapter.promptSingle(formattedQuestion);
+        let question: any = Object.assign({}, formattedQuestion);
+        question.choices[0] = 'test';
+        adapter.promptSingle(question);
+    });
 });

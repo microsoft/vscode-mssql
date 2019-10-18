@@ -3,7 +3,7 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import {window, InputBoxOptions} from 'vscode';
+import { InputBoxOptions } from 'vscode';
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
@@ -38,7 +38,7 @@ export default class InputPrompt extends Prompt {
 
         this._options.placeHolder = placeHolder;
 
-        return window.showInputBox(this._options)
+        return this._vscodeWrapper.showInputBox(this._options)
             .then(result => {
                 if (result === undefined) {
                     throw new EscapeException();
