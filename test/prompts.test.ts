@@ -24,10 +24,13 @@ suite('Prompts test', () => {
 
     test('Test input prompt', () => {
         let question: any =  {
-            type: 'input'
+            type: 'input',
+            default: Error('test'),
+            placeHolder: 'test_placeHolder'
         };
         let prompt = PromptFactory.createPrompt(question);
         assert.equal(prompt instanceof InputPrompt, true);
+        assert.equal(question.type, InputPrompt.promptType);
     });
 
     test('Test password prompt', () => {
