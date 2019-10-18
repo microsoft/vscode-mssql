@@ -128,6 +128,7 @@ export class QueryExecutionOptionsParams {
     options: QueryExecutionOptions;
 }
 
-export class QueryExecutionOptions {
-    options: Map<string, any>;
+// tslint:disable-next-line:interface-name
+export interface QueryExecutionOptions {
+    [option: string]: any;
 }
