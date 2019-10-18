@@ -7,13 +7,17 @@ import vscode = require('vscode');
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 import { INameValueChoice } from './question';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 const figures = require('figures');
 
 export default class ExpandPrompt extends Prompt {
 
-    constructor(question: any, ignoreFocusOut?: boolean) {
-        super(question, ignoreFocusOut);
+    constructor(
+        question: any,
+        vscodeWrapper: VscodeWrapper,
+        ignoreFocusOut?: boolean) {
+        super(question, vscodeWrapper, ignoreFocusOut);
     }
 
     public render(): any {

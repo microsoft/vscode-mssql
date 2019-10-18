@@ -6,11 +6,15 @@
 import { window } from 'vscode';
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export default class ListPrompt extends Prompt {
 
-    constructor(question: any, ignoreFocusOut?: boolean) {
-        super(question, ignoreFocusOut);
+    constructor(
+        question: any,
+        vscodeWrapper: VscodeWrapper,
+        ignoreFocusOut?: boolean) {
+        super(question, vscodeWrapper, ignoreFocusOut);
     }
 
     public render(): any {

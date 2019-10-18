@@ -7,11 +7,15 @@ import { window } from 'vscode';
 import Prompt from './prompt';
 import LocalizedConstants = require('../constants/localizedConstants');
 import EscapeException from '../utils/EscapeException';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export default class ConfirmPrompt extends Prompt {
 
-    constructor(question: any, ignoreFocusOut?: boolean) {
-        super(question, ignoreFocusOut);
+    constructor(
+        question: any,
+        vscodeWrapper: VscodeWrapper,
+        ignoreFocusOut?: boolean) {
+        super(question, vscodeWrapper, ignoreFocusOut);
     }
 
     public render(): any {
