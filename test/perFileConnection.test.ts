@@ -5,7 +5,7 @@
 
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
-import { ExtensionContext } from 'vscode';
+import { ExtensionContext, OutputChannel } from 'vscode';
 
 import { IPrompter } from '../src/prompts/question';
 import SqlToolsServiceClient from './../src/languageservice/serviceclient';
@@ -113,9 +113,11 @@ suite('Per File Connection Tests', () => {
 
     test('onNewConnection should ask user for different credentials if connection failed because of invalid credentials', done => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        let outputChannel = TypeMoq.Mock.ofType<OutputChannel>();
         let none: void;
         const testFile = 'file:///my/test/file.sql';
         vscodeWrapperMock.callBase = true;
+        vscodeWrapperMock.setup(x => x.createOutputChannel(TypeMoq.It.isAny())).returns(() => outputChannel.object);
         vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => false);
         vscodeWrapperMock.setup(x => x.logToOutputChannel(TypeMoq.It.isAny())).returns(() => none);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
@@ -152,9 +154,11 @@ suite('Per File Connection Tests', () => {
 
     test('onNewConnection only prompt user for new credentials onces even if the connection fails again', done => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        let outputChannel = TypeMoq.Mock.ofType<OutputChannel>();
         let none: void;
         const testFile = 'file:///my/test/file.sql';
         vscodeWrapperMock.callBase = true;
+        vscodeWrapperMock.setup(x => x.createOutputChannel(TypeMoq.It.isAny())).returns(() => outputChannel.object);
         vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => false);
         vscodeWrapperMock.setup(x => x.logToOutputChannel(TypeMoq.It.isAny())).returns(() => none);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => testFile);
