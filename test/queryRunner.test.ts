@@ -676,6 +676,7 @@ suite('Query Runner tests', () => {
                 selection: undefined
             } as any;
 
+            testVscodeWrapper.setup(x => x.textDocuments).returns(() => [editor.document]);
             testVscodeWrapper.setup(x => x.activeTextEditor).returns(() => editor);
             testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(editor.document));
             testVscodeWrapper.setup(x => x.showTextDocument(editor.document, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
@@ -709,6 +710,7 @@ suite('Query Runner tests', () => {
                 selection: undefined
             } as any;
 
+            testVscodeWrapper.setup(x => x.textDocuments).returns(() => [editor.document]);
             testVscodeWrapper.setup(x => x.visibleEditors).returns(() => []);
             testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(editor.document));
             testVscodeWrapper.setup(x => x.showTextDocument(editor.document, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
