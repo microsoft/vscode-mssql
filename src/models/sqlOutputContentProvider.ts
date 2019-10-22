@@ -75,7 +75,10 @@ export class SqlOutputContentProvider {
     }
 
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
-        this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
+        const docExists = this._vscodeWrapper.textDocuments.find(doc => doc.uri.toString() === uri);
+        if (docExists) {
+            this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
+        }
     }
 
     public showErrorRequestHandler(message: string): void {
