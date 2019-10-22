@@ -209,6 +209,7 @@
       "view/title": [
         {
           "command": "extension.addObjectExplorer",
+          "when": "view == objectExplorer",
           "title": "%extension.addObjectExplorer%",
           "group": "navigation"
         }
@@ -216,50 +217,50 @@
       "view/item/context": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem =~ /^(disconnectedServer|Server|Database)$/",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server|Database)$/",
           "group": "MS_SQL@1"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "viewItem =~ /^(disconnectedServer|Server)$/",
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
           "group": "MS_SQL@3"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "viewItem != disconnectedServer",
+          "when": "view == objectExplorer && viewItem != disconnectedServer",
           "group": "MS_SQL@2"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
-          "when": "viewItem == Server",
+          "when": "view == objectExplorer && viewItem == Server",
           "group": "MS_SQL@4"
         },
         {
           "command": "extension.scriptSelect",
-          "when": "viewItem =~ /^(Table|View)$/",
+          "when": "view == objectExplorer && viewItem =~ /^(Table|View)$/",
           "group": "MS_SQL@1"
         }
       ],
       "commandPalette": [
         {
           "command": "extension.objectExplorerNewQuery",
-          "when": "viewItem =~ /^(disconnectedServer|Server|Database)$/"
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server|Database)$/"
         },
         {
           "command": "extension.removeObjectExplorerNode",
-          "when": "viewItem =~ /^(disconnectedServer|Server)$/"
+          "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/"
         },
         {
           "command": "extension.refreshObjectExplorerNode",
-          "when": "viewItem != disconnectedServer"
+          "when": "view == objectExplorer && viewItem != disconnectedServer"
         },
         {
           "command": "extension.scriptSelect",
-          "when": "viewItem =~ /^(Table|View)$/"
+          "when": "view == objectExplorer && viewItem =~ /^(Table|View)$/"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
-          "when": "viewItem == Server"
+          "when": "view == objectExplorer && viewItem == Server"
         },
         {
           "command": "extension.toggleSqlCmd",
