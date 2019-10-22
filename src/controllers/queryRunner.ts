@@ -484,20 +484,23 @@ export default class QueryRunner {
      * @param selection The selection range to select
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
-        let column = vscode.ViewColumn.One;
-        const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this.uri));
-        const activeTextEditor = this._vscodeWrapper.activeTextEditor;
-        if (activeTextEditor) {
-            column = activeTextEditor.viewColumn;
+        const docExists = this._vscodeWrapper.textDocuments.find(textDoc => textDoc.uri.toString() === this.uri);
+        if (docExists) {
+            let column = vscode.ViewColumn.One;
+            const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this.uri));
+            const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+            if (activeTextEditor) {
+                column = activeTextEditor.viewColumn;
+            }
+            let editor = await this._vscodeWrapper.showTextDocument(doc, column);
+            let querySelection = new vscode.Selection(
+                selection.startLine,
+                selection.startColumn,
+                selection.endLine,
+                selection.endColumn);
+            editor.selection = querySelection;
+            return;
         }
-        let editor = await this._vscodeWrapper.showTextDocument(doc, column);
-        let querySelection = new vscode.Selection(
-            selection.startLine,
-            selection.startColumn,
-            selection.endLine,
-            selection.endColumn);
-        editor.selection = querySelection;
-        return;
     }
 
     public resetHasCompleted(): void {
