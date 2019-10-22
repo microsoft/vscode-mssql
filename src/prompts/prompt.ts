@@ -4,15 +4,22 @@
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
 import { InputBoxOptions, QuickPickOptions } from 'vscode';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 abstract class Prompt {
 
     protected _question: any;
     protected _ignoreFocusOut?: boolean;
+    protected _vscodeWrapper: VscodeWrapper;
 
-    constructor(question: any, ignoreFocusOut?: boolean) {
+    constructor(
+        question: any,
+        vscodeWrapper: VscodeWrapper,
+        ignoreFocusOut?: boolean
+    ) {
         this._question = question;
         this._ignoreFocusOut = ignoreFocusOut ? ignoreFocusOut : false;
+        this._vscodeWrapper = vscodeWrapper;
     }
 
     public abstract render(): any;

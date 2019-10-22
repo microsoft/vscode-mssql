@@ -229,10 +229,21 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Shows an input box with given options
+     */
+    public showInputBox(options?: vscode.InputBoxOptions): Thenable<string> {
+        return vscode.window.showInputBox(options);
+    }
+
+    /**
      * Formats and shows a vscode information message
      */
     public showInformationMessage(msg: string, ...items: string[]): Thenable<string> {
         return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg, ...items);
+    }
+
+    public showQuickPickStrings(items: string[] | Thenable<string[]>, options?: vscode.QuickPickOptions): Thenable<string | undefined> {
+        return vscode.window.showQuickPick(items, options);
     }
 
     /**
