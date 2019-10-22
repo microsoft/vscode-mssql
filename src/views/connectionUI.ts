@@ -222,7 +222,7 @@ export class ConnectionUI {
             };
             self._prompter.promptSingle(question).then( value => {
                 if (value) {
-                    vscode.commands.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
+                    this._vscodeWrapper.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
                         self.waitForLanguageModeToBeSql().then( result => {
                             resolve(result);
                         });
