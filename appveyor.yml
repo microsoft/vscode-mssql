@@ -34,6 +34,8 @@ test_script:
 
 coverage_script:
   - gulp cover:jenkins
+
+publish_script:
   - ./node_modules/.bin/coveralls < coverage/lcov.info
 
 on_finish:
