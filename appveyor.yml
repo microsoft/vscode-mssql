@@ -33,7 +33,9 @@ test_script:
   - node ./node_modules/vscode/bin/test
 
 after_test:
-  - gulp cover:jenkins
+  - gulp cover:clean
+  - gulp cover:enableconfig
+  - gulp cover:combine-json
   - ./node_modules/.bin/coveralls < coverage/lcov.info
 
 on_finish:
