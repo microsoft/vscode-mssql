@@ -2,6 +2,8 @@ environment:
   nodejs_version: "6.9.1"
   # Temporary Code version due to https://github.com/Microsoft/vscode-extension-vscode/issues/64
   CODE_VERSION: 1.33.0
+  COVERALLS_REPO_TOKEN:
+    secure: yDAV24iOuk28iTfIZX9+U4LB7UGtNG8pHY4mCP9eVxl0aQK/Yu2fDesgaj3utsyE
 
 
 # safelist
@@ -29,6 +31,10 @@ build_script:
 
 test_script:
   - node ./node_modules/vscode/bin/test
+
+coverage_script:
+  - gulp cover:jenkins
+  - ./node_modules/.bin/coveralls < coverage/lcov.info
 
 on_finish:
   - ps: scripts\upload.ps1
