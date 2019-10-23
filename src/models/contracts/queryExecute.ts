@@ -107,6 +107,7 @@ export class QueryExecuteSubsetParams {
 export class DbCellValue {
     displayValue: string;
     isNull: boolean;
+    rowId?: number;
 }
 
 export class ResultSetSubset {

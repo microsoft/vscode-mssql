@@ -20,7 +20,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteBatchNotificationParams,
     QueryExecuteOptionsRequest,
     QueryExecutionOptionsParams,
-    QueryExecutionOptions} from '../models/contracts/queryExecute';
+    QueryExecutionOptions,
+    DbCellValue} from '../models/contracts/queryExecute';
 import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
@@ -380,38 +381,65 @@ export default class QueryRunner {
             }
         }
 
+        // add column headers
+        if (this.shouldIncludeHeaders(includeHeaders)) {
+            let columnHeaders = this.getColumnHeaders(batchId, resultId, selection[0]);
+            if (columnHeaders !== undefined) {
+                copyString += columnHeaders.join('\t') + os.EOL;
+            }
+        }
+
+        // sort the selections by row to maintain copy order
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        // create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
         // create a mapping of the ranges to get promises
-        let tasks = selection.map((range, i) => {
+        let tasks = selection.map((range) => {
             return async () => {
                 const result = await this.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId);
-                if (this.shouldIncludeHeaders(includeHeaders)) {
-                    let columnHeaders = this.getColumnHeaders(batchId, resultId, range);
-                    if (columnHeaders !== undefined) {
-                        copyString += columnHeaders.join('\t') + os.EOL;
+                for (let row of result.resultSubset.rows) {
+                    let rowNumber = row[0].rowId + range.fromRow;
+                    if (rowIdToSelectionMap.has(rowNumber)) {
+                        let rowSelection = rowIdToSelectionMap.get(rowNumber);
+                        rowSelection.push(range);
+                        rowIdToSelectionMap.set(rowNumber, rowSelection);
+                    } else {
+                        rowIdToSelectionMap.set(rowNumber, [range]);
                     }
-                }
-
-                // Iterate over the rows to paste into the copy string
-                for (let rowIndex: number = 0; rowIndex < result.resultSubset.rows.length; rowIndex++) {
-                    let row = result.resultSubset.rows[rowIndex];
-                    let cellObjects = row.slice(range.fromCell, (range.toCell + 1));
-                    // Remove newlines if requested
-                    let cells = this.shouldRemoveNewLines()
-                        ? cellObjects.map(x => this.removeNewLines(x.displayValue))
-                        : cellObjects.map(x => x.displayValue);
-                    copyString += cells.join('\t');
-                    if (rowIndex < result.resultSubset.rows.length - 1) {
-                        copyString += os.EOL;
-                    }
+                    rowIdToRowMap.set(rowNumber, row);
                 }
             };
         });
 
+        // get all the rows
         let p = tasks[0]();
         for (let i = 1; i < tasks.length; i++) {
             p = p.then(tasks[i]);
         }
         await p;
+
+        let allRowIds = rowIdToRowMap.keys();
+        for (let rowId of allRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+            for (let i = 0; i < rowSelections.length; i++) {
+                let rowSelection = rowSelections[i];
+                for (let j = 0; j < rowSelection.fromCell; j++) {
+                    copyString += ' \t';
+                }
+                let cellObjects = row.slice(rowSelection.fromCell, (rowSelection.toCell + 1));
+                // Remove newlines if requested
+                let cells = this.shouldRemoveNewLines()
+                ? cellObjects.map(x => this.removeNewLines(x.displayValue))
+                : cellObjects.map(x => x.displayValue);
+                copyString += cells.join('\t');
+            }
+            copyString += os.EOL;
+        }
+
         let oldLang: string;
         if (process.platform === 'darwin') {
             oldLang = process.env['LANG'];
