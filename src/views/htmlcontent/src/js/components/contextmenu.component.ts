@@ -82,7 +82,6 @@ export class ContextMenu implements OnInit {
         this.resultId = resultId;
         this.index = index;
         this.selection = selection;
-        this.isDisabled = (selection.length > 1);
         this.position = { x: x, y: y};
         this.visible = true;
     }

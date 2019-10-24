@@ -381,13 +381,28 @@ export default class QueryRunner {
             }
         }
 
-        // add column headers
+        // add the column headers
         if (this.shouldIncludeHeaders(includeHeaders)) {
-            let columnHeaders = this.getColumnHeaders(batchId, resultId, selection[0]);
-            if (columnHeaders !== undefined) {
-                copyString += columnHeaders.join('\t') + os.EOL;
+            let firstCol: number;
+            let lastCol: number;
+            for (let range of selection) {
+                if (firstCol === undefined || (range.fromCell < firstCol)) {
+                    firstCol = range.fromCell;
+                }
+                if (lastCol === undefined || (range.toCell > lastCol)) {
+                    lastCol = range.toCell;
+                }
             }
+            let columnRange: ISlickRange = {
+                fromCell: firstCol,
+                toCell: lastCol,
+                fromRow: undefined,
+                toRow: undefined
+            };
+            let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
+            copyString += columnHeaders.join('\t');
         }
+        copyString += os.EOL;
 
         // sort the selections by row to maintain copy order
         selection.sort((a, b) => a.fromRow - b.fromRow);
@@ -421,6 +436,7 @@ export default class QueryRunner {
         }
         await p;
 
+        // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
         for (let rowId of allRowIds) {
             let row = rowIdToRowMap.get(rowId);

@@ -725,6 +725,153 @@ suite('Query Runner tests', () => {
             }, err => done(err));
         });
     });
+
+    suite('Copy Tests with multiple selections', () => {
+        // ------ Common inputs and setup for copy tests  -------
+        const testuri = 'test';
+        let testresult: QueryExecuteSubsetResult = {
+            resultSubset: {
+                rowCount: 5,
+                rows: [
+                    [{isNull: false, displayValue: '1'}, {isNull: false, displayValue: '2'}, {isNull: false, displayValue: '3'}],
+                    [{isNull: false, displayValue: '4'}, {isNull: false, displayValue: '5'}, {isNull: false, displayValue: '6'}],
+                    [{isNull: false, displayValue: '7'}, {isNull: false, displayValue: '8'}, {isNull: false, displayValue: '9'}],
+                    [{isNull: false, displayValue: '10'}, {isNull: false, displayValue: '11'}, {isNull: false, displayValue: '12'}],
+                    [{isNull: false, displayValue: '13'}, {isNull: false, displayValue: '14'}, {isNull: false, displayValue: '15'}]
+                ]
+            }
+        };
+        process.env['LANG'] = 'C';
+
+        let testRange: ISlickRange[] = [{fromCell: 0, fromRow: 0, toCell: 1, toRow: 2},
+                                        {fromCell: 1, fromRow: 1, toCell: 2, toRow: 4}];
+
+        let result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: testuri,
+            batchSummaries: [{
+                hasError: false,
+                id: 0,
+                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+                resultSetSummaries: <ResultSetSummary[]> [{
+                    id: 0,
+                    rowCount: 5,
+                    columnInfo: [
+                        { columnName: 'Col1' },
+                        { columnName: 'Col2' },
+                        { columnName: 'Col3' }
+                    ]
+                }],
+                executionElapsed: undefined,
+                executionStart: new Date().toISOString(),
+                executionEnd: new Date().toISOString()
+            }]
+        };
+
+        setup(() => {
+            testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
+                                                            TypeMoq.It.isAny())).callback(() => {
+                                                                // testing
+                                                            }).returns(() => { return Promise.resolve(testresult); });
+            testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+            testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
+            testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+            testVscodeWrapper.setup(x => x.clipboardWriteText(TypeMoq.It.isAnyString())).callback(() => {
+                                                                // testing
+                                                            }).returns(() => { return Promise.resolve(); });
+
+        });
+
+        // ------ Copy tests with multiple selections  -------
+        test('Correctly copy pastes a selection', (done) => {
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = false;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            queryRunner.copyResults(testRange, 0, 0).then(() => {
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+                done();
+            });
+        });
+
+        test('Copies selection with column headers set in user config', () => {
+            // Set column headers in the user config settings
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = true;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleQueryComplete(result);
+            return queryRunner.copyResults(testRange, 0, 0).then(() => {
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            });
+        });
+
+        test('Copies selection with headers when true passed as parameter', () => {
+            // Do not set column config in user settings
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = false;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleQueryComplete(result);
+
+            // call copyResults with additional parameter indicating to include headers
+            return queryRunner.copyResults(testRange, 0, 0, true).then(() => {
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            });
+        });
+
+        test('Copies selection without headers when false passed as parameter', () => {
+            // Set column config in user settings
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.copyIncludeHeaders] = true;
+            setupWorkspaceConfig(configResult);
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleQueryComplete(result);
+
+            // call copyResults with additional parameter indicating to not include headers
+            return queryRunner.copyResults(testRange, 0, 0, false).then(() => {
+                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+            });
+        });
+    });
 });
 
 /**
