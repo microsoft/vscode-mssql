@@ -1,5 +1,5 @@
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/Microsoft/vscode-mssql?svg=true&retina=true&branch=master)](https://ci.appveyor.com/project/kburtram/vscode-mssql)
-[![Coverage Status](https://coveralls.io/repos/github/Microsoft/vscode-mssql/badge.svg?branch=master)](https://coveralls.io/github/Microsoft/vscode-mssql?branch=master)
+[![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=master)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=master)
+[![Coverage Status](https://coveralls.io/repos/github/microsoft/vscode-mssql/badge.svg?branch=master)](https://coveralls.io/github/microsoft/vscode-mssql?branch=master)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 
