@@ -420,7 +420,6 @@ export default class QueryRunner {
                     if (rowIdToSelectionMap.has(rowNumber)) {
                         let rowSelection = rowIdToSelectionMap.get(rowNumber);
                         rowSelection.push(range);
-                        rowIdToSelectionMap.set(rowNumber, rowSelection);
                     } else {
                         rowIdToSelectionMap.set(rowNumber, [range]);
                     }
@@ -453,8 +452,12 @@ export default class QueryRunner {
                 : cellObjects.map(x => x.displayValue);
                 copyString += cells.join('\t');
             }
+            copyString.trim();
             copyString += os.EOL;
         }
+
+        // Remove any extra EOLs and tabs
+        copyString.trim();
 
         let oldLang: string;
         if (process.platform === 'darwin') {
