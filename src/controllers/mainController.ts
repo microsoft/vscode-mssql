@@ -162,6 +162,7 @@ export default class MainController implements vscode.Disposable {
                     } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
                         connectionCredentials.database = '';
                     }
+                    treeNodeInfo.connectionCredentials = connectionCredentials;
                     await self.onNewQuery(treeNodeInfo);
                 }));
 
