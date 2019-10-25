@@ -430,6 +430,9 @@ export default class QueryRunner {
             copyString += os.EOL;
         }
 
+        // Remove any extra lines
+        copyString.trim();
+
         let oldLang: string;
         if (process.platform === 'darwin') {
             oldLang = process.env['LANG'];
