@@ -430,8 +430,9 @@ export default class QueryRunner {
             copyString += os.EOL;
         }
 
-        // Remove any extra lines
-        copyString.trim();
+        // Remove the last extra new line
+        copyString = copyString.substring(0, copyString.length - 1);
+
 
         let oldLang: string;
         if (process.platform === 'darwin') {
