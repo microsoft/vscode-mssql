@@ -431,7 +431,7 @@ export default class QueryRunner {
         }
 
         // Remove the last extra new line
-        copyString = copyString.substring(0, copyString.length - 1);
+        copyString = copyString.substring(0, copyString.length - os.EOL.length);
 
 
         let oldLang: string;
