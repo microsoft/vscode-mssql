@@ -356,31 +356,6 @@ export default class QueryRunner {
     public async copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): Promise<void> {
         let copyString = '';
 
-        // if just copy headers
-        if (!selection && this.shouldIncludeHeaders(includeHeaders)) {
-            const columns = this.batchSets[batchId].resultSetSummaries[resultId].columnInfo.length;
-            const headerRange: ISlickRange = {
-                fromRow: 0,
-                fromCell: 0,
-                toRow: 0,
-                toCell: columns
-            };
-            let columnHeaders = this.getColumnHeaders(batchId, resultId, headerRange);
-            if (columnHeaders !== undefined) {
-                copyString += columnHeaders.join('\t') + os.EOL;
-            }
-            await this._vscodeWrapper.clipboardWriteText(copyString);
-            let oldLang: string;
-            if (process.platform === 'darwin') {
-                oldLang = process.env['LANG'];
-                process.env['LANG'] = 'en_US.UTF-8';
-            }
-            await this._vscodeWrapper.clipboardWriteText(copyString);
-            if (process.platform === 'darwin') {
-                process.env['LANG'] = oldLang;
-            }
-        }
-
         // add the column headers
         if (this.shouldIncludeHeaders(includeHeaders)) {
             let firstCol: number;
@@ -490,14 +465,14 @@ export default class QueryRunner {
         }
         // else get config option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
-        includeHeaders = config[Constants.copyIncludeHeaders];
+        includeHeaders = config.get(Constants.copyIncludeHeaders);
         return !!includeHeaders;
     }
 
     private shouldRemoveNewLines(): boolean {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
-        let removeNewLines: boolean = config[Constants.configCopyRemoveNewLine];
+        let removeNewLines: boolean = config.get(Constants.configCopyRemoveNewLine);
         return removeNewLines;
     }
 
@@ -513,7 +488,7 @@ export default class QueryRunner {
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
-        let showBatchTime: boolean = config[Constants.configShowBatchTime];
+        let showBatchTime: boolean = config.get(Constants.configShowBatchTime);
         if (showBatchTime) {
             let message: IResultMessage = {
                 batchId: batchId,

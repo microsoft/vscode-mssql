@@ -730,6 +730,7 @@ suite('Query Runner tests', () => {
 
     suite('Copy Tests with multiple selections', () => {
         // ------ Common inputs and setup for copy tests  -------
+        let mockConfig: TypeMoq.IMock<vscode.WorkspaceConfiguration>;
         const testuri = 'test';
         let testresult: QueryExecuteSubsetResult = {
             resultSubset: {
@@ -780,15 +781,17 @@ suite('Query Runner tests', () => {
             testVscodeWrapper.setup(x => x.clipboardWriteText(TypeMoq.It.isAnyString())).callback(() => {
                                                                 // testing
                                                             }).returns(() => { return Promise.resolve(); });
-
         });
 
-        // ------ Copy tests with multiple selections  -------
-        test('Correctly copy pastes a selection', (done) => {
-            let configResult: {[key: string]: any} = {};
-            configResult[Constants.copyIncludeHeaders] = false;
-            setupWorkspaceConfig(configResult);
+        function setupMockConfig(): void {
+            mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
+            mockConfig.setup(c => c.get(TypeMoq.It.isAnyString())).returns(() => false);
+            testVscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => mockConfig.object);
+        }
 
+        // ------ Copy tests with multiple selections  -------
+        test('Correctly copy pastes a selection', async () => {
+            setupMockConfig();
             let queryRunner = new QueryRunner(
                 testuri,
                 testuri,
@@ -798,18 +801,18 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            queryRunner.copyResults(testRange, 0, 0).then(() => {
-                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-                done();
-            });
+            await queryRunner.copyResults(testRange, 0, 0);
+            // Two selections
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            // Once for new lines and once for headers
+            testVscodeWrapper.verify(v => v.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeast(2));
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.once());
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
 
-        test('Copies selection with column headers set in user config', () => {
+        test('Copies selection with column headers set in user config', async () => {
+            setupMockConfig();
             // Set column headers in the user config settings
-            let configResult: {[key: string]: any} = {};
-            configResult[Constants.copyIncludeHeaders] = true;
-            setupWorkspaceConfig(configResult);
-
             let queryRunner = new QueryRunner(
                 testuri,
                 testuri,
@@ -821,17 +824,17 @@ suite('Query Runner tests', () => {
             queryRunner.uri = testuri;
             // Call handleResult to ensure column header info is seeded
             queryRunner.handleQueryComplete(result);
-            return queryRunner.copyResults(testRange, 0, 0).then(() => {
-                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-            });
+            await queryRunner.copyResults(testRange, 0, 0);
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.once());
+            // Two selections
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            testVscodeWrapper.verify(v => v.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeast(2));
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
 
-        test('Copies selection with headers when true passed as parameter', () => {
+        test('Copies selection with headers when true passed as parameter', async () => {
+            setupMockConfig();
             // Do not set column config in user settings
-            let configResult: {[key: string]: any} = {};
-            configResult[Constants.copyIncludeHeaders] = false;
-            setupWorkspaceConfig(configResult);
-
             let queryRunner = new QueryRunner(
                 testuri,
                 testuri,
@@ -845,17 +848,16 @@ suite('Query Runner tests', () => {
             queryRunner.handleQueryComplete(result);
 
             // call copyResults with additional parameter indicating to include headers
-            return queryRunner.copyResults(testRange, 0, 0, true).then(() => {
-                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-            });
+            await queryRunner.copyResults(testRange, 0, 0, true);
+            testVscodeWrapper.verify(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeastOnce());
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.never());
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
 
-        test('Copies selection without headers when false passed as parameter', () => {
+        test('Copies selection without headers when false passed as parameter', async () => {
+            setupMockConfig();
             // Set column config in user settings
-            let configResult: {[key: string]: any} = {};
-            configResult[Constants.copyIncludeHeaders] = true;
-            setupWorkspaceConfig(configResult);
-
             let queryRunner = new QueryRunner(
                 testuri,
                 testuri,
@@ -869,9 +871,11 @@ suite('Query Runner tests', () => {
             queryRunner.handleQueryComplete(result);
 
             // call copyResults with additional parameter indicating to not include headers
-            return queryRunner.copyResults(testRange, 0, 0, false).then(() => {
-                testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
-            });
+            await queryRunner.copyResults(testRange, 0, 0, false);
+            testVscodeWrapper.verify(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeastOnce());
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.never());
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
     });
 });
