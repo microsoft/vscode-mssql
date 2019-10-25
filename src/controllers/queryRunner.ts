@@ -427,7 +427,6 @@ export default class QueryRunner {
                 : cellObjects.map(x => x.displayValue);
                 copyString += cells.join('\t');
             }
-            copyString.trim();
             copyString += os.EOL;
         }
 
