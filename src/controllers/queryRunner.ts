@@ -376,8 +376,8 @@ export default class QueryRunner {
             };
             let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
             copyString += columnHeaders.join('\t');
+            copyString += os.EOL;
         }
-        copyString += os.EOL;
 
         // sort the selections by row to maintain copy order
         selection.sort((a, b) => a.fromRow - b.fromRow);
@@ -431,8 +431,9 @@ export default class QueryRunner {
         }
 
         // Remove the last extra new line
-        copyString = copyString.substring(0, copyString.length - os.EOL.length);
-
+        if (copyString.length > 1) {
+            copyString = copyString.substring(0, copyString.length - os.EOL.length);
+        }
 
         let oldLang: string;
         if (process.platform === 'darwin') {
