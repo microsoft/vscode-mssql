@@ -20,7 +20,8 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteBatchNotificationParams,
     QueryExecuteOptionsRequest,
     QueryExecutionOptionsParams,
-    QueryExecutionOptions} from '../models/contracts/queryExecute';
+    QueryExecutionOptions,
+    DbCellValue} from '../models/contracts/queryExecute';
 import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
@@ -355,63 +356,85 @@ export default class QueryRunner {
     public async copyResults(selection: ISlickRange[], batchId: number, resultId: number, includeHeaders?: boolean): Promise<void> {
         let copyString = '';
 
-        // if just copy headers
-        if (!selection && this.shouldIncludeHeaders(includeHeaders)) {
-            const columns = this.batchSets[batchId].resultSetSummaries[resultId].columnInfo.length;
-            const headerRange: ISlickRange = {
-                fromRow: 0,
-                fromCell: 0,
-                toRow: 0,
-                toCell: columns
+        // add the column headers
+        if (this.shouldIncludeHeaders(includeHeaders)) {
+            let firstCol: number;
+            let lastCol: number;
+            for (let range of selection) {
+                if (firstCol === undefined || (range.fromCell < firstCol)) {
+                    firstCol = range.fromCell;
+                }
+                if (lastCol === undefined || (range.toCell > lastCol)) {
+                    lastCol = range.toCell;
+                }
+            }
+            let columnRange: ISlickRange = {
+                fromCell: firstCol,
+                toCell: lastCol,
+                fromRow: undefined,
+                toRow: undefined
             };
-            let columnHeaders = this.getColumnHeaders(batchId, resultId, headerRange);
-            if (columnHeaders !== undefined) {
-                copyString += columnHeaders.join('\t') + os.EOL;
-            }
-            await this._vscodeWrapper.clipboardWriteText(copyString);
-            let oldLang: string;
-            if (process.platform === 'darwin') {
-                oldLang = process.env['LANG'];
-                process.env['LANG'] = 'en_US.UTF-8';
-            }
-            await this._vscodeWrapper.clipboardWriteText(copyString);
-            if (process.platform === 'darwin') {
-                process.env['LANG'] = oldLang;
-            }
+            let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
+            copyString += columnHeaders.join('\t');
+            copyString += os.EOL;
         }
 
+        // sort the selections by row to maintain copy order
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        // create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
         // create a mapping of the ranges to get promises
-        let tasks = selection.map((range, i) => {
+        let tasks = selection.map((range) => {
             return async () => {
                 const result = await this.getRows(range.fromRow, range.toRow - range.fromRow + 1, batchId, resultId);
-                if (this.shouldIncludeHeaders(includeHeaders)) {
-                    let columnHeaders = this.getColumnHeaders(batchId, resultId, range);
-                    if (columnHeaders !== undefined) {
-                        copyString += columnHeaders.join('\t') + os.EOL;
+                for (let row of result.resultSubset.rows) {
+                    let rowNumber = row[0].rowId + range.fromRow;
+                    if (rowIdToSelectionMap.has(rowNumber)) {
+                        let rowSelection = rowIdToSelectionMap.get(rowNumber);
+                        rowSelection.push(range);
+                    } else {
+                        rowIdToSelectionMap.set(rowNumber, [range]);
                     }
-                }
-
-                // Iterate over the rows to paste into the copy string
-                for (let rowIndex: number = 0; rowIndex < result.resultSubset.rows.length; rowIndex++) {
-                    let row = result.resultSubset.rows[rowIndex];
-                    let cellObjects = row.slice(range.fromCell, (range.toCell + 1));
-                    // Remove newlines if requested
-                    let cells = this.shouldRemoveNewLines()
-                        ? cellObjects.map(x => this.removeNewLines(x.displayValue))
-                        : cellObjects.map(x => x.displayValue);
-                    copyString += cells.join('\t');
-                    if (rowIndex < result.resultSubset.rows.length - 1) {
-                        copyString += os.EOL;
-                    }
+                    rowIdToRowMap.set(rowNumber, row);
                 }
             };
         });
 
+        // get all the rows
         let p = tasks[0]();
         for (let i = 1; i < tasks.length; i++) {
             p = p.then(tasks[i]);
         }
         await p;
+
+        // Go through all rows and get selections for them
+        let allRowIds = rowIdToRowMap.keys();
+        for (let rowId of allRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+            for (let i = 0; i < rowSelections.length; i++) {
+                let rowSelection = rowSelections[i];
+                for (let j = 0; j < rowSelection.fromCell; j++) {
+                    copyString += ' \t';
+                }
+                let cellObjects = row.slice(rowSelection.fromCell, (rowSelection.toCell + 1));
+                // Remove newlines if requested
+                let cells = this.shouldRemoveNewLines()
+                ? cellObjects.map(x => this.removeNewLines(x.displayValue))
+                : cellObjects.map(x => x.displayValue);
+                copyString += cells.join('\t');
+            }
+            copyString += os.EOL;
+        }
+
+        // Remove the last extra new line
+        if (copyString.length > 1) {
+            copyString = copyString.substring(0, copyString.length - os.EOL.length);
+        }
+
         let oldLang: string;
         if (process.platform === 'darwin') {
             oldLang = process.env['LANG'];
@@ -443,14 +466,14 @@ export default class QueryRunner {
         }
         // else get config option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
-        includeHeaders = config[Constants.copyIncludeHeaders];
+        includeHeaders = config.get(Constants.copyIncludeHeaders);
         return !!includeHeaders;
     }
 
     private shouldRemoveNewLines(): boolean {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
-        let removeNewLines: boolean = config[Constants.configCopyRemoveNewLine];
+        let removeNewLines: boolean = config.get(Constants.configCopyRemoveNewLine);
         return removeNewLines;
     }
 
@@ -466,7 +489,7 @@ export default class QueryRunner {
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this.uri);
-        let showBatchTime: boolean = config[Constants.configShowBatchTime];
+        let showBatchTime: boolean = config.get(Constants.configShowBatchTime);
         if (showBatchTime) {
             let message: IResultMessage = {
                 batchId: batchId,
