@@ -33,7 +33,8 @@ before_install:
 install:
   - npm install -g --silent gulp-cli
   - npm install -g --silent xvfb-maybe@0.1.3
-  - npm install
+  - npm install -g --silent yarn@1.17.0
+  - yarn install
   - gulp install
 script:
   - gulp build

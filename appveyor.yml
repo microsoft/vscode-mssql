@@ -19,12 +19,13 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   - npm install -g npm@4
+  - npm install -g yarn@1.17.0
   # show versions
   - npm --version
   - node --version
   - npm install -g --silent gulp-cli
   # install modules
-  - npm install
+  - yarn install
   - gulp install
 
 build_script:
