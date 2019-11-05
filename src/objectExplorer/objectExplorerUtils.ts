@@ -31,7 +31,12 @@ export class ObjectExplorerUtils {
     }
 
     public static getNodeUriFromProfile(profile: IConnectionProfile): string {
-        const uri = `${profile.server}_${profile.database}_${profile.user}_${profile.profileName}`;
+        let uri: string;
+        if (profile.authenticationType === Constants.sqlAuthentication) {
+            uri = `${profile.server}_${profile.database}_${profile.user}_${profile.profileName}`;
+        } else {
+            uri = `${profile.server}_${profile.database}_${profile.profileName}`;
+        }
         return uri;
     }
 
@@ -40,8 +45,10 @@ export class ObjectExplorerUtils {
             return node.connectionCredentials.database;
         }
         while (node) {
-            if (node.nodeType === Constants.databaseString) {
-                return node.label;
+            if (node.metadata) {
+                if (node.metadata.metadataTypeName === Constants.databaseString) {
+                    return node.metadata.name;
+                }
             }
             node = node.parentNode;
         }
