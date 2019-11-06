@@ -254,6 +254,11 @@
           "command": "extension.scriptExecute",
           "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/",
           "group": "MS_SQL@1"
+        },
+        {
+          "command": "extension.scriptAlter",
+          "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/",
+          "group": "MS_SQL@1"
         }
       ],
       "commandPalette": [
@@ -284,6 +289,10 @@
         {
           "command": "extension.scriptExecute",
           "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/"
+        },
+        {
+          "command": "extension.scriptAlter",
+          "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
@@ -403,6 +412,11 @@
       {
         "command": "extension.scriptExecute",
         "title": "%extension.scriptExecute%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "extension.scriptAlter",
+        "title": "%extension.scriptAlter%",
         "group": "MS SQL"
       }
     ],

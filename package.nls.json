@@ -7,6 +7,7 @@
 "extension.scriptCreate":"Script as Create",
 "extension.scriptDelete":"Script as Drop",
 "extension.scriptExecute":"Script as Execute",
+"extension.scriptAlter":"Script as Alter",
 "extension.removeObjectExplorerNode":"Remove",
 "extension.refreshObjectExplorerNode":"Refresh",
 "extension.connections":"Connections",

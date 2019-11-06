@@ -242,6 +242,12 @@ export default class MainController implements vscode.Disposable {
                     Constants.cmdScriptExecute, async (node: TreeNodeInfo) =>
                     this.scriptNode(node, ScriptOperation.Execute)));
 
+                // Script as Alter
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
+                    Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
+                    this.scriptNode(node, ScriptOperation.Alter)));
+
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
                 this._vscodeWrapper.onDidOpenTextDocument(params => this.onDidOpenTextDocument(params));
