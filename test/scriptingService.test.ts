@@ -7,7 +7,7 @@ import * as TypeMoq from 'typemoq';
 import ConnectionManager from '../src/controllers/connectionManager';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { ScriptingService } from '../src/scripting/scriptingService';
-import { ScriptingRequest, ScriptingObject, ScriptingResult } from '../src/models/contracts/scripting/scriptingRequest';
+import { ScriptingRequest, ScriptingObject, ScriptingResult, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
 import { Script } from 'vm';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ServerInfo } from '../src/models/contracts/connection';
@@ -73,7 +73,7 @@ suite('Scripting Service Tests', () => {
         const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
             undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.scriptSelect(testNode, 'test_uri');
+        const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Select);
         assert.notEqual(script, undefined);
     });
 });

@@ -4,6 +4,8 @@
 "extension.cancelQuery":"Cancel Query",
 "extension.addObjectExplorer":"Add Connection",
 "extension.scriptSelect":"Select Top 1000",
+"extension.scriptCreate":"Script as Create",
+"extension.scriptDelete":"Script as Drop",
 "extension.removeObjectExplorerNode":"Remove",
 "extension.refreshObjectExplorerNode":"Refresh",
 "extension.connections":"Connections",

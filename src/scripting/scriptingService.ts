@@ -7,6 +7,7 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
+import { NodeType } from './nodeType';
 
 export class ScriptingService {
 
@@ -41,6 +42,12 @@ export class ScriptingService {
         7: 'SqlServerStretchEdition'
     };
 
+    // mapping for scripting operations for various objects
+    static readonly canExecute = new Set([NodeType.StoredProcedure]);
+    static readonly canAlter = new Set([NodeType.AggregateFunction, NodeType.PartitionFunction, NodeType.ScalarValuedFunction,
+    NodeType.StoredProcedure, NodeType.TableValuedFunction, NodeType.View]);
+
+
     /**
      * Helper to get the object name and schema name
      * (Public for testing purposes)
@@ -55,11 +62,27 @@ export class ScriptingService {
         return scriptingObject;
     }
 
-    public async scriptSelect(node: TreeNodeInfo, uri: string): Promise<string> {
+    /**
+     * Helper to create scripting params
+     */
+    public createScriptingParams(node: TreeNodeInfo, uri: string, operation: ScriptOperation): ScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
         let serverInfo = this._connectionManager.getServerInfo(node.connectionCredentials);
+        let scriptCreateDropOption: string;
+        switch (operation) {
+            case (ScriptOperation.Select):
+                scriptCreateDropOption = 'ScriptSelect';
+                break;
+            case (ScriptOperation.Delete):
+                scriptCreateDropOption = 'ScriptDrop';
+                break;
+            case (ScriptOperation.Create):
+                scriptCreateDropOption = 'ScriptCreate';
+            default:
+                scriptCreateDropOption = 'ScriptSelect';
+        }
         let scriptOptions: ScriptOptions = {
-            scriptCreateDrop: 'ScriptSelect',
+            scriptCreateDrop: scriptCreateDropOption,
             typeOfDataToScript: 'SchemaOnly',
             scriptStatistics: 'ScriptStatsNone',
             targetDatabaseEngineEdition: serverInfo && serverInfo.engineEditionId ?
@@ -83,10 +106,15 @@ export class ScriptingService {
             connectionDetails: undefined,
             ownerURI: uri,
             selectScript: undefined,
-            operation: ScriptOperation.Select
+            operation: operation
         };
+        return scriptingParams;
+    }
+
+
+    public async script(node: TreeNodeInfo, uri: string, operation: ScriptOperation): Promise<string> {
+        let scriptingParams = this.createScriptingParams(node, uri, operation);
         const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
         return result.script;
     }
-
 }

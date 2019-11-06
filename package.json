@@ -239,6 +239,16 @@
           "command": "extension.scriptSelect",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View)$/",
           "group": "MS_SQL@1"
+        },
+        {
+          "command": "extension.scriptCreate",
+          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/",
+          "group": "MS_SQL@1"
+        },
+        {
+          "command": "extension.scriptDelete",
+          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/",
+          "group": "MS_SQL@1"
         }
       ],
       "commandPalette": [
@@ -257,6 +267,14 @@
         {
           "command": "extension.scriptSelect",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View)$/"
+        },
+        {
+          "command": "extension.scriptCreate",
+          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/"
+        },
+        {
+          "command": "extension.scriptDelete",
+          "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
@@ -361,6 +379,16 @@
       {
         "command": "extension.scriptSelect",
         "title": "%extension.scriptSelect%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.scriptCreate",
+        "title": "%extension.scriptCreate%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "extension.scriptDelete",
+        "title": "%extension.scriptDelete%",
         "category": "MS SQL"
       }
     ],
