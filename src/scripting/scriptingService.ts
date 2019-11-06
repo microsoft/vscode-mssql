@@ -7,7 +7,6 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import { NodeType } from './nodeType';
 
 export class ScriptingService {
 
@@ -43,9 +42,8 @@ export class ScriptingService {
     };
 
     // mapping for scripting operations for various objects
-    static readonly canExecute = new Set([NodeType.StoredProcedure]);
-    static readonly canAlter = new Set([NodeType.AggregateFunction, NodeType.PartitionFunction, NodeType.ScalarValuedFunction,
-    NodeType.StoredProcedure, NodeType.TableValuedFunction, NodeType.View]);
+    // static readonly canAlter = new Set([NodeType.AggregateFunction, NodeType.PartitionFunction, NodeType.ScalarValuedFunction,
+    // NodeType.StoredProcedure, NodeType.TableValuedFunction, NodeType.View]);
 
 
     /**
@@ -79,7 +77,7 @@ export class ScriptingService {
             case (ScriptOperation.Create):
                 scriptCreateDropOption = 'ScriptCreate';
             default:
-                scriptCreateDropOption = 'ScriptSelect';
+                scriptCreateDropOption = 'ScriptCreate';
         }
         let scriptOptions: ScriptOptions = {
             scriptCreateDrop: scriptCreateDropOption,

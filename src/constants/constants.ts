@@ -38,6 +38,7 @@ export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExpl
 export const cmdScriptSelect = 'extension.scriptSelect';
 export const cmdScriptCreate = 'extension.scriptCreate';
 export const cmdScriptDelete = 'extension.scriptDelete';
+export const cmdScriptExecute = 'extension.scriptExecute';
 export const cmdToggleSqlCmd = 'extension.toggleSqlCmd';
 export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const sqlDbPrefix = '.database.windows.net';

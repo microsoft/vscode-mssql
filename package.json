@@ -249,6 +249,11 @@
           "command": "extension.scriptDelete",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/",
           "group": "MS_SQL@1"
+        },
+        {
+          "command": "extension.scriptExecute",
+          "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/",
+          "group": "MS_SQL@1"
         }
       ],
       "commandPalette": [
@@ -275,6 +280,10 @@
         {
           "command": "extension.scriptDelete",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/"
+        },
+        {
+          "command": "extension.scriptExecute",
+          "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/"
         },
         {
           "command": "extension.disconnectObjectExplorerNode",
@@ -390,6 +399,11 @@
         "command": "extension.scriptDelete",
         "title": "%extension.scriptDelete%",
         "category": "MS SQL"
+      },
+      {
+        "command": "extension.scriptExecute",
+        "title": "%extension.scriptExecute%",
+        "group": "MS SQL"
       }
     ],
     "keybindings": [
