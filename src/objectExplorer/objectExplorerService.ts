@@ -68,8 +68,8 @@ export class ObjectExplorerService {
                         // if it's not the defaul label
                         if (connection.label !== connection.connectionCreds.server) {
                             nodeLabel = connection.label;
-                            break;
                         }
+                        break;
                     }
                 }
                 // set connection and other things
