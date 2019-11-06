@@ -41,11 +41,6 @@ export class ScriptingService {
         7: 'SqlServerStretchEdition'
     };
 
-    // mapping for scripting operations for various objects
-    // static readonly canAlter = new Set([NodeType.AggregateFunction, NodeType.PartitionFunction, NodeType.ScalarValuedFunction,
-    // NodeType.StoredProcedure, NodeType.TableValuedFunction, NodeType.View]);
-
-
     /**
      * Helper to get the object name and schema name
      * (Public for testing purposes)
