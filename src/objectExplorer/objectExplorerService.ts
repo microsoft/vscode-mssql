@@ -145,7 +145,7 @@ export class ObjectExplorerService {
         return handler;
     }
 
-    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
+    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean | undefined> {
         const expandParams: ExpandParams = {
             sessionId: sessionId,
             nodePath: node.nodePath
