@@ -35,8 +35,8 @@ export interface IGridDataSet {
     totalRows: number;
     batchId: number;
     resultId: number;
-    maxHeight: number | string;
-    minHeight: number | string;
+    maxHeight: number;
+    minHeight: number;
 }
 
 // tslint:disable:max-line-length
@@ -49,7 +49,7 @@ const template = `
     <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
-            [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
+            [style.max-height.px]="dataSet.maxHeight" [style.min-height.px]="dataSet.minHeight">
             <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
@@ -369,7 +369,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     // Precalculate the max height and min height
                     let maxHeight = resultSet.rowCount < self._defaultNumShowingRows
                         ? Math.max((resultSet.rowCount + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
-                        : 'inherit';
+                        : (self.dataIcons.length * 30) + 10;
                     let minHeight = resultSet.rowCount >= self._defaultNumShowingRows
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
@@ -697,7 +697,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 self.firstRender = false;
                 setTimeout(() => {
                     self.slickgrids.toArray()[0].setActive();
-                    self.cd.detectChanges();
                 });
             }
         }, self.scrollTimeOutTime);
