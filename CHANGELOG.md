@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.7.1
+* Release date: November 11, 2019
+* Release status: GA
+
+## What's new in 1.7.1
+* Fix missing row count and dropped Object Explorer connections bugs
+
 ## Version 1.7.0
 * Release date: October 17, 2019
 * Release status: GA
