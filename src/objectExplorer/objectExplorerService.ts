@@ -39,7 +39,6 @@ export class ObjectExplorerService {
 
     constructor(private _connectionManager: ConnectionManager,
                 private _objectExplorerProvider: ObjectExplorerProvider) {
-        this._connectionManager = _connectionManager;
         this._client = this._connectionManager.client;
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
