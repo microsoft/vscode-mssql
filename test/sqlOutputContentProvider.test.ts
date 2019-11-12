@@ -31,7 +31,6 @@ suite('SqlOutputProvider Tests using mocks', () => {
     setup(() => {
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
-        context.object.extensionPath = '';
         statusView = TypeMoq.Mock.ofType(StatusView);
         statusView.setup(x => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
