@@ -118,7 +118,7 @@
     "typescript": "3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vsce": "^1.58.0",
-    "vscode": "^1.1.36",
+    "vscode": "^1.1.33",
     "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
     "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
