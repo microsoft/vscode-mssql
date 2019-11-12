@@ -49,7 +49,8 @@ const template = `
     <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
-            [style.max-height.px]="dataSet.maxHeight" [style.max-height]="dataSet.maxHeight" [style.min-height.px]="dataSet.minHeight">
+            [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
+            [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'">
             <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
