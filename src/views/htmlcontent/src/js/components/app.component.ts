@@ -35,8 +35,8 @@ export interface IGridDataSet {
     totalRows: number;
     batchId: number;
     resultId: number;
-    maxHeight: number;
-    minHeight: number;
+    maxHeight: number | string;
+    minHeight: number | string;
 }
 
 // tslint:disable:max-line-length
@@ -49,7 +49,8 @@ const template = `
     <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
-            [style.max-height.px]="dataSet.maxHeight" [style.min-height.px]="dataSet.minHeight">
+            [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
+            [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'">
             <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
@@ -369,7 +370,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     // Precalculate the max height and min height
                     let maxHeight = resultSet.rowCount < self._defaultNumShowingRows
                         ? Math.max((resultSet.rowCount + 1) * self._rowHeight, self.dataIcons.length * 30) + 10
-                        : (self.dataIcons.length * 30) + 10;
+                        : 'inherit';
                     let minHeight = resultSet.rowCount >= self._defaultNumShowingRows
                         ? (self._defaultNumShowingRows + 1) * self._rowHeight + 10
                         : maxHeight;
