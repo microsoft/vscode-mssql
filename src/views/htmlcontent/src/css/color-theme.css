@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /** Disable selection in html **/
-* {
+.results.vertBox.scrollable {
   user-select: none;
 }
 
