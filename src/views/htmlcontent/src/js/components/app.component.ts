@@ -676,6 +676,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.placeHolderDataSets[i].resized.emit();
                 }
             } else {
+                self.scrollEnabled = true;
                 let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
                 let tabHeight = self._el.nativeElement.querySelector('#results').offsetHeight;
                 let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
