@@ -24,7 +24,7 @@ install:
   - node --version
   - npm install -g --silent gulp-cli
   # install modules
-  - npm install
+  - yarn
   - gulp install
 
 build_script:
