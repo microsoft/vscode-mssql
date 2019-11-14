@@ -12,3 +12,6 @@ packages/**
 samples/**
 *.exe
 *.dat
+*.yml
+scripts/**
+tasks/**
