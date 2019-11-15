@@ -61,7 +61,7 @@ suite('MainController Tests', () => {
 
         // Setting up a mocked connectionManager
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager);
-        // mainController.connectionManager = connectionManager.object;
+        mainController.connectionManager = connectionManager.object;
 
         untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
         mainController.untitledSqlDocumentService = untitledSqlDocumentService.object;
