@@ -4,7 +4,6 @@
  * ------------------------------------------------------------------------------------------ */
 import * as vscode from 'vscode';
 import VscodeWrapper from './vscodeWrapper';
-import { Uri } from 'vscode';
 
 /**
  * Service for creating untitled documents for SQL query

@@ -2,7 +2,6 @@ var gulp = require('gulp');
 var del = require('del');
 var jeditor = require("gulp-json-editor");
 var istanbulReport = require('gulp-istanbul-report');
-var cproc = require('child_process');
 
 gulp.task('cover:clean', function (done) {
     return del('coverage', done);

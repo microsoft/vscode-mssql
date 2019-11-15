@@ -5,7 +5,7 @@
 
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
-import { MetadataQueryParams, MetadataQueryRequest, ObjectMetadata, MetadataType } from '../models/contracts/metadata/metadataRequest';
+import { MetadataQueryParams, MetadataQueryRequest, ObjectMetadata } from '../models/contracts/metadata/metadataRequest';
 
 export class MetadataService {
 
