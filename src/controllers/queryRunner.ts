@@ -515,7 +515,12 @@ export default class QueryRunner {
             if (activeTextEditor) {
                 column = activeTextEditor.viewColumn;
             }
-            let editor = await this._vscodeWrapper.showTextDocument(doc, column);
+            let editor = await this._vscodeWrapper.showTextDocument(doc,
+            {
+                viewColumn: column,
+                preserveFocus: false,
+                preview: false
+            });
             let querySelection = new vscode.Selection(
                 selection.startLine,
                 selection.startColumn,
