@@ -9,6 +9,7 @@ import vscode = require('vscode');
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
+import { TextDocumentShowOptions } from 'vscode';
 
 export default class VscodeWrapper {
 
@@ -277,8 +278,8 @@ export default class VscodeWrapper {
      * @param preserveFocus When `true` the editor will not take focus.
      * @return A promise that resolves to an [editor](#TextEditor).
      */
-    public async showTextDocument(document: vscode.TextDocument, column?: vscode.ViewColumn, preserveFocus?: boolean): Promise<vscode.TextEditor> {
-        const editor = await vscode.window.showTextDocument(document, column, preserveFocus);
+    public async showTextDocument(document: vscode.TextDocument, options: TextDocumentShowOptions): Promise<vscode.TextEditor> {
+        const editor = await vscode.window.showTextDocument(document, options);
         return editor;
     }
 
