@@ -252,7 +252,8 @@ gulp.task('ext:test', (done) => {
         workspace = process.cwd();
     }
     process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
-    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" --verbose`,
+    var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates'];
+    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" ${args.join(' ')}`,
         { maxBuffer: 1024 * 500 },
         (error, stdout, stderr) => {
         if (error) {
