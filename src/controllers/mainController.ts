@@ -822,7 +822,9 @@ export default class MainController implements vscode.Disposable {
         // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();
         this._lastOpenedTimer.start();
-        this._lastOpenedUri = doc.uri.toString();
+        if (doc && doc.uri) {
+            this._lastOpenedUri = doc.uri.toString();
+        }
     }
 
     /**

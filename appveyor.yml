@@ -1,7 +1,7 @@
 environment:
   nodejs_version: "6.9.1"
   # Temporary Code version due to https://github.com/Microsoft/vscode-extension-vscode/issues/64
-  CODE_VERSION: 1.33.0
+  CODE_VERSION: 1.38.0
   COVERALLS_SERVICE_NAME: "VSCode-MSSQL"
   COVERALLS_REPO_TOKEN:
     secure: 9VOgkRYij4Ga9kqUvcfo0XVoJ5AoCir4npEDA2f0gwromo25QZd+pT0QgObjCJSC

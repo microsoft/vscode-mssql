@@ -49,7 +49,8 @@ const template = `
     <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
-            [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
+            [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
+            [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'">
             <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
@@ -77,7 +78,7 @@ const template = `
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
-    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
+    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="toggleMessagesPane()" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
@@ -145,6 +146,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private _defaultNumShowingRows = 8;
     private Constants = Constants;
     private Utils = Utils;
+    private _messagesPaneHeight: number;
 
     // the function implementations of keyboard available events
     private shortcutfunc = {
@@ -155,7 +157,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.resultActive = !this.resultActive;
         },
         'event.toggleMessagePane': () => {
-            this.messageActive = !this.messageActive;
+            this.toggleMessagesPane();
         },
         'event.nextGrid': () => {
             this.navigateToGrid(this.activeGrid + 1);
@@ -445,6 +447,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
+     * Toggle the messages pane
+     */
+    private toggleMessagesPane(): void {
+        this._messagesPaneHeight = $('#messages').get(0).clientHeight;
+        this.messageActive = !this.messageActive;
+        if (this.messageActive) {
+            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
+        }
+    }
+
+    /**
      * Send save result set request to service
      */
     handleContextClick(event: {type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}): void {
@@ -675,6 +688,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.placeHolderDataSets[i].resized.emit();
                 }
             } else {
+                self.scrollEnabled = true;
                 let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
                 let tabHeight = self._el.nativeElement.querySelector('#results').offsetHeight;
                 let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
@@ -697,7 +711,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 self.firstRender = false;
                 setTimeout(() => {
                     self.slickgrids.toArray()[0].setActive();
-                    self.cd.detectChanges();
                 });
             }
         }, self.scrollTimeOutTime);
