@@ -47,7 +47,7 @@ suite('UntitledSqlDocumentService Tests', () => {
          vscodeWrapper.setup(x => x.textDocuments).returns(() => { return fixture.textDocuments; });
          vscodeWrapper.setup(x => x.openMsSqlTextDocument())
          .returns(() => { return Promise.resolve(createTextDocumentObject()); });
-         vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+         vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
          .returns(() => { return Promise.resolve(TypeMoq.It.isAny()); });
          fixture.vscodeWrapper = vscodeWrapper;
          fixture.service = new UntitledSqlDocumentService(vscodeWrapper.object);
@@ -66,7 +66,7 @@ suite('UntitledSqlDocumentService Tests', () => {
 
         fixture.service.newQuery().then(result => {
             fixture.vscodeWrapper.verify(x => x.openMsSqlTextDocument(), TypeMoq.Times.once());
-            fixture.vscodeWrapper.verify(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            fixture.vscodeWrapper.verify(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
      });
 });

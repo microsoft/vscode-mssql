@@ -57,14 +57,3 @@ body {
 .hidden {
     display: none !important;
 }
-
-/* testing
-
-.vertBox {
-    border: 1px solid green;
-}
-
-.horzBox {
-    border: 1px solid red;
-}
-*/
