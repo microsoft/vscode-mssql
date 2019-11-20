@@ -1,5 +1,5 @@
 environment:
-  nodejs_version: "6.9.1"
+  nodejs_version: "10.15.3"
   # Temporary Code version due to https://github.com/Microsoft/vscode-extension-vscode/issues/64
   CODE_VERSION: 1.38.0
   COVERALLS_SERVICE_NAME: "VSCode-MSSQL"
@@ -24,8 +24,7 @@ install:
   - node --version
   - npm install -g --silent gulp-cli
   # install modules
-  - npm install
-  - gulp install
+  - yarn
 
 build_script:
   - gulp build

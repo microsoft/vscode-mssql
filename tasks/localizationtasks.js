@@ -1,9 +1,7 @@
-let builder = require('xmlbuilder')
 var dom = require('xmldom').DOMParser
 var gulp = require('gulp')
 var config = require('./config')
 var through = require('through2')
-var path = require('path')
 var packageAllKeys = require('./../package.nls.json')
 
 const iso639_3_to_2 = {
@@ -27,10 +25,6 @@ const iso639_3_to_2 = {
    trk: 'tr'
  };
 
-// converts a json object into xml
-function convertDictionaryToXml(dict) {
-    //TODO: for reverse file sync (if ever needed)
-}
 
 // converts a json object into a plain text json
 function convertDictionaryToJson(dict) {

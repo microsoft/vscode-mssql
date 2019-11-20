@@ -3,7 +3,6 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import { window } from 'vscode';
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
