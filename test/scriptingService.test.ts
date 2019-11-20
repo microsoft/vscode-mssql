@@ -151,7 +151,7 @@ suite('Scripting Service Tests', () => {
             name: 'test_sproc'
         };
         const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
-            undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+            undefined, undefined, 'StoredProcedure', undefined, undefined, undefined, testNodeMetadata);
         scriptingService = new ScriptingService(connectionManager.object);
         const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Alter);
         assert.notEqual(script, undefined);
