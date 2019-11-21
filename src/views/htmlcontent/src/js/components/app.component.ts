@@ -147,6 +147,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private Constants = Constants;
     private Utils = Utils;
     private _messagesPaneHeight: number;
+    private _resultsPaneHeight: string;
 
     // the function implementations of keyboard available events
     private shortcutfunc = {
@@ -734,6 +735,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         $resizeHandle.bind('dragstart', (e) => {
             self.resizing = true;
             self.resizeHandleTop = e.pageY;
+            this._messagesPaneHeight = $('#messages').get(0).clientHeight;
+            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
             return true;
         });
 
@@ -745,6 +748,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             self.resizing = false;
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
+            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
             self.cd.detectChanges();
             self.resizeGrids();
         });
