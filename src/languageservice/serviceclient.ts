@@ -293,7 +293,26 @@ export default class SqlToolsServiceClient {
         return client;
     }
 
-     private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
+    private generateResourceServiceServerOptions(executablePath: string): ServerOptions {
+		let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles('this.logPath', 'resourceprovider.log', executablePath);
+		return { command: executablePath, args: launchArgs, transport: TransportKind.stdio };
+    }
+
+    private createResourceClient(): LanguageClient {
+        // Options to control the language client
+        let clientOptions: LanguageClientOptions = {
+            documentSelector: ['sql'],
+            synchronize: {
+                configurationSection: 'mssql'
+            },
+            errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
+        };
+        let serverOptions = this.generateResourceServiceServerOptions('test ----- path');
+        let client = new LanguageClient(Constants.resourceServiceName, serverOptions, clientOptions);
+        return client;
+    }
+
+    private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
         return (event: LanguageServiceContracts.TelemetryParams): void => {
             Telemetry.sendTelemetryEvent(event.params.eventName, event.params.properties, event.params.measures);
         };

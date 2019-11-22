@@ -251,10 +251,6 @@ export default class MainController implements vscode.Disposable {
                     Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
                     this.scriptNode(node, ScriptOperation.Alter)));
 
-                // Initiate the firewall service
-                this._firewallService = new FirewallService(this._connectionMgr, this._vscodeWrapper);
-
-
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
                 this._vscodeWrapper.onDidOpenTextDocument(params => this.onDidOpenTextDocument(params));

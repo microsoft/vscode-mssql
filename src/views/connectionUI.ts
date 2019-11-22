@@ -520,7 +520,10 @@ export class ConnectionUI {
                     // show firewall dialog with all sign-in options
                     return this.promptItemChoice({}, Utils.getSignInQuickPickItems()).then((selection) => {
                         if (selection && selection.command) {
-                            return this._vscodeWrapper.executeCommand(selection.command).then(() => true);
+                            return this._vscodeWrapper.executeCommand(selection.command).then(() => {
+                                this.connectionManager.firewallService.isSignedIn = true;
+                                return true;
+                            });
                         } else {
                             return false;
                         }
@@ -529,13 +532,18 @@ export class ConnectionUI {
                     return false;
                 }
             });
+        } else {
+            this.connectionManager.firewallService.isSignedIn = true;
+            return Promise.resolve(true);
         }
     }
 
-    private createFirewallRule(profile: IConnectionProfile, ipAddress: string): IConnectionProfile {
+    private createFirewallRule(profile: IConnectionProfile, ipAddress: string): PromiseLike<IConnectionProfile> {
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(result => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
-
+                let account = this.connectionManager.firewallService.account;
+                console.log(account);
+                return undefined;
             }
         });
     }

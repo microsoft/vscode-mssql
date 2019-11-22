@@ -22,6 +22,7 @@ import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 import {Runtime, PlatformInformation} from '../models/platform';
 import { Deferred } from '../protocol';
+import { FirewallService } from '../firewall/firewallService';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -90,6 +91,7 @@ export default class ConnectionManager {
         Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
     private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
     private _failedUriToFirewallIpMap: Map<string, string>;
+    private _firewallService: FirewallService;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -103,7 +105,7 @@ export default class ConnectionManager {
         this._connectionCredentialsToServerInfoMap =
             new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
         this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
-        this._failedUriToFirewallIpMap = new Map<string, string>();
+
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -119,6 +121,10 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(this, this._connectionStore, prompter, this.vscodeWrapper);
         }
+
+        // Initiate the firewall service
+        this._firewallService = new FirewallService(this.client);
+        this._failedUriToFirewallIpMap = new Map<string, string>();
 
         if (this.client !== undefined) {
             this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
@@ -199,6 +205,10 @@ export default class ConnectionManager {
 
     public get failedUriToFirewallIpMap(): Map<string, string> {
         return this._failedUriToFirewallIpMap;
+    }
+
+    public get firewallService(): FirewallService {
+        return this._firewallService;
     }
 
     public isActiveConnection(credential: Interfaces.IConnectionCredentials): boolean {
@@ -377,10 +387,15 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
             } else if (result.errorNumber !== Constants.errorLoginFailed) {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
-                if (result.errorNumber === Constants.errorFirewallRule) {
-                    const clientIpAddress = this.getClientIpAddress(result.errorMessage);
-                    this._failedUriToFirewallIpMap.set(fileUri, clientIpAddress);
-                }
+                // send handle firewall request here
+                this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage).then((result) => {
+                    console.log(result);
+                })
+
+                // if (result.errorNumber === Constants.errorFirewallRule) {
+                //     const clientIpAddress = this.getClientIpAddress(result.errorMessage);
+                //     this._failedUriToFirewallIpMap.set(fileUri, clientIpAddress);
+                // }
             }
             connection.errorNumber = result.errorNumber;
             connection.errorMessage = result.errorMessage;

@@ -7,6 +7,8 @@
 import getmac = require('getmac');
 import * as crypto from 'crypto';
 import * as os from 'os';
+import * as path from 'path';
+import * as findRemoveSync from 'find-remove';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import { AzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
@@ -19,6 +21,12 @@ const msInH = 3.6e6;
 const msInM = 60000;
 const msInS = 1000;
 const azureAccountExtension = vscode.extensions.getExtension('ms-vscode.azure-account');
+
+const configTracingLevel = 'tracingLevel';
+const configLogRetentionMinutes = 'logRetentionMinutes';
+const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
+const extensionConfigSectionName = 'mssql';
+const configLogDebugInfo = 'logDebugInfo';
 
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 
@@ -371,6 +379,60 @@ export function parseNumAsTimeString(value: number): string {
     let rs = hs + ':' + ms + ':' + ss;
 
     return tempVal > 0 ? rs + '.' + mss : rs;
+}
+
+function getConfiguration(): vscode.WorkspaceConfiguration {
+    return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+}
+
+export function getConfigTracingLevel(): string {
+	let config = getConfiguration();
+	if (config) {
+		return config[configTracingLevel];
+	}
+	else {
+		return undefined;
+	}
+}
+
+export function getConfigLogFilesRemovalLimit(): number {
+	let config = getConfiguration();
+	if (config) {
+		return Number((config[configLogFilesRemovalLimit]).toFixed(0));
+	}
+	else {
+		return undefined;
+	}
+}
+
+export function getConfigLogRetentionSeconds(): number {
+	let config = getConfiguration();
+	if (config) {
+		return Number((config[configLogRetentionMinutes] * 60).toFixed(0));
+	}
+	else {
+		return undefined;
+	}
+}
+
+export function removeOldLogFiles(logPath: string, prefix: string): JSON {
+	return findRemoveSync(logPath, { age: { seconds: getConfigLogRetentionSeconds() }, limit: getConfigLogFilesRemovalLimit() });
+}
+
+export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileName: string, executablePath: string): string[] {
+	let launchArgs = [];
+	launchArgs.push('--log-file');
+	let logFile = path.join(logPath, fileName);
+	launchArgs.push(logFile);
+
+	console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
+	console.log(`This process (ui Extenstion Host) is pid: ${process.pid}`);
+	// Delete old log files
+	let deletedLogFiles = removeOldLogFiles(logPath, fileName);
+	console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
+	launchArgs.push('--tracing-level');
+	launchArgs.push(getConfigTracingLevel());
+	return launchArgs;
 }
 
 /**

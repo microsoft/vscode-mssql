@@ -2,31 +2,46 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
+
 import * as vscode from 'vscode';
-import ConnectionManager from '../controllers/connectionManager';
+import { Account, FirewallRuleInfo, CreateFirewallRuleRequest, HandleFirewallRuleRequest,
+    HandleFirewallRuleParams, HandleFirewallRuleResponse,
+    CreateFirewallRuleResponse } from '../models/contracts/firewall/firewallRequest';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
-import VscodeWrapper from '../controllers/vscodeWrapper';
+import Constants = require('../constants/constants');
 
 export class FirewallService {
 
-    private _client: SqlToolsServiceClient;
+    public static azureAccountExtension = vscode.extensions.getExtension('ms-vscode.azure-account');
     private _isSignedIn: boolean = false;
-    private _accountExtension: vscode.Extension<any> = vscode.extensions.getExtension('ms-vscode.azure-account');
-    public isActive = this._accountExtension.exports.isActive;
+    private _account: Account = undefined;
 
-    constructor(
-        private _connectionManager: ConnectionManager,
-        private _vscodeWrapper: VscodeWrapper
-    ) {
-        this._client = this._connectionManager.client;
+    constructor(private _client: SqlToolsServiceClient){}
+
+    public get isSignedIn(): boolean {
+        return this._isSignedIn;
     }
 
-    public getAccounts(): any[] {
-        if (this._isSignedIn) {
-            let accounts = this._accountExtension.exports.accounts;
-            return accounts;
-        } else {
-            // show error message to sign in for firewall
+    public get account(): Account {
+        return this._account;
+    }
+
+    public set isSignedIn(value: boolean) {
+        this._isSignedIn = value;
+        if (value) {
+            this._account = FirewallService.azureAccountExtension.exports.sessions[0];
         }
     }
+
+    public async createFirewallRule(account: Account, firewallRuleInfo: FirewallRuleInfo): Promise<CreateFirewallRuleResponse> {
+        let result = await this._client.sendRequest(CreateFirewallRuleRequest.type, firewallRuleInfo);
+        return result;
+    }
+
+    public async handleFirewallRule(errorCode: number, errorMessage: string): Promise<HandleFirewallRuleResponse> {
+        let params: HandleFirewallRuleParams = { errorCode: errorCode, errorMessage: errorMessage, connectionTypeId: Constants.mssqlProviderName };
+        let result = await this._client.sendRequest(HandleFirewallRuleRequest.type, params);
+        return result;
+    }
+
 }

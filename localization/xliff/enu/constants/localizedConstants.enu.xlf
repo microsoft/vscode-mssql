@@ -237,7 +237,7 @@
             <source xml:lang="en">Sign In</source>
         </trans-unit>
         <trans-unit id="createFirewallRuleLabel">
-            <source xml:lang="en">Sign In</source>
+            <source xml:lang="en">Create Firewall Rule</source>
         </trans-unit>
         <trans-unit id="msgConnecting">
             <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>

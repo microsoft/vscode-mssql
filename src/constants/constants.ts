@@ -122,6 +122,7 @@ export const unsupportedPlatformErrorMessage = 'The platform is not supported';
 export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
 export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
 export const sqlToolsServiceName = 'SQLToolsService';
+export const resourceServiceName = 'AzureResourceProvider';
 export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
 export const sqlToolsServiceConfigKey = 'service';
 export const v1SqlToolsServiceConfigKey = 'v1Service';
