@@ -42,6 +42,9 @@ export const cmdScriptExecute = 'extension.scriptExecute';
 export const cmdScriptAlter = 'extension.scriptAlter';
 export const cmdToggleSqlCmd = 'extension.toggleSqlCmd';
 export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
+export const cmdAzureSignIn = 'azure-account.login';
+export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
+export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -52,6 +55,7 @@ export const defaultDatabase = 'master';
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
+export const errorFirewallRule = 40615;
 export const maxDisplayedStatusTextLength = 50;
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
@@ -79,6 +83,7 @@ export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedaut
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
+export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';

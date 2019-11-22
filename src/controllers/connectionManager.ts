@@ -89,6 +89,7 @@ export default class ConnectionManager {
     private _connectionCredentialsToServerInfoMap:
         Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
     private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
+    private _failedUriToFirewallIpMap: Map<string, string>;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -102,6 +103,7 @@ export default class ConnectionManager {
         this._connectionCredentialsToServerInfoMap =
             new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
         this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
+        this._failedUriToFirewallIpMap = new Map<string, string>();
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -193,6 +195,10 @@ export default class ConnectionManager {
      */
     public get connectionCount(): number {
         return Object.keys(this._connections).length;
+    }
+
+    public get failedUriToFirewallIpMap(): Map<string, string> {
+        return this._failedUriToFirewallIpMap;
     }
 
     public isActiveConnection(credential: Interfaces.IConnectionCredentials): boolean {
@@ -371,6 +377,10 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
             } else if (result.errorNumber !== Constants.errorLoginFailed) {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
+                if (result.errorNumber === Constants.errorFirewallRule) {
+                    const clientIpAddress = this.getClientIpAddress(result.errorMessage);
+                    this._failedUriToFirewallIpMap.set(fileUri, clientIpAddress);
+                }
             }
             connection.errorNumber = result.errorNumber;
             connection.errorMessage = result.errorMessage;
@@ -420,6 +430,18 @@ export default class ConnectionManager {
         } else {
             connection.connectHandler(false);
         }
+    }
+
+    /**
+     * Helper function to get the IP address from the firewall
+     * rule error. Code converted from FirewallErrorParser.cs in sqltoolsservice
+     */
+    private getClientIpAddress(error: string): string {
+        let match = error.match(Constants.ipAddressRegex);
+        if (match && match.length > 0) {
+            return match[0];
+        }
+        return undefined;
     }
 
     /**

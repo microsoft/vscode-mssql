@@ -300,6 +300,10 @@ export interface ILogger {
     appendLine(message?: string): void;
 }
 
+export interface AzureSignInQuickPickItem extends vscode.QuickPickItem {
+    command: string;
+}
+
 export class DbCellValue {
     displayValue: string;
     isNull: boolean;

@@ -55,7 +55,8 @@
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
-    "vscode.sql"
+    "vscode.sql",
+    "ms-vscode.azure-account"
   ],
   "devDependencies": {
     "@angular/common": "~2.1.2",

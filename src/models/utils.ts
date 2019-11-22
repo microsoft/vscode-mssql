@@ -9,14 +9,16 @@ import * as crypto from 'crypto';
 import * as os from 'os';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
-import * as interfaces from './interfaces';
+import { AzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import {ExtensionContext} from 'vscode';
+import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
 const msInM = 60000;
 const msInS = 1000;
+const azureAccountExtension = vscode.extensions.getExtension('ms-vscode.azure-account');
 
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 
@@ -160,8 +162,8 @@ export function isNotEmpty(str: any): boolean {
     return <boolean>(str && '' !== str);
 }
 
-export function authTypeToString(value: interfaces.AuthenticationTypes): string {
-    return interfaces.AuthenticationTypes[value];
+export function authTypeToString(value: AuthenticationTypes): string {
+    return AuthenticationTypes[value];
 }
 
 /**
@@ -220,7 +222,7 @@ function isSameAuthenticationType(currentAuthenticationType: string, expectedAut
  * @param {IConnectionProfile} expectedProfile the profile to try to match
  * @returns boolean that is true if the profiles match
  */
-export function isSameProfile(currentProfile: interfaces.IConnectionProfile, expectedProfile: interfaces.IConnectionProfile): boolean {
+export function isSameProfile(currentProfile: IConnectionProfile, expectedProfile: IConnectionProfile): boolean {
     if (currentProfile === undefined) {
         return false;
     }
@@ -249,7 +251,7 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
  * @param {IConnectionCredentials} expectedConn the connection to try to match
  * @returns boolean that is true if the connections match
  */
-export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
+export function isSameConnection(conn: IConnectionCredentials, expectedConn: IConnectionCredentials): boolean {
     return (conn.connectionString || expectedConn.connectionString) ? conn.connectionString === expectedConn.connectionString :
         expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
@@ -257,8 +259,8 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
         && (conn.authenticationType === Constants.sqlAuthentication ?
         conn.user === expectedConn.user :
         isEmpty(conn.user) === isEmpty(expectedConn.user))
-        && (<interfaces.IConnectionProfile>conn).savePassword ===
-        (<interfaces.IConnectionProfile>expectedConn).savePassword;
+        && (<IConnectionProfile>conn).savePassword ===
+        (<IConnectionProfile>expectedConn).savePassword;
 }
 
 /**
@@ -369,4 +371,33 @@ export function parseNumAsTimeString(value: number): string {
     let rs = hs + ':' + ms + ':' + ss;
 
     return tempVal > 0 ? rs + '.' + mss : rs;
+}
+
+/**
+ * Returns whether an azure account is signed in
+ */
+export function isAccountSignedIn(): boolean {
+    return azureAccountExtension.exports.status === 'LoggedIn';
+}
+
+/**
+ * Returns the all the sign in methods as quickpick items
+ */
+export function getSignInQuickPickItems(): AzureSignInQuickPickItem[] {
+    let signInItem: AzureSignInQuickPickItem = {
+        label: LocalizedConstants.azureSignIn,
+        description: 'Sign in to your Azure subscription',
+        command: Constants.cmdAzureSignIn
+    };
+    let signInWithDeviceCode: AzureSignInQuickPickItem = {
+        label: LocalizedConstants.azureSignInWithDeviceCode,
+        description: 'Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work',
+        command: Constants.cmdAzureSignInWithDeviceCode
+    };
+    let signInAzureCloud: AzureSignInQuickPickItem = {
+        label: LocalizedConstants.azureSignInToAzureCloud,
+        description: 'Sign in to your Azure subscription in one of the sovereign clouds.',
+        command: Constants.cmdAzureSignInToCloud
+    };
+    return [signInItem, signInWithDeviceCode, signInAzureCloud];
 }
