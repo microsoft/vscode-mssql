@@ -302,7 +302,7 @@ export default class ConnectionManager {
     public handleConnectionCompleteNotification(): NotificationHandler<ConnectionContracts.ConnectionCompleteParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
-        return (result: ConnectionContracts.ConnectionCompleteParams): void => {
+        return async (result: ConnectionContracts.ConnectionCompleteParams): Promise<void> => {
             let fileUri = result.ownerUri;
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
@@ -332,7 +332,7 @@ export default class ConnectionManager {
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     if (result.errorMessage) {
-                        self.handleConnectionErrors(fileUri, connection, result);
+                        await self.handleConnectionErrors(fileUri, connection, result);
                         promise.reject(result.errorMessage);
                         self._uriToConnectionPromiseMap.delete(result.ownerUri);
                     } else if (result.messages) {
@@ -340,7 +340,7 @@ export default class ConnectionManager {
                         self._uriToConnectionPromiseMap.delete(result.ownerUri);
                     }
                 }
-                self.handleConnectionErrors(fileUri, connection, result);
+                await self.handleConnectionErrors(fileUri, connection, result);
             }
 
             self.tryAddMruConnection(connection, mruConnection);
@@ -379,7 +379,7 @@ export default class ConnectionManager {
         });
     }
 
-    private handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): void {
+    private async handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): Promise<void> {
         if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
             // Check if the error is an expired password
             if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
@@ -388,14 +388,10 @@ export default class ConnectionManager {
             } else if (result.errorNumber !== Constants.errorLoginFailed) {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
                 // send handle firewall request here
-                this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage).then((result) => {
-                    console.log(result);
-                })
-
-                // if (result.errorNumber === Constants.errorFirewallRule) {
-                //     const clientIpAddress = this.getClientIpAddress(result.errorMessage);
-                //     this._failedUriToFirewallIpMap.set(fileUri, clientIpAddress);
-                // }
+                let firewallResult = await this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage);
+                if (firewallResult) {
+                    this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+                }
             }
             connection.errorNumber = result.errorNumber;
             connection.errorMessage = result.errorMessage;
@@ -445,18 +441,6 @@ export default class ConnectionManager {
         } else {
             connection.connectHandler(false);
         }
-    }
-
-    /**
-     * Helper function to get the IP address from the firewall
-     * rule error. Code converted from FirewallErrorParser.cs in sqltoolsservice
-     */
-    private getClientIpAddress(error: string): string {
-        let match = error.match(Constants.ipAddressRegex);
-        if (match && match.length > 0) {
-            return match[0];
-        }
-        return undefined;
     }
 
     /**

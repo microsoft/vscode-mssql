@@ -103,10 +103,3 @@ export interface HandleFirewallRuleResponse {
 	result: boolean;
 	ipAddress: string;
 }
-
-export interface FirewallRuleInfo {
-    startIpAddress: string;
-    endIpAddress: string;
-    serverName: string;
-    securityTokenMappings: {};
-}

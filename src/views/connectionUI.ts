@@ -474,7 +474,7 @@ export class ConnectionUI {
                     return self.promptForAccountSignIn().then((signedIn) => {
                         if (signedIn) {
                             // retry creating a profile without the error message
-                            return self.createFirewallRule(profile, clientIp);
+                            return self.createFirewallRule(profile, profile.server, clientIp);
                         }
                     });
                 } else {
@@ -538,11 +538,12 @@ export class ConnectionUI {
         }
     }
 
-    private createFirewallRule(profile: IConnectionProfile, ipAddress: string): PromiseLike<IConnectionProfile> {
+    private createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): PromiseLike<IConnectionProfile> {
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(result => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
-                let account = this.connectionManager.firewallService.account;
-                console.log(account);
+                const firewallService = this.connectionManager.firewallService;
+                const account = firewallService.account;
+                firewallService.createFirewallRule(account, serverName, ipAddress);
                 return undefined;
             }
         });

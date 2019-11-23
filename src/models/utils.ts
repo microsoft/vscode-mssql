@@ -139,7 +139,7 @@ export function logToOutputChannel(msg: any): void {
 // Helper to log debug messages
 export function logDebug(msg: any): void {
     let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
-    let logDebugInfo = config[Constants.configLogDebugInfo];
+    let logDebugInfo = config.get(Constants.configLogDebugInfo);
     if (logDebugInfo === true) {
         let currentTime = new Date().toLocaleTimeString();
         let outputMsg = '[' + currentTime + ']: ' + msg ? msg.toString() : '';
@@ -388,7 +388,7 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
 export function getConfigTracingLevel(): string {
 	let config = getConfiguration();
 	if (config) {
-		return config[configTracingLevel];
+		return config.get(configTracingLevel);
 	}
 	else {
 		return undefined;
@@ -398,7 +398,7 @@ export function getConfigTracingLevel(): string {
 export function getConfigLogFilesRemovalLimit(): number {
 	let config = getConfiguration();
 	if (config) {
-		return Number((config[configLogFilesRemovalLimit]).toFixed(0));
+		return Number((config.get(configLogFilesRemovalLimit, 0).toFixed(0)));
 	}
 	else {
 		return undefined;
@@ -408,7 +408,7 @@ export function getConfigLogFilesRemovalLimit(): number {
 export function getConfigLogRetentionSeconds(): number {
 	let config = getConfiguration();
 	if (config) {
-		return Number((config[configLogRetentionMinutes] * 60).toFixed(0));
+		return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
 	}
 	else {
 		return undefined;
