@@ -455,7 +455,7 @@ export class ConnectionUI {
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    public validateAndSaveProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
+    public async validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
         if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
@@ -473,19 +473,24 @@ export class ConnectionUI {
                     // Sign in to azure account
                     return self.promptForAccountSignIn().then((signedIn) => {
                         if (signedIn) {
-                            // retry creating a profile without the error message
-                            return self.createFirewallRule(profile, profile.server, clientIp);
+                            // Create a firewall rule for the server
+                            return self.createFirewallRule(profile, profile.server, clientIp).then((result) => {
+                                if (result) {
+                                    // Retry creating the profile if firewall rule
+                                    // was successful
+                                    return self.promptToRetryAndSaveProfile(profile, true);
+                                } else {
+                                    return undefined;
+                                }
+                            })
+                        } else {
+                            // show extension error?
+                            return undefined;
                         }
                     });
                 } else {
                     // Normal connection error! Let the user try again, prefilling values that they already entered
-                    return self.promptForRetryCreateProfile(profile).then(updatedProfile => {
-                        if (updatedProfile) {
-                            return self.validateAndSaveProfile(updatedProfile);
-                        } else {
-                            return undefined;
-                        }
-                    });
+                    return self.promptToRetryAndSaveProfile(profile);
                 }
             }
         });
@@ -502,9 +507,20 @@ export class ConnectionUI {
         return ConnectionProfile.createProfile(this._prompter);
     }
 
-    public promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
+    private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
+        return this.promptForRetryCreateProfile(profile, isFirewallError).then(updatedProfile => {
+            if (updatedProfile) {
+                return this.validateAndSaveProfile(updatedProfile);
+            } else {
+                return undefined;
+            }
+        });
+    }
+
+    public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
         // Ask if the user would like to fix the profile
-        return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryCreateProfile, LocalizedConstants.retryLabel).then(result => {
+        let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
+        return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
                 return ConnectionProfile.createProfile(this._prompter, profile);
             } else {
@@ -538,13 +554,20 @@ export class ConnectionUI {
         }
     }
 
-    private createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): PromiseLike<IConnectionProfile> {
-        return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(result => {
+    private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): Promise<boolean> {
+        return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
                 const firewallService = this.connectionManager.firewallService;
                 const account = firewallService.account;
-                firewallService.createFirewallRule(account, serverName, ipAddress);
-                return undefined;
+                let firewallResult = await firewallService.createFirewallRule(account, serverName, ipAddress);
+                if (firewallResult.result) {
+                    return true;
+                } else {
+                    Utils.showErrorMsg(firewallResult.errorMessage);
+                    return false;
+                }
+            } else {
+                return false;
             }
         });
     }

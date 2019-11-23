@@ -34,7 +34,7 @@ export class FirewallService {
 
     private convertToAzureAccount(azureSession: any): Account {
         let tenant = {
-            displayName: 'Microsoft',
+            displayName: Constants.tenantDisplayName,
             id: this._session.tenantId,
             userId: this._session.userId
         }

@@ -228,7 +228,10 @@
             <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
         </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
-            <source xml:lang="en">Account Signed In. Create new firewall rule? </source>
+            <source xml:lang="en">Account signed In. Create new firewall rule? </source>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleAdded">
+            <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
