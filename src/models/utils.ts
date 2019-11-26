@@ -440,17 +440,17 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileNa
 export function getSignInQuickPickItems(): AzureSignInQuickPickItem[] {
     let signInItem: AzureSignInQuickPickItem = {
         label: LocalizedConstants.azureSignIn,
-        description: 'Sign in to your Azure subscription',
+        description: LocalizedConstants.azureSignInDescription,
         command: Constants.cmdAzureSignIn
     };
     let signInWithDeviceCode: AzureSignInQuickPickItem = {
         label: LocalizedConstants.azureSignInWithDeviceCode,
-        description: 'Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work',
+        description: LocalizedConstants.azureSignInWithDeviceCodeDescription,
         command: Constants.cmdAzureSignInWithDeviceCode
     };
     let signInAzureCloud: AzureSignInQuickPickItem = {
         label: LocalizedConstants.azureSignInToAzureCloud,
-        description: 'Sign in to your Azure subscription in one of the sovereign clouds.',
+        description: LocalizedConstants.azureSignInToAzureCloudDescription,
         command: Constants.cmdAzureSignInToCloud
     };
     return [signInItem, signInWithDeviceCode, signInAzureCloud];

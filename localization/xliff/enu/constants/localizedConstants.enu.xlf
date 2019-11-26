@@ -249,7 +249,7 @@
             <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
         </trans-unit>
         <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
-            <source xml:lang="en">Azure Account extension activated.</source>
+            <source xml:lang="en">Azure Account extension activated and signed in.</source>
         </trans-unit>
         <trans-unit id="msgInvalidIpAddress">
             <source xml:lang="en">Invalid IP Address </source>
@@ -422,11 +422,20 @@
         <trans-unit id="azureSignIn">
             <source xml:lang="en">Azure: Sign In</source>
         </trans-unit>
+        <trans-unit id="azureSignInDescription">
+            <source xml:lang="en">Sign in to your Azure subscription</source>
+        </trans-unit>
         <trans-unit id="azureSignInWithDeviceCode">
             <source xml:lang="en">Azure: Sign In with Device Code</source>
         </trans-unit>
+        <trans-unit id="azureSignInWithDeviceCodeDescription">
+            <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
+        </trans-unit>
         <trans-unit id="azureSignInToAzureCloud">
             <source xml:lang="en">Azure: Sign In to Azure Cloud</source>
+        </trans-unit>
+        <trans-unit id="azureSignInToAzureCloudDescription">
+            <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         </trans-unit>
     </body>
   </file>

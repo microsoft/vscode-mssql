@@ -610,7 +610,7 @@ export class ConnectionUI {
                 placeHolder: startIpAddress,
                 default: startIpAddress,
                 validate: (value: string) => {
-                    if (!Number.parseFloat(value)) {
+                    if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex)) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     }
                 },
@@ -621,7 +621,7 @@ export class ConnectionUI {
                 message: LocalizedConstants.endIpAddressPrompt,
                 placeHolder: startIpAddress,
                 validate: (value: string) => {
-                    if (!Number.parseFloat(value)) {
+                    if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex)) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     } else if (+value > +startIpAddress) {
                         return LocalizedConstants.msgInvalidEndIpAddress;
@@ -633,13 +633,15 @@ export class ConnectionUI {
 
         // Prompt and return the value if the user confirmed
         return this._prompter.prompt(questions).then((answers: { [questionId: string ]: string}) => {
-            let result: FirewallIpAddressRange = {
-                startIpAddress: answers && answers[LocalizedConstants.startIpAddressPrompt] ?
-                    answers[LocalizedConstants.startIpAddressPrompt] : startIpAddress,
-                endIpAddress: answers && answers[LocalizedConstants.endIpAddressPrompt] ?
-                answers[LocalizedConstants.endIpAddressPrompt] : startIpAddress,
+            if (answers) {
+                let result: FirewallIpAddressRange = {
+                    startIpAddress: answers[LocalizedConstants.startIpAddressPrompt] ?
+                        answers[LocalizedConstants.startIpAddressPrompt] : startIpAddress,
+                    endIpAddress: answers[LocalizedConstants.endIpAddressPrompt] ?
+                        answers[LocalizedConstants.endIpAddressPrompt] : startIpAddress,
+                }
+                return result;
             }
-            return result;
         });
     }
 
