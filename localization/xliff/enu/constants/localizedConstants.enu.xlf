@@ -245,6 +245,9 @@
         <trans-unit id="msgPromptRetryFirewallRuleAdded">
             <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
         </trans-unit>
+        <trans-unit id="msgPromptAzureExtensionActivated">
+            <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
+        </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
         </trans-unit>

@@ -425,7 +425,7 @@ export class ConnectionUI {
     /**
      * Calls the create profile workflow
      * @param validate whether the profile should be connected to and validated before saving
-     * @returns undefined if profile creation failed
+     * @returns undefined if profile creation failedvscode-
      */
     public createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
         let self = this;
@@ -495,7 +495,11 @@ export class ConnectionUI {
                                 LocalizedConstants.activateLabel).then(async (selection) => {
                                     if (selection === LocalizedConstants.activateLabel) {
                                         await self._vscodeWrapper.azureAccountExtension.activate();
+                                        if (!self._vscodeWrapper.isAccountSignedIn) {
+                                            await this.showAzureExtensionActivated();
+                                        }
                                     }
+                                    return undefined;
                                 });
                         } else {
                             // Show recommendation to download the azure account extension
@@ -507,6 +511,9 @@ export class ConnectionUI {
                                             // Activate the Azure Account extension and call the function again
                                             if (self._vscodeWrapper.azureAccountExtension) {
                                                 await self._vscodeWrapper.azureAccountExtension.activate();
+                                                if (!self._vscodeWrapper.isAccountSignedIn) {
+                                                    await this.showAzureExtensionActivated();
+                                                }
                                             }
                                         });
                                     });
@@ -556,21 +563,34 @@ export class ConnectionUI {
         });
     }
 
-    private promptForAccountSignIn(): PromiseLike<boolean> {
+    private showSignInOptions(): Promise<boolean> {
+        return this.promptItemChoice({}, Utils.getSignInQuickPickItems()).then((selection) => {
+            if (selection && selection.command) {
+                return this._vscodeWrapper.executeCommand(selection.command).then(() => {
+                    this.connectionManager.firewallService.isSignedIn = true;
+                    return true;
+                });
+            } else {
+                return false;
+            }
+        });
+    }
+
+    private async showAzureExtensionActivated(): Promise<boolean> {
+        return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivated,
+            LocalizedConstants.signInLabel).then((result) => {
+                if (result === LocalizedConstants.signInLabel) {
+                    return this.showSignInOptions();
+                }
+        });
+    }
+
+    private async promptForAccountSignIn(): Promise<boolean> {
         if (!this._vscodeWrapper.isAccountSignedIn) {
             return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn, LocalizedConstants.signInLabel).then(result => {
                 if (result === LocalizedConstants.signInLabel) {
                     // show firewall dialog with all sign-in options
-                    return this.promptItemChoice({}, Utils.getSignInQuickPickItems()).then((selection) => {
-                        if (selection && selection.command) {
-                            return this._vscodeWrapper.executeCommand(selection.command).then(() => {
-                                this.connectionManager.firewallService.isSignedIn = true;
-                                return true;
-                            });
-                        } else {
-                            return false;
-                        }
-                    });
+                    return this.showSignInOptions();
                 } else {
                     return false;
                 }

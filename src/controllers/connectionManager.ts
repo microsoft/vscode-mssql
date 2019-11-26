@@ -387,7 +387,7 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
             } else if (result.errorNumber !== Constants.errorLoginFailed) {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
-                // send handle firewall request here
+                // check whether it's a firewall rule error
                 let firewallResult = await this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage);
                 if (firewallResult) {
                     this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
