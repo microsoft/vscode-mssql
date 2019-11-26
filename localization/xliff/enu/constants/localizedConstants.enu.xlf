@@ -83,6 +83,12 @@
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>
         </trans-unit>
+        <trans-unit id="startIpAddressPrompt">
+            <source xml:lang="en">Start IP</source>
+        </trans-unit>
+        <trans-unit id="endIpAddressPrompt">
+            <source xml:lang="en">End IP</source>
+        </trans-unit>
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
         </trans-unit>

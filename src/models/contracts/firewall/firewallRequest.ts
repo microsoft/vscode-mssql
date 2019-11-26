@@ -103,3 +103,8 @@ export interface HandleFirewallRuleResponse {
 	result: boolean;
 	ipAddress: string;
 }
+
+export interface FirewallIpAddressRange {
+    startIpAddress: string,
+    endIpAddress: string
+}

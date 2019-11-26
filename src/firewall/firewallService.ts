@@ -12,7 +12,6 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import Constants = require('../constants/constants');
 import { Deferred } from '../protocol';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import { ConnectionUI } from '../views/connectionUI';
 
 export class FirewallService {
 
@@ -25,8 +24,7 @@ export class FirewallService {
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _vscodeWrapper: VscodeWrapper,
-        private _connectionUI: ConnectionUI
+        private _vscodeWrapper: VscodeWrapper
     ) {}
 
     public get isSignedIn(): boolean {
@@ -88,12 +86,12 @@ export class FirewallService {
         return mapping;
     }
 
-    private async asCreateFirewallRuleParams(account: Account, serverName: string, ipAddress: string): Promise<CreateFirewallRuleParams> {
+    private async asCreateFirewallRuleParams(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<CreateFirewallRuleParams> {
         let params: CreateFirewallRuleParams = {
             account: this._account,
             serverName: serverName,
-            startIpAddress: ipAddress,
-            endIpAddress: ipAddress,
+            startIpAddress: startIpAddress,
+            endIpAddress: endIpAddress ? endIpAddress : startIpAddress,
             securityTokenMappings: await this.createSecurityTokenMapping()
         }
         return params;
@@ -107,9 +105,8 @@ export class FirewallService {
         }
     }
 
-    public async createFirewallRule(account: Account, serverName: string, ipAddress: string): Promise<CreateFirewallRuleResponse> {
-        // add UI to add 2 IP addresses
-        let params = await this.asCreateFirewallRuleParams(account, serverName, ipAddress);
+    public async createFirewallRule(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<CreateFirewallRuleResponse> {
+        let params = await this.asCreateFirewallRuleParams(serverName, startIpAddress, endIpAddress);
         let result = await this._client.sendResourceRequest(CreateFirewallRuleRequest.type, params);
         return result;
     }

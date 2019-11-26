@@ -17,7 +17,7 @@ import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
-import { Deferred } from '../protocol';
+import { FirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
 
 /**
  * The different tasks for managing connection profiles.
@@ -581,12 +581,49 @@ export class ConnectionUI {
         }
     }
 
+    private async promptForIpAddress(startIpAddress: string): Promise<FirewallIpAddressRange> {
+        let questions: IQuestion[] = [
+            {
+                type: QuestionTypes.input,
+                name: LocalizedConstants.startIpAddressPrompt,
+                message: LocalizedConstants.startIpAddressPrompt,
+                placeHolder: startIpAddress,
+                default: startIpAddress
+            },
+            {
+                type: QuestionTypes.input,
+                name: LocalizedConstants.endIpAddressPrompt,
+                message: LocalizedConstants.endIpAddressPrompt,
+                placeHolder: startIpAddress,
+                validate: (value: string) => {
+                    if (+value >= +startIpAddress) {
+                        return 'End IP cannot be less than Start IP';
+                    }
+                },
+                default: startIpAddress
+            }
+        ];
+
+        // Prompt and return the value if the user confirmed
+        return this._prompter.prompt(questions).then(answers => {
+            let result: FirewallIpAddressRange = {
+                startIpAddress: startIpAddress,
+                endIpAddress: startIpAddress
+            }
+            if (answers) {
+                return result;
+            } else {
+                return result;
+            }
+        });
+    }
+
     private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): Promise<boolean> {
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
                 const firewallService = this.connectionManager.firewallService;
-                const account = firewallService.account;
-                let firewallResult = await firewallService.createFirewallRule(account, serverName, ipAddress);
+                await this.promptForIpAddress(ipAddress);
+                let firewallResult = await firewallService.createFirewallRule(serverName, ipAddress);
                 if (firewallResult.result) {
                     return true;
                 } else {
