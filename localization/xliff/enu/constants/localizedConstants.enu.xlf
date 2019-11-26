@@ -245,8 +245,17 @@
         <trans-unit id="msgPromptRetryFirewallRuleAdded">
             <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
         </trans-unit>
-        <trans-unit id="msgPromptAzureExtensionActivated">
+        <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
             <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
+        </trans-unit>
+        <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
+            <source xml:lang="en">Azure Account extension activated.</source>
+        </trans-unit>
+        <trans-unit id="msgInvalidIpAddress">
+            <source xml:lang="en">Invalid IP Address </source>
+        </trans-unit>
+        <trans-unit id="msgInvalidEndIpAddress">
+            <source xml:lang="en">Invalid IP Address </source>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>

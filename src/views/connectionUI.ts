@@ -495,9 +495,7 @@ export class ConnectionUI {
                                 LocalizedConstants.activateLabel).then(async (selection) => {
                                     if (selection === LocalizedConstants.activateLabel) {
                                         await self._vscodeWrapper.azureAccountExtension.activate();
-                                        if (!self._vscodeWrapper.isAccountSignedIn) {
-                                            await this.showAzureExtensionActivated();
-                                        }
+                                        await this.showAzureExtensionActivated();
                                     }
                                     return undefined;
                                 });
@@ -511,9 +509,7 @@ export class ConnectionUI {
                                             // Activate the Azure Account extension and call the function again
                                             if (self._vscodeWrapper.azureAccountExtension) {
                                                 await self._vscodeWrapper.azureAccountExtension.activate();
-                                                if (!self._vscodeWrapper.isAccountSignedIn) {
-                                                    await this.showAzureExtensionActivated();
-                                                }
+                                                await this.showAzureExtensionActivated();
                                             }
                                         });
                                     });
@@ -577,12 +573,16 @@ export class ConnectionUI {
     }
 
     private async showAzureExtensionActivated(): Promise<boolean> {
-        return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivated,
-            LocalizedConstants.signInLabel).then((result) => {
-                if (result === LocalizedConstants.signInLabel) {
-                    return this.showSignInOptions();
-                }
-        });
+        if (!this._vscodeWrapper.isAccountSignedIn) {
+            return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
+                LocalizedConstants.signInLabel).then((result) => {
+                    if (result === LocalizedConstants.signInLabel) {
+                        return this.showSignInOptions();
+                    }
+            });
+        } else {
+            return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedSignedIn).then(() => true);
+        }
     }
 
     private async promptForAccountSignIn(): Promise<boolean> {
@@ -608,7 +608,12 @@ export class ConnectionUI {
                 name: LocalizedConstants.startIpAddressPrompt,
                 message: LocalizedConstants.startIpAddressPrompt,
                 placeHolder: startIpAddress,
-                default: startIpAddress
+                default: startIpAddress,
+                validate: (value: string) => {
+                    if (!Number.parseFloat(value)) {
+                        return LocalizedConstants.msgInvalidIpAddress;
+                    }
+                },
             },
             {
                 type: QuestionTypes.input,
@@ -616,8 +621,10 @@ export class ConnectionUI {
                 message: LocalizedConstants.endIpAddressPrompt,
                 placeHolder: startIpAddress,
                 validate: (value: string) => {
-                    if (+value >= +startIpAddress) {
-                        return 'End IP cannot be less than Start IP';
+                    if (!Number.parseFloat(value)) {
+                        return LocalizedConstants.msgInvalidIpAddress;
+                    } else if (+value > +startIpAddress) {
+                        return LocalizedConstants.msgInvalidEndIpAddress;
                     }
                 },
                 default: startIpAddress
@@ -625,16 +632,14 @@ export class ConnectionUI {
         ];
 
         // Prompt and return the value if the user confirmed
-        return this._prompter.prompt(questions).then(answers => {
+        return this._prompter.prompt(questions).then((answers: { [questionId: string ]: string}) => {
             let result: FirewallIpAddressRange = {
-                startIpAddress: startIpAddress,
-                endIpAddress: startIpAddress
+                startIpAddress: answers && answers[LocalizedConstants.startIpAddressPrompt] ?
+                    answers[LocalizedConstants.startIpAddressPrompt] : startIpAddress,
+                endIpAddress: answers && answers[LocalizedConstants.endIpAddressPrompt] ?
+                answers[LocalizedConstants.endIpAddressPrompt] : startIpAddress,
             }
-            if (answers) {
-                return result;
-            } else {
-                return result;
-            }
+            return result;
         });
     }
 
@@ -642,8 +647,8 @@ export class ConnectionUI {
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
                 const firewallService = this.connectionManager.firewallService;
-                await this.promptForIpAddress(ipAddress);
-                let firewallResult = await firewallService.createFirewallRule(serverName, ipAddress);
+                let ipRange = await this.promptForIpAddress(ipAddress);
+                let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
                 if (firewallResult.result) {
                     return true;
                 } else {
