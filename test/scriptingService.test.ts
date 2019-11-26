@@ -7,8 +7,7 @@ import * as TypeMoq from 'typemoq';
 import ConnectionManager from '../src/controllers/connectionManager';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { ScriptingService } from '../src/scripting/scriptingService';
-import { ScriptingRequest, ScriptingObject, ScriptingResult } from '../src/models/contracts/scripting/scriptingRequest';
-import { Script } from 'vm';
+import { ScriptingRequest, ScriptingObject, ScriptingResult, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ServerInfo } from '../src/models/contracts/connection';
 import { ObjectMetadata, MetadataType } from '../src/models/contracts/metadata/metadataRequest';
@@ -62,7 +61,7 @@ suite('Scripting Service Tests', () => {
         assert.equal(scriptingObject.type, expectedScriptingObject.type);
     });
 
-    test('Test Scripting function', async () => {
+    test('Test Create Scripting Params', () => {
         const testNodeMetadata: ObjectMetadata = {
             metadataType: MetadataType.Table,
             metadataTypeName: 'Table',
@@ -73,7 +72,88 @@ suite('Scripting Service Tests', () => {
         const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
             undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.scriptSelect(testNode, 'test_uri');
+        let scriptingParams = scriptingService.createScriptingParams(testNode, 'test_uri', ScriptOperation.Select);
+        const scriptingObject = scriptingService.getObjectFromNode(testNode);
+        assert.notEqual(scriptingParams, undefined);
+        assert.equal(scriptingParams.scriptDestination, 'ToEditor');
+        assert.equal(scriptingParams.scriptingObjects[0].name, scriptingObject.name);
+        assert.equal(scriptingParams.scriptingObjects[0].schema, scriptingObject.schema);
+        assert.equal(scriptingParams.scriptingObjects[0].type, scriptingObject.type);
+        assert.equal(scriptingParams.operation, ScriptOperation.Select);
+    });
+
+    test('Test Script Select function', async () => {
+        const testNodeMetadata: ObjectMetadata = {
+            metadataType: MetadataType.Table,
+            metadataTypeName: 'Table',
+            urn: undefined,
+            schema: 'dbo',
+            name: 'test_table'
+        };
+        const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
+            undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+        scriptingService = new ScriptingService(connectionManager.object);
+        const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Select);
+        assert.notEqual(script, undefined);
+    });
+
+    test('Test Script Create function', async () => {
+        const testNodeMetadata: ObjectMetadata = {
+            metadataType: MetadataType.Table,
+            metadataTypeName: 'Table',
+            urn: undefined,
+            schema: 'dbo',
+            name: 'test_table'
+        };
+        const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
+            undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+        scriptingService = new ScriptingService(connectionManager.object);
+        const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Create);
+        assert.notEqual(script, undefined);
+    });
+
+    test('Test Script Execute function', async () => {
+        const testNodeMetadata: ObjectMetadata = {
+            metadataType: MetadataType.SProc,
+            metadataTypeName: 'StoredProcedure',
+            urn: undefined,
+            schema: 'dbo',
+            name: 'test_proc'
+        };
+        const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
+            undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+        scriptingService = new ScriptingService(connectionManager.object);
+        const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Execute);
+        assert.notEqual(script, undefined);
+    });
+
+    test('Test Script Drop function', async () => {
+        const testNodeMetadata: ObjectMetadata = {
+            metadataType: MetadataType.Table,
+            metadataTypeName: 'Table',
+            urn: undefined,
+            schema: 'dbo',
+            name: 'test_table'
+        };
+        const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
+            undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
+        scriptingService = new ScriptingService(connectionManager.object);
+        const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Delete);
+        assert.notEqual(script, undefined);
+    });
+
+    test('Test Script Alter function', async () => {
+        const testNodeMetadata: ObjectMetadata = {
+            metadataType: MetadataType.SProc,
+            metadataTypeName: 'StoredProcedure',
+            urn: undefined,
+            schema: 'dbo',
+            name: 'test_sproc'
+        };
+        const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
+            undefined, undefined, 'StoredProcedure', undefined, undefined, undefined, testNodeMetadata);
+        scriptingService = new ScriptingService(connectionManager.object);
+        const script = await scriptingService.script(testNode, 'test_uri', ScriptOperation.Alter);
         assert.notEqual(script, undefined);
     });
 });
