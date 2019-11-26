@@ -20,7 +20,6 @@ import fs = require('fs');
 const msInH = 3.6e6;
 const msInM = 60000;
 const msInS = 1000;
-const azureAccountExtension = vscode.extensions.getExtension('ms-vscode.azure-account');
 
 const configTracingLevel = 'tracingLevel';
 const configLogRetentionMinutes = 'logRetentionMinutes';
@@ -433,13 +432,6 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileNa
 	launchArgs.push('--tracing-level');
 	launchArgs.push(getConfigTracingLevel());
 	return launchArgs;
-}
-
-/**
- * Returns whether an azure account is signed in
- */
-export function isAccountSignedIn(): boolean {
-    return azureAccountExtension.exports.status === 'LoggedIn';
 }
 
 /**

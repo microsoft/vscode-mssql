@@ -224,8 +224,14 @@
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleExtNotInstalled">
+            <source xml:lang="en">Your client IP address does not have access to the server. Download and install the Azure Account extension to sign in to an Azure account and create a new firewall rule to enable access.</source>
+        </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
             <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleNotActivated">
+            <source xml:lang="en">Your client IP address does not have access to the server. Activate the Azure Account extension and sign in to an Azure account and create a new firewall rule to enable access.</source>
         </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
             <source xml:lang="en">Account signed In. Create new firewall rule? </source>
@@ -238,6 +244,12 @@
         </trans-unit>
         <trans-unit id="signInLabel">
             <source xml:lang="en">Sign In</source>
+        </trans-unit>
+        <trans-unit id="downloadAndInstallLabel">
+            <source xml:lang="en">Download and Install</source>
+        </trans-unit>
+        <trans-unit id="activateLabel">
+            <source xml:lang="en">Activate</source>
         </trans-unit>
         <trans-unit id="createFirewallRuleLabel">
             <source xml:lang="en">Create Firewall Rule</source>

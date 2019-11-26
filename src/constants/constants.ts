@@ -41,6 +41,7 @@ export const cmdScriptDelete = 'extension.scriptDelete';
 export const cmdScriptExecute = 'extension.scriptExecute';
 export const cmdScriptAlter = 'extension.scriptAlter';
 export const cmdToggleSqlCmd = 'extension.toggleSqlCmd';
+export const cmdOpenExtension = 'extension.open';
 export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const cmdAzureSignIn = 'azure-account.login';
 export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
@@ -81,6 +82,7 @@ export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 export const changelogLink = 'https://aka.ms/vscode-mssql-changelog';
 export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedauth';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
+export const azureAccountExtensionId = 'ms-vscode.azure-account';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 

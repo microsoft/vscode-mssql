@@ -17,6 +17,7 @@ import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
+import { Deferred } from '../protocol';
 
 /**
  * The different tasks for managing connection profiles.
@@ -455,13 +456,13 @@ export class ConnectionUI {
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    public async validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+    public validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
         if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
-        return self.connectionManager.connect(uri, profile).then(result => {
+        return self.connectionManager.connect(uri, profile).then(async (result) => {
             if (result) {
                 // Success! save it
                 return self.saveProfile(profile);
@@ -470,24 +471,50 @@ export class ConnectionUI {
                 if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
                     // Firewall rule error
                     const clientIp = self.connectionManager.failedUriToFirewallIpMap.get(uri);
-                    // Sign in to azure account
-                    return self.promptForAccountSignIn().then((signedIn) => {
-                        if (signedIn) {
-                            // Create a firewall rule for the server
-                            return self.createFirewallRule(profile, profile.server, clientIp).then((result) => {
-                                if (result) {
+
+                    // Check whether the azure account extension is installed and active
+                    if (self._vscodeWrapper.azureAccountExtensionActive) {
+                        // Sign in to azure account
+                        return self.promptForAccountSignIn().then(async (signedIn) => {
+                            if (signedIn) {
+                                // Create a firewall rule for the server
+                                let success = await self.createFirewallRule(profile, profile.server, clientIp);
+                                if (success) {
                                     // Retry creating the profile if firewall rule
                                     // was successful
-                                    return self.promptToRetryAndSaveProfile(profile, true);
-                                } else {
-                                    return undefined;
+                                    self.connectionManager.failedUriToFirewallIpMap.delete(uri);
+                                    return self.validateAndSaveProfile(profile);
                                 }
-                            })
+                            }
+                        });
+                    } else {
+                        // If the extension exists but not active
+                        if (self._vscodeWrapper.azureAccountExtension) {
+                            // Prompt user to activate the extension
+                            return self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotActivated,
+                                LocalizedConstants.activateLabel).then(async (selection) => {
+                                    if (selection === LocalizedConstants.activateLabel) {
+                                        await self._vscodeWrapper.azureAccountExtension.activate();
+                                    }
+                                });
                         } else {
-                            // show extension error?
-                            return undefined;
+                            // Show recommendation to download the azure account extension
+                            return self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleExtNotInstalled,
+                                LocalizedConstants.downloadAndInstallLabel).then(async (selection) => {
+                                if (selection === LocalizedConstants.downloadAndInstallLabel) {
+                                    self._vscodeWrapper.executeCommand(Constants.cmdOpenExtension, Constants.azureAccountExtensionId).then(async (f) => {
+                                        self._vscodeWrapper.onDidChangeExtensions(async (e) => {
+                                            // Activate the Azure Account extension and call the function again
+                                            if (self._vscodeWrapper.azureAccountExtension) {
+                                                await self._vscodeWrapper.azureAccountExtension.activate();
+                                            }
+                                        });
+                                    });
+                                }
+                                return undefined;
+                            });
                         }
-                    });
+                    }
                 } else {
                     // Normal connection error! Let the user try again, prefilling values that they already entered
                     return self.promptToRetryAndSaveProfile(profile);
@@ -530,7 +557,7 @@ export class ConnectionUI {
     }
 
     private promptForAccountSignIn(): PromiseLike<boolean> {
-        if (!Utils.isAccountSignedIn()) {
+        if (!this._vscodeWrapper.isAccountSignedIn) {
             return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn, LocalizedConstants.signInLabel).then(result => {
                 if (result === LocalizedConstants.signInLabel) {
                     // show firewall dialog with all sign-in options

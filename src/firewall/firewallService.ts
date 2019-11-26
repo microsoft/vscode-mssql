@@ -3,7 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as vscode from 'vscode';
 import { Account, CreateFirewallRuleRequest, HandleFirewallRuleRequest,
     HandleFirewallRuleParams, HandleFirewallRuleResponse,
     CreateFirewallRuleResponse,
@@ -12,17 +11,23 @@ import { Account, CreateFirewallRuleRequest, HandleFirewallRuleRequest,
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import Constants = require('../constants/constants');
 import { Deferred } from '../protocol';
+import VscodeWrapper from '../controllers/vscodeWrapper';
+import { ConnectionUI } from '../views/connectionUI';
 
 export class FirewallService {
 
-    public static azureAccountExtension = vscode.extensions.getExtension('ms-vscode.azure-account');
     private _isSignedIn: boolean = false;
     private _session: any = undefined;
     private _account: Account = undefined;
     private _token = undefined;
     private _isStale: boolean;
 
-    constructor(private _client: SqlToolsServiceClient){}
+
+    constructor(
+        private _client: SqlToolsServiceClient,
+        private _vscodeWrapper: VscodeWrapper,
+        private _connectionUI: ConnectionUI
+    ) {}
 
     public get isSignedIn(): boolean {
         return this._isSignedIn;
@@ -97,12 +102,13 @@ export class FirewallService {
     public set isSignedIn(value: boolean) {
         this._isSignedIn = value;
         if (value) {
-            this._session = FirewallService.azureAccountExtension.exports.sessions[0];
+            this._session = this._vscodeWrapper.azureAccountExtension.exports.sessions[0];
             this._account = this.convertToAzureAccount(this._session);
         }
     }
 
     public async createFirewallRule(account: Account, serverName: string, ipAddress: string): Promise<CreateFirewallRuleResponse> {
+        // add UI to add 2 IP addresses
         let params = await this.asCreateFirewallRuleParams(account, serverName, ipAddress);
         let result = await this._client.sendResourceRequest(CreateFirewallRuleRequest.type, params);
         return result;
