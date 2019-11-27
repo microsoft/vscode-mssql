@@ -5,18 +5,12 @@
 import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
-import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow } from '../interfaces';
+import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
+    IGridIcon, IMessage, IRange, ISelectionData } from '../../../../../models/interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
 import { MessagesContextMenu } from './messagescontextmenu.component';
-
-import {
-    IGridIcon,
-    IMessage,
-    IRange,
-    ISelectionData
-} from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';

@@ -5,7 +5,7 @@
 
 import vscode = require('vscode');
 
-
+import { AzureLoginStatus } from '../models/interfaces';
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
@@ -365,6 +365,6 @@ export default class VscodeWrapper {
      */
     public get isAccountSignedIn(): boolean {
         return this.azureAccountExtensionActive &&
-            this.azureAccountExtension.exports.status === 'LoggedIn';
+            this.azureAccountExtension.exports.status === AzureLoginStatus.LoggedIn;
     }
 }

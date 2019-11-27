@@ -12,11 +12,12 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import Constants = require('../constants/constants');
 import { Deferred } from '../protocol';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { AzureSession } from '../models/interfaces';
 
 export class FirewallService {
 
     private _isSignedIn: boolean = false;
-    private _session: any = undefined;
+    private _session: AzureSession = undefined;
     private _account: Account = undefined;
     private _token = undefined;
     private _isStale: boolean;
@@ -35,7 +36,7 @@ export class FirewallService {
         return this._account;
     }
 
-    private convertToAzureAccount(azureSession: any): Account {
+    private convertToAzureAccount(azureSession: AzureSession): Account {
         let tenant = {
             displayName: Constants.tenantDisplayName,
             id: azureSession.tenantId,
