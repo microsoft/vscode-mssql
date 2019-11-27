@@ -475,18 +475,17 @@ export class ConnectionUI {
                     // Check whether the azure account extension is installed and active
                     if (self._vscodeWrapper.azureAccountExtensionActive) {
                         // Sign in to azure account
-                        return self.promptForAccountSignIn().then(async (signedIn) => {
-                            if (signedIn) {
-                                // Create a firewall rule for the server
-                                let success = await self.createFirewallRule(profile, profile.server, clientIp);
-                                if (success) {
-                                    // Retry creating the profile if firewall rule
-                                    // was successful
-                                    self.connectionManager.failedUriToFirewallIpMap.delete(uri);
-                                    return self.validateAndSaveProfile(profile);
-                                }
+                        const signedIn = await self.promptForAccountSignIn();
+                        if (signedIn) {
+                            // Create a firewall rule for the server
+                            let success = await self.createFirewallRule(profile, profile.server, clientIp);
+                            if (success) {
+                                // Retry creating the profile if firewall rule
+                                // was successful
+                                self.connectionManager.failedUriToFirewallIpMap.delete(uri);
+                                return self.validateAndSaveProfile(profile);
                             }
-                        });
+                        }
                     } else {
                         // If the extension exists but not active
                         if (self._vscodeWrapper.azureAccountExtension) {
@@ -538,13 +537,12 @@ export class ConnectionUI {
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
-        return this.promptForRetryCreateProfile(profile, isFirewallError).then(updatedProfile => {
-            if (updatedProfile) {
-                return this.validateAndSaveProfile(updatedProfile);
-            } else {
-                return undefined;
-            }
-        });
+        const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
+        if (updatedProfile) {
+            return this.validateAndSaveProfile(updatedProfile);
+        } else {
+            return undefined;
+        }
     }
 
     public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -597,7 +595,7 @@ export class ConnectionUI {
             });
         } else {
             this.connectionManager.firewallService.isSignedIn = true;
-            return Promise.resolve(true);
+            return true;
         }
     }
 
