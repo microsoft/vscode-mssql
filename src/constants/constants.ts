@@ -92,13 +92,12 @@ export const configMaxRecentConnections = 'maxRecentConnections';
 export const configCopyRemoveNewLine = 'copyRemoveNewLine';
 export const configSplitPaneSelection = 'splitPaneSelection';
 export const configShowBatchTime = 'showBatchTime';
-export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
+export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen', 'resultsFontSize'];
 export const sqlToolsServiceInstallDirConfigKey = 'installDir';
 export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
 export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 export const extConfigResultFontFamily = 'resultsFontFamily';
-export const extConfigResultFontSize = 'resultsFontSize';
 export const configApplyLocalization = 'applyLocalization';
 export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 

@@ -50,7 +50,8 @@ const template = `
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
-            [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'">
+            [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
+            [style.font-size]="resultsFontSize + 'px'">
             <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
@@ -147,7 +148,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private Constants = Constants;
     private Utils = Utils;
     private _messagesPaneHeight: number;
-    private _resultsPaneHeight: string;
 
     // the function implementations of keyboard available events
     private shortcutfunc = {
@@ -290,6 +290,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private complete = false;
     private uri: string;
     private hasRunQuery: boolean = false;
+    private resultsFontSize;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -316,10 +317,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
-
         this.dataService.config.then((config) => {
             this.config = config;
             self._messageActive = self.config.messagesDefaultOpen;
+            self.resultsFontSize = self.config.resultsFontSize;
             this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
                 self.messageShortcut = result;
             });
