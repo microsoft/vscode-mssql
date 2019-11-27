@@ -151,8 +151,8 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.command = Constants.cmdChooseDatabase;
         bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
-        bar.sqlCmdMode.text = 'SQLCMD: Off';
         this.showStatusBarItem(fileUri, bar.statusConnection);
+        this.sqlCmdModeChanged(fileUri, false);
     }
 
     public connectError(fileUri: string, credentials: Interfaces.IConnectionCredentials, error: ConnectionContracts.ConnectionCompleteParams): void {

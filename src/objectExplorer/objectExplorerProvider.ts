@@ -6,8 +6,9 @@
 import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
 import { ObjectExplorerService } from './objectExplorerService';
-import { ConnectionCredentials } from '../models/connectionCredentials';
 import { TreeNodeInfo } from './treeNodeInfo';
+import { IConnectionCredentials } from '../models/interfaces';
+import { Deferred } from '../protocol';
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
@@ -29,27 +30,50 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return node;
     }
 
-    getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const children = this._objectExplorerService.getChildren(element);
+    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        const children = await this._objectExplorerService.getChildren(element);
         if (children) {
-            return Promise.resolve(children);
+            return children;
         }
     }
 
-    async createSession(): Promise<string> {
-        return await this._objectExplorerService.createSession();
+    async createSession(promise: Deferred<TreeNodeInfo>, connectionCredentials?: IConnectionCredentials): Promise<string> {
+        return this._objectExplorerService.createSession(promise, connectionCredentials);
     }
 
-    public getConnectionCredentials(sessionId: string): ConnectionCredentials {
-        return this._objectExplorerService.getConnectionCredentials(sessionId);
+    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
+        return this._objectExplorerService.expandNode(node, sessionId, promise);
     }
 
-    public removeObjectExplorerNode(node: TreeNodeInfo): Promise<void> {
-        return this._objectExplorerService.removeObjectExplorerNode(node);
+    public getConnectionCredentials(sessionId: string): IConnectionCredentials {
+        if (sessionId) {
+            return this._objectExplorerService.getConnectionCredentials(sessionId);
+        }
+        return undefined;
     }
 
-    public refreshNode(node: TreeNodeInfo): Promise<boolean> {
+    public async removeObjectExplorerNode(node: TreeNodeInfo, isDisconnect: boolean = false): Promise<void> {
+        return this._objectExplorerService.removeObjectExplorerNode(node, isDisconnect);
+    }
+
+    public async refreshNode(node: TreeNodeInfo): Promise<void> {
         return this._objectExplorerService.refreshNode(node);
+    }
+
+    public signInNodeServer(node: TreeNodeInfo): void {
+        this._objectExplorerService.signInNodeServer(node);
+    }
+
+    public updateNode(node: TreeNodeInfo): void {
+        this._objectExplorerService.updateNode(node);
+    }
+
+    public async removeConnectionNodes(connections: IConnectionCredentials[]): Promise<void> {
+        await this._objectExplorerService.removeConnectionNodes(connections);
+    }
+
+    public addDisconnectedNode(connectionCredentials: IConnectionCredentials): void {
+        this._objectExplorerService.addDisconnectedNode(connectionCredentials);
     }
 
     /** Getters */
@@ -61,6 +85,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerExists;
     }
 
+    public get rootNodeConnections(): IConnectionCredentials[] {
+        return this._objectExplorerService.rootNodeConnections;
+    }
+
     /** Setters */
     public set objectExplorerExists(value: boolean) {
         this._objectExplorerExists = value;
@@ -69,5 +97,9 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     /* Only for testing purposes */
     public set objectExplorerService(value: ObjectExplorerService) {
         this._objectExplorerService = value;
+    }
+
+    public set currentNode(node: TreeNodeInfo) {
+        this._objectExplorerService.currentNode = node;
     }
 }

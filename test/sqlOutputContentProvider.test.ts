@@ -14,10 +14,9 @@ import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import { ISelectionData } from '../src/models/interfaces';
-import { resolve } from 'url';
 
 
-suite('SqlOutputProvider Tests', () => {
+suite('SqlOutputProvider Tests using mocks', () => {
     const testUri = 'Test_URI';
 
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
@@ -32,7 +31,6 @@ suite('SqlOutputProvider Tests', () => {
     setup(() => {
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
-        context.object.extensionPath = '';
         statusView = TypeMoq.Mock.ofType(StatusView);
         statusView.setup(x => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
@@ -99,6 +97,7 @@ suite('SqlOutputProvider Tests', () => {
         mockContentProvider.setup(p => p.isRunningQuery('Test_URI_New')).returns(() => false);
         mockContentProvider.setup(p => p.cancelQuery(testUri)).returns(() => {
             statusView.object.cancelingQuery(testUri);
+            return Promise.resolve();
         });
         mockContentProvider.setup(p => p.getQueryRunner(testUri)).returns(() => {
             return mockMap.get(testUri);
@@ -350,5 +349,31 @@ suite('SqlOutputProvider Tests', () => {
         assert.equal(mockMap.get(testUri), testedRunner);
 
         done();
+    });
+
+    test('cancelQuery with no query running should show information message about it', () => {
+        vscodeWrapper.setup(v => v.showInformationMessage(TypeMoq.It.isAnyString())).returns(() => Promise.resolve('error'));
+        contentProvider.cancelQuery('test_input');
+        vscodeWrapper.verify(v => v.showInformationMessage(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+    });
+
+    test('getQueryRunner should return undefined for new URI', () => {
+        let queryRunner = contentProvider.getQueryRunner('test_uri');
+        assert.equal(queryRunner, undefined);
+    });
+
+    test('toggleSqlCmd should do nothing if no queryRunner exists', async () => {
+        let result = await contentProvider.toggleSqlCmd('test_uri');
+        assert.equal(result, false);
+    });
+
+    test('Test queryResultsMap getters and setters', () => {
+        let queryResultsMap = contentProvider.getResultsMap;
+        // Query Results Map should be empty
+        assert.equal(queryResultsMap.size, 0);
+        let newQueryResultsMap = new Map();
+        newQueryResultsMap.set('test_uri', { queryRunner: {} });
+        contentProvider.setResultsMap = newQueryResultsMap;
+        assert.notEqual(contentProvider.getQueryRunner('test_uri'), undefined);
     });
 });

@@ -56,6 +56,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
             details.options['server'] += (',' + credentials.port);
         }
         details.options['database'] = credentials.database;
+        details.options['databaseDisplayName'] = credentials.database;
         details.options['user'] = credentials.user;
         details.options['password'] = credentials.password;
         details.options['authenticationType'] = credentials.authenticationType;
@@ -228,9 +229,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     return undefined;
                 },
                 onAnswered: (value) => {
-                    credentials.password = value;
-                    if (typeof((<IConnectionProfile>credentials)) !== 'undefined') {
-                        (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                    if (credentials) {
+                        credentials.password = value;
+                        if (typeof((<IConnectionProfile>credentials)) !== 'undefined') {
+                            (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                        }
                     }
                 }
             }
@@ -257,7 +260,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     // Prompt for password if this is a password based credential and the password for the profile was empty
     // and not explicitly set as empty. If it was explicitly set as empty, only prompt if pw not saved
-    private static shouldPromptForPassword(credentials: IConnectionCredentials): boolean {
+    public static shouldPromptForPassword(credentials: IConnectionCredentials): boolean {
         let isSavedEmptyPassword: boolean = (<IConnectionProfile>credentials).emptyPasswordInput
             && (<IConnectionProfile>credentials).savePassword;
 

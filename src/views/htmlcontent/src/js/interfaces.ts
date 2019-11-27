@@ -99,11 +99,6 @@ export interface IGridIcon {
     functionality: (batchId: number, resultId: number, index: number) => void;
 }
 
-export interface IResultsConfig {
-    shortcuts: { [key: string]: string };
-    messagesDefaultOpen: boolean;
-}
-
 export class QueryEvent {
     type: string;
     data: any;
@@ -114,11 +109,6 @@ export interface ISlickRange {
     fromRow: number;
     toCell: number;
     toRow: number;
-}
-
-export interface IResultsConfig {
-    shortcuts: { [key: string]: string };
-    messagesDefaultOpen: boolean;
 }
 
 export interface ISelectionData {

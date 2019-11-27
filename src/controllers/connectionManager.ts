@@ -21,6 +21,7 @@ import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 import {Runtime, PlatformInformation} from '../models/platform';
+import { Deferred } from '../protocol';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -85,7 +86,9 @@ export class ConnectionInfo {
 export default class ConnectionManager {
     private _statusView: StatusView;
     private _connections: { [fileUri: string]: ConnectionInfo };
-    private _objectExplorerSessions: { [sessionId: string]: ConnectionInfo };
+    private _connectionCredentialsToServerInfoMap:
+        Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
+    private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -96,7 +99,9 @@ export default class ConnectionManager {
                 private _connectionUI?: ConnectionUI) {
         this._statusView = statusView;
         this._connections = {};
-        this._objectExplorerSessions = {};
+        this._connectionCredentialsToServerInfoMap =
+            new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
+        this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -190,11 +195,30 @@ export default class ConnectionManager {
         return Object.keys(this._connections).length;
     }
 
+    public isActiveConnection(credential: Interfaces.IConnectionCredentials): boolean {
+        const connectedCredentials = Object.keys(this._connections).map((uri) => this._connections[uri].credentials);
+        for (let connectedCredential of connectedCredentials) {
+            if (Utils.isSameConnection(credential, connectedCredential)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public getUriForConnection(connection: Interfaces.IConnectionCredentials): string {
+        for (let uri of Object.keys(this._connections)) {
+            if (Utils.isSameConnection(this._connections[uri].credentials, connection)) {
+                return uri;
+            }
+        }
+        return undefined;
+    }
+
     public isConnected(fileUri: string): boolean {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
 
-    private isConnecting(fileUri: string): boolean {
+    public isConnecting(fileUri: string): boolean {
         return (fileUri in this._connections && this._connections[fileUri].connecting);
     }
 
@@ -267,6 +291,7 @@ export default class ConnectionManager {
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
             connection.connecting = false;
+            this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
 
             let mruConnection: Interfaces.IConnectionCredentials = <any>{};
 
@@ -281,9 +306,25 @@ export default class ConnectionManager {
 
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
                 mruConnection = connection.credentials;
+                const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
+                if (promise) {
+                    promise.resolve(true);
+                    self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                }
             } else {
-                self.handleConnectionErrors(fileUri, connection, result);
                 mruConnection = undefined;
+                const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
+                if (promise) {
+                    if (result.errorMessage) {
+                        self.handleConnectionErrors(fileUri, connection, result);
+                        promise.reject(result.errorMessage);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                    } else if (result.messages) {
+                        promise.reject(result.messages);
+                        self._uriToConnectionPromiseMap.delete(result.ownerUri);
+                    }
+                }
+                self.handleConnectionErrors(fileUri, connection, result);
             }
 
             self.tryAddMruConnection(connection, mruConnection);
@@ -388,7 +429,7 @@ export default class ConnectionManager {
         return this.connectionStore.clearRecentlyUsed();
     }
 
-    // choose database to use on current server
+    // choose database to use on current server from UI
     public onChooseDatabase(): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
@@ -438,14 +479,35 @@ export default class ConnectionManager {
         });
     }
 
-    public onChooseLanguageFlavor(isSqlCmd: boolean = false): Promise<boolean> {
+    public async changeDatabase(newDatabaseCredentials: Interfaces.IConnectionCredentials): Promise<boolean> {
+        const self = this;
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
+        return new Promise<boolean>(async (resolve, reject) => {
+            if (!self.isConnected(fileUri)) {
+                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
+                resolve(false);
+                return;
+            }
+            await self.disconnect(fileUri);
+            await self.connect(fileUri, newDatabaseCredentials);
+            Telemetry.sendTelemetryEvent('UseDatabase');
+            self.vscodeWrapper.logToOutputChannel(
+                Utils.formatString(
+                    LocalizedConstants.msgChangedDatabase,
+                    newDatabaseCredentials.database,
+                    newDatabaseCredentials.server, fileUri));
+            return true;
+        });
+    }
+
+    public onChooseLanguageFlavor(isSqlCmdMode: boolean = false, isSqlCmd: boolean = false): Promise<boolean> {
         const fileUri = this._vscodeWrapper.activeTextEditorUri;
         if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
-            if (isSqlCmd) {
+            if (isSqlCmdMode) {
                 SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
                     <LanguageServiceContracts.DidChangeLanguageFlavorParams> {
                     uri: fileUri,
-                    language: 'sqlcmd',
+                    language: isSqlCmd ? 'sqlcmd' : 'sql',
                     flavor: 'MSSQL'
                 });
                 return Promise.resolve(true);
@@ -494,7 +556,6 @@ export default class ConnectionManager {
                     }
 
                     delete self._connections[fileUri];
-
                     resolve(result);
                 });
             } else if (self.isConnecting(fileUri)) {
@@ -523,7 +584,7 @@ export default class ConnectionManager {
                     self.connect(fileUri, connectionCreds)
                     .then(result => {
                         self.handleConnectionResult(result, fileUri, connectionCreds).then(() => {
-                            resolve(true);
+                            resolve(connectionCreds);
                         });
                     });
                 });
@@ -531,6 +592,16 @@ export default class ConnectionManager {
                 resolve(false);
             }
         });
+    }
+
+    /**
+     * Get the server info for a connection
+     * @param connectionCreds
+     */
+    public getServerInfo(connectionCredentials: Interfaces.IConnectionCredentials): ConnectionContracts.ServerInfo {
+        if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
+            return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
+        }
     }
 
     /**
@@ -564,24 +635,30 @@ export default class ConnectionManager {
         });
     }
 
+    /**
+     * Delete a credential from the credential store
+     */
+    public async deleteCredential(profile: Interfaces.IConnectionProfile): Promise<boolean> {
+        return await this._connectionStore.deleteCredential(profile);
+    }
 
     // let users pick from a picklist of connections
-    public onNewConnection(objectExplorerSessionId?: string): Promise<boolean> {
+    public onNewConnection(): Promise<Interfaces.IConnectionCredentials> {
         const self = this;
-        const fileUri = objectExplorerSessionId ? objectExplorerSessionId : this.vscodeWrapper.activeTextEditorUri;
+        const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
             if (!fileUri) {
                 // A text document needs to be open before we can connect
                 self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
-                resolve(false);
+                resolve(undefined);
                 return;
             } else if (!self.vscodeWrapper.isEditingSqlFile) {
-                self.connectionUI.promptToChangeLanguageMode().then( result => {
+                self.connectionUI.promptToChangeLanguageMode().then(result => {
                     if (result) {
                         self.showConnectionsAndConnect(resolve, reject, fileUri);
                     } else {
-                        resolve(false);
+                        resolve(undefined);
                     }
                 });
                 return;
@@ -592,10 +669,9 @@ export default class ConnectionManager {
     }
 
     // create a new connection with the connectionCreds provided
-    public connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials): Promise<boolean> {
+    public async connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
-
-        return new Promise<boolean>((resolve, reject) => {
+        let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.extensionTimer = new Utils.Timer();
             connectionInfo.intelliSenseTimer = new Utils.Timer();
@@ -631,16 +707,19 @@ export default class ConnectionManager {
             connectionInfo.serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
-            self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams).then((result) => {
+            this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
+            try {
+                const result = await self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
                 if (!result) {
                     // Failed to process connect request
                     resolve(false);
                 }
-            }, err => {
-                // Catch unexpected errors and return over the Promise reject callback
-                reject(err);
-            });
+            } catch (error) {
+                reject(error);
+            }
         });
+        let connectionResult = await connectionPromise;
+        return connectionResult;
     }
 
     public onCancelConnect(): void {

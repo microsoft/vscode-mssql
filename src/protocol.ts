@@ -20,6 +20,7 @@ export interface IServerProxy {
     showWarning(message: string): void;
     showError(message: string): void;
     getLocalizedTexts(): Promise<{ [key: string]: any }>;
+    sendReadyEvent(uri: string): Promise<boolean>;
 }
 
 export interface IMessageProtocol {
@@ -27,7 +28,7 @@ export interface IMessageProtocol {
     onMessage: Event<string>;
 }
 
-class Deferred<T> {
+export class Deferred<T> {
    promise: Promise<T>;
    resolve: (value?: T | PromiseLike<T>) => void;
    reject: (reason?: any) => void;
@@ -71,7 +72,11 @@ class MessageProxy implements Disposable {
                 // first message
                 if (message === 'ready') {
                     // sanity check
-                    this.disposables.push(self.protocol.onMessage(val => self.onReceive(val)));
+                    this.disposables.push(self.protocol.onMessage((val) => {
+                        if (val !== 'ready') {
+                            self.onReceive(val);
+                        }
+                    }));
                     first.dispose();
                     self.ready.resolve();
                 }

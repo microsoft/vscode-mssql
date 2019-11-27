@@ -3,15 +3,18 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import { window } from 'vscode';
 import Prompt from './prompt';
 import LocalizedConstants = require('../constants/localizedConstants');
 import EscapeException from '../utils/EscapeException';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export default class ConfirmPrompt extends Prompt {
 
-    constructor(question: any, ignoreFocusOut?: boolean) {
-        super(question, ignoreFocusOut);
+    constructor(
+        question: any,
+        vscodeWrapper: VscodeWrapper,
+        ignoreFocusOut?: boolean) {
+        super(question, vscodeWrapper, ignoreFocusOut);
     }
 
     public render(): any {
@@ -22,7 +25,7 @@ export default class ConfirmPrompt extends Prompt {
         let options = this.defaultQuickPickOptions;
         options.placeHolder = this._question.message;
 
-        return window.showQuickPick(Object.keys(choices), options)
+        return this._vscodeWrapper.showQuickPickStrings(Object.keys(choices), options)
             .then(result => {
                 if (result === undefined) {
                     throw new EscapeException();

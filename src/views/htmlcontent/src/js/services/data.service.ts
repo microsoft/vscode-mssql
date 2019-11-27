@@ -80,6 +80,14 @@ export class DataService {
     }
 
     /**
+     * send ready event to server to show that
+     * the angular app has loaded
+     */
+    sendReadyEvent(uri: string): void {
+        this._proxy.sendReadyEvent(uri);
+    }
+
+    /**
      * send request to get all the localized texts
      */
     getLocalizedTextsRequest():  Promise<{ [key: string]: any }> {

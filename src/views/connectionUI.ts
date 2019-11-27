@@ -17,6 +17,7 @@ import Interfaces = require('../models/interfaces');
 import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
 
 /**
  * The different tasks for managing connection profiles.
@@ -39,10 +40,10 @@ export class ConnectionUI {
                 private _connectionStore: ConnectionStore,
                 private _prompter: IPrompter,
                 private _vscodeWrapper?: VscodeWrapper) {
-        this._errorOutputChannel = vscode.window.createOutputChannel(LocalizedConstants.connectionErrorChannelName);
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
+        if (!this._vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
         }
+        this._errorOutputChannel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.connectionErrorChannelName);
     }
 
     private get connectionManager(): ConnectionManager {
@@ -72,10 +73,15 @@ export class ConnectionUI {
 
     // Helper to let user choose a connection from a picklist
     // Return the ConnectionInfo for the user's choice
-    public showConnections(): Promise<IConnectionCredentials> {
+    public showConnections(showExistingConnections: boolean = true): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let picklist: IConnectionCredentialsQuickPickItem[] = self._connectionStore.getPickListItems();
+            let picklist: IConnectionCredentialsQuickPickItem[];
+            if (showExistingConnections) {
+                picklist = self._connectionStore.getPickListItems();
+            } else {
+                picklist = [];
+            }
             if (picklist.length === 0) {
                 // No connections - go to the create profile workflow
                 self.createAndSaveProfile().then(resolvedProfile => {
@@ -183,6 +189,26 @@ export class ConnectionUI {
     }
 
     /**
+     * Prompt the user for password
+     */
+    public promptForPassword(): Promise<string> {
+        const self = this;
+        return new Promise<string>((resolve, reject) => {
+            let question: IQuestion = {
+                type: QuestionTypes.password,
+                name: LocalizedConstants.passwordPrompt,
+                message: LocalizedConstants.passwordPrompt,
+                placeHolder: LocalizedConstants.passwordPlaceholder
+            };
+            self._prompter.promptSingle(question).then((result: string) => {
+                resolve(result);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    }
+
+    /**
      * Prompt the user to change language mode to SQL.
      * @returns resolves to true if the user changed the language mode to SQL.
      */
@@ -196,7 +222,7 @@ export class ConnectionUI {
             };
             self._prompter.promptSingle(question).then( value => {
                 if (value) {
-                    vscode.commands.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
+                    this._vscodeWrapper.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
                         self.waitForLanguageModeToBeSql().then( result => {
                             resolve(result);
                         });
@@ -430,11 +456,11 @@ export class ConnectionUI {
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
+    public validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
-        if (!uri) {
-            uri = profile.server + '_' + profile.profileName;
+        if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
+            uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
         return self.connectionManager.connect(uri, profile).then(result => {
             if (result) {
@@ -464,7 +490,7 @@ export class ConnectionUI {
         return ConnectionProfile.createProfile(this._prompter);
     }
 
-    private promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
+    public promptForRetryCreateProfile(profile: IConnectionProfile): PromiseLike<IConnectionProfile> {
         // Ask if the user would like to fix the profile
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryCreateProfile, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
@@ -523,7 +549,7 @@ export class ConnectionUI {
         }).then(result => {
             if (result) {
                 // TODO again consider moving information prompts to the prompt package
-                vscode.window.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
             }
             return result;
         });
@@ -534,7 +560,7 @@ export class ConnectionUI {
         if (!profiles || profiles.length === 0) {
             // Inform the user we have no profiles available for deletion
             // TODO: consider moving to prompter if we separate all UI logic from workflows in the future
-            vscode.window.showErrorMessage(LocalizedConstants.msgNoProfilesSaved);
+            this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgNoProfilesSaved);
             return Promise.resolve(undefined);
         }
 

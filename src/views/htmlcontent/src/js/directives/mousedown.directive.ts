@@ -17,6 +17,9 @@ export class MouseDownDirective {
             $gridCanvas.on('mousedown', () => {
                 self.onMouseDown.emit();
             });
+            let mouseDownFuncs: any[] = ($ as any)._data($gridCanvas[0], 'events')['mousedown'];
+            // reverse the event array so that our event fires first.
+            mouseDownFuncs.reverse();
         });
     }
 }
