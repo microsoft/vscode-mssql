@@ -369,10 +369,6 @@ export default class MainController implements vscode.Disposable {
             const newNode = await createSessionPromise;
             if (newNode) {
                 this._objectExplorerProvider.refresh(undefined);
-                let expandSessionPromise = new Deferred<TreeNodeInfo[]>();
-                await this._objectExplorerProvider.expandNode(newNode, newNode.sessionId, expandSessionPromise);
-                await expandSessionPromise;
-                this._objectExplorerProvider.refresh(undefined);
             }
         }
     }
