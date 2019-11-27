@@ -64,21 +64,22 @@ export class ObjectExplorerService {
                 let nodeConnection = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
                 for (let connection of savedConnections) {
                     if (Utils.isSameConnection(connection.connectionCreds, nodeConnection)) {
-                        nodeLabel = connection.label;
+                        // if it's not the defaul label
+                        if (connection.label !== connection.connectionCreds.server) {
+                            nodeLabel = connection.label;
+                        }
                         break;
                     }
                 }
                 // set connection and other things
                 if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
-                    nodeLabel = nodeLabel === result.rootNode.nodePath ?
-                    self.createNodeLabel(self._currentNode.connectionCredentials) : nodeLabel;
+                    nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionCredentials) : nodeLabel;
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        undefined, self._currentNode.connectionCredentials, nodeLabel);
+                        undefined, self._currentNode.connectionCredentials, nodeLabel, Constants.serverLabel);
                 } else {
-                    nodeLabel = nodeLabel === result.rootNode.nodePath ?
-                    self.createNodeLabel(nodeConnection) : nodeLabel;
+                    nodeLabel = !nodeLabel ? self.createNodeLabel(nodeConnection) : nodeLabel;
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        undefined, nodeConnection, nodeLabel);
+                        undefined, nodeConnection, nodeLabel, Constants.serverLabel);
                 }
                 // make a connection if not connected already
                 const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
@@ -143,18 +144,21 @@ export class ObjectExplorerService {
         return handler;
     }
 
-    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
+    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean | undefined> {
         const expandParams: ExpandParams = {
             sessionId: sessionId,
             nodePath: node.nodePath
         };
         this._expandParamsToPromiseMap.set(expandParams, promise);
         const response = await this._connectionManager.client.sendRequest(ExpandRequest.type, expandParams);
-        if (!response) {
+        if (response) {
+            this._currentNode = node;
+            return response;
+        } else {
             this._expandParamsToPromiseMap.delete(expandParams);
+            promise.resolve(undefined);
+            return undefined;
         }
-        this._currentNode = node;
-        return response;
     }
 
     public updateNode(node: TreeNodeInfo): void {
@@ -162,6 +166,7 @@ export class ObjectExplorerService {
             if (Utils.isSameConnection(node.connectionCredentials, rootTreeNode.connectionCredentials) &&
                 rootTreeNode.label === node.label) {
                     const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
+                    delete this._rootTreeNodeArray[index];
                     this._rootTreeNodeArray[index] = node;
                     return;
             }
@@ -183,6 +188,7 @@ export class ObjectExplorerService {
                 }
                 this._treeNodeToChildrenMap.delete(child);
             }
+            this._treeNodeToChildrenMap.delete(node);
         }
     }
 

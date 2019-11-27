@@ -52,14 +52,15 @@ export class TreeNodeInfo extends vscode.TreeItem {
         sessionId: string,
         parentNode: TreeNodeInfo,
         connectionCredentials: IConnectionCredentials,
-        label?: string): TreeNodeInfo {
-
-        const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, nodeInfo.nodeType,
+        label?: string,
+        nodeType?: string): TreeNodeInfo {
+        let type = nodeType ? nodeType : nodeInfo.nodeType;
+        const treeNodeInfo = new TreeNodeInfo(label ? label : nodeInfo.label, type,
             nodeInfo.isLeaf ? vscode.TreeItemCollapsibleState.None :
-            (nodeInfo.nodeType === Constants.serverLabel ? vscode.TreeItemCollapsibleState.Expanded :
+            (type === Constants.serverLabel ? vscode.TreeItemCollapsibleState.Expanded :
             vscode.TreeItemCollapsibleState.Collapsed),
             nodeInfo.nodePath, nodeInfo.nodeStatus,
-            nodeInfo.nodeType, sessionId, connectionCredentials, parentNode, nodeInfo.metadata);
+            type, sessionId, connectionCredentials, parentNode, nodeInfo.metadata);
         return treeNodeInfo;
     }
 

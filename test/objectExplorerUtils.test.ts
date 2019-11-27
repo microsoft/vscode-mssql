@@ -5,8 +5,10 @@
 import * as path from 'path';
 import { ObjectExplorerUtils } from '../src/objectExplorer/objectExplorerUtils';
 import { expect, assert } from 'chai';
+import Constants = require('../src/constants/constants');
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ConnectionProfile } from '../src/models/connectionProfile';
+import { ObjectMetadata } from '../src/models/contracts/metadata/metadataRequest';
 
 suite('Object Explorer Utils Tests', () => {
 
@@ -28,16 +30,17 @@ suite('Object Explorer Utils Tests', () => {
         testProfile.profileName = 'test_profile';
         testProfile.database = 'test_database';
         testProfile.user = 'test_user';
+        testProfile.authenticationType = Constants.sqlAuthentication;
         const disconnectedTestNode = new TreeNodeInfo('disconnectedTest', undefined, undefined, undefined,
-        undefined, 'disconnectedServer', undefined, disconnectedProfile, undefined);
+        undefined, 'disconnectedServer', undefined, disconnectedProfile, undefined, undefined);
         const serverTestNode = new TreeNodeInfo('serverTest', undefined, undefined, 'test_path',
-        undefined, 'Server', undefined, testProfile, undefined);
+        undefined, 'Server', undefined, testProfile, undefined, undefined);
         const databaseTestNode = new TreeNodeInfo('databaseTest', undefined, undefined, 'test_path',
-        undefined, 'Database', undefined, testProfile, serverTestNode);
+        undefined, 'Database', undefined, testProfile, serverTestNode, undefined);
         const tableTestNode = new TreeNodeInfo('tableTest', undefined, undefined, 'test_path',
-        undefined, 'Table', undefined, testProfile, databaseTestNode);
+        undefined, 'Table', undefined, testProfile, databaseTestNode, undefined);
         const testNodes = [disconnectedTestNode, serverTestNode, tableTestNode];
-        const expectedUris = ['disconnected_server_undefined_undefined_undefined',
+        const expectedUris = ['disconnected_server_undefined_undefined',
             'test_server_test_database_test_user_test_profile',
             'test_server_test_database_test_user_test_profile'];
 
@@ -53,11 +56,13 @@ suite('Object Explorer Utils Tests', () => {
         testProfile.profileName = 'test_profile';
         testProfile.database = 'test_database';
         testProfile.user = 'test_user';
+        testProfile.authenticationType = Constants.sqlAuthentication;
         const testProfile2 = new ConnectionProfile();
         testProfile2.server = 'test_server2';
         testProfile2.profileName = undefined;
+        testProfile2.authenticationType = 'Integrated';
         const testProfiles = [testProfile, testProfile2];
-        const expectedProfiles = ['test_server_test_database_test_user_test_profile', 'test_server2_undefined_undefined_undefined'];
+        const expectedProfiles = ['test_server_test_database_test_user_test_profile', 'test_server2_undefined_undefined'];
 
         for (let i = 0; i < testProfiles.length; i++) {
             const uri = ObjectExplorerUtils.getNodeUriFromProfile(testProfiles[i]);
@@ -73,12 +78,21 @@ suite('Object Explorer Utils Tests', () => {
         testProfile.user = 'test_user';
         const serverTestNode = new TreeNodeInfo('serverTest', undefined, undefined, 'test_path',
         undefined, 'Server', undefined, testProfile, undefined);
+        let databaseMetatadata: ObjectMetadata = {
+            metadataType: undefined,
+            metadataTypeName: Constants.databaseString,
+            urn: undefined,
+            name: 'databaseTest',
+            schema: undefined
+        };
         const databaseTestNode = new TreeNodeInfo('databaseTest', undefined, undefined, 'test_path',
-        undefined, 'Database', undefined, undefined, serverTestNode);
+        undefined, 'Database', undefined, undefined, serverTestNode, databaseMetatadata);
+        const databaseTestNode2 = new TreeNodeInfo('databaseTest', undefined, undefined, 'test_path',
+        undefined, 'Database', undefined, undefined, serverTestNode, undefined);
         const tableTestNode = new TreeNodeInfo('tableTest', undefined, undefined, 'test_path',
         undefined, 'Table', undefined, undefined, databaseTestNode);
-        const testNodes = [serverTestNode, databaseTestNode, tableTestNode];
-        const expectedDatabaseNames = ['test_database', 'databaseTest', 'databaseTest'];
+        const testNodes = [serverTestNode, databaseTestNode, databaseTestNode2, tableTestNode];
+        const expectedDatabaseNames = ['test_database', 'databaseTest', '<default>', 'databaseTest'];
         for (let i = 0; i < testNodes.length; i++) {
             let databaseName = ObjectExplorerUtils.getDatabaseName(testNodes[i]);
             assert.equal(databaseName, expectedDatabaseNames[i]);
