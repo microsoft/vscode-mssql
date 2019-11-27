@@ -621,9 +621,8 @@ export class ConnectionUI {
                 message: LocalizedConstants.endIpAddressPrompt,
                 placeHolder: startIpAddress,
                 validate: (value: string) => {
-                    if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex)) {
-                        return LocalizedConstants.msgInvalidIpAddress;
-                    } else if (+value > +startIpAddress) {
+                    if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex) ||
+                        (Number.parseFloat(value) > Number.parseFloat(startIpAddress))) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     }
                 },
