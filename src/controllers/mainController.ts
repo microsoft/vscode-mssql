@@ -30,7 +30,6 @@ import { Deferred } from '../protocol';
 import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
-import { FirewallService } from '../firewall/firewallService';
 
 /**
  * The main controller class that initializes the extension
@@ -51,7 +50,6 @@ export default class MainController implements vscode.Disposable {
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _scriptingService: ScriptingService;
-    private _firewallService: FirewallService;
 
     /**
      * The main controller constructor

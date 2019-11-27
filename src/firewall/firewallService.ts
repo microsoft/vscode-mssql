@@ -38,8 +38,8 @@ export class FirewallService {
     private convertToAzureAccount(azureSession: any): Account {
         let tenant = {
             displayName: Constants.tenantDisplayName,
-            id: this._session.tenantId,
-            userId: this._session.userId
+            id: azureSession.tenantId,
+            userId: azureSession.userId
         }
         let key : AccountKey = {
             providerId: Constants.resourceProviderId,
@@ -48,7 +48,7 @@ export class FirewallService {
         let account : Account = {
             key: key,
             displayInfo: {
-                userId: this._session.userId,
+                userId: azureSession.userId,
                 contextualDisplayName: undefined,
                 displayName: undefined,
                 accountType: undefined

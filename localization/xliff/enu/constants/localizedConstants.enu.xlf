@@ -254,9 +254,6 @@
         <trans-unit id="msgInvalidIpAddress">
             <source xml:lang="en">Invalid IP Address </source>
         </trans-unit>
-        <trans-unit id="msgInvalidEndIpAddress">
-            <source xml:lang="en">Invalid IP Address </source>
-        </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
         </trans-unit>

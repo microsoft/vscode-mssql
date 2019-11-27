@@ -126,14 +126,6 @@ export default class SqlToolsServiceClient {
         this._client = client;
     }
 
-    private get resourceClient(): LanguageClient {
-        return this._resourceClient;
-    }
-
-    private set resourceClient(client: LanguageClient) {
-        this._resourceClient = client;
-    }
-
     constructor(
         private _config: IConfig,
         private _server: ServerProvider,
@@ -274,14 +266,14 @@ export default class SqlToolsServiceClient {
             let serverOptions: ServerOptions = this.createServerOptions(serverPath);
             this.client = this.createLanguageClient(serverOptions);
             let resourcePath = path.join(path.dirname(serverPath), 'SqlToolsResourceProviderService.exe');
-            this.resourceClient = this.createResourceClient(resourcePath);
+            this._resourceClient = this.createResourceClient(resourcePath);
 
             if (context !== undefined) {
                 // Create the language client and start the client.
                 let disposable = this.client.start();
 
                 // Start the resource client
-                let resourceDisposable = this.resourceClient.start();
+                let resourceDisposable = this._resourceClient.start();
 
                 // Push the disposable to the context's subscriptions so that the
                 // client can be deactivated on extension deactivation
@@ -402,8 +394,8 @@ export default class SqlToolsServiceClient {
      */
     // tslint:disable-next-line:no-unused-variable
     public sendResourceRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
-        if (this.resourceClient !== undefined) {
-            return this.resourceClient.sendRequest(type, params);
+        if (this._resourceClient !== undefined) {
+            return this._resourceClient.sendRequest(type, params);
         }
     }
 

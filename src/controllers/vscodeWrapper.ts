@@ -348,7 +348,7 @@ export default class VscodeWrapper {
     /**
      * Gets the Azure Account extension
      */
-    public get azureAccountExtension(): vscode.Extension<any> {
+    public get azureAccountExtension(): vscode.Extension<any> | undefined {
         return vscode.extensions.getExtension(Constants.azureAccountExtensionId);
     }
 
@@ -364,6 +364,7 @@ export default class VscodeWrapper {
      * Returns whether an azure account is signed in
      */
     public get isAccountSignedIn(): boolean {
-        return this.azureAccountExtension.exports.status === 'LoggedIn';
+        return this.azureAccountExtensionActive &&
+            this.azureAccountExtension.exports.status === 'LoggedIn';
     }
 }

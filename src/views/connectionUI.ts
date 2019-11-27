@@ -425,7 +425,7 @@ export class ConnectionUI {
     /**
      * Calls the create profile workflow
      * @param validate whether the profile should be connected to and validated before saving
-     * @returns undefined if profile creation failedvscode-
+     * @returns undefined if profile creation failed
      */
     public createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
         let self = this;
@@ -624,7 +624,7 @@ export class ConnectionUI {
                     if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex)) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     } else if (+value > +startIpAddress) {
-                        return LocalizedConstants.msgInvalidEndIpAddress;
+                        return LocalizedConstants.msgInvalidIpAddress;
                     }
                 },
                 default: startIpAddress
@@ -650,11 +650,15 @@ export class ConnectionUI {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
                 const firewallService = this.connectionManager.firewallService;
                 let ipRange = await this.promptForIpAddress(ipAddress);
-                let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
-                if (firewallResult.result) {
-                    return true;
+                if (ipRange) {
+                    let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
+                    if (firewallResult.result) {
+                        return true;
+                    } else {
+                        Utils.showErrorMsg(firewallResult.errorMessage);
+                        return false;
+                    }
                 } else {
-                    Utils.showErrorMsg(firewallResult.errorMessage);
                     return false;
                 }
             } else {
