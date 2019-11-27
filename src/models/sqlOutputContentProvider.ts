@@ -33,6 +33,7 @@ export class QueryRunnerState {
 class ResultsConfig implements Interfaces.IResultsConfig {
     shortcuts: { [key: string]: string };
     messagesDefaultOpen: boolean;
+    resultsFontSize: number;
 }
 
 export class SqlOutputContentProvider {
