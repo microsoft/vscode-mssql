@@ -9,6 +9,7 @@ import vscode = require('vscode');
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
+import { TextDocumentShowOptions } from 'vscode';
 
 export default class VscodeWrapper {
 
@@ -159,8 +160,9 @@ export default class VscodeWrapper {
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public openTextDocument(uri: vscode.Uri): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument(uri);
+    public async openTextDocument(uri: vscode.Uri): Promise<vscode.TextDocument> {
+        const doc = await vscode.workspace.openTextDocument(uri);
+        return doc;
     }
 
     /**
@@ -174,8 +176,9 @@ export default class VscodeWrapper {
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public openMsSqlTextDocument(content?: string): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument({ language: 'sql', content: content});
+    public async openMsSqlTextDocument(content?: string): Promise<vscode.TextDocument> {
+        const doc = await vscode.workspace.openTextDocument({ language: 'sql', content: content});
+        return doc;
     }
 
     /**
@@ -227,10 +230,21 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Shows an input box with given options
+     */
+    public showInputBox(options?: vscode.InputBoxOptions): Thenable<string> {
+        return vscode.window.showInputBox(options);
+    }
+
+    /**
      * Formats and shows a vscode information message
      */
     public showInformationMessage(msg: string, ...items: string[]): Thenable<string> {
         return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg, ...items);
+    }
+
+    public showQuickPickStrings(items: string[] | Thenable<string[]>, options?: vscode.QuickPickOptions): Thenable<string | undefined> {
+        return vscode.window.showQuickPick(items, options);
     }
 
     /**
@@ -264,8 +278,9 @@ export default class VscodeWrapper {
      * @param preserveFocus When `true` the editor will not take focus.
      * @return A promise that resolves to an [editor](#TextEditor).
      */
-    public showTextDocument(document: vscode.TextDocument, column?: vscode.ViewColumn, preserveFocus?: boolean): Thenable<vscode.TextEditor> {
-        return vscode.window.showTextDocument(document, column, preserveFocus);
+    public async showTextDocument(document: vscode.TextDocument, options: TextDocumentShowOptions): Promise<vscode.TextEditor> {
+        const editor = await vscode.window.showTextDocument(document, options);
+        return editor;
     }
 
     /**

@@ -7,15 +7,13 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class ScriptingService {
 
     private _client: SqlToolsServiceClient;
 
     constructor(
-        private _connectionManager: ConnectionManager,
-        private _vscodeWrapper: VscodeWrapper
+        private _connectionManager: ConnectionManager
     ) {
         this._client = this._connectionManager.client;
     }
@@ -45,33 +43,48 @@ export class ScriptingService {
 
     /**
      * Helper to get the object name and schema name
-     * @param node
+     * (Public for testing purposes)
      */
-    private getObjectNames(node: TreeNodeInfo): string[] {
-        let fullName = node.label;
-        let objects = fullName.split('.');
-        return objects;
+    public getObjectFromNode(node: TreeNodeInfo): ScriptingObject {
+        let metadata = node.metadata;
+        let scriptingObject: ScriptingObject = {
+            type: metadata.metadataTypeName,
+            schema: metadata.schema,
+            name: metadata.name
+        };
+        return scriptingObject;
     }
 
-    public async scriptSelect(node: TreeNodeInfo, uri: string): Promise<string> {
-        const objectNames = this.getObjectNames(node);
-        let scriptingObject: ScriptingObject = {
-            type: node.nodeType,
-            schema: objectNames[objectNames.length-2],
-            name: objectNames[objectNames.length-1]
-        };
+    /**
+     * Helper to create scripting params
+     */
+    public createScriptingParams(node: TreeNodeInfo, uri: string, operation: ScriptOperation): ScriptingParams {
+        const scriptingObject = this.getObjectFromNode(node);
         let serverInfo = this._connectionManager.getServerInfo(node.connectionCredentials);
+        let scriptCreateDropOption: string;
+        switch (operation) {
+            case (ScriptOperation.Select):
+                scriptCreateDropOption = 'ScriptSelect';
+                break;
+            case (ScriptOperation.Delete):
+                scriptCreateDropOption = 'ScriptDrop';
+                break;
+            case (ScriptOperation.Create):
+                scriptCreateDropOption = 'ScriptCreate';
+            default:
+                scriptCreateDropOption = 'ScriptCreate';
+        }
         let scriptOptions: ScriptOptions = {
-            scriptCreateDrop: 'ScriptSelect',
+            scriptCreateDrop: scriptCreateDropOption,
             typeOfDataToScript: 'SchemaOnly',
             scriptStatistics: 'ScriptStatsNone',
-            targetDatabaseEngineEdition:
-            serverInfo.engineEditionId ? this.targetDatabaseEngineEditionMap[serverInfo.engineEditionId] : 'SqlServerEnterpriseEdition',
-            targetDatabaseEngineType: serverInfo.isCloud ? 'SqlAzure': 'SingleInstance',
-            scriptCompatibilityOption: serverInfo.serverMajorVersion ?
+            targetDatabaseEngineEdition: serverInfo && serverInfo.engineEditionId ?
+                this.targetDatabaseEngineEditionMap[serverInfo.engineEditionId] : 'SqlServerEnterpriseEdition',
+            targetDatabaseEngineType: serverInfo && serverInfo.isCloud ? 'SqlAzure' : 'SingleInstance',
+            scriptCompatibilityOption: serverInfo && serverInfo.serverMajorVersion ?
                 this.scriptCompatibilityOptionMap[serverInfo.serverMajorVersion] : 'Script140Compat'
         };
-        let scriptingParams : ScriptingParams = {
+        let scriptingParams: ScriptingParams = {
             filePath: undefined,
             scriptDestination: 'ToEditor',
             connectionString: undefined,
@@ -86,10 +99,15 @@ export class ScriptingService {
             connectionDetails: undefined,
             ownerURI: uri,
             selectScript: undefined,
-            operation: ScriptOperation.Select
-        }
+            operation: operation
+        };
+        return scriptingParams;
+    }
+
+
+    public async script(node: TreeNodeInfo, uri: string, operation: ScriptOperation): Promise<string> {
+        let scriptingParams = this.createScriptingParams(node, uri, operation);
         const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
         return result.script;
     }
-
 }

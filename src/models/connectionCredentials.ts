@@ -56,6 +56,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
             details.options['server'] += (',' + credentials.port);
         }
         details.options['database'] = credentials.database;
+        details.options['databaseDisplayName'] = credentials.database;
         details.options['user'] = credentials.user;
         details.options['password'] = credentials.password;
         details.options['authenticationType'] = credentials.authenticationType;
@@ -228,9 +229,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     return undefined;
                 },
                 onAnswered: (value) => {
-                    credentials.password = value;
-                    if (typeof((<IConnectionProfile>credentials)) !== 'undefined') {
-                        (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                    if (credentials) {
+                        credentials.password = value;
+                        if (typeof((<IConnectionProfile>credentials)) !== 'undefined') {
+                            (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                        }
                     }
                 }
             }

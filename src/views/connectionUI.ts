@@ -40,10 +40,10 @@ export class ConnectionUI {
                 private _connectionStore: ConnectionStore,
                 private _prompter: IPrompter,
                 private _vscodeWrapper?: VscodeWrapper) {
-        this._errorOutputChannel = vscode.window.createOutputChannel(LocalizedConstants.connectionErrorChannelName);
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
+        if (!this._vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
         }
+        this._errorOutputChannel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.connectionErrorChannelName);
     }
 
     private get connectionManager(): ConnectionManager {
@@ -222,7 +222,7 @@ export class ConnectionUI {
             };
             self._prompter.promptSingle(question).then( value => {
                 if (value) {
-                    vscode.commands.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
+                    this._vscodeWrapper.executeCommand('workbench.action.editor.changeLanguageMode').then( () => {
                         self.waitForLanguageModeToBeSql().then( result => {
                             resolve(result);
                         });
@@ -456,10 +456,10 @@ export class ConnectionUI {
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    private validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
+    public validateAndSaveProfile(profile: Interfaces.IConnectionProfile): PromiseLike<Interfaces.IConnectionProfile> {
         const self = this;
         let uri = self.vscodeWrapper.activeTextEditorUri;
-        if (!uri) {
+        if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
         return self.connectionManager.connect(uri, profile).then(result => {
@@ -549,7 +549,7 @@ export class ConnectionUI {
         }).then(result => {
             if (result) {
                 // TODO again consider moving information prompts to the prompt package
-                vscode.window.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
             }
             return result;
         });
@@ -560,7 +560,7 @@ export class ConnectionUI {
         if (!profiles || profiles.length === 0) {
             // Inform the user we have no profiles available for deletion
             // TODO: consider moving to prompter if we separate all UI logic from workflows in the future
-            vscode.window.showErrorMessage(LocalizedConstants.msgNoProfilesSaved);
+            this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgNoProfilesSaved);
             return Promise.resolve(undefined);
         }
 

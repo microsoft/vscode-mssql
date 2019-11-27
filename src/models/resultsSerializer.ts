@@ -234,7 +234,11 @@ export default class ResultsSerializer {
             let uri = vscode.Uri.file(filePath);
             self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
                 // Show open document and set focus
-                self._vscodeWrapper.showTextDocument(doc, 1, false).then(undefined, (error: any) => {
+                self._vscodeWrapper.showTextDocument(doc,
+                {
+                    viewColumn: vscode.ViewColumn.One,
+                    preserveFocus: false,
+                    preview: false}).then(undefined, (error: any) => {
                     self._vscodeWrapper.showErrorMessage(error);
                 });
             }, (error: any) => {

@@ -290,6 +290,7 @@ export interface IGridBatchMetaData {
 export interface IResultsConfig {
     shortcuts: { [key: string]: string };
     messagesDefaultOpen: boolean;
+    resultsFontSize: number;
 }
 
 export interface ILogger {
