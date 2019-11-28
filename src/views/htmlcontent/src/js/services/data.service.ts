@@ -5,7 +5,7 @@
 import { Subject } from 'rxjs/Subject';
 import { Injectable } from '@angular/core';
 import { ISlickRange } from 'angular2-slickgrid';
-import { QueryEvent, ResultSetSubset, ISelectionData } from './../interfaces';
+import { QueryEvent, ResultSetSubset, ISelectionData } from './../../../../../models/interfaces';
 import * as Constants from './../constants';
 import { createProxy, IMessageProtocol, IServerProxy } from '../../../../../protocol';
 

@@ -83,6 +83,12 @@
         <trans-unit id="databasePrompt">
             <source xml:lang="en">Database name</source>
         </trans-unit>
+        <trans-unit id="startIpAddressPrompt">
+            <source xml:lang="en">Start IP</source>
+        </trans-unit>
+        <trans-unit id="endIpAddressPrompt">
+            <source xml:lang="en">End IP</source>
+        </trans-unit>
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
         </trans-unit>
@@ -224,8 +230,44 @@
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleExtNotInstalled">
+            <source xml:lang="en">Your client IP address does not have access to the server. Download and install the Azure Account extension to sign in to an Azure account and create a new firewall rule to enable access.</source>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
+            <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleNotActivated">
+            <source xml:lang="en">Your client IP address does not have access to the server. Activate the Azure Account extension and sign in to an Azure account and create a new firewall rule to enable access.</source>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
+            <source xml:lang="en">Account signed In. Create new firewall rule? </source>
+        </trans-unit>
+        <trans-unit id="msgPromptRetryFirewallRuleAdded">
+            <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
+        </trans-unit>
+        <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
+            <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
+        </trans-unit>
+        <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
+            <source xml:lang="en">Azure Account extension activated and signed in.</source>
+        </trans-unit>
+        <trans-unit id="msgInvalidIpAddress">
+            <source xml:lang="en">Invalid IP Address </source>
+        </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
+        </trans-unit>
+        <trans-unit id="signInLabel">
+            <source xml:lang="en">Sign In</source>
+        </trans-unit>
+        <trans-unit id="downloadAndInstallLabel">
+            <source xml:lang="en">Download and Install</source>
+        </trans-unit>
+        <trans-unit id="activateLabel">
+            <source xml:lang="en">Activate</source>
+        </trans-unit>
+        <trans-unit id="createFirewallRuleLabel">
+            <source xml:lang="en">Create Firewall Rule</source>
         </trans-unit>
         <trans-unit id="msgConnecting">
             <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
@@ -373,6 +415,24 @@
         </trans-unit>
         <trans-unit id="msgConnect">
             <source xml:lang="en">Connect</source>
+        </trans-unit>
+        <trans-unit id="azureSignIn">
+            <source xml:lang="en">Azure: Sign In</source>
+        </trans-unit>
+        <trans-unit id="azureSignInDescription">
+            <source xml:lang="en">Sign in to your Azure subscription</source>
+        </trans-unit>
+        <trans-unit id="azureSignInWithDeviceCode">
+            <source xml:lang="en">Azure: Sign In with Device Code</source>
+        </trans-unit>
+        <trans-unit id="azureSignInWithDeviceCodeDescription">
+            <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
+        </trans-unit>
+        <trans-unit id="azureSignInToAzureCloud">
+            <source xml:lang="en">Azure: Sign In to Azure Cloud</source>
+        </trans-unit>
+        <trans-unit id="azureSignInToAzureCloudDescription">
+            <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         </trans-unit>
     </body>
   </file>

@@ -22,6 +22,7 @@ import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 import {Runtime, PlatformInformation} from '../models/platform';
 import { Deferred } from '../protocol';
+import { FirewallService } from '../firewall/firewallService';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -89,6 +90,8 @@ export default class ConnectionManager {
     private _connectionCredentialsToServerInfoMap:
         Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
     private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
+    private _failedUriToFirewallIpMap: Map<string, string>;
+    private _firewallService: FirewallService;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -102,6 +105,7 @@ export default class ConnectionManager {
         this._connectionCredentialsToServerInfoMap =
             new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
         this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
+
 
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
@@ -117,6 +121,10 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(this, this._connectionStore, prompter, this.vscodeWrapper);
         }
+
+        // Initiate the firewall service
+        this._firewallService = new FirewallService(this.client, this.vscodeWrapper);
+        this._failedUriToFirewallIpMap = new Map<string, string>();
 
         if (this.client !== undefined) {
             this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
@@ -193,6 +201,14 @@ export default class ConnectionManager {
      */
     public get connectionCount(): number {
         return Object.keys(this._connections).length;
+    }
+
+    public get failedUriToFirewallIpMap(): Map<string, string> {
+        return this._failedUriToFirewallIpMap;
+    }
+
+    public get firewallService(): FirewallService {
+        return this._firewallService;
     }
 
     public isActiveConnection(credential: Interfaces.IConnectionCredentials): boolean {
@@ -286,7 +302,7 @@ export default class ConnectionManager {
     public handleConnectionCompleteNotification(): NotificationHandler<ConnectionContracts.ConnectionCompleteParams> {
         // Using a lambda here to perform variable capture on the 'this' reference
         const self = this;
-        return (result: ConnectionContracts.ConnectionCompleteParams): void => {
+        return async (result: ConnectionContracts.ConnectionCompleteParams): Promise<void> => {
             let fileUri = result.ownerUri;
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
@@ -316,7 +332,7 @@ export default class ConnectionManager {
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     if (result.errorMessage) {
-                        self.handleConnectionErrors(fileUri, connection, result);
+                        await self.handleConnectionErrors(fileUri, connection, result);
                         promise.reject(result.errorMessage);
                         self._uriToConnectionPromiseMap.delete(result.ownerUri);
                     } else if (result.messages) {
@@ -324,7 +340,7 @@ export default class ConnectionManager {
                         self._uriToConnectionPromiseMap.delete(result.ownerUri);
                     }
                 }
-                self.handleConnectionErrors(fileUri, connection, result);
+                await self.handleConnectionErrors(fileUri, connection, result);
             }
 
             self.tryAddMruConnection(connection, mruConnection);
@@ -363,7 +379,7 @@ export default class ConnectionManager {
         });
     }
 
-    private handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): void {
+    private async handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): Promise<void> {
         if (result.errorNumber && result.errorMessage && !Utils.isEmpty(result.errorMessage)) {
             // Check if the error is an expired password
             if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
@@ -371,6 +387,11 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
             } else if (result.errorNumber !== Constants.errorLoginFailed) {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
+                // check whether it's a firewall rule error
+                let firewallResult = await this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage);
+                if (firewallResult) {
+                    this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+                }
             }
             connection.errorNumber = result.errorNumber;
             connection.errorMessage = result.errorMessage;
