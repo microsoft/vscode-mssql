@@ -248,6 +248,7 @@ suite('Connection Profile tests', () => {
     test('Profile is not saved when connection validation fails', done => {
         let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
         connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
+        connectionManagerMock.setup(x => x.failedUriToFirewallIpMap).returns(() => new Map());
 
         let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
         connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));

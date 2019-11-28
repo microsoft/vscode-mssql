@@ -5,7 +5,7 @@
 
 import vscode = require('vscode');
 
-
+import { AzureLoginStatus } from '../models/interfaces';
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
@@ -342,6 +342,36 @@ export default class VscodeWrapper {
      * Change a configuration setting
      */
     public setConfiguration(extensionName: string, resource: string, value: any): Thenable<void> {
-        return this.getConfiguration(extensionName, resource).update(resource, value)
+        return this.getConfiguration(extensionName, resource).update(resource, value);
+    }
+
+    /*
+     * Called when there's a change in the extensions
+     */
+    public get onDidChangeExtensions(): vscode.Event<void> {
+        return vscode.extensions.onDidChange;
+    }
+
+    /**
+     * Gets the Azure Account extension
+     */
+    public get azureAccountExtension(): vscode.Extension<any> | undefined {
+        return vscode.extensions.getExtension(Constants.azureAccountExtensionId);
+    }
+
+    /**
+     * Returns true when the Azure Account extension is installed
+     * but not active
+     */
+    public get azureAccountExtensionActive(): boolean {
+        return this.azureAccountExtension && this.azureAccountExtension.isActive;
+    }
+
+    /**
+     * Returns whether an azure account is signed in
+     */
+    public get isAccountSignedIn(): boolean {
+        return this.azureAccountExtensionActive &&
+            this.azureAccountExtension.exports.status === AzureLoginStatus.LoggedIn;
     }
 }

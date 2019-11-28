@@ -5,23 +5,25 @@
 'use strict';
 
 import { ExtensionContext, workspace, window, OutputChannel, languages } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions,
+import {
+    LanguageClient, LanguageClientOptions, ServerOptions,
     TransportKind, RequestType, NotificationType, NotificationHandler,
-    ErrorAction, CloseAction } from 'vscode-languageclient';
-
+    ErrorAction, CloseAction
+} from 'vscode-languageclient';
+import * as path from 'path';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import Telemetry from '../models/telemetry';
 import * as Utils from '../models/utils';
-import {VersionRequest} from '../models/contracts';
-import {Logger} from '../models/logger';
+import { VersionRequest } from '../models/contracts';
+import { Logger } from '../models/logger';
 import Constants = require('../constants/constants');
 import ServerProvider from './server';
 import ServiceDownloadProvider from './serviceDownloadProvider';
 import DecompressProvider from './decompressProvider';
 import HttpClient from './httpClient';
-import ExtConfig from  '../configurations/extConfig';
-import {PlatformInformation} from '../models/platform';
-import {ServerInitializationResult, ServerStatusView} from './serverStatus';
+import ExtConfig from '../configurations/extConfig';
+import { PlatformInformation } from '../models/platform';
+import { ServerInitializationResult, ServerStatusView } from './serverStatus';
 import StatusView from '../views/statusView';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
@@ -61,12 +63,12 @@ class LanguageClientErrorHandler {
         Telemetry.sendTelemetryEvent('SqlToolsServiceCrash');
 
         this.vscodeWrapper.showErrorMessage(
-          Constants.sqlToolsServiceCrashMessage,
-          Constants.sqlToolsServiceCrashButton).then(action => {
-            if (action && action === Constants.sqlToolsServiceCrashButton) {
-                vscode.env.openExternal(vscode.Uri.parse(Constants.sqlToolsServiceCrashLink));
-            }
-        });
+            Constants.sqlToolsServiceCrashMessage,
+            Constants.sqlToolsServiceCrashButton).then(action => {
+                if (action && action === Constants.sqlToolsServiceCrashButton) {
+                    vscode.env.openExternal(vscode.Uri.parse(Constants.sqlToolsServiceCrashLink));
+                }
+            });
     }
 
     /**
@@ -105,12 +107,17 @@ class LanguageClientErrorHandler {
 
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
+
+    private _logPath: string;
+
     // singleton instance
     private static _instance: SqlToolsServiceClient = undefined;
 
     // VS Code Language Client
     private _client: LanguageClient = undefined;
-    // getter method for the Language Client
+    private _resourceClient: LanguageClient = undefined;
+
+    // getter method for the Language Clients
     private get client(): LanguageClient {
         return this._client;
     }
@@ -137,7 +144,7 @@ export default class SqlToolsServiceClient {
             let httpClient = new HttpClient();
             let decompressProvider = new DecompressProvider();
             let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView, httpClient,
-            decompressProvider);
+                decompressProvider);
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
             let vscodeWrapper = new VscodeWrapper();
             let statusView = new StatusView(vscodeWrapper);
@@ -149,21 +156,21 @@ export default class SqlToolsServiceClient {
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
     public initialize(context: ExtensionContext): Promise<ServerInitializationResult> {
-         this._logger.appendLine(Constants.serviceInitializing);
-
-         return PlatformInformation.getCurrent().then( platformInfo => {
+        this._logger.appendLine(Constants.serviceInitializing);
+        this._logPath = context.logPath;
+        return PlatformInformation.getCurrent().then(platformInfo => {
             return this.initializeForPlatform(platformInfo, context);
-         });
+        });
     }
 
     public initializeForPlatform(platformInfo: PlatformInformation, context: ExtensionContext): Promise<ServerInitializationResult> {
-         return new Promise<ServerInitializationResult>( (resolve, reject) => {
+        return new Promise<ServerInitializationResult>((resolve, reject) => {
             this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
             this._logger.appendLine();
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                Telemetry.sendTelemetryEvent('UnsupportedPlatform', {platform: platformInfo.toString()} );
+                Telemetry.sendTelemetryEvent('UnsupportedPlatform', { platform: platformInfo.toString() });
                 reject('Invalid Platform');
             } else {
                 if (platformInfo.runtimeId) {
@@ -192,7 +199,7 @@ export default class SqlToolsServiceClient {
                         resolve(new ServerInitializationResult(false, true, serverPath));
                     }
                 }).catch(err => {
-                    Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err );
+                    Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err);
                     Utils.showErrorMsg(Constants.serviceLoadingFailed);
                     Telemetry.sendTelemetryEvent('ServiceInitializingFailed');
                     reject(err);
@@ -250,25 +257,31 @@ export default class SqlToolsServiceClient {
     }
 
     private initializeLanguageClient(serverPath: string, context: ExtensionContext): void {
-         if (serverPath === undefined) {
-                Utils.logDebug(Constants.invalidServiceFilePath);
-                throw new Error(Constants.invalidServiceFilePath);
-         } else {
+        if (serverPath === undefined) {
+            Utils.logDebug(Constants.invalidServiceFilePath);
+            throw new Error(Constants.invalidServiceFilePath);
+        } else {
             let self = this;
             self.initializeLanguageConfiguration();
             let serverOptions: ServerOptions = this.createServerOptions(serverPath);
             this.client = this.createLanguageClient(serverOptions);
+            let resourcePath = path.join(path.dirname(serverPath), 'SqlToolsResourceProviderService.exe');
+            this._resourceClient = this.createResourceClient(resourcePath);
 
             if (context !== undefined) {
                 // Create the language client and start the client.
                 let disposable = this.client.start();
 
+                // Start the resource client
+                let resourceDisposable = this._resourceClient.start();
+
                 // Push the disposable to the context's subscriptions so that the
                 // client can be deactivated on extension deactivation
 
                 context.subscriptions.push(disposable);
+                context.subscriptions.push(resourceDisposable);
             }
-         }
+        }
     }
 
     private createLanguageClient(serverOptions: ServerOptions): LanguageClient {
@@ -283,7 +296,7 @@ export default class SqlToolsServiceClient {
 
         // cache the client instance for later use
         let client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
-        client.onReady().then( () => {
+        client.onReady().then(() => {
             this.checkServiceCompatibility();
 
             client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
@@ -293,7 +306,27 @@ export default class SqlToolsServiceClient {
         return client;
     }
 
-     private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
+    private generateResourceServiceServerOptions(executablePath: string): ServerOptions {
+        let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles(this._logPath, 'resourceprovider.log', executablePath);
+        return { command: executablePath, args: launchArgs, transport: TransportKind.stdio };
+    }
+
+    private createResourceClient(resourcePath: string): LanguageClient {
+        // Options to control the language client
+        let clientOptions: LanguageClientOptions = {
+            documentSelector: ['sql'],
+            synchronize: {
+                configurationSection: 'mssql'
+            },
+            errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
+        };
+        // add resource provider path here
+        let serverOptions = this.generateResourceServiceServerOptions(resourcePath);
+        let client = new LanguageClient(Constants.resourceServiceName, serverOptions, clientOptions);
+        return client;
+    }
+
+    private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
         return (event: LanguageServiceContracts.TelemetryParams): void => {
             Telemetry.sendTelemetryEvent(event.params.eventName, event.params.properties, event.params.measures);
         };
@@ -336,7 +369,7 @@ export default class SqlToolsServiceClient {
 
 
         // run the service host using dotnet.exe from the path
-        let serverOptions: ServerOptions = {  command: serverCommand, args: serverArgs, transport: TransportKind.stdio  };
+        let serverOptions: ServerOptions = { command: serverCommand, args: serverArgs, transport: TransportKind.stdio };
         return serverOptions;
     }
 
@@ -350,6 +383,19 @@ export default class SqlToolsServiceClient {
     public sendRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
         if (this.client !== undefined) {
             return this.client.sendRequest(type, params);
+        }
+    }
+
+    /**
+     * Send a request to the service client
+     * @param type The of the request to make
+     * @param params The params to pass with the request
+     * @returns A thenable object for when the request receives a response
+     */
+    // tslint:disable-next-line:no-unused-variable
+    public sendResourceRequest<P, R, E, R0>(type: RequestType<P, R, E, R0>, params?: P): Thenable<R> {
+        if (this._resourceClient !== undefined) {
+            return this._resourceClient.sendRequest(type, params);
         }
     }
 
@@ -372,22 +418,22 @@ export default class SqlToolsServiceClient {
     // tslint:disable-next-line:no-unused-variable
     public onNotification<P, R0>(type: NotificationType<P, R0>, handler: NotificationHandler<P>): void {
         if (this._client !== undefined) {
-             return this.client.onNotification(type, handler);
+            return this.client.onNotification(type, handler);
         }
     }
 
     public checkServiceCompatibility(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this._client.sendRequest(VersionRequest.type, undefined).then((result) => {
-                 Utils.logDebug('sqlserverclient version: ' + result);
+                Utils.logDebug('sqlserverclient version: ' + result);
 
-                 if (result === undefined || !result.startsWith(Constants.serviceCompatibleVersion)) {
-                     Utils.showErrorMsg(Constants.serviceNotCompatibleError);
-                     Utils.logDebug(Constants.serviceNotCompatibleError);
-                     resolve(false);
-                 } else {
-                     resolve(true);
-                 }
+                if (result === undefined || !result.startsWith(Constants.serviceCompatibleVersion)) {
+                    Utils.showErrorMsg(Constants.serviceNotCompatibleError);
+                    Utils.logDebug(Constants.serviceNotCompatibleError);
+                    resolve(false);
+                } else {
+                    resolve(true);
+                }
             });
         });
     }
