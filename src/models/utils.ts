@@ -7,16 +7,25 @@
 import getmac = require('getmac');
 import * as crypto from 'crypto';
 import * as os from 'os';
+import * as path from 'path';
+import * as findRemoveSync from 'find-remove';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
-import * as interfaces from './interfaces';
+import { AzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import {ExtensionContext} from 'vscode';
+import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
 const msInM = 60000;
 const msInS = 1000;
+
+const configTracingLevel = 'tracingLevel';
+const configLogRetentionMinutes = 'logRetentionMinutes';
+const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
+const extensionConfigSectionName = 'mssql';
+const configLogDebugInfo = 'logDebugInfo';
 
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 
@@ -129,7 +138,7 @@ export function logToOutputChannel(msg: any): void {
 // Helper to log debug messages
 export function logDebug(msg: any): void {
     let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
-    let logDebugInfo = config[Constants.configLogDebugInfo];
+    let logDebugInfo = config.get(Constants.configLogDebugInfo);
     if (logDebugInfo === true) {
         let currentTime = new Date().toLocaleTimeString();
         let outputMsg = '[' + currentTime + ']: ' + msg ? msg.toString() : '';
@@ -160,8 +169,8 @@ export function isNotEmpty(str: any): boolean {
     return <boolean>(str && '' !== str);
 }
 
-export function authTypeToString(value: interfaces.AuthenticationTypes): string {
-    return interfaces.AuthenticationTypes[value];
+export function authTypeToString(value: AuthenticationTypes): string {
+    return AuthenticationTypes[value];
 }
 
 /**
@@ -220,7 +229,7 @@ function isSameAuthenticationType(currentAuthenticationType: string, expectedAut
  * @param {IConnectionProfile} expectedProfile the profile to try to match
  * @returns boolean that is true if the profiles match
  */
-export function isSameProfile(currentProfile: interfaces.IConnectionProfile, expectedProfile: interfaces.IConnectionProfile): boolean {
+export function isSameProfile(currentProfile: IConnectionProfile, expectedProfile: IConnectionProfile): boolean {
     if (currentProfile === undefined) {
         return false;
     }
@@ -249,7 +258,7 @@ export function isSameProfile(currentProfile: interfaces.IConnectionProfile, exp
  * @param {IConnectionCredentials} expectedConn the connection to try to match
  * @returns boolean that is true if the connections match
  */
-export function isSameConnection(conn: interfaces.IConnectionCredentials, expectedConn: interfaces.IConnectionCredentials): boolean {
+export function isSameConnection(conn: IConnectionCredentials, expectedConn: IConnectionCredentials): boolean {
     return (conn.connectionString || expectedConn.connectionString) ? conn.connectionString === expectedConn.connectionString :
         expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
@@ -257,8 +266,8 @@ export function isSameConnection(conn: interfaces.IConnectionCredentials, expect
         && (conn.authenticationType === Constants.sqlAuthentication ?
         conn.user === expectedConn.user :
         isEmpty(conn.user) === isEmpty(expectedConn.user))
-        && (<interfaces.IConnectionProfile>conn).savePassword ===
-        (<interfaces.IConnectionProfile>expectedConn).savePassword;
+        && (<IConnectionProfile>conn).savePassword ===
+        (<IConnectionProfile>expectedConn).savePassword;
 }
 
 /**
@@ -369,4 +378,80 @@ export function parseNumAsTimeString(value: number): string {
     let rs = hs + ':' + ms + ':' + ss;
 
     return tempVal > 0 ? rs + '.' + mss : rs;
+}
+
+function getConfiguration(): vscode.WorkspaceConfiguration {
+    return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+}
+
+export function getConfigTracingLevel(): string {
+	let config = getConfiguration();
+	if (config) {
+		return config.get(configTracingLevel);
+	}
+	else {
+		return undefined;
+	}
+}
+
+export function getConfigLogFilesRemovalLimit(): number {
+	let config = getConfiguration();
+	if (config) {
+		return Number((config.get(configLogFilesRemovalLimit, 0).toFixed(0)));
+	}
+	else {
+		return undefined;
+	}
+}
+
+export function getConfigLogRetentionSeconds(): number {
+	let config = getConfiguration();
+	if (config) {
+		return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
+	}
+	else {
+		return undefined;
+	}
+}
+
+export function removeOldLogFiles(logPath: string, prefix: string): JSON {
+	return findRemoveSync(logPath, { age: { seconds: getConfigLogRetentionSeconds() }, limit: getConfigLogFilesRemovalLimit() });
+}
+
+export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileName: string, executablePath: string): string[] {
+	let launchArgs = [];
+	launchArgs.push('--log-file');
+	let logFile = path.join(logPath, fileName);
+	launchArgs.push(logFile);
+
+	console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
+	console.log(`This process (ui Extenstion Host) is pid: ${process.pid}`);
+	// Delete old log files
+	let deletedLogFiles = removeOldLogFiles(logPath, fileName);
+	console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
+	launchArgs.push('--tracing-level');
+	launchArgs.push(getConfigTracingLevel());
+	return launchArgs;
+}
+
+/**
+ * Returns the all the sign in methods as quickpick items
+ */
+export function getSignInQuickPickItems(): AzureSignInQuickPickItem[] {
+    let signInItem: AzureSignInQuickPickItem = {
+        label: LocalizedConstants.azureSignIn,
+        description: LocalizedConstants.azureSignInDescription,
+        command: Constants.cmdAzureSignIn
+    };
+    let signInWithDeviceCode: AzureSignInQuickPickItem = {
+        label: LocalizedConstants.azureSignInWithDeviceCode,
+        description: LocalizedConstants.azureSignInWithDeviceCodeDescription,
+        command: Constants.cmdAzureSignInWithDeviceCode
+    };
+    let signInAzureCloud: AzureSignInQuickPickItem = {
+        label: LocalizedConstants.azureSignInToAzureCloud,
+        description: LocalizedConstants.azureSignInToAzureCloudDescription,
+        command: Constants.cmdAzureSignInToCloud
+    };
+    return [signInItem, signInWithDeviceCode, signInAzureCloud];
 }

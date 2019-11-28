@@ -188,7 +188,7 @@ function run(testsRoot, clb): any {
     }
 
     // Force the extension to activate by running one of our commands
-    vscode.commands.executeCommand('extension.connect').then(() => {
+    vscode.commands.executeCommand('mssql.connect').then(() => {
     // Glob test files
     glob('**/**.test.js', { cwd: testsRoot }, function (error, files): any {
         if (error) {

@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from '@angular/core';
-import {ISlickRange} from '../interfaces';
+import {ISlickRange} from '../../../../../models/interfaces';
 import {ShortcutService} from './../services/shortcuts.service';
 import * as Constants from './../constants';
 /**
