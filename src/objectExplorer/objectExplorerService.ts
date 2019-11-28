@@ -244,6 +244,37 @@ export class ObjectExplorerService {
         return [new AddConnectionTreeNode()];
     }
 
+    /**
+     * Removes password from a saved profile
+     */
+    private async removeProfilePassword(connection: IConnectionCredentials): Promise<void> {
+        // if the password is saved in the credential store, remove it
+        let profile = connection as IConnectionProfile;
+        await this._connectionManager.connectionStore.removeProfile(profile);
+        const newProfile = Object.assign({}, profile);
+        newProfile.password = '';
+        newProfile.savePassword = false;
+        await this._connectionManager.connectionStore.saveProfile(newProfile);
+    }
+
+    /**
+     * Handles a generic create session failure
+     */
+    private async handleNodeCreationFailure(element: TreeNodeInfo): Promise<AccountSignInTreeNode[]> {
+        const signInNode = new AccountSignInTreeNode(element);
+        this._treeNodeToChildrenMap.set(element, [signInNode]);
+        return [signInNode];
+    }
+
+    /**
+     * Handles an incorrect password failure when creating a session
+     */
+    private async handleNodePasswordFailure(element: TreeNodeInfo): Promise<ConnectTreeNode[]> {
+        const connectNode = new ConnectTreeNode(element);
+        this._treeNodeToChildrenMap.set(element, [connectNode]);
+        return [connectNode];
+    }
+
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
@@ -277,15 +308,19 @@ export class ObjectExplorerService {
                         let node = await promise;
                         // if password failed
                         if (!node) {
-                            const connectNode = new ConnectTreeNode(element);
-                            this._treeNodeToChildrenMap.set(element, [connectNode]);
-                            return [connectNode];
+                            // remove password if it's saved in the credential store
+                            let profile = element.connectionCredentials as IConnectionProfile;
+                            let password = await this._connectionManager.connectionStore.lookupPassword(profile);
+                            if (password) {
+                                await this.removeProfilePassword(profile);
+                                return this.handleNodeCreationFailure(element);
+                            } else {
+                                return this.handleNodePasswordFailure(element);
+                            }
                         }
                     } else {
                         // If node create session failed
-                        const signInNode = new AccountSignInTreeNode(element);
-                        this._treeNodeToChildrenMap.set(element, [signInNode]);
-                        return [signInNode];
+                        return this.handleNodeCreationFailure(element);
                     }
                     // otherwise expand the node by refreshing the root
                     // to add connected context key

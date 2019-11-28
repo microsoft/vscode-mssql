@@ -930,10 +930,22 @@ export default class MainController implements vscode.Disposable {
             for (let conn of newConnections) {
                 // if a connection is not connected
                 // that means it was added manually
-                const uri = ObjectExplorerUtils.getNodeUriFromProfile(<IConnectionProfile>conn);
+                const newConnectionProfile = <IConnectionProfile>conn;
+                const uri = ObjectExplorerUtils.getNodeUriFromProfile(newConnectionProfile);
                 if (!this.connectionManager.isActiveConnection(conn) &&
                     !this.connectionManager.isConnecting(uri)) {
-                    // add a disconnected node for it
+                    // if the added connection is SQL Auth and has password
+                    // save the password and remove it from settings
+                    if (conn.authenticationType === Constants.sqlAuthentication &&
+                        !Utils.isEmpty(conn.password)) {
+                        await this.connectionManager.connectionStore.saveProfile(newConnectionProfile);
+                        const newConnectionProfileCopy = Object.assign({}, newConnectionProfile);
+                        newConnectionProfileCopy.password = '';
+                        this._vscodeWrapper.setConfiguration(Constants.extensionConfigSectionName,
+                            Constants.connectionsArrayName, newConnectionProfileCopy);
+                    }
+
+                    // add a disconnected node for the connection
                     needsRefresh = true;
                     this._objectExplorerProvider.addDisconnectedNode(conn);
                 }
