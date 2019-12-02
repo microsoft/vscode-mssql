@@ -120,7 +120,7 @@
             <source xml:lang="en">Profile Name</source>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
-            <source xml:lang="en">[Optional] Enter a name for this profile</source>
+            <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
         </trans-unit>
         <trans-unit id="filepathPrompt">
             <source xml:lang="en">File path</source>
