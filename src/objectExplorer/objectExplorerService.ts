@@ -260,7 +260,7 @@ export class ObjectExplorerService {
     /**
      * Handles a generic create session failure
      */
-    private async handleNodeCreationFailure(element: TreeNodeInfo): Promise<AccountSignInTreeNode[]> {
+    private handleNodeCreationFailure(element: TreeNodeInfo): AccountSignInTreeNode[] {
         const signInNode = new AccountSignInTreeNode(element);
         this._treeNodeToChildrenMap.set(element, [signInNode]);
         return [signInNode];
@@ -269,7 +269,7 @@ export class ObjectExplorerService {
     /**
      * Handles an incorrect password failure when creating a session
      */
-    private async handleNodePasswordFailure(element: TreeNodeInfo): Promise<ConnectTreeNode[]> {
+    private handleNodeConnectionFailure(element: TreeNodeInfo): ConnectTreeNode[] {
         const connectNode = new ConnectTreeNode(element);
         this._treeNodeToChildrenMap.set(element, [connectNode]);
         return [connectNode];
@@ -306,7 +306,7 @@ export class ObjectExplorerService {
                     const sessionId = await this.createSession(promise, element.connectionCredentials);
                     if (sessionId) {
                         let node = await promise;
-                        // if password failed
+                        // if the server was found but connection failed
                         if (!node) {
                             // remove password if it's saved in the credential store
                             let profile = element.connectionCredentials as IConnectionProfile;
@@ -315,11 +315,11 @@ export class ObjectExplorerService {
                                 await this.removeProfilePassword(profile);
                                 return this.handleNodeCreationFailure(element);
                             } else {
-                                return this.handleNodePasswordFailure(element);
+                                return this.handleNodeConnectionFailure(element);
                             }
                         }
                     } else {
-                        // If node create session failed
+                        // If node create session failed (server wasn't found)
                         return this.handleNodeCreationFailure(element);
                     }
                     // otherwise expand the node by refreshing the root
