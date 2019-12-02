@@ -12,7 +12,8 @@ var config = {
     paths: {
         project: {
             root: projectRoot,
-            localization: localization
+            localization: localization,
+            out: outRoot
         },
         extension: {
             root: srcRoot
@@ -22,6 +23,6 @@ var config = {
             out: htmloutroot
         }
     }
-}
+};
 
 module.exports = config;

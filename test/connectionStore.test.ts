@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 'use strict';
 import * as TypeMoq from 'typemoq';
 
@@ -32,7 +37,8 @@ suite('ConnectionStore tests', () => {
             database: 'bcd',
             authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'cde',
-            password: 'asdf!@#$'
+            password: 'asdf!@#$',
+            savePassword: true
         });
 
         defaultUnnamedProfile = Object.assign(new ConnectionProfile(), {
@@ -41,12 +47,13 @@ suite('ConnectionStore tests', () => {
             database: undefined,
             authenticationType: utils.authTypeToString(interfaces.AuthenticationTypes.SqlLogin),
             user: 'aUser',
-            password: 'asdf!@#$'
+            password: 'asdf!@#$',
+            savePassword: true
         });
 
-        context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
+        context = TypeMoq.Mock.ofType<stubs.TestExtensionContext>();
         globalstate = TypeMoq.Mock.ofType(stubs.TestMemento);
-        context.object.globalState = globalstate.object;
+        context.setup(c => c.globalState).returns(() => globalstate.object);
         credentialStore = TypeMoq.Mock.ofType(CredentialStore);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         connectionConfig = TypeMoq.Mock.ofType(ConnectionConfig);
@@ -208,7 +215,8 @@ suite('ConnectionStore tests', () => {
             .then(success => {
                 // Then expect that profile's password to be removed from the credential store
                 assert.ok(success);
-                credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
+                // once for user connection and once for MRU
+                credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.atLeastOnce());
 
                 assert.strictEqual(capturedCreds.credentialId, expectedCredFormat, 'Expect profiles password to have been removed');
                 done();
@@ -236,7 +244,7 @@ suite('ConnectionStore tests', () => {
         globalstate.setup(x => x.update(TypeMoq.It.isAnyString(), TypeMoq.It.isAny())).returns(() => Promise.resolve());
         let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
 
-        // deleteCredential should never be called when keepCredentialStore is set to true
+        // deleteCredential should be called once when keepCredentialStore is set to true for MRU
         connectionStore.removeProfile(profile, keepCredentialStore)
             .then(success => {
                 // Then expect that profile's password to be removed from connectionConfig but kept in the credential store
@@ -245,7 +253,8 @@ suite('ConnectionStore tests', () => {
                 if (keepCredentialStore) {
                     credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.never());
                 } else {
-                    credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
+                    // once for MRU and once for user connections
+                    credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
                 }
                 done();
             }).catch(err => done(new Error(err)));
@@ -286,7 +295,7 @@ suite('ConnectionStore tests', () => {
                 assert.ok(success);
                 assert.strictEqual(2, updatedCredentials.length);
                 assert.ok(updatedCredentials.every(p => p !== unnamedProfile), 'expect profile is removed from creds');
-                credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.once());
+                credentialStore.verify(x => x.deleteCredential(TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
                 done();
             }).catch(err => done(new Error(err)));
     });

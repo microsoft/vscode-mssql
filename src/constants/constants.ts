@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 // Collection of Non-localizable Constants
 export const languageId = 'sql';
 export const extensionName = 'mssql';
@@ -8,18 +13,39 @@ export const connectionApplicationName = 'vscode-mssql';
 export const outputChannelName = 'MSSQL';
 export const connectionConfigFilename = 'settings.json';
 export const connectionsArrayName = 'connections';
-export const cmdRunQuery = 'extension.runQuery';
-export const cmdRunCurrentStatement = 'extension.runCurrentStatement';
-export const cmdCancelQuery = 'extension.cancelQuery';
-export const cmdConnect = 'extension.connect';
-export const cmdDisconnect = 'extension.disconnect';
-export const cmdChooseDatabase = 'extension.chooseDatabase';
-export const cmdChooseLanguageFlavor = 'extension.chooseLanguageFlavor';
-export const cmdShowReleaseNotes = 'extension.showReleaseNotes';
-export const cmdShowGettingStarted = 'extension.showGettingStarted';
-export const cmdNewQuery = 'extension.newQuery';
-export const cmdManageConnectionProfiles = 'extension.manageProfiles';
-export const cmdRebuildIntelliSenseCache = 'extension.rebuildIntelliSenseCache';
+export const disconnectedServerLabel = 'disconnectedServer';
+export const serverLabel = 'Server';
+export const cmdRunQuery = 'mssql.runQuery';
+export const cmdRunCurrentStatement = 'mssql.runCurrentStatement';
+export const cmdCancelQuery = 'mssql.cancelQuery';
+export const cmdConnect = 'mssql.connect';
+export const cmdDisconnect = 'mssql.disconnect';
+export const cmdChooseDatabase = 'mssql.chooseDatabase';
+export const cmdChooseLanguageFlavor = 'mssql.chooseLanguageFlavor';
+export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';
+export const cmdShowGettingStarted = 'mssql.showGettingStarted';
+export const cmdNewQuery = 'mssql.newQuery';
+export const cmdManageConnectionProfiles = 'mssql.manageProfiles';
+export const cmdRebuildIntelliSenseCache = 'mssql.rebuildIntelliSenseCache';
+export const cmdAddObjectExplorer = 'mssql.addObjectExplorer';
+export const cmdObjectExplorerNewQuery = 'mssql.objectExplorerNewQuery';
+export const cmdRemoveObjectExplorerNode = 'mssql.removeObjectExplorerNode';
+export const cmdRefreshObjectExplorerNode = 'mssql.refreshObjectExplorerNode';
+export const cmdDisconnectObjectExplorerNode = 'mssql.disconnectObjectExplorerNode';
+export const cmdObjectExplorerNodeSignIn = 'mssql.objectExplorerNodeSignIn';
+export const cmdConnectObjectExplorerNode = 'mssql.connectObjectExplorerNode';
+export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExplorer';
+export const cmdScriptSelect = 'mssql.scriptSelect';
+export const cmdScriptCreate = 'mssql.scriptCreate';
+export const cmdScriptDelete = 'mssql.scriptDelete';
+export const cmdScriptExecute = 'mssql.scriptExecute';
+export const cmdScriptAlter = 'mssql.scriptAlter';
+export const cmdToggleSqlCmd = 'mssql.toggleSqlCmd';
+export const cmdOpenExtension = 'extension.open';
+export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
+export const cmdAzureSignIn = 'azure-account.login';
+export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
+export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -30,6 +56,7 @@ export const defaultDatabase = 'master';
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
+export const errorFirewallRule = 40615;
 export const maxDisplayedStatusTextLength = 50;
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
@@ -55,8 +82,10 @@ export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 export const changelogLink = 'https://aka.ms/vscode-mssql-changelog';
 export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedauth';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
-
+export const azureAccountExtensionId = 'ms-vscode.azure-account';
+export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
+export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';
@@ -70,13 +99,12 @@ export const configMaxRecentConnections = 'maxRecentConnections';
 export const configCopyRemoveNewLine = 'copyRemoveNewLine';
 export const configSplitPaneSelection = 'splitPaneSelection';
 export const configShowBatchTime = 'showBatchTime';
-export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen'];
+export const extConfigResultKeys = ['shortcuts', 'messagesDefaultOpen', 'resultsFontSize'];
 export const sqlToolsServiceInstallDirConfigKey = 'installDir';
 export const sqlToolsServiceExecutableFilesConfigKey = 'executableFiles';
 export const sqlToolsServiceVersionConfigKey = 'version';
 export const sqlToolsServiceDownloadUrlConfigKey = 'downloadUrl';
 export const extConfigResultFontFamily = 'resultsFontFamily';
-export const extConfigResultFontSize = 'resultsFontSize';
 export const configApplyLocalization = 'applyLocalization';
 export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 
@@ -95,6 +123,10 @@ export const unsupportedPlatformErrorMessage = 'The platform is not supported';
 export const serviceLoadingFailed = 'Failed to load Sql Tools Service';
 export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
 export const sqlToolsServiceName = 'SQLToolsService';
+export const resourceServiceName = 'AzureResourceProvider';
+export const resourceProviderId = 'azurePublicCloud';
 export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
 export const sqlToolsServiceConfigKey = 'service';
 export const v1SqlToolsServiceConfigKey = 'v1Service';
+export const scriptSelectText = 'SELECT TOP (1000) * FROM ';
+export const tenantDisplayName = 'Microsoft';

@@ -2,7 +2,6 @@ var gulp = require('gulp');
 var del = require('del');
 var jeditor = require("gulp-json-editor");
 var istanbulReport = require('gulp-istanbul-report');
-var cproc = require('child_process');
 
 gulp.task('cover:clean', function (done) {
     return del('coverage', done);
@@ -17,7 +16,7 @@ gulp.task('cover:enableconfig',() => {
     .pipe(gulp.dest("./out", {'overwrite':true}));
 });
 
-gulp.task('cover:enable', gulp.series('cover:clean', 'html:test', 'cover:enableconfig'));
+gulp.task('cover:enable', gulp.series('cover:clean', 'cover:enableconfig'));
 
 gulp.task('cover:disable', () => {
     return gulp.src("./coverconfig.json")
@@ -28,8 +27,8 @@ gulp.task('cover:disable', () => {
     .pipe(gulp.dest("./out", {'overwrite':true}));
 });
 
-gulp.task('cover:combine', () => {
-    return gulp.src(['./coverage/coverage-final.json', './coverage/coverage-html.json'])
+gulp.task('cover:combine-json', () => {
+    return gulp.src(['./coverage/coverage.json'])
     .pipe(istanbulReport({
         reporterOpts: {
             dir: './coverage'
@@ -41,5 +40,17 @@ gulp.task('cover:combine', () => {
     }));
 });
 
+gulp.task('cover:combine-html', () => {
+    return gulp.src(['**/*.html'])
+    .pipe(istanbulReport({
+        reporterOpts: {
+            dir: './coverage'
+        },
+        reporters: [
+            {'name': 'html'}
+        ]
+    }));
+});
+
 // for running on the jenkins build system
-gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'html:test', 'ext:test', 'cover:combine'));
+gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'test', 'cover:combine-json'));

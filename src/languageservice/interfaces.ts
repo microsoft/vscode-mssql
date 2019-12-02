@@ -15,7 +15,6 @@ export interface IStatusView {
 export interface IConfig {
     getSqlToolsServiceDownloadUrl(): string;
     getSqlToolsInstallDirectory(): string;
-    getSqlToolsInstallDirectory(): string;
     getSqlToolsExecutableFiles(): string[];
     getSqlToolsPackageVersion(): string;
     getExtensionConfig(key: string, defaultValue?: any): any;
@@ -28,7 +27,7 @@ export interface IConfig {
 export interface IPackage {
     url: string;
     installPath?: string;
-    tmpFile: tmp.SynchronousResult;
+    tmpFile: tmp.SynchrounousResult;
 }
 
 export class PackageError extends Error {

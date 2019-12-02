@@ -1,9 +1,15 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import vscode = require('vscode');
 
-
+import { AzureLoginStatus } from '../models/interfaces';
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
+import { TextDocumentShowOptions } from 'vscode';
 
 export default class VscodeWrapper {
 
@@ -154,8 +160,9 @@ export default class VscodeWrapper {
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public openTextDocument(uri: vscode.Uri): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument(uri);
+    public async openTextDocument(uri: vscode.Uri): Promise<vscode.TextDocument> {
+        const doc = await vscode.workspace.openTextDocument(uri);
+        return doc;
     }
 
     /**
@@ -165,12 +172,13 @@ export default class VscodeWrapper {
      *
      * Uris with other schemes will make this method return a rejected promise.
      *
-     * @param uri Identifies the resource to open.
+     * @param content The optional content the document will open with
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public openMsSqlTextDocument(): Thenable<vscode.TextDocument> {
-        return vscode.workspace.openTextDocument({ language: 'sql'});
+    public async openMsSqlTextDocument(content?: string): Promise<vscode.TextDocument> {
+        const doc = await vscode.workspace.openTextDocument({ language: 'sql', content: content});
+        return doc;
     }
 
     /**
@@ -222,10 +230,21 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Shows an input box with given options
+     */
+    public showInputBox(options?: vscode.InputBoxOptions): Thenable<string> {
+        return vscode.window.showInputBox(options);
+    }
+
+    /**
      * Formats and shows a vscode information message
      */
     public showInformationMessage(msg: string, ...items: string[]): Thenable<string> {
         return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg, ...items);
+    }
+
+    public showQuickPickStrings(items: string[] | Thenable<string[]>, options?: vscode.QuickPickOptions): Thenable<string | undefined> {
+        return vscode.window.showQuickPick(items, options);
     }
 
     /**
@@ -259,8 +278,9 @@ export default class VscodeWrapper {
      * @param preserveFocus When `true` the editor will not take focus.
      * @return A promise that resolves to an [editor](#TextEditor).
      */
-    public showTextDocument(document: vscode.TextDocument, column?: vscode.ViewColumn, preserveFocus?: boolean): Thenable<vscode.TextEditor> {
-        return vscode.window.showTextDocument(document, column, preserveFocus);
+    public async showTextDocument(document: vscode.TextDocument, options: TextDocumentShowOptions): Promise<vscode.TextEditor> {
+        const editor = await vscode.window.showTextDocument(document, options);
+        return editor;
     }
 
     /**
@@ -309,5 +329,42 @@ export default class VscodeWrapper {
      */
     public clipboardWriteText(text: string): Thenable<void> {
         return vscode.env.clipboard.writeText(text);
+    }
+
+    /**
+     * Called when workspace settings are changed
+     */
+    public get onDidChangeConfiguration(): vscode.Event<vscode.ConfigurationChangeEvent> {
+        return vscode.workspace.onDidChangeConfiguration;
+    }
+
+    /**
+     * Called when there's a change in the extensions
+     */
+    public get onDidChangeExtensions(): vscode.Event<void> {
+        return vscode.extensions.onDidChange;
+    }
+
+    /**
+     * Gets the Azure Account extension
+     */
+    public get azureAccountExtension(): vscode.Extension<any> | undefined {
+        return vscode.extensions.getExtension(Constants.azureAccountExtensionId);
+    }
+
+    /**
+     * Returns true when the Azure Account extension is installed
+     * but not active
+     */
+    public get azureAccountExtensionActive(): boolean {
+        return this.azureAccountExtension && this.azureAccountExtension.isActive;
+    }
+
+    /**
+     * Returns whether an azure account is signed in
+     */
+    public get isAccountSignedIn(): boolean {
+        return this.azureAccountExtensionActive &&
+            this.azureAccountExtension.exports.status === AzureLoginStatus.LoggedIn;
     }
 }

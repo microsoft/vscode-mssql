@@ -1,6 +1,10 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import {RequestType, NotificationType} from 'vscode-languageclient';
 import { IDbColumn, ISelectionData, IResultMessage } from './../interfaces';
-
 
 export class ResultSetSummary {
     id: number;
@@ -103,6 +107,7 @@ export class QueryExecuteSubsetParams {
 export class DbCellValue {
     displayValue: string;
     isNull: boolean;
+    rowId?: number;
 }
 
 export class ResultSetSubset {
@@ -114,4 +119,17 @@ export class QueryExecuteSubsetResult {
     resultSubset: ResultSetSubset;
 }
 
-// --------------------------------- </ Query Results Request > ------------------------------------------
+// ------------------------------- < Query Execution Options Request > ------------------------------------
+export namespace QueryExecuteOptionsRequest {
+    export const type = new RequestType<QueryExecutionOptionsParams, boolean, void, void>('query/setexecutionoptions');
+}
+
+export class QueryExecutionOptionsParams {
+    ownerUri: string;
+    options: QueryExecutionOptions;
+}
+
+// tslint:disable-next-line:interface-name
+export interface QueryExecutionOptions {
+    [option: string]: any;
+}

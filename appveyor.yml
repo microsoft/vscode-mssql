@@ -1,14 +1,16 @@
 environment:
-  nodejs_version: "6.9.1"
+  nodejs_version: "10.15.3"
   # Temporary Code version due to https://github.com/Microsoft/vscode-extension-vscode/issues/64
-  CODE_VERSION: 1.33.0
+  CODE_VERSION: 1.38.0
+  COVERALLS_SERVICE_NAME: "VSCode-MSSQL"
+  COVERALLS_REPO_TOKEN:
+    secure: 9VOgkRYij4Ga9kqUvcfo0XVoJ5AoCir4npEDA2f0gwromo25QZd+pT0QgObjCJSC
 
 
 # safelist
 branches:
   only:
     - master
-    - dev
 
   # Install scripts. (runs after repo cloning)
 install:
@@ -22,15 +24,20 @@ install:
   - node --version
   - npm install -g --silent gulp-cli
   # install modules
-  - npm install
-  - gulp install
+  - yarn
 
 build_script:
   - gulp build
 
 test_script:
-  - ./node_modules/.bin/karma start
   - node ./node_modules/vscode/bin/test
+
+after_test:
+  - gulp cover:clean
+  - gulp cover:enableconfig
+  - node ./node_modules/vscode/bin/test
+  - gulp cover:combine-json
+  - ./node_modules/.bin/coveralls < coverage/lcov.info
 
 on_finish:
   - ps: scripts\upload.ps1

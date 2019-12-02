@@ -1,9 +1,13 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import { EventEmitter } from 'events';
 import QueryRunner from './../src/controllers/queryRunner';
 import { QueryNotificationHandler } from './../src/controllers/queryNotificationHandler';
-import { SqlOutputContentProvider } from './../src/models/sqlOutputContentProvider';
 import * as Utils from './../src/models/utils';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import {
@@ -25,6 +29,7 @@ import {
  } from './../src/models/interfaces';
 import * as stubs from './stubs';
 import * as vscode from 'vscode';
+import { expect } from 'chai';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const standardUri: string = 'uri';
@@ -34,14 +39,12 @@ const standardSelection: ISelectionData = {startLine: 0, endLine: 0, startColumn
 // TESTS //////////////////////////////////////////////////////////////////////////////////////////
 suite('Query Runner tests', () => {
 
-    let testSqlOutputContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
     let testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>;
     let testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>;
     let testVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let testStatusView: TypeMoq.IMock<StatusView>;
 
     setup(() => {
-        testSqlOutputContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Loose, {extensionPath: ''});
         testSqlToolsServerClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Loose);
         testQueryNotificationHandler = TypeMoq.Mock.ofType(QueryNotificationHandler, TypeMoq.MockBehavior.Loose);
         testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
@@ -93,7 +96,7 @@ suite('Query Runner tests', () => {
             testQueryNotificationHandler.verify(x => x.registerRunner(TypeMoq.It.isValue(queryRunner), TypeMoq.It.isValue(standardUri)), TypeMoq.Times.once());
 
             // ... Start is the only event that should be emitted during successful query start
-            mockEventEmitter.verify(x => x.emit('start'), TypeMoq.Times.once());
+            mockEventEmitter.verify(x => x.emit('start', standardUri), TypeMoq.Times.once());
 
             // ... The VS Code status should be updated
             testStatusView.verify<void>(x => x.executingQuery(standardUri), TypeMoq.Times.once());
@@ -227,7 +230,7 @@ suite('Query Runner tests', () => {
         };
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
         mockEventEmitter.setup(x => x.emit('batchComplete', TypeMoq.It.isAny()));
-        mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny()));
+        mockEventEmitter.setup(x => x.emit('message', TypeMoq.It.isAny(), TypeMoq.It.isAny()));
         queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleBatchComplete(batchComplete);
 
@@ -245,7 +248,7 @@ suite('Query Runner tests', () => {
 
         mockEventEmitter.verify(x => x.emit('batchComplete', TypeMoq.It.isAny()), TypeMoq.Times.once());
         let expectedMessageTimes = sendBatchTime ? TypeMoq.Times.once() : TypeMoq.Times.never();
-        mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny()), expectedMessageTimes);
+        mockEventEmitter.verify(x => x.emit('message', TypeMoq.It.isAny(), TypeMoq.It.isAny()), expectedMessageTimes);
 
     }
 
@@ -487,6 +490,23 @@ suite('Query Runner tests', () => {
         });
     });
 
+    test('Toggle SQLCMD Mode sends request', async () => {
+        let queryUri = 'test_uri';
+        let queryRunner = new QueryRunner(queryUri,
+            queryUri,
+            testStatusView.object,
+            testSqlToolsServerClient.object,
+            testQueryNotificationHandler.object,
+            testVscodeWrapper.object);
+        expect(queryRunner.isSqlCmd, 'Query Runner should have SQLCMD false be default').is.equal(false);
+        testSqlToolsServerClient.setup(s => s.sendRequest(QueryExecuteContracts.QueryExecuteOptionsRequest.type, TypeMoq.It.isAny())).returns(() => {
+            return Promise.resolve(true);
+        });
+        await queryRunner.toggleSqlCmd();
+        testSqlToolsServerClient.verify(s => s.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+        expect(queryRunner.isSqlCmd, 'SQLCMD Mode should be switched').is.equal(true);
+    });
+
     function setupWorkspaceConfig(configResult: {[key: string]: any}): void {
         let config = stubs.createWorkspaceConfiguration(configResult);
         testVscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -549,7 +569,7 @@ suite('Query Runner tests', () => {
         });
 
         // ------ Copy tests  -------
-        test('Correctly copy pastes a selection', () => {
+        test('Correctly copy pastes a selection', (done) => {
             let configResult: {[key: string]: any} = {};
             configResult[Constants.copyIncludeHeaders] = false;
             setupWorkspaceConfig(configResult);
@@ -563,8 +583,9 @@ suite('Query Runner tests', () => {
                 testVscodeWrapper.object
             );
             queryRunner.uri = testuri;
-            return queryRunner.copyResults(testRange, 0, 0).then(() => {
+            queryRunner.copyResults(testRange, 0, 0).then(() => {
                 testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+                done();
             });
         });
 
@@ -638,7 +659,7 @@ suite('Query Runner tests', () => {
             });
         });
 
-        test('SetEditorSelection uses an existing editor if it is visible', done => {
+        test('SetEditorSelection uses an existing editor if it is visible', (done) => {
             let queryUri = 'test_uri';
             let queryColumn = 2;
             let queryRunner = new QueryRunner(queryUri,
@@ -655,15 +676,17 @@ suite('Query Runner tests', () => {
                 selection: undefined
             } as any;
 
-            testVscodeWrapper.setup(x => x.visibleEditors).returns(() => [editor]);
-            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-            testVscodeWrapper.setup(x => x.showTextDocument(undefined, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
+            testVscodeWrapper.setup(x => x.textDocuments).returns(() => [editor.document]);
+            testVscodeWrapper.setup(x => x.activeTextEditor).returns(() => editor);
+            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(editor.document));
+            testVscodeWrapper.setup(x => x.showTextDocument(editor.document, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
 
             // If I try to set a selection for the existing editor
-            queryRunner.setEditorSelection({ startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 }).then(() => {
+            let selection: ISelectionData = { startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 };
+            queryRunner.setEditorSelection(selection).then(() => {
                 try {
                     // Then showTextDocument gets called with the existing editor's column
-                    testVscodeWrapper.verify(x => x.showTextDocument(undefined, queryColumn), TypeMoq.Times.once());
+                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, TypeMoq.It.isAny()), TypeMoq.Times.once());
                     done();
                 } catch (err) {
                     done(err);
@@ -671,7 +694,7 @@ suite('Query Runner tests', () => {
             }, err => done(err));
         });
 
-        test('SetEditorSelection uses column 1 by default', done => {
+        test('SetEditorSelection uses column 1 by default', (done) => {
             let queryUri = 'test_uri';
             let queryRunner = new QueryRunner(queryUri,
                 queryUri,
@@ -687,20 +710,172 @@ suite('Query Runner tests', () => {
                 selection: undefined
             } as any;
 
+            testVscodeWrapper.setup(x => x.textDocuments).returns(() => [editor.document]);
             testVscodeWrapper.setup(x => x.visibleEditors).returns(() => []);
-            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-            testVscodeWrapper.setup(x => x.showTextDocument(undefined, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
+            testVscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(editor.document));
+            testVscodeWrapper.setup(x => x.showTextDocument(editor.document, TypeMoq.It.isAny())).returns(() => Promise.resolve(editor));
 
             // If I try to set a selection for an editor that is not currently visible
             queryRunner.setEditorSelection({ startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 }).then(() => {
                 try {
                     // Then showTextDocument gets called with the default first column
-                    testVscodeWrapper.verify(x => x.showTextDocument(undefined, 1), TypeMoq.Times.once());
+                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, TypeMoq.It.isAny()), TypeMoq.Times.once());
                     done();
                 } catch (err) {
                     done(err);
                 }
             }, err => done(err));
+        });
+    });
+
+    suite('Copy Tests with multiple selections', () => {
+        // ------ Common inputs and setup for copy tests  -------
+        let mockConfig: TypeMoq.IMock<vscode.WorkspaceConfiguration>;
+        const testuri = 'test';
+        let testresult: QueryExecuteSubsetResult = {
+            resultSubset: {
+                rowCount: 5,
+                rows: [
+                    [{isNull: false, displayValue: '1'}, {isNull: false, displayValue: '2'}, {isNull: false, displayValue: '3'}],
+                    [{isNull: false, displayValue: '4'}, {isNull: false, displayValue: '5'}, {isNull: false, displayValue: '6'}],
+                    [{isNull: false, displayValue: '7'}, {isNull: false, displayValue: '8'}, {isNull: false, displayValue: '9'}],
+                    [{isNull: false, displayValue: '10'}, {isNull: false, displayValue: '11'}, {isNull: false, displayValue: '12'}],
+                    [{isNull: false, displayValue: '13'}, {isNull: false, displayValue: '14'}, {isNull: false, displayValue: '15'}]
+                ]
+            }
+        };
+        process.env['LANG'] = 'C';
+
+        let testRange: ISlickRange[] = [{fromCell: 0, fromRow: 0, toCell: 1, toRow: 2},
+                                        {fromCell: 1, fromRow: 1, toCell: 2, toRow: 4}];
+
+        let result: QueryExecuteCompleteNotificationResult = {
+            ownerUri: testuri,
+            batchSummaries: [{
+                hasError: false,
+                id: 0,
+                selection: {startLine: 0, endLine: 0, startColumn: 3, endColumn: 3},
+                resultSetSummaries: <ResultSetSummary[]> [{
+                    id: 0,
+                    rowCount: 5,
+                    columnInfo: [
+                        { columnName: 'Col1' },
+                        { columnName: 'Col2' },
+                        { columnName: 'Col3' }
+                    ]
+                }],
+                executionElapsed: undefined,
+                executionStart: new Date().toISOString(),
+                executionEnd: new Date().toISOString()
+            }]
+        };
+
+        setup(() => {
+            testSqlToolsServerClient.setup(x => x.sendRequest(TypeMoq.It.isAny(),
+                                                            TypeMoq.It.isAny())).callback(() => {
+                                                                // testing
+                                                            }).returns(() => { return Promise.resolve(testresult); });
+            testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
+            testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAnyString()));
+            testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+            testVscodeWrapper.setup(x => x.clipboardWriteText(TypeMoq.It.isAnyString())).callback(() => {
+                                                                // testing
+                                                            }).returns(() => { return Promise.resolve(); });
+        });
+
+        function setupMockConfig(): void {
+            mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
+            mockConfig.setup(c => c.get(TypeMoq.It.isAnyString())).returns(() => false);
+            testVscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => mockConfig.object);
+        }
+
+        // ------ Copy tests with multiple selections  -------
+        test('Correctly copy pastes a selection', async () => {
+            setupMockConfig();
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            await queryRunner.copyResults(testRange, 0, 0);
+            // Two selections
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            // Once for new lines and once for headers
+            testVscodeWrapper.verify(v => v.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeast(2));
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.once());
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
+
+        test('Copies selection with column headers set in user config', async () => {
+            setupMockConfig();
+            // Set column headers in the user config settings
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleQueryComplete(result);
+            await queryRunner.copyResults(testRange, 0, 0);
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.once());
+            // Two selections
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            testVscodeWrapper.verify(v => v.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeast(2));
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
+
+        test('Copies selection with headers when true passed as parameter', async () => {
+            setupMockConfig();
+            // Do not set column config in user settings
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleQueryComplete(result);
+
+            // call copyResults with additional parameter indicating to include headers
+            await queryRunner.copyResults(testRange, 0, 0, true);
+            testVscodeWrapper.verify(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeastOnce());
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.never());
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        });
+
+        test('Copies selection without headers when false passed as parameter', async () => {
+            setupMockConfig();
+            // Set column config in user settings
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object
+            );
+            queryRunner.uri = testuri;
+            // Call handleResult to ensure column header info is seeded
+            queryRunner.handleQueryComplete(result);
+
+            // call copyResults with additional parameter indicating to not include headers
+            await queryRunner.copyResults(testRange, 0, 0, false);
+            testVscodeWrapper.verify(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.atLeastOnce());
+            mockConfig.verify(c => c.get(Constants.configCopyRemoveNewLine), TypeMoq.Times.atLeast(2));
+            mockConfig.verify(c => c.get(Constants.copyIncludeHeaders), TypeMoq.Times.never());
+            testVscodeWrapper.verify<void>(x => x.clipboardWriteText(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
         });
     });
 });

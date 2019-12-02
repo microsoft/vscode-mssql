@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import * as TypeMoq from 'typemoq';
 import assert = require('assert');
 import Interfaces = require('../src/models/interfaces');
@@ -62,13 +67,13 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny())).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         vscodeWrapper.setup(x => x.showSaveDialog(TypeMoq.It.isAny())).returns(() => Promise.resolve(fileUri));
@@ -140,7 +145,7 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         vscodeWrapper.setup(x => x.showSaveDialog(TypeMoq.It.isAny())).returns(() => Promise.resolve(fileUri));
@@ -176,7 +181,7 @@ suite('save results tests', () => {
         vscodeWrapper.setup(x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
-        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
+        vscodeWrapper.setup(x => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => {
                                             return Promise.resolve(undefined);
                                         });
         vscodeWrapper.setup(x => x.showSaveDialog(TypeMoq.It.isAny())).returns(() => Promise.resolve(fileUri));

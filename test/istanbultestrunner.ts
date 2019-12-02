@@ -1,10 +1,11 @@
-/*---------------------------------------------------------
- * Copyright (C) Microsoft Corporation. All rights reserved.
- *--------------------------------------------------------*/
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 
 'use strict';
+import * as vscode from 'vscode';
 import paths = require('path');
-import vscode = require('vscode');
 const fs = require('fs');
 import Mocha = require('mocha');
 import istanbul = require('istanbul');
@@ -187,7 +188,7 @@ function run(testsRoot, clb): any {
     }
 
     // Force the extension to activate by running one of our commands
-    vscode.commands.executeCommand('extension.connect').then(() => {
+    vscode.commands.executeCommand('mssql.connect').then(() => {
     // Glob test files
     glob('**/**.test.js', { cwd: testsRoot }, function (error, files): any {
         if (error) {

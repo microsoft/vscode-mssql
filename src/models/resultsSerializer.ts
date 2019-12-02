@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
@@ -175,7 +180,7 @@ export default class ResultsSerializer {
 
         self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
 
-        // send message to the sqlserverclient for converting resuts to the requested format and saving to filepath
+        // send message to the sqlserverclient for converting results to the requested format and saving to filepath
         return self._client.sendRequest( type, saveResultsParams).then( (result: any) => {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + result.messages);
@@ -229,7 +234,11 @@ export default class ResultsSerializer {
             let uri = vscode.Uri.file(filePath);
             self._vscodeWrapper.openTextDocument(uri).then((doc: vscode.TextDocument) => {
                 // Show open document and set focus
-                self._vscodeWrapper.showTextDocument(doc, 1, false).then(undefined, (error: any) => {
+                self._vscodeWrapper.showTextDocument(doc,
+                {
+                    viewColumn: vscode.ViewColumn.One,
+                    preserveFocus: false,
+                    preview: false}).then(undefined, (error: any) => {
                     self._vscodeWrapper.showErrorMessage(error);
                 });
             }, (error: any) => {

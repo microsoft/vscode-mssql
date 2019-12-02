@@ -1,4 +1,8 @@
-'use string';
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { InputBoxOptions, QuickPickOptions } from 'vscode';
 
 // A class that simplifies populating values on an object from the VSCode command palette.

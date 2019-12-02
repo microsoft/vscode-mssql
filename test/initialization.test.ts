@@ -1,3 +1,8 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import assert = require('assert');
 import vscode = require('vscode');
 
@@ -27,16 +32,13 @@ suite('Initialization Tests', () => {
         Telemetry.disable();
     });
 
-    test('Connection manager is initialized properly', function(done): void { // Note: this can't be an arrow function (=>), otherwise this.timeout() breaks
-        this.timeout(10000); // Service installation usually takes a bit longer than the default 2000ms on a fresh install
-
+    test('Connection manager is initialized properly', () => {
         // Wait for the extension to activate
         ensureExtensionIsActive().then(() => {
             // Verify that the connection manager was initialized properly
             let controller: MainController = Extension.getController();
             let connectionManager: ConnectionManager = controller.connectionManager;
             assert.notStrictEqual(undefined, connectionManager.client);
-            done();
         });
     });
 });

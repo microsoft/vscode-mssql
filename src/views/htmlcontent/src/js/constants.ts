@@ -10,6 +10,7 @@ export let resultPaneLabel = 'Results';
 export let selectAll = 'Select all';
 export let copyLabel = 'Copy';
 export let copyWithHeadersLabel = 'Copy with Headers';
+export let copyHeadersLabel = 'Copy All Headers';
 
 /** Messages Pane Labels */
 export let executeQueryLabel = 'Executing query...';
