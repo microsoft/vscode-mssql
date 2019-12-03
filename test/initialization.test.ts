@@ -34,9 +34,9 @@ suite('Initialization Tests', () => {
 
     test('Connection manager is initialized properly', () => {
         // Wait for the extension to activate
-        ensureExtensionIsActive().then(() => {
+        ensureExtensionIsActive().then(async () => {
             // Verify that the connection manager was initialized properly
-            let controller: MainController = Extension.getController();
+            let controller: MainController = await Extension.getController();
             let connectionManager: ConnectionManager = controller.connectionManager;
             assert.notStrictEqual(undefined, connectionManager.client);
         });

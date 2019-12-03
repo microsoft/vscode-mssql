@@ -17,7 +17,7 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { TestExtensionContext } from './stubs';
 import assert = require('assert');
 
-suite('MainController Tests', async () => {
+suite('MainController Tests', () => {
     let document: vscode.TextDocument;
     let newDocument: vscode.TextDocument;
     let mainController: MainController;
@@ -28,52 +28,7 @@ suite('MainController Tests', async () => {
     let docUriCallback: string;
     let newDocUriCallback: string;
 
-    function ensureExtensionIsActive(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            waitForExtensionToBeActive(resolve);
-        });
-    }
-
-    function waitForExtensionToBeActive(resolve): void {
-        if (typeof(vscode.extensions.getExtension('ms-mssql.mssql')) === 'undefined' ||
-            !vscode.extensions.getExtension('ms-mssql.mssql').isActive) {
-            setTimeout(waitForExtensionToBeActive.bind(this, resolve), 50);
-        } else {
-            resolve();
-        }
-    }
-
-    async function setupMaincontroller(): Promise<MainController> {
-        return ensureExtensionIsActive().then(() => {
-            // Using the mainController that was instantiated with the extension
-            mainController = Extension.getController();
-
-            // Setting up a mocked connectionManager
-            connectionManager = TypeMoq.Mock.ofType(ConnectionManager);
-            mainController.connectionManager = connectionManager.object;
-
-            untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
-            mainController.untitledSqlDocumentService = untitledSqlDocumentService.object;
-
-            // Watching these functions and input paramters
-            connectionManager.setup(x => x.onDidOpenTextDocument(TypeMoq.It.isAny())).callback((doc) => {
-                docUriCallback = doc.uri.toString();
-            });
-
-            connectionManager.setup(x => x.onDidCloseTextDocument(TypeMoq.It.isAny())).callback((doc) => {
-                docUriCallback = doc.uri.toString();
-            });
-
-            connectionManager.setup(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny())).callback((doc, newDoc) => {
-                docUriCallback = doc;
-                newDocUriCallback = newDoc;
-            });
-
-            return mainController;
-        });
-    }
-
-    setup(() => {
+    setup(async () => {
         // Setup a standard document and a new document
         docUri = 'docURI.sql';
         newDocUri = 'newDocURI.sql';
@@ -99,9 +54,32 @@ suite('MainController Tests', async () => {
         // Resetting call back variables
         docUriCallback = '';
         newDocUriCallback = '';
-    });
 
-    mainController = await setupMaincontroller();
+
+        // Using the mainController that was instantiated with the extension
+        mainController = await Extension.getController();
+
+        // Setting up a mocked connectionManager
+        connectionManager = TypeMoq.Mock.ofType(ConnectionManager);
+        mainController.connectionManager = connectionManager.object;
+
+        untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
+        mainController.untitledSqlDocumentService = untitledSqlDocumentService.object;
+
+        // Watching these functions and input paramters
+        connectionManager.setup(x => x.onDidOpenTextDocument(TypeMoq.It.isAny())).callback((doc) => {
+            docUriCallback = doc.uri.toString();
+        });
+
+        connectionManager.setup(x => x.onDidCloseTextDocument(TypeMoq.It.isAny())).callback((doc) => {
+            docUriCallback = doc.uri.toString();
+        });
+
+        connectionManager.setup(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny())).callback((doc, newDoc) => {
+            docUriCallback = doc;
+            newDocUriCallback = newDoc;
+        });
+    });
 
     // Standard closed document event test
     test('onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager' , () => {
