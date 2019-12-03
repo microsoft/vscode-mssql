@@ -317,7 +317,7 @@ export class ConnectionStore {
         });
     }
 
-    private saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+    public saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
         if (!profile.savePassword) {
             return Promise.resolve(true);
         }

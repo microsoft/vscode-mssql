@@ -342,7 +342,7 @@ export default class VscodeWrapper {
      * Change a configuration setting
      */
     public setConfiguration(extensionName: string, resource: string, value: any): Thenable<void> {
-        return this.getConfiguration(extensionName, resource).update(resource, value);
+        return this.getConfiguration(extensionName, resource).update(resource, value, vscode.ConfigurationTarget.Global);
     }
 
     /*
