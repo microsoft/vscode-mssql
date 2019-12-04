@@ -37,6 +37,9 @@ export default class InputPrompt extends Prompt {
         }
 
         this._options.placeHolder = placeHolder;
+        if (this._question.default) {
+            this._options.value = this._question.default;
+        }
 
         return this._vscodeWrapper.showInputBox(this._options)
             .then(result => {
