@@ -245,18 +245,20 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Handles a generic create session failure
+     * Handles a generic OE create session failure by creating a
+     * sign in node
      */
-    private handleNodeCreationFailure(element: TreeNodeInfo): AccountSignInTreeNode[] {
+    private createSignInNode(element: TreeNodeInfo): AccountSignInTreeNode[] {
         const signInNode = new AccountSignInTreeNode(element);
         this._treeNodeToChildrenMap.set(element, [signInNode]);
         return [signInNode];
     }
 
     /**
-     * Handles an incorrect password failure when creating a session
+     * Handles a connection error after an OE session is
+     * sucessfully created by creating a connect node
      */
-    private handleNodeConnectionFailure(element: TreeNodeInfo): ConnectTreeNode[] {
+    private createConnectTreeNode(element: TreeNodeInfo): ConnectTreeNode[] {
         const connectNode = new ConnectTreeNode(element);
         this._treeNodeToChildrenMap.set(element, [connectNode]);
         return [connectNode];
@@ -295,19 +297,17 @@ export class ObjectExplorerService {
                         let node = await promise;
                         // if the server was found but connection failed
                         if (!node) {
-                            // remove password if it's saved in the credential store
                             let profile = element.connectionCredentials as IConnectionProfile;
                             let password = await this._connectionManager.connectionStore.lookupPassword(profile);
                             if (password) {
-                                await this._connectionManager.connectionStore.removeProfilePassword(profile);
-                                return this.handleNodeCreationFailure(element);
+                                return this.createSignInNode(element);
                             } else {
-                                return this.handleNodeConnectionFailure(element);
+                                return this.createConnectTreeNode(element);
                             }
                         }
                     } else {
                         // If node create session failed (server wasn't found)
-                        return this.handleNodeCreationFailure(element);
+                        return this.createSignInNode(element);
                     }
                     // otherwise expand the node by refreshing the root
                     // to add connected context key
