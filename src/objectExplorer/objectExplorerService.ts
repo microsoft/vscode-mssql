@@ -245,19 +245,6 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Removes password from a saved profile
-     */
-    private async removeProfilePassword(connection: IConnectionCredentials): Promise<void> {
-        // if the password is saved in the credential store, remove it
-        let profile = connection as IConnectionProfile;
-        await this._connectionManager.connectionStore.removeProfile(profile);
-        const newProfile = Object.assign({}, profile);
-        newProfile.password = '';
-        newProfile.savePassword = false;
-        await this._connectionManager.connectionStore.saveProfile(newProfile);
-    }
-
-    /**
      * Handles a generic create session failure
      */
     private handleNodeCreationFailure(element: TreeNodeInfo): AccountSignInTreeNode[] {
@@ -312,7 +299,7 @@ export class ObjectExplorerService {
                             let profile = element.connectionCredentials as IConnectionProfile;
                             let password = await this._connectionManager.connectionStore.lookupPassword(profile);
                             if (password) {
-                                await this.removeProfilePassword(profile);
+                                await this._connectionManager.connectionStore.removeProfilePassword(profile);
                                 return this.handleNodeCreationFailure(element);
                             } else {
                                 return this.handleNodeConnectionFailure(element);

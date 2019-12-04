@@ -401,6 +401,17 @@ export class ConnectionStore {
         return result;
     }
 
+
+    /**
+     * Removes password from a saved profile and credential store
+     */
+    public async removeProfilePassword(connection: IConnectionCredentials): Promise<void> {
+        // if the password is saved in the credential store, remove it
+        let profile = connection as IConnectionProfile;
+        profile.password = '';
+        await this.saveProfile(profile);
+    }
+
     // Load connections from user preferences
     public loadAllConnections(addRecentConnections: boolean = false): IConnectionCredentialsQuickPickItem[] {
         let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
