@@ -54,4 +54,8 @@ export class ObjectExplorerUtils {
         }
         return LocalizedConstants.defaultDatabaseLabel;
     }
+
+    public static isFirewallError(errorMessage: string): boolean {
+        return errorMessage.includes(Constants.firewallErrorMessage);
+    }
 }

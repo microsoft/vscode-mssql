@@ -102,14 +102,23 @@ export class ObjectExplorerService {
                 if (self._currentNode.connectionCredentials.password) {
                     self._currentNode.connectionCredentials.password = '';
                 }
-                self.updateNode(self._currentNode);
-                self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;
                 if (result.errorMessage) {
                     error += ` : ${result.errorMessage}`;
                 }
                 self._connectionManager.vscodeWrapper.showErrorMessage(error);
                 const promise = self._sessionIdToPromiseMap.get(result.sessionId);
+
+                // handle session failure because of firewall issue
+                if (ObjectExplorerUtils.isFirewallError(result.errorMessage)) {
+                    let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule(Constants.errorFirewallRule, result.errorMessage);
+                    const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+                    const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
+                    self.updateNode(self._currentNode);
+                    self._currentNode = undefined;
+                    self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
+                }
+
                 if (promise) {
                     return promise.resolve(undefined);
                 }
