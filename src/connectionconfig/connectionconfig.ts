@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 'use strict';
-
+import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from '../models/utils';
@@ -146,7 +146,15 @@ export class ConnectionConfig implements IConnectionConfig {
      * Replace existing profiles in the user settings with a new set of profiles.
      * @param profiles the set of profiles to insert into the settings file.
      */
-    private async writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
-        return this.vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, profiles);
+    private writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
+        // Save the file
+        const self = this;
+        return new Promise<void>((resolve, reject) => {
+            self._vscodeWrapper.getConfiguration(Constants.extensionName).update(Constants.connectionsArrayName, profiles, vscode.ConfigurationTarget.Global).then(() => {
+                resolve();
+            }, err => {
+                reject(err);
+            });
+        });
     }
 }
