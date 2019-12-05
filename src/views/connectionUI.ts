@@ -471,7 +471,13 @@ export class ConnectionUI {
                 if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
                     // Firewall rule error
                     const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
-                    return this.handleFirewallError(uri, profile, clientIp)
+                    let success = await this.handleFirewallError(uri, profile, clientIp);
+                    if (success) {
+                        // Retry creating the profile if firewall rule
+                        // was successful
+                        self.connectionManager.failedUriToFirewallIpMap.delete(uri);
+                        return self.validateAndSaveProfile(profile);
+                    }
                 } else {
                     // Normal connection error! Let the user try again, prefilling values that they already entered
                     return self.promptToRetryAndSaveProfile(profile);
@@ -480,21 +486,19 @@ export class ConnectionUI {
         });
     }
 
-    public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<IConnectionProfile> {
-
+    /**
+     * Method to handle a firewall error. Returns true if a firewall rule was successfully added, and
+     * false otherwise
+     */
+    public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
          // Check whether the azure account extension is installed and active
          if (this._vscodeWrapper.azureAccountExtensionActive) {
              // Sign in to azure account
              const signedIn = await this.promptForAccountSignIn();
              if (signedIn) {
-                 // Create a firewall rule for the server
-                 let success = await this.createFirewallRule(profile, profile.server, ipAddress);
-                 if (success) {
-                     // Retry creating the profile if firewall rule
-                     // was successful
-                     this.connectionManager.failedUriToFirewallIpMap.delete(uri);
-                     return this.validateAndSaveProfile(profile);
-                 }
+                // Create a firewall rule for the server
+                let success = await this.createFirewallRule(profile, profile.server, ipAddress);
+                return success;
              }
          } else {
              // If the extension exists but not active
@@ -506,7 +510,7 @@ export class ConnectionUI {
                              await this._vscodeWrapper.azureAccountExtension.activate();
                              await this.showAzureExtensionActivated();
                          }
-                         return undefined;
+                         return false;
                      });
              } else {
                  // Show recommendation to download the azure account extension
@@ -523,7 +527,7 @@ export class ConnectionUI {
                              });
                          });
                      }
-                     return undefined;
+                     return false;
                  });
              }
          }
