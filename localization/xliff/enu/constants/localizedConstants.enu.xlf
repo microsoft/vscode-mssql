@@ -252,7 +252,7 @@
             <source xml:lang="en">Azure Account extension activated and signed in.</source>
         </trans-unit>
         <trans-unit id="msgPromptFirewallRuleCreated">
-            <source xml:lang="en">Firewall successfully created.</source>
+            <source xml:lang="en">Firewall rule successfully created.</source>
         </trans-unit>
         <trans-unit id="msgInvalidIpAddress">
             <source xml:lang="en">Invalid IP Address </source>

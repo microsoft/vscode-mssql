@@ -478,6 +478,7 @@ export class ConnectionUI {
                         self.connectionManager.failedUriToFirewallIpMap.delete(uri);
                         return self.validateAndSaveProfile(profile);
                     }
+                    return undefined;
                 } else {
                     // Normal connection error! Let the user try again, prefilling values that they already entered
                     return self.promptToRetryAndSaveProfile(profile);
