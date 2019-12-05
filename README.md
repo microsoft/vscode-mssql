@@ -21,6 +21,20 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## Version 1.8.0
+* Release date: December 9, 2019
+* Release status: GA
+
+## What's new in 1.8.0
+* Added support for scripting context menu actions on the Object Explorer
+* Added support for adding a new firewall rule to a server
+* Separate database connections from server connections
+* Reduced extension size from 10 MB to 6MB
+* Open pinned doc when starting a new query
+* Fixed scrolling and heights for multiple result sets
+* Fixed using correct database for new query from Object Explorer
+* Fixed results font size from settings not respected
+
 ## Version 1.7.1
 * Release date: November 11, 2019
 * Release status: GA
@@ -288,7 +302,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```1.6.0```. See the [change log] for a detailed list of changes in each version.
+The current version is ```1.8.0```. See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
