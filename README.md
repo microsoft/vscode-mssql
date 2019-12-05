@@ -29,7 +29,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 * Added support for scripting context menu actions on the Object Explorer
 * Added support for adding a new firewall rule to a server
 * Separate database connections from server connections
-* Reduced extension size
+* Reduced extension size from 10 MB to 6MB
 * Open pinned doc when starting a new query
 * Fixed scrolling and heights for multiple result sets
 * Fixed using correct database for new query from Object Explorer
