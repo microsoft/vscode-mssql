@@ -339,6 +339,13 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Change a configuration setting
+     */
+    public setConfiguration(extensionName: string, resource: string, value: any): Thenable<void> {
+        return this.getConfiguration(extensionName).update(resource, value, vscode.ConfigurationTarget.Global);
+    }
+
+    /*
      * Called when there's a change in the extensions
      */
     public get onDidChangeExtensions(): vscode.Event<void> {

@@ -102,14 +102,23 @@ export class ObjectExplorerService {
                 if (self._currentNode.connectionCredentials.password) {
                     self._currentNode.connectionCredentials.password = '';
                 }
-                self.updateNode(self._currentNode);
-                self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;
                 if (result.errorMessage) {
                     error += ` : ${result.errorMessage}`;
                 }
                 self._connectionManager.vscodeWrapper.showErrorMessage(error);
                 const promise = self._sessionIdToPromiseMap.get(result.sessionId);
+
+                // handle session failure because of firewall issue
+                if (ObjectExplorerUtils.isFirewallError(result.errorMessage)) {
+                    let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule(Constants.errorFirewallRule, result.errorMessage);
+                    const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+                    const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
+                    self.updateNode(self._currentNode);
+                    self._currentNode = undefined;
+                    self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
+                }
+
                 if (promise) {
                     return promise.resolve(undefined);
                 }
@@ -244,6 +253,26 @@ export class ObjectExplorerService {
         return [new AddConnectionTreeNode()];
     }
 
+    /**
+     * Handles a generic OE create session failure by creating a
+     * sign in node
+     */
+    private createSignInNode(element: TreeNodeInfo): AccountSignInTreeNode[] {
+        const signInNode = new AccountSignInTreeNode(element);
+        this._treeNodeToChildrenMap.set(element, [signInNode]);
+        return [signInNode];
+    }
+
+    /**
+     * Handles a connection error after an OE session is
+     * sucessfully created by creating a connect node
+     */
+    private createConnectTreeNode(element: TreeNodeInfo): ConnectTreeNode[] {
+        const connectNode = new ConnectTreeNode(element);
+        this._treeNodeToChildrenMap.set(element, [connectNode]);
+        return [connectNode];
+    }
+
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
@@ -275,17 +304,19 @@ export class ObjectExplorerService {
                     const sessionId = await this.createSession(promise, element.connectionCredentials);
                     if (sessionId) {
                         let node = await promise;
-                        // if password failed
+                        // if the server was found but connection failed
                         if (!node) {
-                            const connectNode = new ConnectTreeNode(element);
-                            this._treeNodeToChildrenMap.set(element, [connectNode]);
-                            return [connectNode];
+                            let profile = element.connectionCredentials as IConnectionProfile;
+                            let password = await this._connectionManager.connectionStore.lookupPassword(profile);
+                            if (password) {
+                                return this.createSignInNode(element);
+                            } else {
+                                return this.createConnectTreeNode(element);
+                            }
                         }
                     } else {
-                        // If node create session failed
-                        const signInNode = new AccountSignInTreeNode(element);
-                        this._treeNodeToChildrenMap.set(element, [signInNode]);
-                        return [signInNode];
+                        // If node create session failed (server wasn't found)
+                        return this.createSignInNode(element);
                     }
                     // otherwise expand the node by refreshing the root
                     // to add connected context key

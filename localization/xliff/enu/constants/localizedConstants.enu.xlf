@@ -120,7 +120,7 @@
             <source xml:lang="en">Profile Name</source>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
-            <source xml:lang="en">[Optional] Enter a name for this profile</source>
+            <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
         </trans-unit>
         <trans-unit id="filepathPrompt">
             <source xml:lang="en">File path</source>
@@ -250,6 +250,9 @@
         </trans-unit>
         <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
             <source xml:lang="en">Azure Account extension activated and signed in.</source>
+        </trans-unit>
+        <trans-unit id="msgPromptFirewallRuleCreated">
+            <source xml:lang="en">Firewall rule successfully created.</source>
         </trans-unit>
         <trans-unit id="msgInvalidIpAddress">
             <source xml:lang="en">Invalid IP Address </source>

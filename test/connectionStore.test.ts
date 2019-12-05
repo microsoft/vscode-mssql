@@ -280,6 +280,11 @@ suite('ConnectionStore tests', () => {
             return workspaceConfiguration;
         });
 
+        vscodeWrapper.setup(x => x.setConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(() => {
+            return workspaceConfiguration.update('connections', [defaultNamedProfile, namedProfile]);
+        });
+
         let config = new ConnectionConfig(vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
@@ -318,6 +323,11 @@ suite('ConnectionStore tests', () => {
         vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .returns(x => {
             return workspaceConfiguration;
+        });
+
+        vscodeWrapper.setup(x => x.setConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(() => {
+            return workspaceConfiguration.update('connections', [defaultNamedProfile, unnamedProfile]);
         });
 
         let config = new ConnectionConfig(vscodeWrapper.object);
