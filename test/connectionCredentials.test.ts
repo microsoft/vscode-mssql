@@ -209,9 +209,9 @@ suite('ConnectionCredentials Tests', () => {
         assert.equal(connectionDetails.options.database, credentials.database);
     });
 
-    test('Subsequent connection credential questions are skipped if a connection string is given', () => {
+    test('Subsequent connection credential questions are skipped if a connection string is given', async () => {
         let credentials = new ConnectionCredentials();
-        let questions = ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false);
+        let questions = await ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false, undefined);
         let serverQuestion = questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0];
 
         let connectionString = 'server=some-server';
@@ -222,9 +222,9 @@ suite('ConnectionCredentials Tests', () => {
         otherQuestions.forEach(question => assert.equal(question.shouldPrompt({}), false));
     });
 
-    test('Server question properly handles connection strings', () => {
+    test('Server question properly handles connection strings', async () => {
         let credentials = new ConnectionCredentials();
-        let questions = ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false);
+        let questions = await ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false, undefined);
         let serverQuestion = questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0];
 
         let connectionString = 'server=some-server';
