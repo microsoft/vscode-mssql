@@ -150,7 +150,7 @@ export class ConnectionConfig implements IConnectionConfig {
         // Save the file
         const self = this;
         return new Promise<void>((resolve, reject) => {
-            self._vscodeWrapper.getConfiguration(Constants.extensionName).update(Constants.connectionsArrayName, profiles, vscode.ConfigurationTarget.Global).then(() => {
+            self._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, profiles).then(() => {
                 resolve();
             }, err => {
                 reject(err);
