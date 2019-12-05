@@ -146,15 +146,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * Replace existing profiles in the user settings with a new set of profiles.
      * @param profiles the set of profiles to insert into the settings file.
      */
-    private writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
-        // Save the file
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            self._vscodeWrapper.getConfiguration(Constants.extensionName).update(Constants.connectionsArrayName, profiles, true).then(() => {
-                resolve();
-            }, err => {
-                reject(err);
-            });
-        });
+    private async writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
+        return this.vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, profiles);
     }
 }
