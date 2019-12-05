@@ -498,6 +498,7 @@ export class ConnectionUI {
              if (signedIn) {
                 // Create a firewall rule for the server
                 let success = await this.createFirewallRule(profile, profile.server, ipAddress);
+                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
                 return success;
              }
          } else {

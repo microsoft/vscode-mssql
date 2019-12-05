@@ -116,7 +116,7 @@ export class ObjectExplorerService {
                     const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
                     self.updateNode(self._currentNode);
                     self._currentNode = undefined;
-                    await self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
+                    self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
                 }
 
                 if (promise) {
