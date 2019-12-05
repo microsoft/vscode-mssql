@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 'use strict';
-
+import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from '../models/utils';
@@ -150,7 +150,7 @@ export class ConnectionConfig implements IConnectionConfig {
         // Save the file
         const self = this;
         return new Promise<void>((resolve, reject) => {
-            self._vscodeWrapper.getConfiguration(Constants.extensionName).update(Constants.connectionsArrayName, profiles, true).then(() => {
+            self._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, profiles).then(() => {
                 resolve();
             }, err => {
                 reject(err);

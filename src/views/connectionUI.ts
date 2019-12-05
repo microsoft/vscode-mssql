@@ -545,7 +545,7 @@ export class ConnectionUI {
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
-        return ConnectionProfile.createProfile(this._prompter);
+        return ConnectionProfile.createProfile(this._prompter, this._connectionStore);
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -562,7 +562,7 @@ export class ConnectionUI {
         let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
         return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
-                return ConnectionProfile.createProfile(this._prompter, profile);
+                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, profile);
             } else {
                 return undefined;
             }

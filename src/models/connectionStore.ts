@@ -317,7 +317,7 @@ export class ConnectionStore {
         });
     }
 
-    private saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+    public saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
         if (!profile.savePassword) {
             return Promise.resolve(true);
         }
@@ -399,6 +399,17 @@ export class ConnectionStore {
         let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
         let result = await this._credentialStore.deleteCredential(credentialId);
         return result;
+    }
+
+
+    /**
+     * Removes password from a saved profile and credential store
+     */
+    public async removeProfilePassword(connection: IConnectionCredentials): Promise<void> {
+        // if the password is saved in the credential store, remove it
+        let profile = connection as IConnectionProfile;
+        profile.password = '';
+        await this.saveProfile(profile);
     }
 
     // Load connections from user preferences
