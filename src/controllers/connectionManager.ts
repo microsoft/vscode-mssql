@@ -389,7 +389,7 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
                 // check whether it's a firewall rule error
                 let firewallResult = await this.firewallService.handleFirewallRule(result.errorNumber, result.errorMessage);
-                if (firewallResult) {
+                if (firewallResult.result && firewallResult.ipAddress) {
                     this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
                 }
             }

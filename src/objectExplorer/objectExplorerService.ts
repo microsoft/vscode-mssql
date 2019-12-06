@@ -112,13 +112,14 @@ export class ObjectExplorerService {
                 // handle session failure because of firewall issue
                 if (ObjectExplorerUtils.isFirewallError(result.errorMessage)) {
                     let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule(Constants.errorFirewallRule, result.errorMessage);
-                    const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-                    const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
-                    self.updateNode(self._currentNode);
-                    self._currentNode = undefined;
-                    self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
+                    if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
+                        const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+                        const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
+                        self.updateNode(self._currentNode);
+                        self._currentNode = undefined;
+                        self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
+                    }
                 }
-
                 if (promise) {
                     return promise.resolve(undefined);
                 }
