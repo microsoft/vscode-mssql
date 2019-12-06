@@ -37,9 +37,9 @@ export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
 
     constructor(private _connectionManager: ConnectionManager,
-                private _connectionStore: ConnectionStore,
-                private _prompter: IPrompter,
-                private _vscodeWrapper?: VscodeWrapper) {
+        private _connectionStore: ConnectionStore,
+        private _prompter: IPrompter,
+        private _vscodeWrapper?: VscodeWrapper) {
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
@@ -93,13 +93,13 @@ export class ConnectionUI {
                     placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
                     matchOnDescription: true
                 }, picklist)
-                .then(selection => {
-                    if (selection) {
-                        resolve(self.handleSelectedConnection(selection));
-                    } else {
-                        resolve(undefined);
-                    }
-                });
+                    .then(selection => {
+                        if (selection) {
+                            resolve(self.handleSelectedConnection(selection));
+                        } else {
+                            resolve(undefined);
+                        }
+                    });
             }
         });
     }
@@ -238,7 +238,7 @@ export class ConnectionUI {
 
     // Helper to let the user choose a database on the current server
     public showDatabasesOnCurrentServer(currentCredentials: IConnectionCredentials,
-                                        databaseNames: Array<string>): Promise<IConnectionCredentials> {
+        databaseNames: Array<string>): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             const pickListItems: vscode.QuickPickItem[] = databaseNames.map(name => {
@@ -492,49 +492,49 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
-         // Check whether the azure account extension is installed and active
-         if (this._vscodeWrapper.azureAccountExtensionActive) {
-             // Sign in to azure account
-             const signedIn = await this.promptForAccountSignIn();
-             if (signedIn) {
+        // Check whether the azure account extension is installed and active
+        if (this._vscodeWrapper.azureAccountExtensionActive) {
+            // Sign in to azure account
+            const signedIn = await this.promptForAccountSignIn();
+            if (signedIn) {
                 // Create a firewall rule for the server
                 let success = await this.createFirewallRule(profile, profile.server, ipAddress);
                 if (success) {
                     this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
                 }
                 return success;
-             }
-         } else {
-             // If the extension exists but not active
-             if (this._vscodeWrapper.azureAccountExtension) {
-                 // Prompt user to activate the extension
-                 return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotActivated,
-                     LocalizedConstants.activateLabel).then(async (selection) => {
-                         if (selection === LocalizedConstants.activateLabel) {
-                             await this._vscodeWrapper.azureAccountExtension.activate();
-                             await this.showAzureExtensionActivated();
-                         }
-                         return false;
-                     });
-             } else {
-                 // Show recommendation to download the azure account extension
-                 return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleExtNotInstalled,
-                     LocalizedConstants.downloadAndInstallLabel).then(async (selection) => {
-                     if (selection === LocalizedConstants.downloadAndInstallLabel) {
-                        this._vscodeWrapper.executeCommand(Constants.cmdOpenExtension, Constants.azureAccountExtensionId).then(async () => {
-                            this._vscodeWrapper.onDidChangeExtensions(async (e) => {
-                                 // Activate the Azure Account extension and call the function again
-                                 if (this._vscodeWrapper.azureAccountExtension) {
-                                     await this._vscodeWrapper.azureAccountExtension.activate();
-                                     await this.showAzureExtensionActivated();
-                                 }
-                             });
-                         });
-                     }
-                     return false;
-                 });
-             }
-         }
+            }
+        } else {
+            // If the extension exists but not active
+            if (this._vscodeWrapper.azureAccountExtension) {
+                // Prompt user to activate the extension
+                let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotActivated,
+                    LocalizedConstants.activateLabel);
+                if (selection === LocalizedConstants.activateLabel) {
+                    let activated = await this._vscodeWrapper.azureAccountExtension.activate();
+                    if (activated) {
+                        this.showAzureExtensionActivated();
+                        return this.handleFirewallError(uri, profile, ipAddress);
+                    }
+                }
+                return false;
+            } else {
+                // Show recommendation to download the azure account extension
+                const selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleExtNotInstalled,
+                    LocalizedConstants.downloadAndInstallLabel);
+                if (selection === LocalizedConstants.downloadAndInstallLabel) {
+                    await this._vscodeWrapper.executeCommand(Constants.cmdOpenExtension, Constants.azureAccountExtensionId);
+                    this._vscodeWrapper.onDidChangeExtensions(async (e) => {
+                        // Activate the Azure Account extension and call the function again
+                        if (this._vscodeWrapper.azureAccountExtension) {
+                            await this._vscodeWrapper.azureAccountExtension.activate();
+                            await this.showAzureExtensionActivated();
+                        }
+                    });
+                }
+                return false;
+            }
+        }
     }
 
     /**
@@ -584,14 +584,15 @@ export class ConnectionUI {
 
     private async showAzureExtensionActivated(): Promise<boolean> {
         if (!this._vscodeWrapper.isAccountSignedIn) {
-            return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
-                LocalizedConstants.signInLabel).then((result) => {
-                    if (result === LocalizedConstants.signInLabel) {
-                        return this.showSignInOptions();
-                    }
-            });
+            const result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
+                LocalizedConstants.signInLabel);
+            if (result === LocalizedConstants.signInLabel) {
+                return this.showSignInOptions();
+            }
+            return false;
         } else {
-            return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedSignedIn).then(() => true);
+            await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedSignedIn);
+            return true;
         }
     }
 
@@ -680,12 +681,12 @@ export class ConnectionUI {
         // Ask if the user would like to fix the profile
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryConnectionDifferentCredentials
             , LocalizedConstants.retryLabel).then(result => {
-            if (result === LocalizedConstants.retryLabel) {
-                return true;
-            } else {
-                return false;
-            }
-        });
+                if (result === LocalizedConstants.retryLabel) {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
@@ -698,15 +699,15 @@ export class ConnectionUI {
 
         const passwordEmptyInConfigFile: boolean = Utils.isEmpty(selection.connectionCreds.password);
         return this._connectionStore.addSavedPassword(selection)
-        .then(sel => {
-            return ConnectionCredentials.ensureRequiredPropertiesSet(
-                sel.connectionCreds,
-                selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
-                false,
-                passwordEmptyInConfigFile,
-                this._prompter,
-                this._connectionStore);
-        });
+            .then(sel => {
+                return ConnectionCredentials.ensureRequiredPropertiesSet(
+                    sel.connectionCreds,
+                    selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
+                    false,
+                    passwordEmptyInConfigFile,
+                    this._prompter,
+                    this._connectionStore);
+            });
     }
 
     // Prompts the user to pick a profile for removal, then removes from the global saved state
@@ -716,18 +717,18 @@ export class ConnectionUI {
         // Flow: Select profile to remove, confirm removal, remove, notify
         let profiles = self._connectionStore.getProfilePickListItems(false);
         return self.selectProfileForRemoval(profiles)
-        .then(profile => {
-            if (profile) {
-                return self._connectionStore.removeProfile(profile);
-            }
-            return false;
-        }).then(result => {
-            if (result) {
-                // TODO again consider moving information prompts to the prompt package
-                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
-            }
-            return result;
-        });
+            .then(profile => {
+                if (profile) {
+                    return self._connectionStore.removeProfile(profile);
+                }
+                return false;
+            }).then(result => {
+                if (result) {
+                    // TODO again consider moving information prompts to the prompt package
+                    this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+                }
+                return result;
+            });
     }
 
     private selectProfileForRemoval(profiles: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionProfile> {
