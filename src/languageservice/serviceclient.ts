@@ -3,7 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 'use strict';
-import * as os from 'os';
 import { ExtensionContext, workspace, window, OutputChannel, languages } from 'vscode';
 import {
     LanguageClient, LanguageClientOptions, ServerOptions,
