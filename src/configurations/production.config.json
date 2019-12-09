@@ -1,6 +1,6 @@
 {
     "service": {
-        "downloadUrl": "https://download.microsoft.com/download/c/2/f/c9857f58-e569-4677-ad24-f180e83a8252/microsoft.sqltools.servicelayer-{#fileName#}",
+        "downloadUrl": "https://download.microsoft.com/download/e/7/8/e781cf8f-9c3f-4ad5-bd0c-f3c62b8bc6bd/microsoft.sqltools.servicelayer-{#fileName#}",
         "version": "1.8.0",
         "downloadFileNames": {
             "Windows_7_86": "win-x86-netcoreapp2.2.zip",
