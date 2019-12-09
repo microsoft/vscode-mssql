@@ -5,10 +5,11 @@
 
 import vscode = require('vscode');
 
-
+import { AzureLoginStatus } from '../models/interfaces';
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
+import { TextDocumentShowOptions } from 'vscode';
 
 export default class VscodeWrapper {
 
@@ -277,8 +278,8 @@ export default class VscodeWrapper {
      * @param preserveFocus When `true` the editor will not take focus.
      * @return A promise that resolves to an [editor](#TextEditor).
      */
-    public async showTextDocument(document: vscode.TextDocument, column?: vscode.ViewColumn, preserveFocus?: boolean): Promise<vscode.TextEditor> {
-        const editor = await vscode.window.showTextDocument(document, column, preserveFocus);
+    public async showTextDocument(document: vscode.TextDocument, options: TextDocumentShowOptions): Promise<vscode.TextEditor> {
+        const editor = await vscode.window.showTextDocument(document, options);
         return editor;
     }
 
@@ -335,5 +336,42 @@ export default class VscodeWrapper {
      */
     public get onDidChangeConfiguration(): vscode.Event<vscode.ConfigurationChangeEvent> {
         return vscode.workspace.onDidChangeConfiguration;
+    }
+
+    /**
+     * Change a configuration setting
+     */
+    public setConfiguration(extensionName: string, resource: string, value: any): Thenable<void> {
+        return this.getConfiguration(extensionName).update(resource, value, vscode.ConfigurationTarget.Global);
+    }
+
+    /*
+     * Called when there's a change in the extensions
+     */
+    public get onDidChangeExtensions(): vscode.Event<void> {
+        return vscode.extensions.onDidChange;
+    }
+
+    /**
+     * Gets the Azure Account extension
+     */
+    public get azureAccountExtension(): vscode.Extension<any> | undefined {
+        return vscode.extensions.getExtension(Constants.azureAccountExtensionId);
+    }
+
+    /**
+     * Returns true when the Azure Account extension is installed
+     * but not active
+     */
+    public get azureAccountExtensionActive(): boolean {
+        return this.azureAccountExtension && this.azureAccountExtension.isActive;
+    }
+
+    /**
+     * Returns whether an azure account is signed in
+     */
+    public get isAccountSignedIn(): boolean {
+        return this.azureAccountExtensionActive &&
+            this.azureAccountExtension.exports.status === AzureLoginStatus.LoggedIn;
     }
 }

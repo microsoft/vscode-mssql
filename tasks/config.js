@@ -23,6 +23,6 @@ var config = {
             out: htmloutroot
         }
     }
-}
+};
 
 module.exports = config;

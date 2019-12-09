@@ -686,7 +686,7 @@ suite('Query Runner tests', () => {
             queryRunner.setEditorSelection(selection).then(() => {
                 try {
                     // Then showTextDocument gets called with the existing editor's column
-                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, queryColumn), TypeMoq.Times.once());
+                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, TypeMoq.It.isAny()), TypeMoq.Times.once());
                     done();
                 } catch (err) {
                     done(err);
@@ -719,7 +719,7 @@ suite('Query Runner tests', () => {
             queryRunner.setEditorSelection({ startColumn: 0, startLine: 0, endColumn: 1, endLine: 1 }).then(() => {
                 try {
                     // Then showTextDocument gets called with the default first column
-                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, 1), TypeMoq.Times.once());
+                    testVscodeWrapper.verify(x => x.showTextDocument(editor.document, TypeMoq.It.isAny()), TypeMoq.Times.once());
                     done();
                 } catch (err) {
                     done(err);

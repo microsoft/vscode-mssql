@@ -64,21 +64,22 @@ export class ObjectExplorerService {
                 let nodeConnection = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
                 for (let connection of savedConnections) {
                     if (Utils.isSameConnection(connection.connectionCreds, nodeConnection)) {
-                        nodeLabel = connection.label;
+                        // if it's not the defaul label
+                        if (connection.label !== connection.connectionCreds.server) {
+                            nodeLabel = connection.label;
+                        }
                         break;
                     }
                 }
                 // set connection and other things
                 if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
-                    nodeLabel = nodeLabel === result.rootNode.nodePath ?
-                    self.createNodeLabel(self._currentNode.connectionCredentials) : nodeLabel;
+                    nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionCredentials) : nodeLabel;
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        undefined, self._currentNode.connectionCredentials, nodeLabel);
+                        undefined, self._currentNode.connectionCredentials, nodeLabel, Constants.serverLabel);
                 } else {
-                    nodeLabel = nodeLabel === result.rootNode.nodePath ?
-                    self.createNodeLabel(nodeConnection) : nodeLabel;
+                    nodeLabel = !nodeLabel ? self.createNodeLabel(nodeConnection) : nodeLabel;
                     self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        undefined, nodeConnection, nodeLabel);
+                        undefined, nodeConnection, nodeLabel, Constants.serverLabel);
                 }
                 // make a connection if not connected already
                 const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
@@ -101,14 +102,24 @@ export class ObjectExplorerService {
                 if (self._currentNode.connectionCredentials.password) {
                     self._currentNode.connectionCredentials.password = '';
                 }
-                self.updateNode(self._currentNode);
-                self._currentNode = undefined;
                 let error = LocalizedConstants.connectErrorLabel;
                 if (result.errorMessage) {
                     error += ` : ${result.errorMessage}`;
                 }
                 self._connectionManager.vscodeWrapper.showErrorMessage(error);
                 const promise = self._sessionIdToPromiseMap.get(result.sessionId);
+
+                // handle session failure because of firewall issue
+                if (ObjectExplorerUtils.isFirewallError(result.errorMessage)) {
+                    let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule(Constants.errorFirewallRule, result.errorMessage);
+                    if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
+                        const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+                        const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
+                        self.updateNode(self._currentNode);
+                        self._currentNode = undefined;
+                        self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
+                    }
+                }
                 if (promise) {
                     return promise.resolve(undefined);
                 }
@@ -143,18 +154,21 @@ export class ObjectExplorerService {
         return handler;
     }
 
-    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean> {
+    public async expandNode(node: TreeNodeInfo, sessionId: string, promise: Deferred<TreeNodeInfo[]>): Promise<boolean | undefined> {
         const expandParams: ExpandParams = {
             sessionId: sessionId,
             nodePath: node.nodePath
         };
         this._expandParamsToPromiseMap.set(expandParams, promise);
         const response = await this._connectionManager.client.sendRequest(ExpandRequest.type, expandParams);
-        if (!response) {
+        if (response) {
+            this._currentNode = node;
+            return response;
+        } else {
             this._expandParamsToPromiseMap.delete(expandParams);
+            promise.resolve(undefined);
+            return undefined;
         }
-        this._currentNode = node;
-        return response;
     }
 
     public updateNode(node: TreeNodeInfo): void {
@@ -162,6 +176,7 @@ export class ObjectExplorerService {
             if (Utils.isSameConnection(node.connectionCredentials, rootTreeNode.connectionCredentials) &&
                 rootTreeNode.label === node.label) {
                     const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
+                    delete this._rootTreeNodeArray[index];
                     this._rootTreeNodeArray[index] = node;
                     return;
             }
@@ -183,6 +198,7 @@ export class ObjectExplorerService {
                 }
                 this._treeNodeToChildrenMap.delete(child);
             }
+            this._treeNodeToChildrenMap.delete(node);
         }
     }
 
@@ -238,6 +254,26 @@ export class ObjectExplorerService {
         return [new AddConnectionTreeNode()];
     }
 
+    /**
+     * Handles a generic OE create session failure by creating a
+     * sign in node
+     */
+    private createSignInNode(element: TreeNodeInfo): AccountSignInTreeNode[] {
+        const signInNode = new AccountSignInTreeNode(element);
+        this._treeNodeToChildrenMap.set(element, [signInNode]);
+        return [signInNode];
+    }
+
+    /**
+     * Handles a connection error after an OE session is
+     * sucessfully created by creating a connect node
+     */
+    private createConnectTreeNode(element: TreeNodeInfo): ConnectTreeNode[] {
+        const connectNode = new ConnectTreeNode(element);
+        this._treeNodeToChildrenMap.set(element, [connectNode]);
+        return [connectNode];
+    }
+
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             if (element !== this._currentNode) {
@@ -269,17 +305,19 @@ export class ObjectExplorerService {
                     const sessionId = await this.createSession(promise, element.connectionCredentials);
                     if (sessionId) {
                         let node = await promise;
-                        // if password failed
+                        // if the server was found but connection failed
                         if (!node) {
-                            const connectNode = new ConnectTreeNode(element);
-                            this._treeNodeToChildrenMap.set(element, [connectNode]);
-                            return [connectNode];
+                            let profile = element.connectionCredentials as IConnectionProfile;
+                            let password = await this._connectionManager.connectionStore.lookupPassword(profile);
+                            if (password) {
+                                return this.createSignInNode(element);
+                            } else {
+                                return this.createConnectTreeNode(element);
+                            }
                         }
                     } else {
-                        // If node create session failed
-                        const signInNode = new AccountSignInTreeNode(element);
-                        this._treeNodeToChildrenMap.set(element, [signInNode]);
-                        return [signInNode];
+                        // If node create session failed (server wasn't found)
+                        return this.createSignInNode(element);
                     }
                     // otherwise expand the node by refreshing the root
                     // to add connected context key

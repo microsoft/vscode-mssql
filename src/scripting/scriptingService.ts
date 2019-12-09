@@ -55,11 +55,27 @@ export class ScriptingService {
         return scriptingObject;
     }
 
-    public async scriptSelect(node: TreeNodeInfo, uri: string): Promise<string> {
+    /**
+     * Helper to create scripting params
+     */
+    public createScriptingParams(node: TreeNodeInfo, uri: string, operation: ScriptOperation): ScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
         let serverInfo = this._connectionManager.getServerInfo(node.connectionCredentials);
+        let scriptCreateDropOption: string;
+        switch (operation) {
+            case (ScriptOperation.Select):
+                scriptCreateDropOption = 'ScriptSelect';
+                break;
+            case (ScriptOperation.Delete):
+                scriptCreateDropOption = 'ScriptDrop';
+                break;
+            case (ScriptOperation.Create):
+                scriptCreateDropOption = 'ScriptCreate';
+            default:
+                scriptCreateDropOption = 'ScriptCreate';
+        }
         let scriptOptions: ScriptOptions = {
-            scriptCreateDrop: 'ScriptSelect',
+            scriptCreateDrop: scriptCreateDropOption,
             typeOfDataToScript: 'SchemaOnly',
             scriptStatistics: 'ScriptStatsNone',
             targetDatabaseEngineEdition: serverInfo && serverInfo.engineEditionId ?
@@ -83,10 +99,15 @@ export class ScriptingService {
             connectionDetails: undefined,
             ownerURI: uri,
             selectScript: undefined,
-            operation: ScriptOperation.Select
+            operation: operation
         };
+        return scriptingParams;
+    }
+
+
+    public async script(node: TreeNodeInfo, uri: string, operation: ScriptOperation): Promise<string> {
+        let scriptingParams = this.createScriptingParams(node, uri, operation);
         const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
         return result.script;
     }
-
 }
