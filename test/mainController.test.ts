@@ -93,24 +93,6 @@ suite('MainController Tests', () => {
         }
     });
 
-    // Renamed file event test
-    test('onDidCloseTextDocument should call renamedDoc function when rename occurs' , done => {
-        // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
-        mainController.onDidOpenTextDocument(newDocument);
-        mainController.onDidCloseTextDocument(document);
-
-        // Verify renameDoc function was called
-        try {
-            connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
-            assert.equal(docUriCallback, document.uri.toString());
-            assert.equal(newDocUriCallback, newDocument.uri.toString());
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
-    });
-
-
     // Saved Untitled file event test
     test('onDidCloseTextDocument should call untitledDoc function when an untitled file is saved' , done => {
         // Scheme of older doc must be untitled
@@ -125,6 +107,23 @@ suite('MainController Tests', () => {
         try {
             connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
             assert.equal(docUriCallback, document2.uri.toString());
+            assert.equal(newDocUriCallback, newDocument.uri.toString());
+            done();
+        } catch (err) {
+            done(new Error(err));
+        }
+    });
+
+    // Renamed file event test
+    test('onDidCloseTextDocument should call renamedDoc function when rename occurs' , done => {
+        // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
+        mainController.onDidOpenTextDocument(newDocument);
+        mainController.onDidCloseTextDocument(document);
+
+        // Verify renameDoc function was called
+        try {
+            connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            assert.equal(docUriCallback, document.uri.toString());
             assert.equal(newDocUriCallback, newDocument.uri.toString());
             done();
         } catch (err) {

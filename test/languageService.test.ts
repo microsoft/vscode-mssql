@@ -15,7 +15,7 @@ suite('Language Service Tests', () => {
     suite('Decompress Provider Tests', () => {
         let decompressProvider = new DecompressProvider();
 
-        test('Decompress package test', () => {
+        test('Decompress package test', async () => {
             let testPackage: IPackage = {
                 url: 'test_url',
                 tmpFile: undefined
@@ -28,9 +28,11 @@ suite('Language Service Tests', () => {
                 appendLine: undefined
 
             };
-            decompressProvider.decompress(testPackage, testLogger).catch((err) => {
+            try {
+                await decompressProvider.decompress(testPackage, testLogger);
+            } catch (err) {
                 assert.isNotNull(err, 'Should throw an error');
-            });
+            }
         });
     });
 
