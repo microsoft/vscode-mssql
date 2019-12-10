@@ -36,6 +36,13 @@ export class FirewallService {
         return this._account;
     }
 
+    /**
+     * Public for testing purposes only
+     */
+    public set token(value: any) {
+        this._token = value;
+    }
+
     private convertToAzureAccount(azureSession: AzureSession): Account {
         let tenant = {
             displayName: Constants.tenantDisplayName,
