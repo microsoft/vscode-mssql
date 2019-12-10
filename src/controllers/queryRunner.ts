@@ -507,7 +507,7 @@ export default class QueryRunner {
      * @param selection The selection range to select
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
-        const docExists = this._vscodeWrapper.textDocuments.find(textDoc => textDoc.uri.toString() === this.uri);
+        const docExists = this._vscodeWrapper.textDocuments.find(textDoc => textDoc.uri.toString(true) === this.uri);
         if (docExists) {
             let column = vscode.ViewColumn.One;
             const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this.uri));

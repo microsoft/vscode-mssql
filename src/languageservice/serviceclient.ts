@@ -314,11 +314,11 @@ export default class SqlToolsServiceClient {
     private createResourceClient(resourcePath: string): LanguageClient {
         // Options to control the language client
         let clientOptions: LanguageClientOptions = {
-            documentSelector: ['sql'],
-            synchronize: {
-                configurationSection: 'mssql'
-            },
-            errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
+            // documentSelector: ['sql'],
+            // synchronize: {
+            //     configurationSection: 'mssql'
+            // },
+            // errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
         };
         // add resource provider path here
         let serverOptions = this.generateResourceServiceServerOptions(resourcePath);
