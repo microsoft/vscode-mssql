@@ -28,12 +28,11 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 ## What's new in 1.8.0
 * Added support for scripting context menu actions on the Object Explorer
 * Added support for adding a new firewall rule to a server
-* Separate database connections from server connections
+* Added differentiation between database connections and server connections
 * Reduced extension size from 10 MB to 6MB
 * Open pinned doc when starting a new query
 * Fixed scrolling and heights for multiple result sets
-* Fixed using correct database for new query from Object Explorer
-* Fixed results font size from settings not respected
+* Fixed bug to use the correct database for new query from Object Explorer
 
 ## Version 1.7.1
 * Release date: November 11, 2019
