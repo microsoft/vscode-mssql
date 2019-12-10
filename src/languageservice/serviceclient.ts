@@ -312,17 +312,11 @@ export default class SqlToolsServiceClient {
     }
 
     private createResourceClient(resourcePath: string): LanguageClient {
-        // Options to control the language client
-        let clientOptions: LanguageClientOptions = {
-            documentSelector: ['sql'],
-            synchronize: {
-                configurationSection: 'mssql'
-            },
-            errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
-        };
         // add resource provider path here
         let serverOptions = this.generateResourceServiceServerOptions(resourcePath);
-        let client = new LanguageClient(Constants.resourceServiceName, serverOptions, clientOptions);
+        // client options are undefined since we don't want to send language events to the
+        // server, since it's handled by the main client
+        let client = new LanguageClient(Constants.resourceServiceName, serverOptions, undefined);
         return client;
     }
 

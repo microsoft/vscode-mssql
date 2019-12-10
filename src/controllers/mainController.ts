@@ -251,7 +251,7 @@ export default class MainController implements vscode.Disposable {
                     this.scriptNode(node, ScriptOperation.Alter)));
 
                 // Add handlers for VS Code generated commands
-                this._vscodeWrapper.onDidCloseTextDocument(params => this.onDidCloseTextDocument(params));
+                this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
                 this._vscodeWrapper.onDidOpenTextDocument(params => this.onDidOpenTextDocument(params));
                 this._vscodeWrapper.onDidSaveTextDocument(params => this.onDidSaveTextDocument(params));
                 this._vscodeWrapper.onDidChangeConfiguration(params => this.onDidChangeConfiguration(params));
@@ -280,7 +280,7 @@ export default class MainController implements vscode.Disposable {
         }
         const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
         const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
-        let uri = editor.document.uri.toString();
+        let uri = editor.document.uri.toString(true);
         let title = path.basename(editor.document.fileName);
         const queryUriPromise = new Deferred<boolean>();
         await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
@@ -740,7 +740,7 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand()) {
             // from the object explorer context menu
             const editor = await this._untitledSqlDocumentService.newQuery(content);
-            const uri = editor.document.uri.toString();
+            const uri = editor.document.uri.toString(true);
             if (node) {
                 // connect to the node if the command came from the context
                 const connectionCreds = node.connectionCredentials;
@@ -749,9 +749,9 @@ export default class MainController implements vscode.Disposable {
                     // connect it first
                     await this.createObjectExplorerSession(node.connectionCredentials);
                 }
-                this._statusview.languageFlavorChanged(uri.toString(), Constants.mssqlProviderName);
-                await this.connectionManager.connect(uri.toString(), connectionCreds);
-                this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
+                await this.connectionManager.connect(uri, connectionCreds);
+                this._statusview.sqlCmdModeChanged(uri, false);
                 await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
                 return true;
             } else {
@@ -762,7 +762,7 @@ export default class MainController implements vscode.Disposable {
                 if (credentials) {
                     await this.createObjectExplorerSession(credentials);
                 }
-                this._statusview.sqlCmdModeChanged(uri.toString(), false);
+                this._statusview.sqlCmdModeChanged(uri, false);
                 return true;
             }
         }
@@ -800,12 +800,12 @@ export default class MainController implements vscode.Disposable {
      * or a renamed file
      * @param doc The document that was closed
      */
-    public onDidCloseTextDocument(doc: vscode.TextDocument): void {
+    public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
         if (this._connectionMgr === undefined) {
             // Avoid processing events before initialization is complete
             return;
         }
-        let closedDocumentUri: string = doc.uri.toString();
+        let closedDocumentUri: string = doc.uri.toString(true);
         let closedDocumentUriScheme: string = doc.uri.scheme;
 
         // Stop timers if they have been started
@@ -825,17 +825,17 @@ export default class MainController implements vscode.Disposable {
                 closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
                 this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
             // Untitled file was saved and connection will be transfered
-            this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
+            await this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
 
         // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (this._lastOpenedUri &&
                 this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
             // File was renamed and connection will be transfered
-            this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastOpenedUri);
+            await this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastOpenedUri);
 
         } else {
             // Pass along the close event to the other handlers for a normal closed file
-            this._connectionMgr.onDidCloseTextDocument(doc);
+            await this._connectionMgr.onDidCloseTextDocument(doc);
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
 
@@ -859,14 +859,15 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr.onDidOpenTextDocument(doc);
 
         if (doc && doc.languageId === Constants.languageId) {
-            this._statusview.languageFlavorChanged(doc.uri.toString(), Constants.mssqlProviderName);
+            // set encoding to false
+            this._statusview.languageFlavorChanged(doc.uri.toString(true), Constants.mssqlProviderName);
         }
 
         // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();
         this._lastOpenedTimer.start();
         if (doc && doc.uri) {
-            this._lastOpenedUri = doc.uri.toString();
+            this._lastOpenedUri = doc.uri.toString(true);
         }
     }
 
@@ -881,7 +882,8 @@ export default class MainController implements vscode.Disposable {
             return;
         }
 
-        let savedDocumentUri: string = doc.uri.toString();
+        // Set encoding to false by giving true as argument
+        let savedDocumentUri: string = doc.uri.toString(true);
 
         // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
         this._lastSavedTimer = new Utils.Timer();
