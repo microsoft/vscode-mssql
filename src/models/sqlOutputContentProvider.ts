@@ -278,12 +278,12 @@ export class SqlOutputContentProvider {
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         for (let [key, value] of this._queryResultsMap.entries()) {
             // closed text document related to a results window we are holding
-            if (doc.uri.toString() === value.queryRunner.uri) {
+            if (doc.uri.toString(true) === value.queryRunner.uri) {
                 value.flaggedForDeletion = true;
             }
 
             // "closed" a results window we are holding
-            if (doc.uri.toString() === key) {
+            if (doc.uri.toString(true) === key) {
                 value.timeout = this.setRunnerDeletionTimeout(key);
             }
         }

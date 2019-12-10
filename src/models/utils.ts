@@ -117,7 +117,7 @@ export function getActiveTextEditor(): vscode.TextEditor {
 export function getActiveTextEditorUri(): string {
     if (typeof vscode.window.activeTextEditor !== 'undefined' &&
         typeof vscode.window.activeTextEditor.document !== 'undefined') {
-        return vscode.window.activeTextEditor.document.uri.toString();
+        return vscode.window.activeTextEditor.document.uri.toString(true);
     }
     return '';
 }
