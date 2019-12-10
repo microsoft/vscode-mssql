@@ -3,7 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 'use strict';
-
 import { ExtensionContext, workspace, window, OutputChannel, languages } from 'vscode';
 import {
     LanguageClient, LanguageClientOptions, ServerOptions,
@@ -190,11 +189,11 @@ export default class SqlToolsServiceClient {
                             _channel.show();
                         }
                         let installedServerPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
-                        this.initializeLanguageClient(installedServerPath, context);
+                        this.initializeLanguageClient(installedServerPath, context, platformInfo.isWindows());
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(true, true, installedServerPath));
                     } else {
-                        this.initializeLanguageClient(serverPath, context);
+                        this.initializeLanguageClient(serverPath, context, platformInfo.isWindows());
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(false, true, serverPath));
                     }
@@ -256,7 +255,7 @@ export default class SqlToolsServiceClient {
         });
     }
 
-    private initializeLanguageClient(serverPath: string, context: ExtensionContext): void {
+    private initializeLanguageClient(serverPath: string, context: ExtensionContext, isWindows: boolean): void {
         if (serverPath === undefined) {
             Utils.logDebug(Constants.invalidServiceFilePath);
             throw new Error(Constants.invalidServiceFilePath);
@@ -265,7 +264,8 @@ export default class SqlToolsServiceClient {
             self.initializeLanguageConfiguration();
             let serverOptions: ServerOptions = this.createServerOptions(serverPath);
             this.client = this.createLanguageClient(serverOptions);
-            let resourcePath = path.join(path.dirname(serverPath), 'SqlToolsResourceProviderService.exe');
+            let executablePath = isWindows ? Constants.windowsResourceClientPath : Constants.unixResourceClientPath;
+            let resourcePath = path.join(path.dirname(serverPath), executablePath);
             this._resourceClient = this.createResourceClient(resourcePath);
 
             if (context !== undefined) {

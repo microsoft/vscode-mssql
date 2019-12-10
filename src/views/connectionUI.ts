@@ -656,7 +656,7 @@ export class ConnectionUI {
     }
 
     private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): Promise<boolean> {
-        return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
+        return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
                 const firewallService = this.connectionManager.firewallService;
                 let ipRange = await this.promptForIpAddress(ipAddress);

@@ -146,7 +146,7 @@ export default class HttpClient implements IHttpClient {
 /*
  * Interface to store the values needed to calculate download percentage
  */
-interface IDownloadProgress {
+export interface IDownloadProgress {
     packageSize: number;
     downloadedBytes: number;
     downloadPercentage: number;

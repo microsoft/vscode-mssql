@@ -131,3 +131,5 @@ export const v1SqlToolsServiceConfigKey = 'v1Service';
 export const scriptSelectText = 'SELECT TOP (1000) * FROM ';
 export const tenantDisplayName = 'Microsoft';
 export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
+export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
+export const unixResourceClientPath = 'SqlToolsResourceProviderService';
