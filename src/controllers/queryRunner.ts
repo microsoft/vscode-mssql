@@ -416,7 +416,7 @@ export default class QueryRunner {
             let row = rowIdToRowMap.get(rowId);
             const rowSelections = rowIdToSelectionMap.get(rowId);
 
-            // sort selections by column
+            // sort selections by column to go from left to right
             rowSelections.sort((a, b) => {
                 return ((a.fromCell < b.fromCell) ? -1 : (a.fromCell > b.fromCell) ? 1 : 0);
             });
