@@ -107,7 +107,7 @@ const template = `
             </tbody>
         </table>
     </div>
-    <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
 </div>
 `;
 // tslint:enable:max-line-length
@@ -117,7 +117,7 @@ const template = `
  */
 @Component({
     selector: 'my-app',
-    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
+    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)', '(window:keyup)' : 'keyUpEvent($event)' },
     template: template,
     providers: [DataService, ShortcutService],
     styles: [`
@@ -787,6 +787,24 @@ export class AppComponent implements OnInit, AfterViewChecked {
             if (result) {
                 let eventName = <string> result;
                 self.shortcutfunc[eventName]();
+                e.stopImmediatePropagation();
+            }
+        });
+    }
+
+    /**
+     * Helper to deselect messages when Ctrl + A is pressed
+     * inside the grid
+    */
+    keyUpEvent(e: KeyboardEvent): void {
+        let eString = this.shortcuts.buildEventString(e);
+        this.shortcuts.getEvent(eString).then((result) => {
+            if (result) {
+                let eventName = <string> result;
+                if (eventName === 'event.selectAll') {
+                    window.getSelection().empty();
+                    rangy.getSelection().removeAllRanges();
+                }
                 e.stopImmediatePropagation();
             }
         });
