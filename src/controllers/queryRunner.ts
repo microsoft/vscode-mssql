@@ -379,7 +379,7 @@ export default class QueryRunner {
             copyString += os.EOL;
         }
 
-        // sort the selections by row to maintain copy order
+        // sort the selections by row to maintain copy ordering
         selection.sort((a, b) => a.fromRow - b.fromRow);
 
         // create a mapping of rows to selections
