@@ -102,11 +102,12 @@ export class SqlOutputContentProvider {
         await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
             async (queryRunner) => {
                 if (queryRunner) {
-                    // if the panel isn't active, bring it to foreground
-                    if (!this._panels.get(uri).isActive) {
-                        this._panels.get(uri).revealToForeground();
+                    // if the panel isn't active and exists
+                    if (this._panels.get(uri).isActive === false) {
+                        this._panels.get(uri).revealToForeground(uri);
                     }
                     await queryRunner.runQuery(selection, promise);
+
                 }
             });
     }
@@ -298,7 +299,7 @@ export class SqlOutputContentProvider {
         const queryRunner = this.getQueryRunner(uri);
         // in case of a tab switch
         // and if it has rendered before
-        if (panelController.isActive &&
+        if (panelController.isActive !== undefined &&
             queryRunner.hasCompleted &&
             panelController.rendered) {
             return queryRunner.refreshQueryTab(uri);
