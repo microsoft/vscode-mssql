@@ -107,7 +107,7 @@ const template = `
             </tbody>
         </table>
     </div>
-    <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
 </div>
 `;
 // tslint:enable:max-line-length
@@ -782,11 +782,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     keyEvent(e: KeyboardEvent): void {
         const self = this;
+        e.preventDefault();
+        e.stopImmediatePropagation();
         let eString = this.shortcuts.buildEventString(e);
         this.shortcuts.getEvent(eString).then((result) => {
             if (result) {
                 let eventName = <string> result;
                 self.shortcutfunc[eventName]();
+                e.preventDefault();
                 e.stopImmediatePropagation();
             }
         });
