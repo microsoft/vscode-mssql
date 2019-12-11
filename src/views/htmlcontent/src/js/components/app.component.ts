@@ -117,7 +117,7 @@ const template = `
  */
 @Component({
     selector: 'my-app',
-    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
+    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)', '(window:keyup)' : 'keyUpEvent($event)' },
     template: template,
     providers: [DataService, ShortcutService],
     styles: [`
@@ -782,14 +782,29 @@ export class AppComponent implements OnInit, AfterViewChecked {
      */
     keyEvent(e: KeyboardEvent): void {
         const self = this;
-        e.preventDefault();
-        e.stopImmediatePropagation();
         let eString = this.shortcuts.buildEventString(e);
         this.shortcuts.getEvent(eString).then((result) => {
             if (result) {
                 let eventName = <string> result;
                 self.shortcutfunc[eventName]();
-                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        });
+    }
+
+    /**
+     * Helper to deselect messages when Ctrl + A is pressed
+     * inside the grid
+    */
+    keyUpEvent(e: KeyboardEvent): void {
+        let eString = this.shortcuts.buildEventString(e);
+        this.shortcuts.getEvent(eString).then((result) => {
+            if (result) {
+                let eventName = <string> result;
+                if (eventName === 'event.selectAll') {
+                    window.getSelection().empty();
+                    rangy.getSelection().removeAllRanges();
+                }
                 e.stopImmediatePropagation();
             }
         });
