@@ -461,8 +461,9 @@ export default class MainController implements vscode.Disposable {
 
     /**
      * Manage connection profiles (create, edit, remove).
+     * Public for testing purposes
      */
-    private async onManageProfiles(): Promise<void> {
+    public async onManageProfiles(): Promise<void> {
         if (this.canRunCommand()) {
             Telemetry.sendTelemetryEvent('ManageProfiles');
             await this._connectionMgr.onManageProfiles();

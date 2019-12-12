@@ -16,6 +16,7 @@ import LocalizedConstants = require('../src/constants/localizedConstants');
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { TestExtensionContext } from './stubs';
 import assert = require('assert');
+import { connect } from 'http2';
 
 suite('MainController Tests', () => {
     let document: vscode.TextDocument;
@@ -250,5 +251,16 @@ suite('MainController Tests', () => {
 
         let result = (controller as any).validateTextDocumentHasFocus();
         assert.equal(result, true, 'Expected validateTextDocumentHasFocus to return true when the active document URI is not undefined');
+    });
+
+    test('onManageProfiles should call the connetion manager to manage profiles', async () => {
+        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        connectionManager.setup(c => c.onManageProfiles());
+        let controller: MainController = new MainController(contextMock.object,
+            connectionManager.object,
+            vscodeWrapperMock.object);
+        await controller.onManageProfiles();
+        connectionManager.verify(c => c.onManageProfiles(), TypeMoq.Times.once());
     });
 });

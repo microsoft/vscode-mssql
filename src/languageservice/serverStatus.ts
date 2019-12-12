@@ -121,5 +121,12 @@ export class ServerStatusView implements IStatusView, vscode.Disposable  {
             this._statusBarItem.dispose();
         }
     }
+
+    /**
+     * For testing purposes
+     */
+    public get statusBarItem(): vscode.StatusBarItem {
+        return this._statusBarItem;
+    }
 }
 
