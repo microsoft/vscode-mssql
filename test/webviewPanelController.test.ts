@@ -42,8 +42,4 @@ suite('Webview Panel Controller Tests', () => {
         assert.equal(mockWebviewPanelController.object.isDisposed, true);
         done();
     });
-
-    test('Test newResultPaneViewColumn function', () => {
-
-    });
 });
