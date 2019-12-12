@@ -415,9 +415,18 @@ export default class QueryRunner {
         for (let rowId of allRowIds) {
             let row = rowIdToRowMap.get(rowId);
             const rowSelections = rowIdToSelectionMap.get(rowId);
+
+            // sort selections by column to go from left to right
+            rowSelections.sort((a, b) => {
+                return ((a.fromCell < b.fromCell) ? -1 : (a.fromCell > b.fromCell) ? 1 : 0);
+            });
+
+            // start copy paste from left-most column
+            const firstColumn = rowSelections[0].fromCell;
+
             for (let i = 0; i < rowSelections.length; i++) {
                 let rowSelection = rowSelections[i];
-                for (let j = 0; j < rowSelection.fromCell; j++) {
+                for (let j = firstColumn; j < rowSelection.fromCell; j++) {
                     copyString += ' \t';
                 }
                 let cellObjects = row.slice(rowSelection.fromCell, (rowSelection.toCell + 1));
