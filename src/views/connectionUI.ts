@@ -529,7 +529,7 @@ export class ConnectionUI {
     }
 
     /**
-     * Save a connection profile using the connection store.
+     * Save a connection profile using the connection store
      */
     private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         return this._connectionStore.saveProfile(profile);
