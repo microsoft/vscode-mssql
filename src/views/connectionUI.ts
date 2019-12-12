@@ -507,17 +507,8 @@ export class ConnectionUI {
         } else {
             // If the extension exists but not active
             if (this._vscodeWrapper.azureAccountExtension) {
-                // Prompt user to activate the extension
-                let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotActivated,
-                    LocalizedConstants.activateLabel);
-                if (selection === LocalizedConstants.activateLabel) {
-                    let activated = await this._vscodeWrapper.azureAccountExtension.activate();
-                    if (activated) {
-                        this.showAzureExtensionActivated();
-                        return this.handleFirewallError(uri, profile, ipAddress);
-                    }
-                }
-                return false;
+                await this._vscodeWrapper.azureAccountExtension.activate();
+                return this.handleExtensionActivation();
             } else {
                 // Show recommendation to download the azure account extension
                 const selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleExtNotInstalled,
@@ -528,7 +519,7 @@ export class ConnectionUI {
                         // Activate the Azure Account extension and call the function again
                         if (this._vscodeWrapper.azureAccountExtension) {
                             await this._vscodeWrapper.azureAccountExtension.activate();
-                            await this.showAzureExtensionActivated();
+                            await this.handleExtensionActivation();
                         }
                     });
                 }
@@ -538,7 +529,7 @@ export class ConnectionUI {
     }
 
     /**
-     * Save a connection profile using the connection store.
+     * Save a connection profile using the connection store
      */
     private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         return this._connectionStore.saveProfile(profile);
@@ -582,7 +573,7 @@ export class ConnectionUI {
         });
     }
 
-    private async showAzureExtensionActivated(): Promise<boolean> {
+    private async handleExtensionActivation(): Promise<boolean> {
         if (!this._vscodeWrapper.isAccountSignedIn) {
             const result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
                 LocalizedConstants.signInLabel);
@@ -591,7 +582,6 @@ export class ConnectionUI {
             }
             return false;
         } else {
-            await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedSignedIn);
             return true;
         }
     }
