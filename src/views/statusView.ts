@@ -278,7 +278,7 @@ export default class StatusView implements vscode.Disposable {
         if (typeof editor !== 'undefined') {
             // Hide the most recently shown status bar
             this.hideLastShownStatusBar();
-            const fileUri = editor.document.uri.toString();
+            const fileUri = editor.document.uri.toString(true);
             const bar = this._statusBars[fileUri];
             if (bar) {
                 this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
@@ -291,7 +291,7 @@ export default class StatusView implements vscode.Disposable {
 
     private onDidCloseTextDocument(doc: vscode.TextDocument): void {
         // Remove the status bar associated with the document
-        this.destroyStatusBar(doc.uri.toString());
+        this.destroyStatusBar(doc.uri.toString(true));
     }
 
     private showStatusBarItem(fileUri: string, statusBarItem: vscode.StatusBarItem): void {

@@ -788,8 +788,8 @@ export default class ConnectionManager {
         return this.connectionUI.removeProfile();
     }
 
-    public onDidCloseTextDocument(doc: vscode.TextDocument): void {
-        let docUri: string = doc.uri.toString();
+    public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
+        let docUri: string = doc.uri.toString(true);
 
         // If this file isn't connected, then don't do anything
         if (!this.isConnected(docUri)) {
@@ -797,17 +797,17 @@ export default class ConnectionManager {
         }
 
         // Disconnect the document's connection when we close it
-        this.disconnect(docUri);
+        await this.disconnect(docUri);
     }
 
     public onDidOpenTextDocument(doc: vscode.TextDocument): void {
-        let uri = doc.uri.toString();
+        let uri = doc.uri.toString(true);
         if (doc.languageId === 'sql' && typeof(this._connections[uri]) === 'undefined') {
             this.statusView.notConnected(uri);
         }
     }
 
-    public transferFileConnection(oldFileUri: string, newFileUri: string): void {
+    public async transferFileConnection(oldFileUri: string, newFileUri: string): Promise<void> {
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
@@ -815,11 +815,10 @@ export default class ConnectionManager {
 
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: Interfaces.IConnectionCredentials = this._connections[oldFileUri].credentials;
-        this.connect(newFileUri, creds).then(result => {
-            if (result) {
-                this.disconnect(oldFileUri);
-            }
-        });
+        let result = await this.connect(newFileUri, creds)
+        if (result) {
+            await this.disconnect(oldFileUri);
+        }
     }
 
     private getIsServerLinux(osVersion: string): string {

@@ -61,6 +61,11 @@
 }
 
 /* messages */
+
+table#messageTable td.errorMessage {
+  color: var(--color-error);
+}
+
 table {
   font-weight: inherit;
   font-size: inherit;

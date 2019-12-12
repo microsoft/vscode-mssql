@@ -41,10 +41,16 @@ export class WebviewPanelController implements vscode.Disposable {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
         const column = this.newResultPaneViewColumn(uri);
-        this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title, column, {
-            retainContextWhenHidden,
-            enableScripts: true
-        }));
+        this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title,
+            {
+                viewColumn: column,
+                preserveFocus: true
+            },
+            {
+                retainContextWhenHidden,
+                enableScripts: true
+            }
+        ));
         this._panel.onDidDispose(() => {
             this.dispose();
         });
@@ -108,8 +114,9 @@ export class WebviewPanelController implements vscode.Disposable {
         this._isDisposed = true;
     }
 
-    public revealToForeground(): void {
-        this._panel.reveal();
+    public revealToForeground(uri: string): void {
+        let column = this.newResultPaneViewColumn(uri);
+        this._panel.reveal(column, true);
     }
 
     /** Getters */

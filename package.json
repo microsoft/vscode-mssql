@@ -203,17 +203,17 @@
         {
           "command": "mssql.removeObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
-          "group": "MS_SQL@3"
+          "group": "MS_SQL@4"
         },
         {
           "command": "mssql.refreshObjectExplorerNode",
           "when": "view == objectExplorer && viewItem != disconnectedServer",
-          "group": "MS_SQL@2"
+          "group": "MS_SQL@10"
         },
         {
           "command": "mssql.disconnectObjectExplorerNode",
           "when": "view == objectExplorer && viewItem == Server",
-          "group": "MS_SQL@4"
+          "group": "MS_SQL@3"
         },
         {
           "command": "mssql.scriptSelect",
@@ -223,22 +223,22 @@
         {
           "command": "mssql.scriptCreate",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@2"
         },
         {
           "command": "mssql.scriptDelete",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@3"
         },
         {
           "command": "mssql.scriptExecute",
           "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@5"
         },
         {
           "command": "mssql.scriptAlter",
           "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@4"
         }
       ],
       "commandPalette": [

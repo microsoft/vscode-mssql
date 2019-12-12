@@ -63,7 +63,7 @@ export default class VscodeWrapper {
     public get activeTextEditorUri(): string {
         if (typeof vscode.window.activeTextEditor !== 'undefined' &&
             typeof vscode.window.activeTextEditor.document !== 'undefined') {
-            return vscode.window.activeTextEditor.document.uri.toString();
+            return vscode.window.activeTextEditor.document.uri.toString(true);
         }
         return undefined;
     }
