@@ -69,7 +69,10 @@ export class WebviewPanelController implements vscode.Disposable {
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
     }
 
-    private newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
+    /**
+     * Public for testing purposes
+     */
+    public newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
         // Find configuration options
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
         let splitPaneSelection = config[Constants.configSplitPaneSelection];

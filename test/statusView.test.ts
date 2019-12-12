@@ -33,6 +33,7 @@ suite('Status View Tests', () => {
             setTimeout(() => {
                 assert.equal(actualStatusMessage, expectedStatusMessage);
             }, 600);
+            statusView.dispose();
             done();
          });
     });
@@ -55,6 +56,7 @@ suite('Status View Tests', () => {
             setTimeout(() => {
                 assert.equal(actualStatusMessage, expectedStatusMessage);
             }, 600);
+            statusView.dispose();
             done();
          });
     });
@@ -74,6 +76,7 @@ suite('Status View Tests', () => {
             };
             statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, expectedStatusMessage);
+            statusView.dispose();
             done();
          });
     });
@@ -93,6 +96,7 @@ suite('Status View Tests', () => {
             };
             statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, expectedStatusMessage);
+            statusView.dispose();
             done();
          });
     });
@@ -112,6 +116,7 @@ suite('Status View Tests', () => {
             };
             statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
             assert.equal(actualStatusMessage, expectedStatusMessage);
+            statusView.dispose();
             done();
          });
     });

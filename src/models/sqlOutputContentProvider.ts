@@ -40,12 +40,16 @@ export class SqlOutputContentProvider {
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
-    private _vscodeWrapper: VscodeWrapper;
     private _panels = new Map<string, WebviewPanelController>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
-    constructor(private context: vscode.ExtensionContext, private _statusView: StatusView) {
-        this._vscodeWrapper = new VscodeWrapper();
+    constructor(
+        private context: vscode.ExtensionContext,
+        private _statusView: StatusView,
+        private _vscodeWrapper) {
+        if (!_vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
     }
 
     public rowRequestHandler(uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number): Promise<ResultSetSubset> {
