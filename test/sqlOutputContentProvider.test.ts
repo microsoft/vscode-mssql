@@ -376,4 +376,14 @@ suite('SqlOutputProvider Tests using mocks', () => {
         contentProvider.setResultsMap = newQueryResultsMap;
         assert.notEqual(contentProvider.getQueryRunner('test_uri'), undefined);
     });
+
+    test('showErrorRequestHandler should call vscodeWrapper to show error message', () => {
+        contentProvider.showErrorRequestHandler('test_error');
+        vscodeWrapper.verify(v => v.showErrorMessage('test_error'), TypeMoq.Times.once());
+    });
+
+    test('showWarningRequestHandler should call vscodeWrapper to show warning message', () => {
+        contentProvider.showWarningRequestHandler('test_warning');
+        vscodeWrapper.verify(v => v.showWarningMessage('test_warning'), TypeMoq.Times.once());
+    });
 });
