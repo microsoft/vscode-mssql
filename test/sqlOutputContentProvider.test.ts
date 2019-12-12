@@ -386,4 +386,18 @@ suite('SqlOutputProvider Tests using mocks', () => {
         contentProvider.showWarningRequestHandler('test_warning');
         vscodeWrapper.verify(v => v.showWarningMessage('test_warning'), TypeMoq.Times.once());
     });
+
+    test('A query runner should only exist if a query is run', async () => {
+        vscodeWrapper.setup(v => v.getConfiguration(Constants.extensionConfigSectionName, TypeMoq.It.isAny())).returns(() => {
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.configPersistQueryResultTabs] = false;
+            let config = stubs.createWorkspaceConfiguration(configResult);
+            return config;
+        });
+        let testQueryRunner = contentProvider.getQueryRunner('test_uri');
+        assert.equal(testQueryRunner, undefined);
+        await contentProvider.runQuery(statusView.object, 'test_uri', undefined, 'test_title');
+        testQueryRunner = contentProvider.getQueryRunner('test_uri');
+        assert.notEqual(testQueryRunner, undefined);
+    });
 });
