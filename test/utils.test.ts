@@ -117,19 +117,27 @@ suite('Utility tests - getSignInQuickPickItems', () => {
 suite('Utility tests - Timer Class', () => {
     let timer = new Utils.Timer();
 
-    test('timer should start when initiated', () => {
-        setTimeout(() => {
-            let duration = timer.getDuration();
-            assert.isAbove(duration, 0);
-        }, 100);
+    test('timer should start when initiated', (done) => {
+        let p = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                let duration = timer.getDuration();
+                assert.isAbove(duration, 0);
+                resolve();
+            }, 100);
+        });
+        p.then(() => done());
     });
 
-    test('timer should end when ended', () => {
+    test('timer should end when ended', (done) => {
         let duration = timer.getDuration();
         timer.end();
-        setTimeout(() => {
-            let newDuration = timer.getDuration();
-            assert.equal(duration, newDuration);
-        }, 100);
+        let p = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                let newDuration = timer.getDuration();
+                assert.notEqual(duration, newDuration);
+                resolve();
+            }, 100);
+        });
+        p.then(() => done());
     });
 });

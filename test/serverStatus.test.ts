@@ -17,15 +17,19 @@ suite('Server Status View Tests', () => {
         serverStatusView = new ServerStatusView();
     });
 
-    test('Test installing service status', () => {
+    test('Test installing service status', (done) => {
         serverStatusView.installingService();
-        setTimeout(() => {
-            let statusBarItem = serverStatusView.statusBarItem;
-            assert.isUndefined(statusBarItem.command, 'Status Bar Item command should be undefined');
-            let installingServiceText = '$(desktop-download) ' + Constants.serviceInstalling;
-            assert.isTrue(statusBarItem.text.includes(installingServiceText), 'Status Bar Item text should be updated');
-            serverStatusView.dispose();
-        }, 300);
+        let p = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                let statusBarItem = serverStatusView.statusBarItem;
+                assert.isUndefined(statusBarItem.command, 'Status Bar Item command should be undefined');
+                let installingServiceText = '$(desktop-download) ' + Constants.serviceInstalling;
+                assert.isTrue(statusBarItem.text.includes(installingServiceText), 'Status Bar Item text should be updated');
+                serverStatusView.dispose();
+                resolve();
+            }, 300);
+        });
+        p.then(() => done());
     });
 
     test('Test update service download progress status', () => {
