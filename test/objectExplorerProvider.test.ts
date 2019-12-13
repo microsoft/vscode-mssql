@@ -8,7 +8,7 @@ import { ObjectExplorerProvider } from '../src/objectExplorer/objectExplorerProv
 import { ObjectExplorerService } from '../src/objectExplorer/objectExplorerService';
 import ConnectionManager from '../src/controllers/connectionManager';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { Deferred } from '../src/protocol';
@@ -17,6 +17,8 @@ import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountSignInTreeNode } from '../src/objectExplorer/accountSignInTreeNode';
 import { ConnectTreeNode } from '../src/objectExplorer/connectTreeNode';
 import { NodeInfo } from '../src/models/contracts/objectExplorer/nodeInfo';
+import { IConnectionCredentials } from '../src/models/interfaces';
+import { Type } from '@angular/core';
 
 suite('Object Explorer Provider Tests', () => {
 
@@ -121,6 +123,63 @@ suite('Object Explorer Provider Tests', () => {
             expect(sortedNodes[i], 'Sorted nodes should be the same as expected sorted nodes').is.equal(expectedSortedNodes[i]);
         }
         done();
+    });
+
+    test('Test expandNode function', () => {
+        objectExplorerService.setup(s => s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAnyString(), TypeMoq.It.isAny()));
+        let node: any = {
+            connectionCredentials: undefined
+        };
+        objectExplorerProvider.expandNode(node, 'test_session', undefined);
+        objectExplorerService.verify(s => s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+        let treeItem = objectExplorerProvider.getTreeItem(node);
+        assert.equal(treeItem, node);
+    });
+
+    test('Test signInNode function', () => {
+        objectExplorerService.setup(s => s.signInNodeServer(TypeMoq.It.isAny()));
+        let node: any = {
+            connectionCredentials: undefined
+        };
+        objectExplorerProvider.signInNodeServer(node);
+        objectExplorerService.verify(s => s.signInNodeServer(TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Test updateNode function', () => {
+        objectExplorerService.setup(s => s.updateNode(TypeMoq.It.isAny()));
+        let node: any = {
+            connectionCredentials: undefined
+        };
+        objectExplorerProvider.updateNode(node);
+        objectExplorerService.verify(s => s.updateNode(node), TypeMoq.Times.once());
+    });
+
+    test('Test removeConnectionNodes function', () => {
+        objectExplorerService.setup(s => s.removeConnectionNodes(TypeMoq.It.isAny()));
+        let connections: any[] = [{server: 'test_server'}];
+        objectExplorerProvider.removeConnectionNodes(connections);
+        objectExplorerService.verify(s => s.removeConnectionNodes(connections), TypeMoq.Times.once());
+    });
+
+    test('Test addDisconnectedNode function', () => {
+        objectExplorerService.setup(s => s.addDisconnectedNode(TypeMoq.It.isAny()));
+        let connectionCredentials: any = { server: 'test_server'};
+        objectExplorerProvider.addDisconnectedNode(connectionCredentials);
+        objectExplorerService.verify(s => s.addDisconnectedNode(TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
+
+    test('Test currentNode getter', () => {
+        objectExplorerService.setup(s => s.currentNode);
+        objectExplorerProvider.currentNode;
+        objectExplorerService.verify(s => s.currentNode, TypeMoq.Times.once());
+    });
+
+    test('Test rootNodeConnections getter', () => {
+        let testConnections = [new ConnectionCredentials()];
+        objectExplorerService.setup(s => s.rootNodeConnections).returns(() => testConnections);
+        let rootConnections = objectExplorerProvider.rootNodeConnections;
+        objectExplorerService.verify(s => s.rootNodeConnections, TypeMoq.Times.once());
+        assert.equal(rootConnections, testConnections);
     });
 });
 

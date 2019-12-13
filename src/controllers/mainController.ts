@@ -320,7 +320,7 @@ export default class MainController implements vscode.Disposable {
                 self._prompter = new CodeAdapter(self._vscodeWrapper);
 
                 // Init content provider for results pane
-                self._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview);
+                self._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview, self._vscodeWrapper);
 
                 // Init connection manager and connection MRU
                 self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
@@ -461,8 +461,9 @@ export default class MainController implements vscode.Disposable {
 
     /**
      * Manage connection profiles (create, edit, remove).
+     * Public for testing purposes
      */
-    private async onManageProfiles(): Promise<void> {
+    public async onManageProfiles(): Promise<void> {
         if (this.canRunCommand()) {
             Telemetry.sendTelemetryEvent('ManageProfiles');
             await this._connectionMgr.onManageProfiles();
