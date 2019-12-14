@@ -13,6 +13,7 @@ otherwise.
 4.  CredentialManagement (http://credentialmanagement.codeplex.com/)
 5.  Microsoft SQL Server VNEXT SHARED MANAGEMENT OBJECTS COMMUNITY TECHNOLOGY PREVIEW 1 (CTP1)
 6.  Microsoft SQL Server 2016 Transact-SQL Language Service
+7.  Visual Studio Code Extension for Azure Account Sign-In
 
 %% Bower Package Manager for Visual Studio Code NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
@@ -290,3 +291,21 @@ This limitation applies to
 It also applies even if Microsoft knew or should have known about the possibility of the damages. The above limitation or exclusion may not apply to you because your country may not allow the exclusion or limitation of incidental, consequential or other damages.
 =========================================
 END OF MICROSOFT SQL SERVER 2016 TRANSACT-SQL LANGUAGE SERVICE NOTICES, INFORMATION, AND LICENSE
+
+%% Visual Studio Code Extension for Azure Account Sign-In NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+=========================================
+Visual Studio Code Extension for Azure Account Sign-In
+
+Copyright (c) Microsoft Corporation.
+
+All rights reserved.
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
+=========================================
+END OF Visual Studio Code Extension for Azure Account Sign-In NOTICES, INFORMATION, AND LICENSE
