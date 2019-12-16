@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 1.8.0
-* Release date: December 13, 2019
+* Release date: December 16, 2019
 * Release status: GA
 
 ## What's new in 1.8.0
