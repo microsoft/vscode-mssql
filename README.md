@@ -1,6 +1,6 @@
 [![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=master)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=master)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/microsoft/vscode-mssql.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/microsoft/vscode-mssql/context:javascript)
-[![Coverage Status](https://coveralls.io/repos/github/microsoft/vscode-mssql/badge.svg?branch=master)](https://coveralls.io/github/microsoft/vscode-mssql?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/microsoft/vscode-mssql/badge.svg?branch=master&service=github)](https://coveralls.io/github/microsoft/vscode-mssql?branch=master)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 
@@ -22,7 +22,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
 ## Version 1.8.0
-* Release date: December 9, 2019
+* Release date: December 16, 2019
 * Release status: GA
 
 ## What's new in 1.8.0

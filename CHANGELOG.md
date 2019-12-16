@@ -1,5 +1,18 @@
 # Change Log
 
+## Version 1.8.0
+* Release date: December 16, 2019
+* Release status: GA
+
+## What's new in 1.8.0
+* Added support for scripting context menu actions on the Object Explorer
+* Added support for adding a new firewall rule to a server
+* Added differentiation between database connections and server connections
+* Reduced extension size from 10 MB to 6MB
+* Open pinned doc when starting a new query
+* Fixed scrolling and heights for multiple result sets
+* Fixed bug to use the correct database for new query from Object Explorer
+
 ## Version 1.7.1
 * Release date: November 11, 2019
 * Release status: GA
