@@ -238,7 +238,7 @@ gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:l
 
 gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
 
-gulp.task('ext:test', async (done) => {
+gulp.task('ext:test', async () => {
     let workspace = process.env['WORKSPACE'];
     if (!workspace) {
         workspace = process.cwd();
@@ -254,13 +254,10 @@ gulp.task('ext:test', async (done) => {
             extensionTestsPath: extensionTestsPath,
             launchArgs: args
         });
-        done();
-        process.exit(0);
     } catch (error) {
         console.log(`stdout: ${stdout}`);
         console.log(`stderr: ${stderr}`);
         console.error(`exec error: ${error}`);
-        done();
         process.exit(1);
     }
 });
