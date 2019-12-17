@@ -11,11 +11,11 @@ var config = require('./tasks/config');
 var concat = require('gulp-concat');
 var minifier = require('gulp-uglify/minifier');
 var uglifyjs = require('uglify-js');
-var cproc = require('child_process');
 var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 var vscodeTest = require('vscode-test');
+var packageJson = require('./package.json');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -245,7 +245,8 @@ gulp.task('ext:test', async () => {
     }
     process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
     var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
-    let vscodePath = await vscodeTest.downloadAndUnzipVSCode('1.38.0');
+    let vscodeVersion = packageJson.engines.vscode.slice(1);
+    let vscodePath = await vscodeTest.downloadAndUnzipVSCode(vscodeVersion);
     let extensionTestsPath = `${workspace}/out/test`;
     try {
         await vscodeTest.runTests({
@@ -258,7 +259,7 @@ gulp.task('ext:test', async () => {
         console.log(`stdout: ${stdout}`);
         console.log(`stderr: ${stderr}`);
         console.error(`exec error: ${error}`);
-        process.exit(1);
+        throw(error);
     }
 });
 
