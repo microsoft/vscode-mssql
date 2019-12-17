@@ -30,12 +30,12 @@ build_script:
   - gulp build
 
 test_script:
-  - node ./node_modules/vscode/bin/test
+  - gulp test
 
 after_test:
   - gulp cover:clean
   - gulp cover:enableconfig
-  - node ./node_modules/vscode/bin/test
+  - gulp test
   - gulp cover:combine-json
   - ./node_modules/.bin/coveralls < coverage/lcov.info
 
