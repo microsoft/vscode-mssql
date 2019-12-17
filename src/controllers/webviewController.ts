@@ -10,6 +10,7 @@ import { readFile as fsreadFile } from 'fs';
 import { promisify } from 'util';
 import * as ejs from 'ejs';
 import * as path from 'path';
+import VscodeWrapper from './vscodeWrapper';
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);
@@ -28,20 +29,28 @@ export class WebviewPanelController implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
     private _isActive: boolean;
+    private _rendered: boolean = false;
 
     constructor(
+        private _vscodeWrapper: VscodeWrapper,
         uri: string,
         title: string,
         serverProxy: IServerProxy,
         private baseUri: string
     ) {
-        const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
+        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
-        const column = newResultPaneViewColumn(uri);
-        this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title, column, {
-            retainContextWhenHidden,
-            enableScripts: true
-        }));
+        const column = this.newResultPaneViewColumn(uri);
+        this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title,
+            {
+                viewColumn: column,
+                preserveFocus: true
+            },
+            {
+                retainContextWhenHidden,
+                enableScripts: true
+            }
+        ));
         this._panel.onDidDispose(() => {
             this.dispose();
         });
@@ -60,11 +69,45 @@ export class WebviewPanelController implements vscode.Disposable {
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
     }
 
+    /**
+     * Public for testing purposes
+     */
+    public newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
+        // Find configuration options
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, queryUri);
+        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let viewColumn: vscode.ViewColumn;
+
+        switch (splitPaneSelection) {
+            case 'current':
+                viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+                break;
+            case 'end':
+                viewColumn = vscode.ViewColumn.Three;
+                break;
+            // default case where splitPaneSelection is next or anything else
+            default:
+                // if there's an active text editor
+                if (this._vscodeWrapper.isEditingSqlFile) {
+                    viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+                    if (viewColumn === vscode.ViewColumn.One) {
+                        viewColumn = vscode.ViewColumn.Two;
+                    } else {
+                        viewColumn = vscode.ViewColumn.Three;
+                    }
+                } else {
+                    // otherwise take default results column
+                    viewColumn = vscode.ViewColumn.Two;
+                }
+        }
+        return viewColumn;
+    }
+
     public async init(): Promise<void> {
         const sqlOutputPath = path.resolve(__dirname);
         const fileContent = await readFile(path.join(sqlOutputPath, 'sqlOutput.ejs'));
         const htmlViewPath = ['out', 'src'];
-        const baseUri = `${vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)).with({ scheme: 'vscode-resource' })}/`;
+        const baseUri = `${this._panel.webview.asWebviewUri(vscode.Uri.file(path.join(this.baseUri, ...htmlViewPath)))}/`;
         const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
         this._panel.webview.html = formattedHTML;
     }
@@ -74,8 +117,9 @@ export class WebviewPanelController implements vscode.Disposable {
         this._isDisposed = true;
     }
 
-    public revealToForeground(): void {
-        this._panel.reveal();
+    public revealToForeground(uri: string): void {
+        let column = this.newResultPaneViewColumn(uri);
+        this._panel.reveal(column, true);
     }
 
     /** Getters */
@@ -94,30 +138,24 @@ export class WebviewPanelController implements vscode.Disposable {
     public get isDisposed(): boolean {
         return this._isDisposed;
     }
-}
 
-function newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
-    // Find configuration options
-    let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(queryUri));
-    let splitPaneSelection = config[Constants.configSplitPaneSelection];
-    let viewColumn: vscode.ViewColumn;
-
-
-    switch (splitPaneSelection) {
-        case 'current':
-            viewColumn = vscode.window.activeTextEditor.viewColumn;
-            break;
-        case 'end':
-            viewColumn = vscode.ViewColumn.Three;
-            break;
-        // default case where splitPaneSelection is next or anything else
-        default:
-            if (vscode.window.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
-                viewColumn = vscode.ViewColumn.Two;
-            } else {
-                viewColumn = vscode.ViewColumn.Three;
-            }
+    /**
+     * Property indicating whether the angular app
+     * has rendered or not
+     */
+    public get rendered(): boolean {
+        return this._rendered;
     }
 
-    return viewColumn;
+    /**
+     * Setters
+     */
+
+    /**
+     * Property indicating whether the angular app
+     * has rendered or not
+     */
+    public set rendered(value: boolean) {
+        this._rendered = value;
+    }
 }

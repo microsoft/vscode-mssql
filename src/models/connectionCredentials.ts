@@ -56,6 +56,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
             details.options['server'] += (',' + credentials.port);
         }
         details.options['database'] = credentials.database;
+        details.options['databaseDisplayName'] = credentials.database;
         details.options['user'] = credentials.user;
         details.options['password'] = credentials.password;
         details.options['authenticationType'] = credentials.authenticationType;
@@ -84,7 +85,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         return details;
     }
 
-    public static ensureRequiredPropertiesSet(
+    public static async ensureRequiredPropertiesSet(
         credentials: IConnectionCredentials,
         isProfile: boolean,
         isPasswordRequired: boolean,
@@ -93,7 +94,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         connectionStore: ConnectionStore,
         defaultProfileValues?: IConnectionCredentials): Promise<IConnectionCredentials> {
 
-        let questions: IQuestion[] = ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired, defaultProfileValues);
+        let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired, connectionStore, defaultProfileValues);
         let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
 
         // Potentially ask to save password
@@ -152,11 +153,12 @@ export class ConnectionCredentials implements IConnectionCredentials {
     }
 
     // gets a set of questions that ensure all required and core values are set
-    protected static getRequiredCredentialValuesQuestions(
+    protected static async getRequiredCredentialValuesQuestions(
         credentials: IConnectionCredentials,
         promptForDbName: boolean,
         isPasswordRequired: boolean,
-        defaultProfileValues?: IConnectionCredentials): IQuestion[] {
+        connectionStore: ConnectionStore,
+        defaultProfileValues?: IConnectionCredentials): Promise<IQuestion[]> {
 
         let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
 
@@ -228,11 +230,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     return undefined;
                 },
                 onAnswered: (value) => {
-                    credentials.password = value;
-                    if (typeof((<IConnectionProfile>credentials)) !== 'undefined') {
-                        (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                    if (credentials) {
+                        credentials.password = value;
+                        if (typeof((<IConnectionProfile>credentials)) !== 'undefined') {
+                            (<IConnectionProfile>credentials).emptyPasswordInput = utils.isEmpty(credentials.password);
+                        }
                     }
-                }
+                },
+                default: defaultProfileValues ? await connectionStore.lookupPassword(defaultProfileValues) : undefined
             }
         ];
         return questions;

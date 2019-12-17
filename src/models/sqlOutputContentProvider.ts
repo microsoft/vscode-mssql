@@ -15,7 +15,7 @@ import StatusView from '../views/statusView';
 import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
-import { IServerProxy } from '../protocol';
+import { IServerProxy, Deferred } from '../protocol';
 import { ResultSetSubset } from './contracts/queryExecute';
 const pd = require('pretty-data').pd;
 
@@ -33,18 +33,23 @@ export class QueryRunnerState {
 class ResultsConfig implements Interfaces.IResultsConfig {
     shortcuts: { [key: string]: string };
     messagesDefaultOpen: boolean;
+    resultsFontSize: number;
 }
 
 export class SqlOutputContentProvider {
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
-    private _vscodeWrapper: VscodeWrapper;
     private _panels = new Map<string, WebviewPanelController>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
-    constructor(private context: vscode.ExtensionContext, private _statusView: StatusView) {
-        this._vscodeWrapper = new VscodeWrapper();
+    constructor(
+        private context: vscode.ExtensionContext,
+        private _statusView: StatusView,
+        private _vscodeWrapper) {
+        if (!_vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
     }
 
     public rowRequestHandler(uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number): Promise<ResultSetSubset> {
@@ -96,16 +101,17 @@ export class SqlOutputContentProvider {
 
     public async runQuery(
             statusView: any, uri: string,
-            selection: ISelectionData, title: string): Promise<void> {
+            selection: ISelectionData, title: string, promise?: Deferred<boolean>): Promise<void> {
         // execute the query with a query runner
         await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
-            (queryRunner) => {
+            async (queryRunner) => {
                 if (queryRunner) {
-                    // if the panel isn't active, bring it to foreground
-                    if (!this._panels.get(uri).isActive) {
-                        this._panels.get(uri).revealToForeground();
+                    // if the panel isn't active and exists
+                    if (this._panels.get(uri).isActive === false) {
+                        this._panels.get(uri).revealToForeground(uri);
                     }
-                    queryRunner.runQuery(selection);
+                    await queryRunner.runQuery(selection, promise);
+
                 }
             });
     }
@@ -158,9 +164,9 @@ export class SqlOutputContentProvider {
             setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
             showError: (message: string) => this.showErrorRequestHandler(message),
             showWarning: (message: string) => this.showWarningRequestHandler(message),
-            sendReadyEvent: () => this.sendReadyEvent(uri)
+            sendReadyEvent: async () => await this.sendReadyEvent(uri)
         };
-        const controller = new WebviewPanelController(uri, title, proxy, this.context.extensionPath);
+        const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath);
         this._panels.set(uri, controller);
         await controller.init();
     }
@@ -277,12 +283,12 @@ export class SqlOutputContentProvider {
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         for (let [key, value] of this._queryResultsMap.entries()) {
             // closed text document related to a results window we are holding
-            if (doc.uri.toString() === value.queryRunner.uri) {
+            if (doc.uri.toString(true) === value.queryRunner.uri) {
                 value.flaggedForDeletion = true;
             }
 
             // "closed" a results window we are holding
-            if (doc.uri.toString() === key) {
+            if (doc.uri.toString(true) === key) {
                 value.timeout = this.setRunnerDeletionTimeout(key);
             }
         }
@@ -293,11 +299,17 @@ export class SqlOutputContentProvider {
      * @param uri
      */
     private async sendReadyEvent(uri: string): Promise<boolean> {
-        // in case of a tab switch
         const panelController = this._panels.get(uri);
         const queryRunner = this.getQueryRunner(uri);
-        if (panelController.isActive && queryRunner.hasCompleted) {
-            return queryRunner.refreshQueryTab();
+        // in case of a tab switch
+        // and if it has rendered before
+        if (panelController.isActive !== undefined &&
+            queryRunner.hasCompleted &&
+            panelController.rendered) {
+            return queryRunner.refreshQueryTab(uri);
+        } else {
+            // first ready event
+            panelController.rendered = true;
         }
         return false;
     }

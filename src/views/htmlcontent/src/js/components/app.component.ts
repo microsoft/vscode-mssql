@@ -5,18 +5,12 @@
 import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
-import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow } from '../interfaces';
+import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
+    IGridIcon, IMessage, IRange, ISelectionData } from '../../../../../models/interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
 import { MessagesContextMenu } from './messagescontextmenu.component';
-
-import {
-    IGridIcon,
-    IMessage,
-    IRange,
-    ISelectionData
-} from './../interfaces';
 
 import * as Constants from './../constants';
 import * as Utils from './../utils';
@@ -49,7 +43,9 @@ const template = `
     <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
-            [style.max-height]="dataSet.maxHeight" [style.min-height]="dataSet.minHeight">
+            [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
+            [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
+            [style.font-size]="resultsFontSize + 'px'">
             <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
@@ -77,7 +73,7 @@ const template = `
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
-    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="messageActive = !messageActive" style="position: relative">
+    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="toggleMessagesPane()" style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
@@ -111,7 +107,7 @@ const template = `
             </tbody>
         </table>
     </div>
-    <div id="resizeHandle" [class.hidden]="!resizing" [style.top]="resizeHandleTop"></div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
 </div>
 `;
 // tslint:enable:max-line-length
@@ -121,7 +117,7 @@ const template = `
  */
 @Component({
     selector: 'my-app',
-    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)' },
+    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)', '(window:keyup)' : 'keyUpEvent($event)' },
     template: template,
     providers: [DataService, ShortcutService],
     styles: [`
@@ -145,6 +141,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private _defaultNumShowingRows = 8;
     private Constants = Constants;
     private Utils = Utils;
+    private _messagesPaneHeight: number;
 
     // the function implementations of keyboard available events
     private shortcutfunc = {
@@ -155,7 +152,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.resultActive = !this.resultActive;
         },
         'event.toggleMessagePane': () => {
-            this.messageActive = !this.messageActive;
+            this.toggleMessagesPane();
         },
         'event.nextGrid': () => {
             this.navigateToGrid(this.activeGrid + 1);
@@ -287,6 +284,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private complete = false;
     private uri: string;
     private hasRunQuery: boolean = false;
+    private resultsFontSize;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -313,10 +311,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
     ngOnInit(): void {
         const self = this;
         this.setupResizeBind();
-
         this.dataService.config.then((config) => {
             this.config = config;
             self._messageActive = self.config.messagesDefaultOpen;
+            self.resultsFontSize = self.config.resultsFontSize;
             this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
                 self.messageShortcut = result;
             });
@@ -445,6 +443,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     /**
+     * Toggle the messages pane
+     */
+    private toggleMessagesPane(): void {
+        this._messagesPaneHeight = $('#messages').get(0).clientHeight;
+        this.messageActive = !this.messageActive;
+        if (this.messageActive) {
+            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
+        }
+    }
+
+    /**
      * Send save result set request to service
      */
     handleContextClick(event: {type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}): void {
@@ -468,7 +477,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'copyWithHeaders':
                 this.dataService.copyResults(event.selection, event.batchId, event.resultId, true);
                 break;
-            case 'copyHeaders':
+            case 'copyAllHeaders':
                 this.dataService.copyResults(undefined, event.batchId, event.resultId, true);
                 break;
             default:
@@ -675,6 +684,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.placeHolderDataSets[i].resized.emit();
                 }
             } else {
+                self.scrollEnabled = true;
                 let gridHeight = self._el.nativeElement.getElementsByTagName('slick-grid')[0].offsetHeight;
                 let tabHeight = self._el.nativeElement.querySelector('#results').offsetHeight;
                 let numOfVisibleGrids = Math.ceil((tabHeight / gridHeight)
@@ -697,7 +707,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 self.firstRender = false;
                 setTimeout(() => {
                     self.slickgrids.toArray()[0].setActive();
-                    self.cd.detectChanges();
                 });
             }
         }, self.scrollTimeOutTime);
@@ -721,6 +730,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         $resizeHandle.bind('dragstart', (e) => {
             self.resizing = true;
             self.resizeHandleTop = e.pageY;
+            this._messagesPaneHeight = $('#messages').get(0).clientHeight;
+            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
             return true;
         });
 
@@ -732,6 +743,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             self.resizing = false;
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
+            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
             self.cd.detectChanges();
             self.resizeGrids();
         });
@@ -775,6 +787,24 @@ export class AppComponent implements OnInit, AfterViewChecked {
             if (result) {
                 let eventName = <string> result;
                 self.shortcutfunc[eventName]();
+                e.stopImmediatePropagation();
+            }
+        });
+    }
+
+    /**
+     * Helper to deselect messages when Ctrl + A is pressed
+     * inside the grid
+    */
+    keyUpEvent(e: KeyboardEvent): void {
+        let eString = this.shortcuts.buildEventString(e);
+        this.shortcuts.getEvent(eString).then((result) => {
+            if (result) {
+                let eventName = <string> result;
+                if (eventName === 'event.selectAll') {
+                    window.getSelection().empty();
+                    rangy.getSelection().removeAllRanges();
+                }
                 e.stopImmediatePropagation();
             }
         });

@@ -1,5 +1,6 @@
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/Microsoft/vscode-mssql?svg=true&retina=true&branch=master)](https://ci.appveyor.com/project/kburtram/vscode-mssql)
-[![Coverage Status](https://coveralls.io/repos/github/Microsoft/vscode-mssql/badge.svg?branch=master)](https://coveralls.io/github/Microsoft/vscode-mssql?branch=master)
+[![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=master)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=master)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/microsoft/vscode-mssql.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/microsoft/vscode-mssql/context:javascript)
+[![Coverage Status](https://coveralls.io/repos/github/microsoft/vscode-mssql/badge.svg?branch=master&service=github)](https://coveralls.io/github/microsoft/vscode-mssql?branch=master)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 
@@ -19,6 +20,37 @@ See [the mssql extension tutorial] for the step by step guide.
 See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+
+## Version 1.8.0
+* Release date: December 16, 2019
+* Release status: GA
+
+## What's new in 1.8.0
+* Added support for scripting context menu actions on the Object Explorer
+* Added support for adding a new firewall rule to a server
+* Added differentiation between database connections and server connections
+* Reduced extension size from 10 MB to 6MB
+* Open pinned doc when starting a new query
+* Fixed scrolling and heights for multiple result sets
+* Fixed bug to use the correct database for new query from Object Explorer
+
+## Version 1.7.1
+* Release date: November 11, 2019
+* Release status: GA
+
+## What's new in 1.7.1
+* Fix missing row count and dropped Object Explorer connections bugs
+
+## What's new in 1.7.0
+* Announcing IntelliCode support
+* SQL Server Connections viewlet
+* Added support for SQLCMD Mode
+* Updated SqlClient driver
+* Users can adjust size of SQL results window
+* Users can navigate with keyboard away from SQL results screen
+* Fixed copy paste with keyboard shortcut
+* Added Copy Header option to results grid
+* Fix "Save as CSV" exception
 
 ## What's new in 1.6.0
 * Extension install no longer requires reloading VS Code
@@ -269,7 +301,7 @@ See [customize options] and [manage connection profiles] for more details.
 ```
 
 ## Change Log
-The current version is ```1.6.0```. See the [change log] for a detailed list of changes in each version.
+The current version is ```1.8.0```. See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 

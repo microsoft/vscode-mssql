@@ -107,6 +107,7 @@ export class QueryExecuteSubsetParams {
 export class DbCellValue {
     displayValue: string;
     isNull: boolean;
+    rowId?: number;
 }
 
 export class ResultSetSubset {
@@ -128,6 +129,7 @@ export class QueryExecutionOptionsParams {
     options: QueryExecutionOptions;
 }
 
-export class QueryExecutionOptions {
-    options: Map<string, any>;
+// tslint:disable-next-line:interface-name
+export interface QueryExecutionOptions {
+    [option: string]: any;
 }

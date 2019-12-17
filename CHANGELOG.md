@@ -1,5 +1,43 @@
 # Change Log
 
+## Version 1.8.0
+* Release date: December 16, 2019
+* Release status: GA
+
+## What's new in 1.8.0
+* Added support for scripting context menu actions on the Object Explorer
+* Added support for adding a new firewall rule to a server
+* Added differentiation between database connections and server connections
+* Reduced extension size from 10 MB to 6MB
+* Open pinned doc when starting a new query
+* Fixed scrolling and heights for multiple result sets
+* Fixed bug to use the correct database for new query from Object Explorer
+
+## Version 1.7.1
+* Release date: November 11, 2019
+* Release status: GA
+
+## What's new in 1.7.1
+* Fix missing row count and dropped Object Explorer connections bugs
+
+## Version 1.7.0
+* Release date: October 17, 2019
+* Release status: GA
+
+## What's new in 1.7.0
+* Announcing IntelliCode support
+* SQL Server Connections viewlet
+* Added support for SQLCMD Mode
+* Updated SqlClient driver
+* Users can adjust size of SQL results window
+* Users can navigate with keyboard away from SQL results screen
+* Fixed copy paste with keyboard shortcut
+* Added Copy Header option to results grid
+* Fix "Save as CSV" exception
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues.
+
 ## Version 1.6.0
 * Release date: April 22, 2019
 * Release status: GA

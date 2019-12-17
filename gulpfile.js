@@ -1,9 +1,7 @@
-﻿"use strict"
-var gulp = require('gulp');
+﻿var gulp = require('gulp');
 var rename = require('gulp-rename');
 var install = require('gulp-install');
 var gulpTsLint = require('gulp-tslint');
-var filter = require('gulp-filter');
 var ts = require('gulp-typescript');
 var tslint = require('tslint');
 var tsProject = ts.createProject('tsconfig.json');
@@ -13,20 +11,13 @@ var config = require('./tasks/config');
 var concat = require('gulp-concat');
 var minifier = require('gulp-uglify/minifier');
 var uglifyjs = require('uglify-js');
-var request = require('request');
-var fs = require('fs');
-var gutil = require('gulp-util');
-var through = require('through2');
 var cproc = require('child_process');
-var os = require('os');
-var jeditor = require("gulp-json-editor");
-var path = require('path');
 var nls = require('vscode-nls-dev');
-var localization = require('./tasks/localizationtasks');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 
-require('./tasks/packagetasks')
+require('./tasks/packagetasks');
+require('./tasks/localizationtasks');
 
 gulp.task('ext:lint', () => {
     // !! If updating this make sure to check if you need to update the TSA Scan task in ADO !!
@@ -252,7 +243,8 @@ gulp.task('ext:test', (done) => {
         workspace = process.cwd();
     }
     process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
-    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" --verbose`,
+    var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
+    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" ${args.join(' ')}`,
         { maxBuffer: 1024 * 500 },
         (error, stdout, stderr) => {
         if (error) {

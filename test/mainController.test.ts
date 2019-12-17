@@ -16,6 +16,7 @@ import LocalizedConstants = require('../src/constants/localizedConstants');
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { TestExtensionContext } from './stubs';
 import assert = require('assert');
+import { connect } from 'http2';
 
 suite('MainController Tests', () => {
     let document: vscode.TextDocument;
@@ -28,7 +29,7 @@ suite('MainController Tests', () => {
     let docUriCallback: string;
     let newDocUriCallback: string;
 
-    setup(() => {
+    setup(async () => {
         // Setup a standard document and a new document
         docUri = 'docURI.sql';
         newDocUri = 'newDocURI.sql';
@@ -57,7 +58,7 @@ suite('MainController Tests', () => {
 
 
         // Using the mainController that was instantiated with the extension
-        mainController = Extension.getController();
+        mainController = await Extension.getController();
 
         // Setting up a mocked connectionManager
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager);
@@ -81,15 +82,33 @@ suite('MainController Tests', () => {
         });
     });
 
-
-
     // Standard closed document event test
-    test('onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager' , done => {
+    test('onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager' , () => {
         mainController.onDidCloseTextDocument(document);
         try {
             connectionManager.verify(x => x.onDidCloseTextDocument(TypeMoq.It.isAny()), TypeMoq.Times.once());
             assert.equal(docUriCallback, document.uri.toString());
             docUriCallback = '';
+        } catch (err) {
+            throw(err);
+        }
+    });
+
+    // Saved Untitled file event test
+    test('onDidCloseTextDocument should call untitledDoc function when an untitled file is saved' , done => {
+        // Scheme of older doc must be untitled
+        let document2 = <vscode.TextDocument> {
+            uri : vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
+            languageId : 'sql'
+        };
+
+        // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
+        mainController.onDidSaveTextDocument(newDocument);
+        mainController.onDidCloseTextDocument(document2);
+        try {
+            connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+            assert.equal(docUriCallback, document2.uri.toString());
+            assert.equal(newDocUriCallback, newDocument.uri.toString());
             done();
         } catch (err) {
             done(new Error(err));
@@ -106,28 +125,6 @@ suite('MainController Tests', () => {
         try {
             connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
             assert.equal(docUriCallback, document.uri.toString());
-            assert.equal(newDocUriCallback, newDocument.uri.toString());
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
-    });
-
-
-    // Saved Untitled file event test
-    test('onDidCloseTextDocument should call untitledDoc function when an untitled file is saved' , done => {
-        // Scheme of older doc must be untitled
-        let document2 = <vscode.TextDocument> {
-            uri : vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
-            languageId : 'sql'
-        };
-
-        // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
-        mainController.onDidSaveTextDocument(newDocument);
-        mainController.onDidCloseTextDocument(document2);
-        try {
-            connectionManager.verify(x => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
-            assert.equal(docUriCallback, document2.uri.toString());
             assert.equal(newDocUriCallback, newDocument.uri.toString());
             done();
         } catch (err) {
@@ -203,23 +200,29 @@ suite('MainController Tests', () => {
     });
 
     test('onNewQuery should call the new query and new connection' , () => {
+        let editor: vscode.TextEditor = {
+            document: {
+                uri: 'test_uri'
+            },
+            viewColumn: vscode.ViewColumn.One,
+            selection: undefined
+        } as any;
+        untitledSqlDocumentService.setup(x => x.newQuery(undefined)).returns(() => { return Promise.resolve(editor); });
+        connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(undefined); });
 
-        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
-        connectionManager.setup(x => x.onNewConnection()).returns(() => Promise.resolve(TypeMoq.It.isAny()));
-
-        return mainController.onNewQuery(undefined).then(result => {
-            untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
+        return mainController.onNewQuery(undefined, undefined).then(result => {
+            untitledSqlDocumentService.verify(x => x.newQuery(undefined), TypeMoq.Times.once());
             connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
         });
     });
 
     test('onNewQuery should not call the new connection if new query fails' , done => {
 
-        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<vscode.Uri>('error'); } );
+        untitledSqlDocumentService.setup(x => x.newQuery()).returns(() => { return Promise.reject<vscode.TextEditor>('error'); } );
         connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(TypeMoq.It.isAny()); } );
 
-        mainController.onNewQuery(undefined).catch(error => {
-            untitledSqlDocumentService.verify(x => x.newQuery(), TypeMoq.Times.once());
+        mainController.onNewQuery(undefined, undefined).catch(error => {
+            untitledSqlDocumentService.verify(x => x.newQuery(undefined), TypeMoq.Times.once());
             connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.never());
             done();
         });
@@ -248,5 +251,16 @@ suite('MainController Tests', () => {
 
         let result = (controller as any).validateTextDocumentHasFocus();
         assert.equal(result, true, 'Expected validateTextDocumentHasFocus to return true when the active document URI is not undefined');
+    });
+
+    test('onManageProfiles should call the connetion manager to manage profiles', async () => {
+        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        connectionManager.setup(c => c.onManageProfiles());
+        let controller: MainController = new MainController(contextMock.object,
+            connectionManager.object,
+            vscodeWrapperMock.object);
+        await controller.onManageProfiles();
+        connectionManager.verify(c => c.onManageProfiles(), TypeMoq.Times.once());
     });
 });

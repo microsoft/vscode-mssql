@@ -279,31 +279,32 @@ export class ConnectionStore {
     /**
      * Clear all recently used connections from the MRU list.
      */
-    public clearRecentlyUsed(): Promise<void> {
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            // Update the MRU list to be empty
-            self._context.globalState.update(Constants.configRecentConnections, [])
-            .then(() => {
-                // And resolve / reject at the end of the process
-                resolve(undefined);
-            }, err => {
-                reject(err);
-            });
-        });
+    public async clearRecentlyUsed(): Promise<void> {
+        // Update the MRU list to be empty
+        try {
+            await this._context.globalState.update(Constants.configRecentConnections, []);
+        } catch (error) {
+            Promise.reject(error);
+        }
     }
 
     /**
      * Remove a connection profile from the recently used list.
      */
-    public removeRecentlyUsed(conn: IConnectionProfile): Promise<void> {
+    public removeRecentlyUsed(conn: IConnectionProfile, keepCredentialStore: boolean = false): Promise<void> {
         const self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             // Get all profiles
             let configValues = self.getRecentlyUsedConnections();
 
             // Remove the connection from the list if it already exists
             configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, conn));
+
+            // Remove any saved password
+            if (conn.savePassword && !keepCredentialStore) {
+                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, ConnectionStore.CRED_MRU_USER);
+                await self._credentialStore.deleteCredential(credentialId);
+            }
 
             // Update the MRU list
             self._context.globalState.update(Constants.configRecentConnections, configValues)
@@ -316,7 +317,7 @@ export class ConnectionStore {
         });
     }
 
-    private saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+    public saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
         if (!profile.savePassword) {
             return Promise.resolve(true);
         }
@@ -361,7 +362,7 @@ export class ConnectionStore {
         }).then(profileFound => {
             // Remove the profile from the recently used list if necessary
             return new Promise<boolean>((resolve, reject) => {
-                self.removeRecentlyUsed(profile).then(() => {
+                self.removeRecentlyUsed(profile, keepCredentialStore).then(() => {
                     resolve(profileFound);
                 }).catch(err => {
                     reject(err);
@@ -388,6 +389,27 @@ export class ConnectionStore {
             connectionCreds: item,
             quickPickItemType: itemType
         };
+    }
+
+    /**
+     * Deletes the password for a connection from the credential store
+     * @param connectionCredential
+     */
+    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
+        let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
+        let result = await this._credentialStore.deleteCredential(credentialId);
+        return result;
+    }
+
+
+    /**
+     * Removes password from a saved profile and credential store
+     */
+    public async removeProfilePassword(connection: IConnectionCredentials): Promise<void> {
+        // if the password is saved in the credential store, remove it
+        let profile = connection as IConnectionProfile;
+        profile.password = '';
+        await this.saveProfile(profile);
     }
 
     // Load connections from user preferences

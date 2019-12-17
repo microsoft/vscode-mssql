@@ -3,6 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import { ObjectMetadata } from '../metadata/metadataRequest';
+
 /**
  * Information describing a Node in the Object Explorer tree.
  * Contains information required to display the Node to the user and
@@ -48,4 +50,9 @@ export class NodeInfo {
      * Error message returned from the engine for a object explorer node failure reason, if any.
      */
     public errorMessage: string;
+
+    /**
+     * Object metadata about the node
+     */
+    public metadata: ObjectMetadata;
 }

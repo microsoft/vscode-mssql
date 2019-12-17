@@ -3,9 +3,10 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import {window, InputBoxOptions} from 'vscode';
+import { InputBoxOptions } from 'vscode';
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 const figures = require('figures');
 
@@ -13,8 +14,11 @@ export default class InputPrompt extends Prompt {
 
     protected _options: InputBoxOptions;
 
-    constructor(question: any, ignoreFocusOut?: boolean) {
-        super(question, ignoreFocusOut);
+    constructor(
+        question: any,
+        vscodeWrapper: VscodeWrapper,
+        ignoreFocusOut?: boolean) {
+        super(question, vscodeWrapper, ignoreFocusOut);
 
         this._options = this.defaultInputBoxOptions;
         this._options.prompt = this._question.message;
@@ -33,8 +37,11 @@ export default class InputPrompt extends Prompt {
         }
 
         this._options.placeHolder = placeHolder;
+        if (this._question.default) {
+            this._options.value = this._question.default;
+        }
 
-        return window.showInputBox(this._options)
+        return this._vscodeWrapper.showInputBox(this._options)
             .then(result => {
                 if (result === undefined) {
                     throw new EscapeException();

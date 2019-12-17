@@ -3,21 +3,24 @@
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import {window, OutputChannel } from 'vscode';
+import { OutputChannel } from 'vscode';
 import * as Constants from '../constants/constants';
 import * as nodeUtil from 'util';
 import PromptFactory from './factory';
 import EscapeException from '../utils/EscapeException';
 import { IQuestion, IPrompter, IPromptCallback } from './question';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 // Supports simple pattern for prompting for user input and acting on this
 export default class CodeAdapter implements IPrompter {
 
     private outChannel: OutputChannel;
     private messageLevelFormatters = {};
-    constructor() {
+    constructor(
+        private vscodeWrapper: VscodeWrapper
+    ) {
         // TODO Decide whether output channel logging should be saved here?
-        this.outChannel = window.createOutputChannel(Constants.outputChannelName);
+        this.outChannel = this.vscodeWrapper.createOutputChannel(Constants.outputChannelName);
         // this.outChannel.clear();
     }
 
@@ -87,7 +90,7 @@ export default class CodeAdapter implements IPrompter {
             this.fixQuestion(question);
 
             return promise.then(() => {
-                return PromptFactory.createPrompt(question, ignoreFocusOut);
+                return PromptFactory.createPrompt(question, this.vscodeWrapper, ignoreFocusOut);
             }).then(prompt => {
                 // Original Code: uses jQuery patterns. Keeping for reference
                 // if (!question.when || question.when(answers) === true) {
@@ -115,7 +118,7 @@ export default class CodeAdapter implements IPrompter {
                 return undefined;
             }
 
-            window.showErrorMessage(err.message);
+            this.vscodeWrapper.showErrorMessage(err.message);
         });
     }
 
