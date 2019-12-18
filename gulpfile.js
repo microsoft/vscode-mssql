@@ -237,7 +237,7 @@ gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:l
 
 gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
 
-gulp.task('ext:test', async (done) => {
+gulp.task('ext:test', async function (done) {
     let workspace = process.env['WORKSPACE'];
     if (!workspace) {
         workspace = process.cwd();
