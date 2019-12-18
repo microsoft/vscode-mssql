@@ -237,7 +237,7 @@ gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:l
 
 gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
 
-gulp.task('ext:test', async function (done) {
+gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];
     if (!workspace) {
         workspace = process.cwd();
@@ -245,22 +245,36 @@ gulp.task('ext:test', async function (done) {
     process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
     var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
     let vscodeVersion = packageJson.engines.vscode.slice(1);
-    let vscodePath = await vscodeTest.downloadAndUnzipVSCode(vscodeVersion);
     let extensionTestsPath = `${workspace}/out/test`;
-    try {
-        await vscodeTest.runTests({
-            vscodeExecutablePath: vscodePath,
-            extensionDevelopmentPath: workspace,
-            extensionTestsPath: extensionTestsPath,
-            launchArgs: args
-        });
-        done();
-    } catch (error) {
-        console.log(`stdout: ${process.stdout}`);
-        console.log(`stderr: ${process.stderr}`);
-        console.error(`exec error: ${error}`);
-        throw(error);
-    }
+    // try {
+    //     await vscodeTest.runTests({
+    //         vscodeExecutablePath: vscodePath,
+    //         extensionDevelopmentPath: workspace,
+    //         extensionTestsPath: extensionTestsPath,
+    //         launchArgs: args
+    //     });
+    //     done();
+    // } catch (error) {
+    //     console.log(`stdout: ${process.stdout}`);
+    //     console.log(`stderr: ${process.stderr}`);
+    //     console.error(`exec error: ${error}`);
+    //     throw(error);
+    // }
+    vscodeTest.downloadAndUnzipVSCode(vscodeVersion).then((vscodePath) => {
+        if (vscodePath) {
+            vscodeTest.runTests({
+                vscodeExecutablePath: vscodePath,
+                extensionDevelopmentPath: workspace,
+                extensionTestsPath: extensionTestsPath,
+                launchArgs: args
+            }).then(() => done()).catch((error) => {
+                console.log(`stdout: ${process.stdout}`);
+                console.log(`stderr: ${process.stderr}`);
+                console.error(`exec error: ${error}`);
+                throw(error);
+            });
+        }
+    })
 });
 
 gulp.task('test', gulp.series('ext:test'));
