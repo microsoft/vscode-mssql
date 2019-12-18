@@ -1,6 +1,5 @@
 ﻿var gulp = require('gulp');
 var rename = require('gulp-rename');
-var install = require('gulp-install');
 var gulpTsLint = require('gulp-tslint');
 var ts = require('gulp-typescript');
 var tslint = require('tslint');
@@ -256,8 +255,8 @@ gulp.task('ext:test', async () => {
             launchArgs: args
         });
     } catch (error) {
-        console.log(`stdout: ${stdout}`);
-        console.log(`stderr: ${stderr}`);
+        console.log(`stdout: ${process.stdout}`);
+        console.log(`stderr: ${process.stderr}`);
         console.error(`exec error: ${error}`);
         throw(error);
     }
@@ -273,13 +272,8 @@ gulp.task('clean', function (done) {
 
 gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
-gulp.task('install', function() {
-    return gulp.src(['./package.json'])
-                .pipe(install());
-});
-
 gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
 });
 
-// gulp.task('lint', gulp.series('ext:lint'));
+gulp.task('lint', gulp.series('ext:lint'));
