@@ -39,11 +39,6 @@ steps:
     verbose: false
     customCommand: 'install -g gulp-cli'
 
-- task: Gulp@0
-  displayName: 'gulp install'
-  inputs:
-    targets: install
-
 - bash: |
    export BUILDMACHINE=true
    export VsMsSqlEnv=dev
