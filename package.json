@@ -185,7 +185,12 @@
         {
           "command": "mssql.runQuery",
           "when": "editorLangId == sql",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "mssql.cancelQuery",
+          "when": "editorLangId == sql",
+          "group": "navigation@2"
         }
       ],
       "editor/context": [
@@ -299,7 +304,7 @@
         "category": "MS SQL",
         "icon": {
           "light": "images/start.svg",
-          "dark": "images/start.svg"
+          "dark": "images/start_inverse.svg"
         }
       },
       {
@@ -310,7 +315,11 @@
       {
         "command": "mssql.cancelQuery",
         "title": "%mssql.cancelQuery%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "light": "images/stop.svg",
+          "dark": "images/stop_inverse.svg"
+        }
       },
       {
         "command": "mssql.connect",
