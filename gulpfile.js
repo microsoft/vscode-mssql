@@ -246,20 +246,6 @@ gulp.task('ext:test', (done) => {
     var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
     let vscodeVersion = packageJson.engines.vscode.slice(1);
     let extensionTestsPath = `${workspace}/out/test`;
-    // try {
-    //     await vscodeTest.runTests({
-    //         vscodeExecutablePath: vscodePath,
-    //         extensionDevelopmentPath: workspace,
-    //         extensionTestsPath: extensionTestsPath,
-    //         launchArgs: args
-    //     });
-    //     done();
-    // } catch (error) {
-    //     console.log(`stdout: ${process.stdout}`);
-    //     console.log(`stderr: ${process.stderr}`);
-    //     console.error(`exec error: ${error}`);
-    //     throw(error);
-    // }
     vscodeTest.downloadAndUnzipVSCode(vscodeVersion).then((vscodePath) => {
         if (vscodePath) {
             vscodeTest.runTests({
