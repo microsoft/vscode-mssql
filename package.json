@@ -181,6 +181,13 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "mssql.runQuery",
+          "when": "editorLangId == sql",
+          "group": "navigation"
+        }
+      ],
       "editor/context": [
         {
           "command": "mssql.runQuery",
@@ -289,7 +296,11 @@
       {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "light": "images/start.svg",
+          "dark": "images/start.svg"
+        }
       },
       {
         "command": "mssql.runCurrentStatement",
