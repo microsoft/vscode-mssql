@@ -11,25 +11,8 @@ import { PlatformInformation } from './platform';
 
 export namespace Telemetry {
     let reporter: TelemetryReporter;
-    let userId: string;
     let platformInformation: PlatformInformation;
     let disabled: boolean;
-
-    // Get the unique ID for the current user of the extension
-    function getUserId(): Promise<string> {
-        return new Promise<string>(resolve => {
-            // Generate the user id if it has not been created already
-            if (typeof userId === 'undefined') {
-                let id = Utils.generateUserId();
-                id.then( newId => {
-                    userId = newId;
-                    resolve(userId);
-                });
-            } else {
-                resolve(userId);
-            }
-        });
-    }
 
     function getPlatformInformation(): Promise<PlatformInformation> {
         if (platformInformation) {
@@ -72,7 +55,15 @@ export namespace Telemetry {
 
             let packageInfo = Utils.getPackageInfo(context);
             reporter = new TelemetryReporter('vscode-mssql', packageInfo.version, packageInfo.aiKey);
+            context.subscriptions.push(reporter);
         }
+    }
+
+    /**
+     *
+     */
+    export function dispose(): void {
+        this.dispose();
     }
 
     /**
@@ -136,10 +127,13 @@ export namespace Telemetry {
         }
 
         // Augment the properties structure with additional common properties before sending
-        Promise.all<string|PlatformInformation>([getUserId(), getPlatformInformation()]).then(() => {
-            properties['userId'] = userId;
+        getPlatformInformation().then(() => {
+
+            properties['architecture'] = platformInformation.architecture;
+            properties['platform'] = platformInformation.platform;
+            properties['runtimeId'] = platformInformation.runtimeId.toString();
             properties['distribution'] = (platformInformation && platformInformation.distribution) ?
-                `${platformInformation.distribution.name}, ${platformInformation.distribution.version}` : '';
+            `${platformInformation.distribution.name}, ${platformInformation.distribution.version}` : '';
 
             reporter.sendTelemetryEvent(eventName, properties, measures);
         });

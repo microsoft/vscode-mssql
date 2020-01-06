@@ -6040,7 +6040,7 @@ vsce@^1.58.0:
     yauzl "^2.3.1"
     yazl "^2.2.2"
 
-vscode-extension-telemetry@^0.1.1:
+vscode-extension-telemetry@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/vscode-extension-telemetry/-/vscode-extension-telemetry-0.1.2.tgz#049207f5453930888ff68ca925b07bab08f2c955"
   integrity sha512-FSbaZKlIH3VKvBJsKw7v5bESWHXzltji2rtjaJeJglpQH4tfClzwHMzlMXUZGiblV++djEzb1gW8mb5E+wxFsg==

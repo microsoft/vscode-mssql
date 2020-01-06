@@ -99,6 +99,7 @@ export default class MainController implements vscode.Disposable {
         Utils.logDebug('de-activated.');
         this.onDisconnect();
         this._statusview.dispose();
+        Telemetry.dispose();
     }
 
     /**
@@ -310,8 +311,9 @@ export default class MainController implements vscode.Disposable {
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-            // Ensure telemetry is disabled
-            Telemetry.disable();
+            // Initialize telemetry based on user settings
+            Telemetry.initialize(this._context);
+
             SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
                 // Init status bar
                 self._statusview = new StatusView(self._vscodeWrapper);
