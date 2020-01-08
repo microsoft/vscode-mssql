@@ -294,6 +294,13 @@ export default class QueryRunner {
 
         // Send the message to the results pane
         this.eventEmitter.emit('message', message);
+
+        // Set row count on status bar if there are no errors
+        if (!obj.message.isError) {
+            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
+        } else {
+            this._statusView.hideRowCount(obj.ownerUri, true);
+        }
     }
 
     /*
