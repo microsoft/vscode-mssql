@@ -229,13 +229,17 @@ export default class StatusView implements vscode.Disposable {
     public showRowCount(fileUri: string, message?: string): void {
         let bar = this.getStatusBar(fileUri);
         if (message) {
+            // Remove parentheses from start and end
             bar.rowCount.text = message.slice(1, -1);
         }
         this.showStatusBarItem(fileUri, bar.rowCount);
     }
 
-    public hideRowCount(fileUri: string): void {
+    public hideRowCount(fileUri: string, clear: boolean = false): void {
         let bar = this.getStatusBar(fileUri);
+        if (clear) {
+            bar.rowCount.text = '';
+        }
         bar.rowCount.hide();
     }
 

@@ -54,7 +54,7 @@ export class WebviewPanelController implements vscode.Disposable {
             }
         ));
         this._panel.onDidDispose(() => {
-            this.statusView.hideRowCount(this.uri);
+            this.statusView.hideRowCount(this.uri, true);
             this.dispose();
         });
         this._disposables.push(this._panel.onDidChangeViewState((p) => {
