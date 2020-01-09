@@ -151,6 +151,10 @@
         {
           "id": "objectExplorer",
           "name": "%extension.connections%"
+        },
+        {
+          "id": "queryHistory",
+          "name": "%extension.queryHistory%"
         }
       ]
     },

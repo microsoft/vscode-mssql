@@ -30,6 +30,7 @@ import { Deferred } from '../protocol';
 import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
+import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 
 /**
  * The main controller class that initializes the extension
@@ -49,6 +50,7 @@ export default class MainController implements vscode.Disposable {
     private _lastOpenedTimer: Utils.Timer;
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
+    private _queryHistoryProvider: any;
     private _scriptingService: ScriptingService;
 
     /**
@@ -144,6 +146,18 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.window.registerTreeDataProvider('objectExplorer', this._objectExplorerProvider)
                 );
+
+                // Register the query history tree provider
+                this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr, this._outputContentProvider);
+                this._context.subscriptions.push(
+                    vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
+                );
+                this._context.subscriptions.push(
+                    vscode.commands.registerCommand(
+                        Constants.cmdShowQueryHistory, (ownerUri: string, hasError: boolean) => {
+                        const timeStamp = new Date().toLocaleString();
+                        this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
+                }));
 
                 // Add Object Explorer Node
                 this.registerCommand(Constants.cmdAddObjectExplorer);
