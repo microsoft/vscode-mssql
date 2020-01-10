@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import * as ejs from 'ejs';
 import * as path from 'path';
 import VscodeWrapper from './vscodeWrapper';
+import StatusView from '../views/statusView';
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);
@@ -33,15 +34,16 @@ export class WebviewPanelController implements vscode.Disposable {
 
     constructor(
         private _vscodeWrapper: VscodeWrapper,
-        uri: string,
+        private uri: string,
         title: string,
         serverProxy: IServerProxy,
-        private baseUri: string
+        private baseUri: string,
+        private statusView: StatusView
     ) {
-        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(uri));
+        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(this.uri));
         const retainContextWhenHidden = config[Constants.configPersistQueryResultTabs];
-        const column = this.newResultPaneViewColumn(uri);
-        this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, title,
+        const column = this.newResultPaneViewColumn(this.uri);
+        this._disposables.push(this._panel = vscode.window.createWebviewPanel(this.uri, title,
             {
                 viewColumn: column,
                 preserveFocus: true
@@ -52,17 +54,20 @@ export class WebviewPanelController implements vscode.Disposable {
             }
         ));
         this._panel.onDidDispose(() => {
+            this.statusView.hideRowCount(this.uri, true);
             this.dispose();
         });
         this._disposables.push(this._panel.onDidChangeViewState((p) => {
             // occurs when current tab is back in focus
             if (p.webviewPanel.active && p.webviewPanel.visible) {
+                this.statusView.showRowCount(this.uri);
                 this._isActive = true;
                 return;
             }
             // occurs when we switch the current tab
             if (!p.webviewPanel.active && !p.webviewPanel.visible) {
                 this._isActive = false;
+                this.statusView.hideRowCount(this.uri);
                 return;
             }
         }));
