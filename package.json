@@ -255,6 +255,26 @@
           "command": "mssql.scriptAlter",
           "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/",
           "group": "MS_SQL@4"
+        },
+        {
+          "command": "mssql.openQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@1"
+        },
+        {
+          "command": "mssql.runQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@2"
+        },
+        {
+          "command": "mssql.deleteQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@3"
+        },
+        {
+          "command": "mssql.clearAllQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@4"
         }
       ],
       "commandPalette": [
@@ -421,6 +441,26 @@
       {
         "command": "mssql.scriptAlter",
         "title": "%mssql.scriptAlter%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.openQueryHistory",
+        "title": "%mssql.openQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.runQueryHistory",
+        "title": "%mssql.runQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.deleteQueryHistory",
+        "title": "%mssql.deleteQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.clearAllQueryHistory",
+        "title": "%mssql.clearAllQueryHistory%",
         "group": "MS SQL"
       }
     ],

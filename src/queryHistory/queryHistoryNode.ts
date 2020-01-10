@@ -5,7 +5,24 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as LocalizedConstants from '../constants/localizedConstants';
 
+/**
+ * Empty Node shown when no queries are available
+ */
+export class EmptyHistoryNode extends vscode.TreeItem {
+
+    private static readonly contextValue = 'emptyHistoryNode';
+
+    constructor() {
+        super(LocalizedConstants.msgNoQueriesAvailable, vscode.TreeItemCollapsibleState.None);
+        this.contextValue = EmptyHistoryNode.contextValue;
+    }
+}
+
+/**
+ * Query history node
+ */
 export class QueryHistoryNode extends vscode.TreeItem {
 
     private static readonly contextValue = 'queryHistoryNode';
@@ -23,6 +40,7 @@ export class QueryHistoryNode extends vscode.TreeItem {
         this._isSuccess = isSuccess;
         this.iconPath = isSuccess ? this.successIcon : this.failureIcon;
         this.tooltip = tooltip;
+        this.contextValue = QueryHistoryNode.contextValue;
     }
 
     /** Getters */

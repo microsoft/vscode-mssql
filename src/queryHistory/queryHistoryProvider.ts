@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
-import { QueryHistoryNode } from './queryHistoryNode';
+import { QueryHistoryNode, EmptyHistoryNode } from './queryHistoryNode';
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
@@ -15,7 +15,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
     private _connectionManager: ConnectionManager;
     private _outputContentProvider: SqlOutputContentProvider;
-    private _queryHistoryNodes: QueryHistoryNode[] = [];
+    private _queryHistoryNodes: vscode.TreeItem[] = [new EmptyHistoryNode()]
 
     constructor(
         connectionManager: ConnectionManager,
@@ -25,10 +25,20 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         this._outputContentProvider = outputContentProvider;
     }
 
+    clearAll(): void {
+        this._queryHistoryNodes = [new EmptyHistoryNode()];
+        this._onDidChangeTreeData.fire();
+    }
+
     refresh(ownerUri: string, timeStamp: string, hasError): void {
         const historyNodeLabel = this.createHistoryNodeLabel(ownerUri, timeStamp);
         const tooltip = this.createHistoryNodeTooltip(ownerUri, timeStamp);
         const node = new QueryHistoryNode(historyNodeLabel, tooltip, ownerUri, !hasError);
+        if (this._queryHistoryNodes.length === 1) {
+            if (this._queryHistoryNodes[0] instanceof EmptyHistoryNode) {
+                this._queryHistoryNodes = [];
+            }
+        }
         this._queryHistoryNodes.push(node);
         this._onDidChangeTreeData.fire();
     }

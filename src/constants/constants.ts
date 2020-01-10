@@ -27,6 +27,7 @@ export const cmdChooseLanguageFlavor = 'mssql.chooseLanguageFlavor';
 export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';
 export const cmdShowGettingStarted = 'mssql.showGettingStarted';
 export const cmdShowQueryHistory = 'mssql.showQueryHistory';
+export const cmdClearAllQueryHistory = 'mssql.clearAllQueryHistory';
 export const cmdNewQuery = 'mssql.newQuery';
 export const cmdManageConnectionProfiles = 'mssql.manageProfiles';
 export const cmdRebuildIntelliSenseCache = 'mssql.rebuildIntelliSenseCache';
