@@ -26,11 +26,13 @@ export const cmdChooseDatabase = 'mssql.chooseDatabase';
 export const cmdChooseLanguageFlavor = 'mssql.chooseLanguageFlavor';
 export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';
 export const cmdShowGettingStarted = 'mssql.showGettingStarted';
-export const cmdShowQueryHistory = 'mssql.showQueryHistory';
+export const cmdRefreshQueryHistory = 'mssql.refreshQueryHistory';
 export const cmdClearAllQueryHistory = 'mssql.clearAllQueryHistory';
 export const cmdDeleteQueryHistory = 'mssql.deleteQueryHistory';
 export const cmdOpenQueryHistory = 'mssql.openQueryHistory';
 export const cmdRunQueryHistory = 'mssql.runQueryHistory';
+export const cmdStartQueryHistory = 'mssql.startQueryHistoryCapture';
+export const cmdPauseQueryHistory = 'mssql.pauseQueryHistoryCapture';
 export const cmdNewQuery = 'mssql.newQuery';
 export const cmdManageConnectionProfiles = 'mssql.manageProfiles';
 export const cmdRebuildIntelliSenseCache = 'mssql.rebuildIntelliSenseCache';
@@ -116,6 +118,7 @@ export const configApplyLocalization = 'applyLocalization';
 export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 export const configQueryHistoryLimit = 'queryHistoryLimit';
 export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
+export const isQueryHistoryEnabled = 'isQueryHistoryEnabled';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';

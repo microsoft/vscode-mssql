@@ -398,10 +398,10 @@ export default class MainController implements vscode.Disposable {
             vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
         );
 
-        // Command to enable Query History
+        // Command to refresh Query History
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-                Constants.cmdShowQueryHistory, (ownerUri: string, hasError: boolean) => {
+                Constants.cmdRefreshQueryHistory, (ownerUri: string, hasError: boolean) => {
                 const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
                 let queryHistoryEnabled = config.get(Constants.configEnableQueryHistoryCapture);
                 if (queryHistoryEnabled) {
@@ -436,6 +436,20 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdRunQueryHistory, async (node: QueryHistoryNode) => {
                 await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
+        }));
+
+        // Command to start the query history capture
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdStartQueryHistory, async (node: QueryHistoryNode) => {
+                await this._queryHistoryProvider.startQueryHistoryCapture(node, true);
+        }));
+
+        // Command to pause the query history capture
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdPauseQueryHistory, async (node: QueryHistoryNode) => {
+                await this._queryHistoryProvider.pauseQueryHistoryCapture(node, true);
         }));
     }
 

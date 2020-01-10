@@ -208,6 +208,18 @@
           "when": "view == objectExplorer",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
+        },
+        {
+          "command": "mssql.startQueryHistoryCapture",
+          "when": "view == queryHistory && isQueryHistoryEnabled == false",
+          "title": "%mssql.startQueryHistoryCapture%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.pauseQueryHistoryCapture",
+          "when": "view == queryHistory && isQueryHistoryEnabled == true",
+          "title": "%mssql.pauseQueryHistoryCapture%",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -462,6 +474,24 @@
         "command": "mssql.clearAllQueryHistory",
         "title": "%mssql.clearAllQueryHistory%",
         "group": "MS SQL"
+      },
+      {
+        "command": "mssql.startQueryHistoryCapture",
+        "title": "%mssql.startQueryHistoryCapture%",
+        "group": "MS SQL",
+        "icon": {
+          "light": "images/start.svg",
+          "dark": "images/start_inverse.svg"
+        }
+      },
+      {
+        "command": "mssql.pauseQueryHistoryCapture",
+        "title": "%mssql.pauseQueryHistoryCapture%",
+        "group": "MS SQL",
+        "icon": {
+          "light": "images/stop.svg",
+          "dark": "images/stop_inverse.svg"
+        }
       }
     ],
     "keybindings": [

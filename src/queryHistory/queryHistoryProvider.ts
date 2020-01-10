@@ -14,6 +14,7 @@ import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentServic
 import { Deferred } from '../protocol';
 import StatusView from '../views/statusView';
 import { IConnectionProfile } from '../models/interfaces';
+import { Container } from '@angular/compiler/src/i18n/i18n_ast';
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
@@ -34,6 +35,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
         this._queryHistoryEnabled = config.get(Constants.configEnableQueryHistoryCapture);
+        this._vscodeWrapper.setContext(Constants.isQueryHistoryEnabled, this._queryHistoryEnabled);
     }
 
     clearAll(): void {
@@ -76,6 +78,26 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
             this._queryHistoryNodes.push(new EmptyHistoryNode());
         }
         return this._queryHistoryNodes;
+    }
+
+    /**
+     * Starts the history capture by changing the setting
+     * and changes context for menu actions
+     */
+    public async startQueryHistoryCapture(): Promise<void> {
+        await this._vscodeWrapper.setConfiguration(Constants.extensionConfigSectionName,
+            Constants.configEnableQueryHistoryCapture, true);
+        await this._vscodeWrapper.setContext(Constants.isQueryHistoryEnabled, true);
+    }
+
+    /**
+     * Pauses the history capture by changing the setting
+     * and changes context for menu actions
+     */
+    public async pauseQueryHistoryCapture(): Promise<void> {
+        await this._vscodeWrapper.setConfiguration(Constants.extensionConfigSectionName,
+            Constants.configEnableQueryHistoryCapture, false);
+        await this._vscodeWrapper.setContext(Constants.isQueryHistoryEnabled, false);
     }
 
     /**
