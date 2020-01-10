@@ -166,7 +166,7 @@ export class SqlOutputContentProvider {
             showWarning: (message: string) => this.showWarningRequestHandler(message),
             sendReadyEvent: async () => await this.sendReadyEvent(uri)
         };
-        const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath);
+        const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
         this._panels.set(uri, controller);
         await controller.init();
     }
