@@ -30,13 +30,19 @@ export class QueryHistoryNode extends vscode.TreeItem {
     private readonly successIcon: string = path.join(this.iconsPath, 'status_success.svg');
     private readonly failureIcon: string = path.join(this.iconsPath, 'status_error.svg');
     private _ownerUri: string;
-    private _timeStamp: string;
+    private _timeStamp: Date;
     private _isSuccess: boolean;
 
-    constructor(label: string, tooltip: string, ownerUri: string, isSuccess: boolean) {
+    constructor(
+        label: string,
+        tooltip: string,
+        ownerUri: string,
+        timeStamp: Date,
+        isSuccess: boolean
+    ) {
         super(label, vscode.TreeItemCollapsibleState.None);
         this._ownerUri = ownerUri;
-        this._timeStamp = new Date().toUTCString();
+        this._timeStamp = timeStamp;
         this._isSuccess = isSuccess;
         this.iconPath = isSuccess ? this.successIcon : this.failureIcon;
         this.tooltip = tooltip;
@@ -50,5 +56,9 @@ export class QueryHistoryNode extends vscode.TreeItem {
 
     public get ownerUri(): string {
         return this._ownerUri;
+    }
+
+    public get timeStamp(): Date {
+        return this._timeStamp;
     }
 }

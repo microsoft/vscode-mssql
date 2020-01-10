@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { QueryHistoryNode, EmptyHistoryNode } from './queryHistoryNode';
+import VscodeWrapper from '../controllers/vscodeWrapper';
+import Constants = require('../constants/constants');
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
@@ -16,13 +18,19 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     private _connectionManager: ConnectionManager;
     private _outputContentProvider: SqlOutputContentProvider;
     private _queryHistoryNodes: vscode.TreeItem[] = [new EmptyHistoryNode()]
+    private _vscodeWrapper: VscodeWrapper;
+    private _queryHistoryLimit: number;
 
     constructor(
         connectionManager: ConnectionManager,
-        outputContentProvider: SqlOutputContentProvider
+        outputContentProvider: SqlOutputContentProvider,
+        vscodeWrapper: VscodeWrapper
     ) {
         this._connectionManager = connectionManager;
         this._outputContentProvider = outputContentProvider;
+        this._vscodeWrapper = vscodeWrapper;
+        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
     }
 
     clearAll(): void {
@@ -30,16 +38,27 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         this._onDidChangeTreeData.fire();
     }
 
-    refresh(ownerUri: string, timeStamp: string, hasError): void {
-        const historyNodeLabel = this.createHistoryNodeLabel(ownerUri, timeStamp);
-        const tooltip = this.createHistoryNodeTooltip(ownerUri, timeStamp);
-        const node = new QueryHistoryNode(historyNodeLabel, tooltip, ownerUri, !hasError);
+    refresh(ownerUri: string, timeStamp: Date, hasError): void {
+        const timeStampString = timeStamp.toLocaleString();
+        const historyNodeLabel = this.createHistoryNodeLabel(ownerUri, timeStampString);
+        const tooltip = this.createHistoryNodeTooltip(ownerUri, timeStampString);
+        const node = new QueryHistoryNode(historyNodeLabel, tooltip, ownerUri, timeStamp, !hasError);
         if (this._queryHistoryNodes.length === 1) {
             if (this._queryHistoryNodes[0] instanceof EmptyHistoryNode) {
                 this._queryHistoryNodes = [];
             }
         }
         this._queryHistoryNodes.push(node);
+        // Push out the first listing if it crosses limit to maintain
+        // an LRU order
+        if (this._queryHistoryNodes.length > this._queryHistoryLimit) {
+            this._queryHistoryNodes.shift();
+        }
+        // return the query history sorted by timestamp
+        this._queryHistoryNodes.sort((a, b) => {
+            return (b as QueryHistoryNode).timeStamp.getTime()-
+                (a as QueryHistoryNode).timeStamp.getTime();
+        });
         this._onDidChangeTreeData.fire();
     }
 

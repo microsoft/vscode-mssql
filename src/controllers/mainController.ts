@@ -388,7 +388,8 @@ export default class MainController implements vscode.Disposable {
 
     private initializeQueryHistory(): void {
         // Register the query history tree provider
-        this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr, this._outputContentProvider);
+        this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr,
+            this._outputContentProvider, this._vscodeWrapper);
         this._context.subscriptions.push(
             vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
         );
@@ -397,7 +398,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdShowQueryHistory, (ownerUri: string, hasError: boolean) => {
-                const timeStamp = new Date().toLocaleString();
+                const timeStamp = new Date();
                 this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
         }));
 

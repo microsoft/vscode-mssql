@@ -870,6 +870,12 @@
           "default": false,
           "description": "%mssql.persistQueryResultTabs%",
           "scope": "window"
+        },
+        "mssql.queryHistoryLimit": {
+          "type": "number",
+          "default": 3,
+          "description": "%mssql.queryHistoryLimit%",
+          "scope": "window"
         }
       }
     }
