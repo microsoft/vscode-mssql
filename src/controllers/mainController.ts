@@ -423,18 +423,16 @@ export default class MainController implements vscode.Disposable {
         // Command to enable open a query in Query History
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-                Constants.cmdOpenQueryHistory, (node: QueryHistoryNode) => {
-                this._queryHistoryProvider.openQueryHistoryEntry(node);
+                Constants.cmdOpenQueryHistory, async (node: QueryHistoryNode) => {
+                await this._queryHistoryProvider.openQueryHistoryEntry(node);
         }));
-
 
         // Command to enable run a query in Query History
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-                Constants.cmdRunQueryHistory, (node: QueryHistoryNode) => {
-                this._queryHistoryProvider.runQueryHistoryEntry(node.ownerUri);
+                Constants.cmdRunQueryHistory, async (node: QueryHistoryNode) => {
+                await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
         }));
-
     }
 
 

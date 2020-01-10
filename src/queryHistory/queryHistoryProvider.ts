@@ -13,6 +13,7 @@ import Constants = require('../constants/constants');
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import { Deferred } from '../protocol';
 import StatusView from '../views/statusView';
+import { IConnectionProfile } from '../models/interfaces';
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
@@ -78,15 +79,22 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     /**
      * Opens a query history listing in a new query window
      */
-    public async openQueryHistoryEntry(node: QueryHistoryNode): Promise<void> {
+    public async openQueryHistoryEntry(node: QueryHistoryNode, isExecute: boolean = false): Promise<void> {
         const editor = await this._untitledSqlDocumentService.newQuery(node.queryString);
         let uri = editor.document.uri.toString(true);
+        let title = path.basename(editor.document.fileName);
         const queryUriPromise = new Deferred<boolean>();
         let credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
         await this._connectionManager.connect(uri, credentials, queryUriPromise);
         await queryUriPromise;
         this._statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
         this._statusView.sqlCmdModeChanged(uri, false);
+        if (isExecute) {
+            const queryPromise = new Deferred<boolean>();
+            await this._outputContentProvider.runQuery(this._statusView, uri, undefined, title, queryPromise);
+            await queryPromise;
+            await this._connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>credentials);
+        }
     }
 
     /**
