@@ -329,6 +329,14 @@
         {
           "command": "mssql.toggleSqlCmd",
           "when": "editorFocus && editorLangId == 'sql'"
+        },
+        {
+          "command": "mssql.startQueryHistoryCapture",
+          "when": "isQueryHistoryEnabled == false"
+        },
+        {
+          "command": "mssql.pauseQueryHistoryCapture",
+          "when": "isQueryHistoryEnabled == true"
         }
       ]
     },
