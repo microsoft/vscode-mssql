@@ -873,7 +873,7 @@
         },
         "mssql.queryHistoryLimit": {
           "type": "number",
-          "default": 3,
+          "default": 20,
           "description": "%mssql.queryHistoryLimit%",
           "scope": "window"
         }
