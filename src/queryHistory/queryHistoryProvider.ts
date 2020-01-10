@@ -67,7 +67,21 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     }
 
     async getChildren(element?: any): Promise<vscode.TreeItem[]> {
+        if (this._queryHistoryNodes.length == 0) {
+            this._queryHistoryNodes.push(new EmptyHistoryNode());
+        }
         return this._queryHistoryNodes;
+    }
+
+    /**
+     * Deletes a query history entry for a URI
+     */
+    public deleteQueryHistoryEntry(ownerUri: string): void {
+        let index = this._queryHistoryNodes.findIndex(node => {
+            return (node as QueryHistoryNode).ownerUri === ownerUri;
+        });
+        this._queryHistoryNodes.splice(index, 1);
+        this._onDidChangeTreeData.fire();
     }
 
     /**

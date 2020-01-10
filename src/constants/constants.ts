@@ -28,6 +28,7 @@ export const cmdShowReleaseNotes = 'mssql.showReleaseNotes';
 export const cmdShowGettingStarted = 'mssql.showGettingStarted';
 export const cmdShowQueryHistory = 'mssql.showQueryHistory';
 export const cmdClearAllQueryHistory = 'mssql.clearAllQueryHistory';
+export const cmdDeleteQueryHistory = 'mssql.deleteQueryHistory';
 export const cmdNewQuery = 'mssql.newQuery';
 export const cmdManageConnectionProfiles = 'mssql.manageProfiles';
 export const cmdRebuildIntelliSenseCache = 'mssql.rebuildIntelliSenseCache';

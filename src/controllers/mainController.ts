@@ -402,11 +402,18 @@ export default class MainController implements vscode.Disposable {
                 this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
         }));
 
-        // Command to enable Query History
+        // Command to enable clear all entries in Query History
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdClearAllQueryHistory, () => {
                 this._queryHistoryProvider.clearAll();
+        }));
+
+        // Command to enable delete an entry in Query History
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDeleteQueryHistory, (ownerUri: string) => {
+                this._queryHistoryProvider.deleteQueryHistoryEntry(ownerUri);
         }));
     }
 
