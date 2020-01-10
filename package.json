@@ -876,6 +876,12 @@
           "default": 20,
           "description": "%mssql.queryHistoryLimit%",
           "scope": "window"
+        },
+        "mssql.enableQueryHistoryCapture": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.enableQueryHistoryCapture%",
+          "scope": "window"
         }
       }
     }

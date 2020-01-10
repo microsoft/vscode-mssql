@@ -402,8 +402,12 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdShowQueryHistory, (ownerUri: string, hasError: boolean) => {
-                const timeStamp = new Date();
-                this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
+                const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+                let queryHistoryEnabled = config.get(Constants.configEnableQueryHistoryCapture);
+                if (queryHistoryEnabled) {
+                    const timeStamp = new Date();
+                    this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
+                }
         }));
 
         // Command to enable clear all entries in Query History
@@ -434,7 +438,6 @@ export default class MainController implements vscode.Disposable {
                 await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
         }));
     }
-
 
     /**
      * Handles the command to enable SQLCMD mode

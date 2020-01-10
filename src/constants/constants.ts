@@ -115,6 +115,7 @@ export const extConfigResultFontFamily = 'resultsFontFamily';
 export const configApplyLocalization = 'applyLocalization';
 export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 export const configQueryHistoryLimit = 'queryHistoryLimit';
+export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';

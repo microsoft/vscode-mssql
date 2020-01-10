@@ -22,6 +22,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
     private _queryHistoryNodes: vscode.TreeItem[] = [new EmptyHistoryNode()]
     private _queryHistoryLimit: number;
+    private _queryHistoryEnabled: boolean;
 
     constructor(
         private _connectionManager: ConnectionManager,
@@ -32,6 +33,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     ) {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
+        this._queryHistoryEnabled = config.get(Constants.configEnableQueryHistoryCapture);
     }
 
     clearAll(): void {

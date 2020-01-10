@@ -13,6 +13,7 @@
 "mssql.deleteQueryHistory":"Delete",
 "mssql.clearAllQueryHistory":"Clear All History",
 "mssql.pauseQueryHistory":"Pause Query History Capture",
+"mssql.enableQueryHistoryCapture":"Enable Query History Capture",
 "mssql.removeObjectExplorerNode":"Remove",
 "mssql.refreshObjectExplorerNode":"Refresh",
 "extension.connections":"Connections",
