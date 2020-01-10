@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import { queryHistory } from '../constants/constants';
 
 /**
  * Empty Node shown when no queries are available
@@ -32,19 +33,22 @@ export class QueryHistoryNode extends vscode.TreeItem {
     private _ownerUri: string;
     private _timeStamp: Date;
     private _isSuccess: boolean;
+    private _queryString: string;
 
     constructor(
         label: string,
         tooltip: string,
+        queryString: string,
         ownerUri: string,
         timeStamp: Date,
         isSuccess: boolean
     ) {
         super(label, vscode.TreeItemCollapsibleState.None);
+        this._queryString = queryString;
         this._ownerUri = ownerUri;
         this._timeStamp = timeStamp;
         this._isSuccess = isSuccess;
-        this.iconPath = isSuccess ? this.successIcon : this.failureIcon;
+        this.iconPath = this._isSuccess ? this.successIcon : this.failureIcon;
         this.tooltip = tooltip;
         this.contextValue = QueryHistoryNode.contextValue;
     }
@@ -60,5 +64,9 @@ export class QueryHistoryNode extends vscode.TreeItem {
 
     public get timeStamp(): Date {
         return this._timeStamp;
+    }
+
+    public get queryString(): string {
+        return this._queryString;
     }
 }

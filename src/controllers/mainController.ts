@@ -31,6 +31,7 @@ import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
+import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 
 /**
  * The main controller class that initializes the extension
@@ -386,10 +387,13 @@ export default class MainController implements vscode.Disposable {
             this.scriptNode(node, ScriptOperation.Alter)));
     }
 
+    /**
+     * Initializes the Query History commands
+     */
     private initializeQueryHistory(): void {
         // Register the query history tree provider
-        this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr,
-            this._outputContentProvider, this._vscodeWrapper);
+        this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr, this._outputContentProvider,
+            this._vscodeWrapper, this._untitledSqlDocumentService, this._statusview);
         this._context.subscriptions.push(
             vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
         );
@@ -412,9 +416,25 @@ export default class MainController implements vscode.Disposable {
         // Command to enable delete an entry in Query History
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-                Constants.cmdDeleteQueryHistory, (ownerUri: string) => {
-                this._queryHistoryProvider.deleteQueryHistoryEntry(ownerUri);
+                Constants.cmdDeleteQueryHistory, (node: QueryHistoryNode) => {
+                this._queryHistoryProvider.deleteQueryHistoryEntry(node.ownerUri);
         }));
+
+        // Command to enable open a query in Query History
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdOpenQueryHistory, (node: QueryHistoryNode) => {
+                this._queryHistoryProvider.openQueryHistoryEntry(node);
+        }));
+
+
+        // Command to enable run a query in Query History
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdRunQueryHistory, (node: QueryHistoryNode) => {
+                this._queryHistoryProvider.runQueryHistoryEntry(node.ownerUri);
+        }));
+
     }
 
 
