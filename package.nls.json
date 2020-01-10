@@ -15,6 +15,7 @@
 "mssql.enableQueryHistoryCapture":"Enable Query History Capture",
 "mssql.startQueryHistoryCapture":"Start Query History Capture",
 "mssql.pauseQueryHistoryCapture":"Pause Query History Capture",
+"mssql.commandPaletteQueryHistory":"Open Query History in Command Palette",
 "mssql.removeObjectExplorerNode":"Remove",
 "mssql.refreshObjectExplorerNode":"Refresh",
 "extension.connections":"Connections",

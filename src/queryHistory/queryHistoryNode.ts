@@ -34,6 +34,7 @@ export class QueryHistoryNode extends vscode.TreeItem {
     private _timeStamp: Date;
     private _isSuccess: boolean;
     private _queryString: string;
+    private _connectionLabel: string;
 
     constructor(
         label: string,
@@ -41,6 +42,7 @@ export class QueryHistoryNode extends vscode.TreeItem {
         queryString: string,
         ownerUri: string,
         timeStamp: Date,
+        connectionLabel: string,
         isSuccess: boolean
     ) {
         super(label, vscode.TreeItemCollapsibleState.None);
@@ -48,6 +50,7 @@ export class QueryHistoryNode extends vscode.TreeItem {
         this._ownerUri = ownerUri;
         this._timeStamp = timeStamp;
         this._isSuccess = isSuccess;
+        this._connectionLabel = connectionLabel;
         this.iconPath = this._isSuccess ? this.successIcon : this.failureIcon;
         this.tooltip = tooltip;
         this.contextValue = QueryHistoryNode.contextValue;
@@ -68,5 +71,9 @@ export class QueryHistoryNode extends vscode.TreeItem {
 
     public get queryString(): string {
         return this._queryString;
+    }
+
+    public get connectionLabel(): string {
+        return this._connectionLabel;
     }
 }

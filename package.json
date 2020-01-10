@@ -500,6 +500,11 @@
           "light": "images/stop.svg",
           "dark": "images/stop_inverse.svg"
         }
+      },
+      {
+        "command": "mssql.commandPaletteQueryHistory",
+        "title": "%mssql.commandPaletteQueryHistory%",
+        "group": "MS SQL"
       }
     ],
     "keybindings": [

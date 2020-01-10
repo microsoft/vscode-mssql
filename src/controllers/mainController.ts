@@ -51,7 +51,7 @@ export default class MainController implements vscode.Disposable {
     private _lastOpenedTimer: Utils.Timer;
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
-    private _queryHistoryProvider: any;
+    private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
 
     /**
@@ -393,7 +393,8 @@ export default class MainController implements vscode.Disposable {
     private initializeQueryHistory(): void {
         // Register the query history tree provider
         this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr, this._outputContentProvider,
-            this._vscodeWrapper, this._untitledSqlDocumentService, this._statusview);
+            this._vscodeWrapper, this._untitledSqlDocumentService, this._statusview, this._prompter);
+
         this._context.subscriptions.push(
             vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
         );
@@ -442,14 +443,21 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdStartQueryHistory, async (node: QueryHistoryNode) => {
-                await this._queryHistoryProvider.startQueryHistoryCapture(node, true);
+                await this._queryHistoryProvider.startQueryHistoryCapture();
         }));
 
         // Command to pause the query history capture
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdPauseQueryHistory, async (node: QueryHistoryNode) => {
-                await this._queryHistoryProvider.pauseQueryHistoryCapture(node, true);
+                await this._queryHistoryProvider.pauseQueryHistoryCapture();
+        }));
+
+        // Command to open the query history experience in the command palette
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCommandPaletteQueryHistory, () => {
+                this._queryHistoryProvider.showQueryHistoryCommandPalette();
         }));
     }
 
