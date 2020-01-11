@@ -15,7 +15,7 @@ import { Deferred } from '../protocol';
 import StatusView from '../views/statusView';
 import { IConnectionProfile } from '../models/interfaces';
 import { IPrompter } from '../prompts/question';
-import { QueryHistoryUI } from '../views/queryHistoryUI';
+import { QueryHistoryUI, QueryHistoryAction } from '../views/queryHistoryUI';
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
@@ -88,9 +88,11 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     /**
      *
      */
-    public showQueryHistoryCommandPalette(): void {
+    public async showQueryHistoryCommandPalette(): Promise<void> {
         const options = this._queryHistoryNodes.map(node => this._queryHistoryUI.convertToQuickPickItem(node));
-        this._queryHistoryUI.showQueryHistoryCommandPalette(options);
+        let queryHistoryQuickPickItem = await this._queryHistoryUI.showQueryHistoryCommandPalette(options);
+        this.openQueryHistoryEntry(queryHistoryQuickPickItem.node, queryHistoryQuickPickItem.action ===
+            QueryHistoryAction.RunQueryHistoryAction);
     }
 
     /**
