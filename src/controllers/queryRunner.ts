@@ -419,6 +419,7 @@ export default class QueryRunner {
 
         // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
+        let firstColumn = this.getFirstSelectionColumn(rowIdToRowMap, rowIdToSelectionMap);
         for (let rowId of allRowIds) {
             let row = rowIdToRowMap.get(rowId);
             const rowSelections = rowIdToSelectionMap.get(rowId);
@@ -427,9 +428,6 @@ export default class QueryRunner {
             rowSelections.sort((a, b) => {
                 return ((a.fromCell < b.fromCell) ? -1 : (a.fromCell > b.fromCell) ? 1 : 0);
             });
-
-            // start copy paste from left-most column
-            const firstColumn = rowSelections[0].fromCell;
 
             for (let i = 0; i < rowSelections.length; i++) {
                 let rowSelection = rowSelections[i];
@@ -516,6 +514,23 @@ export default class QueryRunner {
             // Send the message to the results pane
             this.eventEmitter.emit('message', message);
         }
+    }
+
+    /**
+     * Gets the first column where the selection started from
+     */
+    private getFirstSelectionColumn(rowIdToRowMap: Map<number, DbCellValue[]>, rowIdToSelectionMap: Map<number, ISlickRange[]>): number {
+        let allRowIds = rowIdToRowMap.keys();
+        let firstColumn = undefined;
+        for (let rowId of allRowIds) {
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+            for (let i = 0; i < rowSelections.length; i++) {
+                if (!firstColumn || rowSelections[i].fromCell < firstColumn) {
+                    firstColumn = rowSelections[i].fromCell;
+                }
+            }
+        }
+        return firstColumn;
     }
 
     /**
