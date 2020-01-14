@@ -419,7 +419,9 @@ export default class QueryRunner {
 
         // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
-        let firstColumn = this.getFirstSelectionColumn(rowIdToRowMap, rowIdToSelectionMap);
+        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
+        const firstColumn = endColumns[0];
+        const lastColumn = endColumns[1];
         for (let rowId of allRowIds) {
             let row = rowIdToRowMap.get(rowId);
             const rowSelections = rowIdToSelectionMap.get(rowId);
@@ -431,15 +433,23 @@ export default class QueryRunner {
 
             for (let i = 0; i < rowSelections.length; i++) {
                 let rowSelection = rowSelections[i];
+
+                // Add tabs starting from the first column of the selection
                 for (let j = firstColumn; j < rowSelection.fromCell; j++) {
                     copyString += ' \t';
                 }
                 let cellObjects = row.slice(rowSelection.fromCell, (rowSelection.toCell + 1));
+
                 // Remove newlines if requested
                 let cells = this.shouldRemoveNewLines()
                 ? cellObjects.map(x => this.removeNewLines(x.displayValue))
                 : cellObjects.map(x => x.displayValue);
                 copyString += cells.join('\t');
+
+                // Add tabs until the end column of the selection
+                for (let k = rowSelection.toCell; k < lastColumn; k++) {
+                    copyString += '\t';
+                }
             }
             copyString += os.EOL;
         }
@@ -517,20 +527,24 @@ export default class QueryRunner {
     }
 
     /**
-     * Gets the first column where the selection started from
+     * Gets the first and last column of a selection: [first, last]
      */
-    private getFirstSelectionColumn(rowIdToRowMap: Map<number, DbCellValue[]>, rowIdToSelectionMap: Map<number, ISlickRange[]>): number {
+    private getSelectionEndColumns(rowIdToRowMap: Map<number, DbCellValue[]>, rowIdToSelectionMap: Map<number, ISlickRange[]>): number[] {
         let allRowIds = rowIdToRowMap.keys();
-        let firstColumn = undefined;
+        let firstColumn = -1;
+        let lastColumn = -1;
         for (let rowId of allRowIds) {
             const rowSelections = rowIdToSelectionMap.get(rowId);
             for (let i = 0; i < rowSelections.length; i++) {
-                if (!firstColumn || rowSelections[i].fromCell < firstColumn) {
+                if (firstColumn === -1 || rowSelections[i].fromCell < firstColumn) {
                     firstColumn = rowSelections[i].fromCell;
+                }
+                if (lastColumn === -1 || rowSelections[i].toCell > lastColumn) {
+                    lastColumn = rowSelections[i].toCell;
                 }
             }
         }
-        return firstColumn;
+        return [firstColumn, lastColumn];
     }
 
     /**
