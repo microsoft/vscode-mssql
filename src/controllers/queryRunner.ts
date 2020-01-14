@@ -436,7 +436,7 @@ export default class QueryRunner {
 
                 // Add tabs starting from the first column of the selection
                 for (let j = firstColumn; j < rowSelection.fromCell; j++) {
-                    copyString += ' \t';
+                    copyString += '\t';
                 }
                 let cellObjects = row.slice(rowSelection.fromCell, (rowSelection.toCell + 1));
 
