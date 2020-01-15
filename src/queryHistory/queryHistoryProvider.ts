@@ -139,9 +139,11 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     /**
      * Deletes a query history entry for a URI
      */
-    public deleteQueryHistoryEntry(ownerUri: string): void {
-        let index = this._queryHistoryNodes.findIndex(node => {
-            return (node as QueryHistoryNode).ownerUri === ownerUri;
+    public deleteQueryHistoryEntry(node: QueryHistoryNode): void {
+        let index = this._queryHistoryNodes.findIndex(n => {
+            let historyNode = n as QueryHistoryNode;
+            return (historyNode.ownerUri === node.ownerUri) &&
+                historyNode.timeStamp === node.timeStamp;
         });
         this._queryHistoryNodes.splice(index, 1);
         this._onDidChangeTreeData.fire();

@@ -90,5 +90,5 @@
 "mssql.intelliSense.enableQuickInfo":"Should IntelliSense quick info be enabled",
 "mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase",
 "mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
-"mssql.queryHistoryLimit":"Number of query histories to show in the Query History view"
+"mssql.queryHistoryLimit":"Number of query history entries to show in the Query History view"
 }

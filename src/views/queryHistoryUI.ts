@@ -40,7 +40,7 @@ export class QueryHistoryUI {
         return quickPickItem;
     }
 
-    private showQueryHistoryActions(node: QueryHistoryNode): Promise<string> {
+    private showQueryHistoryActions(node: QueryHistoryNode): Promise<string | undefined> {
         let options = [{ label: LocalizedConstants.msgOpenQueryHistoryListing },
             { label: LocalizedConstants.msgRunQueryHistoryListing }];
         let question: IQuestion = {
@@ -53,13 +53,14 @@ export class QueryHistoryUI {
             if (answer) {
                 return answer.label;
             }
+            return undefined;
         });
     }
 
     /**
      * Shows the Query History List on the command palette
      */
-    public showQueryHistoryCommandPalette(options: vscode.QuickPickItem[]): Promise<QueryHistoryQuickPickItem> {
+    public showQueryHistoryCommandPalette(options: vscode.QuickPickItem[]): Promise<QueryHistoryQuickPickItem | undefined> {
         let question: IQuestion = {
             type: QuestionTypes.expand,
             name: 'question',
@@ -77,6 +78,7 @@ export class QueryHistoryUI {
                     return answer;
                 })
             }
+            return undefined;
         });
     }
 
