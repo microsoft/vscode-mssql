@@ -220,6 +220,12 @@
           "when": "view == queryHistory && isQueryHistoryEnabled == true",
           "title": "%mssql.pauseQueryHistoryCapture%",
           "group": "navigation"
+        },
+        {
+          "command": "mssql.clearAllQueryHistory",
+          "when": "view == queryHistory",
+          "title": "%mssql.clearAllQueryHistory%",
+          "group": "secondary"
         }
       ],
       "view/item/context": [
@@ -282,11 +288,6 @@
           "command": "mssql.deleteQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@3"
-        },
-        {
-          "command": "mssql.clearAllQueryHistory",
-          "when": "view == queryHistory && viewItem == queryHistoryNode",
-          "group": "MS_SQL@4"
         }
       ],
       "commandPalette": [
