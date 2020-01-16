@@ -206,7 +206,7 @@
 
   .vscode-light .grid .slick-cell.selected .grid-cell-value-container.missing-value,
   .vscode-dark .grid .slick-cell.selected .grid-cell-value-container.missing-value,
-  .vscode-high-contrast .slick-cell.selected .grid .grid-cell-value-container.missing-value {
+  .vscode-high-contrast .grid .slick-cell.selected .grid-cell-value-container.missing-value {
       color: var(--color-content);
       font-style: italic;
   }
