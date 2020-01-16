@@ -135,6 +135,7 @@ export class ObjectExplorerService {
                 const credentials = self._sessionIdToConnectionCredentialsMap.get(result.sessionId);
                 const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, result.sessionId,
                     self._currentNode, credentials));
+                self._currentNode = self._rootTreeNodeArray.find(n => n.nodePath === result.nodePath);
                 self._treeNodeToChildrenMap.set(self._currentNode, children);
                 const expandParams: ExpandParams = {
                     sessionId: result.sessionId,
