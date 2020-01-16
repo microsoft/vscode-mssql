@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as os from 'os';
 import ConnectionManager from '../controllers/connectionManager';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { QueryHistoryNode, EmptyHistoryNode } from './queryHistoryNode';
@@ -202,6 +203,6 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     private createHistoryNodeTooltip(ownerUri: string, timeStamp: string): string {
         const queryString = this.getQueryString(ownerUri);
         const connectionLabel = this.getConnectionLabel(ownerUri);
-        return `${queryString}\n${connectionLabel}\n${timeStamp}`;
+        return `${connectionLabel}${os.EOL}${os.EOL}${timeStamp}${os.EOL}${os.EOL}${queryString}`;
     }
 }
