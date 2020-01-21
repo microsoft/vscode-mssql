@@ -154,7 +154,8 @@
         },
         {
           "id": "queryHistory",
-          "name": "%extension.queryHistory%"
+          "name": "%extension.queryHistory%",
+          "when": "config.mssql.enableQueryHistoryFeature"
         }
       ]
     },
@@ -211,13 +212,13 @@
         },
         {
           "command": "mssql.startQueryHistoryCapture",
-          "when": "view == queryHistory && isQueryHistoryEnabled == false",
+          "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture",
           "title": "%mssql.startQueryHistoryCapture%",
           "group": "navigation"
         },
         {
           "command": "mssql.pauseQueryHistoryCapture",
-          "when": "view == queryHistory && isQueryHistoryEnabled == true",
+          "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && config.mssql.enableQueryHistoryCapture",
           "title": "%mssql.pauseQueryHistoryCapture%",
           "group": "navigation"
         },
@@ -333,11 +334,11 @@
         },
         {
           "command": "mssql.startQueryHistoryCapture",
-          "when": "isQueryHistoryEnabled == false"
+          "when": "config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture"
         },
         {
           "command": "mssql.pauseQueryHistoryCapture",
-          "when": "isQueryHistoryEnabled == true"
+          "when": "config.mssql.enableQueryHistoryFeature && config.mssql.enableQueryHistoryCapture"
         }
       ]
     },
@@ -348,7 +349,7 @@
         "category": "MS SQL",
         "icon": {
           "light": "images/start.svg",
-          "dark": "images/start_inverse.svg"
+          "dark": "images/start.svg"
         }
       },
       {
@@ -362,7 +363,7 @@
         "category": "MS SQL",
         "icon": {
           "light": "images/stop.svg",
-          "dark": "images/stop_inverse.svg"
+          "dark": "images/stop.svg"
         }
       },
       {
@@ -490,7 +491,7 @@
         "group": "MS SQL",
         "icon": {
           "light": "images/start.svg",
-          "dark": "images/start_inverse.svg"
+          "dark": "images/start.svg"
         }
       },
       {
@@ -499,7 +500,7 @@
         "group": "MS SQL",
         "icon": {
           "light": "images/stop.svg",
-          "dark": "images/stop_inverse.svg"
+          "dark": "images/stop.svg"
         }
       },
       {
@@ -925,6 +926,12 @@
           "type": "boolean",
           "default": true,
           "description": "%mssql.enableQueryHistoryCapture%",
+          "scope": "window"
+        },
+        "mssql.enableQueryHistoryFeature": {
+          "type": "boolean",
+          "default": true,
+          "description" : "%mssql.enableQueryHistoryFeature%",
           "scope": "window"
         }
       }

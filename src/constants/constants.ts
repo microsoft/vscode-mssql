@@ -119,7 +119,7 @@ export const configApplyLocalization = 'applyLocalization';
 export const configPersistQueryResultTabs = 'persistQueryResultTabs';
 export const configQueryHistoryLimit = 'queryHistoryLimit';
 export const configEnableQueryHistoryCapture = 'enableQueryHistoryCapture';
-export const isQueryHistoryEnabled = 'isQueryHistoryEnabled';
+export const configEnableQueryHistoryFeature = 'enableQueryHistoryFeature';
 
 // ToolsService Constants
 export const serviceInstallingTo = 'Installing SQL tools service to';

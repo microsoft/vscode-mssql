@@ -53,6 +53,7 @@ export default class MainController implements vscode.Disposable {
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
+    private _queryHistoryRegistered: boolean = false;
 
     /**
      * The main controller constructor
@@ -66,7 +67,6 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
-
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
     }
 
@@ -391,74 +391,82 @@ export default class MainController implements vscode.Disposable {
      * Initializes the Query History commands
      */
     private initializeQueryHistory(): void {
-        // Register the query history tree provider
-        this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr, this._outputContentProvider,
-            this._vscodeWrapper, this._untitledSqlDocumentService, this._statusview, this._prompter);
 
-        this._context.subscriptions.push(
-            vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
-        );
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let queryHistoryFeature = config.get(Constants.configEnableQueryHistoryFeature);
+        // If the query history feature is enabled
+        if (queryHistoryFeature && !this._queryHistoryRegistered) {
+            // Register the query history tree provider
+            this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr, this._outputContentProvider,
+                this._vscodeWrapper, this._untitledSqlDocumentService, this._statusview, this._prompter);
 
-        // Command to refresh Query History
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdRefreshQueryHistory, (ownerUri: string, hasError: boolean) => {
-                const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-                let queryHistoryEnabled = config.get(Constants.configEnableQueryHistoryCapture);
-                if (queryHistoryEnabled) {
-                    const timeStamp = new Date();
-                    this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
-                }
-        }));
+            this._context.subscriptions.push(
+                vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
+            );
 
-        // Command to enable clear all entries in Query History
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdClearAllQueryHistory, () => {
-                this._queryHistoryProvider.clearAll();
-        }));
+            // Command to refresh Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRefreshQueryHistory, (ownerUri: string, hasError: boolean) => {
+                    config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+                    let queryHistoryFeatureEnabled = config.get(Constants.configEnableQueryHistoryFeature);
+                    let queryHistoryCaptureEnabled = config.get(Constants.configEnableQueryHistoryCapture);
+                    if (queryHistoryFeatureEnabled && queryHistoryCaptureEnabled) {
+                        const timeStamp = new Date();
+                        this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
+                    }
+            }));
 
-        // Command to enable delete an entry in Query History
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdDeleteQueryHistory, (node: QueryHistoryNode) => {
-                this._queryHistoryProvider.deleteQueryHistoryEntry(node);
-        }));
+            // Command to enable clear all entries in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdClearAllQueryHistory, () => {
+                    this._queryHistoryProvider.clearAll();
+            }));
 
-        // Command to enable open a query in Query History
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdOpenQueryHistory, async (node: QueryHistoryNode) => {
-                await this._queryHistoryProvider.openQueryHistoryEntry(node);
-        }));
+            // Command to enable delete an entry in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdDeleteQueryHistory, (node: QueryHistoryNode) => {
+                    this._queryHistoryProvider.deleteQueryHistoryEntry(node);
+            }));
 
-        // Command to enable run a query in Query History
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdRunQueryHistory, async (node: QueryHistoryNode) => {
-                await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
-        }));
+            // Command to enable open a query in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdOpenQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.openQueryHistoryEntry(node);
+            }));
 
-        // Command to start the query history capture
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdStartQueryHistory, async (node: QueryHistoryNode) => {
-                await this._queryHistoryProvider.startQueryHistoryCapture();
-        }));
+            // Command to enable run a query in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRunQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
+            }));
 
-        // Command to pause the query history capture
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdPauseQueryHistory, async (node: QueryHistoryNode) => {
-                await this._queryHistoryProvider.pauseQueryHistoryCapture();
-        }));
+            // Command to start the query history capture
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdStartQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.startQueryHistoryCapture();
+            }));
 
-        // Command to open the query history experience in the command palette
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdCommandPaletteQueryHistory, () => {
-                this._queryHistoryProvider.showQueryHistoryCommandPalette();
-        }));
+            // Command to pause the query history capture
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdPauseQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.pauseQueryHistoryCapture();
+            }));
+
+            // Command to open the query history experience in the command palette
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdCommandPaletteQueryHistory, () => {
+                    this._queryHistoryProvider.showQueryHistoryCommandPalette();
+            }));
+            this._queryHistoryRegistered = true;
+        }
     }
 
     /**
@@ -978,12 +986,24 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedUri = savedDocumentUri;
     }
 
+    private async onChangeQueryHistoryConfig(): Promise<void> {
+        let queryHistoryFeatureEnabled = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName)
+            .get(Constants.configEnableQueryHistoryFeature);
+        if (queryHistoryFeatureEnabled) {
+            this.initializeQueryHistory();
+        }
+    }
+
     /**
      * Called by VS Code when user settings are changed
      * @param ConfigurationChangeEvent event that is fired when config is changed
      */
     public async onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): Promise<void> {
         if (e.affectsConfiguration(Constants.extensionName)) {
+            // Query History settings change
+            await this.onChangeQueryHistoryConfig();
+
+            // Connections change
             let needsRefresh = false;
             // user connections is a super set of object explorer connections
             let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);
