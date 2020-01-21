@@ -223,32 +223,32 @@ export default class MainController implements vscode.Disposable {
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                     Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
-                        this.scriptNode(node, ScriptOperation.Select, true);
+                        await this.scriptNode(node, ScriptOperation.Select, true);
                     }));
 
                 // Script as Create
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                     Constants.cmdScriptCreate, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Create)));
+                    await this.scriptNode(node, ScriptOperation.Create)));
 
                 // Script as Drop
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                     Constants.cmdScriptDelete, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Delete)));
+                    await this.scriptNode(node, ScriptOperation.Delete)));
 
                 // Script as Execute
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                     Constants.cmdScriptExecute, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Execute)));
+                    await this.scriptNode(node, ScriptOperation.Execute)));
 
                 // Script as Alter
                 this._context.subscriptions.push(
                     vscode.commands.registerCommand(
                     Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Alter)));
+                    await this.scriptNode(node, ScriptOperation.Alter)));
 
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
