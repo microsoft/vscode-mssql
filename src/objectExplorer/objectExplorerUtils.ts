@@ -41,7 +41,8 @@ export class ObjectExplorerUtils {
     }
 
     public static getDatabaseName(node: TreeNodeInfo): string {
-        if (node.nodeType === Constants.serverLabel) {
+        if (node.nodeType === Constants.serverLabel ||
+            node.nodeType === Constants.disconnectedServerLabel) {
             return node.connectionCredentials.database;
         }
         while (node) {
