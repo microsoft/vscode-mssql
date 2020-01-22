@@ -25,7 +25,6 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
     private _queryHistoryNodes: vscode.TreeItem[] = [new EmptyHistoryNode()]
     private _queryHistoryLimit: number;
-    private _queryHistoryEnabled: boolean;
     private _queryHistoryUI: QueryHistoryUI;
 
     constructor(
@@ -38,7 +37,6 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     ) {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
-        this._queryHistoryEnabled = config.get(Constants.configEnableQueryHistoryCapture);
         this._queryHistoryUI = new QueryHistoryUI(this._prompter, this._vscodeWrapper);
     }
 
@@ -49,7 +47,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
     refresh(ownerUri: string, timeStamp: Date, hasError): void {
         const timeStampString = timeStamp.toLocaleString();
-        const historyNodeLabel = this.createHistoryNodeLabel(ownerUri, timeStampString);
+        const historyNodeLabel = this.createHistoryNodeLabel(ownerUri);
         const tooltip = this.createHistoryNodeTooltip(ownerUri, timeStampString);
         const queryString = this.getQueryString(ownerUri);
         const connectionLabel = this.getConnectionLabel(ownerUri);
@@ -68,7 +66,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         }
         // return the query history sorted by timestamp
         this._queryHistoryNodes.sort((a, b) => {
-            return (b as QueryHistoryNode).timeStamp.getTime()-
+            return (b as QueryHistoryNode).timeStamp.getTime() -
                 (a as QueryHistoryNode).timeStamp.getTime();
         });
         this._onDidChangeTreeData.fire();
@@ -79,7 +77,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     }
 
     async getChildren(element?: any): Promise<vscode.TreeItem[]> {
-        if (this._queryHistoryNodes.length == 0) {
+        if (this._queryHistoryNodes.length === 0) {
             this._queryHistoryNodes.push(new EmptyHistoryNode());
         }
         return this._queryHistoryNodes;
@@ -158,12 +156,12 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
      */
     public static limitStringSize(input: string, forCommandPalette: boolean = false): string {
         if (!forCommandPalette) {
-            if (input.length > 25) {
-                return `${input.substr(0, 10)}...${input.substr(input.length-10, input.length)}`
+            if (input.length > 45) {
+                return `${input.substr(0, 20)}...${input.substr(input.length - 20, input.length)}`;
             }
         } else {
-            if (input.length > 45) {
-                return `${input.substr(0, 20)}...${input.substr(input.length-20, input.length)}`
+            if (input.length > 100) {
+                return `${input.substr(0, 45)}...${input.substr(input.length - 45, input.length)}`;
             }
         }
         return input;
@@ -172,10 +170,10 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     /**
      * Creates the node label for a query history node
      */
-    private createHistoryNodeLabel(ownerUri: string, timeStamp: string): string {
-        const queryString = QueryHistoryProvider.limitStringSize(this.getQueryString(ownerUri));
-        const connectionLabel = QueryHistoryProvider.limitStringSize(this.getConnectionLabel(ownerUri));
-        return `${queryString}, ${connectionLabel}, ${timeStamp}`;
+    private createHistoryNodeLabel(ownerUri: string): string {
+        const queryString = QueryHistoryProvider.limitStringSize(this.getQueryString(ownerUri)).trim();
+        const connectionLabel = QueryHistoryProvider.limitStringSize(this.getConnectionLabel(ownerUri)).trim();
+        return `${queryString} : ${connectionLabel}`;
     }
 
     /**
