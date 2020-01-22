@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
+import * as Utils from '../models/utils';
 import ConnectionManager from '../controllers/connectionManager';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { QueryHistoryNode, EmptyHistoryNode } from './queryHistoryNode';
@@ -155,27 +156,11 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     }
 
     /**
-     * Limits the size of a string with ellipses in the middle
-     */
-    public static limitStringSize(input: string, forCommandPalette: boolean = false): string {
-        if (!forCommandPalette) {
-            if (input.length > 45) {
-                return `${input.substr(0, 20)}...${input.substr(input.length - 20, input.length)}`;
-            }
-        } else {
-            if (input.length > 100) {
-                return `${input.substr(0, 45)}...${input.substr(input.length - 45, input.length)}`;
-            }
-        }
-        return input;
-    }
-
-    /**
      * Creates the node label for a query history node
      */
     private createHistoryNodeLabel(ownerUri: string): string {
-        const queryString = QueryHistoryProvider.limitStringSize(this.getQueryString(ownerUri)).trim();
-        const connectionLabel = QueryHistoryProvider.limitStringSize(this.getConnectionLabel(ownerUri)).trim();
+        const queryString = Utils.limitStringSize(this.getQueryString(ownerUri)).trim();
+        const connectionLabel = Utils.limitStringSize(this.getConnectionLabel(ownerUri)).trim();
         return `${queryString} : ${connectionLabel}`;
     }
 

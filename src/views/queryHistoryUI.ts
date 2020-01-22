@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import VscodeWrapper from "../controllers/vscodeWrapper";
-import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
-import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
+import * as Utils from '../models/utils';
+import VscodeWrapper from '../controllers/vscodeWrapper';
+import { IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 
@@ -32,7 +32,7 @@ export class QueryHistoryUI {
     public convertToQuickPickItem(node: vscode.TreeItem): QueryHistoryQuickPickItem {
         let historyNode = node as QueryHistoryNode;
         let quickPickItem: QueryHistoryQuickPickItem = {
-            label: QueryHistoryProvider.limitStringSize(historyNode.queryString, true).trim(),
+            label: Utils.limitStringSize(historyNode.queryString, true).trim(),
             detail: `${historyNode.connectionLabel}, ${historyNode.timeStamp.toLocaleString()}`,
             node: historyNode,
             action: undefined,
