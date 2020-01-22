@@ -86,11 +86,14 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     /**
      *
      */
-    public async showQueryHistoryCommandPalette(): Promise<void> {
+    public async showQueryHistoryCommandPalette(): Promise<void | undefined> {
         const options = this._queryHistoryNodes.map(node => this._queryHistoryUI.convertToQuickPickItem(node));
         let queryHistoryQuickPickItem = await this._queryHistoryUI.showQueryHistoryCommandPalette(options);
-        this.openQueryHistoryEntry(queryHistoryQuickPickItem.node, queryHistoryQuickPickItem.action ===
-            QueryHistoryAction.RunQueryHistoryAction);
+        if (queryHistoryQuickPickItem) {
+            await this.openQueryHistoryEntry(queryHistoryQuickPickItem.node, queryHistoryQuickPickItem.action ===
+                QueryHistoryAction.RunQueryHistoryAction);
+        }
+        return undefined;
     }
 
     /**

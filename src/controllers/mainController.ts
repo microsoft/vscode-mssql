@@ -462,8 +462,8 @@ export default class MainController implements vscode.Disposable {
             // Command to open the query history experience in the command palette
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
-                    Constants.cmdCommandPaletteQueryHistory, () => {
-                    this._queryHistoryProvider.showQueryHistoryCommandPalette();
+                    Constants.cmdCommandPaletteQueryHistory, async () => {
+                    await this._queryHistoryProvider.showQueryHistoryCommandPalette();
             }));
             this._queryHistoryRegistered = true;
         }
