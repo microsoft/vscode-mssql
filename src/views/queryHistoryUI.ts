@@ -14,12 +14,13 @@ import * as LocalizedConstants from '../constants/localizedConstants';
 export enum QueryHistoryAction {
     OpenQueryHistoryAction = 1,
     RunQueryHistoryAction = 2
-};
+}
 
+// tslint:disable-next-line: interface-name
 export interface QueryHistoryQuickPickItem extends vscode.QuickPickItem {
     node: QueryHistoryNode;
     action: any;
-};
+}
 
 export class QueryHistoryUI {
 
@@ -31,7 +32,7 @@ export class QueryHistoryUI {
     public convertToQuickPickItem(node: vscode.TreeItem): QueryHistoryQuickPickItem {
         let historyNode = node as QueryHistoryNode;
         let quickPickItem: QueryHistoryQuickPickItem = {
-            label: QueryHistoryProvider.limitStringSize(historyNode.queryString, true),
+            label: QueryHistoryProvider.limitStringSize(historyNode.queryString, true).trim(),
             detail: `${historyNode.connectionLabel}, ${historyNode.timeStamp.toLocaleString()}`,
             node: historyNode,
             action: undefined,
@@ -76,7 +77,7 @@ export class QueryHistoryUI {
                         answer.action = QueryHistoryAction.RunQueryHistoryAction;
                     }
                     return answer;
-                })
+                });
             }
             return undefined;
         });

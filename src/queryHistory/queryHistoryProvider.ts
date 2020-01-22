@@ -188,8 +188,13 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
      * Creates a connection label based on credentials
      */
     private getConnectionLabel(ownerUri: string): string {
-        let connInfo = this._connectionManager.getConnectionInfo(ownerUri);
-        return `(${connInfo.credentials.server}|${connInfo.credentials.database})`;
+        const connInfo = this._connectionManager.getConnectionInfo(ownerUri);
+        const credentials = connInfo.credentials;
+        let connString = `(${credentials.server}|${credentials.database})`;
+        if (credentials.authenticationType === Constants.sqlAuthentication) {
+            connString = `${connString} : ${credentials.user}`;
+        }
+        return connString;
     }
 
     /**
