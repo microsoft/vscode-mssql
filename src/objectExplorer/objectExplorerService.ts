@@ -130,7 +130,7 @@ export class ObjectExplorerService {
         return handler;
     }
 
-    private getParentFromExpandParams(params: ExpandParams): TreeNodeInfo {
+    private getParentFromExpandParams(params: ExpandParams): TreeNodeInfo | undefined {
         for (let key of this._expandParamsToTreeNodeInfoMap.keys()) {
             if (key.sessionId === params.sessionId &&
                 key.nodePath === params.nodePath) {
