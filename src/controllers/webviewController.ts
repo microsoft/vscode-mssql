@@ -72,6 +72,7 @@ export class WebviewPanelController implements vscode.Disposable {
             }
         }));
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), serverProxy, false);
+        this._disposables.push(this.proxy);
     }
 
     /**
