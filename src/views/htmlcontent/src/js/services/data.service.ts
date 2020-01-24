@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Subject } from 'rxjs/Subject';
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { ISlickRange } from 'angular2-slickgrid';
 import { QueryEvent, ResultSetSubset, ISelectionData } from './../../../../../models/interfaces';
 import * as Constants from './../constants';
@@ -34,7 +34,7 @@ function createMessageProtocol(): IMessageProtocol {
  */
 
 @Injectable()
-export class DataService {
+export class DataService implements OnDestroy {
     private _shortcuts;
     private _config;
     private _proxy: IServerProxy;
@@ -42,7 +42,8 @@ export class DataService {
 
     constructor() {
         this._proxy = createProxy(createMessageProtocol(), {
-            sendEvent: (type, args) => this.sendEvent(type, args)
+            sendEvent: (type, args) => this.sendEvent(type, args),
+            dispose: () => void(0)
         }, true);
 
         this.getLocalizedTextsRequest().then(result => {
@@ -52,7 +53,12 @@ export class DataService {
         });
     }
 
-   private sendEvent(type: string, arg: any): void {
+    ngOnDestroy(): void {
+        this.dataEventObs.dispose();
+        this._proxy.dispose();
+    }
+
+    private sendEvent(type: string, arg: any): void {
         this.dataEventObs.next({ type, data: arg });
     }
 
