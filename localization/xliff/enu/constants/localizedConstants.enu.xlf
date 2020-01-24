@@ -120,7 +120,7 @@
             <source xml:lang="en">Profile Name</source>
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
-            <source xml:lang="en">[Optional] Enter a name for this profile</source>
+            <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
         </trans-unit>
         <trans-unit id="filepathPrompt">
             <source xml:lang="en">File path</source>
@@ -236,9 +236,6 @@
         <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
             <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
         </trans-unit>
-        <trans-unit id="msgPromptRetryFirewallRuleNotActivated">
-            <source xml:lang="en">Your client IP address does not have access to the server. Activate the Azure Account extension and sign in to an Azure account and create a new firewall rule to enable access.</source>
-        </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
             <source xml:lang="en">Account signed In. Create new firewall rule? </source>
         </trans-unit>
@@ -251,6 +248,9 @@
         <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
             <source xml:lang="en">Azure Account extension activated and signed in.</source>
         </trans-unit>
+        <trans-unit id="msgPromptFirewallRuleCreated">
+            <source xml:lang="en">Firewall rule successfully created.</source>
+        </trans-unit>
         <trans-unit id="msgInvalidIpAddress">
             <source xml:lang="en">Invalid IP Address </source>
         </trans-unit>
@@ -262,9 +262,6 @@
         </trans-unit>
         <trans-unit id="downloadAndInstallLabel">
             <source xml:lang="en">Download and Install</source>
-        </trans-unit>
-        <trans-unit id="activateLabel">
-            <source xml:lang="en">Activate</source>
         </trans-unit>
         <trans-unit id="createFirewallRuleLabel">
             <source xml:lang="en">Create Firewall Rule</source>

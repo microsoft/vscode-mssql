@@ -280,6 +280,11 @@ suite('ConnectionStore tests', () => {
             return workspaceConfiguration;
         });
 
+        vscodeWrapper.setup(x => x.setConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(() => {
+            return workspaceConfiguration.update('connections', [defaultNamedProfile, namedProfile]);
+        });
+
         let config = new ConnectionConfig(vscodeWrapper.object);
 
         credentialStore.setup(x => x.deleteCredential(TypeMoq.It.isAny()))
@@ -318,6 +323,11 @@ suite('ConnectionStore tests', () => {
         vscodeWrapper.setup(x => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .returns(x => {
             return workspaceConfiguration;
+        });
+
+        vscodeWrapper.setup(x => x.setConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        .returns(() => {
+            return workspaceConfiguration.update('connections', [defaultNamedProfile, unnamedProfile]);
         });
 
         let config = new ConnectionConfig(vscodeWrapper.object);
@@ -635,5 +645,31 @@ suite('ConnectionStore tests', () => {
         done();
     });
 
+    test('lookupPassword should call the credential store to read the credential', async () => {
+
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
+        let connectionCredentials: any = {
+            server: 'test_server',
+            database: 'test_database',
+            user: 'test_user'
+        };
+        let password = await connectionStore.lookupPassword(connectionCredentials);
+        credentialStore.verify(c => c.readCredential(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        assert.equal(password, undefined);
+    });
+
+    test('deleteCredential should call the credential store to delete the credential', async () => {
+        credentialStore.setup(c => c.readCredential(TypeMoq.It.isAny())).returns(() => Promise.resolve({ credentialId: 'test', password: 'test'}));
+        credentialStore.setup(c => c.deleteCredential(TypeMoq.It.isAny())).returns(() => undefined);
+        let connectionStore = new ConnectionStore(context.object, credentialStore.object, connectionConfig.object);
+        let connectionCredentials: any = {
+            server: 'test_server',
+            database: 'test_database',
+            user: 'test_user'
+        };
+        let password = await connectionStore.deleteCredential(connectionCredentials);
+        credentialStore.verify(c => c.deleteCredential(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        assert.equal(password, undefined);
+    });
 });
 

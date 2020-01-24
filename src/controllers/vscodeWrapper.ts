@@ -63,7 +63,7 @@ export default class VscodeWrapper {
     public get activeTextEditorUri(): string {
         if (typeof vscode.window.activeTextEditor !== 'undefined' &&
             typeof vscode.window.activeTextEditor.document !== 'undefined') {
-            return vscode.window.activeTextEditor.document.uri.toString();
+            return vscode.window.activeTextEditor.document.uri.toString(true);
         }
         return undefined;
     }
@@ -339,6 +339,13 @@ export default class VscodeWrapper {
     }
 
     /**
+     * Change a configuration setting
+     */
+    public setConfiguration(extensionName: string, resource: string, value: any): Thenable<void> {
+        return this.getConfiguration(extensionName).update(resource, value, vscode.ConfigurationTarget.Global);
+    }
+
+    /*
      * Called when there's a change in the extensions
      */
     public get onDidChangeExtensions(): vscode.Event<void> {

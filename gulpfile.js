@@ -1,6 +1,5 @@
 ﻿var gulp = require('gulp');
 var rename = require('gulp-rename');
-var install = require('gulp-install');
 var gulpTsLint = require('gulp-tslint');
 var ts = require('gulp-typescript');
 var tslint = require('tslint');
@@ -11,10 +10,11 @@ var config = require('./tasks/config');
 var concat = require('gulp-concat');
 var minifier = require('gulp-uglify/minifier');
 var uglifyjs = require('uglify-js');
-var cproc = require('child_process');
 var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
+var vscodeTest = require('vscode-test');
+var packageJson = require('./package.json');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -243,18 +243,24 @@ gulp.task('ext:test', (done) => {
         workspace = process.cwd();
     }
     process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
-    var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates'];
-    cproc.exec(`code --extensionDevelopmentPath="${workspace}" --extensionTestsPath="${workspace}/out/test" ${args.join(' ')}`,
-        { maxBuffer: 1024 * 500 },
-        (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            process.exit(1);
+    var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
+    let vscodeVersion = packageJson.engines.vscode.slice(1);
+    let extensionTestsPath = `${workspace}/out/test`;
+    vscodeTest.downloadAndUnzipVSCode(vscodeVersion).then((vscodePath) => {
+        if (vscodePath) {
+            vscodeTest.runTests({
+                vscodeExecutablePath: vscodePath,
+                extensionDevelopmentPath: workspace,
+                extensionTestsPath: extensionTestsPath,
+                launchArgs: args
+            }).then(() => done()).catch((error) => {
+                console.log(`stdout: ${process.stdout}`);
+                console.log(`stderr: ${process.stderr}`);
+                console.error(`exec error: ${error}`);
+                throw(error);
+            });
         }
-        console.log(`stdout: ${stdout}`);
-        console.log(`stderr: ${stderr}`);
-        done();
-    });
+    })
 });
 
 gulp.task('test', gulp.series('ext:test'));
@@ -267,13 +273,8 @@ gulp.task('clean', function (done) {
 
 gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
-gulp.task('install', function() {
-    return gulp.src(['./package.json'])
-                .pipe(install());
-});
-
 gulp.task('watch', function(){
     return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
 });
 
-// gulp.task('lint', gulp.series('ext:lint'));
+gulp.task('lint', gulp.series('ext:lint'));

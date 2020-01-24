@@ -25,6 +25,9 @@ export function activate(context: vscode.ExtensionContext): Promise<boolean> {
     if (applyLocalization) {
         LocalizedConstants.loadLocalizedConstants(vscode.env.language);
     }
+
+    // Exposed for testing purposes
+    vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
     return controller.activate();
 }
 
@@ -39,6 +42,10 @@ export function deactivate(): void {
 /**
  * Exposed for testing purposes
  */
-export function getController(): MainController {
+export async function getController(): Promise<MainController> {
+    if (!controller) {
+        let savedController: MainController = await vscode.commands.executeCommand('mssql.getControllerForTests');
+        return savedController;
+    }
     return controller;
 }

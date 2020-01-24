@@ -294,6 +294,13 @@ export default class QueryRunner {
 
         // Send the message to the results pane
         this.eventEmitter.emit('message', message);
+
+        // Set row count on status bar if there are no errors
+        if (!obj.message.isError) {
+            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
+        } else {
+            this._statusView.hideRowCount(obj.ownerUri, true);
+        }
     }
 
     /*
@@ -412,20 +419,37 @@ export default class QueryRunner {
 
         // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
+        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
+        const firstColumn = endColumns[0];
+        const lastColumn = endColumns[1];
         for (let rowId of allRowIds) {
             let row = rowIdToRowMap.get(rowId);
             const rowSelections = rowIdToSelectionMap.get(rowId);
+
+            // sort selections by column to go from left to right
+            rowSelections.sort((a, b) => {
+                return ((a.fromCell < b.fromCell) ? -1 : (a.fromCell > b.fromCell) ? 1 : 0);
+            });
+
             for (let i = 0; i < rowSelections.length; i++) {
                 let rowSelection = rowSelections[i];
-                for (let j = 0; j < rowSelection.fromCell; j++) {
-                    copyString += ' \t';
+
+                // Add tabs starting from the first column of the selection
+                for (let j = firstColumn; j < rowSelection.fromCell; j++) {
+                    copyString += '\t';
                 }
                 let cellObjects = row.slice(rowSelection.fromCell, (rowSelection.toCell + 1));
+
                 // Remove newlines if requested
                 let cells = this.shouldRemoveNewLines()
                 ? cellObjects.map(x => this.removeNewLines(x.displayValue))
                 : cellObjects.map(x => x.displayValue);
                 copyString += cells.join('\t');
+
+                // Add tabs until the end column of the selection
+                for (let k = rowSelection.toCell; k < lastColumn; k++) {
+                    copyString += '\t';
+                }
             }
             copyString += os.EOL;
         }
@@ -503,11 +527,32 @@ export default class QueryRunner {
     }
 
     /**
+     * Gets the first and last column of a selection: [first, last]
+     */
+    private getSelectionEndColumns(rowIdToRowMap: Map<number, DbCellValue[]>, rowIdToSelectionMap: Map<number, ISlickRange[]>): number[] {
+        let allRowIds = rowIdToRowMap.keys();
+        let firstColumn = -1;
+        let lastColumn = -1;
+        for (let rowId of allRowIds) {
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+            for (let i = 0; i < rowSelections.length; i++) {
+                if (firstColumn === -1 || rowSelections[i].fromCell < firstColumn) {
+                    firstColumn = rowSelections[i].fromCell;
+                }
+                if (lastColumn === -1 || rowSelections[i].toCell > lastColumn) {
+                    lastColumn = rowSelections[i].toCell;
+                }
+            }
+        }
+        return [firstColumn, lastColumn];
+    }
+
+    /**
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
-        const docExists = this._vscodeWrapper.textDocuments.find(textDoc => textDoc.uri.toString() === this.uri);
+        const docExists = this._vscodeWrapper.textDocuments.find(textDoc => textDoc.uri.toString(true) === this.uri);
         if (docExists) {
             let column = vscode.ViewColumn.One;
             const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this.uri));

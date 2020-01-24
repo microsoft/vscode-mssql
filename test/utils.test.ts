@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import * as Utils from './../src/models/utils';
 import Constants = require('../src/constants/constants');
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
@@ -86,5 +86,58 @@ suite('Utility Tests - isSameConnection', () => {
 
     test('should return false for connectionstring and non-connectionstring connections', () => {
         expect(Utils.isSameConnection(connection1, connection3)).to.equal(false);
+    });
+});
+
+suite('Utility tests - getSignInQuickPickItems', () => {
+    let quickPickItems = Utils.getSignInQuickPickItems();
+
+    test('first quick pick item should be Azure Sign In', () => {
+        let signInItem = quickPickItems[0];
+        assert.notEqual(signInItem.label, undefined);
+        assert.notEqual(signInItem.description, undefined);
+        assert.equal(signInItem.command, Constants.cmdAzureSignIn);
+    });
+
+    test('second quick pick item should be Azure Sign In With Device Code', () => {
+        let signInWithDeviceCodeItem = quickPickItems[1];
+        assert.notEqual(signInWithDeviceCodeItem.label, undefined);
+        assert.notEqual(signInWithDeviceCodeItem.description, undefined);
+        assert.equal(signInWithDeviceCodeItem.command, Constants.cmdAzureSignInWithDeviceCode);
+    });
+
+    test('third quick pick item should be Azure Sign In to Azure Cloud', () => {
+        let signInToAzureCloudItem = quickPickItems[2];
+        assert.notEqual(signInToAzureCloudItem.label, undefined);
+        assert.notEqual(signInToAzureCloudItem.description, undefined);
+        assert.equal(signInToAzureCloudItem.command, Constants.cmdAzureSignInToCloud);
+    });
+});
+
+suite('Utility tests - Timer Class', () => {
+    let timer = new Utils.Timer();
+
+    test('timer should start when initiated', (done) => {
+        let p = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                let duration = timer.getDuration();
+                assert.isAbove(duration, 0);
+                resolve();
+            }, 100);
+        });
+        p.then(() => done());
+    });
+
+    test('timer should end when ended', (done) => {
+        let duration = timer.getDuration();
+        timer.end();
+        let p = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                let newDuration = timer.getDuration();
+                assert.notEqual(duration, newDuration);
+                resolve();
+            }, 100);
+        });
+        p.then(() => done());
     });
 });

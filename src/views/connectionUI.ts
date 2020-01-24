@@ -37,9 +37,9 @@ export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
 
     constructor(private _connectionManager: ConnectionManager,
-                private _connectionStore: ConnectionStore,
-                private _prompter: IPrompter,
-                private _vscodeWrapper?: VscodeWrapper) {
+        private _connectionStore: ConnectionStore,
+        private _prompter: IPrompter,
+        private _vscodeWrapper?: VscodeWrapper) {
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
@@ -93,13 +93,13 @@ export class ConnectionUI {
                     placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
                     matchOnDescription: true
                 }, picklist)
-                .then(selection => {
-                    if (selection) {
-                        resolve(self.handleSelectedConnection(selection));
-                    } else {
-                        resolve(undefined);
-                    }
-                });
+                    .then(selection => {
+                        if (selection) {
+                            resolve(self.handleSelectedConnection(selection));
+                        } else {
+                            resolve(undefined);
+                        }
+                    });
             }
         });
     }
@@ -238,7 +238,7 @@ export class ConnectionUI {
 
     // Helper to let the user choose a database on the current server
     public showDatabasesOnCurrentServer(currentCredentials: IConnectionCredentials,
-                                        databaseNames: Array<string>): Promise<IConnectionCredentials> {
+        databaseNames: Array<string>): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
             const pickListItems: vscode.QuickPickItem[] = databaseNames.map(name => {
@@ -470,53 +470,15 @@ export class ConnectionUI {
                 // Check whether the error was for firewall rule or not
                 if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
                     // Firewall rule error
-                    const clientIp = self.connectionManager.failedUriToFirewallIpMap.get(uri);
-
-                    // Check whether the azure account extension is installed and active
-                    if (self._vscodeWrapper.azureAccountExtensionActive) {
-                        // Sign in to azure account
-                        const signedIn = await self.promptForAccountSignIn();
-                        if (signedIn) {
-                            // Create a firewall rule for the server
-                            let success = await self.createFirewallRule(profile, profile.server, clientIp);
-                            if (success) {
-                                // Retry creating the profile if firewall rule
-                                // was successful
-                                self.connectionManager.failedUriToFirewallIpMap.delete(uri);
-                                return self.validateAndSaveProfile(profile);
-                            }
-                        }
-                    } else {
-                        // If the extension exists but not active
-                        if (self._vscodeWrapper.azureAccountExtension) {
-                            // Prompt user to activate the extension
-                            return self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotActivated,
-                                LocalizedConstants.activateLabel).then(async (selection) => {
-                                    if (selection === LocalizedConstants.activateLabel) {
-                                        await self._vscodeWrapper.azureAccountExtension.activate();
-                                        await this.showAzureExtensionActivated();
-                                    }
-                                    return undefined;
-                                });
-                        } else {
-                            // Show recommendation to download the azure account extension
-                            return self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleExtNotInstalled,
-                                LocalizedConstants.downloadAndInstallLabel).then(async (selection) => {
-                                if (selection === LocalizedConstants.downloadAndInstallLabel) {
-                                    self._vscodeWrapper.executeCommand(Constants.cmdOpenExtension, Constants.azureAccountExtensionId).then(async (f) => {
-                                        self._vscodeWrapper.onDidChangeExtensions(async (e) => {
-                                            // Activate the Azure Account extension and call the function again
-                                            if (self._vscodeWrapper.azureAccountExtension) {
-                                                await self._vscodeWrapper.azureAccountExtension.activate();
-                                                await this.showAzureExtensionActivated();
-                                            }
-                                        });
-                                    });
-                                }
-                                return undefined;
-                            });
-                        }
+                    const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
+                    let success = await this.handleFirewallError(uri, profile, clientIp);
+                    if (success) {
+                        // Retry creating the profile if firewall rule
+                        // was successful
+                        self.connectionManager.failedUriToFirewallIpMap.delete(uri);
+                        return self.validateAndSaveProfile(profile);
                     }
+                    return undefined;
                 } else {
                     // Normal connection error! Let the user try again, prefilling values that they already entered
                     return self.promptToRetryAndSaveProfile(profile);
@@ -526,14 +488,55 @@ export class ConnectionUI {
     }
 
     /**
-     * Save a connection profile using the connection store.
+     * Method to handle a firewall error. Returns true if a firewall rule was successfully added, and
+     * false otherwise
+     */
+    public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
+        // Check whether the azure account extension is installed and active
+        if (this._vscodeWrapper.azureAccountExtensionActive) {
+            // Sign in to azure account
+            const signedIn = await this.promptForAccountSignIn();
+            if (signedIn) {
+                // Create a firewall rule for the server
+                let success = await this.createFirewallRule(profile, profile.server, ipAddress);
+                if (success) {
+                    this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
+                }
+                return success;
+            }
+        } else {
+            // If the extension exists but not active
+            if (this._vscodeWrapper.azureAccountExtension) {
+                await this._vscodeWrapper.azureAccountExtension.activate();
+                return this.handleExtensionActivation();
+            } else {
+                // Show recommendation to download the azure account extension
+                const selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleExtNotInstalled,
+                    LocalizedConstants.downloadAndInstallLabel);
+                if (selection === LocalizedConstants.downloadAndInstallLabel) {
+                    await this._vscodeWrapper.executeCommand(Constants.cmdOpenExtension, Constants.azureAccountExtensionId);
+                    this._vscodeWrapper.onDidChangeExtensions(async (e) => {
+                        // Activate the Azure Account extension and call the function again
+                        if (this._vscodeWrapper.azureAccountExtension) {
+                            await this._vscodeWrapper.azureAccountExtension.activate();
+                            await this.handleExtensionActivation();
+                        }
+                    });
+                }
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Save a connection profile using the connection store
      */
     private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         return this._connectionStore.saveProfile(profile);
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
-        return ConnectionProfile.createProfile(this._prompter);
+        return ConnectionProfile.createProfile(this._prompter, this._connectionStore);
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -550,7 +553,7 @@ export class ConnectionUI {
         let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
         return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
-                return ConnectionProfile.createProfile(this._prompter, profile);
+                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, profile);
             } else {
                 return undefined;
             }
@@ -570,16 +573,16 @@ export class ConnectionUI {
         });
     }
 
-    private async showAzureExtensionActivated(): Promise<boolean> {
+    private async handleExtensionActivation(): Promise<boolean> {
         if (!this._vscodeWrapper.isAccountSignedIn) {
-            return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
-                LocalizedConstants.signInLabel).then((result) => {
-                    if (result === LocalizedConstants.signInLabel) {
-                        return this.showSignInOptions();
-                    }
-            });
+            const result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
+                LocalizedConstants.signInLabel);
+            if (result === LocalizedConstants.signInLabel) {
+                return this.showSignInOptions();
+            }
+            return false;
         } else {
-            return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedSignedIn).then(() => true);
+            return true;
         }
     }
 
@@ -643,7 +646,7 @@ export class ConnectionUI {
     }
 
     private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): Promise<boolean> {
-        return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
+        return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
                 const firewallService = this.connectionManager.firewallService;
                 let ipRange = await this.promptForIpAddress(ipAddress);
@@ -668,12 +671,12 @@ export class ConnectionUI {
         // Ask if the user would like to fix the profile
         return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryConnectionDifferentCredentials
             , LocalizedConstants.retryLabel).then(result => {
-            if (result === LocalizedConstants.retryLabel) {
-                return true;
-            } else {
-                return false;
-            }
-        });
+                if (result === LocalizedConstants.retryLabel) {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
     }
 
     private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
@@ -686,15 +689,15 @@ export class ConnectionUI {
 
         const passwordEmptyInConfigFile: boolean = Utils.isEmpty(selection.connectionCreds.password);
         return this._connectionStore.addSavedPassword(selection)
-        .then(sel => {
-            return ConnectionCredentials.ensureRequiredPropertiesSet(
-                sel.connectionCreds,
-                selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
-                false,
-                passwordEmptyInConfigFile,
-                this._prompter,
-                this._connectionStore);
-        });
+            .then(sel => {
+                return ConnectionCredentials.ensureRequiredPropertiesSet(
+                    sel.connectionCreds,
+                    selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
+                    false,
+                    passwordEmptyInConfigFile,
+                    this._prompter,
+                    this._connectionStore);
+            });
     }
 
     // Prompts the user to pick a profile for removal, then removes from the global saved state
@@ -704,18 +707,18 @@ export class ConnectionUI {
         // Flow: Select profile to remove, confirm removal, remove, notify
         let profiles = self._connectionStore.getProfilePickListItems(false);
         return self.selectProfileForRemoval(profiles)
-        .then(profile => {
-            if (profile) {
-                return self._connectionStore.removeProfile(profile);
-            }
-            return false;
-        }).then(result => {
-            if (result) {
-                // TODO again consider moving information prompts to the prompt package
-                this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
-            }
-            return result;
-        });
+            .then(profile => {
+                if (profile) {
+                    return self._connectionStore.removeProfile(profile);
+                }
+                return false;
+            }).then(result => {
+                if (result) {
+                    // TODO again consider moving information prompts to the prompt package
+                    this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+                }
+                return result;
+            });
     }
 
     private selectProfileForRemoval(profiles: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionProfile> {

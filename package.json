@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
@@ -75,6 +75,7 @@
     "@types/mocha": "^5.2.7",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
+    "@types/vscode": "^1.38.0",
     "assert": "^1.4.1",
     "chai": "^3.5.0",
     "copy-paste": "^1.3.0",
@@ -83,7 +84,6 @@
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#v4.0.0",
     "gulp-concat": "^2.6.0",
-    "gulp-install": "^0.6.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-json-editor": "^2.2.1",
     "gulp-rename": "^1.2.2",
@@ -106,7 +106,7 @@
     "typescript": "3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vsce": "^1.58.0",
-    "vscode": "^1.1.33",
+    "vscode-test": "^1.0.0",
     "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
     "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
@@ -180,6 +180,18 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "mssql.runQuery",
+          "when": "editorLangId == sql",
+          "group": "navigation@1"
+        },
+        {
+          "command": "mssql.cancelQuery",
+          "when": "editorLangId == sql",
+          "group": "navigation@2"
+        }
+      ],
       "editor/context": [
         {
           "command": "mssql.runQuery",
@@ -203,17 +215,17 @@
         {
           "command": "mssql.removeObjectExplorerNode",
           "when": "view == objectExplorer && viewItem =~ /^(disconnectedServer|Server)$/",
-          "group": "MS_SQL@3"
+          "group": "MS_SQL@4"
         },
         {
           "command": "mssql.refreshObjectExplorerNode",
           "when": "view == objectExplorer && viewItem != disconnectedServer",
-          "group": "MS_SQL@2"
+          "group": "MS_SQL@10"
         },
         {
           "command": "mssql.disconnectObjectExplorerNode",
           "when": "view == objectExplorer && viewItem == Server",
-          "group": "MS_SQL@4"
+          "group": "MS_SQL@3"
         },
         {
           "command": "mssql.scriptSelect",
@@ -223,22 +235,22 @@
         {
           "command": "mssql.scriptCreate",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@2"
         },
         {
           "command": "mssql.scriptDelete",
           "when": "view == objectExplorer && viewItem =~ /^(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@3"
         },
         {
           "command": "mssql.scriptExecute",
           "when": "view == objectExplorer && viewItem =~ /^(StoredProcedure)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@5"
         },
         {
           "command": "mssql.scriptAlter",
           "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@4"
         }
       ],
       "commandPalette": [
@@ -288,7 +300,11 @@
       {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "light": "images/start.svg",
+          "dark": "images/start_inverse.svg"
+        }
       },
       {
         "command": "mssql.runCurrentStatement",
@@ -298,7 +314,11 @@
       {
         "command": "mssql.cancelQuery",
         "title": "%mssql.cancelQuery%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "light": "images/stop.svg",
+          "dark": "images/stop_inverse.svg"
+        }
       },
       {
         "command": "mssql.connect",
@@ -809,8 +829,5 @@
         }
       }
     }
-  },
-  "scripts": {
-    "postinstall": "node ./node_modules/vscode/bin/install"
   }
 }

@@ -13,7 +13,7 @@ import { IRange } from '../../../../../models/interfaces';
  */
 
 const template = `
-<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top]="position.y" [style.left]="position.x">
+<ul class="contextMenu" style="position:absolute" [class.hidden]="!visible" [style.top.px]="position.y" [style.left.px]="position.x">
     <li id="copy" (click)="handleContextActionClick('copySelection')" [class.disabled]="isDisabled"> {{Constants.copyLabel}}
         <span style="float: right; color: lightgrey; padding-left: 10px">{{keys['event.copySelection']}}</span>
     </li>

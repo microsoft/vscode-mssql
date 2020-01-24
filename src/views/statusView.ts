@@ -32,6 +32,9 @@ class FileStatusBar {
     // Item for SQLCMD Mode
     public sqlCmdMode: vscode.StatusBarItem;
 
+    // Item for Row Count
+    public rowCount: vscode.StatusBarItem;
+
     public currentLanguageServiceStatus: string;
 }
 
@@ -58,6 +61,7 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
                 this._statusBars[bar].sqlCmdMode.dispose();
+                this._statusBars[bar].rowCount.dispose();
                 clearInterval(this._statusBars[bar].progressTimerId);
                 delete this._statusBars[bar];
             }
@@ -74,7 +78,8 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusLanguageService = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-        bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
+        bar.rowCount = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80);
         this._statusBars[fileUri] = bar;
     }
 
@@ -98,6 +103,9 @@ export default class StatusView implements vscode.Disposable {
             }
             if (bar.sqlCmdMode) {
                 bar.sqlCmdMode.dispose();
+            }
+            if (bar.rowCount) {
+                bar.rowCount.dispose();
             }
 
             delete this._statusBars[fileUri];
@@ -124,6 +132,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
+        this.showStatusBarItem(fileUri, bar.rowCount);
     }
 
     public notConnected(fileUri: string): void {
@@ -217,6 +226,23 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
     }
 
+    public showRowCount(fileUri: string, message?: string): void {
+        let bar = this.getStatusBar(fileUri);
+        if (message) {
+            // Remove parentheses from start and end
+            bar.rowCount.text = message.slice(1, -1);
+        }
+        this.showStatusBarItem(fileUri, bar.rowCount);
+    }
+
+    public hideRowCount(fileUri: string, clear: boolean = false): void {
+        let bar = this.getStatusBar(fileUri);
+        if (clear) {
+            bar.rowCount.text = '';
+        }
+        bar.rowCount.hide();
+    }
+
     public updateStatusMessage(
         newStatus: string,
         getCurrentStatus: () => string,
@@ -270,6 +296,7 @@ export default class StatusView implements vscode.Disposable {
             this._lastShownStatusBar.statusQuery.hide();
             this._lastShownStatusBar.statusLanguageService.hide();
             this._lastShownStatusBar.sqlCmdMode.hide();
+            this._lastShownStatusBar.rowCount.hide();
         }
     }
 
@@ -278,20 +305,21 @@ export default class StatusView implements vscode.Disposable {
         if (typeof editor !== 'undefined') {
             // Hide the most recently shown status bar
             this.hideLastShownStatusBar();
-            const fileUri = editor.document.uri.toString();
+            const fileUri = editor.document.uri.toString(true);
             const bar = this._statusBars[fileUri];
             if (bar) {
                 this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
                 this.showStatusBarItem(fileUri, bar.statusConnection);
                 this.showStatusBarItem(fileUri, bar.statusLanguageService);
                 this.showStatusBarItem(fileUri, bar.sqlCmdMode);
+                this.showStatusBarItem(fileUri, bar.rowCount);
             }
         }
     }
 
     private onDidCloseTextDocument(doc: vscode.TextDocument): void {
         // Remove the status bar associated with the document
-        this.destroyStatusBar(doc.uri.toString());
+        this.destroyStatusBar(doc.uri.toString(true));
     }
 
     private showStatusBarItem(fileUri: string, statusBarItem: vscode.StatusBarItem): void {

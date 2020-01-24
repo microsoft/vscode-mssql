@@ -59,7 +59,7 @@ suite('Connection Profile tests', () => {
         // No setup currently needed
     });
 
-    test('CreateProfile should ask questions in correct order', done => {
+    test('CreateProfile should ask questions in correct order', async () => {
         // Given
         let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: {[key: string]: string} = {};
@@ -77,7 +77,7 @@ suite('Connection Profile tests', () => {
                     return Promise.resolve(answers);
                 });
 
-        ConnectionProfile.createProfile(prompter.object)
+        await ConnectionProfile.createProfile(prompter.object, undefined)
             .then(profile => profileReturned = profile);
 
         // Then expect the following flow:
@@ -97,7 +97,6 @@ suite('Connection Profile tests', () => {
         }
         // And expect result to be undefined as questions were not answered
         assert.strictEqual(profileReturned, undefined);
-        done();
     });
 
 
@@ -118,7 +117,7 @@ suite('Connection Profile tests', () => {
                     return answers;
                 });
 
-        await ConnectionProfile.createProfile(prompter.object);
+        await ConnectionProfile.createProfile(prompter.object, undefined);
 
         // Then expect SqlAuth to be the only default type
         let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
@@ -141,7 +140,7 @@ suite('Connection Profile tests', () => {
                 });
 
         // When createProfile is called on an OS
-        await ConnectionProfile.createProfile(prompter.object);
+        await ConnectionProfile.createProfile(prompter.object, undefined);
 
         // Then integrated auth should/should not be supported
         // TODO if possible the test should mock out the OS dependency but it's not clear
@@ -307,7 +306,7 @@ suite('Connection Profile tests', () => {
         });
 
         // Verify that a profile was created
-        ConnectionProfile.createProfile(prompter.object).then( profile => {
+        ConnectionProfile.createProfile(prompter.object, undefined).then( profile => {
             assert.equal(Boolean(profile), true);
             done();
         });

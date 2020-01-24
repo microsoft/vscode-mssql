@@ -25,7 +25,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
     subscriptions: { dispose(): any }[];
     workspaceState: vscode.Memento;
     globalState: vscode.Memento;
-    extensionPath: string;
+    extensionPath: string = 'test_path';
     storagePath: string;
     globalStoragePath: string;
     logPath: string;
