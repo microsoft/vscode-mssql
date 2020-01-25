@@ -32,6 +32,7 @@ export class ObjectExplorerService {
     private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionCredentialsMap: Map<string, IConnectionCredentials>;
+    private _expandParamsToTreeNodeInfoMap: Map<ExpandParams, TreeNodeInfo>;
 
     // Deferred promise maps
     private _sessionIdToPromiseMap: Map<string, Deferred<vscode.TreeItem>>;
@@ -46,6 +47,7 @@ export class ObjectExplorerService {
         this._nodePathToNodeLabelMap = new Map<string, string>();
         this._sessionIdToPromiseMap = new Map<string, Deferred<vscode.TreeItem>>();
         this._expandParamsToPromiseMap = new Map<ExpandParams, Deferred<TreeNodeInfo[]>>();
+        this._expandParamsToTreeNodeInfoMap = new Map<ExpandParams, TreeNodeInfo>();
 
         this._client.onNotification(CreateSessionCompleteNotification.type,
             this.handleSessionCreatedNotification());
@@ -128,25 +130,36 @@ export class ObjectExplorerService {
         return handler;
     }
 
+    private getParentFromExpandParams(params: ExpandParams): TreeNodeInfo | undefined {
+        for (let key of this._expandParamsToTreeNodeInfoMap.keys()) {
+            if (key.sessionId === params.sessionId &&
+                key.nodePath === params.nodePath) {
+                return this._expandParamsToTreeNodeInfoMap.get(key);
+            }
+        }
+        return undefined;
+    }
+
     private handleExpandSessionNotification(): NotificationHandler<ExpandResponse> {
         const self = this;
         const handler = (result: ExpandResponse) => {
             if (result && result.nodes) {
                 const credentials = self._sessionIdToConnectionCredentialsMap.get(result.sessionId);
-                let parentNode = self._rootTreeNodeArray.find(n => n.nodePath === result.nodePath);
-                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, result.sessionId,
-                    parentNode, credentials));
-                self._treeNodeToChildrenMap.set(parentNode, children);
                 const expandParams: ExpandParams = {
                     sessionId: result.sessionId,
                     nodePath: result.nodePath
                 };
+                const parentNode = self.getParentFromExpandParams(expandParams);
+                const children = result.nodes.map(node => TreeNodeInfo.fromNodeInfo(node, result.sessionId,
+                    parentNode, credentials));
+                self._treeNodeToChildrenMap.set(parentNode, children);
                 for (let key of self._expandParamsToPromiseMap.keys()) {
                     if (key.sessionId === expandParams.sessionId &&
                         key.nodePath === expandParams.nodePath) {
                         let promise = self._expandParamsToPromiseMap.get(key);
                         promise.resolve(children);
                         self._expandParamsToPromiseMap.delete(key);
+                        self._expandParamsToTreeNodeInfoMap.delete(key);
                         return;
                     }
                 }
@@ -161,12 +174,14 @@ export class ObjectExplorerService {
             nodePath: node.nodePath
         };
         this._expandParamsToPromiseMap.set(expandParams, promise);
+        this._expandParamsToTreeNodeInfoMap.set(expandParams, node);
         const response = await this._connectionManager.client.sendRequest(ExpandRequest.type, expandParams);
         if (response) {
             this._currentNode = node;
             return response;
         } else {
             this._expandParamsToPromiseMap.delete(expandParams);
+            this._expandParamsToTreeNodeInfoMap.delete(expandParams);
             promise.resolve(undefined);
             return undefined;
         }
@@ -242,6 +257,7 @@ export class ObjectExplorerService {
             if (key.sessionId === node.sessionId &&
                 key.nodePath === node.nodePath) {
                 this._expandParamsToPromiseMap.delete(key);
+                this._expandParamsToTreeNodeInfoMap.delete(key);
             }
         }
     }

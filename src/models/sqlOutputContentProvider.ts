@@ -164,7 +164,8 @@ export class SqlOutputContentProvider {
             setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
             showError: (message: string) => this.showErrorRequestHandler(message),
             showWarning: (message: string) => this.showWarningRequestHandler(message),
-            sendReadyEvent: async () => await this.sendReadyEvent(uri)
+            sendReadyEvent: async () => await this.sendReadyEvent(uri),
+            dispose: () => this._panels.delete(uri)
         };
         const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
         this._panels.set(uri, controller);
