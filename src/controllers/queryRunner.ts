@@ -163,12 +163,14 @@ export default class QueryRunner {
                 };
 
                 const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this._ownerUri));
-                let queryString = doc.getText();
+                let queryString: string;
                 if (selection) {
                     let range = this._vscodeWrapper.range(
                         this._vscodeWrapper.position(selection.startLine, selection.startColumn),
                         this._vscodeWrapper.position(selection.endLine, selection.endColumn));
                     queryString = doc.getText(range);
+                } else {
+                    queryString = doc.getText();
                 }
 
                 // Set the query string for the uri
@@ -230,8 +232,7 @@ export default class QueryRunner {
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
         this._statusView.executedQuery(result.ownerUri);
-        let hasError = false;
-        hasError = this._batchSets.some(batch => batch.hasError === true);
+        let hasError = this._batchSets.some(batch => batch.hasError === true);
         this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), hasError);
     }
 

@@ -252,16 +252,16 @@
             <source xml:lang="en">Firewall rule successfully created.</source>
         </trans-unit>
         <trans-unit id="msgChooseQueryHistoryListing">
-            <source xml:lang="en">Choose Query History listing</source>
+            <source xml:lang="en">Choose Query History</source>
         </trans-unit>
         <trans-unit id="msgChooseQueryHistoryAction">
             <source xml:lang="en">Choose An Action</source>
         </trans-unit>
         <trans-unit id="msgOpenQueryHistoryListing">
-            <source xml:lang="en">Open Query History Listing</source>
+            <source xml:lang="en">Open Query History</source>
         </trans-unit>
         <trans-unit id="msgRunQueryHistoryListing">
-            <source xml:lang="en">Run Query History Listing</source>
+            <source xml:lang="en">Run Query History</source>
         </trans-unit>
         <trans-unit id="msgInvalidIpAddress">
             <source xml:lang="en">Invalid IP Address </source>

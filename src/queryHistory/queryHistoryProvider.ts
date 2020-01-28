@@ -60,24 +60,24 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
             }
         }
         this._queryHistoryNodes.push(node);
+        // sort the query history sorted by timestamp
+        this._queryHistoryNodes.sort((a, b) => {
+            return (b as QueryHistoryNode).timeStamp.getTime() -
+                (a as QueryHistoryNode).timeStamp.getTime();
+        });
         // Push out the first listing if it crosses limit to maintain
         // an LRU order
         if (this._queryHistoryNodes.length > this._queryHistoryLimit) {
             this._queryHistoryNodes.shift();
         }
-        // return the query history sorted by timestamp
-        this._queryHistoryNodes.sort((a, b) => {
-            return (b as QueryHistoryNode).timeStamp.getTime() -
-                (a as QueryHistoryNode).timeStamp.getTime();
-        });
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(node: QueryHistoryNode): any {
+    getTreeItem(node: QueryHistoryNode): QueryHistoryNode {
         return node;
     }
 
-    async getChildren(element?: any): Promise<vscode.TreeItem[]> {
+    getChildren(element?: any): vscode.TreeItem[] {
         if (this._queryHistoryNodes.length === 0) {
             this._queryHistoryNodes.push(new EmptyHistoryNode());
         }
@@ -85,7 +85,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     }
 
     /**
-     *
+     * Shows the Query History List on the command palette
      */
     public async showQueryHistoryCommandPalette(): Promise<void | undefined> {
         const options = this._queryHistoryNodes.map(node => this._queryHistoryUI.convertToQuickPickItem(node));
