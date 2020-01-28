@@ -377,7 +377,8 @@ export class ObjectExplorerService {
             connectionCredentials = await connectionUI.showConnections(false);
         }
         if (connectionCredentials) {
-            if (ConnectionCredentials.isPasswordBasedCredential(connectionCredentials)) {
+            if (ConnectionCredentials.isPasswordBasedCredential(connectionCredentials) &&
+                !connectionCredentials.connectionString) {
                 // show password prompt if SQL Login and password isn't saved
                 let password = connectionCredentials.password;
                 if (Utils.isEmpty(password)) {
