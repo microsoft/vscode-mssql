@@ -36,11 +36,19 @@ gulp.task('ext:lint', () => {
 });
 
 // Copy icons for OE
-gulp.task('ext:copy-assets', (done) => {
+gulp.task('ext:copy-OE-assets', (done) => {
     return gulp.src([
         config.paths.project.root + '/src/objectExplorer/objectTypes/*'
     ])
     .pipe(gulp.dest('out/src/objectExplorer/objectTypes'));
+});
+
+// Copy icons for Query History
+gulp.task('ext:copy-queryHistory-assets', (done) => {
+    return gulp.src([
+        config.paths.project.root + '/src/queryHistory/icons/*'
+    ])
+    .pipe(gulp.dest('out/src/queryHistory/icons'));
 });
 
 // Compile source
@@ -208,7 +216,7 @@ gulp.task('ext:compile-tests', (done) => {
 
 });
 
-gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:copy-assets'));
+gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:copy-OE-assets', 'ext:copy-queryHistory-assets'));
 
 gulp.task('ext:copy-tests', () => {
     return gulp.src(config.paths.project.root + '/test/resources/**/*')

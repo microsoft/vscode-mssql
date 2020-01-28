@@ -215,7 +215,8 @@ export class SqlOutputContentProvider {
             queryRunner.eventEmitter.on('message', (message) => {
                 this._panels.get(uri).proxy.sendEvent('message', message);
             });
-            queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
+            queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError) => {
+                this._vscodeWrapper.executeCommand(Constants.cmdRefreshQueryHistory, uri, hasError);
                 this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
             });
             this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));

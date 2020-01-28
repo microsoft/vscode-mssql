@@ -251,8 +251,23 @@
         <trans-unit id="msgPromptFirewallRuleCreated">
             <source xml:lang="en">Firewall rule successfully created.</source>
         </trans-unit>
+        <trans-unit id="msgChooseQueryHistory">
+            <source xml:lang="en">Choose Query History</source>
+        </trans-unit>
+        <trans-unit id="msgChooseQueryHistoryAction">
+            <source xml:lang="en">Choose An Action</source>
+        </trans-unit>
+        <trans-unit id="msgOpenQueryHistory">
+            <source xml:lang="en">Open Query History</source>
+        </trans-unit>
+        <trans-unit id="msgRunQueryHistory">
+            <source xml:lang="en">Run Query History</source>
+        </trans-unit>
         <trans-unit id="msgInvalidIpAddress">
             <source xml:lang="en">Invalid IP Address </source>
+        </trans-unit>
+        <trans-unit id="msgNoQueriesAvailable">
+            <source xml:lang="en">No Queries Available</source>
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>

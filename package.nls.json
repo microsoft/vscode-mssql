@@ -8,9 +8,18 @@
 "mssql.scriptDelete":"Script as Drop",
 "mssql.scriptExecute":"Script as Execute",
 "mssql.scriptAlter":"Script as Alter",
+"mssql.openQueryHistory":"Open Query",
+"mssql.runQueryHistory":"Run Query",
+"mssql.deleteQueryHistory":"Delete",
+"mssql.clearAllQueryHistory":"Clear All Query History",
+"mssql.enableQueryHistoryCapture":"Enable Query History Capture",
+"mssql.startQueryHistoryCapture":"Start Query History Capture",
+"mssql.pauseQueryHistoryCapture":"Pause Query History Capture",
+"mssql.commandPaletteQueryHistory":"Open Query History in Command Palette",
 "mssql.removeObjectExplorerNode":"Remove",
 "mssql.refreshObjectExplorerNode":"Refresh",
 "extension.connections":"Connections",
+"extension.queryHistory":"Query History",
 "mssql.connect":"Connect",
 "mssql.disconnect":"Disconnect",
 "mssql.manageProfiles":"Manage Connection Profiles",
@@ -79,6 +88,8 @@
 "mssql.intelliSense.enableErrorChecking":"Should IntelliSense error checking be enabled",
 "mssql.intelliSense.enableSuggestions":"Should IntelliSense suggestions be enabled",
 "mssql.intelliSense.enableQuickInfo":"Should IntelliSense quick info be enabled",
+"mssql.enableQueryHistoryFeature":"Should Query History feature be enabled",
 "mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase",
-"mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)"
+"mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
+"mssql.queryHistoryLimit":"Number of query history entries to show in the Query History view"
 }

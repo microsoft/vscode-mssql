@@ -151,6 +151,11 @@
         {
           "id": "objectExplorer",
           "name": "%extension.connections%"
+        },
+        {
+          "id": "queryHistory",
+          "name": "%extension.queryHistory%",
+          "when": "config.mssql.enableQueryHistoryFeature"
         }
       ]
     },
@@ -204,6 +209,24 @@
           "when": "view == objectExplorer",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
+        },
+        {
+          "command": "mssql.startQueryHistoryCapture",
+          "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture",
+          "title": "%mssql.startQueryHistoryCapture%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.pauseQueryHistoryCapture",
+          "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && config.mssql.enableQueryHistoryCapture",
+          "title": "%mssql.pauseQueryHistoryCapture%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.clearAllQueryHistory",
+          "when": "view == queryHistory",
+          "title": "%mssql.clearAllQueryHistory%",
+          "group": "secondary"
         }
       ],
       "view/item/context": [
@@ -251,6 +274,21 @@
           "command": "mssql.scriptAlter",
           "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/",
           "group": "MS_SQL@4"
+        },
+        {
+          "command": "mssql.openQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@1"
+        },
+        {
+          "command": "mssql.runQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@2"
+        },
+        {
+          "command": "mssql.deleteQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@3"
         }
       ],
       "commandPalette": [
@@ -293,6 +331,14 @@
         {
           "command": "mssql.toggleSqlCmd",
           "when": "editorFocus && editorLangId == 'sql'"
+        },
+        {
+          "command": "mssql.startQueryHistoryCapture",
+          "when": "config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture"
+        },
+        {
+          "command": "mssql.pauseQueryHistoryCapture",
+          "when": "config.mssql.enableQueryHistoryFeature && config.mssql.enableQueryHistoryCapture"
         }
       ]
     },
@@ -303,7 +349,7 @@
         "category": "MS SQL",
         "icon": {
           "light": "images/start.svg",
-          "dark": "images/start_inverse.svg"
+          "dark": "images/start.svg"
         }
       },
       {
@@ -317,7 +363,7 @@
         "category": "MS SQL",
         "icon": {
           "light": "images/stop.svg",
-          "dark": "images/stop_inverse.svg"
+          "dark": "images/stop.svg"
         }
       },
       {
@@ -417,6 +463,49 @@
       {
         "command": "mssql.scriptAlter",
         "title": "%mssql.scriptAlter%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.openQueryHistory",
+        "title": "%mssql.openQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.runQueryHistory",
+        "title": "%mssql.runQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.deleteQueryHistory",
+        "title": "%mssql.deleteQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.clearAllQueryHistory",
+        "title": "%mssql.clearAllQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.startQueryHistoryCapture",
+        "title": "%mssql.startQueryHistoryCapture%",
+        "group": "MS SQL",
+        "icon": {
+          "light": "images/start.svg",
+          "dark": "images/start.svg"
+        }
+      },
+      {
+        "command": "mssql.pauseQueryHistoryCapture",
+        "title": "%mssql.pauseQueryHistoryCapture%",
+        "group": "MS SQL",
+        "icon": {
+          "light": "images/stop.svg",
+          "dark": "images/stop.svg"
+        }
+      },
+      {
+        "command": "mssql.commandPaletteQueryHistory",
+        "title": "%mssql.commandPaletteQueryHistory%",
         "group": "MS SQL"
       }
     ],
@@ -825,6 +914,24 @@
           "type": "boolean",
           "default": false,
           "description": "%mssql.persistQueryResultTabs%",
+          "scope": "window"
+        },
+        "mssql.queryHistoryLimit": {
+          "type": "number",
+          "default": 20,
+          "description": "%mssql.queryHistoryLimit%",
+          "scope": "window"
+        },
+        "mssql.enableQueryHistoryCapture": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.enableQueryHistoryCapture%",
+          "scope": "window"
+        },
+        "mssql.enableQueryHistoryFeature": {
+          "type": "boolean",
+          "default": true,
+          "description" : "%mssql.enableQueryHistoryFeature%",
           "scope": "window"
         }
       }
