@@ -868,6 +868,12 @@
           "default": false,
           "scope": "window"
         },
+        "mssql.format.placeEachReferenceOnNewLineInQueryStatements": {
+          "type": "boolean",
+          "description": "%mssql.format.placeEachReferenceOnNewLineInQueryStatements%",
+          "default": false,
+          "scope": "window"
+        },
         "mssql.applyLocalization": {
           "type": "boolean",
           "description": "%mssql.applyLocalization%",
