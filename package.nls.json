@@ -11,7 +11,7 @@
 "mssql.openQueryHistory":"Open Query",
 "mssql.runQueryHistory":"Run Query",
 "mssql.deleteQueryHistory":"Delete",
-"mssql.clearAllQueryHistory":"Clear All History",
+"mssql.clearAllQueryHistory":"Clear All Query History",
 "mssql.enableQueryHistoryCapture":"Enable Query History Capture",
 "mssql.startQueryHistoryCapture":"Start Query History Capture",
 "mssql.pauseQueryHistoryCapture":"Pause Query History Capture",

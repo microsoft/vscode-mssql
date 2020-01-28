@@ -42,8 +42,8 @@ export class QueryHistoryUI {
     }
 
     private showQueryHistoryActions(node: QueryHistoryNode): Promise<string | undefined> {
-        let options = [{ label: LocalizedConstants.msgOpenQueryHistoryListing },
-            { label: LocalizedConstants.msgRunQueryHistoryListing }];
+        let options = [{ label: LocalizedConstants.msgOpenQueryHistory },
+            { label: LocalizedConstants.msgRunQueryHistory }];
         let question: IQuestion = {
             type: QuestionTypes.expand,
             name: 'question',
@@ -65,15 +65,15 @@ export class QueryHistoryUI {
         let question: IQuestion = {
             type: QuestionTypes.expand,
             name: 'question',
-            message: LocalizedConstants.msgChooseQueryHistoryListing,
+            message: LocalizedConstants.msgChooseQueryHistory,
             choices: options
         };
         return this._prompter.promptSingle(question).then((answer: QueryHistoryQuickPickItem) => {
             if (answer) {
                 return this.showQueryHistoryActions(answer.node).then((actionAnswer: string) => {
-                    if (actionAnswer === LocalizedConstants.msgOpenQueryHistoryListing) {
+                    if (actionAnswer === LocalizedConstants.msgOpenQueryHistory) {
                         answer.action = QueryHistoryAction.OpenQueryHistoryAction;
-                    } else if ( actionAnswer === LocalizedConstants.msgRunQueryHistoryListing) {
+                    } else if ( actionAnswer === LocalizedConstants.msgRunQueryHistory) {
                         answer.action = QueryHistoryAction.RunQueryHistoryAction;
                     }
                     return answer;
