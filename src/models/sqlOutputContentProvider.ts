@@ -403,6 +403,16 @@ export class SqlOutputContentProvider {
         return Promise.resolve(false);
     }
 
+    /**
+     * Closes the associated results tab when a query editor is closed
+     */
+    public closeResultsTab(uri: string): void {
+        let controller = this._panels.get(uri);
+        controller.dispose();
+        this._panels.delete(uri);
+        this._queryResultsMap.delete(uri);
+    }
+
     // PRIVATE HELPERS /////////////////////////////////////////////////////
 
     /**
