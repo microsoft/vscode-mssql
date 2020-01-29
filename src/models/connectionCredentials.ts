@@ -281,6 +281,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
         return authenticationType === utils.authTypeToString(AuthenticationTypes.SqlLogin);
     }
 
+    public static isPasswordBasedConnectionString(connectionString: string): boolean {
+        return connectionString.toLowerCase().includes('password');
+    }
+
+    public static isConnectionStringSaved(connectionString: string): boolean {
+        return connectionString.includes(ConnectionStore.CRED_CONNECTION_STRING_PREFIX);
+    }
+
     // Validates a string is not empty, returning undefined if true and an error message if not
     protected static validateRequiredString(property: string, value: string): string {
         if (utils.isEmpty(value)) {
