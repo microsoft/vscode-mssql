@@ -934,9 +934,6 @@ export default class MainController implements vscode.Disposable {
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
 
-        // Close any related results tab
-        this._outputContentProvider.closeResultsTab(closedDocumentUri);
-
         // Reset special case timers and events
         this._lastSavedUri = undefined;
         this._lastSavedTimer = undefined;

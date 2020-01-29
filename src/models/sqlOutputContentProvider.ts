@@ -294,6 +294,7 @@ export class SqlOutputContentProvider {
                 value.timeout = this.setRunnerDeletionTimeout(key);
             }
         }
+        this.closeResultsTab(doc.uri.toString());
     }
 
     /**
