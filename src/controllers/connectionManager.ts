@@ -468,6 +468,10 @@ export default class ConnectionManager {
 
             // set auth type
             credentials.authenticationType = Constants.sqlAuthentication;
+
+            // set savePassword to true so that credentials are automatically
+            // deleted if the settings file is manually changed
+            (credentials as IConnectionProfile).savePassword = true;
         } else {
             credentials.authenticationType = 'Integrated';
         }
