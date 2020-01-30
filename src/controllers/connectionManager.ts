@@ -11,7 +11,6 @@ import LocalizedConstants = require('../constants/localizedConstants');
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import Utils = require('../models/utils');
-import Interfaces = require('../models/interfaces');
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
@@ -23,6 +22,8 @@ import {NotificationHandler} from 'vscode-languageclient';
 import {Runtime, PlatformInformation} from '../models/platform';
 import { Deferred } from '../protocol';
 import { FirewallService } from '../firewall/firewallService';
+import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
+import { ConnectionSummary } from '../models/contracts/connection';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -36,7 +37,7 @@ export class ConnectionInfo {
     /**
      * Credentials used to connect
      */
-    public credentials: Interfaces.IConnectionCredentials;
+    public credentials: IConnectionCredentials;
 
     /**
      * Callback for when a connection notification is received.
@@ -88,7 +89,7 @@ export default class ConnectionManager {
     private _statusView: StatusView;
     private _connections: { [fileUri: string]: ConnectionInfo };
     private _connectionCredentialsToServerInfoMap:
-        Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>;
+        Map<IConnectionCredentials, ConnectionContracts.ServerInfo>;
     private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
     private _failedUriToFirewallIpMap: Map<string, string>;
     private _firewallService: FirewallService;
@@ -103,7 +104,7 @@ export default class ConnectionManager {
         this._statusView = statusView;
         this._connections = {};
         this._connectionCredentialsToServerInfoMap =
-            new Map<Interfaces.IConnectionCredentials, ConnectionContracts.ServerInfo>();
+            new Map<IConnectionCredentials, ConnectionContracts.ServerInfo>();
         this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
 
 
@@ -211,7 +212,7 @@ export default class ConnectionManager {
         return this._firewallService;
     }
 
-    public isActiveConnection(credential: Interfaces.IConnectionCredentials): boolean {
+    public isActiveConnection(credential: IConnectionCredentials): boolean {
         const connectedCredentials = Object.keys(this._connections).map((uri) => this._connections[uri].credentials);
         for (let connectedCredential of connectedCredentials) {
             if (Utils.isSameConnection(credential, connectedCredential)) {
@@ -221,7 +222,7 @@ export default class ConnectionManager {
         return false;
     }
 
-    public getUriForConnection(connection: Interfaces.IConnectionCredentials): string {
+    public getUriForConnection(connection: IConnectionCredentials): string {
         for (let uri of Object.keys(this._connections)) {
             if (Utils.isSameConnection(this._connections[uri].credentials, connection)) {
                 return uri;
@@ -307,15 +308,19 @@ export default class ConnectionManager {
             let connection = self.getConnectionInfo(fileUri);
             connection.serviceTimer.end();
             connection.connecting = false;
+            // Convert to credentials if it's a connection string based connection
+            if (connection.credentials.connectionString) {
+                connection.credentials = this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
+            }
             this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
 
-            let mruConnection: Interfaces.IConnectionCredentials = <any>{};
+            let mruConnection: IConnectionCredentials = <any>{};
 
             if (Utils.isNotEmpty(result.connectionId)) {
                 // We have a valid connection
                 // Copy credentials as the database name will be updated
-                let newCredentials: Interfaces.IConnectionCredentials = <any>{};
-                Object.assign<Interfaces.IConnectionCredentials, Interfaces.IConnectionCredentials>(newCredentials, connection.credentials);
+                let newCredentials: IConnectionCredentials = <any>{};
+                Object.assign<IConnectionCredentials, IConnectionCredentials>(newCredentials, connection.credentials);
                 if (result.connectionSummary && result.connectionSummary.databaseName) {
                     newCredentials.database = result.connectionSummary.databaseName;
                 }
@@ -349,7 +354,7 @@ export default class ConnectionManager {
 
     private handleConnectionSuccess(fileUri: string,
                                     connection: ConnectionInfo,
-                                    newCredentials: Interfaces.IConnectionCredentials,
+                                    newCredentials: IConnectionCredentials,
                                     result: ConnectionContracts.ConnectionCompleteParams): void {
         connection.connectionId = result.connectionId;
         connection.serverInfo = result.serverInfo;
@@ -429,9 +434,9 @@ export default class ConnectionManager {
         );
     }
 
-    private tryAddMruConnection(connection: ConnectionInfo, newConnection: Interfaces.IConnectionCredentials): void {
+    private tryAddMruConnection(connection: ConnectionInfo, newConnection: IConnectionCredentials): void {
         if (newConnection) {
-            let connectionToSave: Interfaces.IConnectionCredentials = Object.assign({}, newConnection);
+            let connectionToSave: IConnectionCredentials = Object.assign({}, newConnection);
             this._connectionStore.addRecentlyUsed(connectionToSave)
             .then(() => {
                 connection.connectHandler(true);
@@ -441,6 +446,37 @@ export default class ConnectionManager {
         } else {
             connection.connectHandler(false);
         }
+    }
+
+    /**
+     * Populates a credential object based on the credential connection string
+     */
+    private populateCredentialsFromConnectionString(credentials: IConnectionCredentials, connectionSummary: ConnectionSummary): IConnectionCredentials {
+        // populate credential details
+        credentials.database = connectionSummary.databaseName;
+        credentials.user = connectionSummary.userName;
+        credentials.server = connectionSummary.serverName;
+
+        // save credentials if needed
+        let isPasswordBased: boolean = ConnectionCredentials.isPasswordBasedConnectionString(credentials.connectionString);
+        if (isPasswordBased) {
+            // save the connection string here
+            this._connectionStore.saveProfileWithConnectionString(credentials as IConnectionProfile);
+            // replace the conn string from the profile
+            credentials.connectionString = ConnectionStore.formatCredentialId(credentials.server,
+                credentials.database, credentials.user, ConnectionStore.CRED_PROFILE_USER, true);
+
+            // set auth type
+            credentials.authenticationType = Constants.sqlAuthentication;
+
+            // set savePassword to true so that credentials are automatically
+            // deleted if the settings file is manually changed
+            (credentials as IConnectionProfile).savePassword = true;
+        } else {
+            credentials.authenticationType = 'Integrated';
+        }
+
+        return credentials;
     }
 
     /**
@@ -500,7 +536,7 @@ export default class ConnectionManager {
         });
     }
 
-    public async changeDatabase(newDatabaseCredentials: Interfaces.IConnectionCredentials): Promise<boolean> {
+    public async changeDatabase(newDatabaseCredentials: IConnectionCredentials): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         return new Promise<boolean>(async (resolve, reject) => {
@@ -619,7 +655,7 @@ export default class ConnectionManager {
      * Get the server info for a connection
      * @param connectionCreds
      */
-    public getServerInfo(connectionCredentials: Interfaces.IConnectionCredentials): ConnectionContracts.ServerInfo {
+    public getServerInfo(connectionCredentials: IConnectionCredentials): ConnectionContracts.ServerInfo {
         if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
             return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
         }
@@ -632,7 +668,7 @@ export default class ConnectionManager {
      * @param fileUri file Uri
      * @param connectionCreds Connection Profile
      */
-    private handleConnectionResult(result: boolean, fileUri: string, connectionCreds: Interfaces.IConnectionCredentials): Promise<boolean> {
+    private handleConnectionResult(result: boolean, fileUri: string, connectionCreds: IConnectionCredentials): Promise<boolean> {
         const self = this;
         return new Promise<boolean>((resolve, reject) => {
             let connection = self._connections[fileUri];
@@ -659,16 +695,16 @@ export default class ConnectionManager {
     /**
      * Delete a credential from the credential store
      */
-    public async deleteCredential(profile: Interfaces.IConnectionProfile): Promise<boolean> {
+    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
         return await this._connectionStore.deleteCredential(profile);
     }
 
     // let users pick from a picklist of connections
-    public onNewConnection(): Promise<Interfaces.IConnectionCredentials> {
+    public onNewConnection(): Promise<IConnectionCredentials> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
 
-        return new Promise<Interfaces.IConnectionCredentials>((resolve, reject) => {
+        return new Promise<IConnectionCredentials>((resolve, reject) => {
             if (!fileUri) {
                 // A text document needs to be open before we can connect
                 self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
@@ -690,7 +726,7 @@ export default class ConnectionManager {
     }
 
     // create a new connection with the connectionCreds provided
-    public async connect(fileUri: string, connectionCreds: Interfaces.IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
+    public async connect(fileUri: string, connectionCreds: IConnectionCredentials, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
@@ -814,8 +850,8 @@ export default class ConnectionManager {
         }
 
         // Connect the saved uri and disconnect the untitled uri on successful connection
-        let creds: Interfaces.IConnectionCredentials = this._connections[oldFileUri].credentials;
-        let result = await this.connect(newFileUri, creds)
+        let creds: IConnectionCredentials = this._connections[oldFileUri].credentials;
+        let result = await this.connect(newFileUri, creds);
         if (result) {
             await this.disconnect(oldFileUri);
         }
