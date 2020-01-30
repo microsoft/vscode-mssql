@@ -348,8 +348,8 @@
         "title": "%mssql.runQuery%",
         "category": "MS SQL",
         "icon": {
-          "light": "images/start.svg",
-          "dark": "images/start.svg"
+          "light": "images/debug-start.svg",
+          "dark": "images/debug-start.svg"
         }
       },
       {
@@ -362,8 +362,8 @@
         "title": "%mssql.cancelQuery%",
         "category": "MS SQL",
         "icon": {
-          "light": "images/stop.svg",
-          "dark": "images/stop.svg"
+          "light": "images/debug-stop.svg",
+          "dark": "images/debug-stop.svg"
         }
       },
       {
@@ -490,8 +490,8 @@
         "title": "%mssql.startQueryHistoryCapture%",
         "group": "MS SQL",
         "icon": {
-          "light": "images/start.svg",
-          "dark": "images/start.svg"
+          "light": "images/debug-start.svg",
+          "dark": "images/debug-start.svg"
         }
       },
       {
@@ -499,8 +499,8 @@
         "title": "%mssql.pauseQueryHistoryCapture%",
         "group": "MS SQL",
         "icon": {
-          "light": "images/stop.svg",
-          "dark": "images/stop.svg"
+          "light": "images/debug-stop.svg",
+          "dark": "images/debug-stop.svg"
         }
       },
       {
