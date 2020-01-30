@@ -379,8 +379,8 @@ export class ObjectExplorerService {
         if (connectionCredentials) {
             // connection string based credential
             if (connectionCredentials.connectionString) {
-                if (ConnectionCredentials.isConnectionStringSaved(connectionCredentials.connectionString)) {
-                    // look up password
+                if ((connectionCredentials as IConnectionProfile).savePassword) {
+                    // look up connection string
                     let connectionString = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials, true);
                     connectionCredentials.connectionString = connectionString;
                 }

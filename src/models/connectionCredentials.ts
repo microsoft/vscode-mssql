@@ -282,11 +282,10 @@ export class ConnectionCredentials implements IConnectionCredentials {
     }
 
     public static isPasswordBasedConnectionString(connectionString: string): boolean {
-        return connectionString.toLowerCase().includes('password');
-    }
-
-    public static isConnectionStringSaved(connectionString: string): boolean {
-        return connectionString.includes(ConnectionStore.CRED_CONNECTION_STRING_PREFIX);
+        const connString = connectionString.toLowerCase();
+        return connString.includes('user') &&
+            connString.includes('password') &&
+            !connString.includes('Integrated Security');
     }
 
     // Validates a string is not empty, returning undefined if true and an error message if not

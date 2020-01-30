@@ -48,7 +48,7 @@ export class ConnectionStore {
     public static get CRED_DB_PREFIX(): string { return 'db:'; }
     public static get CRED_USER_PREFIX(): string { return 'user:'; }
     public static get CRED_ITEMTYPE_PREFIX(): string { return 'itemtype:'; }
-    public static get CRED_CONNECTION_STRING_PREFIX(): string { return 'connectionString:'; }
+    public static get CRED_CONNECTION_STRING_PREFIX(): string { return 'isConnectionString:'; }
     public static get CRED_PROFILE_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Profile]; }
     public static get CRED_MRU_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru]; }
 
@@ -271,7 +271,7 @@ export class ConnectionStore {
             .then(() => {
                 // Only save if we successfully added the profile and if savePassword
                 if ((<IConnectionProfile>conn).savePassword) {
-                    self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                    self.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
                 }
                 // And resolve / reject at the end of the process
                 resolve(undefined);
@@ -326,17 +326,17 @@ export class ConnectionStore {
         if (!profile.savePassword) {
             return Promise.resolve(true);
         }
-        return this.doSavePassword(profile, CredentialsQuickPickItemType.Profile);
+        return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile);
     }
 
     public saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean> {
         if (!profile.connectionString) {
             return Promise.resolve(true);
         }
-        return this.doSavePassword(profile, CredentialsQuickPickItemType.Profile, true);
+        return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile, true);
     }
 
-    private doSavePassword(conn: IConnectionCredentials, type: CredentialsQuickPickItemType, isConnectionString: boolean = false): Promise<boolean> {
+    private doSaveCredential(conn: IConnectionCredentials, type: CredentialsQuickPickItemType, isConnectionString: boolean = false): Promise<boolean> {
         let self = this;
         let password = isConnectionString ? conn.connectionString : conn.password;
         return new Promise<boolean>((resolve, reject) => {
