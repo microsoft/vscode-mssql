@@ -377,23 +377,32 @@ export class ObjectExplorerService {
             connectionCredentials = await connectionUI.showConnections(false);
         }
         if (connectionCredentials) {
-            if (ConnectionCredentials.isPasswordBasedCredential(connectionCredentials)) {
-                // show password prompt if SQL Login and password isn't saved
-                let password = connectionCredentials.password;
-                if (Utils.isEmpty(password)) {
-                    // if password isn't saved
-                    if (!(<IConnectionProfile>connectionCredentials).savePassword) {
-                        // prompt for password
-                        password = await this._connectionManager.connectionUI.promptForPassword();
-                        if (!password) {
-                            promise.resolve(undefined);
-                            return undefined;
+            // connection string based credential
+            if (connectionCredentials.connectionString) {
+                if ((connectionCredentials as IConnectionProfile).savePassword) {
+                    // look up connection string
+                    let connectionString = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials, true);
+                    connectionCredentials.connectionString = connectionString;
+                }
+            } else {
+                if (ConnectionCredentials.isPasswordBasedCredential(connectionCredentials)) {
+                    // show password prompt if SQL Login and password isn't saved
+                    let password = connectionCredentials.password;
+                    if (Utils.isEmpty(password)) {
+                        // if password isn't saved
+                        if (!(<IConnectionProfile>connectionCredentials).savePassword) {
+                            // prompt for password
+                            password = await this._connectionManager.connectionUI.promptForPassword();
+                            if (!password) {
+                                promise.resolve(undefined);
+                                return undefined;
+                            }
+                        } else {
+                            // look up saved password
+                            password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
                         }
-                    } else {
-                        // look up saved password
-                        password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
+                        connectionCredentials.password = password;
                     }
-                    connectionCredentials.password = password;
                 }
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
