@@ -108,10 +108,9 @@ export default class MainController implements vscode.Disposable {
      */
     public activate():  Promise<boolean> {
         const self = this;
-        let activationTimer = new Utils.Timer();
 
         // initialize the language client then register the commands
-        return this.initialize(activationTimer).then((didInitialize) => {
+        return this.initialize().then((didInitialize) => {
             if (didInitialize) {
                 // register VS Code commands
                 this.registerCommand(Constants.cmdConnect);
@@ -200,7 +199,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Initializes the extension
      */
-    public initialize(activationTimer: Utils.Timer): Promise<boolean> {
+    public initialize(): Promise<boolean> {
         const self = this;
 
         // initialize language service client
