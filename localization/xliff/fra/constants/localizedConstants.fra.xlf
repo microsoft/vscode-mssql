@@ -334,9 +334,29 @@
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">Règle de pare-feu créée.</target>
       </trans-unit>
+      <trans-unit id="msgChooseQueryHistory">
+        <source xml:lang="en">Choose Query History</source>
+        <target state="translated">Choisir l'historique des requêtes</target>
+      </trans-unit>
+      <trans-unit id="msgChooseQueryHistoryAction">
+        <source xml:lang="en">Choose An Action</source>
+        <target state="translated">Choisir une action</target>
+      </trans-unit>
+      <trans-unit id="msgOpenQueryHistory">
+        <source xml:lang="en">Open Query History</source>
+        <target state="translated">Ouvrir l'historique des requêtes</target>
+      </trans-unit>
+      <trans-unit id="msgRunQueryHistory">
+        <source xml:lang="en">Run Query History</source>
+        <target state="translated">Exécuter l'historique des requêtes</target>
+      </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
         <source xml:lang="en">Invalid IP Address </source>
         <target state="translated">Adresse IP non valide </target>
+      </trans-unit>
+      <trans-unit id="msgNoQueriesAvailable">
+        <source xml:lang="en">No Queries Available</source>
+        <target state="translated">Aucune requête disponible</target>
       </trans-unit>
       <trans-unit id="retryLabel">
         <source xml:lang="en">Retry</source>

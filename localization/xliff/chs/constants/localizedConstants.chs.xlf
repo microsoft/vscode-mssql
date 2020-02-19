@@ -334,9 +334,29 @@
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">已成功创建防火墙规则。</target>
       </trans-unit>
+      <trans-unit id="msgChooseQueryHistory">
+        <source xml:lang="en">Choose Query History</source>
+        <target state="translated">选择“查询历史记录”</target>
+      </trans-unit>
+      <trans-unit id="msgChooseQueryHistoryAction">
+        <source xml:lang="en">Choose An Action</source>
+        <target state="translated">选择一个操作</target>
+      </trans-unit>
+      <trans-unit id="msgOpenQueryHistory">
+        <source xml:lang="en">Open Query History</source>
+        <target state="translated">打开“查询历史记录”</target>
+      </trans-unit>
+      <trans-unit id="msgRunQueryHistory">
+        <source xml:lang="en">Run Query History</source>
+        <target state="translated">运行“查询历史记录”</target>
+      </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
         <source xml:lang="en">Invalid IP Address </source>
         <target state="translated">IP 地址无效 </target>
+      </trans-unit>
+      <trans-unit id="msgNoQueriesAvailable">
+        <source xml:lang="en">No Queries Available</source>
+        <target state="translated">没有可用的查询</target>
       </trans-unit>
       <trans-unit id="retryLabel">
         <source xml:lang="en">Retry</source>

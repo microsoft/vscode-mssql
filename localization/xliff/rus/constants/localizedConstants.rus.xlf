@@ -334,9 +334,29 @@
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">Правило брандмауэра создано.</target>
       </trans-unit>
+      <trans-unit id="msgChooseQueryHistory">
+        <source xml:lang="en">Choose Query History</source>
+        <target state="translated">Выбрать журнал запросов</target>
+      </trans-unit>
+      <trans-unit id="msgChooseQueryHistoryAction">
+        <source xml:lang="en">Choose An Action</source>
+        <target state="translated">Выберите действие.</target>
+      </trans-unit>
+      <trans-unit id="msgOpenQueryHistory">
+        <source xml:lang="en">Open Query History</source>
+        <target state="translated">Открыть журнал запросов</target>
+      </trans-unit>
+      <trans-unit id="msgRunQueryHistory">
+        <source xml:lang="en">Run Query History</source>
+        <target state="translated">Запустить журнал запросов</target>
+      </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
         <source xml:lang="en">Invalid IP Address </source>
         <target state="translated">Недопустимый IP-адрес </target>
+      </trans-unit>
+      <trans-unit id="msgNoQueriesAvailable">
+        <source xml:lang="en">No Queries Available</source>
+        <target state="translated">Нет доступных запросов</target>
       </trans-unit>
       <trans-unit id="retryLabel">
         <source xml:lang="en">Retry</source>
