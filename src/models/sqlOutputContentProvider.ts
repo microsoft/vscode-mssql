@@ -411,7 +411,6 @@ export class SqlOutputContentProvider {
         let controller = this._panels.get(uri);
         controller.dispose();
         this._panels.delete(uri);
-        this._queryResultsMap.delete(uri);
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
