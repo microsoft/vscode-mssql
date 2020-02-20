@@ -334,9 +334,29 @@
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">방화벽 규칙을 만들었습니다.</target>
       </trans-unit>
+      <trans-unit id="msgChooseQueryHistory">
+        <source xml:lang="en">Choose Query History</source>
+        <target state="translated">쿼리 기록 선택</target>
+      </trans-unit>
+      <trans-unit id="msgChooseQueryHistoryAction">
+        <source xml:lang="en">Choose An Action</source>
+        <target state="translated">작업 선택</target>
+      </trans-unit>
+      <trans-unit id="msgOpenQueryHistory">
+        <source xml:lang="en">Open Query History</source>
+        <target state="translated">쿼리 기록 열기</target>
+      </trans-unit>
+      <trans-unit id="msgRunQueryHistory">
+        <source xml:lang="en">Run Query History</source>
+        <target state="translated">쿼리 기록 실행</target>
+      </trans-unit>
       <trans-unit id="msgInvalidIpAddress">
         <source xml:lang="en">Invalid IP Address </source>
         <target state="translated">잘못된 IP 주소 </target>
+      </trans-unit>
+      <trans-unit id="msgNoQueriesAvailable">
+        <source xml:lang="en">No Queries Available</source>
+        <target state="translated">사용 가능한 쿼리 없음</target>
       </trans-unit>
       <trans-unit id="retryLabel">
         <source xml:lang="en">Retry</source>
