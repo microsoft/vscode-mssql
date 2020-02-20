@@ -19,9 +19,7 @@ export default class CodeAdapter implements IPrompter {
     constructor(
         private vscodeWrapper: VscodeWrapper
     ) {
-        // TODO Decide whether output channel logging should be saved here?
-        this.outChannel = this.vscodeWrapper.createOutputChannel(Constants.outputChannelName);
-        // this.outChannel.clear();
+        this.outChannel = this.vscodeWrapper.outputChannel;
     }
 
     public logError(message: any): void {
