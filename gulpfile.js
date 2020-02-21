@@ -265,7 +265,7 @@ gulp.task('ext:test', (done) => {
                 console.log(`stdout: ${process.stdout}`);
                 console.log(`stderr: ${process.stderr}`);
                 console.error(`exec error: ${error}`);
-                throw(error);
+                done(error);
             });
         }
     })

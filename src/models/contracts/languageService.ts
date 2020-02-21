@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {NotificationType, RequestType} from 'vscode-languageclient';
-import {Telemetry} from '../telemetry';
 
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
 
@@ -43,27 +42,7 @@ export class RebuildIntelliSenseParams {
 }
 
 // ------------------------------- </ IntelliSense Ready Event > ----------------------------------
-// ------------------------------- < Telemetry Sent Event > ------------------------------------
 
-/**
- * Event sent when the language service send a telemetry event
- */
-export namespace TelemetryNotification {
-    export const type = new NotificationType<TelemetryParams, void>('telemetry/sqlevent');
-}
-
-/**
- * Update event parameters
- */
-export class TelemetryParams {
-    public params: {
-        eventName: string;
-        properties: Telemetry.ITelemetryEventProperties;
-        measures: Telemetry.ITelemetryEventMeasures;
-    };
-}
-
-// ------------------------------- </ Telemetry Sent Event > ----------------------------------
 // ------------------------------- < Status Event > ------------------------------------
 
 /**
