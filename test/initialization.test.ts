@@ -9,7 +9,6 @@ import vscode = require('vscode');
 import * as Extension from '../src/extension';
 import ConnectionManager from '../src/controllers/connectionManager';
 import MainController from '../src/controllers/mainController';
-import Telemetry from '../src/models/telemetry';
 
 function ensureExtensionIsActive(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -27,10 +26,6 @@ function waitForExtensionToBeActive(resolve): void {
 }
 
 suite('Initialization Tests', () => {
-    setup(() => {
-        // Ensure that telemetry is disabled while testing
-        Telemetry.disable();
-    });
 
     test('Connection manager is initialized properly', (done) => {
         // Wait for the extension to activate

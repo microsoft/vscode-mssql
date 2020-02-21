@@ -16,7 +16,6 @@ import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
-import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import {NotificationHandler} from 'vscode-languageclient';
 import {Runtime, PlatformInformation} from '../models/platform';
@@ -48,21 +47,6 @@ export class ConnectionInfo {
      * Information about the SQL Server instance.
      */
     public serverInfo: ConnectionContracts.ServerInfo;
-
-    /**
-     * Timer for tracking extension connection time.
-     */
-    public extensionTimer: Utils.Timer;
-
-    /**
-     * Timer for tracking service connection time.
-     */
-    public serviceTimer: Utils.Timer;
-
-    /**
-     * Timer for tracking intelliSense activation time.
-     */
-    public intelliSenseTimer: Utils.Timer;
 
     /**
      * Whether the connection is in the process of connecting.
@@ -256,21 +240,12 @@ export default class ConnectionManager {
             self._statusView.languageServiceStatusChanged(event.ownerUri, LocalizedConstants.intelliSenseUpdatedStatus);
             let connection = self.getConnectionInfo(event.ownerUri);
             if (connection !== undefined) {
-                connection.intelliSenseTimer.end();
-                let duration = connection.intelliSenseTimer.getDuration();
                 let numberOfCharacters: number = 0;
                 if (this.vscodeWrapper.activeTextEditor !== undefined
                 && this.vscodeWrapper.activeTextEditor.document !== undefined) {
                     let document = this.vscodeWrapper.activeTextEditor.document;
                     numberOfCharacters = document.getText().length;
                 }
-                Telemetry.sendTelemetryEvent('IntelliSenseActivated',
-                {
-                    isAzure: connection.serverInfo && connection.serverInfo.isCloud ? '1' : '0'},
-                {
-                    duration: duration,
-                    fileSize: numberOfCharacters
-                });
             }
         };
     }
@@ -306,7 +281,6 @@ export default class ConnectionManager {
         return async (result: ConnectionContracts.ConnectionCompleteParams): Promise<void> => {
             let fileUri = result.ownerUri;
             let connection = self.getConnectionInfo(fileUri);
-            connection.serviceTimer.end();
             connection.connecting = false;
             // Convert to credentials if it's a connection string based connection
             if (connection.credentials.connectionString) {
@@ -368,20 +342,6 @@ export default class ConnectionManager {
         this._vscodeWrapper.logToOutputChannel(
             Utils.formatString(LocalizedConstants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
         );
-
-        connection.extensionTimer.end();
-
-        Telemetry.sendTelemetryEvent('DatabaseConnected', {
-            connectionType: connection.serverInfo ? (connection.serverInfo.isCloud ? 'Azure' : 'Standalone') : '',
-            serverVersion: connection.serverInfo ? connection.serverInfo.serverVersion : '',
-            serverEdition: connection.serverInfo ? connection.serverInfo.serverEdition : '',
-            serverOs: connection.serverInfo ? this.getIsServerLinux(connection.serverInfo.osVersion) : ''
-        }, {
-            isEncryptedConnection: connection.credentials.encrypt ? 1 : 0,
-            isIntegratedAuthentication: connection.credentials.authenticationType === 'Integrated' ? 1 : 0,
-            extensionConnectionTime: connection.extensionTimer.getDuration() - connection.serviceTimer.getDuration(),
-            serviceConnectionTime: connection.serviceTimer.getDuration()
-        });
     }
 
     private async handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): Promise<void> {
@@ -511,8 +471,6 @@ export default class ConnectionManager {
 
                         self.disconnect(fileUri).then( () => {
                             self.connect(fileUri, newDatabaseCredentials).then( () => {
-                                Telemetry.sendTelemetryEvent('UseDatabase');
-
                                 self.vscodeWrapper.logToOutputChannel(
                                     Utils.formatString(
                                         LocalizedConstants.msgChangedDatabase,
@@ -547,7 +505,6 @@ export default class ConnectionManager {
             }
             await self.disconnect(fileUri);
             await self.connect(fileUri, newDatabaseCredentials);
-            Telemetry.sendTelemetryEvent('UseDatabase');
             self.vscodeWrapper.logToOutputChannel(
                 Utils.formatString(
                     LocalizedConstants.msgChangedDatabase,
@@ -605,8 +562,6 @@ export default class ConnectionManager {
                         self.statusView.notConnected(fileUri);
                     }
                     if (result) {
-                        Telemetry.sendTelemetryEvent('DatabaseDisconnected');
-
                         self.vscodeWrapper.logToOutputChannel(
                             Utils.formatString(LocalizedConstants.msgDisconnected, fileUri)
                         );
@@ -730,8 +685,6 @@ export default class ConnectionManager {
         const self = this;
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
-            connectionInfo.extensionTimer = new Utils.Timer();
-            connectionInfo.intelliSenseTimer = new Utils.Timer();
             connectionInfo.credentials = connectionCreds;
             connectionInfo.connecting = true;
             this._connections[fileUri] = connectionInfo;
@@ -760,8 +713,6 @@ export default class ConnectionManager {
             let connectParams = new ConnectionContracts.ConnectParams();
             connectParams.ownerUri = fileUri;
             connectParams.connection = connectionDetails;
-
-            connectionInfo.serviceTimer = new Utils.Timer();
 
             // send connection request message to service host
             this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
