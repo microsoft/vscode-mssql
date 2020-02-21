@@ -346,10 +346,7 @@
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
         "category": "MS SQL",
-        "icon": {
-          "light": "images/debug-start.svg",
-          "dark": "images/debug-start.svg"
-        }
+        "icon": "$(debug-start)"
       },
       {
         "command": "mssql.runCurrentStatement",
@@ -360,10 +357,7 @@
         "command": "mssql.cancelQuery",
         "title": "%mssql.cancelQuery%",
         "category": "MS SQL",
-        "icon": {
-          "light": "images/debug-stop.svg",
-          "dark": "images/debug-stop.svg"
-        }
+        "icon": "$(debug-stop)"
       },
       {
         "command": "mssql.connect",
