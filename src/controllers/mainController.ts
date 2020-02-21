@@ -826,6 +826,14 @@ export default class MainController implements vscode.Disposable {
                     await this.createObjectExplorerSession(node.connectionCredentials);
                 }
                 this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
+                // connection string based credential
+                if (connectionCreds.connectionString) {
+                    if ((connectionCreds as IConnectionProfile).savePassword) {
+                        // look up connection string
+                        let connectionString = await this._connectionMgr.connectionStore.lookupPassword(connectionCreds, true);
+                        connectionCreds.connectionString = connectionString;
+                    }
+                }
                 await this.connectionManager.connect(uri, connectionCreds);
                 this._statusview.sqlCmdModeChanged(uri, false);
                 await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
