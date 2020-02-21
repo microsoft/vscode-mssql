@@ -48,6 +48,7 @@ export class ConnectionStore {
     public static get CRED_DB_PREFIX(): string { return 'db:'; }
     public static get CRED_USER_PREFIX(): string { return 'user:'; }
     public static get CRED_ITEMTYPE_PREFIX(): string { return 'itemtype:'; }
+    public static get CRED_CONNECTION_STRING_PREFIX(): string { return 'isConnectionString:'; }
     public static get CRED_PROFILE_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Profile]; }
     public static get CRED_MRU_USER(): string { return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru]; }
 
@@ -72,7 +73,7 @@ export class ConnectionStore {
      * @param {string} itemType type of the item (MRU or Profile) - optional
      * @returns {string} formatted string with server, DB and username
      */
-    public static formatCredentialId(server: string, database?: string, user?: string, itemType?: string): string {
+    public static formatCredentialId(server: string, database?: string, user?: string, itemType?: string, isConnectionString?: boolean): string {
         if (Utils.isEmpty(server)) {
             throw new ValidationException('Missing Server Name, which is required');
         }
@@ -85,6 +86,10 @@ export class ConnectionStore {
         ConnectionStore.pushIfNonEmpty(server, ConnectionStore.CRED_SERVER_PREFIX, cred);
         ConnectionStore.pushIfNonEmpty(database, ConnectionStore.CRED_DB_PREFIX, cred);
         ConnectionStore.pushIfNonEmpty(user, ConnectionStore.CRED_USER_PREFIX, cred);
+        if (isConnectionString) {
+            ConnectionStore.pushIfNonEmpty('true', ConnectionStore.CRED_CONNECTION_STRING_PREFIX, cred);
+        }
+
         return cred.join(ConnectionStore.CRED_SEPARATOR);
     }
 
@@ -157,10 +162,10 @@ export class ConnectionStore {
      * Lookup credential store
      * @param connectionCredentials Connection credentials of profile for password lookup
      */
-    public async lookupPassword(connectionCredentials: IConnectionCredentials): Promise<string> {
+    public async lookupPassword(connectionCredentials: IConnectionCredentials, isConnectionString: boolean = false): Promise<string> {
         const credentialId = ConnectionStore.formatCredentialId(
             connectionCredentials.server, connectionCredentials.database,
-            connectionCredentials.user, ConnectionStore.CRED_PROFILE_USER);
+            connectionCredentials.user, ConnectionStore.CRED_PROFILE_USER, isConnectionString);
         const savedCredential = await this._credentialStore.readCredential(credentialId);
         if (savedCredential && savedCredential.password) {
             return savedCredential.password;
@@ -266,7 +271,7 @@ export class ConnectionStore {
             .then(() => {
                 // Only save if we successfully added the profile and if savePassword
                 if ((<IConnectionProfile>conn).savePassword) {
-                    self.doSavePassword(conn, CredentialsQuickPickItemType.Mru);
+                    self.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
                 }
                 // And resolve / reject at the end of the process
                 resolve(undefined);
@@ -321,16 +326,24 @@ export class ConnectionStore {
         if (!profile.savePassword) {
             return Promise.resolve(true);
         }
-        return this.doSavePassword(profile, CredentialsQuickPickItemType.Profile);
+        return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile);
     }
 
-    private doSavePassword(conn: IConnectionCredentials, type: CredentialsQuickPickItemType): Promise<boolean> {
+    public saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean> {
+        if (!profile.connectionString) {
+            return Promise.resolve(true);
+        }
+        return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile, true);
+    }
+
+    private doSaveCredential(conn: IConnectionCredentials, type: CredentialsQuickPickItemType, isConnectionString: boolean = false): Promise<boolean> {
         let self = this;
+        let password = isConnectionString ? conn.connectionString : conn.password;
         return new Promise<boolean>((resolve, reject) => {
-            if (Utils.isNotEmpty(conn.password)) {
+            if (Utils.isNotEmpty(password)) {
                 let credType: string = type === CredentialsQuickPickItemType.Mru ? ConnectionStore.CRED_MRU_USER : ConnectionStore.CRED_PROFILE_USER;
-                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType);
-                self._credentialStore.saveCredential(credentialId, conn.password)
+                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType, isConnectionString);
+                self._credentialStore.saveCredential(credentialId, password)
                 .then((result) => {
                     resolve(result);
                 }).catch(err => {

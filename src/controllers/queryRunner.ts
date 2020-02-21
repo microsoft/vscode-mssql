@@ -35,6 +35,7 @@ export interface IResultSet {
     columns: string[];
     totalNumberOfRows: number;
 }
+
 /*
 * Query Runner class which handles running a query, reports the results to the content manager,
 * and handles getting more rows from the service layer and disposing when the content is closed.
@@ -49,6 +50,7 @@ export default class QueryRunner {
     private _isSqlCmd: boolean = false;
     public eventEmitter: EventEmitter = new EventEmitter();
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
+    private _uriToQueryStringMap = new Map<string, string>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -160,6 +162,20 @@ export default class QueryRunner {
                     querySelection: selection
                 };
 
+                const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this._ownerUri));
+                let queryString: string;
+                if (selection) {
+                    let range = this._vscodeWrapper.range(
+                        this._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                        this._vscodeWrapper.position(selection.endLine, selection.endColumn));
+                    queryString = doc.getText(range);
+                } else {
+                    queryString = doc.getText();
+                }
+
+                // Set the query string for the uri
+                this._uriToQueryStringMap.set(this._ownerUri, queryString);
+
                 // Send the request to execute the query
                 if (promise) {
                     this._uriToQueryPromiseMap.set(this._ownerUri, promise);
@@ -216,7 +232,8 @@ export default class QueryRunner {
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
         this._statusView.executedQuery(result.ownerUri);
-        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds));
+        let hasError = this._batchSets.some(batch => batch.hasError === true);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), hasError);
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
@@ -574,6 +591,13 @@ export default class QueryRunner {
             editor.selection = querySelection;
             return;
         }
+    }
+
+    public getQueryString(uri: string): string {
+        if (this._uriToQueryStringMap.has(uri)) {
+            return this._uriToQueryStringMap.get(uri);
+        }
+        return undefined;
     }
 
     public resetHasCompleted(): void {

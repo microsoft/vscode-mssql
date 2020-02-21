@@ -16,7 +16,6 @@ import ConnectionManager from './connectionManager';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
-import Telemetry from '../models/telemetry';
 import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import { ISelectionData, IConnectionProfile, IConnectionCredentials } from './../models/interfaces';
@@ -30,6 +29,8 @@ import { Deferred } from '../protocol';
 import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
+import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
+import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 
 /**
  * The main controller class that initializes the extension
@@ -49,7 +50,9 @@ export default class MainController implements vscode.Disposable {
     private _lastOpenedTimer: Utils.Timer;
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
+    private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
+    private _queryHistoryRegistered: boolean = false;
 
     /**
      * The main controller constructor
@@ -63,7 +66,6 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper || new VscodeWrapper();
-
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
     }
 
@@ -106,16 +108,15 @@ export default class MainController implements vscode.Disposable {
      */
     public activate():  Promise<boolean> {
         const self = this;
-        let activationTimer = new Utils.Timer();
 
         // initialize the language client then register the commands
-        return this.initialize(activationTimer).then((didInitialize) => {
+        return this.initialize().then((didInitialize) => {
             if (didInitialize) {
                 // register VS Code commands
                 this.registerCommand(Constants.cmdConnect);
-                this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection(), 'onNewConnection'); });
+                this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection()); });
                 this.registerCommand(Constants.cmdDisconnect);
-                this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect(), 'onDisconnect'); });
+                this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
                 this.registerCommand(Constants.cmdRunQuery);
                 this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
                 this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -123,15 +124,15 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdRunCurrentStatement);
                 this._event.on(Constants.cmdManageConnectionProfiles, async () => { await self.onManageProfiles(); });
                 this.registerCommand(Constants.cmdChooseDatabase);
-                this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase(), 'onChooseDatabase') ; } );
+                this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors(self.onChooseDatabase()) ; } );
                 this.registerCommand(Constants.cmdChooseLanguageFlavor);
-                this._event.on(Constants.cmdChooseLanguageFlavor, () => { self.runAndLogErrors(self.onChooseLanguageFlavor(), 'onChooseLanguageFlavor') ; } );
+                this._event.on(Constants.cmdChooseLanguageFlavor, () => { self.runAndLogErrors(self.onChooseLanguageFlavor()) ; } );
                 this.registerCommand(Constants.cmdCancelQuery);
                 this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
                 this.registerCommand(Constants.cmdShowGettingStarted);
                 this._event.on(Constants.cmdShowGettingStarted, () => { self.launchGettingStartedPage(); });
                 this.registerCommand(Constants.cmdNewQuery);
-                this._event.on(Constants.cmdNewQuery, () => self.runAndLogErrors(self.onNewQuery(), 'onNewQuery'));
+                this._event.on(Constants.cmdNewQuery, () => self.runAndLogErrors(self.onNewQuery()));
                 this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
                 this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
                 this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
@@ -139,116 +140,9 @@ export default class MainController implements vscode.Disposable {
                 this.registerCommand(Constants.cmdToggleSqlCmd);
                 this._event.on(Constants.cmdToggleSqlCmd, async () => { await self.onToggleSqlCmd(); });
 
-                // Register the object explorer tree provider
-                this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
-                this._context.subscriptions.push(
-                    vscode.window.registerTreeDataProvider('objectExplorer', this._objectExplorerProvider)
-                );
+                this.initializeObjectExplorer();
 
-                // Add Object Explorer Node
-                this.registerCommand(Constants.cmdAddObjectExplorer);
-                this._event.on(Constants.cmdAddObjectExplorer, async () => {
-                    if (!self._objectExplorerProvider.objectExplorerExists) {
-                        self._objectExplorerProvider.objectExplorerExists = true;
-                    }
-                    await self.createObjectExplorerSession();
-                });
-
-                // Object Explorer New Query
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                        Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = Object.assign({}, treeNodeInfo.connectionCredentials);
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
-                    if (databaseName !== connectionCredentials.database &&
-                        databaseName !== LocalizedConstants.defaultDatabaseLabel) {
-                        connectionCredentials.database = databaseName;
-                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
-                        connectionCredentials.database = '';
-                    }
-                    treeNodeInfo.connectionCredentials = connectionCredentials;
-                    await self.onNewQuery(treeNodeInfo);
-                }));
-
-                // Remove Object Explorer Node
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                        Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
-                    let profile = <IConnectionProfile>treeNodeInfo.connectionCredentials;
-                    await this._connectionMgr.connectionStore.removeProfile(profile, false);
-                    return this._objectExplorerProvider.refresh(undefined);
-                }));
-
-                // Refresh Object Explorer Node
-                this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
-                this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
-                    return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
-                });
-
-                // Sign In into Object Explorer Node
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                        Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
-                    let profile = <IConnectionProfile>node.parentNode.connectionCredentials;
-                    profile = await self.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
-                    if (profile) {
-                        node.parentNode.connectionCredentials = <IConnectionCredentials>profile;
-                        self._objectExplorerProvider.updateNode(node.parentNode);
-                        self._objectExplorerProvider.signInNodeServer(node.parentNode);
-                        return self._objectExplorerProvider.refresh(undefined);
-                    }
-                }));
-
-                // Connect to Object Explorer Node
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                        Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
-                        self._objectExplorerProvider.currentNode = node.parentNode;
-                        await self.createObjectExplorerSession(node.parentNode.connectionCredentials);
-                }));
-
-                // Disconnect Object Explorer Node
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                        Constants.cmdDisconnectObjectExplorerNode, async (node: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
-                    return this._objectExplorerProvider.refresh(undefined);
-                }));
-
-                // Initiate the scripting service
-                this._scriptingService = new ScriptingService(this._connectionMgr);
-
-                // Script as Select
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                    Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
-                        this.scriptNode(node, ScriptOperation.Select, true);
-                    }));
-
-                // Script as Create
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                    Constants.cmdScriptCreate, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Create)));
-
-                // Script as Drop
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                    Constants.cmdScriptDelete, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Delete)));
-
-                // Script as Execute
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                    Constants.cmdScriptExecute, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Execute)));
-
-                // Script as Alter
-                this._context.subscriptions.push(
-                    vscode.commands.registerCommand(
-                    Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
-                    this.scriptNode(node, ScriptOperation.Alter)));
+                this.initializeQueryHistory();
 
                 // Add handlers for VS Code generated commands
                 this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -305,13 +199,11 @@ export default class MainController implements vscode.Disposable {
     /**
      * Initializes the extension
      */
-    public initialize(activationTimer: Utils.Timer): Promise<boolean> {
+    public initialize(): Promise<boolean> {
         const self = this;
 
         // initialize language service client
         return new Promise<boolean>( (resolve, reject) => {
-            // Ensure telemetry is disabled
-            Telemetry.disable();
             SqlToolsServerClient.instance.initialize(self._context).then(serverResult => {
                 // Init status bar
                 self._statusview = new StatusView(self._vscodeWrapper);
@@ -325,12 +217,6 @@ export default class MainController implements vscode.Disposable {
                 // Init connection manager and connection MRU
                 self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
 
-                activationTimer.end();
-
-                // telemetry for activation
-                Telemetry.sendTelemetryEvent('ExtensionActivated', {},
-                    { activationTime: activationTimer.getDuration(), serviceInstalled: serverResult.installedBeforeInitializing ? 1 : 0 }
-                );
 
                 self.showReleaseNotesPrompt();
 
@@ -344,7 +230,6 @@ export default class MainController implements vscode.Disposable {
                 self._initialized = true;
                 resolve(true);
             }).catch(err => {
-                Telemetry.sendTelemetryEventForException(err, 'initialize');
                 reject(err);
             });
         });
@@ -374,6 +259,204 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
+    /**
+     * Initializes the Object Explorer commands
+     */
+    private initializeObjectExplorer(): void {
+        const self = this;
+        // Register the object explorer tree provider
+        this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
+        this._context.subscriptions.push(
+            vscode.window.registerTreeDataProvider('objectExplorer', this._objectExplorerProvider)
+        );
+
+        // Add Object Explorer Node
+        this.registerCommand(Constants.cmdAddObjectExplorer);
+        this._event.on(Constants.cmdAddObjectExplorer, async () => {
+            if (!self._objectExplorerProvider.objectExplorerExists) {
+                self._objectExplorerProvider.objectExplorerExists = true;
+            }
+            await self.createObjectExplorerSession();
+        });
+
+        // Object Explorer New Query
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
+            const connectionCredentials = Object.assign({}, treeNodeInfo.connectionCredentials);
+            const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+            if (databaseName !== connectionCredentials.database &&
+                databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                connectionCredentials.database = databaseName;
+            } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
+                connectionCredentials.database = '';
+            }
+            treeNodeInfo.connectionCredentials = connectionCredentials;
+            await self.onNewQuery(treeNodeInfo);
+        }));
+
+        // Remove Object Explorer Node
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
+            await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
+            let profile = <IConnectionProfile>treeNodeInfo.connectionCredentials;
+            await this._connectionMgr.connectionStore.removeProfile(profile, false);
+            return this._objectExplorerProvider.refresh(undefined);
+        }));
+
+        // Refresh Object Explorer Node
+        this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
+        this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
+            return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
+        });
+
+        // Sign In into Object Explorer Node
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
+            let profile = <IConnectionProfile>node.parentNode.connectionCredentials;
+            profile = await self.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
+            if (profile) {
+                node.parentNode.connectionCredentials = <IConnectionCredentials>profile;
+                self._objectExplorerProvider.updateNode(node.parentNode);
+                self._objectExplorerProvider.signInNodeServer(node.parentNode);
+                return self._objectExplorerProvider.refresh(undefined);
+            }
+        }));
+
+        // Connect to Object Explorer Node
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
+                self._objectExplorerProvider.currentNode = node.parentNode;
+                await self.createObjectExplorerSession(node.parentNode.connectionCredentials);
+        }));
+
+        // Disconnect Object Explorer Node
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDisconnectObjectExplorerNode, async (node: TreeNodeInfo) => {
+            await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
+            return this._objectExplorerProvider.refresh(undefined);
+        }));
+
+        // Initiate the scripting service
+        this._scriptingService = new ScriptingService(this._connectionMgr);
+
+        // Script as Select
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+            Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
+                await this.scriptNode(node, ScriptOperation.Select, true);
+            }));
+
+        // Script as Create
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+            Constants.cmdScriptCreate, async (node: TreeNodeInfo) =>
+            await this.scriptNode(node, ScriptOperation.Create)));
+
+        // Script as Drop
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+            Constants.cmdScriptDelete, async (node: TreeNodeInfo) =>
+            await this.scriptNode(node, ScriptOperation.Delete)));
+
+        // Script as Execute
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+            Constants.cmdScriptExecute, async (node: TreeNodeInfo) =>
+            await this.scriptNode(node, ScriptOperation.Execute)));
+
+        // Script as Alter
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+            Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
+            await this.scriptNode(node, ScriptOperation.Alter)));
+    }
+
+    /**
+     * Initializes the Query History commands
+     */
+    private initializeQueryHistory(): void {
+
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let queryHistoryFeature = config.get(Constants.configEnableQueryHistoryFeature);
+        // If the query history feature is enabled
+        if (queryHistoryFeature && !this._queryHistoryRegistered) {
+            // Register the query history tree provider
+            this._queryHistoryProvider = new QueryHistoryProvider(this._connectionMgr, this._outputContentProvider,
+                this._vscodeWrapper, this._untitledSqlDocumentService, this._statusview, this._prompter);
+
+            this._context.subscriptions.push(
+                vscode.window.registerTreeDataProvider('queryHistory', this._queryHistoryProvider)
+            );
+
+            // Command to refresh Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRefreshQueryHistory, (ownerUri: string, hasError: boolean) => {
+                    config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+                    let queryHistoryFeatureEnabled = config.get(Constants.configEnableQueryHistoryFeature);
+                    let queryHistoryCaptureEnabled = config.get(Constants.configEnableQueryHistoryCapture);
+                    if (queryHistoryFeatureEnabled && queryHistoryCaptureEnabled) {
+                        const timeStamp = new Date();
+                        this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
+                    }
+            }));
+
+            // Command to enable clear all entries in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdClearAllQueryHistory, () => {
+                    this._queryHistoryProvider.clearAll();
+            }));
+
+            // Command to enable delete an entry in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdDeleteQueryHistory, (node: QueryHistoryNode) => {
+                    this._queryHistoryProvider.deleteQueryHistoryEntry(node);
+            }));
+
+            // Command to enable open a query in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdOpenQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.openQueryHistoryEntry(node);
+            }));
+
+            // Command to enable run a query in Query History
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRunQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
+            }));
+
+            // Command to start the query history capture
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdStartQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.startQueryHistoryCapture();
+            }));
+
+            // Command to pause the query history capture
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdPauseQueryHistory, async (node: QueryHistoryNode) => {
+                    await this._queryHistoryProvider.pauseQueryHistoryCapture();
+            }));
+
+            // Command to open the query history experience in the command palette
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdCommandPaletteQueryHistory, async () => {
+                    await this._queryHistoryProvider.showQueryHistoryCommandPalette();
+            }));
+            this._queryHistoryRegistered = true;
+        }
+    }
 
     /**
      * Handles the command to enable SQLCMD mode
@@ -411,10 +494,9 @@ export default class MainController implements vscode.Disposable {
         }
         try {
             let uri = this._vscodeWrapper.activeTextEditorUri;
-            Telemetry.sendTelemetryEvent('CancelQuery');
             this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
-            Telemetry.sendTelemetryEventForException(err, 'onCancelQuery');
+            console.warn(`Unexpected error cancelling query : ${err}`);
         }
     }
 
@@ -465,7 +547,6 @@ export default class MainController implements vscode.Disposable {
      */
     public async onManageProfiles(): Promise<void> {
         if (this.canRunCommand()) {
-            Telemetry.sendTelemetryEvent('ManageProfiles');
             await this._connectionMgr.onManageProfiles();
             return;
         }
@@ -533,8 +614,6 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
-            Telemetry.sendTelemetryEvent('RunCurrentStatement');
-
             let editor = self._vscodeWrapper.activeTextEditor;
             let uri = self._vscodeWrapper.activeTextEditorUri;
             let title = path.basename(editor.document.fileName);
@@ -554,7 +633,7 @@ export default class MainController implements vscode.Disposable {
 
             await self._outputContentProvider.runCurrentStatement(self._statusview, uri, querySelection, title);
         } catch (err) {
-            Telemetry.sendTelemetryEventForException(err, 'onRunCurrentStatement');
+            console.warn(`Unexpected error running current statement : ${err}`);
         }
     }
 
@@ -601,12 +680,9 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
-
-            Telemetry.sendTelemetryEvent('RunQuery');
-
             await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
         } catch (err) {
-            Telemetry.sendTelemetryEventForException(err, 'onRunQuery');
+            console.warn(`Unexpected error running query : ${err}`);
         }
     }
 
@@ -647,11 +723,10 @@ export default class MainController implements vscode.Disposable {
     /**
      * Executes a callback and logs any errors raised
      */
-    private runAndLogErrors<T>(promise: Promise<T>, handlerName: string): Promise<T> {
+    private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
         let self = this;
         return promise.catch(err => {
             self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
-            Telemetry.sendTelemetryEventForException(err, handlerName);
             return undefined;
         });
     }
@@ -751,6 +826,14 @@ export default class MainController implements vscode.Disposable {
                     await this.createObjectExplorerSession(node.connectionCredentials);
                 }
                 this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
+                // connection string based credential
+                if (connectionCreds.connectionString) {
+                    if ((connectionCreds as IConnectionProfile).savePassword) {
+                        // look up connection string
+                        let connectionString = await this._connectionMgr.connectionStore.lookupPassword(connectionCreds, true);
+                        connectionCreds.connectionString = connectionString;
+                    }
+                }
                 await this.connectionManager.connect(uri, connectionCreds);
                 this._statusview.sqlCmdModeChanged(uri, false);
                 await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
@@ -840,7 +923,6 @@ export default class MainController implements vscode.Disposable {
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
 
-
         // Reset special case timers and events
         this._lastSavedUri = undefined;
         this._lastSavedTimer = undefined;
@@ -892,12 +974,24 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedUri = savedDocumentUri;
     }
 
+    private async onChangeQueryHistoryConfig(): Promise<void> {
+        let queryHistoryFeatureEnabled = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName)
+            .get(Constants.configEnableQueryHistoryFeature);
+        if (queryHistoryFeatureEnabled) {
+            this.initializeQueryHistory();
+        }
+    }
+
     /**
      * Called by VS Code when user settings are changed
      * @param ConfigurationChangeEvent event that is fired when config is changed
      */
     public async onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): Promise<void> {
         if (e.affectsConfiguration(Constants.extensionName)) {
+            // Query History settings change
+            await this.onChangeQueryHistoryConfig();
+
+            // Connections change
             let needsRefresh = false;
             // user connections is a super set of object explorer connections
             let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);

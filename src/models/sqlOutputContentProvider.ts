@@ -164,7 +164,8 @@ export class SqlOutputContentProvider {
             setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
             showError: (message: string) => this.showErrorRequestHandler(message),
             showWarning: (message: string) => this.showWarningRequestHandler(message),
-            sendReadyEvent: async () => await this.sendReadyEvent(uri)
+            sendReadyEvent: async () => await this.sendReadyEvent(uri),
+            dispose: () => this._panels.delete(uri)
         };
         const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
         this._panels.set(uri, controller);
@@ -214,7 +215,8 @@ export class SqlOutputContentProvider {
             queryRunner.eventEmitter.on('message', (message) => {
                 this._panels.get(uri).proxy.sendEvent('message', message);
             });
-            queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
+            queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError) => {
+                this._vscodeWrapper.executeCommand(Constants.cmdRefreshQueryHistory, uri, hasError);
                 this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
             });
             this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
@@ -282,14 +284,15 @@ export class SqlOutputContentProvider {
      */
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         for (let [key, value] of this._queryResultsMap.entries()) {
-            // closed text document related to a results window we are holding
+            // closes text document related to a results window we are holding
             if (doc.uri.toString(true) === value.queryRunner.uri) {
                 value.flaggedForDeletion = true;
             }
 
-            // "closed" a results window we are holding
+            // "closes" a results window we are holding
             if (doc.uri.toString(true) === key) {
                 value.timeout = this.setRunnerDeletionTimeout(key);
+                this.closeResultsTab(doc.uri.toString());
             }
         }
     }
@@ -399,6 +402,15 @@ export class SqlOutputContentProvider {
             });
         }
         return Promise.resolve(false);
+    }
+
+    /**
+     * Closes the associated results tab when a query editor is closed
+     */
+    public closeResultsTab(uri: string): void {
+        let controller = this._panels.get(uri);
+        controller.dispose();
+        this._panels.delete(uri);
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////

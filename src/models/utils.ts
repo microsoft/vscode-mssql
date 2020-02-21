@@ -12,7 +12,7 @@ import * as findRemoveSync from 'find-remove';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
 import { AzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
-import {ExtensionContext} from 'vscode';
+import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
 
@@ -59,14 +59,14 @@ export function generateGuid(): string {
     /* tslint:disable:no-bitwise */
     for (let a: number = 0; a < 4; a++) {
         tmp = (4294967296 * Math.random()) | 0;
-        oct +=  hexValues[tmp & 0xF] +
-                hexValues[tmp >> 4 & 0xF] +
-                hexValues[tmp >> 8 & 0xF] +
-                hexValues[tmp >> 12 & 0xF] +
-                hexValues[tmp >> 16 & 0xF] +
-                hexValues[tmp >> 20 & 0xF] +
-                hexValues[tmp >> 24 & 0xF] +
-                hexValues[tmp >> 28 & 0xF];
+        oct += hexValues[tmp & 0xF] +
+            hexValues[tmp >> 4 & 0xF] +
+            hexValues[tmp >> 8 & 0xF] +
+            hexValues[tmp >> 12 & 0xF] +
+            hexValues[tmp >> 16 & 0xF] +
+            hexValues[tmp >> 20 & 0xF] +
+            hexValues[tmp >> 24 & 0xF] +
+            hexValues[tmp >> 28 & 0xF];
     }
 
     // 'Set the two most significant bits (bits 6 and 7) of the clock_seq_hi_and_reserved to zero and one, respectively'
@@ -148,17 +148,17 @@ export function logDebug(msg: any): void {
 
 // Helper to show an info message
 export function showInfoMsg(msg: string): void {
-    vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg );
+    vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg);
 }
 
 // Helper to show an warn message
 export function showWarnMsg(msg: string): void {
-    vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
+    vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg);
 }
 
 // Helper to show an error message
 export function showErrorMsg(msg: string): void {
-    vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg );
+    vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg);
 }
 
 export function isEmpty(str: any): boolean {
@@ -264,8 +264,8 @@ export function isSameConnection(conn: IConnectionCredentials, expectedConn: ICo
         && isSameDatabase(expectedConn.database, conn.database)
         && isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
         && (conn.authenticationType === Constants.sqlAuthentication ?
-        conn.user === expectedConn.user :
-        isEmpty(conn.user) === isEmpty(expectedConn.user))
+            conn.user === expectedConn.user :
+            isEmpty(conn.user) === isEmpty(expectedConn.user))
         && (<IConnectionProfile>conn).savePassword ===
         (<IConnectionProfile>expectedConn).savePassword;
 }
@@ -274,13 +274,13 @@ export function isSameConnection(conn: IConnectionCredentials, expectedConn: ICo
  * Check if a file exists on disk
  */
 export function isFileExisting(filePath: string): boolean {
-        try {
-            fs.statSync(filePath);
-            return true;
-        } catch (err) {
-            return false;
-        }
+    try {
+        fs.statSync(filePath);
+        return true;
+    } catch (err) {
+        return false;
     }
+}
 
 
 // One-time use timer for performance testing
@@ -298,7 +298,7 @@ export class Timer {
             return -1;
         } else if (!this._endTime) {
             let endTime = process.hrtime(<any>this._startTime);
-            return  endTime[0] * 1000 + endTime[1] / 1000000;
+            return endTime[0] * 1000 + endTime[1] / 1000000;
         } else {
             return this._endTime[0] * 1000 + this._endTime[1] / 1000000;
         }
@@ -385,53 +385,51 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
 }
 
 export function getConfigTracingLevel(): string {
-	let config = getConfiguration();
-	if (config) {
-		return config.get(configTracingLevel);
-	}
-	else {
-		return undefined;
-	}
+    let config = getConfiguration();
+    if (config) {
+        return config.get(configTracingLevel);
+    } else {
+        return undefined;
+    }
 }
 
 export function getConfigLogFilesRemovalLimit(): number {
-	let config = getConfiguration();
-	if (config) {
-		return Number((config.get(configLogFilesRemovalLimit, 0).toFixed(0)));
-	}
-	else {
-		return undefined;
-	}
+    let config = getConfiguration();
+    if (config) {
+        return Number((config.get(configLogFilesRemovalLimit, 0).toFixed(0)));
+    }
+    else {
+        return undefined;
+    }
 }
 
 export function getConfigLogRetentionSeconds(): number {
-	let config = getConfiguration();
-	if (config) {
-		return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
-	}
-	else {
-		return undefined;
-	}
+    let config = getConfiguration();
+    if (config) {
+        return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
+    } else {
+        return undefined;
+    }
 }
 
 export function removeOldLogFiles(logPath: string, prefix: string): JSON {
-	return findRemoveSync(logPath, { age: { seconds: getConfigLogRetentionSeconds() }, limit: getConfigLogFilesRemovalLimit() });
+    return findRemoveSync(logPath, { age: { seconds: getConfigLogRetentionSeconds() }, limit: getConfigLogFilesRemovalLimit() });
 }
 
 export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileName: string, executablePath: string): string[] {
-	let launchArgs = [];
-	launchArgs.push('--log-file');
-	let logFile = path.join(logPath, fileName);
-	launchArgs.push(logFile);
+    let launchArgs = [];
+    launchArgs.push('--log-file');
+    let logFile = path.join(logPath, fileName);
+    launchArgs.push(logFile);
 
-	console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
-	console.log(`This process (ui Extenstion Host) is pid: ${process.pid}`);
-	// Delete old log files
-	let deletedLogFiles = removeOldLogFiles(logPath, fileName);
-	console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
-	launchArgs.push('--tracing-level');
-	launchArgs.push(getConfigTracingLevel());
-	return launchArgs;
+    console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
+    console.log(`This process (ui Extenstion Host) is pid: ${process.pid}`);
+    // Delete old log files
+    let deletedLogFiles = removeOldLogFiles(logPath, fileName);
+    console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
+    launchArgs.push('--tracing-level');
+    launchArgs.push(getConfigTracingLevel());
+    return launchArgs;
 }
 
 /**
@@ -454,4 +452,20 @@ export function getSignInQuickPickItems(): AzureSignInQuickPickItem[] {
         command: Constants.cmdAzureSignInToCloud
     };
     return [signInItem, signInWithDeviceCode, signInAzureCloud];
+}
+
+/**
+ * Limits the size of a string with ellipses in the middle
+ */
+export function limitStringSize(input: string, forCommandPalette: boolean = false): string {
+    if (!forCommandPalette) {
+        if (input.length > 45) {
+            return `${input.substr(0, 20)}...${input.substr(input.length - 20, input.length)}`;
+        }
+    } else {
+        if (input.length > 100) {
+            return `${input.substr(0, 45)}...${input.substr(input.length - 45, input.length)}`;
+        }
+    }
+    return input;
 }

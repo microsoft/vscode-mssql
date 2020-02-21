@@ -72,6 +72,10 @@ suite('Query Runner tests', () => {
         // ... Mock up the view and VSCode wrapper to handle requests to update view
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
+        let testDoc: vscode.TextDocument = {
+            getText() {}
+        } as any;
+        testVscodeWrapper.setup( x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(testDoc));
 
         // ... Mock up a event emitter to accept a start event (only)
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Loose);
@@ -122,6 +126,10 @@ suite('Query Runner tests', () => {
         // ... Setup the vs code wrapper to handle output logging and error messages
         testVscodeWrapper.setup(x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
+        let testDoc: vscode.TextDocument = {
+            getText() {}
+        } as any;
+        testVscodeWrapper.setup( x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(testDoc));
 
         // ... Setup the event emitter to handle nothing
         let testEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
@@ -386,7 +394,7 @@ suite('Query Runner tests', () => {
         // Setup:
         // ... Create a mock for an event emitter that handles complete notifications
         let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup(x => x.emit('complete', TypeMoq.It.isAnyString()));
+        mockEventEmitter.setup(x => x.emit('complete', TypeMoq.It.isAnyString(), TypeMoq.It.isAny()));
 
         // ... Setup the VS Code view handlers
         testStatusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
@@ -426,7 +434,7 @@ suite('Query Runner tests', () => {
         testStatusView.verify(x => x.executedQuery(standardUri), TypeMoq.Times.once());
 
         // ... The event emitter should have gotten a complete event
-        mockEventEmitter.verify(x => x.emit('complete', TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        mockEventEmitter.verify(x => x.emit('complete', TypeMoq.It.isAnyString(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
         // ... The state of the query runner has been updated
         assert.equal(queryRunner.batchSets.length, 1);
