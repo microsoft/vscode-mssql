@@ -7,13 +7,8 @@ import assert = require('assert');
 
 import StatusView from '../src/views/statusView';
 import LocalizedConstants = require('../src/constants/localizedConstants');
-import Telemetry from '../src/models/telemetry';
 
 suite('Status View Tests', () => {
-    setup(() => {
-        // Ensure that telemetry is disabled while testing
-        Telemetry.disable();
-    });
 
     test('updateStatusMessage should not immediately update status message for definition request', (done) => {
         return new Promise((resolve, reject) => {

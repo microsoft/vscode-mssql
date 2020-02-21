@@ -11,7 +11,6 @@ import {
 } from 'vscode-languageclient';
 import * as path from 'path';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import Telemetry from '../models/telemetry';
 import * as Utils from '../models/utils';
 import { VersionRequest } from '../models/contracts';
 import { Logger } from '../models/logger';
@@ -59,8 +58,6 @@ class LanguageClientErrorHandler {
      * @memberOf LanguageClientErrorHandler
      */
     showOnErrorPrompt(): void {
-        Telemetry.sendTelemetryEvent('SqlToolsServiceCrash');
-
         this.vscodeWrapper.showErrorMessage(
             Constants.sqlToolsServiceCrashMessage,
             Constants.sqlToolsServiceCrashButton).then(action => {
@@ -169,7 +166,6 @@ export default class SqlToolsServiceClient {
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                Telemetry.sendTelemetryEvent('UnsupportedPlatform', { platform: platformInfo.toString() });
                 reject('Invalid Platform');
             } else {
                 if (platformInfo.runtimeId) {
@@ -200,7 +196,6 @@ export default class SqlToolsServiceClient {
                 }).catch(err => {
                     Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err);
                     Utils.showErrorMsg(Constants.serviceLoadingFailed);
-                    Telemetry.sendTelemetryEvent('ServiceInitializingFailed');
                     reject(err);
                 });
             }
@@ -299,7 +294,6 @@ export default class SqlToolsServiceClient {
         client.onReady().then(() => {
             this.checkServiceCompatibility();
 
-            client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
             client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
         });
 
@@ -318,12 +312,6 @@ export default class SqlToolsServiceClient {
         // server, since it's handled by the main client
         let client = new LanguageClient(Constants.resourceServiceName, serverOptions, undefined);
         return client;
-    }
-
-    private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
-        return (event: LanguageServiceContracts.TelemetryParams): void => {
-            Telemetry.sendTelemetryEvent(event.params.eventName, event.params.properties, event.params.measures);
-        };
     }
 
     /**
