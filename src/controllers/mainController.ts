@@ -266,9 +266,19 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
-        this._context.subscriptions.push(
-            vscode.window.registerTreeDataProvider('objectExplorer', this._objectExplorerProvider)
-        );
+        const treeView = vscode.window.createTreeView('objectExplorer', {
+            treeDataProvider: this._objectExplorerProvider,
+            canSelectMany: false
+        });
+        this._context.subscriptions.push(treeView);
+
+        // Sets the correct current node on any node selection
+        treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
+            const selections: TreeNodeInfo[] = e.selection;
+            if (selections && selections.length > 0) {
+                self._objectExplorerProvider.currentNode = selections[0];
+            }
+        });
 
         // Add Object Explorer Node
         this.registerCommand(Constants.cmdAddObjectExplorer);
@@ -329,7 +339,6 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
-                self._objectExplorerProvider.currentNode = node.parentNode;
                 await self.createObjectExplorerSession(node.parentNode.connectionCredentials);
         }));
 
@@ -374,6 +383,24 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
             Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
             await this.scriptNode(node, ScriptOperation.Alter)));
+
+        // Copy object name keybinding
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
+                let node = this._objectExplorerProvider.currentNode;
+                // Folder node
+                if (node.contextValue === 'Folder') {
+                    return;
+                } else {
+                    let scriptingObject = this._scriptingService.getObjectFromNode(node);
+                    if (scriptingObject.schema) {
+                        let database = ObjectExplorerUtils.getDatabaseName(node);
+                        await this._vscodeWrapper.clipboardWriteText(`[${database}].${scriptingObject.schema}.[${scriptingObject.name}]`);
+                    } else {
+                        await this._vscodeWrapper.clipboardWriteText(`[${scriptingObject.name}]`);
+                    }
+                }
+            }));
     }
 
     /**
