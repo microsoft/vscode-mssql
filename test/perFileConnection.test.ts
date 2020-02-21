@@ -18,7 +18,6 @@ import MainController from '../src/controllers/mainController';
 import * as Interfaces from '../src/models/interfaces';
 import { ConnectionStore } from '../src/models/connectionStore';
 import StatusView from '../src/views/statusView';
-import Telemetry from '../src/models/telemetry';
 import * as Utils from '../src/models/utils';
 import { TestExtensionContext, TestPrompter } from './stubs';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
@@ -106,10 +105,6 @@ function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResul
 }
 
 suite('Per File Connection Tests', () => {
-    setup(() => {
-        // Ensure that telemetry is disabled while testing
-        Telemetry.disable();
-    });
 
     test('onNewConnection should ask user for different credentials if connection failed because of invalid credentials', done => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);

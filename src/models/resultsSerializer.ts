@@ -12,7 +12,6 @@ import { RequestType } from 'vscode-languageclient';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
-import Telemetry from '../models/telemetry';
 import * as Utils from '../models/utils';
 
 let opener = require('opener');
@@ -190,8 +189,6 @@ export default class ResultsSerializer {
                     self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveSucceeded + filePath);
                     self.openSavedFile(self._filePath, format);
                 }
-                // telemetry for save results
-                Telemetry.sendTelemetryEvent('SavedResults', { 'type': format });
 
             }, error => {
                 self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgSaveFailed + error.message);

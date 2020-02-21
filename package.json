@@ -131,7 +131,6 @@
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
-    "vscode-extension-telemetry": "^0.1.1",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
