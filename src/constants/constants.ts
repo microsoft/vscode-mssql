@@ -17,6 +17,7 @@ export const connectionConfigFilename = 'settings.json';
 export const connectionsArrayName = 'connections';
 export const disconnectedServerLabel = 'disconnectedServer';
 export const serverLabel = 'Server';
+export const folderLabel = 'Folder';
 export const cmdRunQuery = 'mssql.runQuery';
 export const cmdRunCurrentStatement = 'mssql.runCurrentStatement';
 export const cmdCancelQuery = 'mssql.cancelQuery';

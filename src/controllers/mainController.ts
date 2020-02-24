@@ -273,12 +273,12 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(treeView);
 
         // Sets the correct current node on any node selection
-        treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
+        this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
             const selections: TreeNodeInfo[] = e.selection;
             if (selections && selections.length > 0) {
                 self._objectExplorerProvider.currentNode = selections[0];
             }
-        });
+        }));
 
         // Add Object Explorer Node
         this.registerCommand(Constants.cmdAddObjectExplorer);
@@ -389,8 +389,11 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
                 let node = this._objectExplorerProvider.currentNode;
                 // Folder node
-                if (node.contextValue === 'Folder') {
+                if (node.contextValue === Constants.folderLabel) {
                     return;
+                } else if (node.contextValue === Constants.serverLabel ||
+                    node.contextValue === Constants.disconnectedServerLabel) {
+                        await this._vscodeWrapper.clipboardWriteText(node.label);
                 } else {
                     let scriptingObject = this._scriptingService.getObjectFromNode(node);
                     if (scriptingObject.schema) {
