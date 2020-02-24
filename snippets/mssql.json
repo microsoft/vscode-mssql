@@ -220,7 +220,53 @@
 		],
 		"description": "Drop a stored procedure"
 	},
+	
+	"Create a view": {
+		"prefix": "sqlCreateView",
+		"body": [
+			"-- Create a new view called '${1:ViewName}' in schema '${2:SchemaName}'",
+			"-- Drop the view if it already exists",
+			"IF EXISTS (",
+			"SELECT *",
+			"\tFROM sys.views",
+			"\tJOIN sys.schemas",
+			"\tON sys.views.schema_id = sys.schemas.schema_id",
+			"\tWHERE sys.schemas.name = N'${2:SchemaName}'",
+			"\tAND sys.views.name = N'${1:ViewName}'",
+			")",
+			"DROP VIEW ${2:SchemaName}.${1:ViewName}",
+			"GO",
+			"-- Create the view in the specified schema",
+			"CREATE view ${2:SchemaName}.${1:ViewName}",
+			"AS",
+			"\t-- body of the view",
+			"\tSELECT $Column1,",
+			"\t\t$Column2,",
+			"\t\t$Column3,",
+			"\tFROM $SchemaName.$TableName",
+			"GO"
+		],
+		"description": "Create a view"
+	},
 
+	"Drop a view": {
+		"prefix": "sqlDropView",
+		"body": [
+			"-- Drop the view '${1:ViewName}' in schema '${2:SchemaName}'",
+			"IF EXISTS (",
+			"\tSELECT *",
+			"\t\tFROM sys.views",
+			"\t\tJOIN sys.schemas",
+			"\t\t\tON sys.views.schema_id = sys.schemas.schema_id",
+			"\tWHERE sys.schemas.name = N'${2:SchemaName}'",
+			"\t\tAND sys.views.name = N'${1:ViewName}'",
+			")",
+			"\tDROP VIEW ${2:SchemaName}.${1:ViewName}",
+			"GO"
+		],
+		"description": "Drop a view"
+	},
+	
 	"List tables": {
 		"prefix": "sqlListTablesAndViews",
 		"body": [

@@ -32,6 +32,11 @@ export class ObjectExplorerUtils {
 
     public static getNodeUriFromProfile(profile: IConnectionProfile): string {
         let uri: string;
+        if (profile.connectionString) {
+            let fields = profile.connectionString.split(';').filter(s => !s.toLowerCase().includes('password'));
+            uri = fields.join(';');
+            return uri;
+        }
         if (profile.authenticationType === Constants.sqlAuthentication) {
             uri = `${profile.server}_${profile.database}_${profile.user}_${profile.profileName}`;
         } else {
