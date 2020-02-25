@@ -112,9 +112,6 @@ export default class SqlToolsServiceClient {
     private _client: LanguageClient = undefined;
     private _resourceClient: LanguageClient = undefined;
 
-    // Diagnostics
-    private _diagnosticsCollection: vscode.DiagnosticCollection;
-
     // getter method for the Language Client
     private get client(): LanguageClient {
         return this._client;
