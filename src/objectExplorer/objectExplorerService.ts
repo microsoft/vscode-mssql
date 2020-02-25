@@ -74,31 +74,32 @@ export class ObjectExplorerService {
                     }
                 }
                 // set connection and other things
+                let node: TreeNodeInfo;
                 if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
                     nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionCredentials) : nodeLabel;
-                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
+                    node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
                         undefined, self._currentNode.connectionCredentials, nodeLabel, Constants.serverLabel);
                 } else {
                     nodeLabel = !nodeLabel ? self.createNodeLabel(nodeConnection) : nodeLabel;
-                    self._currentNode = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
+                    node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
                         undefined, nodeConnection, nodeLabel, Constants.serverLabel);
                 }
                 // make a connection if not connected already
-                const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+                const nodeUri = ObjectExplorerUtils.getNodeUri(node);
                 if (!this._connectionManager.isConnected(nodeUri) &&
                     !this._connectionManager.isConnecting(nodeUri)) {
-                    const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
+                    const profile = <IConnectionProfile>node.connectionCredentials;
                     await this._connectionManager.connect(nodeUri, profile);
                 }
 
-                self.updateNode(self._currentNode);
+                self.updateNode(node);
                 self._objectExplorerProvider.objectExplorerExists = true;
                 const promise = self._sessionIdToPromiseMap.get(result.sessionId);
                 // remove the sign in node once the session is created
-                if (self._treeNodeToChildrenMap.has(self._currentNode)) {
-                    self._treeNodeToChildrenMap.delete(self._currentNode);
+                if (self._treeNodeToChildrenMap.has(node)) {
+                    self._treeNodeToChildrenMap.delete(node);
                 }
-                return promise.resolve(self._currentNode);
+                return promise.resolve(node);
             } else {
                 // create session failure
                 if (self._currentNode.connectionCredentials.password) {
@@ -113,12 +114,12 @@ export class ObjectExplorerService {
 
                 // handle session failure because of firewall issue
                 if (ObjectExplorerUtils.isFirewallError(result.errorMessage)) {
-                    let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule(Constants.errorFirewallRule, result.errorMessage);
+                    let handleFirewallResult = await self._connectionManager.firewallService.handleFirewallRule
+                    (Constants.errorFirewallRule, result.errorMessage);
                     if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
                         const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
                         const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
                         self.updateNode(self._currentNode);
-                        self._currentNode = undefined;
                         self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
                     }
                 }
@@ -177,7 +178,6 @@ export class ObjectExplorerService {
         this._expandParamsToTreeNodeInfoMap.set(expandParams, node);
         const response = await this._connectionManager.client.sendRequest(ExpandRequest.type, expandParams);
         if (response) {
-            this._currentNode = node;
             return response;
         } else {
             this._expandParamsToPromiseMap.delete(expandParams);
@@ -293,9 +293,6 @@ export class ObjectExplorerService {
 
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
-            if (element !== this._currentNode) {
-                this._currentNode = element;
-            }
             // get cached children
             if (this._treeNodeToChildrenMap.has(element)) {
                 return this._treeNodeToChildrenMap.get(element);
