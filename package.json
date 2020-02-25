@@ -537,8 +537,8 @@
       },
       {
         "command": "mssql.copyObjectName",
-        "key": "f2",
-        "mac": "f2",
+        "key": "ctrl+c",
+        "mac": "cmd+c",
         "when": "sideBarFocus && activeViewlet == workbench.view.extension.objectExplorer"
       }
     ],

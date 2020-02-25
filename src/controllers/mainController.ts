@@ -384,7 +384,7 @@ export default class MainController implements vscode.Disposable {
             Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
             await this.scriptNode(node, ScriptOperation.Alter)));
 
-        // Copy object name keybinding
+        // Copy object name command
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
                 let node = this._objectExplorerProvider.currentNode;
@@ -396,11 +396,14 @@ export default class MainController implements vscode.Disposable {
                         await this._vscodeWrapper.clipboardWriteText(node.label);
                 } else {
                     let scriptingObject = this._scriptingService.getObjectFromNode(node);
+                    const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
                     if (scriptingObject.schema) {
                         let database = ObjectExplorerUtils.getDatabaseName(node);
-                        await this._vscodeWrapper.clipboardWriteText(`[${database}].${scriptingObject.schema}.[${scriptingObject.name}]`);
+                        const databaseName = Utils.escapeClosingBrackets(database);
+                        const escapedSchema = Utils.escapeClosingBrackets(scriptingObject.schema);
+                        await this._vscodeWrapper.clipboardWriteText(`[${databaseName}].${escapedSchema}.[${escapedName}]`);
                     } else {
-                        await this._vscodeWrapper.clipboardWriteText(`[${scriptingObject.name}]`);
+                        await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
                     }
                 }
             }));
