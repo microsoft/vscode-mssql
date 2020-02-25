@@ -338,6 +338,10 @@
         {
           "command": "mssql.pauseQueryHistoryCapture",
           "when": "config.mssql.enableQueryHistoryFeature && config.mssql.enableQueryHistoryCapture"
+        },
+        {
+          "command": "mssql.copyObjectName",
+          "when": "sideBarFocus && activeViewlet == workbench.view.extension.objectExplorer"
         }
       ]
     },
@@ -500,6 +504,11 @@
         "command": "mssql.commandPaletteQueryHistory",
         "title": "%mssql.commandPaletteQueryHistory%",
         "group": "MS SQL"
+      },
+      {
+        "command": "mssql.copyObjectName",
+        "title": "%mssql.copyObjectName%",
+        "group": "MS SQL"
       }
     ],
     "keybindings": [
@@ -525,6 +534,12 @@
         "command": "workbench.view.extension.objectExplorer",
         "key": "ctrl+alt+d",
         "mac": "cmd+alt+d"
+      },
+      {
+        "command": "mssql.copyObjectName",
+        "key": "ctrl+c",
+        "mac": "cmd+c",
+        "when": "sideBarFocus && activeViewlet == workbench.view.extension.objectExplorer"
       }
     ],
     "configuration": {
