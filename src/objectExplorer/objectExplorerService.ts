@@ -467,8 +467,11 @@ export class ObjectExplorerService {
             sessionId: node.sessionId,
             nodePath: node.nodePath
         };
-        await this._connectionManager.client.sendRequest(RefreshRequest.type, refreshParams);
-        return this._objectExplorerProvider.refresh(undefined);
+        let response = await this._connectionManager.client.sendRequest(RefreshRequest.type, refreshParams);
+        if (response) {
+            this._treeNodeToChildrenMap.delete(node);
+        }
+        return this._objectExplorerProvider.refresh(node);
     }
 
     public signInNodeServer(node: TreeNodeInfo): void {
