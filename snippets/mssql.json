@@ -220,7 +220,7 @@
 		],
 		"description": "Drop a stored procedure"
 	},
-	
+
 	"Create a view": {
 		"prefix": "sqlCreateView",
 		"body": [
@@ -240,9 +240,9 @@
 			"CREATE view ${2:SchemaName}.${1:ViewName}",
 			"AS",
 			"\t-- body of the view",
-			"\tSELECT $Column1,",
-			"\t\t$Column2,",
-			"\t\t$Column3,",
+			"\tSELECT $[Column1],",
+			"\t\t$[Column2],",
+			"\t\t$[Column3],",
 			"\tFROM $SchemaName.$TableName",
 			"GO"
 		],
@@ -266,7 +266,7 @@
 		],
 		"description": "Drop a view"
 	},
-	
+
 	"List tables": {
 		"prefix": "sqlListTablesAndViews",
 		"body": [
