@@ -173,6 +173,10 @@ export function authTypeToString(value: AuthenticationTypes): string {
     return AuthenticationTypes[value];
 }
 
+export function escapeClosingBrackets(str: string): string {
+    return str.replace(']', ']]');
+}
+
 /**
  * Format a string. Behaves like C#'s string.Format() function.
  */

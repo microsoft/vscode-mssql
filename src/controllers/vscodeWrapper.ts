@@ -352,6 +352,13 @@ export default class VscodeWrapper {
         await this.executeCommand('setContext', contextSection, value);
     }
 
+    /**
+     * Getter for the MSSQL output channel
+     */
+    public get outputChannel(): vscode.OutputChannel {
+        return VscodeWrapper._outputChannel;
+    }
+
     /*
      * Called when there's a change in the extensions
      */

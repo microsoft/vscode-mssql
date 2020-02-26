@@ -33,7 +33,7 @@ suite('Code Adapter Tests', () => {
         outputChannel.setup(o => o.appendLine(TypeMoq.It.isAnyString()));
         outputChannel.setup(o => o.clear());
         outputChannel.setup(o => o.show());
-        vscodeWrapper.setup(v => v.createOutputChannel(TypeMoq.It.isAnyString())).returns(() => outputChannel.object);
+        vscodeWrapper.setup(v => v.outputChannel).returns(() => outputChannel.object);
         vscodeWrapper.setup(v => v.showErrorMessage(TypeMoq.It.isAnyString()));
         adapter = new CodeAdapter(vscodeWrapper.object);
     });

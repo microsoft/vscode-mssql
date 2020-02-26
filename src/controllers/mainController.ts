@@ -267,9 +267,19 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider = new ObjectExplorerProvider(this._connectionMgr);
-        this._context.subscriptions.push(
-            vscode.window.registerTreeDataProvider('objectExplorer', this._objectExplorerProvider)
-        );
+        const treeView = vscode.window.createTreeView('objectExplorer', {
+            treeDataProvider: this._objectExplorerProvider,
+            canSelectMany: false
+        });
+        this._context.subscriptions.push(treeView);
+
+        // Sets the correct current node on any node selection
+        this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
+            const selections: TreeNodeInfo[] = e.selection;
+            if (selections && selections.length > 0) {
+                self._objectExplorerProvider.currentNode = selections[0];
+            }
+        }));
 
         // Add Object Explorer Node
         this.registerCommand(Constants.cmdAddObjectExplorer);
@@ -307,10 +317,11 @@ export default class MainController implements vscode.Disposable {
         }));
 
         // Refresh Object Explorer Node
-        this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
-        this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
-            return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
-        });
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdRefreshObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
+                await this._objectExplorerProvider.refreshNode(treeNodeInfo);
+        }));
 
         // Sign In into Object Explorer Node
         this._context.subscriptions.push(
@@ -330,7 +341,6 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
-                self._objectExplorerProvider.currentNode = node.parentNode;
                 await self.createObjectExplorerSession(node.parentNode.connectionCredentials);
         }));
 
@@ -375,6 +385,30 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
             Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
             await this.scriptNode(node, ScriptOperation.Alter)));
+
+        // Copy object name command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
+                let node = this._objectExplorerProvider.currentNode;
+                // Folder node
+                if (node.contextValue === Constants.folderLabel) {
+                    return;
+                } else if (node.contextValue === Constants.serverLabel ||
+                    node.contextValue === Constants.disconnectedServerLabel) {
+                        await this._vscodeWrapper.clipboardWriteText(node.label);
+                } else {
+                    let scriptingObject = this._scriptingService.getObjectFromNode(node);
+                    const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
+                    if (scriptingObject.schema) {
+                        let database = ObjectExplorerUtils.getDatabaseName(node);
+                        const databaseName = Utils.escapeClosingBrackets(database);
+                        const escapedSchema = Utils.escapeClosingBrackets(scriptingObject.schema);
+                        await this._vscodeWrapper.clipboardWriteText(`[${databaseName}].${escapedSchema}.[${escapedName}]`);
+                    } else {
+                        await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
+                    }
+                }
+            }));
     }
 
     /**
@@ -929,6 +963,12 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedTimer = undefined;
         this._lastOpenedTimer = undefined;
         this._lastOpenedUri = undefined;
+
+        // Remove diagnostics for the related file
+        let diagnostics = SqlToolsServerClient.instance.diagnosticCollection;
+        if (diagnostics.has(doc.uri)) {
+            diagnostics.delete(doc.uri);
+        }
     }
 
     /**
