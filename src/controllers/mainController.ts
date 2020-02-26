@@ -316,10 +316,11 @@ export default class MainController implements vscode.Disposable {
         }));
 
         // Refresh Object Explorer Node
-        this.registerCommand(Constants.cmdRefreshObjectExplorerNode);
-        this._event.on(Constants.cmdRefreshObjectExplorerNode, () => {
-            return this._objectExplorerProvider.refreshNode(this._objectExplorerProvider.currentNode);
-        });
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdRefreshObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
+                await this._objectExplorerProvider.refreshNode(treeNodeInfo);
+        }));
 
         // Sign In into Object Explorer Node
         this._context.subscriptions.push(
