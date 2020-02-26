@@ -284,17 +284,17 @@ export class SqlOutputContentProvider {
      */
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         for (let [key, value] of this._queryResultsMap.entries()) {
-            // closes text document related to a results window we are holding
+            // closed text document related to a results window we are holding
             if (doc.uri.toString(true) === value.queryRunner.uri) {
                 value.flaggedForDeletion = true;
             }
 
-            // "closes" a results window we are holding
+            // "closed" a results window we are holding
             if (doc.uri.toString(true) === key) {
                 value.timeout = this.setRunnerDeletionTimeout(key);
-                this.closeResultsTab(doc.uri.toString());
             }
         }
+        this.closeResultsTab(doc.uri.toString());
     }
 
     /**
@@ -411,6 +411,7 @@ export class SqlOutputContentProvider {
         let controller = this._panels.get(uri);
         controller.dispose();
         this._panels.delete(uri);
+        this._queryResultsMap.delete(uri);
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
