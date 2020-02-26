@@ -292,7 +292,6 @@ export class SqlOutputContentProvider {
             // "closes" a results window we are holding
             if (doc.uri.toString(true) === key) {
                 value.timeout = this.setRunnerDeletionTimeout(key);
-                this.closeResultsTab(doc.uri.toString());
             }
         }
     }
@@ -402,15 +401,6 @@ export class SqlOutputContentProvider {
             });
         }
         return Promise.resolve(false);
-    }
-
-    /**
-     * Closes the associated results tab when a query editor is closed
-     */
-    public closeResultsTab(uri: string): void {
-        let controller = this._panels.get(uri);
-        controller.dispose();
-        this._panels.delete(uri);
     }
 
     // PRIVATE HELPERS /////////////////////////////////////////////////////
