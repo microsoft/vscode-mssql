@@ -962,6 +962,12 @@ export default class MainController implements vscode.Disposable {
         this._lastSavedTimer = undefined;
         this._lastOpenedTimer = undefined;
         this._lastOpenedUri = undefined;
+
+        // Remove diagnostics for the related file
+        let diagnostics = SqlToolsServerClient.instance.diagnosticCollection;
+        if (diagnostics.has(doc.uri)) {
+            diagnostics.delete(doc.uri);
+        }
     }
 
     /**
