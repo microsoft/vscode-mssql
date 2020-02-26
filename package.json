@@ -412,10 +412,7 @@
         "command": "mssql.addObjectExplorer",
         "title": "%mssql.addObjectExplorer%",
         "category": "MS SQL",
-        "icon": {
-          "dark": "images/add_inverse.svg",
-          "light": "images/add.svg"
-        }
+        "icon": "$(add)"
       },
       {
         "command": "mssql.objectExplorerNewQuery",
@@ -486,19 +483,13 @@
         "command": "mssql.startQueryHistoryCapture",
         "title": "%mssql.startQueryHistoryCapture%",
         "group": "MS SQL",
-        "icon": {
-          "light": "images/debug-start.svg",
-          "dark": "images/debug-start.svg"
-        }
+        "icon": "$(debug-start)"
       },
       {
         "command": "mssql.pauseQueryHistoryCapture",
         "title": "%mssql.pauseQueryHistoryCapture%",
         "group": "MS SQL",
-        "icon": {
-          "light": "images/debug-stop.svg",
-          "dark": "images/debug-stop.svg"
-        }
+        "icon": "$(debug-stop)"
       },
       {
         "command": "mssql.commandPaletteQueryHistory",
