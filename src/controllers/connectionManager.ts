@@ -367,14 +367,14 @@ export default class ConnectionManager {
                     Utils.formatString(LocalizedConstants.msgConnectionError2, result.errorMessage),
                     LocalizedConstants.macOpenSslHelpButton);
                 if (action && action === LocalizedConstants.macOpenSslHelpButton) {
-                    vscode.env.openExternal(vscode.Uri.parse(Constants.integratedAuthHelpLink));
+                    await vscode.env.openExternal(vscode.Uri.parse(Constants.integratedAuthHelpLink));
                 }
             } else if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
             result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
                 const action = await this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgConnectionError2,
                     LocalizedConstants.macOpenSslErrorMessage), LocalizedConstants.macOpenSslHelpButton);
                 if (action && action === LocalizedConstants.macOpenSslHelpButton) {
-                    vscode.env.openExternal(vscode.Uri.parse(Constants.macOpenSslHelpLink));
+                    await vscode.env.openExternal(vscode.Uri.parse(Constants.macOpenSslHelpLink));
                 }
             } else {
                 Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError2, result.messages));
