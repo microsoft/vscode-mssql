@@ -14,7 +14,7 @@ let controller: MainController = undefined;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext): Promise<boolean> {
+export async function activate(context: vscode.ExtensionContext): Promise<boolean> {
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
@@ -28,13 +28,14 @@ export function activate(context: vscode.ExtensionContext): Promise<boolean> {
 
     // Exposed for testing purposes
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
-    return controller.activate();
+    const activated = await controller.activate();
+    return activated;
 }
 
 // this method is called when your extension is deactivated
-export function deactivate(): void {
+export async function deactivate(): Promise<void> {
     if (controller) {
-        controller.deactivate();
+        await controller.deactivate();
         controller.dispose();
     }
 }
