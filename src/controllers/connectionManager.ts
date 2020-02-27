@@ -690,7 +690,7 @@ export default class ConnectionManager {
     public async onCancelConnect(): Promise<void> {
         const result = await this.connectionUI.promptToCancelConnection();
         if (result) {
-            this.cancelConnect();
+            await this.cancelConnect();
         }
     }
 
