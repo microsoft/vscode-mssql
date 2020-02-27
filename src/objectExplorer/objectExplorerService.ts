@@ -293,6 +293,10 @@ export class ObjectExplorerService {
 
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
+            // set current node for very first expansion of disconnected node
+            if (this._currentNode !== element) {
+                this._currentNode = element;
+            }
             // get cached children
             if (this._treeNodeToChildrenMap.has(element)) {
                 return this._treeNodeToChildrenMap.get(element);
