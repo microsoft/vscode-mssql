@@ -107,37 +107,36 @@ export default class MainController implements vscode.Disposable {
      * Initializes the extension
      */
     public async activate():  Promise<boolean> {
-        const self = this;
         // initialize the language client then register the commands
         const didInitialize = await this.initialize();
         if (didInitialize) {
             // register VS Code commands
             this.registerCommand(Constants.cmdConnect);
-            this._event.on(Constants.cmdConnect, () => { self.runAndLogErrors(self.onNewConnection()); });
+            this._event.on(Constants.cmdConnect, () => { this.runAndLogErrors(this.onNewConnection()); });
             this.registerCommand(Constants.cmdDisconnect);
-            this._event.on(Constants.cmdDisconnect, () => { self.runAndLogErrors(self.onDisconnect()); });
+            this._event.on(Constants.cmdDisconnect, () => { this.runAndLogErrors(this.onDisconnect()); });
             this.registerCommand(Constants.cmdRunQuery);
-            this._event.on(Constants.cmdRunQuery, () => { self.onRunQuery(); });
+            this._event.on(Constants.cmdRunQuery, () => { this.onRunQuery(); });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
-            this._event.on(Constants.cmdRunCurrentStatement, () => { self.onRunCurrentStatement(); });
+            this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
             this.registerCommand(Constants.cmdRunCurrentStatement);
-            this._event.on(Constants.cmdManageConnectionProfiles, async () => { await self.onManageProfiles(); });
+            this._event.on(Constants.cmdManageConnectionProfiles, async () => { await this.onManageProfiles(); });
             this.registerCommand(Constants.cmdChooseDatabase);
-            this._event.on(Constants.cmdChooseDatabase, () => { self.runAndLogErrors( self.onChooseDatabase()) ; } );
+            this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors( this.onChooseDatabase()) ; } );
             this.registerCommand(Constants.cmdChooseLanguageFlavor);
-            this._event.on(Constants.cmdChooseLanguageFlavor, () => { self.runAndLogErrors(self.onChooseLanguageFlavor()) ; } );
+            this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()) ; } );
             this.registerCommand(Constants.cmdCancelQuery);
-            this._event.on(Constants.cmdCancelQuery, () => { self.onCancelQuery(); });
+            this._event.on(Constants.cmdCancelQuery, () => { this.onCancelQuery(); });
             this.registerCommand(Constants.cmdShowGettingStarted);
-            this._event.on(Constants.cmdShowGettingStarted, async () => { await self.launchGettingStartedPage(); });
+            this._event.on(Constants.cmdShowGettingStarted, async () => { await this.launchGettingStartedPage(); });
             this.registerCommand(Constants.cmdNewQuery);
-            this._event.on(Constants.cmdNewQuery, () => self.runAndLogErrors(self.onNewQuery()));
+            this._event.on(Constants.cmdNewQuery, () => this.runAndLogErrors(this.onNewQuery()));
             this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
-            this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { self.onRebuildIntelliSense(); });
+            this._event.on(Constants.cmdRebuildIntelliSenseCache, () => { this.onRebuildIntelliSense(); });
             this.registerCommandWithArgs(Constants.cmdLoadCompletionExtension);
-            this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { self.onLoadCompletionExtension(params); });
+            this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { this.onLoadCompletionExtension(params); });
             this.registerCommand(Constants.cmdToggleSqlCmd);
-            this._event.on(Constants.cmdToggleSqlCmd, async () => { await self.onToggleSqlCmd(); });
+            this._event.on(Constants.cmdToggleSqlCmd, async () => { await this.onToggleSqlCmd(); });
 
             this.initializeObjectExplorer();
 
@@ -198,24 +197,22 @@ export default class MainController implements vscode.Disposable {
      * Initializes the extension
      */
     public async initialize(): Promise<boolean> {
-        const self = this;
-
         // initialize language service client
-        await SqlToolsServerClient.instance.initialize(self._context);
+        await SqlToolsServerClient.instance.initialize(this._context);
         // Init status bar
-        self._statusview = new StatusView(self._vscodeWrapper);
+        this._statusview = new StatusView(this._vscodeWrapper);
 
         // Init CodeAdapter for use when user response to questions is needed
-        self._prompter = new CodeAdapter(self._vscodeWrapper);
+        this._prompter = new CodeAdapter(this._vscodeWrapper);
 
         // Init content provider for results pane
-        self._outputContentProvider = new SqlOutputContentProvider(self._context, self._statusview, self._vscodeWrapper);
+        this._outputContentProvider = new SqlOutputContentProvider(this._context, this._statusview, this._vscodeWrapper);
 
         // Init connection manager and connection MRU
-        self._connectionMgr = new ConnectionManager(self._context, self._statusview, self._prompter);
+        this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
 
 
-        await self.showReleaseNotesPrompt();
+        await this.showReleaseNotesPrompt();
 
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
@@ -224,7 +221,7 @@ export default class MainController implements vscode.Disposable {
         }
 
         Utils.logDebug('activated.');
-        self._initialized = true;
+        this._initialized = true;
         return true;
     }
 
