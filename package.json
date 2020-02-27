@@ -341,7 +341,11 @@
         },
         {
           "command": "mssql.copyObjectName",
-          "when": "sideBarFocus && activeViewlet == workbench.view.extension.objectExplorer"
+          "when": "view == objectExplorer && viewItem != Folder"
+        },
+        {
+          "command": "mssql.runQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode"
         }
       ]
     },
