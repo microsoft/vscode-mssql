@@ -322,7 +322,7 @@ export default class ConnectionManager {
                 await self.handleConnectionErrors(fileUri, connection, result);
             }
 
-            self.tryAddMruConnection(connection, mruConnection);
+            await self.tryAddMruConnection(connection, mruConnection);
         };
     }
 
@@ -477,21 +477,18 @@ export default class ConnectionManager {
     public async changeDatabase(newDatabaseCredentials: IConnectionCredentials): Promise<boolean> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
-        return new Promise<boolean>(async (resolve, reject) => {
-            if (!self.isConnected(fileUri)) {
-                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
-                resolve(false);
-                return;
-            }
-            await self.disconnect(fileUri);
-            await self.connect(fileUri, newDatabaseCredentials);
-            self.vscodeWrapper.logToOutputChannel(
-                Utils.formatString(
-                    LocalizedConstants.msgChangedDatabase,
-                    newDatabaseCredentials.database,
-                    newDatabaseCredentials.server, fileUri));
-            return true;
-        });
+        if (!self.isConnected(fileUri)) {
+            self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgChooseDatabaseNotConnected);
+            return false;
+        }
+        await self.disconnect(fileUri);
+        await self.connect(fileUri, newDatabaseCredentials);
+        self.vscodeWrapper.logToOutputChannel(
+            Utils.formatString(
+                LocalizedConstants.msgChangedDatabase,
+                newDatabaseCredentials.database,
+                newDatabaseCredentials.server, fileUri));
+        return true;
     }
 
     public async onChooseLanguageFlavor(isSqlCmdMode: boolean = false, isSqlCmd: boolean = false): Promise<boolean> {
@@ -560,7 +557,7 @@ export default class ConnectionManager {
     /**
      * Helper to show all connections and perform connect logic.
      */
-    public async showConnectionsAndConnect(resolve: any, reject: any, fileUri: string): Promise<void> {
+    public async showConnectionsAndConnect(fileUri: string): Promise<IConnectionCredentials> {
         const self = this;
         // show connection picklist
         const connectionCreds = await self.connectionUI.showConnections();
@@ -570,10 +567,8 @@ export default class ConnectionManager {
             // connect to the server/database
             const result = await self.connect(fileUri, connectionCreds);
             await self.handleConnectionResult(result, fileUri, connectionCreds);
-            resolve(connectionCreds);
-        } else {
-            resolve(false);
         }
+        return connectionCreds;
     }
 
     /**
@@ -622,29 +617,24 @@ export default class ConnectionManager {
     }
 
     // let users pick from a picklist of connections
-    public onNewConnection(): Promise<IConnectionCredentials> {
+    public async onNewConnection(): Promise<IConnectionCredentials> {
         const self = this;
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
-
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
-            if (!fileUri) {
-                // A text document needs to be open before we can connect
-                self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
-                resolve(undefined);
-                return;
-            } else if (!self.vscodeWrapper.isEditingSqlFile) {
-                self.connectionUI.promptToChangeLanguageMode().then(result => {
-                    if (result) {
-                        self.showConnectionsAndConnect(resolve, reject, fileUri);
-                    } else {
-                        resolve(undefined);
-                    }
-                });
-                return;
+        if (!fileUri) {
+            // A text document needs to be open before we can connect
+            self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
+            return undefined;
+        } else if (!self.vscodeWrapper.isEditingSqlFile) {
+            const result = await self.connectionUI.promptToChangeLanguageMode();
+            if (result) {
+                const credentials = await self.showConnectionsAndConnect(fileUri);
+                return credentials;
+            } else {
+                return undefined;
             }
-
-            self.showConnectionsAndConnect(resolve, reject, fileUri);
-        });
+        }
+        const creds = await self.showConnectionsAndConnect(fileUri);
+        return creds;
     }
 
     // create a new connection with the connectionCreds provided
@@ -728,12 +718,10 @@ export default class ConnectionManager {
         return this._connectionUI.promptToManageProfiles();
     }
 
-    public onCreateProfile(): Promise<boolean> {
+    public async onCreateProfile(): Promise<boolean> {
         let self = this;
-        return new Promise<boolean>((resolve, reject) => {
-            self.connectionUI.createAndSaveProfile(self.vscodeWrapper.isEditingSqlFile)
-                .then(profile => resolve(profile ? true : false));
-        });
+        const profile = await self.connectionUI.createAndSaveProfile(self.vscodeWrapper.isEditingSqlFile);
+        return profile ? true : false;
     }
 
     public onRemoveProfile(): Promise<boolean> {
