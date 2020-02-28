@@ -1,3 +1,5 @@
+import { DbCellValue } from "../../../../models/interfaces";
+
 export function formatString(str: string, ...args: any[]): string {
     // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
     // License: https://github.com/Microsoft/vscode/blob/master/LICENSE.txt
@@ -37,8 +39,18 @@ export function htmlEntities(str: string): string {
  * @param object The object to check
  * @returns True if the object is a DbCellValue, false otherwise
  */
-export function isDbCellValue(object: any): boolean {
+export function isDbCellValue(object: DbCellValue): boolean {
     return object !== undefined
         && object.displayValue !== undefined
         && object.isNull !== undefined;
+}
+
+/**
+ * Determines if an object is a NULL value object based on the properties
+ * it exposes
+ * @param object The object to check
+ * @returns True if the object is a NULL value object, false otherwise
+ */
+export function isNullValueCell(object: DbCellValue): boolean {
+    return object.isNull || object.displayValue === 'NULL';
 }
