@@ -7,7 +7,7 @@
 import { IConnectionProfile } from '../models/interfaces';
 
 /**
- * Interface for a configuration file that stores connection profiles.
+ * Interface for a configuration file that stores connection profiles
  *
  * @export
  * @interface IConnectionConfig
