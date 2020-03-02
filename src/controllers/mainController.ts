@@ -175,7 +175,8 @@ export default class MainController implements vscode.Disposable {
         const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
         const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
         let uri = editor.document.uri.toString(true);
-        let title = path.basename(editor.document.fileName);
+        let scriptingObject = this._scriptingService.getObjectFromNode(node);
+        let title = `${scriptingObject.schema}.${scriptingObject.name}`;
         const queryUriPromise = new Deferred<boolean>();
         await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
         await queryUriPromise;
