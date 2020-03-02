@@ -6,7 +6,7 @@ import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryLi
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
 import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
-    IGridIcon, IMessage, IRange, ISelectionData } from '../../../../../models/interfaces';
+    IGridIcon, IMessage, IRange, ISelectionData, DbCellValue } from '../../../../../models/interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
@@ -396,7 +396,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                     ? 'XML Showplan'
                                     : Utils.htmlEntities(c.columnName),
                                 type: self.stringToFieldType('string'),
-                                formatter: isLinked ? self.hyperLinkFormatter : self.textFormatter,
+                                formatter: isLinked ? self.hyperLinkFormatter : AppComponent.textFormatter,
                                 asyncPostRender: isLinked ? self.linkHandler(linkType) : undefined
                             };
                         })
@@ -639,10 +639,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Format xml field into a hyperlink and performs HTML entity encoding
      */
-    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+    public hyperLinkFormatter(row: number, cell: any, value: DbCellValue, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
         let valueToDisplay: string;
         if (Utils.isDbCellValue(value)) {
+            // Show NULL values as text
+            if (Utils.isNullValueCell(value)) {
+                return AppComponent.textFormatter(row, cell, value, columnDef, dataContext);
+            }
             cellClasses += ' xmlLink';
             valueToDisplay = Utils.htmlEntities(value.displayValue);
             return `<a class="${cellClasses}" href="#" >${valueToDisplay}</a>`;
@@ -656,7 +660,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Format all text to replace all new lines with spaces and performs HTML entity encoding
      */
-    textFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+    static textFormatter(row: number, cell: any, value: DbCellValue, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
         let valueToDisplay: string;
         if (Utils.isDbCellValue(value)) {
