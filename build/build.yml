@@ -100,8 +100,11 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
 
-trigger: none
-pr: none
+trigger:
+  - master
+
+pr:
+  - master
 
 schedules:
 - cron: "0 3 * * Mon-Fri"
