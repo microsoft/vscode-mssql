@@ -36,7 +36,7 @@ export interface IGridDataSet {
 // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
-    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
+    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="toggleResultsPane()">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
@@ -117,7 +117,11 @@ const template = `
  */
 @Component({
     selector: 'my-app',
-    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)', '(window:keyup)' : 'keyUpEvent($event)' },
+    host: { '(window:keydown)': 'keyEvent($event)',
+        '(window:gridnav)': 'keyEvent($event)',
+        '(window:keyup)' : 'keyUpEvent($event)',
+        '(window:resize)' : 'resizeResults()'
+     },
     template: template,
     providers: [DataService, ShortcutService],
     styles: [`
@@ -138,7 +142,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private selectionModel = 'DragRowSelectionModel';
     private slickgridPlugins = ['AutoColumnSize'];
     private _rowHeight = 29;
-    private _resultsPaneBoundary = 2;
+    private _resultsPaneBoundary = 22;
     private _defaultNumShowingRows = 8;
     private Constants = Constants;
     private Utils = Utils;
@@ -447,13 +451,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Toggle the messages pane
      */
     private toggleMessagesPane(): void {
-        this.messageActive = !this.messageActive;
-        this.cd.detectChanges();
+        this.messageActive = !this.messageActive
         if (this.messageActive) {
-            let scrollableHeight = $('.results.vertBox.scrollable').get(0).clientHeight;
-            $('.horzBox').get(0).style.height = `${scrollableHeight - this._resultsPaneBoundary}px`;
-            this.resizeGrids();
+            this.resizeResults();
         }
+    }
+
+    /**
+     * Toggle the results pane
+     */
+    private toggleResultsPane(): void {
+        this.resultActive = !this.resultActive;
+        this.resizeResults();
     }
 
     /**
@@ -749,10 +758,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             self.resizing = false;
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
-            let scrollableHeight = $('.results.vertBox.scrollable').get(0).clientHeight;
-            $('.horzBox').get(0).style.height = `${scrollableHeight}px`;
-            self.cd.detectChanges();
-            self.resizeGrids();
+            this.resizeResults();
         });
     }
 
@@ -815,6 +821,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 e.stopImmediatePropagation();
             }
         });
+    }
+
+    /**
+     * Resizes the results pane
+     */
+    resizeResults(): void {
+        let scrollableHeight = $('.results.vertBox.scrollable').get(0).clientHeight;
+        $('.horzBox').get(0).style.height = `${scrollableHeight - this._resultsPaneBoundary}px`;
+        this.resizeGrids();
     }
 
     /**
