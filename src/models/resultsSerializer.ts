@@ -57,6 +57,8 @@ export default class ResultsSerializer {
             fileTypeFilter[LocalizedConstants.fileTypeJSONLabel] = ['json'];
         } else if (format === 'excel') {
             fileTypeFilter[LocalizedConstants.fileTypeExcelLabel] = ['xlsx'];
+        } else if (format === 'text') {
+            fileTypeFilter[LocalizedConstants.fileTypeTextLabel] = ['txt'];
         }
         let options = <vscode.SaveDialogOptions> {
             defaultUri: defaultUri,
@@ -74,6 +76,33 @@ export default class ResultsSerializer {
         // get save results config from vscode config
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this._uri);
         let saveConfig = config[Constants.configSaveAsCsv];
+        let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
+
+        // if user entered config, set options
+        if (saveConfig) {
+            if (saveConfig.includeHeaders !== undefined) {
+                saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+            }
+            if (saveConfig.delimiter !== undefined) {
+                saveResultsParams.delimiter = saveConfig.delimiter;
+            }
+            if (saveConfig.lineSeparator !== undefined) {
+                saveResultsParams.lineSeperator = saveConfig.lineSeparator;
+            }
+            if (saveConfig.textIdentifier !== undefined) {
+                saveResultsParams.textIdentifier = saveConfig.textIdentifier;
+            }
+            if (saveConfig.encoding !== undefined) {
+                saveResultsParams.encoding = saveConfig.encoding;
+            }
+        }
+        return saveResultsParams;
+    }
+
+    private getConfigForText(): Contracts.SaveResultsAsCsvRequestParams {
+        // get save results config from vscode config
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, this._uri);
+        let saveConfig = config[Constants.configSaveAsText];
         let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
 
         // if user entered config, set options
@@ -137,6 +166,8 @@ export default class ResultsSerializer {
             saveResultsParams =  self.getConfigForJson();
         } else if (format === 'excel') {
             saveResultsParams =  self.getConfigForExcel();
+        } else if (format === 'text') {
+            saveResultsParams = self.getConfigForText();
         }
 
         saveResultsParams.filePath = this._filePath;
@@ -175,6 +206,8 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsJsonRequest.type;
         } else if (format === 'excel') {
             type = Contracts.SaveResultsAsExcelRequest.type;
+        } else if (format === 'text') {
+            type = Contracts.SaveResultsAsTextRequest.type;
         }
 
         self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);

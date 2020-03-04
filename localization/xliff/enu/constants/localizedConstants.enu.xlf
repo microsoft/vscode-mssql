@@ -362,8 +362,14 @@
         <trans-unit id="saveExcelLabel">
             <source xml:lang="en">Save as Excel</source>
         </trans-unit>
+        <trans-unit id="saveTextLabel">
+            <source xml:lang="en">Save as Text</source>
+        </trans-unit>
         <trans-unit id="fileTypeCSVLabel">
             <source xml:lang="en">CSV</source>
+        </trans-unit>
+        <trans-unit id="fileTypeTextLabel">
+            <source xml:lang="en">Text</source>
         </trans-unit>
         <trans-unit id="fileTypeJSONLabel">
             <source xml:lang="en">JSON</source>

@@ -194,6 +194,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
         },
         'event.saveAsExcel': () => {
             this.sendSaveRequest('excel');
+        },
+        'event.saveAsText': () => {
+            this.sendSaveRequest('text');
         }
     };
 
@@ -251,6 +254,20 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 selection = this.tryCombineSelections(selection);
                 if (selection.length <= 1) {
                     this.handleContextClick({type: 'saveexcel', batchId: batchId, resultId: resultId, index: index, selection: selection});
+                } else {
+                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
+                }
+            }
+        },
+        {
+            showCondition: () => { return true; },
+            icon: () => { return 'saveCsv'; },
+            hoverText: () => { return Constants.saveTextLabel; },
+            functionality: (batchId, resultId, index) => {
+                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
+                selection = this.tryCombineSelections(selection);
+                if (selection.length <= 1) {
+                    this.handleContextClick({type: 'savetext', batchId: batchId, resultId: resultId, index: index, selection: selection});
                 } else {
                     this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
                 }
@@ -469,6 +486,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 break;
             case 'saveexcel':
                 this.dataService.sendSaveRequest(event.batchId, event.resultId, 'excel', event.selection);
+                break;
+            case 'savetext':
+                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'text', event.selection);
                 break;
             case 'selectall':
                 this.activeGrid = event.index;

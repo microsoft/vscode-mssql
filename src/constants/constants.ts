@@ -104,6 +104,7 @@ export const copyIncludeHeaders = 'copyIncludeHeaders';
 export const configLogDebugInfo = 'logDebugInfo';
 export const configMyConnections = 'connections';
 export const configSaveAsCsv = 'saveAsCsv';
+export const configSaveAsText = 'saveAsText';
 export const configSaveAsJson = 'saveAsJson';
 export const configSaveAsExcel = 'saveAsExcel';
 export const configRecentConnections = 'recentConnections';

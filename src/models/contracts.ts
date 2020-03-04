@@ -80,6 +80,14 @@ export class SaveResultsAsCsvRequestParams extends SaveResultsRequestParams {
     encoding: string = 'utf-8';
 }
 
+export class SaveResultsAsTextRequestParams extends SaveResultsRequestParams {
+    includeHeaders: boolean = true;
+    delimiter: string = ' ';
+    lineSeperator: string = undefined;
+    textIdentifier: string = '\"';
+    encoding: string = 'utf-8';
+}
+
 export class SaveResultsAsJsonRequestParams extends SaveResultsRequestParams {
     // TODO: Define config for JSON
 }
@@ -112,3 +120,10 @@ export namespace SaveResultsAsExcelRequest {
     export const type = new RequestType<SaveResultsAsExcelRequestParams, SaveResultRequestResult, void, void>('query/saveExcel');
 }
 // --------------------------------- </ Save Results as Excel Request > ------------------------------------------
+
+// --------------------------------- < Save Results as Text Request > ------------------------------------------
+// save results in csv format
+export namespace SaveResultsAsTextRequest {
+    export const type = new RequestType<SaveResultsAsTextRequestParams, SaveResultRequestResult, void, void>('query/saveText');
+}
+// --------------------------------- </ Save Results as CSV Request > ------------------------------------------

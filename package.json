@@ -802,6 +802,36 @@
           "default": "utf-8",
           "scope": "resource"
         },
+        "mssql.saveAsText.includeHeaders": {
+          "type": "boolean",
+          "description": "%mssql.saveAsCsv.includeHeaders%",
+          "default": true,
+          "scope": "resource"
+        },
+        "mssql.saveAsText.delimiter": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.delimiter%",
+          "default": "\t",
+          "scope": "resource"
+        },
+        "mssql.saveAsText.lineSeparator": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.lineSeparator%",
+          "default": null,
+          "scope": "resource"
+        },
+        "mssql.saveAsText.textIdentifier": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.textIdentifier%",
+          "default": "\"",
+          "scope": "resource"
+        },
+        "mssql.saveAsText.encoding": {
+          "type": "string",
+          "description": "%mssql.saveAsCsv.encoding%",
+          "default": "utf-8",
+          "scope": "resource"
+        },
         "mssql.copyIncludeHeaders": {
           "type": "boolean",
           "description": "%mssql.copyIncludeHeaders%",
