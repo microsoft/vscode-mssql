@@ -827,9 +827,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Resizes the results pane
      */
     resizeResults(): void {
-        const self = this;
         let scrollableHeight = $('.results.vertBox.scrollable').get(0).clientHeight;
-        $('.horzBox').get(0).style.height = `${scrollableHeight - self._resultsPaneBoundary}px`;
+        $('.horzBox').get(0).style.height = `${scrollableHeight - this._resultsPaneBoundary}px`;
         this.resizeGrids();
     }
 
