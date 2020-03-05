@@ -292,7 +292,7 @@ export default class QueryRunner {
         this._statusView.executedQuery(uri);
         this._isExecuting = false;
         this._hasCompleted = true;
-        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true, true);
         return true;
     }
 
