@@ -282,15 +282,16 @@ export default class ConnectionManager {
             let fileUri = result.ownerUri;
             let connection = self.getConnectionInfo(fileUri);
             connection.connecting = false;
-            // Convert to credentials if it's a connection string based connection
-            if (connection.credentials.connectionString) {
-                connection.credentials = this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
-            }
-            this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
 
             let mruConnection: IConnectionCredentials = <any>{};
 
             if (Utils.isNotEmpty(result.connectionId)) {
+                // Convert to credentials if it's a connection string based connection
+                if (connection.credentials.connectionString) {
+                    connection.credentials = this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
+                }
+                this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
+
                 // We have a valid connection
                 // Copy credentials as the database name will be updated
                 let newCredentials: IConnectionCredentials = <any>{};
