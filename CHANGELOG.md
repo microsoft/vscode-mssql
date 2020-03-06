@@ -16,6 +16,10 @@
 * Fixed resizing messages pane causing double scrollbars to appear
 * Fixed errors are not getting cleared when a file is closed
 
+### Contributions and "thank you"
+* [@sukano](https://github.com/sukano) for `fix string highlighting containing escaped characters (#1630)`
+* [@testingcan](https://github.com/testingcan) for `added create and drop snippets for views (#1215)`
+
 ## Version 1.8.0
 * Release date: December 16, 2019
 * Release status: GA
@@ -28,6 +32,9 @@
 * Open pinned doc when starting a new query
 * Fixed scrolling and heights for multiple result sets
 * Fixed bug to use the correct database for new query from Object Explorer
+
+### Contributions and "thank you"
+We would like to thank all our users who raised issues.
 
 ## Version 1.7.1
 * Release date: November 11, 2019
