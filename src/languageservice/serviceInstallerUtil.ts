@@ -12,7 +12,7 @@ import ServerProvider from './server';
 import {IStatusView} from './interfaces';
 import {ILogger} from '../models/interfaces';
 
-class StubStatusView implements IStatusView {
+export class StubStatusView implements IStatusView {
     installingService(): void {
         console.log('...');
     }
@@ -29,7 +29,7 @@ class StubStatusView implements IStatusView {
     }
 }
 
-class StubLogger implements ILogger {
+export class StubLogger implements ILogger {
     logDebug(message: string): void {
         console.log(message);
     }

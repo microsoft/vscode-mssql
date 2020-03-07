@@ -6,11 +6,11 @@
 import { Event, Disposable } from 'vscode';
 import { ISlickRange, IResultsConfig, ResultSetSubset, ISelectionData } from './models/interfaces';
 
-export interface IWebviewProxy {
+export interface IWebviewProxy extends Disposable {
     sendEvent(type: string, arg: any): void;
 }
 
-export interface IServerProxy {
+export interface IServerProxy extends Disposable {
     getRows(batchId: number, resultId: number, rowStart: number, numberOfRows: number): Promise<ResultSetSubset>;
     saveResults(batchId: number, resultId: number, format: string, selection: ISlickRange[]): void;
     openLink(content: string, columnName: string, linkType: string): void;
@@ -131,7 +131,7 @@ function isResponseMessage(val: any): val is IResponse {
 
 export function createProxy(protocol: IMessageProtocol, handler: IServerProxy, isClient: boolean): IWebviewProxy;
 export function createProxy(protocol: IMessageProtocol, handler: IWebviewProxy, isClient: boolean): IServerProxy;
-export function createProxy(protocol: IMessageProtocol, handler: any, isClient: boolean): any {
+export function createProxy(protocol: IMessageProtocol, handler: any, isClient: boolean): Disposable {
     const messageProxy = new MessageProxy(protocol, handler, isClient);
     let proxy = {
         get: (target: any, name: string) => {

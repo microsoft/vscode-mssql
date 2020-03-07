@@ -6,7 +6,7 @@ import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryLi
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
 import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
-    IGridIcon, IMessage, IRange, ISelectionData } from '../../../../../models/interfaces';
+    IGridIcon, IMessage, IRange, ISelectionData, DbCellValue } from '../../../../../models/interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
 import { ContextMenu } from './contextmenu.component';
@@ -36,7 +36,7 @@ export interface IGridDataSet {
 // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
-    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="resultActive = !resultActive">
+    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="toggleResultsPane()">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
@@ -117,7 +117,11 @@ const template = `
  */
 @Component({
     selector: 'my-app',
-    host: { '(window:keydown)': 'keyEvent($event)', '(window:gridnav)': 'keyEvent($event)', '(window:keyup)' : 'keyUpEvent($event)' },
+    host: { '(window:keydown)': 'keyEvent($event)',
+        '(window:gridnav)': 'keyEvent($event)',
+        '(window:keyup)' : 'keyUpEvent($event)',
+        '(window:resize)' : 'resizeResults()'
+     },
     template: template,
     providers: [DataService, ShortcutService],
     styles: [`
@@ -138,6 +142,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private selectionModel = 'DragRowSelectionModel';
     private slickgridPlugins = ['AutoColumnSize'];
     private _rowHeight = 29;
+    private _resultsPaneBoundary = 22;
     private _defaultNumShowingRows = 8;
     private Constants = Constants;
     private Utils = Utils;
@@ -395,7 +400,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                                     ? 'XML Showplan'
                                     : Utils.htmlEntities(c.columnName),
                                 type: self.stringToFieldType('string'),
-                                formatter: isLinked ? self.hyperLinkFormatter : self.textFormatter,
+                                formatter: isLinked ? self.hyperLinkFormatter : AppComponent.textFormatter,
                                 asyncPostRender: isLinked ? self.linkHandler(linkType) : undefined
                             };
                         })
@@ -446,11 +451,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Toggle the messages pane
      */
     private toggleMessagesPane(): void {
-        this._messagesPaneHeight = $('#messages').get(0).clientHeight;
-        this.messageActive = !this.messageActive;
+        this.messageActive = !this.messageActive
         if (this.messageActive) {
-            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
+            this.resizeResults();
         }
+    }
+
+    /**
+     * Toggle the results pane
+     */
+    private toggleResultsPane(): void {
+        this.resultActive = !this.resultActive;
+        this.resizeResults();
     }
 
     /**
@@ -636,10 +648,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Format xml field into a hyperlink and performs HTML entity encoding
      */
-    public hyperLinkFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+    public hyperLinkFormatter(row: number, cell: any, value: DbCellValue, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
         let valueToDisplay: string;
         if (Utils.isDbCellValue(value)) {
+            // Show NULL values as text
+            if (Utils.isNullValueCell(value)) {
+                return AppComponent.textFormatter(row, cell, value, columnDef, dataContext);
+            }
             cellClasses += ' xmlLink';
             valueToDisplay = Utils.htmlEntities(value.displayValue);
             return `<a class="${cellClasses}" href="#" >${valueToDisplay}</a>`;
@@ -653,7 +669,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Format all text to replace all new lines with spaces and performs HTML entity encoding
      */
-    textFormatter(row: number, cell: any, value: any, columnDef: any, dataContext: any): string {
+    static textFormatter(row: number, cell: any, value: DbCellValue, columnDef: any, dataContext: any): string {
         let cellClasses = 'grid-cell-value-container';
         let valueToDisplay: string;
         if (Utils.isDbCellValue(value)) {
@@ -731,7 +747,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             self.resizing = true;
             self.resizeHandleTop = e.pageY;
             this._messagesPaneHeight = $('#messages').get(0).clientHeight;
-            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
             return true;
         });
 
@@ -743,9 +758,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             self.resizing = false;
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
-            $('.horzBox').get(0).style.height = `${this._messagesPaneHeight}px`;
-            self.cd.detectChanges();
-            self.resizeGrids();
+            this.resizeResults();
         });
     }
 
@@ -808,6 +821,15 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 e.stopImmediatePropagation();
             }
         });
+    }
+
+    /**
+     * Resizes the results pane
+     */
+    resizeResults(): void {
+        let scrollableHeight = $('.results.vertBox.scrollable').get(0).clientHeight;
+        $('.horzBox').get(0).style.height = `${scrollableHeight - this._resultsPaneBoundary}px`;
+        this.resizeGrids();
     }
 
     /**

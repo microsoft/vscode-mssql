@@ -34,7 +34,7 @@ suite('SqlOutputProvider Tests using mocks', () => {
         statusView = TypeMoq.Mock.ofType(StatusView);
         statusView.setup(x => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
-        contentProvider = new SqlOutputContentProvider(context.object, statusView.object);
+        contentProvider = new SqlOutputContentProvider(context.object, statusView.object, vscodeWrapper.object);
         contentProvider.setVscodeWrapper = vscodeWrapper.object;
         setSplitPaneSelectionConfig = function(value: string): void {
             let configResult: {[key: string]: any} = {};
@@ -375,5 +375,29 @@ suite('SqlOutputProvider Tests using mocks', () => {
         newQueryResultsMap.set('test_uri', { queryRunner: {} });
         contentProvider.setResultsMap = newQueryResultsMap;
         assert.notEqual(contentProvider.getQueryRunner('test_uri'), undefined);
+    });
+
+    test('showErrorRequestHandler should call vscodeWrapper to show error message', () => {
+        contentProvider.showErrorRequestHandler('test_error');
+        vscodeWrapper.verify(v => v.showErrorMessage('test_error'), TypeMoq.Times.once());
+    });
+
+    test('showWarningRequestHandler should call vscodeWrapper to show warning message', () => {
+        contentProvider.showWarningRequestHandler('test_warning');
+        vscodeWrapper.verify(v => v.showWarningMessage('test_warning'), TypeMoq.Times.once());
+    });
+
+    test('A query runner should only exist if a query is run', async () => {
+        vscodeWrapper.setup(v => v.getConfiguration(Constants.extensionConfigSectionName, TypeMoq.It.isAny())).returns(() => {
+            let configResult: {[key: string]: any} = {};
+            configResult[Constants.configPersistQueryResultTabs] = false;
+            let config = stubs.createWorkspaceConfiguration(configResult);
+            return config;
+        });
+        let testQueryRunner = contentProvider.getQueryRunner('test_uri');
+        assert.equal(testQueryRunner, undefined);
+        await contentProvider.runQuery(statusView.object, 'test_uri', undefined, 'test_title');
+        testQueryRunner = contentProvider.getQueryRunner('test_uri');
+        assert.notEqual(testQueryRunner, undefined);
     });
 });

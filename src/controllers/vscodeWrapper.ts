@@ -345,6 +345,20 @@ export default class VscodeWrapper {
         return this.getConfiguration(extensionName).update(resource, value, vscode.ConfigurationTarget.Global);
     }
 
+    /**
+     * Set a context for contributing command actions
+     */
+    public async setContext(contextSection: string, value: any): Promise<void> {
+        await this.executeCommand('setContext', contextSection, value);
+    }
+
+    /**
+     * Getter for the MSSQL output channel
+     */
+    public get outputChannel(): vscode.OutputChannel {
+        return VscodeWrapper._outputChannel;
+    }
+
     /*
      * Called when there's a change in the extensions
      */

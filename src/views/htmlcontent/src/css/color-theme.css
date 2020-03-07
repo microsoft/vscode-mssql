@@ -185,19 +185,30 @@
 
   /* grid styling */
 
+  .vscode-light slick-grid.active .grid .slick-cell.active,
   .vscode-dark slick-grid.active .grid .slick-cell.active,
   .vscode-high-contrast slick-grid.active .grid .slick-cell.active {
     border: dotted 1px var(--color-cell-border-active);
   }
 
+  .vscode-light slick-grid.active .grid .slick-cell.selected,
   .vscode-dark slick-grid.active .grid .slick-cell.selected,
   .vscode-high-contrast slick-grid.active .grid .slick-cell.selected {
     background-color: var(--color-cell-bg-grid-selected);
   }
 
+  .vscode-light .grid .grid-cell-value-container.missing-value,
+  .vscode-dark .grid .grid-cell-value-container.missing-value,
+  .vscode-high-contrast .grid .grid-cell-value-container.missing-value {
+      color: var(--color-content);
+      font-style: italic;
+  }
+
+  .vscode-light .grid .slick-cell.selected .grid-cell-value-container.missing-value,
   .vscode-dark .grid .slick-cell.selected .grid-cell-value-container.missing-value,
   .vscode-high-contrast .grid .slick-cell.selected .grid-cell-value-container.missing-value {
       color: var(--color-content);
+      font-style: italic;
   }
 
   .vscode-dark .boxRow.content.horzBox.slickgrid,

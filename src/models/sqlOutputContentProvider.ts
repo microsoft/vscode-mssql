@@ -40,12 +40,16 @@ export class SqlOutputContentProvider {
 
     // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
-    private _vscodeWrapper: VscodeWrapper;
     private _panels = new Map<string, WebviewPanelController>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
-    constructor(private context: vscode.ExtensionContext, private _statusView: StatusView) {
-        this._vscodeWrapper = new VscodeWrapper();
+    constructor(
+        private context: vscode.ExtensionContext,
+        private _statusView: StatusView,
+        private _vscodeWrapper) {
+        if (!_vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
     }
 
     public rowRequestHandler(uri: string, batchId: number, resultId: number, rowStart: number, numberOfRows: number): Promise<ResultSetSubset> {
@@ -160,9 +164,10 @@ export class SqlOutputContentProvider {
             setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
             showError: (message: string) => this.showErrorRequestHandler(message),
             showWarning: (message: string) => this.showWarningRequestHandler(message),
-            sendReadyEvent: async () => await this.sendReadyEvent(uri)
+            sendReadyEvent: async () => await this.sendReadyEvent(uri),
+            dispose: () => this._panels.delete(uri)
         };
-        const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath);
+        const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
         this._panels.set(uri, controller);
         await controller.init();
     }
@@ -210,7 +215,11 @@ export class SqlOutputContentProvider {
             queryRunner.eventEmitter.on('message', (message) => {
                 this._panels.get(uri).proxy.sendEvent('message', message);
             });
-            queryRunner.eventEmitter.on('complete', (totalMilliseconds) => {
+            queryRunner.eventEmitter.on('complete', (totalMilliseconds, hasError, isRefresh?) => {
+                if (!isRefresh) {
+                    // only update query history with new queries
+                    this._vscodeWrapper.executeCommand(Constants.cmdRefreshQueryHistory, uri, hasError);
+                }
                 this._panels.get(uri).proxy.sendEvent('complete', totalMilliseconds);
             });
             this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
@@ -278,12 +287,12 @@ export class SqlOutputContentProvider {
      */
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         for (let [key, value] of this._queryResultsMap.entries()) {
-            // closed text document related to a results window we are holding
+            // closes text document related to a results window we are holding
             if (doc.uri.toString(true) === value.queryRunner.uri) {
                 value.flaggedForDeletion = true;
             }
 
-            // "closed" a results window we are holding
+            // "closes" a results window we are holding
             if (doc.uri.toString(true) === key) {
                 value.timeout = this.setRunnerDeletionTimeout(key);
             }

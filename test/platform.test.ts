@@ -6,7 +6,6 @@
 import assert = require('assert');
 import { expect } from 'chai';
 import {Runtime, PlatformInformation, LinuxDistribution} from '../src/models/platform';
-import Telemetry from '../src/models/telemetry';
 
 function getPlatform(): Promise<Runtime> {
     return PlatformInformation.getCurrent().then (platformInfo => {
@@ -15,11 +14,6 @@ function getPlatform(): Promise<Runtime> {
 }
 
 suite('Platform Tests', () => {
-
-    setup(() => {
-        // Ensure that telemetry is disabled while testing
-        Telemetry.disable();
-    });
 
     test('getCurrentPlatform should return valid value', (done) => {
         getPlatform().then(platform => {

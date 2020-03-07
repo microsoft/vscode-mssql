@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 'use strict';
-import { ExtensionContext, workspace, window, OutputChannel, languages } from 'vscode';
+import * as vscode from 'vscode';
 import {
     LanguageClient, LanguageClientOptions, ServerOptions,
     TransportKind, RequestType, NotificationType, NotificationHandler,
@@ -11,7 +11,6 @@ import {
 } from 'vscode-languageclient';
 import * as path from 'path';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import Telemetry from '../models/telemetry';
 import * as Utils from '../models/utils';
 import { VersionRequest } from '../models/contracts';
 import { Logger } from '../models/logger';
@@ -26,9 +25,8 @@ import { ServerInitializationResult, ServerStatusView } from './serverStatus';
 import StatusView from '../views/statusView';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
-let vscode = require('vscode');
 
-let _channel: OutputChannel = undefined;
+let _channel: vscode.OutputChannel = undefined;
 
 /**
  * @interface IMessage
@@ -59,8 +57,6 @@ class LanguageClientErrorHandler {
      * @memberOf LanguageClientErrorHandler
      */
     showOnErrorPrompt(): void {
-        Telemetry.sendTelemetryEvent('SqlToolsServiceCrash');
-
         this.vscodeWrapper.showErrorMessage(
             Constants.sqlToolsServiceCrashMessage,
             Constants.sqlToolsServiceCrashButton).then(action => {
@@ -116,13 +112,18 @@ export default class SqlToolsServiceClient {
     private _client: LanguageClient = undefined;
     private _resourceClient: LanguageClient = undefined;
 
-    // getter method for the Language Clients
+    // getter method for the Language Client
     private get client(): LanguageClient {
         return this._client;
     }
 
     private set client(client: LanguageClient) {
         this._client = client;
+    }
+
+    // getter method for language client diagnostic collection
+    public get diagnosticCollection(): vscode.DiagnosticCollection {
+        return this._client.diagnostics;
     }
 
     constructor(
@@ -137,7 +138,7 @@ export default class SqlToolsServiceClient {
     public static get instance(): SqlToolsServiceClient {
         if (this._instance === undefined) {
             let config = new ExtConfig();
-            _channel = window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
+            _channel = vscode.window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
             let logger = new Logger(text => _channel.append(text));
             let serverStatusView = new ServerStatusView();
             let httpClient = new HttpClient();
@@ -154,7 +155,7 @@ export default class SqlToolsServiceClient {
 
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
-    public initialize(context: ExtensionContext): Promise<ServerInitializationResult> {
+    public initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
         this._logger.appendLine(Constants.serviceInitializing);
         this._logPath = context.logPath;
         return PlatformInformation.getCurrent().then(platformInfo => {
@@ -162,14 +163,13 @@ export default class SqlToolsServiceClient {
         });
     }
 
-    public initializeForPlatform(platformInfo: PlatformInformation, context: ExtensionContext): Promise<ServerInitializationResult> {
+    public initializeForPlatform(platformInfo: PlatformInformation, context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
         return new Promise<ServerInitializationResult>((resolve, reject) => {
             this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
             this._logger.appendLine();
             this._logger.append(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime()) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
-                Telemetry.sendTelemetryEvent('UnsupportedPlatform', { platform: platformInfo.toString() });
                 reject('Invalid Platform');
             } else {
                 if (platformInfo.runtimeId) {
@@ -200,7 +200,6 @@ export default class SqlToolsServiceClient {
                 }).catch(err => {
                     Utils.logDebug(Constants.serviceLoadingFailed + ' ' + err);
                     Utils.showErrorMsg(Constants.serviceLoadingFailed);
-                    Telemetry.sendTelemetryEvent('ServiceInitializingFailed');
                     reject(err);
                 });
             }
@@ -231,7 +230,7 @@ export default class SqlToolsServiceClient {
      * @memberOf SqlToolsServiceClient
      */
     private initializeLanguageConfiguration(): void {
-        languages.setLanguageConfiguration('sql', {
+        vscode.languages.setLanguageConfiguration('sql', {
             comments: {
                 lineComment: '--',
                 blockComment: ['/*', '*/']
@@ -255,7 +254,7 @@ export default class SqlToolsServiceClient {
         });
     }
 
-    private initializeLanguageClient(serverPath: string, context: ExtensionContext, isWindows: boolean): void {
+    private initializeLanguageClient(serverPath: string, context: vscode.ExtensionContext, isWindows: boolean): void {
         if (serverPath === undefined) {
             Utils.logDebug(Constants.invalidServiceFilePath);
             throw new Error(Constants.invalidServiceFilePath);
@@ -277,7 +276,6 @@ export default class SqlToolsServiceClient {
 
                 // Push the disposable to the context's subscriptions so that the
                 // client can be deactivated on extension deactivation
-
                 context.subscriptions.push(disposable);
                 context.subscriptions.push(resourceDisposable);
             }
@@ -288,6 +286,7 @@ export default class SqlToolsServiceClient {
         // Options to control the language client
         let clientOptions: LanguageClientOptions = {
             documentSelector: ['sql'],
+            diagnosticCollectionName: 'mssql',
             synchronize: {
                 configurationSection: 'mssql'
             },
@@ -298,8 +297,6 @@ export default class SqlToolsServiceClient {
         let client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
         client.onReady().then(() => {
             this.checkServiceCompatibility();
-
-            client.onNotification(LanguageServiceContracts.TelemetryNotification.type, this.handleLanguageServiceTelemetryNotification());
             client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
         });
 
@@ -320,12 +317,6 @@ export default class SqlToolsServiceClient {
         return client;
     }
 
-    private handleLanguageServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.TelemetryParams> {
-        return (event: LanguageServiceContracts.TelemetryParams): void => {
-            Telemetry.sendTelemetryEvent(event.params.eventName, event.params.properties, event.params.measures);
-        };
-    }
-
     /**
      * Public for testing purposes only.
      */
@@ -344,7 +335,7 @@ export default class SqlToolsServiceClient {
         }
 
         // Get the extenion's configuration
-        let config = workspace.getConfiguration(Constants.extensionConfigSectionName);
+        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
         if (config) {
             // Enable diagnostic logging in the service if it is configured
             let logDebugInfo = config[Constants.configLogDebugInfo];

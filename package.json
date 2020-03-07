@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
@@ -75,15 +75,14 @@
     "@types/mocha": "^5.2.7",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
+    "@types/vscode": "^1.38.0",
     "assert": "^1.4.1",
     "chai": "^3.5.0",
-    "copy-paste": "^1.3.0",
     "coveralls": "^3.0.2",
     "decache": "^4.1.0",
     "del": "^2.2.1",
     "gulp": "github:gulpjs/gulp#v4.0.0",
     "gulp-concat": "^2.6.0",
-    "gulp-install": "^1.1.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-json-editor": "^2.2.1",
     "gulp-rename": "^1.2.2",
@@ -106,14 +105,14 @@
     "typescript": "3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vsce": "^1.58.0",
-    "vscode": "^1.1.33",
+    "vscode-test": "^1.0.0",
     "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
     "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
     "core-js": "^2.4.1",
-    "decompress": "^4.0.0",
+    "decompress": "^4.2.0",
     "ejs": "^2.6.2",
     "error-ex": "^1.3.0",
     "figures": "^1.4.0",
@@ -131,7 +130,6 @@
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
     "tmp": "^0.0.28",
     "underscore": "^1.8.3",
-    "vscode-extension-telemetry": "^0.1.1",
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
@@ -151,6 +149,11 @@
         {
           "id": "objectExplorer",
           "name": "%extension.connections%"
+        },
+        {
+          "id": "queryHistory",
+          "name": "%extension.queryHistory%",
+          "when": "config.mssql.enableQueryHistoryFeature"
         }
       ]
     },
@@ -180,6 +183,18 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "mssql.runQuery",
+          "when": "editorLangId == sql",
+          "group": "navigation@1"
+        },
+        {
+          "command": "mssql.cancelQuery",
+          "when": "editorLangId == sql",
+          "group": "navigation@2"
+        }
+      ],
       "editor/context": [
         {
           "command": "mssql.runQuery",
@@ -192,6 +207,24 @@
           "when": "view == objectExplorer",
           "title": "%mssql.addObjectExplorer%",
           "group": "navigation"
+        },
+        {
+          "command": "mssql.startQueryHistoryCapture",
+          "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture",
+          "title": "%mssql.startQueryHistoryCapture%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.pauseQueryHistoryCapture",
+          "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && config.mssql.enableQueryHistoryCapture",
+          "title": "%mssql.pauseQueryHistoryCapture%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.clearAllQueryHistory",
+          "when": "view == queryHistory",
+          "title": "%mssql.clearAllQueryHistory%",
+          "group": "secondary"
         }
       ],
       "view/item/context": [
@@ -239,6 +272,21 @@
           "command": "mssql.scriptAlter",
           "when": "view == objectExplorer && viewItem =~ /^(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)$/",
           "group": "MS_SQL@4"
+        },
+        {
+          "command": "mssql.openQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@1"
+        },
+        {
+          "command": "mssql.runQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@2"
+        },
+        {
+          "command": "mssql.deleteQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode",
+          "group": "MS_SQL@3"
         }
       ],
       "commandPalette": [
@@ -281,6 +329,22 @@
         {
           "command": "mssql.toggleSqlCmd",
           "when": "editorFocus && editorLangId == 'sql'"
+        },
+        {
+          "command": "mssql.startQueryHistoryCapture",
+          "when": "config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture"
+        },
+        {
+          "command": "mssql.pauseQueryHistoryCapture",
+          "when": "config.mssql.enableQueryHistoryFeature && config.mssql.enableQueryHistoryCapture"
+        },
+        {
+          "command": "mssql.copyObjectName",
+          "when": "view == objectExplorer && viewItem != Folder"
+        },
+        {
+          "command": "mssql.runQueryHistory",
+          "when": "view == queryHistory && viewItem == queryHistoryNode"
         }
       ]
     },
@@ -288,7 +352,8 @@
       {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": "$(debug-start)"
       },
       {
         "command": "mssql.runCurrentStatement",
@@ -298,7 +363,8 @@
       {
         "command": "mssql.cancelQuery",
         "title": "%mssql.cancelQuery%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": "$(debug-stop)"
       },
       {
         "command": "mssql.connect",
@@ -349,10 +415,7 @@
         "command": "mssql.addObjectExplorer",
         "title": "%mssql.addObjectExplorer%",
         "category": "MS SQL",
-        "icon": {
-          "dark": "images/add_inverse.svg",
-          "light": "images/add.svg"
-        }
+        "icon": "$(add)"
       },
       {
         "command": "mssql.objectExplorerNewQuery",
@@ -398,6 +461,48 @@
         "command": "mssql.scriptAlter",
         "title": "%mssql.scriptAlter%",
         "group": "MS SQL"
+      },
+      {
+        "command": "mssql.openQueryHistory",
+        "title": "%mssql.openQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.runQueryHistory",
+        "title": "%mssql.runQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.deleteQueryHistory",
+        "title": "%mssql.deleteQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.clearAllQueryHistory",
+        "title": "%mssql.clearAllQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.startQueryHistoryCapture",
+        "title": "%mssql.startQueryHistoryCapture%",
+        "group": "MS SQL",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "mssql.pauseQueryHistoryCapture",
+        "title": "%mssql.pauseQueryHistoryCapture%",
+        "group": "MS SQL",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "mssql.commandPaletteQueryHistory",
+        "title": "%mssql.commandPaletteQueryHistory%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.copyObjectName",
+        "title": "%mssql.copyObjectName%",
+        "group": "MS SQL"
       }
     ],
     "keybindings": [
@@ -423,6 +528,12 @@
         "command": "workbench.view.extension.objectExplorer",
         "key": "ctrl+alt+d",
         "mac": "cmd+alt+d"
+      },
+      {
+        "command": "mssql.copyObjectName",
+        "key": "ctrl+c",
+        "mac": "cmd+c",
+        "when": "sideBarFocus && activeViewlet == workbench.view.extension.objectExplorer"
       }
     ],
     "configuration": {
@@ -806,11 +917,26 @@
           "default": false,
           "description": "%mssql.persistQueryResultTabs%",
           "scope": "window"
+        },
+        "mssql.queryHistoryLimit": {
+          "type": "number",
+          "default": 20,
+          "description": "%mssql.queryHistoryLimit%",
+          "scope": "window"
+        },
+        "mssql.enableQueryHistoryCapture": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.enableQueryHistoryCapture%",
+          "scope": "window"
+        },
+        "mssql.enableQueryHistoryFeature": {
+          "type": "boolean",
+          "default": true,
+          "description" : "%mssql.enableQueryHistoryFeature%",
+          "scope": "window"
         }
       }
     }
-  },
-  "scripts": {
-    "postinstall": "node ./node_modules/vscode/bin/install"
   }
 }

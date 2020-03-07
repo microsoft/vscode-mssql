@@ -35,6 +35,7 @@ export interface IResultSet {
     columns: string[];
     totalNumberOfRows: number;
 }
+
 /*
 * Query Runner class which handles running a query, reports the results to the content manager,
 * and handles getting more rows from the service layer and disposing when the content is closed.
@@ -49,6 +50,7 @@ export default class QueryRunner {
     private _isSqlCmd: boolean = false;
     public eventEmitter: EventEmitter = new EventEmitter();
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
+    private _uriToQueryStringMap = new Map<string, string>();
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -160,6 +162,20 @@ export default class QueryRunner {
                     querySelection: selection
                 };
 
+                const doc = await this._vscodeWrapper.openTextDocument(this._vscodeWrapper.parseUri(this._ownerUri));
+                let queryString: string;
+                if (selection) {
+                    let range = this._vscodeWrapper.range(
+                        this._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                        this._vscodeWrapper.position(selection.endLine, selection.endColumn));
+                    queryString = doc.getText(range);
+                } else {
+                    queryString = doc.getText();
+                }
+
+                // Set the query string for the uri
+                this._uriToQueryStringMap.set(this._ownerUri, queryString);
+
                 // Send the request to execute the query
                 if (promise) {
                     this._uriToQueryPromiseMap.set(this._ownerUri, promise);
@@ -216,7 +232,8 @@ export default class QueryRunner {
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
         this._statusView.executedQuery(result.ownerUri);
-        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds));
+        let hasError = this._batchSets.some(batch => batch.hasError === true);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), hasError);
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
@@ -275,7 +292,7 @@ export default class QueryRunner {
         this._statusView.executedQuery(uri);
         this._isExecuting = false;
         this._hasCompleted = true;
-        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true);
+        this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), true, true);
         return true;
     }
 
@@ -294,6 +311,13 @@ export default class QueryRunner {
 
         // Send the message to the results pane
         this.eventEmitter.emit('message', message);
+
+        // Set row count on status bar if there are no errors
+        if (!obj.message.isError) {
+            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
+        } else {
+            this._statusView.hideRowCount(obj.ownerUri, true);
+        }
     }
 
     /*
@@ -412,6 +436,9 @@ export default class QueryRunner {
 
         // Go through all rows and get selections for them
         let allRowIds = rowIdToRowMap.keys();
+        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
+        const firstColumn = endColumns[0];
+        const lastColumn = endColumns[1];
         for (let rowId of allRowIds) {
             let row = rowIdToRowMap.get(rowId);
             const rowSelections = rowIdToSelectionMap.get(rowId);
@@ -421,20 +448,25 @@ export default class QueryRunner {
                 return ((a.fromCell < b.fromCell) ? -1 : (a.fromCell > b.fromCell) ? 1 : 0);
             });
 
-            // start copy paste from left-most column
-            const firstColumn = rowSelections[0].fromCell;
-
             for (let i = 0; i < rowSelections.length; i++) {
                 let rowSelection = rowSelections[i];
+
+                // Add tabs starting from the first column of the selection
                 for (let j = firstColumn; j < rowSelection.fromCell; j++) {
-                    copyString += ' \t';
+                    copyString += '\t';
                 }
                 let cellObjects = row.slice(rowSelection.fromCell, (rowSelection.toCell + 1));
+
                 // Remove newlines if requested
                 let cells = this.shouldRemoveNewLines()
                 ? cellObjects.map(x => this.removeNewLines(x.displayValue))
                 : cellObjects.map(x => x.displayValue);
                 copyString += cells.join('\t');
+
+                // Add tabs until the end column of the selection
+                for (let k = rowSelection.toCell; k < lastColumn; k++) {
+                    copyString += '\t';
+                }
             }
             copyString += os.EOL;
         }
@@ -512,6 +544,27 @@ export default class QueryRunner {
     }
 
     /**
+     * Gets the first and last column of a selection: [first, last]
+     */
+    private getSelectionEndColumns(rowIdToRowMap: Map<number, DbCellValue[]>, rowIdToSelectionMap: Map<number, ISlickRange[]>): number[] {
+        let allRowIds = rowIdToRowMap.keys();
+        let firstColumn = -1;
+        let lastColumn = -1;
+        for (let rowId of allRowIds) {
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+            for (let i = 0; i < rowSelections.length; i++) {
+                if (firstColumn === -1 || rowSelections[i].fromCell < firstColumn) {
+                    firstColumn = rowSelections[i].fromCell;
+                }
+                if (lastColumn === -1 || rowSelections[i].toCell > lastColumn) {
+                    lastColumn = rowSelections[i].toCell;
+                }
+            }
+        }
+        return [firstColumn, lastColumn];
+    }
+
+    /**
      * Sets a selection range in the editor for this query
      * @param selection The selection range to select
      */
@@ -538,6 +591,13 @@ export default class QueryRunner {
             editor.selection = querySelection;
             return;
         }
+    }
+
+    public getQueryString(uri: string): string {
+        if (this._uriToQueryStringMap.has(uri)) {
+            return this._uriToQueryStringMap.get(uri);
+        }
+        return undefined;
     }
 
     public resetHasCompleted(): void {
