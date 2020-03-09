@@ -7,18 +7,25 @@
 
 import {IDecompressProvider, IPackage} from './interfaces';
 import  {ILogger} from '../models/interfaces';
-const decompress = require('decompress');
+const decompress = require('decompress-zip');
 
 export default class DecompressProvider implements IDecompressProvider {
     public decompress(pkg: IPackage, logger: ILogger): Promise<void> {
+        const unzipper = new decompress(pkg.tmpFile.name);
         return new Promise<void>((resolve, reject) => {
-            decompress(pkg.tmpFile.name, pkg.installPath).then(files => {
-                    logger.appendLine(`Done! ${files.length} files unpacked.\n`);
-                    resolve();
-                }).catch(decompressErr => {
-                        logger.appendLine(`[ERROR] ${decompressErr}`);
-                        reject(decompressErr);
-                });
+            let totalFiles = 0;
+            unzipper.on('progress', async (index, fileCount) => {
+                totalFiles = fileCount;
+            });
+            unzipper.on('extract', async () => {
+                logger.appendLine(`Done! ${totalFiles} files unpacked.\n`);
+                resolve();
+            });
+            unzipper.on('error', async (decompressErr) => {
+                logger.appendLine(`[ERROR] ${decompressErr}`);
+                reject(decompressErr);
+            });
+            unzipper.extract({ path: pkg.installPath });
         });
     }
 }
