@@ -119,6 +119,7 @@
     "find-remove": "1.2.1",
     "fs-extra-promise": "^0.3.1",
     "getmac": "1.2.1",
+    "gulp-cli": "^2.2.0",
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^2.2.1",
     "jquery": "^3.4.1",
@@ -933,7 +934,7 @@
         "mssql.enableQueryHistoryFeature": {
           "type": "boolean",
           "default": true,
-          "description" : "%mssql.enableQueryHistoryFeature%",
+          "description": "%mssql.enableQueryHistoryFeature%",
           "scope": "window"
         }
       }
