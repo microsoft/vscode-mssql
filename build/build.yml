@@ -1,7 +1,6 @@
 pool:
   name: Hosted macOS
   demands:
-  - npm
   - node.js
 
 steps:
@@ -19,21 +18,14 @@ steps:
     PathtoPublish: '$(Build.BinariesDirectory)/source.tar.gz'
     ArtifactName: source
 
-- task: Npm@1
-  displayName: 'Use npm 6.5.0'
-  inputs:
-    command: custom
-    verbose: false
-    customCommand: 'install -g npm@6.5.0'
-
-- task: Npm@1
-  displayName: 'npm install'
+- task: Yarn@1
+  displayName: 'yarn install'
   inputs:
     workingDir: '$(Build.SourcesDirectory)'
     verbose: false
 
-- task: Npm@1
-  displayName: 'npm custom'
+- task: Yarn@1
+  displayName: 'yarn custom'
   inputs:
     command: custom
     verbose: false
@@ -53,8 +45,8 @@ steps:
   displayName: 'gulp build (release)'
   condition: and(succeeded(), eq(variables['release'], true))
 
-- bash: 'npm install -g vsce'
-  displayName: 'npm install vsce'
+- bash: 'yarn install -g vsce'
+  displayName: 'yarn install vsce'
 
 - task: Gulp@0
   displayName: 'gulp package:offline'
