@@ -42,7 +42,17 @@ export default class DecompressProvider implements IDecompressProvider {
     }
 
     private decompressTar(pkg: IPackage, logger: ILogger): Promise<void> {
-        return undefined;
+        let totalFiles = 0;
+        return DecompressTar.extract({
+            file: pkg.tmpFile.name,
+            cwd: pkg.installPath,
+            onentry: () => { totalFiles++; },
+            onwarn: (warn) => {
+                if (!warn.data.recoverable) {
+                    logger.appendLine(`[ERROR] ${warn.message}`);
+                }
+            }
+        }, () => { logger.appendLine(`Done! ${totalFiles} files unpacked.\n`); });
     }
 
     public decompress(pkg: IPackage, logger: ILogger): Promise<void> {
