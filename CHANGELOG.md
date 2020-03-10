@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 1.9.0
-* Release date: March 5, 2019
+* Release date: March 5, 2020
 * Release status: GA
 
 ## What's new in 1.9.0
