@@ -7,19 +7,10 @@
 
 import {IDecompressProvider, IPackage} from './interfaces';
 import  {ILogger} from '../models/interfaces';
-import { PlatformInformation } from '../models/platform';
 import * as DecompressTar from 'tar';
 import * as DecompressZip from 'decompress-zip';
 
 export default class DecompressProvider implements IDecompressProvider {
-
-    private _isWindows: boolean;
-
-    constructor() {
-        PlatformInformation.getCurrent().then((platform: PlatformInformation) => {
-            this._isWindows = platform.isWindows();
-        });
-    }
 
     private decompressZip(pkg: IPackage, logger: ILogger): Promise<void> {
         const unzipper = new DecompressZip(pkg.tmpFile.name);
@@ -55,7 +46,7 @@ export default class DecompressProvider implements IDecompressProvider {
     }
 
     public decompress(pkg: IPackage, logger: ILogger): Promise<void> {
-        if (this._isWindows) {
+        if (pkg.isZipFile) {
             return this.decompressZip(pkg, logger);
         } else {
             return this.decompressTar(pkg, logger);
