@@ -18,7 +18,8 @@ suite('Language Service Tests', () => {
         test('Decompress package test', async () => {
             let testPackage: IPackage = {
                 url: 'test_url',
-                tmpFile: undefined
+                tmpFile: undefined,
+                isZipFile: false
             };
             let testLogger: ILogger = {
                 logDebug: undefined,
