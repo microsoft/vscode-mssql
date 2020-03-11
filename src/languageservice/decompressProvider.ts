@@ -48,7 +48,7 @@ export default class DecompressProvider implements IDecompressProvider {
             cwd: pkg.installPath,
             onentry: () => { totalFiles++; },
             onwarn: (warn) => {
-                if (!warn.data.recoverable) {
+                if (warn.data && !warn.data.recoverable) {
                     logger.appendLine(`[ERROR] ${warn.message}`);
                 }
             }
