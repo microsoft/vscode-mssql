@@ -8,9 +8,8 @@
 import {IDecompressProvider, IPackage} from './interfaces';
 import  {ILogger} from '../models/interfaces';
 import { PlatformInformation } from '../models/platform';
-
-const DecompressZip = require('decompress-zip');
-const DecompressTar = require('tar');
+import * as DecompressTar from 'tar';
+import * as DecompressZip from 'decompress-zip';
 
 export default class DecompressProvider implements IDecompressProvider {
 
