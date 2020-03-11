@@ -26,5 +26,5 @@ gulp.task('cover:disable', () => {
     .pipe(gulp.dest("./out", {'overwrite':true}));
 });
 
-// for running on ADO
+// for running code coverage on ADO
 gulp.task('cover:ado', gulp.series('cover:clean', 'cover:enableconfig', 'test'));
