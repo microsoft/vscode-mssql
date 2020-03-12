@@ -73,7 +73,7 @@ suite('Query Runner tests', () => {
         testStatusView.setup(x => x.executingQuery(TypeMoq.It.isAnyString()));
         testVscodeWrapper.setup( x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         let testDoc: vscode.TextDocument = {
-            getText() {}
+            getText: () => { return undefined; }
         } as any;
         testVscodeWrapper.setup( x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(testDoc));
 
@@ -127,7 +127,7 @@ suite('Query Runner tests', () => {
         testVscodeWrapper.setup(x => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         testVscodeWrapper.setup(x => x.showErrorMessage(TypeMoq.It.isAnyString()));
         let testDoc: vscode.TextDocument = {
-            getText() {}
+            getText: () => { return undefined; }
         } as any;
         testVscodeWrapper.setup( x => x.openTextDocument(TypeMoq.It.isAny())).returns(() => Promise.resolve(testDoc));
 

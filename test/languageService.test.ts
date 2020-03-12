@@ -1,9 +1,8 @@
-import DecompressProvider from "../src/languageservice/decompressProvider";
-import { IPackage, IStatusView } from "../src/languageservice/interfaces";
-import { ILogger } from "../src/models/interfaces";
-import { assert } from "chai";
-import HttpClient, { IDownloadProgress } from "../src/languageservice/httpClient";
-import { HttpModule } from "../out/src/views/htmlcontent/src/js/lib/@angular/http";
+import DecompressProvider from '../src/languageservice/decompressProvider';
+import { IPackage, IStatusView } from '../src/languageservice/interfaces';
+import { ILogger } from '../src/models/interfaces';
+import { assert } from 'chai';
+import HttpClient, { IDownloadProgress } from '../src/languageservice/httpClient';
 
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -60,8 +59,8 @@ suite('Language Service Tests', () => {
                 serviceInstalled: () => undefined,
                 serviceInstallationFailed: () => undefined,
                 updateServiceDownloadingProgress: (downloadPercentage: number) => undefined
-            }
-            httpClient.handleDataReceivedEvent(mockProgress, [1,2,3,4,5], testLogger, mockStatusView);
+            };
+            httpClient.handleDataReceivedEvent(mockProgress, [1, 2, 3, 4, 5], testLogger, mockStatusView);
             assert.strictEqual(mockProgress.downloadPercentage, 50);
             assert.strictEqual(mockProgress.downloadedBytes, 5);
             assert.strictEqual(mockProgress.dots, 10);

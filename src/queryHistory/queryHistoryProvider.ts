@@ -24,7 +24,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
-    private _queryHistoryNodes: vscode.TreeItem[] = [new EmptyHistoryNode()]
+    private _queryHistoryNodes: vscode.TreeItem[] = [new EmptyHistoryNode()];
     private _queryHistoryLimit: number;
     private _queryHistoryUI: QueryHistoryUI;
 

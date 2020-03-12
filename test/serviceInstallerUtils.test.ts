@@ -107,7 +107,7 @@ suite('Test Service Installer Util functions', () => {
 
     test('Test getgetServiceInstallDirectory function', async () => {
         let dir = await getServiceInstallDirectory(undefined);
-        assert.isNotNull(dir, 'Service install directory should not be null')
+        assert.isNotNull(dir, 'Service install directory should not be null');
     });
 
     test('Test installService function', async () => {
