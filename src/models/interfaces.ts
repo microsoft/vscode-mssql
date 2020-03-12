@@ -51,7 +51,7 @@ export const contentTypes = [
     Constants.outputContentTypeShowWarning,
     Constants.outputContentTypeConfig,
     Constants.localizedTexts
-    ];
+];
 
 /**
  * Interface exposed to the user for creating new database connections.
@@ -301,7 +301,7 @@ export interface ILogger {
     appendLine(message?: string): void;
 }
 
-export interface AzureSignInQuickPickItem extends vscode.QuickPickItem {
+export interface IAzureSignInQuickPickItem extends vscode.QuickPickItem {
     command: string;
 }
 
@@ -513,14 +513,9 @@ export enum AzureLoginStatus {
     LoggedOut = 'LoggedOut'
 }
 
-export interface AzureSession {
-	readonly environment: any;
-	readonly userId: string;
-	readonly tenantId: string;
-	readonly credentials: any;
-}
-
-export interface AzureSubscription {
-	readonly session: AzureSession;
-	readonly subscription: any;
+export interface IAzureSession {
+    readonly environment: any;
+    readonly userId: string;
+    readonly tenantId: string;
+    readonly credentials: any;
 }

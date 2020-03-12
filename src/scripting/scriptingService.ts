@@ -5,7 +5,7 @@
 
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
-import { ScriptingRequest, ScriptingParams, ScriptOperation, ScriptingObject, ScriptOptions } from '../models/contracts/scripting/scriptingRequest';
+import { ScriptingRequest, IScriptingParams, ScriptOperation, IScriptingObject, IScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
 
 export class ScriptingService {
@@ -45,9 +45,9 @@ export class ScriptingService {
      * Helper to get the object name and schema name
      * (Public for testing purposes)
      */
-    public getObjectFromNode(node: TreeNodeInfo): ScriptingObject {
+    public getObjectFromNode(node: TreeNodeInfo): IScriptingObject {
         let metadata = node.metadata;
-        let scriptingObject: ScriptingObject = {
+        let scriptingObject: IScriptingObject = {
             type: metadata.metadataTypeName,
             schema: metadata.schema,
             name: metadata.name
@@ -58,7 +58,7 @@ export class ScriptingService {
     /**
      * Helper to create scripting params
      */
-    public createScriptingParams(node: TreeNodeInfo, uri: string, operation: ScriptOperation): ScriptingParams {
+    public createScriptingParams(node: TreeNodeInfo, uri: string, operation: ScriptOperation): IScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
         let serverInfo = this._connectionManager.getServerInfo(node.connectionCredentials);
         let scriptCreateDropOption: string;
@@ -74,7 +74,7 @@ export class ScriptingService {
             default:
                 scriptCreateDropOption = 'ScriptCreate';
         }
-        let scriptOptions: ScriptOptions = {
+        let scriptOptions: IScriptOptions = {
             scriptCreateDrop: scriptCreateDropOption,
             typeOfDataToScript: 'SchemaOnly',
             scriptStatistics: 'ScriptStatsNone',
@@ -84,7 +84,7 @@ export class ScriptingService {
             scriptCompatibilityOption: serverInfo && serverInfo.serverMajorVersion ?
                 this.scriptCompatibilityOptionMap[serverInfo.serverMajorVersion] : 'Script140Compat'
         };
-        let scriptingParams: ScriptingParams = {
+        let scriptingParams: IScriptingParams = {
             filePath: undefined,
             scriptDestination: 'ToEditor',
             connectionString: undefined,
