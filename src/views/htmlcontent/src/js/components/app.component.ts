@@ -79,7 +79,8 @@ const template = `
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
     <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0"
-        (contextmenu)="openMessagesContextMenu($event)">
+        (contextmenu)="openMessagesContextMenu($event)"
+        (mousedown)="onMouseDown($event)">
         <br>
         <table id="messageTable">
             <colgroup>
@@ -188,6 +189,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.magnify(this.activeGrid);
         },
         'event.selectAll': () => {
+            $('#messages').find('*').css('user-select', 'none');
             this.slickgrids.toArray()[this.activeGrid].selection = true;
         },
         'event.saveAsCSV': () => {
@@ -417,7 +419,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.onScroll(0);
                     break;
                 default:
-                    console.error('Unexpected web socket event type "' + event.type + '" sent');
+                    console.error('Unexpected proxy event type "' + event.type + '" sent');
                     break;
             }
         });
@@ -561,6 +563,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
         event.preventDefault();
         let selectedRange: IRange = this.getSelectedRangeUnderMessages();
         this.messagesContextMenu.show(event.clientX, event.clientY, selectedRange);
+    }
+
+    onMouseDown(event: any): void {
+        $('#messages').find('*').css('user-select', 'text');
     }
 
     getSelectedRangeUnderMessages(): IRange {

@@ -22,11 +22,6 @@
   resolved "https://registry.yarnpkg.com/@angular/forms/-/forms-2.1.2.tgz#c55539ea5da6d60f64475f39392ae5dd76a7e990"
   integrity sha1-xVU56l2m1g9kR185OSrl3Xan6ZA=
 
-"@angular/http@~2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@angular/http/-/http-2.1.2.tgz#50aa96c3b68a44b98e3f837886c96e5930eb543a"
-  integrity sha1-UKqWw7aKRLmOP4N4hsluWTDrVDo=
-
 "@angular/platform-browser-dynamic@~2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@angular/platform-browser-dynamic/-/platform-browser-dynamic-2.1.2.tgz#3d51b494cfe0a29354c8c1f28369883679982af4"

@@ -8,12 +8,6 @@
   user-select: none;
 }
 
-/** Add the ability to select messages using the cursor **/
-.scrollable.messages {
-  cursor: text;
-  user-select: text;
-}
-
 /** Light Theme **/
 
 .vscode-light * {
