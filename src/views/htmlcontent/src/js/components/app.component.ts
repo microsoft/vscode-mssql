@@ -120,7 +120,6 @@ const template = `
     selector: 'my-app',
     host: { '(window:keydown)': 'keyEvent($event)',
         '(window:gridnav)': 'keyEvent($event)',
-        '(window:keyup)' : 'keyUpEvent($event)',
         '(window:resize)' : 'resizeResults()'
      },
     template: template,
@@ -189,7 +188,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             this.magnify(this.activeGrid);
         },
         'event.selectAll': () => {
-            $('#messages').find('*').css('user-select', 'none');
             this.slickgrids.toArray()[this.activeGrid].selection = true;
         },
         'event.saveAsCSV': () => {
@@ -565,9 +563,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.messagesContextMenu.show(event.clientX, event.clientY, selectedRange);
     }
 
-    onMouseDown(event: any): void {
-        $('#messages').find('*').css('user-select', 'text');
-    }
 
     getSelectedRangeUnderMessages(): IRange {
         let selectedRange: IRange = undefined;
@@ -799,34 +794,34 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      *
      */
-    keyEvent(e: KeyboardEvent): void {
-        const self = this;
-        let eString = this.shortcuts.buildEventString(e);
-        this.shortcuts.getEvent(eString).then((result) => {
+    async keyEvent(e: any): Promise<void> {
+        if (e.target.classList.contains('slick-cell')) {
+            $('#messages').css('user-select', 'none');
+            const self = this;
+            let eString = this.shortcuts.buildEventString(e);
+            let result = await this.shortcuts.getEvent(eString);
             if (result) {
                 let eventName = <string> result;
                 self.shortcutfunc[eventName]();
-                e.stopImmediatePropagation();
-            }
-        });
-    }
-
-    /**
-     * Helper to deselect messages when Ctrl + A is pressed
-     * inside the grid
-    */
-    keyUpEvent(e: KeyboardEvent): void {
-        let eString = this.shortcuts.buildEventString(e);
-        this.shortcuts.getEvent(eString).then((result) => {
-            if (result) {
-                let eventName = <string> result;
                 if (eventName === 'event.selectAll') {
                     window.getSelection().empty();
                     rangy.getSelection().removeAllRanges();
                 }
                 e.stopImmediatePropagation();
             }
-        });
+        } else {
+            $('#messages').css('user-select', 'text');
+        }
+    }
+
+    /**
+     *
+     */
+    onMouseDown(event: MouseEvent): void {
+        this.slickgrids.toArray()[this.activeGrid].selection = false;
+        window.getSelection().empty();
+        rangy.getSelection().removeAllRanges();
+        $('#messages').css('user-select', 'text').focus();
     }
 
     /**
