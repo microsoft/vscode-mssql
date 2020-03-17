@@ -797,12 +797,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
     async keyEvent(e: any): Promise<void> {
         if (e.target.classList.contains('slick-cell')) {
             $('#messages').css('user-select', 'none');
-            const self = this;
             let eString = this.shortcuts.buildEventString(e);
             let result = await this.shortcuts.getEvent(eString);
             if (result) {
                 let eventName = <string> result;
-                self.shortcutfunc[eventName]();
+                this.shortcutfunc[eventName]();
                 if (eventName === 'event.selectAll') {
                     window.getSelection().empty();
                     rangy.getSelection().removeAllRanges();
