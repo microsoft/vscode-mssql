@@ -94,12 +94,11 @@ export class ShortcutService {
     }
 
     async getEvent(shortcut: string): Promise<string> {
-        const self = this;
         if (this.shortcuts) {
             return this.getEventInternal(shortcut);
         } else {
             await this.waitPromise;
-            return self.getEventInternal(shortcut);
+            return this.getEventInternal(shortcut);
         }
     }
 
