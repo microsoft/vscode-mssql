@@ -111,7 +111,7 @@ export class ConnectionStore {
      * Load connections from MRU and profile list and return them as a formatted picklist.
      * Note: connections will not include password value
      *
-     * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
+     * @returns {<IConnectionCredentialsQuickPickItem[]>}
      */
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
@@ -133,29 +133,27 @@ export class ConnectionStore {
         return this.loadProfiles(getWorkspaceProfiles);
     }
 
-    public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
-        let self = this;
-        return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
-            if (typeof(credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
-                credentialsItem.connectionCreds['savePassword'] === false) {
-                // Don't try to lookup a saved password if savePassword is set to false for the credential
-                resolve(credentialsItem);
-            // Note that 'emptyPasswordInput' property is only present for connection profiles
-            } else if (self.shouldLookupSavedPassword(<IConnectionProfile>credentialsItem.connectionCreds)) {
-                let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
-                self._credentialStore.readCredential(credentialId)
-                .then(savedCred => {
-                    if (savedCred) {
-                        credentialsItem.connectionCreds.password = savedCred.password;
-                    }
-                    resolve(credentialsItem);
-                })
-                .catch(err => reject(err));
-            } else {
-                // Already have a password, no need to look up
-                resolve(credentialsItem);
+    public async addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
+        if (typeof(credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
+            credentialsItem.connectionCreds['savePassword'] === false) {
+            // Don't try to lookup a saved password if savePassword is set to false for the credential
+            return credentialsItem;
+        // Note that 'emptyPasswordInput' property is only present for connection profiles
+        } else if (this.shouldLookupSavedPassword(<IConnectionProfile>credentialsItem.connectionCreds)) {
+            let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
+            try {
+                const savedCred = await this._credentialStore.readCredential(credentialId);
+                if (savedCred) {
+                    credentialsItem.connectionCreds.password = savedCred.password;
+                }
+                return credentialsItem;
+            } catch (err) {
+                throw err;
             }
-        });
+        } else {
+            // Already have a password, no need to look up
+            return credentialsItem;
+        }
     }
 
     /**
@@ -198,33 +196,27 @@ export class ConnectionStore {
      * @param {forceWritePlaintextPassword} whether the plaintext password should be written to the settings file
      * @returns {Promise<IConnectionProfile>} a Promise that returns the original profile, for help in chaining calls
      */
-    public saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
-        const self = this;
-        return new Promise<IConnectionProfile>((resolve, reject) => {
-            // Add the profile to the saved list, taking care to clear out the password field if necessary
-            let savedProfile: IConnectionProfile;
-            if (forceWritePlaintextPassword) {
-                savedProfile = Object.assign({}, profile);
-            } else {
-                savedProfile = Object.assign({}, profile, { password: '' });
-            }
+    public async saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
+        // Add the profile to the saved list, taking care to clear out the password field if necessary
+        let savedProfile: IConnectionProfile;
+        if (forceWritePlaintextPassword) {
+            savedProfile = Object.assign({}, profile);
+        } else {
+            savedProfile = Object.assign({}, profile, { password: '' });
+        }
 
-            self._connectionConfig.addConnection(savedProfile)
-            .then(() => {
-                // Only save if we successfully added the profile
-                return self.saveProfilePasswordIfNeeded(profile);
-                // And resolve / reject at the end of the process
-            }, err => {
-                reject(err);
-            }).then(resolved => {
-                // Add necessary default properties before returning
-                // this is needed to support immediate connections
-                ConnInfo.fixupConnectionCredentials(profile);
-                resolve(profile);
-            }, err => {
-                reject(err);
-            });
-        });
+        try {
+            await this._connectionConfig.addConnection(savedProfile);
+            // Only save if we successfully added the profile
+            await this.saveProfilePasswordIfNeeded(profile);
+
+            // Add necessary default properties before returning
+            // this is needed to support immediate connections
+            ConnInfo.fixupConnectionCredentials(profile);
+            return profile;
+        } catch (err) {
+            throw err;
+        }
     }
 
     /**
@@ -248,37 +240,33 @@ export class ConnectionStore {
      * @param {IConnectionCredentials} conn the connection to add
      * @returns {Promise<void>} a Promise that returns when the connection was saved
      */
-    public addRecentlyUsed(conn: IConnectionCredentials): Promise<void> {
-        const self = this;
-        return new Promise<void>((resolve, reject) => {
-            // Get all profiles
-            let configValues = self.getRecentlyUsedConnections();
-            let maxConnections = self.getMaxRecentConnectionsCount();
+    public async addRecentlyUsed(conn: IConnectionCredentials): Promise<void> {
 
-            // Remove the connection from the list if it already exists
-            configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, <IConnectionProfile>conn));
+        // Get all profiles
+        let configValues = this.getRecentlyUsedConnections();
+        let maxConnections = this.getMaxRecentConnectionsCount();
 
-            // Add the connection to the front of the list, taking care to clear out the password field
-            let savedConn: IConnectionCredentials = Object.assign({}, conn, { password: '' });
-            configValues.unshift(savedConn);
+        // Remove the connection from the list if it already exists
+        configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, <IConnectionProfile>conn));
 
-            // Remove last element if needed
-            if (configValues.length > maxConnections) {
-                configValues = configValues.slice(0, maxConnections);
+        // Add the connection to the front of the list, taking care to clear out the password field
+        let savedConn: IConnectionCredentials = Object.assign({}, conn, { password: '' });
+        configValues.unshift(savedConn);
+
+        // Remove last element if needed
+        if (configValues.length > maxConnections) {
+            configValues = configValues.slice(0, maxConnections);
+        }
+
+        try {
+            await this._context.globalState.update(Constants.configRecentConnections, configValues);
+            // Only save if we successfully added the profile and if savePassword
+            if ((<IConnectionProfile>conn).savePassword) {
+                this.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
             }
-
-            self._context.globalState.update(Constants.configRecentConnections, configValues)
-            .then(() => {
-                // Only save if we successfully added the profile and if savePassword
-                if ((<IConnectionProfile>conn).savePassword) {
-                    self.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
-                }
-                // And resolve / reject at the end of the process
-                resolve(undefined);
-            }, err => {
-                reject(err);
-            });
-        });
+        } catch (error) {
+            throw error;
+        }
     }
 
     /**
@@ -296,64 +284,60 @@ export class ConnectionStore {
     /**
      * Remove a connection profile from the recently used list.
      */
-    public removeRecentlyUsed(conn: IConnectionProfile, keepCredentialStore: boolean = false): Promise<void> {
-        const self = this;
-        return new Promise<void>(async (resolve, reject) => {
-            // Get all profiles
-            let configValues = self.getRecentlyUsedConnections();
+    public async removeRecentlyUsed(conn: IConnectionProfile, keepCredentialStore: boolean = false): Promise<void> {
 
-            // Remove the connection from the list if it already exists
-            configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, conn));
+        // Get all profiles
+        let configValues = this.getRecentlyUsedConnections();
 
-            // Remove any saved password
-            if (conn.savePassword && !keepCredentialStore) {
-                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, ConnectionStore.CRED_MRU_USER);
-                await self._credentialStore.deleteCredential(credentialId);
-            }
+        // Remove the connection from the list if it already exists
+        configValues = configValues.filter(value => !Utils.isSameProfile(<IConnectionProfile>value, conn));
 
+        // Remove any saved password
+        if (conn.savePassword && !keepCredentialStore) {
+            let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, ConnectionStore.CRED_MRU_USER);
+            await this._credentialStore.deleteCredential(credentialId);
+        }
+
+        try {
             // Update the MRU list
-            self._context.globalState.update(Constants.configRecentConnections, configValues)
-            .then(() => {
-                // And resolve / reject at the end of the process
-                resolve(undefined);
-            }, err => {
-                reject(err);
-            });
-        });
+            await this._context.globalState.update(Constants.configRecentConnections, configValues);
+        } catch (err) {
+            throw err;
+        }
     }
 
-    public saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+    public async saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
         if (!profile.savePassword) {
-            return Promise.resolve(true);
+            return true
         }
-        return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile);
+        const result = this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile);
+        return result;
     }
 
-    public saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean> {
+    public async saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean> {
         if (!profile.connectionString) {
-            return Promise.resolve(true);
+            return true;
         }
-        return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile, true);
+        const result = await this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile, true);
+        return result;
     }
 
-    private doSaveCredential(conn: IConnectionCredentials, type: CredentialsQuickPickItemType, isConnectionString: boolean = false): Promise<boolean> {
-        let self = this;
+    private async doSaveCredential(conn: IConnectionCredentials, type: CredentialsQuickPickItemType, isConnectionString: boolean = false): Promise<boolean> {
         let password = isConnectionString ? conn.connectionString : conn.password;
-        return new Promise<boolean>((resolve, reject) => {
-            if (Utils.isNotEmpty(password)) {
-                let credType: string = type === CredentialsQuickPickItemType.Mru ? ConnectionStore.CRED_MRU_USER : ConnectionStore.CRED_PROFILE_USER;
-                let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType, isConnectionString);
-                self._credentialStore.saveCredential(credentialId, password)
-                .then((result) => {
-                    resolve(result);
-                }).catch(err => {
-                    // Bubble up error if there was a problem executing the set command
-                    reject(err);
-                });
-            } else {
-                resolve(true);
+
+        if (Utils.isNotEmpty(password)) {
+            let credType: string = type === CredentialsQuickPickItemType.Mru ? ConnectionStore.CRED_MRU_USER : ConnectionStore.CRED_PROFILE_USER;
+            let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType, isConnectionString);
+            try {
+                const result = await this._credentialStore.saveCredential(credentialId, password);
+                return result;
+            } catch (err) {
+                throw err;
             }
-        });
+        } else {
+            return true;
+        }
+
     }
 
     /**
@@ -364,34 +348,23 @@ export class ConnectionStore {
      * @param {Boolean} keepCredentialStore optional value to keep the credential store after a profile removal
      * @returns {Promise<boolean>} true if successful
      */
-    public removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
-        const self = this;
-        return new Promise<boolean>((resolve, reject) => {
-            self._connectionConfig.removeConnection(profile).then(profileFound => {
-                resolve(profileFound);
-            }).catch(err => {
-                reject(err);
-            });
-        }).then(profileFound => {
+    public async removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
+        let profileFound = await this._connectionConfig.removeConnection(profile);
+        if (profileFound) {
             // Remove the profile from the recently used list if necessary
-            return new Promise<boolean>((resolve, reject) => {
-                self.removeRecentlyUsed(profile, keepCredentialStore).then(() => {
-                    resolve(profileFound);
-                }).catch(err => {
-                    reject(err);
-                });
-            });
-        }).then(profileFound => {
+            await this.removeRecentlyUsed(profile, keepCredentialStore)
+
             // Now remove password from credential store. Currently do not care about status unless an error occurred
             if (profile.savePassword === true && !keepCredentialStore) {
                 let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
-                self._credentialStore.deleteCredential(credentialId).then(undefined, rejected => {
-                    throw new Error(rejected);
-                });
+                try {
+                    await this._credentialStore.deleteCredential(credentialId);
+                } catch (error) {
+                    throw error;
+                }
             }
-
             return profileFound;
-        });
+        }
     }
 
     private createQuickPickItem(item: IConnectionCredentials, itemType: CredentialsQuickPickItemType): IConnectionCredentialsQuickPickItem {
