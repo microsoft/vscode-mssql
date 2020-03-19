@@ -94,7 +94,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
         connectionStore: ConnectionStore,
         defaultProfileValues?: IConnectionCredentials): Promise<IConnectionCredentials> {
 
-        let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false, isPasswordRequired, connectionStore, defaultProfileValues);
+        let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false,
+            isPasswordRequired, connectionStore, defaultProfileValues);
         let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
 
         // Potentially ask to save password

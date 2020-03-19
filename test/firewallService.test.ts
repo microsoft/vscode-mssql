@@ -6,11 +6,11 @@ import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { FirewallService } from '../src/firewall/firewallService';
-import { HandleFirewallRuleRequest, HandleFirewallRuleResponse,
-    CreateFirewallRuleRequest, CreateFirewallRuleResponse, HandleFirewallRuleParams } from '../src/models/contracts/firewall/firewallRequest';
+import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
+    CreateFirewallRuleRequest, ICreateFirewallRuleResponse, IHandleFirewallRuleParams } from '../src/models/contracts/firewall/firewallRequest';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
-import { AzureSession } from '../src/models/interfaces';
+import { IAzureSession } from '../src/models/interfaces';
 
 
 suite('Firewall Service Tests', () => {
@@ -20,18 +20,19 @@ suite('Firewall Service Tests', () => {
 
     setup(() => {
         client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
-        let mockHandleFirewallResponse: HandleFirewallRuleResponse = {
+        let mockHandleFirewallResponse: IHandleFirewallRuleResponse = {
             result: true,
             ipAddress: '128.0.0.0'
         };
-        let mockCreateFirewallRuleResponse: CreateFirewallRuleResponse = {
+        let mockCreateFirewallRuleResponse: ICreateFirewallRuleResponse = {
             result: true,
             errorMessage: ''
         };
         client.setup(c => c.sendResourceRequest(HandleFirewallRuleRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(mockHandleFirewallResponse));
-        client.setup(c => c.sendResourceRequest(CreateFirewallRuleRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(mockCreateFirewallRuleResponse));
+        client.setup(c => c.sendResourceRequest(CreateFirewallRuleRequest.type,
+            TypeMoq.It.isAny())).returns(() => Promise.resolve(mockCreateFirewallRuleResponse));
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        let mockSession: AzureSession = {
+        let mockSession: IAzureSession = {
             environment: undefined,
             userId: 'test',
             tenantId: 'test',
@@ -74,7 +75,7 @@ suite('Firewall Service Tests', () => {
             resource: undefined,
             tokenType: 'test',
             accessToken: 'test_token'
-        }
+        };
         firewallService.token = mockToken;
         let result = await firewallService.createFirewallRule(server, startIpAddress, endIpAddress);
         assert.isNotNull(result, 'Create Firewall Rule request is sent successfully');

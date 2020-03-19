@@ -17,7 +17,7 @@ import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
-import { FirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
+import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
 
 /**
  * The different tasks for managing connection profiles.
@@ -36,7 +36,8 @@ export interface ISqlProviderItem extends vscode.QuickPickItem {
 export class ConnectionUI {
     private _errorOutputChannel: vscode.OutputChannel;
 
-    constructor(private _connectionManager: ConnectionManager,
+    constructor(
+        private _connectionManager: ConnectionManager,
         private _connectionStore: ConnectionStore,
         private _prompter: IPrompter,
         private _vscodeWrapper?: VscodeWrapper) {
@@ -237,7 +238,8 @@ export class ConnectionUI {
     }
 
     // Helper to let the user choose a database on the current server
-    public showDatabasesOnCurrentServer(currentCredentials: IConnectionCredentials,
+    public showDatabasesOnCurrentServer(
+        currentCredentials: IConnectionCredentials,
         databaseNames: Array<string>): Promise<IConnectionCredentials> {
         const self = this;
         return new Promise<IConnectionCredentials>((resolve, reject) => {
@@ -588,7 +590,8 @@ export class ConnectionUI {
 
     private async promptForAccountSignIn(): Promise<boolean> {
         if (!this._vscodeWrapper.isAccountSignedIn) {
-            return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn, LocalizedConstants.signInLabel).then(result => {
+            return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
+                LocalizedConstants.signInLabel).then(result => {
                 if (result === LocalizedConstants.signInLabel) {
                     // show firewall dialog with all sign-in options
                     return this.showSignInOptions();
@@ -602,7 +605,7 @@ export class ConnectionUI {
         }
     }
 
-    private async promptForIpAddress(startIpAddress: string): Promise<FirewallIpAddressRange> {
+    private async promptForIpAddress(startIpAddress: string): Promise<IFirewallIpAddressRange> {
         let questions: IQuestion[] = [
             {
                 type: QuestionTypes.input,
@@ -614,7 +617,7 @@ export class ConnectionUI {
                     if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex)) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     }
-                },
+                }
             },
             {
                 type: QuestionTypes.input,
@@ -634,19 +637,20 @@ export class ConnectionUI {
         // Prompt and return the value if the user confirmed
         return this._prompter.prompt(questions).then((answers: { [questionId: string ]: string}) => {
             if (answers) {
-                let result: FirewallIpAddressRange = {
+                let result: IFirewallIpAddressRange = {
                     startIpAddress: answers[LocalizedConstants.startIpAddressPrompt] ?
                         answers[LocalizedConstants.startIpAddressPrompt] : startIpAddress,
                     endIpAddress: answers[LocalizedConstants.endIpAddressPrompt] ?
-                        answers[LocalizedConstants.endIpAddressPrompt] : startIpAddress,
-                }
+                        answers[LocalizedConstants.endIpAddressPrompt] : startIpAddress
+                };
                 return result;
             }
         });
     }
 
     private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): Promise<boolean> {
-        return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
+        return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
+            LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
                 const firewallService = this.connectionManager.firewallService;
                 let ipRange = await this.promptForIpAddress(ipAddress);

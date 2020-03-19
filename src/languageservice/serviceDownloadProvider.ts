@@ -99,11 +99,14 @@ export default class ServiceDownloadProvider {
             this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
             const urlString = this.getGetDownloadUrl(fileName);
 
+            const isZipFile: boolean = path.extname(fileName) === '.zip';
+
             this._logger.appendLine(`${Constants.serviceDownloading} ${urlString}`);
             let pkg: IPackage = {
                 installPath: installDirectory,
                 url: urlString,
-                tmpFile: undefined
+                tmpFile: undefined,
+                isZipFile: isZipFile
             };
             this.createTempFile(pkg).then(tmpResult => {
                 pkg.tmpFile = tmpResult;

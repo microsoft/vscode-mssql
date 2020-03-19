@@ -3,22 +3,22 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { Account, CreateFirewallRuleRequest, HandleFirewallRuleRequest,
-    HandleFirewallRuleParams, HandleFirewallRuleResponse,
-    CreateFirewallRuleResponse,
-    AccountKey,
-    CreateFirewallRuleParams} from '../models/contracts/firewall/firewallRequest';
+import { IAccount, CreateFirewallRuleRequest, HandleFirewallRuleRequest,
+    IHandleFirewallRuleParams, IHandleFirewallRuleResponse,
+    ICreateFirewallRuleResponse,
+    IAccountKey,
+    ICreateFirewallRuleParams} from '../models/contracts/firewall/firewallRequest';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import Constants = require('../constants/constants');
 import { Deferred } from '../protocol';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import { AzureSession } from '../models/interfaces';
+import { IAzureSession } from '../models/interfaces';
 
 export class FirewallService {
 
     private _isSignedIn: boolean = false;
-    private _session: AzureSession = undefined;
-    private _account: Account = undefined;
+    private _session: IAzureSession = undefined;
+    private _account: IAccount = undefined;
     private _token = undefined;
     private _isStale: boolean;
 
@@ -32,7 +32,7 @@ export class FirewallService {
         return this._isSignedIn;
     }
 
-    public get account(): Account {
+    public get account(): IAccount {
         return this._account;
     }
 
@@ -43,17 +43,17 @@ export class FirewallService {
         this._token = value;
     }
 
-    private convertToAzureAccount(azureSession: AzureSession): Account {
+    private convertToAzureAccount(azureSession: IAzureSession): IAccount {
         let tenant = {
             displayName: Constants.tenantDisplayName,
             id: azureSession.tenantId,
             userId: azureSession.userId
-        }
-        let key : AccountKey = {
+        };
+        let key: IAccountKey = {
             providerId: Constants.resourceProviderId,
             accountId: azureSession.userId
         };
-        let account : Account = {
+        let account: IAccount = {
             key: key,
             displayInfo: {
                 userId: azureSession.userId,
@@ -65,7 +65,7 @@ export class FirewallService {
                 tenants: [tenant]
             },
             isStale: this._isStale
-        }
+        };
         return account;
     }
 
@@ -94,14 +94,14 @@ export class FirewallService {
         return mapping;
     }
 
-    private async asCreateFirewallRuleParams(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<CreateFirewallRuleParams> {
-        let params: CreateFirewallRuleParams = {
+    private async asCreateFirewallRuleParams(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<ICreateFirewallRuleParams> {
+        let params: ICreateFirewallRuleParams = {
             account: this._account,
             serverName: serverName,
             startIpAddress: startIpAddress,
             endIpAddress: endIpAddress ? endIpAddress : startIpAddress,
             securityTokenMappings: await this.createSecurityTokenMapping()
-        }
+        };
         return params;
     }
 
@@ -113,14 +113,14 @@ export class FirewallService {
         }
     }
 
-    public async createFirewallRule(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<CreateFirewallRuleResponse> {
+    public async createFirewallRule(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<ICreateFirewallRuleResponse> {
         let params = await this.asCreateFirewallRuleParams(serverName, startIpAddress, endIpAddress);
         let result = await this._client.sendResourceRequest(CreateFirewallRuleRequest.type, params);
         return result;
     }
 
-    public async handleFirewallRule(errorCode: number, errorMessage: string): Promise<HandleFirewallRuleResponse> {
-        let params: HandleFirewallRuleParams = { errorCode: errorCode, errorMessage: errorMessage, connectionTypeId: Constants.mssqlProviderName };
+    public async handleFirewallRule(errorCode: number, errorMessage: string): Promise<IHandleFirewallRuleResponse> {
+        let params: IHandleFirewallRuleParams = { errorCode: errorCode, errorMessage: errorMessage, connectionTypeId: Constants.mssqlProviderName };
         let result = await this._client.sendResourceRequest(HandleFirewallRuleRequest.type, params);
         return result;
     }

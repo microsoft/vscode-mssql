@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as findRemoveSync from 'find-remove';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
-import { AzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IAzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
@@ -230,7 +230,7 @@ function isSameAuthenticationType(currentAuthenticationType: string, expectedAut
  * Other properties are ignored for this purpose
  *
  * @param {IConnectionProfile} currentProfile the profile to check
- * @param {IConnectionProfile} expectedProfile the profile to try to match
+ * @param {IConnectionProfile} expectedProfile the profile to try
  * @returns boolean that is true if the profiles match
  */
 export function isSameProfile(currentProfile: IConnectionProfile, expectedProfile: IConnectionProfile): boolean {
@@ -401,8 +401,7 @@ export function getConfigLogFilesRemovalLimit(): number {
     let config = getConfiguration();
     if (config) {
         return Number((config.get(configLogFilesRemovalLimit, 0).toFixed(0)));
-    }
-    else {
+    } else {
         return undefined;
     }
 }
@@ -439,18 +438,18 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileNa
 /**
  * Returns the all the sign in methods as quickpick items
  */
-export function getSignInQuickPickItems(): AzureSignInQuickPickItem[] {
-    let signInItem: AzureSignInQuickPickItem = {
+export function getSignInQuickPickItems(): IAzureSignInQuickPickItem[] {
+    let signInItem: IAzureSignInQuickPickItem = {
         label: LocalizedConstants.azureSignIn,
         description: LocalizedConstants.azureSignInDescription,
         command: Constants.cmdAzureSignIn
     };
-    let signInWithDeviceCode: AzureSignInQuickPickItem = {
+    let signInWithDeviceCode: IAzureSignInQuickPickItem = {
         label: LocalizedConstants.azureSignInWithDeviceCode,
         description: LocalizedConstants.azureSignInWithDeviceCodeDescription,
         command: Constants.cmdAzureSignInWithDeviceCode
     };
-    let signInAzureCloud: AzureSignInQuickPickItem = {
+    let signInAzureCloud: IAzureSignInQuickPickItem = {
         label: LocalizedConstants.azureSignInToAzureCloud,
         description: LocalizedConstants.azureSignInToAzureCloudDescription,
         command: Constants.cmdAzureSignInToCloud

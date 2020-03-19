@@ -7,7 +7,7 @@ import * as TypeMoq from 'typemoq';
 import ConnectionManager from '../src/controllers/connectionManager';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { ScriptingService } from '../src/scripting/scriptingService';
-import { ScriptingRequest, ScriptingObject, ScriptingResult, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
+import { ScriptingRequest, IScriptingObject, IScriptingResult, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ServerInfo } from '../src/models/contracts/connection';
 import { ObjectMetadata, MetadataType } from '../src/models/contracts/metadata/metadataRequest';
@@ -23,7 +23,7 @@ suite('Scripting Service Tests', () => {
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
         connectionManager.setup(c => c.client).returns(() => client.object);
         client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
-        const mockScriptResult: ScriptingResult = {
+        const mockScriptResult: IScriptingResult = {
             operationId: undefined,
             script: 'test_script'
         };
@@ -50,7 +50,7 @@ suite('Scripting Service Tests', () => {
         const testNode = new TreeNodeInfo('test_table (System Versioned)', undefined, undefined,
             undefined, undefined, 'Table', undefined, undefined, undefined, testNodeMetadata);
         scriptingService = new ScriptingService(connectionManager.object);
-        const expectedScriptingObject: ScriptingObject = {
+        const expectedScriptingObject: IScriptingObject = {
             type: testNodeMetadata.metadataTypeName,
             schema: testNodeMetadata.schema,
             name: testNodeMetadata.name
