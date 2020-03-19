@@ -213,7 +213,7 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
 
 
-        await this.showReleaseNotesPrompt();
+        this.showReleaseNotesPrompt();
 
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
