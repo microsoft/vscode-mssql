@@ -104,7 +104,7 @@ export class SqlOutputContentProvider {
             selection: ISelectionData, title: string, promise?: Deferred<boolean>): Promise<void> {
         // execute the query with a query runner
         await this.runQueryCallback(statusView ? statusView : this._statusView, uri, title,
-            async (queryRunner) => {
+            async (queryRunner: QueryRunner) => {
                 if (queryRunner) {
                     // if the panel isn't active and exists
                     if (this._panels.get(uri).isActive === false) {
@@ -129,7 +129,7 @@ export class SqlOutputContentProvider {
     }
 
     private async runQueryCallback(
-            statusView: any, uri: string, title: string,
+            statusView: StatusView, uri: string, title: string,
             queryCallback: any): Promise<void> {
         let queryRunner = await this.createQueryRunner(statusView ? statusView : this._statusView, uri, title);
         if (this._panels.has(uri)) {
@@ -172,7 +172,7 @@ export class SqlOutputContentProvider {
         await controller.init();
     }
 
-    public createQueryRunner(statusView: any, uri: string, title: string): QueryRunner {
+    public createQueryRunner(statusView: StatusView, uri: string, title: string): QueryRunner {
         // Reuse existing query runner if it exists
         let queryRunner: QueryRunner;
 

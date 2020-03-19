@@ -199,7 +199,7 @@ suite('MainController Tests', () => {
         done();
     });
 
-    test('onNewQuery should call the new query and new connection' , () => {
+    test('onNewQuery should call the new query and new connection' , async () => {
         let editor: vscode.TextEditor = {
             document: {
                 uri: 'test_uri'
@@ -210,10 +210,9 @@ suite('MainController Tests', () => {
         untitledSqlDocumentService.setup(x => x.newQuery(undefined)).returns(() => { return Promise.resolve(editor); });
         connectionManager.setup(x => x.onNewConnection()).returns(() => { return Promise.resolve(undefined); });
 
-        return mainController.onNewQuery(undefined, undefined).then(result => {
-            untitledSqlDocumentService.verify(x => x.newQuery(undefined), TypeMoq.Times.once());
-            connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
-        });
+        await mainController.onNewQuery(undefined, undefined);
+        untitledSqlDocumentService.verify(x => x.newQuery(undefined), TypeMoq.Times.once());
+        connectionManager.verify(x => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
     });
 
     test('onNewQuery should not call the new connection if new query fails' , done => {
