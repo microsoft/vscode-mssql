@@ -28,6 +28,7 @@ export interface IPackage {
     url: string;
     installPath?: string;
     tmpFile: tmp.SynchrounousResult;
+    isZipFile: boolean;
 }
 
 export class PackageError extends Error {

@@ -9,11 +9,11 @@ import { RequestType } from 'vscode-languageclient';
 
 // ------------------------------- < Resource Events > ------------------------------------
 export namespace CreateFirewallRuleRequest {
-	export const type = new RequestType<CreateFirewallRuleParams, CreateFirewallRuleResponse, void, void>('resource/createFirewallRule');
+    export const type = new RequestType<ICreateFirewallRuleParams, ICreateFirewallRuleResponse, void, void>('resource/createFirewallRule');
 }
 
 export namespace HandleFirewallRuleRequest {
-	export const type = new RequestType<HandleFirewallRuleParams, HandleFirewallRuleResponse, void, void>('resource/handleFirewallRule');
+    export const type = new RequestType<IHandleFirewallRuleParams, IHandleFirewallRuleResponse, void, void>('resource/handleFirewallRule');
 }
 
 // Firewall rule interfaces
@@ -21,7 +21,7 @@ export namespace HandleFirewallRuleRequest {
 /**
  * Represents display information for an account.
  */
-export interface AccountDisplayInfo {
+export interface IAccountDisplayInfo {
     /**
      * A display name that offers context for the account, such as "Contoso".
      */
@@ -43,7 +43,7 @@ export interface AccountDisplayInfo {
 /**
  * Represents a key that identifies an account.
  */
-export interface AccountKey {
+export interface IAccountKey {
     /**
      * Identifier of the provider
      */
@@ -61,15 +61,15 @@ export interface AccountKey {
 /**
  * Represents an account.
  */
-export interface Account {
+export interface IAccount {
     /**
      * The key that identifies the account
      */
-    key: AccountKey;
+    key: IAccountKey;
     /**
      * Display information for the account
      */
-    displayInfo: AccountDisplayInfo;
+    displayInfo: IAccountDisplayInfo;
     /**
      * Custom properties stored with the account
      */
@@ -80,31 +80,31 @@ export interface Account {
     isStale: boolean;
 }
 
-export interface CreateFirewallRuleParams {
-	account: Account;
-	serverName: string;
-	startIpAddress: string;
-	endIpAddress: string;
-	securityTokenMappings: {};
+export interface ICreateFirewallRuleParams {
+    account: IAccount;
+    serverName: string;
+    startIpAddress: string;
+    endIpAddress: string;
+    securityTokenMappings: {};
 }
 
-export interface CreateFirewallRuleResponse {
-	result: boolean;
-	errorMessage: string;
+export interface ICreateFirewallRuleResponse {
+    result: boolean;
+    errorMessage: string;
 }
 
-export interface HandleFirewallRuleParams {
-	errorCode: number;
-	errorMessage: string;
-	connectionTypeId: string;
+export interface IHandleFirewallRuleParams {
+    errorCode: number;
+    errorMessage: string;
+    connectionTypeId: string;
 }
 
-export interface HandleFirewallRuleResponse {
-	result: boolean;
-	ipAddress: string;
+export interface IHandleFirewallRuleResponse {
+    result: boolean;
+    ipAddress: string;
 }
 
-export interface FirewallIpAddressRange {
-    startIpAddress: string,
-    endIpAddress: string
+export interface IFirewallIpAddressRange {
+    startIpAddress: string;
+    endIpAddress: string;
 }

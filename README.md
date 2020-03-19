@@ -21,6 +21,23 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## Version 1.9.0
+* Release date: March 5, 2019
+* Release status: GA
+
+## What's new in 1.9.0
+* Added new Query History feature
+* Added Run Query and Cancel Query buttons on the editor
+* Added rows affected count to status bar
+* Added Object Explorer support for connection string based connections
+* Removed redundant MSSQL output channel for logs
+* Fixed leading tabs when copying multiple selections
+* Fixed styling of NULL cells in query results
+* Fixed leading tabs when copying multiple selections
+* Fixed resizing messages pane causing double scrollbars to appear
+* Fixed errors are not getting cleared when a file is closed
+
+
 ## Version 1.8.0
 * Release date: December 16, 2019
 * Release status: GA
