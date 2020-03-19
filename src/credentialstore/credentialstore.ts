@@ -27,44 +27,38 @@ export class CredentialStore implements ICredentialStore {
      * @param {string} credentialId the ID uniquely identifying this credential
      * @returns {Promise<Credential>} Promise that resolved to the credential, or undefined if not found
      */
-    public readCredential(credentialId: string): Promise<Contracts.Credential> {
-        let self = this;
+    public async readCredential(credentialId: string): Promise<Contracts.Credential> {
         let cred: Contracts.Credential = new Contracts.Credential();
         cred.credentialId = credentialId;
-        return new Promise<Contracts.Credential>( (resolve, reject) => {
-            self._client
-            .sendRequest(Contracts.ReadCredentialRequest.type, cred)
-            .then(returnedCred => {
-                resolve(returnedCred);
-            }, err => reject(err));
-        });
+        try {
+            const returnedCred: Contracts.Credential = await this._client.sendRequest(Contracts.ReadCredentialRequest.type, cred);
+            return returnedCred;
+        } catch (error) {
+            throw error;
+        }
     }
 
 
-    public saveCredential(credentialId: string, password: any): Promise<boolean> {
-        let self = this;
+    public async saveCredential(credentialId: string, password: any): Promise<boolean> {
         let cred: Contracts.Credential = new Contracts.Credential();
         cred.credentialId = credentialId;
         cred.password = password;
-        return new Promise<boolean>( (resolve, reject) => {
-            self._client
-            .sendRequest(Contracts.SaveCredentialRequest.type, cred)
-            .then(status => {
-                resolve(status);
-            }, err => reject(err));
-        });
+        try {
+            const status = this._client.sendRequest(Contracts.SaveCredentialRequest.type, cred);
+            return status;
+        } catch (error) {
+            throw error;
+        }
     }
 
-    public deleteCredential(credentialId: string): Promise<boolean> {
-        let self = this;
+    public async deleteCredential(credentialId: string): Promise<boolean> {
         let cred: Contracts.Credential = new Contracts.Credential();
         cred.credentialId = credentialId;
-        return new Promise<boolean>( (resolve, reject) => {
-            self._client
-            .sendRequest(Contracts.DeleteCredentialRequest.type, cred)
-            .then(status => {
-                resolve(status);
-            }, err => reject(err));
-        });
+        try {
+            const status = await this._client.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
+            return status;
+        } catch (error) {
+            throw error;
+        }
     }
 }
