@@ -16,7 +16,7 @@
 	<array>
 		<dict>
 			<key>match</key>
-			<string>((?<!@)@)\b(\w+)\b</string>
+			<string>((?&lt;!@)@)\b(\w+)\b</string>
 			<key>name</key>
 			<string>text.variable</string>
 		</dict>
@@ -351,7 +351,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?<!@)@@(?i)\b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b</string>
+			<string>(?&lt;!@)@@(?i)\b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b</string>
 			<key>name</key>
 			<string>support.function.globalvar.sql</string>
 		</dict>
