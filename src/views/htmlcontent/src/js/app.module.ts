@@ -5,7 +5,6 @@
 import { NgModule, ValueProvider }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule }   from '@angular/forms';
-import { HttpModule, JsonpModule } from '@angular/http';
 
 import { SlickGrid } from 'angular2-slickgrid';
 
@@ -26,8 +25,6 @@ const WINDOW_PROVIDER: ValueProvider = {
 @NgModule({
   imports: [
               BrowserModule,
-              HttpModule,
-              JsonpModule,
               FormsModule
            ],
   providers: [
