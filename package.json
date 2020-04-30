@@ -121,7 +121,7 @@
     "getmac": "1.2.1",
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^2.2.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "opener": "1.4.2",
     "plist": "^2.1.0",
     "pretty-data": "^0.40.0",
