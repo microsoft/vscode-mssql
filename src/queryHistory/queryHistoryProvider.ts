@@ -43,7 +43,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
 
     clearAll(): void {
         this._queryHistoryNodes = [new EmptyHistoryNode()];
-        this._onDidChangeTreeData.fire();
+        this._onDidChangeTreeData.fire(undefined);
     }
 
     refresh(ownerUri: string, timeStamp: Date, hasError): void {
@@ -70,7 +70,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         if (this._queryHistoryNodes.length > this._queryHistoryLimit) {
             this._queryHistoryNodes.shift();
         }
-        this._onDidChangeTreeData.fire();
+        this._onDidChangeTreeData.fire(undefined);
     }
 
     getTreeItem(node: QueryHistoryNode): QueryHistoryNode {
@@ -145,7 +145,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
             return historyNode === node;
         });
         this._queryHistoryNodes.splice(index, 1);
-        this._onDidChangeTreeData.fire();
+        this._onDidChangeTreeData.fire(undefined);
     }
 
     /**
