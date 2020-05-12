@@ -115,10 +115,10 @@
   resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.8.3.tgz#d3cb512dd3dde32b2bbba4be0ca68bd3dad4a1f5"
   integrity sha512-DP70788BXjp9+CKArXOUlNkZaXa+rHonDpbqH3/74ez16dLL5z2/bMT37etbln5J+H9M07NbRUyduDIoTM2tnw==
 
-"@types/vscode@^1.43.0":
-  version "1.43.0"
-  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.43.0.tgz#22276e60034c693b33117f1068ffaac0e89522db"
-  integrity sha512-kIaR9qzd80rJOxePKpCB/mdy00mz8Apt2QA5Y6rdrKFn13QNFNeP3Hzmsf37Bwh/3cS7QjtAeGSK7wSqAU0sYQ==
+"@types/vscode@^1.45.0":
+  version "1.45.0"
+  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.45.0.tgz#8a07e740aa1ca7264da8cb17be87b733836d6c01"
+  integrity sha512-b0Gyir7sPBCqiKLygAhn/AYVfzWD+SMPkWltBrIuPEyTOxSU1wVApWY/FcxYO2EWTRacoubTl4+gvZf86RkecA==
 
 abbrev@1:
   version "1.1.1"
