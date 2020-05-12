@@ -45,6 +45,7 @@ suite('Firewall Service Tests', () => {
             isActive: true,
             packageJSON: undefined,
             activate: undefined,
+            extensionUri: undefined,
             exports: {
                 sessions: [mockSession]
             }
