@@ -86,6 +86,14 @@ export class DataService implements OnDestroy {
     }
 
     /**
+     * send request to view the results in text format
+     * @param uri
+     */
+    sendResultsToTextRequest(): void {
+        this._proxy.resultsToText();
+    }
+
+    /**
      * send ready event to server to show that
      * the angular app has loaded
      */

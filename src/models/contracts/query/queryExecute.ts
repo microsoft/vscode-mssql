@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {RequestType, NotificationType} from 'vscode-languageclient';
-import { IDbColumn, ISelectionData, IResultMessage } from './../interfaces';
+import { IDbColumn, ISelectionData, IResultMessage } from './../../interfaces';
 
 export class ResultSetSummary {
     id: number;

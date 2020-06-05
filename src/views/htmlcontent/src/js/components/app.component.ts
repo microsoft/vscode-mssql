@@ -264,13 +264,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
             icon: () => { return 'saveCsv'; },
             hoverText: () => { return Constants.saveTextLabel; },
             functionality: (batchId, resultId, index) => {
-                let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                selection = this.tryCombineSelections(selection);
-                if (selection.length <= 1) {
-                    this.handleContextClick({type: 'savetext', batchId: batchId, resultId: resultId, index: index, selection: selection});
-                } else {
-                    this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
-                }
+                this.handleContextClick({type: 'resultstotext'});
+
             }
         }
     ];
@@ -476,7 +471,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Send save result set request to service
      */
-    handleContextClick(event: {type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[]}): void {
+    handleContextClick(event: {type: string, batchId?: number, resultId?: number, index?: number, selection?: ISlickRange[]}): void {
         switch (event.type) {
             case 'savecsv':
                 this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv', event.selection);
@@ -487,8 +482,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
             case 'saveexcel':
                 this.dataService.sendSaveRequest(event.batchId, event.resultId, 'excel', event.selection);
                 break;
-            case 'savetext':
-                this.dataService.sendSaveRequest(event.batchId, event.resultId, 'text', event.selection);
+            case 'resultstotext':
+                this.dataService.sendResultsToTextRequest();
                 break;
             case 'selectall':
                 this.activeGrid = event.index;

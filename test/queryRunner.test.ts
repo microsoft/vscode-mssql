@@ -17,12 +17,12 @@ import {
     QueryExecuteResultSetCompleteNotificationParams,
     ResultSetSummary,
     QueryExecuteSubsetResult
-} from './../src/models/contracts/queryExecute';
+} from '../src/models/contracts/query/queryExecute';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import StatusView from './../src/views/statusView';
 import * as Constants from '../src/constants/constants';
-import * as QueryExecuteContracts from '../src/models/contracts/queryExecute';
-import * as QueryDisposeContracts from '../src/models/contracts/queryDispose';
+import * as QueryExecuteContracts from '../src/models/contracts/query/queryExecute';
+import * as QueryDisposeContracts from '../src/models/contracts/query/queryDispose';
 import {
     ISlickRange,
     ISelectionData

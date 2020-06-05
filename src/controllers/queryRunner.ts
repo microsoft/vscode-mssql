@@ -5,7 +5,7 @@
 
 'use strict';
 import { EventEmitter } from 'events';
-
+import * as path from 'path';
 import * as vscode from 'vscode';
 import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -21,15 +21,16 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
     QueryExecuteOptionsRequest,
     QueryExecutionOptionsParams,
     QueryExecutionOptions,
-    DbCellValue} from '../models/contracts/queryExecute';
-import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
-import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
+    DbCellValue} from '../models/contracts/query/queryExecute';
+import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/query/queryDispose';
+import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/query/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
 import * as os from 'os';
 import { Deferred } from '../protocol';
+import { ResultsToTextRequestParams, ResultsToTextRequest, ResultsToTextResult } from '../models/contracts/query/resultsToText';
 
 export interface IResultSet {
     columns: string[];
@@ -318,6 +319,24 @@ export default class QueryRunner {
         } else {
             this._statusView.hideRowCount(obj.ownerUri, true);
         }
+    }
+
+    /**
+     * Outputs results in text format
+     */
+    public async resultsToText(): Promise<string> {
+        let params = new ResultsToTextRequestParams();
+        params.ownerUri = this.uri;
+        params.filePath = path.join(os.tmpdir(), `resultsToText_${Date.now().toString()}.txt`);
+        try {
+            let result = await this._client.sendRequest(ResultsToTextRequest.type, params);
+            if (result.isSuccess) {
+                return params.filePath;
+            }
+        } catch (error) {
+            Promise.reject(error);
+        }
+
     }
 
     /*

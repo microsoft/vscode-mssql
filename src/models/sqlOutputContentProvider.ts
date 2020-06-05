@@ -16,7 +16,8 @@ import VscodeWrapper from './../controllers/vscodeWrapper';
 import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
 import { IServerProxy, Deferred } from '../protocol';
-import { ResultSetSubset } from './contracts/queryExecute';
+import { ResultSetSubset } from './contracts/query/queryExecute';
+import { ResultsToTextResult } from './contracts/query/resultsToText';
 const pd = require('pretty-data').pd;
 
 const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
@@ -165,6 +166,7 @@ export class SqlOutputContentProvider {
             showError: (message: string) => this.showErrorRequestHandler(message),
             showWarning: (message: string) => this.showWarningRequestHandler(message),
             sendReadyEvent: async () => await this.sendReadyEvent(uri),
+            resultsToText: async () => await this.resultsToText(uri),
             dispose: () => this._panels.delete(uri)
         };
         const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
@@ -403,7 +405,21 @@ export class SqlOutputContentProvider {
         return Promise.resolve(false);
     }
 
-    // PRIVATE HELPERS /////////////////////////////////////////////////////
+    /**
+     * Sends request to output results in text format
+     * @param queryUri Uri of the query
+     */
+    public async resultsToText(uri: string): Promise<string> {
+        const queryRunner = this.getQueryRunner(uri);
+        if (queryRunner) {
+            const result = await queryRunner.resultsToText();
+            if (result) {
+                // read the file path
+                vscode.workspace.openTextDocument(result);
+                return undefined;
+            }
+        }
+    }
 
     /**
      * Returns which column should be used for a new result pane

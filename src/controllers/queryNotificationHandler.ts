@@ -15,7 +15,7 @@ import {
     QueryExecuteBatchCompleteNotification,
     QueryExecuteResultSetCompleteNotification,
     QueryExecuteMessageNotification
-} from '../models/contracts/queryExecute';
+} from '../models/contracts/query/queryExecute';
 import { NotificationHandler } from 'vscode-languageclient';
 
 export class QueryNotificationHandler {

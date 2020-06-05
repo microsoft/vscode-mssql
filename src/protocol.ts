@@ -5,6 +5,7 @@
 
 import { Event, Disposable } from 'vscode';
 import { ISlickRange, IResultsConfig, ResultSetSubset, ISelectionData } from './models/interfaces';
+import { ResultsToTextResult } from './models/contracts/query/resultsToText';
 
 export interface IWebviewProxy extends Disposable {
     sendEvent(type: string, arg: any): void;
@@ -21,6 +22,7 @@ export interface IServerProxy extends Disposable {
     showError(message: string): void;
     getLocalizedTexts(): Promise<{ [key: string]: any }>;
     sendReadyEvent(uri: string): Promise<boolean>;
+    resultsToText(): Promise<string>;
 }
 
 export interface IMessageProtocol {
