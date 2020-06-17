@@ -1,6 +1,6 @@
-[![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=master)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=master)
+[![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=main)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=main)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/microsoft/vscode-mssql.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/microsoft/vscode-mssql/context:javascript)
-[![Coverage Status](https://coveralls.io/repos/github/microsoft/vscode-mssql/badge.svg?branch=master&service=github)](https://coveralls.io/github/microsoft/vscode-mssql?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/microsoft/vscode-mssql/badge.svg?branch=main&service=github)](https://coveralls.io/github/microsoft/vscode-mssql?branch=main)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 
@@ -19,7 +19,7 @@ See [the mssql extension tutorial] for the step by step guide.
 
 See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
 
-<img src="https://github.com/Microsoft/vscode-mssql/raw/master/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
+<img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
 ## Version 1.9.0
 * Release date: March 5, 2019
@@ -362,14 +362,14 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
 [customize shortcuts]:https://github.com/Microsoft/vscode-mssql/wiki/customize-shortcuts
 [customize options]:https://github.com/Microsoft/vscode-mssql/wiki/customize-options
-[change log]: https://github.com/Microsoft/vscode-mssql/blob/master/CHANGELOG.md
+[change log]: https://github.com/Microsoft/vscode-mssql/blob/main/CHANGELOG.md
 [GitHub Issue Tracker]:https://github.com/Microsoft/vscode-mssql/issues
 [bug report]:https://github.com/Microsoft/vscode-mssql/issues/new
 [feature suggestion]:https://github.com/Microsoft/vscode-mssql/issues/new
 [developer documentation]:https://github.com/Microsoft/vscode-mssql/wiki/contributing
 [Microsoft Enterprise and Developer Privacy Statement]:https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7
-[licensed under the MIT License]: https://github.com/Microsoft/vscode-mssql/blob/master/LICENSE.txt
-[third-party notices]: https://github.com/Microsoft/vscode-mssql/blob/master/ThirdPartyNotices.txt
+[licensed under the MIT License]: https://github.com/Microsoft/vscode-mssql/blob/main/LICENSE.txt
+[third-party notices]: https://github.com/Microsoft/vscode-mssql/blob/main/ThirdPartyNotices.txt
 [Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
 [Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
 [opencode@microsoft.com]:mailto:opencode@microsoft.com
