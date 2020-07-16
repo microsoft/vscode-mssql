@@ -31,6 +31,7 @@ class TestExtensionContext implements vscode.ExtensionContext {
     logPath: string;
     extensionUri: vscode.Uri = vscode.Uri.parse('test_uri');
     environmentVariableCollection: vscode.EnvironmentVariableCollection = undefined;
+    extensionMode: vscode.ExtensionMode.Test;
 
     asAbsolutePath(relativePath: string): string {
         return undefined;
