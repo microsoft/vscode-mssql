@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { IAccount, IAccountKey, IAccountDisplayInfo } from '../models/contracts/firewall/firewallRequest';
+import { IAccount, IAccountKey, IAccountDisplayInfo } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
 import { Deferred } from '../protocol';

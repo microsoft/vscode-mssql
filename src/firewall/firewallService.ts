@@ -3,11 +3,11 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { IAccount, CreateFirewallRuleRequest, HandleFirewallRuleRequest,
+import { CreateFirewallRuleRequest, HandleFirewallRuleRequest,
     IHandleFirewallRuleParams, IHandleFirewallRuleResponse,
     ICreateFirewallRuleResponse,
-    IAccountKey,
     ICreateFirewallRuleParams} from '../models/contracts/firewall/firewallRequest';
+import { IAccount, IAccountKey } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import Constants = require('../constants/constants');
 import { Deferred } from '../protocol';
