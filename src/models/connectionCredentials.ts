@@ -11,7 +11,8 @@ import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { extensions, window, env, Uri } from 'vscode';
+import { window, env, Uri } from 'vscode';
+import azureAccountExtension from '../controllers/vscodeWrapper';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
@@ -203,7 +204,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     } else if (value === utils.authTypeToString(AuthenticationTypes.ActiveDirectoryUniversal)) {
                         //TODO: parameterize all the strings
                         // check if Azure Account is installed - if not, prompt user to install
-                        if (!extensions.getExtension('ms-vscode.azure-account')) {
+                        if (!azureAccountExtension) {
                             let installAzureAccount = 'Install Azure Account';
                             window.showInformationMessage(
                                 'The Azure Account Extension is needed for this feature. Please download it before continuing',

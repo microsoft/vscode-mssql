@@ -31,6 +31,10 @@ export class AccountService {
         return this._account;
     }
 
+    public get client(): SqlToolsServiceClient {
+        return this._client;
+    }
+
     /**
      * Public for testing purposes only
      */
@@ -38,7 +42,7 @@ export class AccountService {
         this._token = value;
     }
 
-    private convertToAzureAccount(azureSession: IAzureSession): IAccount {
+    public convertToAzureAccount(azureSession: IAzureSession): IAccount {
         let tenant = {
             displayName: Constants.tenantDisplayName,
             id: azureSession.tenantId,
@@ -64,7 +68,7 @@ export class AccountService {
         return account;
     }
 
-    private async createSecurityTokenMapping(): Promise<any> {
+    public async createSecurityTokenMapping(): Promise<any> {
         if (!this._token) {
             let promise = new Deferred();
             this._token = this._session.credentials.getToken((error, result ) => {

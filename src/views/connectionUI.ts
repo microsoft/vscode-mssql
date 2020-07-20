@@ -566,7 +566,7 @@ export class ConnectionUI {
         return this.promptItemChoice({}, Utils.getSignInQuickPickItems()).then((selection) => {
             if (selection && selection.command) {
                 return this._vscodeWrapper.executeCommand(selection.command).then(() => {
-                    this.connectionManager.firewallService.isSignedIn = true;
+                    this.connectionManager.accountService.isSignedIn = true;
                     return true;
                 });
             } else {
@@ -600,7 +600,7 @@ export class ConnectionUI {
                 }
             });
         } else {
-            this.connectionManager.firewallService.isSignedIn = true;
+            this.connectionManager.accountService.isSignedIn = true;
             return true;
         }
     }

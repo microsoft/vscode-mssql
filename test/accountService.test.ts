@@ -5,8 +5,7 @@
 import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
-import { FirewallService } from '../src/firewall/firewallService';
-import { AccountService } from '../src/azure/accountService';
+import { AccountService } from '../src/azure/accountService'
 import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
     CreateFirewallRuleRequest, ICreateFirewallRuleResponse, IHandleFirewallRuleParams } from '../src/models/contracts/firewall/firewallRequest';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
@@ -15,7 +14,6 @@ import { IAzureSession } from '../src/models/interfaces';
 
 
 suite('Firewall Service Tests', () => {
-    let firewallService: FirewallService;
     let accountService: AccountService;
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
@@ -57,26 +55,10 @@ suite('Firewall Service Tests', () => {
     });
 
 
-
-    test('Handle Firewall Rule test', async () => {
-        let result = await firewallService.handleFirewallRule(12345, 'firewall error!');
-        assert.isNotNull(result, 'Handle Firewall Rule request is sent successfully');
-    });
-
-    test('Create Firewall Rule Test', async () => {
-        let server = 'test_server';
-        let startIpAddress = '1.2.3.1';
-        let endIpAddress = '1.2.3.255';
+    test('isSignedIn Test', () => {
+        let isSignedIn = accountService.isSignedIn;
+        assert.isNotTrue(isSignedIn, 'Firewall Service should not be signed in initially');
         accountService.isSignedIn = true;
-        let mockToken = {
-            expiresOn: new Date(),
-            resource: undefined,
-            tokenType: 'test',
-            accessToken: 'test_token'
-        };
-        accountService.token = mockToken;
-        let result = await firewallService.createFirewallRule(server, startIpAddress, endIpAddress);
-        assert.isNotNull(result, 'Create Firewall Rule request is sent successfully');
+        assert.isTrue(accountService.isSignedIn, 'Firewall Service should be signed in once set');
     });
 });
-
