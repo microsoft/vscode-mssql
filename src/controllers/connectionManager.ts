@@ -111,6 +111,7 @@ export default class ConnectionManager {
 
         // Initiate the firewall service
         this._accountService = new AccountService(this.client, this.vscodeWrapper);
+        this._firewallService = new FirewallService(this._accountService);
         this._failedUriToFirewallIpMap = new Map<string, string>();
 
         if (this.client !== undefined) {

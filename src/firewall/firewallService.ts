@@ -12,7 +12,9 @@ import { AccountService } from '../azure/accountService';
 
 export class FirewallService {
 
-    private accountService: AccountService;
+    constructor(
+        private accountService: AccountService
+    ) {}
 
     private async asCreateFirewallRuleParams(serverName: string, startIpAddress: string, endIpAddress?: string): Promise<ICreateFirewallRuleParams> {
         let params: ICreateFirewallRuleParams = {

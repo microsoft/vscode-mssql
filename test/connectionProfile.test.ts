@@ -148,7 +148,7 @@ suite('Connection Profile tests', () => {
         // for now, just validates expected behavior on the platform tests are running on
         let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
         let authChoices = <INameValueChoice[]>authQuestion.choices;
-        assert.strictEqual(authChoices.length, 2);
+        assert.strictEqual(authChoices.length, 3);
         assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
         assert.strictEqual(authChoices[1].value, AuthenticationTypes[AuthenticationTypes.Integrated]);
 
