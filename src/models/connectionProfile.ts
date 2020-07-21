@@ -21,6 +21,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
 
+    // stores azure account being used for an Azure DB connection
+    public azureAccount: string;
+
     /**
      * Creates a new profile by prompting the user for information.
      * @param  {IPrompter} prompter that asks user the questions needed to complete a profile

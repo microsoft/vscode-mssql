@@ -600,6 +600,9 @@ export class ConnectionUI {
                 }
             });
         } else {
+            // if(this._vscodeWrapper.whichAccountSignedIn === )
+            //TODO: Check which Azure Account is signed in to the Azure Accounts extension and see if it matches
+            //the the account whose resources you are trying to access
             this.connectionManager.firewallService.isSignedIn = true;
             return true;
         }

@@ -388,4 +388,11 @@ export default class VscodeWrapper {
         return this.azureAccountExtensionActive &&
             this.azureAccountExtension.exports.status === AzureLoginStatus.LoggedIn;
     }
+
+    /**
+     * Returns which azure account is signed in
+     */
+    public get whichAccountSignedIn(): string {
+        return this.azureAccountExtension.exports.sessions[0].userId;
+    }
 }
