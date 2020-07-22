@@ -10,6 +10,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -20,8 +21,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public profileName: string;
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
-
-    // stores azure account being used for an Azure DB connection
     public azureAccount: string;
 
     /**
@@ -68,6 +67,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         return prompter.prompt(questions, true).then(answers => {
             if (answers && profile.isValidProfile()) {
                 return profile;
+            }
+            if (VscodeWrapper.isAccountSignedIn) {
+                profile.azureAccount = VscodeWrapper.whichAccountSignedIn;
             }
             // returning undefined to indicate failure to create the profile
             return undefined;

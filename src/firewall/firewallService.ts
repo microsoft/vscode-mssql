@@ -108,7 +108,7 @@ export class FirewallService {
     public set isSignedIn(value: boolean) {
         this._isSignedIn = value;
         if (value) {
-            this._session = this._vscodeWrapper.azureAccountExtension.exports.sessions[0];
+            this._session = VscodeWrapper.azureAccountExtension.exports.sessions[0];
             this._account = this.convertToAzureAccount(this._session);
         }
     }

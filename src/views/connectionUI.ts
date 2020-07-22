@@ -495,9 +495,16 @@ export class ConnectionUI {
      */
     public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
         // Check whether the azure account extension is installed and active
-        if (this._vscodeWrapper.azureAccountExtensionActive) {
+        if (VscodeWrapper.azureAccountExtensionActive) {
             // Sign in to azure account
             const signedIn = await this.promptForAccountSignIn();
+            if (profile.azureAccount) {
+                if (!(VscodeWrapper.whichAccountSignedIn === profile.azureAccount)) {
+                    this._vscodeWrapper.showInformationMessage(`you are signed into the wrong Azure Account. Please sign out of your current account
+                    and sign into ${profile.azureAccount} using the Azure Account extension before continuing.`);
+                    return false;
+                }
+            }
             if (signedIn) {
                 // Create a firewall rule for the server
                 let success = await this.createFirewallRule(profile, profile.server, ipAddress);
@@ -508,8 +515,8 @@ export class ConnectionUI {
             }
         } else {
             // If the extension exists but not active
-            if (this._vscodeWrapper.azureAccountExtension) {
-                await this._vscodeWrapper.azureAccountExtension.activate();
+            if (VscodeWrapper.azureAccountExtension) {
+                await VscodeWrapper.azureAccountExtension.activate();
                 return this.handleExtensionActivation();
             } else {
                 // Show recommendation to download the azure account extension
@@ -519,8 +526,8 @@ export class ConnectionUI {
                     await this._vscodeWrapper.executeCommand(Constants.cmdOpenExtension, Constants.azureAccountExtensionId);
                     this._vscodeWrapper.onDidChangeExtensions(async (e) => {
                         // Activate the Azure Account extension and call the function again
-                        if (this._vscodeWrapper.azureAccountExtension) {
-                            await this._vscodeWrapper.azureAccountExtension.activate();
+                        if (VscodeWrapper.azureAccountExtension) {
+                            await VscodeWrapper.azureAccountExtension.activate();
                             await this.handleExtensionActivation();
                         }
                     });
@@ -576,7 +583,7 @@ export class ConnectionUI {
     }
 
     private async handleExtensionActivation(): Promise<boolean> {
-        if (!this._vscodeWrapper.isAccountSignedIn) {
+        if (!VscodeWrapper.isAccountSignedIn) {
             const result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
                 LocalizedConstants.signInLabel);
             if (result === LocalizedConstants.signInLabel) {
@@ -589,7 +596,7 @@ export class ConnectionUI {
     }
 
     private async promptForAccountSignIn(): Promise<boolean> {
-        if (!this._vscodeWrapper.isAccountSignedIn) {
+        if (!VscodeWrapper.isAccountSignedIn) {
             return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
                 LocalizedConstants.signInLabel).then(result => {
                 if (result === LocalizedConstants.signInLabel) {
@@ -600,9 +607,6 @@ export class ConnectionUI {
                 }
             });
         } else {
-            // if(this._vscodeWrapper.whichAccountSignedIn === )
-            //TODO: Check which Azure Account is signed in to the Azure Accounts extension and see if it matches
-            //the the account whose resources you are trying to access
             this.connectionManager.firewallService.isSignedIn = true;
             return true;
         }

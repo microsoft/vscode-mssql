@@ -207,6 +207,7 @@ export interface IConnectionProfile extends IConnectionCredentials {
     profileName: string;
     savePassword: boolean;
     emptyPasswordInput: boolean;
+    azureAccount: string;
 }
 
 export enum CredentialsQuickPickItemType {
