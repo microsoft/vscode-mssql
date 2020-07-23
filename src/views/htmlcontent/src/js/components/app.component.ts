@@ -79,7 +79,7 @@ const template = `
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive && dataSets.length !== 0"
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive"
         (contextmenu)="openMessagesContextMenu($event)"
         (mousedown)="onMouseDown($event)">
         <br>
