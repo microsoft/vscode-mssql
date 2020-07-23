@@ -796,21 +796,29 @@ export class AppComponent implements OnInit, AfterViewChecked {
      *
      */
     async keyEvent(e: any): Promise<void> {
-        if (e.target.classList.contains('slick-cell')) {
+        // set selection to none for messages so that ctrl + A
+        // only selects the results grid
+        const isGridSelection: boolean = e.target.classList.contains('slick-cell');
+        if (isGridSelection) {
             $('#messages').css('user-select', 'none');
-            let eString = this.shortcuts.buildEventString(e);
-            let result = await this.shortcuts.getEvent(eString);
-            if (result) {
-                let eventName = <string> result;
-                this.shortcutfunc[eventName]();
-                if (eventName === 'event.selectAll') {
-                    window.getSelection().empty();
-                    rangy.getSelection().removeAllRanges();
-                }
-                e.stopImmediatePropagation();
-            }
         } else {
+            // otherwise make the messages selectable
             $('#messages').css('user-select', 'text');
+        }
+        let eString = this.shortcuts.buildEventString(e);
+        let result = await this.shortcuts.getEvent(eString);
+        if (result) {
+            let eventName = <string> result;
+            // Don't select all the grid if it's not grid selection
+            // otherwise run every shortcut function
+            if (!(eventName === 'event.selectAll' && !isGridSelection)) {
+                this.shortcutfunc[eventName]();
+            }
+            if (eventName === 'event.selectAll') {
+                window.getSelection().empty();
+                rangy.getSelection().removeAllRanges();
+            }
+            e.stopImmediatePropagation();
         }
     }
 
