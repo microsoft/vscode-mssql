@@ -5,7 +5,7 @@
 import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
-import { AccountService } from '../src/azure/accountService'
+import { AccountService } from '../src/azure/accountService';
 import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
     CreateFirewallRuleRequest, ICreateFirewallRuleResponse, IHandleFirewallRuleParams } from '../src/models/contracts/firewall/firewallRequest';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
