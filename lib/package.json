@@ -1,19 +1,23 @@
 {
   "name": "aadlibrary",
   "version": "0.0.0",
-  "description": "Library for ADS and mssql to call Azure Active Directory",
+  "description": "ADAL authentication library",
   "scripts": {
     "build": "yarn run build-ts && yarn run lint",
     "build-ts": "tsc",
-    "watch": "concurrently \"npm:watch-client\" \"npm:watch-extensions\"",
-    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Node\" \"ts-node-dev --inspect -- src/main.ts\" ",
-    "watch-ts": "tsc -w",
-    "compile": "gulp compile --max_old_space_size=4095",
-    "test": "mocha"
+    "lint": "tsc --noEmit && eslint \"src/**/*.{js.ts}\" --quiet --fix",
+    "start-cli": "node dist/cli.js",
+    "watch": "yarn run watch-ts",
+    "watch-ts": "tsc -w"
   },
   "devDependencies": {
-    "@types/mocha": "2.2.39",
-    "mocha": "^2.2.5",
-    "mocha-junit-reporter": "^1.23.1"
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
+    "eslint": "^7.5.0",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "@types/node": "^14.0.26",
+    "axios": "^0.19.2"
   }
 }
