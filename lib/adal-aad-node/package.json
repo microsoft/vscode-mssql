@@ -1,11 +1,11 @@
 {
-  "name": "aadlibrary",
+  "name": "adal-aad-node",
   "version": "0.0.0",
-  "description": "ADAL authentication library",
+  "description": "ADAL NodeJS authentication library",
   "scripts": {
     "build": "yarn run build-ts && yarn run lint",
     "build-ts": "tsc",
-    "lint": "tsc --noEmit && eslint \"src/**/*.{js.ts}\" --quiet --fix",
+    "lint": "tsc --noEmit && eslint \"src/**/*.{js,ts}\" --quiet --fix",
     "start-cli": "node dist/cli.js",
     "watch": "yarn run watch-ts",
     "watch-ts": "tsc -w"

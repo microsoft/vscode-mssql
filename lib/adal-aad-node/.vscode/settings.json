@@ -1,0 +1,7 @@
+{
+    "eslint.alwaysShowStatus": true,
+    "eslint.workingDirectories": [
+        "."
+    ],
+    "tslint.exclude": "src/**/*.{ts,js}"
+}

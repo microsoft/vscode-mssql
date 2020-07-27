@@ -11,6 +11,6 @@
 	  "strict": true
 	},
 	"include": [
-	  "adal-aad-node/src/**/*.ts"
+	  "src/**/*.ts"
 	],
   }
