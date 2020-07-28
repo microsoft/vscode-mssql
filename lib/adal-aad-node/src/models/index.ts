@@ -4,3 +4,4 @@ export * from './error';
 export * from './key';
 export * from './provider';
 export * from './util';
+export * from './requests';
