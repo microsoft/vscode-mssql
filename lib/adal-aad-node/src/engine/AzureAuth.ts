@@ -329,6 +329,7 @@ export abstract class AzureAuth {
 		} catch (ex) {
 			this.logger.error(ex);
 			throw new AzureAuthError(8, this.errorLookup.getSimpleError(8));
+		}
 	}
 	//#endregion
 
