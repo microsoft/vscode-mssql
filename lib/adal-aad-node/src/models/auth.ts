@@ -31,13 +31,6 @@ export interface AccessToken extends TokenKey {
 	token: string;
 }
 
-export interface Token extends AccessToken {
-	/**
-	 * TokenType
-	 */
-	tokenType: string;
-}
-
 export interface RefreshToken extends TokenKey {
 	/**
 	 * Refresh Token

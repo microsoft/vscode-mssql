@@ -1,12 +1,7 @@
 import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
-import { ProviderResources } from "../models/provider";
-import { AccessToken, Token, TokenClaims } from "../models/auth";
-
-
+ 
 export abstract class AzureAuth {
-	public static ACCOUNT_VERSION = '2.0';
-
     protected readonly commonTenant: Tenant = {
         id: 'common',
         displayName: 'common'
@@ -73,9 +68,9 @@ export abstract class AzureAuth {
 			return await this.hydrateAccount(tokenResult, this.getTokenClaims(tokenResult.token));
 		} catch (ex) {
 			if (ex instanceof AzureAuthError) {
-				this.messageDisplayer.displayErrorMessage(ex.getPrintableString());
+				vscode.window.showErrorMessage(ex.getPrintableString());
 			}
-			this.logger.error(ex);
+			Logger.error(ex);
 			account.isStale = true;
 			return account;
 		}
