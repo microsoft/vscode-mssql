@@ -1,7 +1,7 @@
 import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
-import { ProviderResources } from "../models/provider";
 import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from "../models/auth";
+import * as url from 'url';
 
 
 export abstract class AzureAuth {
@@ -220,7 +220,7 @@ export abstract class AzureAuth {
 			refreshToken = {
 				token: refreshTokenString,
 				key: userKey
-			}; 
+			};
 		}
 
 		const result: OAuthTokenResponse = {
@@ -243,20 +243,20 @@ export abstract class AzureAuth {
 	//#region tenant calls
 	public async getTenants(token: AccessToken): Promise<Tenant[]> {
 		interface TenantResponse { // https://docs.microsoft.com/en-us/rest/api/resources/tenants/list
-			id: string
-			tenantId: string
-			displayName?: string
-			tenantCategory?: string
+			id: string;
+			tenantId: string;
+			displayName?: string;
+			tenantCategory?: string;
 		}
 
-		const tenantUri = url.resolve(this.metadata.settings.armResource.endpoint, 'tenants?api-version=2019-11-01');
+		const tenantUri = url.resolve(this.providerSettings.resources.azureManagementResource.resource, 'tenants?api-version=2019-11-01');
 		try {
 			const tenantResponse = await this.makeGetRequest(tenantUri, token.token);
-			Logger.pii('getTenants', tenantResponse.data);
+			this.logger.pii('getTenants', tenantResponse.data);
 			const tenants: Tenant[] = tenantResponse.data.value.map((tenantInfo: TenantResponse) => {
 				return {
 					id: tenantInfo.tenantId,
-					displayName: tenantInfo.displayName ? tenantInfo.displayName : localize('azureWorkAccountDisplayName', "Work or school account"),
+					displayName: tenantInfo.displayName ?? tenantInfo.tenantId,
 					userId: token.key,
 					tenantCategory: tenantInfo.tenantCategory
 				} as Tenant;
@@ -270,8 +270,7 @@ export abstract class AzureAuth {
 
 			return tenants;
 		} catch (ex) {
-			Logger.log(ex);
-			throw new Error('Error retrieving tenant information');
+			throw new AzureAuthError(6, this.errorLookup.getSimpleError(6), ex);
 		}
 	}
 
