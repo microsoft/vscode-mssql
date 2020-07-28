@@ -1,4 +1,4 @@
-import { ProviderSettings } from "./provider";
+import { ProviderSettings } from ".";
 
 export interface AzureAccount {
     key: AccountKey;
