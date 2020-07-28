@@ -1,16 +1,18 @@
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup } from "../models";
+import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
 import { ProviderResources } from "../models/provider";
-import { AccessToken, Token, TokenClaims } from "../models/auth";
+import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from "../models/auth";
 
 
 export abstract class AzureAuth {
-	public static ACCOUNT_VERSION = '2.0';
+	public static readonly ACCOUNT_VERSION = '2.0';
 
 	protected readonly commonTenant: Tenant = {
 		id: 'common',
 		displayName: 'common'
 	};
+	protected readonly clientId: string;
+	protected readonly loginEndpointUrl: string;
 	constructor(
 		protected readonly providerSettings: ProviderSettings,
 		protected readonly secureStorage: SecureStorageProvider,
@@ -19,13 +21,14 @@ export abstract class AzureAuth {
 		protected readonly messageDisplayer: MessageDisplayer,
 		protected readonly errorLookup: ErrorLookup,
 	) {
-
+		this.clientId = providerSettings.id;
+		this.loginEndpointUrl = providerSettings.loginEndpoint;
 	}
 
-	protected abstract async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse | undefined>;
+	protected abstract async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse>;
 
 	public async startLogin(): Promise<AzureAccount | undefined> {
-		let loginComplete: Deferred<AzureAccount> | undefined;
+		let loginComplete: Deferred<void> | undefined;
 		try {
 			const result = await this.login(this.commonTenant, this.providerSettings.resources.windowsManagementResource);
 			loginComplete = result?.authComplete;
@@ -34,7 +37,7 @@ export abstract class AzureAuth {
 				return undefined;
 			}
 			const account = await this.hydrateAccount(result.response.accessToken, result.response.tokenClaims);
-			loginComplete?.resolve(account);
+			loginComplete?.resolve();
 			return account;
 		} catch (ex) {
 			if (ex instanceof AzureAuthError) {
@@ -95,7 +98,7 @@ export abstract class AzureAuth {
 		const tenant = account.properties.tenants.find(t => t.id === tenantId);
 
 		if (!tenant) {
-			throw new AzureAuthError(1, this.errorLookup.getError1(1, {tenantId}), undefined);
+			throw new AzureAuthError(1, this.errorLookup.getError1(1, { tenantId }), undefined);
 		}
 
 		const cachedTokens = await this.getSavedToken(tenant, azureResource, account.key);
@@ -115,6 +118,9 @@ export abstract class AzureAuth {
 
 			if (remainingTime < maxTolerance) {
 				const result = await this.refreshToken(tenant, azureResource, cachedTokens.refreshToken);
+				if (!result) {
+					return undefined;
+				}
 				accessToken = result.accessToken;
 			}
 			// Let's just return here.
@@ -136,7 +142,7 @@ export abstract class AzureAuth {
 		}
 		// Let's try to convert the access token type, worst case we'll have to prompt the user to do an interactive authentication.
 		const result = await this.refreshToken(tenant, azureResource, baseTokens.refreshToken);
-		if (result.accessToken) {
+		if (result?.accessToken) {
 			return {
 				...result.accessToken,
 				tokenType: 'Bearer'
@@ -151,14 +157,14 @@ export abstract class AzureAuth {
 	 * @param resource
 	 * @param refreshToken
 	 */
-	public async refreshToken(tenant: Tenant, resource: Resource, refreshToken: RefreshToken | undefined): Promise<OAuthTokenResponse> {
+	public async refreshToken(tenant: Tenant, resource: AADResource, refreshToken: RefreshToken | undefined): Promise<OAuthTokenResponse | undefined> {
 		if (refreshToken) {
 			const postData: RefreshTokenPostData = {
 				grant_type: 'refresh_token',
 				client_id: this.clientId,
 				refresh_token: refreshToken.token,
 				tenant: tenant.id,
-				resource: resource.endpoint
+				resource: resource.resource
 			};
 
 			return this.getToken(tenant, resource, postData);
@@ -167,7 +173,7 @@ export abstract class AzureAuth {
 		return this.handleInteractionRequired(tenant, resource);
 	}
 
-	public async getToken(tenant: Tenant, resource: Resource, postData: AuthorizationCodePostData | TokenPostData | RefreshTokenPostData): Promise<OAuthTokenResponse> {
+	public async getToken(tenant: Tenant, resource: AADResource, postData: AuthorizationCodePostData | TokenPostData | RefreshTokenPostData): Promise<OAuthTokenResponse | undefined> {
 		const tokenUrl = `${this.loginEndpointUrl}${tenant.id}/oauth2/token`;
 		const response = await this.makePostRequest(tokenUrl, postData);
 
@@ -176,8 +182,8 @@ export abstract class AzureAuth {
 		}
 
 		if (response.data.error) {
-			Logger.error('Response error!', response.data);
-			throw new AzureAuthError(localize('azure.responseError', "Token retrival failed with an error. Open developer tools to view the error"), 'Token retrival failed', undefined);
+			this.logger.error('Response error!', response.data);
+			throw new AzureAuthError(3, this.errorLookup.getSimpleError(3));
 		}
 
 		const accessTokenString = response.data.access_token;
@@ -187,32 +193,34 @@ export abstract class AzureAuth {
 		return this.getTokenHelper(tenant, resource, accessTokenString, refreshTokenString, expiresOnString);
 	}
 
-	public async getTokenHelper(tenant: Tenant, resource: Resource, accessTokenString: string, refreshTokenString: string, expiresOnString: string): Promise<OAuthTokenResponse> {
+	public async getTokenHelper(tenant: Tenant, resource: AADResource, accessTokenString: string, refreshTokenString: string, expiresOnString: string): Promise<OAuthTokenResponse | undefined> {
 		if (!accessTokenString) {
-			const msg = localize('azure.accessTokenEmpty', 'No access token returned from Microsoft OAuth');
-			throw new AzureAuthError(msg, 'Access token was empty', undefined);
+			throw new AzureAuthError(4, this.errorLookup.getSimpleError(4));
 		}
 
-		const tokenClaims: TokenClaims = this.getTokenClaims(accessTokenString);
+		const tokenClaims = this.getTokenClaims(accessTokenString);
+		if (!tokenClaims) {
+			return undefined;
+		}
 
 		const userKey = tokenClaims.home_oid ?? tokenClaims.oid ?? tokenClaims.unique_name ?? tokenClaims.sub;
 
 		if (!userKey) {
-			const msg = localize('azure.noUniqueIdentifier', "The user had no unique identifier within AAD");
-			throw new AzureAuthError(msg, 'No unique identifier', undefined);
+			throw new AzureAuthError(5, this.errorLookup.getSimpleError(5));
 		}
 
 		const accessToken: AccessToken = {
 			token: accessTokenString,
 			key: userKey
 		};
-		let refreshToken: RefreshToken;
+
+		let refreshToken: RefreshToken | undefined = undefined;
 
 		if (refreshTokenString) {
 			refreshToken = {
 				token: refreshTokenString,
 				key: userKey
-			};
+			}; 
 		}
 
 		const result: OAuthTokenResponse = {
@@ -222,17 +230,15 @@ export abstract class AzureAuth {
 			expiresOn: expiresOnString
 		};
 
-		const accountKey: azdata.AccountKey = {
-			providerId: this.metadata.id,
-			accountId: userKey
+		const accountKey: AccountKey = {
+			providerId: this.providerSettings.id,
+			id: userKey
 		};
 
 		await this.saveToken(tenant, resource, accountKey, result);
 
 		return result;
 	}
-
-
 
 	//#region tenant calls
 	public async getTenants(token: AccessToken): Promise<Tenant[]> {
@@ -331,7 +337,7 @@ export abstract class AzureAuth {
 
 	//#region interaction handling
 
-	public async handleInteractionRequired(tenant: Tenant, resource: Resource): Promise<OAuthTokenResponse | undefined> {
+	public async handleInteractionRequired(tenant: Tenant, resource: AADResource): Promise<OAuthTokenResponse | undefined> {
 		const shouldOpen = await this.askUserForInteraction(tenant, resource);
 		if (shouldOpen) {
 			const result = await this.login(tenant, resource);
@@ -346,7 +352,7 @@ export abstract class AzureAuth {
 	 * @param tenant
 	 * @param resource
 	 */
-	private async askUserForInteraction(tenant: Tenant, resource: Resource): Promise<boolean> {
+	private async askUserForInteraction(tenant: Tenant, resource: AADResource): Promise<boolean> {
 		if (!tenant.displayName && !tenant.id) {
 			throw new Error('Tenant did not have display name or id');
 		}
