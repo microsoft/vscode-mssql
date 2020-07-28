@@ -377,8 +377,6 @@ export abstract class AzureAuth {
 			displayName = `${displayName} - ${email}`;
 		}
 
-		let contextualDisplayName: string;
-
 		const account: AzureAccount = {
 			key: {
 				providerId: this.providerSettings.id,
