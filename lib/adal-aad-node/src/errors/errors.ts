@@ -1,4 +1,4 @@
-import { ErrorLookup } from "../models/error";
+import { ErrorLookup, Error1Context } from "../models/error";
 
 type ErrorMapping = {
     [errorCode: number]: string;
@@ -14,5 +14,9 @@ const simpleErrorMapping: ErrorMapping = {
 export class DefaultErrorLookup implements ErrorLookup {
     getSimpleError(errorCode: number): string {
         return simpleErrorMapping[errorCode];
+    }
+
+    getError1(errorCode: number, context: Error1Context): string {
+        return `Specified tenant with ID "${context.tenantId}" not found.`;
     }
 }
