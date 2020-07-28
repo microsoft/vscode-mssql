@@ -1,4 +1,4 @@
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey } from "../models";
+import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
 import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from "../models/auth";
 import * as url from 'url';
@@ -19,6 +19,8 @@ export abstract class AzureAuth {
 		protected readonly logger: Logger,
 		protected readonly messageDisplayer: MessageDisplayer,
 		protected readonly errorLookup: ErrorLookup,
+		protected readonly userInteraction: UserInteraction,
+		protected readonly stringLookup: StringLookup
 	) {
 		this.clientId = providerSettings.id;
 		this.loginEndpointUrl = providerSettings.loginEndpoint;
@@ -97,7 +99,7 @@ export abstract class AzureAuth {
 		const tenant = account.properties.tenants.find(t => t.id === tenantId);
 
 		if (!tenant) {
-			throw new AzureAuthError(1, this.errorLookup.getError1(1, { tenantId }), undefined);
+			throw new AzureAuthError(1, this.errorLookup.getTenantNotFoundError({ tenantId }), undefined);
 		}
 
 		const cachedTokens = await this.getSavedToken(tenant, azureResource, account.key);
@@ -348,60 +350,8 @@ export abstract class AzureAuth {
 	 * @param resource
 	 */
 	private async askUserForInteraction(tenant: Tenant, resource: AADResource): Promise<boolean> {
-		if (!tenant.displayName && !tenant.id) {
-			throw new Error('Tenant did not have display name or id');
-		}
+		return this.userInteraction.askForConsent(this.stringLookup.getInteractionRequiredString({ tenant, resource }));
 
-		const getTenantConfigurationSet = (): Set<string> => {
-			const configuration = vscode.workspace.getConfiguration('azure.tenant.config');
-			let values: string[] = configuration.get('filter') ?? [];
-			return new Set<string>(values);
-		};
-
-		// The user wants to ignore this tenant.
-		if (getTenantConfigurationSet().has(tenant.id)) {
-			return false;
-		}
-
-		const updateTenantConfigurationSet = async (set: Set<string>): Promise<void> => {
-			const configuration = vscode.workspace.getConfiguration('azure.tenant.config');
-			await configuration.update('filter', Array.from(set), vscode.ConfigurationTarget.Global);
-		};
-
-		interface ConsentMessageItem extends vscode.MessageItem {
-			booleanResult: boolean;
-			action?: (tenantId: string) => Promise<void>;
-		}
-
-		const openItem: ConsentMessageItem = {
-			title: localize('azurecore.consentDialog.open', "Open"),
-			booleanResult: true
-		};
-
-		const closeItem: ConsentMessageItem = {
-			title: localize('azurecore.consentDialog.cancel', "Cancel"),
-			isCloseAffordance: true,
-			booleanResult: false
-		};
-
-		const dontAskAgainItem: ConsentMessageItem = {
-			title: localize('azurecore.consentDialog.ignore', "Ignore Tenant"),
-			booleanResult: false,
-			action: async (tenantId: string) => {
-				let set = getTenantConfigurationSet();
-				set.add(tenantId);
-				await updateTenantConfigurationSet(set);
-			}
-
-		};
-		const messageBody = localize('azurecore.consentDialog.body', "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.", tenant.displayName, tenant.id, resource.id);
-		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem, dontAskAgainItem);
-
-		if (result.action) {
-			await result.action(tenant.id);
-		}
-
-		return result.booleanResult;
 	}
 	//#endregion
 

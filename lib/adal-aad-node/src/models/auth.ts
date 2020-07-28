@@ -1,5 +1,4 @@
-import { Deferred } from "./util";
-import { AzureAccount } from "./account";
+import { Deferred } from ".";
 
 export interface LoginResponse {
     response: OAuthTokenResponse;

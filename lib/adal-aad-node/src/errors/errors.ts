@@ -20,7 +20,7 @@ export class DefaultErrorLookup implements ErrorLookup {
         return simpleErrorMapping[errorCode];
     }
 
-    getError1(errorCode: number, context: Error1Context): string {
+    getTenantNotFoundError(context: Error1Context): string {
         return `Specified tenant with ID "${context.tenantId}" not found.`;
     }
 }
