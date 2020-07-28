@@ -11,7 +11,8 @@ const simpleErrorMapping: ErrorMapping = {
     5: 'The user had no unique identifier within AAD',
     6: 'Error retrieving tenant information',
     7: 'Error when getting your account from the cache',
-    8: 'Error when parsing your account from the cache'
+    8: 'Error when parsing your account from the cache',
+    9: 'Error when adding your account to the cache',
 };
 
 export class DefaultErrorLookup implements ErrorLookup {

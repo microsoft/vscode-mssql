@@ -276,40 +276,37 @@ export abstract class AzureAuth {
 	//#endregion
 
 	//#region token management
-	private async saveToken(tenant: Tenant, resource: Resource, accountKey: AccountKey, { accessToken, refreshToken, expiresOn }: OAuthTokenResponse) {
-		const msg = localize('azure.cacheErrorAdd', "Error when adding your account to the cache.");
+	private async saveToken(tenant: Tenant, resource: AADResource, accountKey: AccountKey, { accessToken, refreshToken, expiresOn }: OAuthTokenResponse) {
 		if (!tenant.id || !resource.id) {
 			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
-			throw new AzureAuthError(msg, 'Adding account to cache failed', undefined);
+			throw new AzureAuthError(9, this.errorLookup.getSimpleError(9));
 		}
 		try {
-			await this.tokenCache.saveCredential(`${accountKey.id}_access_${resource.id}_${tenant.id}`, JSON.stringify(accessToken));
-			await this.tokenCache.saveCredential(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`, JSON.stringify(refreshToken));
-			this.memdb.set(`${accountKey.id}_${tenant.id}_${resource.id}`, expiresOn);
+			await this.cachingProvider.set(`${accountKey.id}_access_${resource.id}_${tenant.id}`, JSON.stringify(accessToken));
+			await this.cachingProvider.set(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`, JSON.stringify(refreshToken));
+			this.cachingProvider.set(`${accountKey.id}_${tenant.id}_${resource.id}`, expiresOn);
 		} catch (ex) {
 			this.logger.error(ex);
-			throw new AzureAuthError(msg, 'Adding account to cache failed', ex);
+			throw new AzureAuthError(9, this.errorLookup.getSimpleError(9));
 		}
 	}
 
-	public async getSavedToken(tenant: Tenant, resource: Resource, accountKey: AccountKey): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken, expiresOn: string }> {
-
+	public async getSavedToken(tenant: Tenant, resource: AADResource, accountKey: AccountKey): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken, expiresOn: string }> {
 		if (!tenant.id || !resource.id) {
 			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
-			throw new AzureAuthError(2, this.errorLookup.getSimpleError(2));
+			throw new AzureAuthError(7, this.errorLookup.getSimpleError(7));
 		}
 
 		let accessTokenString: string;
 		let refreshTokenString: string;
 		let expiresOn: string;
 		try {
-			// would I use KVP here?
-			accessTokenString = await this.cachingStorage.get(`${accountKey.id}_access_${resource.id}_${tenant.id}`);
-			refreshTokenString = await this.tokenCache.getCredential(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`);
-			expiresOn = this.memdb.get(`${accountKey.id}_${tenant.id}_${resource.id}`);
+			accessTokenString = await this.cachingProvider.get(`${accountKey.id}_access_${resource.id}_${tenant.id}`);
+			refreshTokenString = await this.cachingProvider.get(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`);
+			expiresOn = await this.cachingProvider.get(`${accountKey.id}_${tenant.id}_${resource.id}`);
 		} catch (ex) {
 			this.logger.error(ex);
-			throw new AzureAuthError(2, this.errorLookup.getSimpleError(2));
+			throw new AzureAuthError(7, this.errorLookup.getSimpleError(7));
 		}
 
 		try {
@@ -320,6 +317,8 @@ export abstract class AzureAuth {
 			let refreshToken: RefreshToken;
 			if (refreshTokenString) {
 				refreshToken = JSON.parse(refreshTokenString);
+			} else {
+				return undefined;
 			}
 
 			return {
@@ -327,8 +326,7 @@ export abstract class AzureAuth {
 			};
 		} catch (ex) {
 			this.logger.error(ex);
-			throw new AzureAuthError(parseMsg, 'Parsing account from cache failed', ex);
-		}
+			throw new AzureAuthError(8, this.errorLookup.getSimpleError(8));
 	}
 	//#endregion
 
