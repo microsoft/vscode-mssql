@@ -5,9 +5,13 @@ type ErrorMapping = {
 };
 
 const simpleErrorMapping: ErrorMapping = {
-    2: 'Something failed with the authentication, or your tokens have been deleted from the system. Please try adding your account to Azure Data Studio again.',
-    3: 'Error when getting your account from the cache',
-    4: 'Error when parsing your account from the cache',
+    2: 'Something failed with the authentication, or your tokens have been deleted from the system. Please try adding your account to Azure Data Studio again',
+    3: 'Token retrival failed with an error. Open developer tools to view the error',
+    4: 'No access token returned from Microsoft OAuth',
+    5: 'The user had no unique identifier within AAD',
+    6: 'Error retrieving tenant information',
+    7: 'Error when getting your account from the cache',
+    8: 'Error when parsing your account from the cache'
 };
 
 export class DefaultErrorLookup implements ErrorLookup {

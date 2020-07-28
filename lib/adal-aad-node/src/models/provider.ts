@@ -1,6 +1,7 @@
 export interface ProviderSettings {
     displayName: string;
     id: string;
+    loginEndpoint: string;
     portalEndpoint: string;
     redirectUri: string;
     resources: ProviderResources;
@@ -8,8 +9,8 @@ export interface ProviderSettings {
 
 export interface ProviderResources {
     windowsManagementResource: AADResource;
+    azureManagementResource: AADResource;
     graphResource?: AADResource;
-    azureManagementResource?: AADResource;
     databaseResource?: AADResource;
     ossRdbmsResource?: AADResource;
     azureKeyVaultResource?: AADResource;

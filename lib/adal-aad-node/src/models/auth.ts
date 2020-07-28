@@ -3,12 +3,12 @@ import { AzureAccount } from "./account";
 
 export interface LoginResponse {
     response: OAuthTokenResponse;
-    authComplete: Deferred<AzureAccount>;
+    authComplete: Deferred<void>;
 }
 
 export interface OAuthTokenResponse {
     accessToken: AccessToken;
-    refreshToken: RefreshToken;
+    refreshToken?: RefreshToken;
     tokenClaims: TokenClaims;
     expiresOn: string;
 }
