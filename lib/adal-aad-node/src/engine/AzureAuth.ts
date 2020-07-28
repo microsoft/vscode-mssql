@@ -1,7 +1,9 @@
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup } from "../models";
+import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
+import { DefaultErrorLookup } from "../errors/errors";
 import { ProviderResources } from "../models/provider";
-import { AccessToken, Token, TokenClaims } from "../models/auth";
+import { AccessToken, Token, TokenClaims, OAuthTokenResponse } from "../models/auth";
+import { AccountKey } from "../models/account";
 
 
 export abstract class AzureAuth {
@@ -14,7 +16,7 @@ export abstract class AzureAuth {
 	constructor(
 		protected readonly providerSettings: ProviderSettings,
 		protected readonly secureStorage: SecureStorageProvider,
-		protected readonly cachingStorage: CacheStorage,
+		protected readonly cachingProvider: CachingProvider,
 		protected readonly logger: Logger,
 		protected readonly messageDisplayer: MessageDisplayer,
 		protected readonly errorLookup: ErrorLookup,
@@ -289,12 +291,10 @@ export abstract class AzureAuth {
 	}
 
 	public async getSavedToken(tenant: Tenant, resource: Resource, accountKey: AccountKey): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken, expiresOn: string }> {
-		const getMsg = localize('azure.cacheErrorGet', "Error when getting your account from the cache");
-		const parseMsg = localize('azure.cacheErrorParse', "Error when parsing your account from the cache");
 
 		if (!tenant.id || !resource.id) {
 			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
-			throw new AzureAuthError(getMsg, 'Getting account from cache failed', undefined);
+			throw new AzureAuthError(2, this.errorLookup.getSimpleError(2));
 		}
 
 		let accessTokenString: string;
@@ -302,12 +302,12 @@ export abstract class AzureAuth {
 		let expiresOn: string;
 		try {
 			// would I use KVP here?
-			accessTokenString = await this.tokenCache.getCredential(`${accountKey.id}_access_${resource.id}_${tenant.id}`);
+			accessTokenString = await this.cachingStorage.get(`${accountKey.id}_access_${resource.id}_${tenant.id}`);
 			refreshTokenString = await this.tokenCache.getCredential(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`);
 			expiresOn = this.memdb.get(`${accountKey.id}_${tenant.id}_${resource.id}`);
 		} catch (ex) {
 			this.logger.error(ex);
-			throw new AzureAuthError(getMsg, 'Getting account from cache failed', ex);
+			throw new AzureAuthError(2, this.errorLookup.getSimpleError(2));
 		}
 
 		try {
