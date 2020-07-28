@@ -1,13 +1,18 @@
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer } from "../models";
+import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
 import { ProviderResources } from "../models/provider";
+<<<<<<< HEAD
 import { AccessToken, Token, TokenClaims, OAuthTokenResponse, RefreshToken, RefreshTokenPostData } from "../models/auth";
 import { AccountKey } from "../models/account";
+=======
+import { AccessToken, Token, TokenClaims } from "../models/auth";
+>>>>>>> lib
 
 
 export abstract class AzureAuth {
 	public static ACCOUNT_VERSION = '2.0';
 
+<<<<<<< HEAD
     protected readonly commonTenant: Tenant = {
         id: 'common',
         displayName: 'common'
@@ -25,26 +30,42 @@ export abstract class AzureAuth {
     protected abstract async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse | undefined>;
 
     public async startLogin(): Promise<AzureAccount | undefined> {
+=======
+	protected readonly commonTenant: Tenant = {
+		id: 'common',
+		displayName: 'common'
+	};
+	constructor(
+		protected readonly providerSettings: ProviderSettings,
+		protected readonly secureStorage: SecureStorageProvider,
+		protected readonly cachingStorage: CacheStorage,
+		protected readonly logger: Logger,
+		protected readonly messageDisplayer: MessageDisplayer,
+		protected readonly errorLookup: ErrorLookup,
+	) {
+
+	}
+
+	protected abstract async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse | undefined>;
+
+	public async startLogin(): Promise<AzureAccount | undefined> {
+>>>>>>> lib
 		let loginComplete: Deferred<AzureAccount> | undefined;
 		try {
 			const result = await this.login(this.commonTenant, this.providerSettings.resources.windowsManagementResource);
 			loginComplete = result?.authComplete;
 			if (!result?.response) {
 				this.logger.error('Authentication failed');
-				return {
-					canceled: false
-				};
+				return undefined;
 			}
 			const account = await this.hydrateAccount(result.response.accessToken, result.response.tokenClaims);
 			loginComplete?.resolve(account);
 			return account;
 		} catch (ex) {
 			if (ex instanceof AzureAuthError) {
-				if (loginComplete) {
-					loginComplete.reject(ex.getPrintableString());
-				} else {
-					await this.messageDisplayer.displayErrorMessage(ex.getPrintableString());
-				}
+				loginComplete?.reject(ex.getPrintableString());
+				// Let the caller deal with the error too.
+				throw ex;
 			}
 			this.logger.error(ex);
 			return undefined;
@@ -65,20 +86,32 @@ export abstract class AzureAuth {
 		}
 		try {
 			const tenant = this.getHomeTenant(account);
-			const tokenResult = await this.getAccountSecurityToken(account, tenant.id, azdata.AzureResource.MicrosoftResourceManagement);
+			const tokenResult = await this.getAccountSecurityToken(account, tenant.id, this.providerSettings.resources.windowsManagementResource);
 			if (!tokenResult) {
 				account.isStale = true;
 				return account;
 			}
 
+<<<<<<< HEAD
 			return await this.hydrateAccount(tokenResult, this.getTokenClaims(tokenResult.token));
 		} catch (ex) {
 			if (ex instanceof AzureAuthError) {
 				this.messageDisplayer.displayErrorMessage(ex.getPrintableString());
 			}
 			this.logger.error(ex);
+=======
+			const tokenClaims = this.getTokenClaims(tokenResult.token);
+			if (!tokenClaims) {
+				account.isStale = true;
+				return account;
+			}
+			return await this.hydrateAccount(tokenResult, tokenClaims);
+		} catch (ex) {
+>>>>>>> lib
 			account.isStale = true;
 			return account;
+			// Let caller deal with it too.
+			throw ex;
 		}
 	}
 
@@ -88,32 +121,24 @@ export abstract class AzureAuth {
 		return account;
 	}
 
-	public async getAccountSecurityToken(account: AzureAccount, tenantId: string, azureResource: azdata.AzureResource): Promise<Token | undefined> {
+	public async getAccountSecurityToken(account: AzureAccount, tenantId: string, azureResource: AADResource): Promise<Token | undefined> {
 		if (account.isStale === true) {
-			Logger.log('Account was stale. No tokens being fetched.');
+			this.logger.log('Account was stale. No tokens being fetched.');
 			return undefined;
 		}
-
-		const resource = this.resources.find(s => s.azureResourceId === azureResource);
-		if (!resource) {
-			Logger.log('Invalid resource, not fetching', azureResource);
-
-			return undefined;
-		}
-
 		const tenant = account.properties.tenants.find(t => t.id === tenantId);
 
 		if (!tenant) {
-			throw new AzureAuthError(localize('azure.tenantNotFound', "Specifed tenant with ID '{0}' not found.", tenantId), `Tenant ${tenantId} not found.`, undefined);
+			throw new AzureAuthError(1, this.errorLookup.getError1(1, {tenantId}), undefined);
 		}
 
-		const cachedTokens = await this.getSavedToken(tenant, resource, account.key);
+		const cachedTokens = await this.getSavedToken(tenant, azureResource, account.key);
 
 		// Let's check to see if we can just use the cached tokens to return to the user
 		if (cachedTokens?.accessToken) {
 			let expiry = Number(cachedTokens.expiresOn);
 			if (Number.isNaN(expiry)) {
-				Logger.log('Expiration time was not defined. This is expected on first launch');
+				this.logger.log('Expiration time was not defined. This is expected on first launch');
 				expiry = 0;
 			}
 			const currentTime = new Date().getTime() / 1000;
@@ -123,7 +148,7 @@ export abstract class AzureAuth {
 			const maxTolerance = 2 * 60; // two minutes
 
 			if (remainingTime < maxTolerance) {
-				const result = await this.refreshToken(tenant, resource, cachedTokens.refreshToken);
+				const result = await this.refreshToken(tenant, azureResource, cachedTokens.refreshToken);
 				accessToken = result.accessToken;
 			}
 			// Let's just return here.
@@ -137,15 +162,14 @@ export abstract class AzureAuth {
 
 		// User didn't have any cached tokens, or the cached tokens weren't useful.
 		// For most users we can use the refresh token from the general microsoft resource to an access token of basically any type of resource we want.
-		const baseTokens = await this.getSavedToken(this.commonTenant, this.metadata.settings.microsoftResource, account.key);
+		const baseTokens = await this.getSavedToken(this.commonTenant, this.providerSettings.resources.windowsManagementResource, account.key);
 		if (!baseTokens) {
-			Logger.error('User had no base tokens for the basic resource registered. This should not happen and indicates something went wrong with the authentication cycle');
-			const msg = localize('azure.noBaseToken', 'Something failed with the authentication, or your tokens have been deleted from the system. Please try adding your account to Azure Data Studio again.');
+			this.logger.error('User had no base tokens for the basic resource registered. This should not happen and indicates something went wrong with the authentication cycle');
 			account.isStale = true;
-			throw new AzureAuthError(msg, 'No base token found', undefined);
+			throw new AzureAuthError(2, this.errorLookup.getSimpleError(2));
 		}
 		// Let's try to convert the access token type, worst case we'll have to prompt the user to do an interactive authentication.
-		const result = await this.refreshToken(tenant, resource, baseTokens.refreshToken);
+		const result = await this.refreshToken(tenant, azureResource, baseTokens.refreshToken);
 		if (result.accessToken) {
 			return {
 				...result.accessToken,
