@@ -286,14 +286,14 @@ export abstract class AzureAuth {
 		try {
 			await this.cachingProvider.set(`${accountKey.id}_access_${resource.id}_${tenant.id}`, JSON.stringify(accessToken));
 			await this.cachingProvider.set(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`, JSON.stringify(refreshToken));
-			this.cachingProvider.set(`${accountKey.id}_${tenant.id}_${resource.id}`, expiresOn);
+			await this.cachingProvider.set(`${accountKey.id}_${tenant.id}_${resource.id}`, expiresOn);
 		} catch (ex) {
 			this.logger.error(ex);
 			throw new AzureAuthError(9, this.errorLookup.getSimpleError(9));
 		}
 	}
 
-	public async getSavedToken(tenant: Tenant, resource: AADResource, accountKey: AccountKey): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken, expiresOn: string }> {
+	public async getSavedToken(tenant: Tenant, resource: AADResource, accountKey: AccountKey): Promise<{ accessToken: AccessToken; refreshToken: RefreshToken; expiresOn: string; } | undefined> {
 		if (!tenant.id || !resource.id) {
 			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
 			throw new AzureAuthError(7, this.errorLookup.getSimpleError(7));
@@ -329,6 +329,7 @@ export abstract class AzureAuth {
 		} catch (ex) {
 			this.logger.error(ex);
 			throw new AzureAuthError(8, this.errorLookup.getSimpleError(8));
+		}
 	}
 	//#endregion
 
