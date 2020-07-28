@@ -1,7 +1,8 @@
 import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
 import { ProviderResources } from "../models/provider";
-import { AccessToken, Token, TokenClaims } from "../models/auth";
+import { AccessToken, Token, TokenClaims, OAuthTokenResponse, RefreshToken, RefreshTokenPostData } from "../models/auth";
+import { AccountKey } from "../models/account";
 
 
 export abstract class AzureAuth {
@@ -281,28 +282,28 @@ export abstract class AzureAuth {
 	//#endregion
 
 	//#region token management
-	private async saveToken(tenant: Tenant, resource: Resource, accountKey: azdata.AccountKey, { accessToken, refreshToken, expiresOn }: OAuthTokenResponse) {
+	private async saveToken(tenant: Tenant, resource: Resource, accountKey: AccountKey, { accessToken, refreshToken, expiresOn }: OAuthTokenResponse) {
 		const msg = localize('azure.cacheErrorAdd', "Error when adding your account to the cache.");
 		if (!tenant.id || !resource.id) {
-			Logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
+			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
 			throw new AzureAuthError(msg, 'Adding account to cache failed', undefined);
 		}
 		try {
-			await this.tokenCache.saveCredential(`${accountKey.accountId}_access_${resource.id}_${tenant.id}`, JSON.stringify(accessToken));
-			await this.tokenCache.saveCredential(`${accountKey.accountId}_refresh_${resource.id}_${tenant.id}`, JSON.stringify(refreshToken));
-			this.memdb.set(`${accountKey.accountId}_${tenant.id}_${resource.id}`, expiresOn);
+			await this.tokenCache.saveCredential(`${accountKey.id}_access_${resource.id}_${tenant.id}`, JSON.stringify(accessToken));
+			await this.tokenCache.saveCredential(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`, JSON.stringify(refreshToken));
+			this.memdb.set(`${accountKey.id}_${tenant.id}_${resource.id}`, expiresOn);
 		} catch (ex) {
-			Logger.error(ex);
+			this.logger.error(ex);
 			throw new AzureAuthError(msg, 'Adding account to cache failed', ex);
 		}
 	}
 
-	public async getSavedToken(tenant: Tenant, resource: Resource, accountKey: azdata.AccountKey): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken, expiresOn: string }> {
+	public async getSavedToken(tenant: Tenant, resource: Resource, accountKey: AccountKey): Promise<{ accessToken: AccessToken, refreshToken: RefreshToken, expiresOn: string }> {
 		const getMsg = localize('azure.cacheErrorGet', "Error when getting your account from the cache");
 		const parseMsg = localize('azure.cacheErrorParse', "Error when parsing your account from the cache");
 
 		if (!tenant.id || !resource.id) {
-			Logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
+			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
 			throw new AzureAuthError(getMsg, 'Getting account from cache failed', undefined);
 		}
 
@@ -310,11 +311,12 @@ export abstract class AzureAuth {
 		let refreshTokenString: string;
 		let expiresOn: string;
 		try {
-			accessTokenString = await this.tokenCache.getCredential(`${accountKey.accountId}_access_${resource.id}_${tenant.id}`);
-			refreshTokenString = await this.tokenCache.getCredential(`${accountKey.accountId}_refresh_${resource.id}_${tenant.id}`);
-			expiresOn = this.memdb.get(`${accountKey.accountId}_${tenant.id}_${resource.id}`);
+			// would I use KVP here?
+			accessTokenString = await this.tokenCache.getCredential(`${accountKey.id}_access_${resource.id}_${tenant.id}`);
+			refreshTokenString = await this.tokenCache.getCredential(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`);
+			expiresOn = this.memdb.get(`${accountKey.id}_${tenant.id}_${resource.id}`);
 		} catch (ex) {
-			Logger.error(ex);
+			this.logger.error(ex);
 			throw new AzureAuthError(getMsg, 'Getting account from cache failed', ex);
 		}
 
@@ -332,7 +334,7 @@ export abstract class AzureAuth {
 				accessToken, refreshToken, expiresOn
 			};
 		} catch (ex) {
-			Logger.error(ex);
+			this.logger.error(ex);
 			throw new AzureAuthError(parseMsg, 'Parsing account from cache failed', ex);
 		}
 	}
