@@ -1,36 +1,12 @@
 import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
 import { ProviderResources } from "../models/provider";
-<<<<<<< HEAD
-import { AccessToken, Token, TokenClaims, OAuthTokenResponse, RefreshToken, RefreshTokenPostData } from "../models/auth";
-import { AccountKey } from "../models/account";
-=======
 import { AccessToken, Token, TokenClaims } from "../models/auth";
->>>>>>> lib
 
 
 export abstract class AzureAuth {
 	public static ACCOUNT_VERSION = '2.0';
 
-<<<<<<< HEAD
-    protected readonly commonTenant: Tenant = {
-        id: 'common',
-        displayName: 'common'
-    };
-    constructor(
-        protected readonly providerSettings: ProviderSettings,
-        protected readonly secureStorage: SecureStorageProvider,
-        protected readonly cachingStorage: CacheStorage,
-        protected readonly logger: Logger,
-        protected readonly messageDisplayer: MessageDisplayer
-    ){
-
-    }
-
-    protected abstract async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse | undefined>;
-
-    public async startLogin(): Promise<AzureAccount | undefined> {
-=======
 	protected readonly commonTenant: Tenant = {
 		id: 'common',
 		displayName: 'common'
@@ -49,7 +25,6 @@ export abstract class AzureAuth {
 	protected abstract async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse | undefined>;
 
 	public async startLogin(): Promise<AzureAccount | undefined> {
->>>>>>> lib
 		let loginComplete: Deferred<AzureAccount> | undefined;
 		try {
 			const result = await this.login(this.commonTenant, this.providerSettings.resources.windowsManagementResource);
@@ -92,14 +67,6 @@ export abstract class AzureAuth {
 				return account;
 			}
 
-<<<<<<< HEAD
-			return await this.hydrateAccount(tokenResult, this.getTokenClaims(tokenResult.token));
-		} catch (ex) {
-			if (ex instanceof AzureAuthError) {
-				this.messageDisplayer.displayErrorMessage(ex.getPrintableString());
-			}
-			this.logger.error(ex);
-=======
 			const tokenClaims = this.getTokenClaims(tokenResult.token);
 			if (!tokenClaims) {
 				account.isStale = true;
@@ -107,7 +74,6 @@ export abstract class AzureAuth {
 			}
 			return await this.hydrateAccount(tokenResult, tokenClaims);
 		} catch (ex) {
->>>>>>> lib
 			account.isStale = true;
 			return account;
 			// Let caller deal with it too.
