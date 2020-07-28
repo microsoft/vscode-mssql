@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 import { ProviderSettings } from "./provider";
 
->>>>>>> lib
 export interface AzureAccount {
     key: AccountKey;
     properties: AzureAccountProperties;
@@ -34,11 +31,7 @@ interface AzureAccountProperties {
      */
     azureAuthType?: AzureAuthType;
 
-<<<<<<< HEAD
-    providerSettings: AzureAccountProviderMetadata;
-=======
     providerSettings: ProviderSettings;
->>>>>>> lib
     /**
      * Whether or not the account is a Microsoft account
      */
@@ -50,13 +43,3 @@ interface AzureAccountProperties {
     tenants: Tenant[];
 
 }
-<<<<<<< HEAD
-
-interface AzureAccountProviderMetadata {
-    id: string;
-    displayName: string;
-    args?: any;
-    settings?: {};
-}
-=======
->>>>>>> lib
