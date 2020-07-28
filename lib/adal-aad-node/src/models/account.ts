@@ -2,6 +2,7 @@ import { ProviderSettings } from ".";
 
 export interface AzureAccount {
     key: AccountKey;
+    displayInfo: AccountDisplayInfo;
     properties: AzureAccountProperties;
     isStale: boolean;
     delete?: boolean;
@@ -11,6 +12,14 @@ export interface AccountKey {
     id: string;
     providerId: string;
     accountVersion?: string;
+}
+
+export interface AccountDisplayInfo {
+    accountType: 'microsoft' | 'work_school';
+    userId: string;
+    displayName: string;
+    email?: string;
+    name: string;
 }
 
 export interface Tenant {
@@ -29,7 +38,7 @@ interface AzureAccountProperties {
     /**
      * Auth type of azure used to authenticate this account.
      */
-    azureAuthType?: AzureAuthType;
+    azureAuthType: AzureAuthType;
 
     providerSettings: ProviderSettings;
     /**
