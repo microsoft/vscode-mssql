@@ -487,6 +487,8 @@ export class AppComponent implements OnInit, AfterViewChecked {
         if ((event.keyCode === 13 || event.code === 'Enter') ||
             // Space bar
             (event.keyCode === 32 || event.code === 'Space')) {
+                event.stopPropagation();
+                event.preventDefault();
                 return true;
         }
         return false;
