@@ -11,6 +11,7 @@
     "watch-ts": "tsc -w"
   },
   "devDependencies": {
+    "@types/qs": "^6.9.4",
     "@typescript-eslint/eslint-plugin": "^3.7.1",
     "@typescript-eslint/parser": "^3.7.1",
     "eslint": "^7.5.0",
