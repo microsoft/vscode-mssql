@@ -22,7 +22,8 @@ export abstract class AzureAuth {
 		protected readonly messageDisplayer: MessageDisplayer,
 		protected readonly errorLookup: ErrorLookup,
 		protected readonly userInteraction: UserInteraction,
-		protected readonly stringLookup: StringLookup
+		protected readonly stringLookup: StringLookup,
+		protected readonly azureAuthType: AzureAuthType
 	) {
 		this.clientId = providerSettings.id;
 		this.loginEndpointUrl = providerSettings.loginEndpoint;
@@ -362,13 +363,12 @@ export abstract class AzureAuth {
 
 	public createAccount(tokenClaims: TokenClaims, key: string, tenants: Tenant[]): AzureAccount {
 		// Determine if this is a microsoft account
-		let accountIssuer = 'unknown';
+		let accountType: 'microsoft' | 'work_school';
 
-		if (tokenClaims.iss === 'https://sts.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47/') {
-			accountIssuer = 'corp';
-		}
 		if (tokenClaims?.idp === 'live.com') {
-			accountIssuer = 'msft';
+			accountType = 'microsoft';
+		} else {
+			accountType = 'work_school';
 		}
 
 		const name = tokenClaims.name ?? tokenClaims.email ?? tokenClaims.unique_name;
@@ -379,45 +379,27 @@ export abstract class AzureAuth {
 			displayName = `${displayName} - ${email}`;
 		}
 
-		let contextualDisplayName: string;
-		switch (accountIssuer) {
-			case 'corp':
-				contextualDisplayName = localize('azure.microsoftCorpAccount', "Microsoft Corp");
-				break;
-			case 'msft':
-				contextualDisplayName = localize('azure.microsoftAccountDisplayName', 'Microsoft Account');
-				break;
-			default:
-				contextualDisplayName = displayName;
-		}
-
-		let accountType = accountIssuer === 'msft'
-			? this.MicrosoftAccountType
-			: this.WorkSchoolAccountType;
-
-		const account = {
+		const account: AzureAccount = {
 			key: {
-				providerId: this.metadata.id,
-				accountId: key,
+				providerId: this.providerSettings.id,
+				id: key,
 				accountVersion: AzureAuth.ACCOUNT_VERSION,
 			},
-			name: displayName,
 			displayInfo: {
-				accountType: accountType,
+				accountType,
 				userId: key,
-				contextualDisplayName: contextualDisplayName,
 				displayName,
 				email,
 				name,
 			},
 			properties: {
-				providerSettings: this.metadata,
-				isMsAccount: accountIssuer === 'msft',
+				providerSettings: this.providerSettings,
+				isMsAccount: accountType === 'microsoft',
 				tenants,
-				azureAuthType: this.authType
+				azureAuthType: this.azureAuthType
 			},
 			isStale: false
-		} as AzureAccount;
+		};
 
 		return account;
 	}
