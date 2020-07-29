@@ -13,6 +13,7 @@ const simpleErrorMapping: ErrorMapping = {
     7: 'Error when getting your account from the cache',
     8: 'Error when parsing your account from the cache',
     9: 'Error when adding your account to the cache',
+    10: 'Error when getting access token from authorization token for AuthCodeGrant',
 };
 
 export class DefaultErrorLookup implements ErrorLookup {
