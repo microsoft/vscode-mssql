@@ -40,6 +40,7 @@ const template = `
     <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!resultActive"
         (click)="toggleResultsPane()"
+        (keydown)="handleResultsKeydown($event)"
         [attr.aria-label]="Constants.resultPaneLabel"
         [attr.aria-expanded]="!resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
@@ -85,6 +86,7 @@ const template = `
         [attr.aria-label]="Constants.messagePaneLabel"
         [attr.aria-expanded]="!messageActive"
         (click)="toggleMessagesPane()"
+        (keydown)="handleMessagesKeydown($event)"
         style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
@@ -476,6 +478,38 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.resultActive = !this.resultActive;
         this.resizeResults();
     }
+
+    /**
+     * Returns true if keydown was an Enter os Space
+     */
+    private handleKeydown(event: KeyboardEvent): boolean {
+        // Enter
+        if ((event.keyCode === 13 || event.code === 'Enter') ||
+            // Space bar
+            (event.keyCode === 32 || event.code === 'Space')) {
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handles toggling messages via key event
+     */
+    private handleMessagesKeydown(event: KeyboardEvent): void {
+        if (this.handleKeydown(event)) {
+            this.toggleMessagesPane();
+        }
+    }
+
+    /**
+     * Handles toggling messages via key event
+     */
+    private handleResultsKeydown(event: KeyboardEvent): void {
+        if (this.handleKeydown(event)) {
+            this.toggleResultsPane();
+        }
+    }
+
 
     /**
      * Send save result set request to service
