@@ -1,6 +1,8 @@
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup } from "../models";
+import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup, DeviceCodeStartPostData, DeviceCodeCheckPostData } from "../models";
 import { AzureAuthError } from "../errors/AzureAuthError";
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from "../models/auth";
+import * as qs from 'qs';
 import * as url from 'url';
 
 export abstract class AzureAuth {
@@ -433,7 +435,7 @@ export abstract class AzureAuth {
 
 		// Intercept response and print out the response for future debugging
 		const response = await axios.post(url, qs.stringify(postData), config);
-		Logger.pii(url, postData, response.data);
+		this.logger.pii(url, postData, response.data);
 		return response;
 	}
 
@@ -447,13 +449,13 @@ export abstract class AzureAuth {
 		};
 
 		const response = await axios.get(url, config);
-		Logger.pii(url, response.data);
+		this.logger.pii(url, response.data);
 		return response;
 	}
 
 	//#endregion
 
-	//#region inconsequential
+	//#region utils
 	protected getTokenClaims(accessToken: string): TokenClaims | undefined {
 		try {
 			const split = accessToken.split('.');
@@ -468,34 +470,7 @@ export abstract class AzureAuth {
 	}
 
 	public async deleteAllCache(): Promise<void> {
-		const results = await this.tokenCache.findCredentials('');
-
-		for (let { account } of results) {
-			await this.tokenCache.clearCredential(account);
-		}
+		await this.secureStorage.clear();
 	}
-
-	public async clearCredentials(account: azdata.AccountKey): Promise<void> {
-		try {
-			return this.deleteAccountCache(account);
-		} catch (ex) {
-			const msg = localize('azure.cacheErrrorRemove', "Error when removing your account from the cache.");
-			vscode.window.showErrorMessage(msg);
-			Logger.error('Error when removing tokens.', ex);
-		}
-	}
-
-	public async deleteAccountCache(account: azdata.AccountKey): Promise<void> {
-		const results = await this.tokenCache.findCredentials(account.accountId);
-
-		for (let { account } of results) {
-			await this.tokenCache.clearCredential(account);
-		}
-	}
-
-	public async dispose() { }
-
-	public async autoOAuthCancelled(): Promise<void> { }
-
 	//#endregion
 }
