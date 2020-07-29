@@ -14,6 +14,8 @@ const simpleErrorMapping: ErrorMapping = {
     8: 'Error when parsing your account from the cache',
     9: 'Error when adding your account to the cache',
     10: 'Error when getting access token from authorization token for AuthCodeGrant',
+    11: 'Error when getting access token for DeviceCodeLogin',
+    12: 'Timed out when waiting for device code login results',
 };
 
 export class DefaultErrorLookup implements ErrorLookup {

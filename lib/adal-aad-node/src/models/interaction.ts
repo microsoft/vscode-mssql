@@ -23,4 +23,17 @@ interface AuthRequest {
      * @param state 
      */
     getAuthorizationCode(state: string): Promise<string>;
+
+    /**
+     * Display the device code screen to the user.
+     * @param msg 
+     * @param userCode 
+     * @param verificationUrl 
+     */
+    displayDeviceCodeScreen(msg: string, userCode: string, verificationUrl: string): Promise<void>;
+
+    /**
+     * Closes the device code screen
+     */
+    closeDeviceCodeScreen(): Promise<void>;
 }
