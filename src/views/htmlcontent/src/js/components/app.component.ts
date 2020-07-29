@@ -37,12 +37,18 @@ export interface IGridDataSet {
 // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
-    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="toggleResultsPane()">
+    <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
+        [class.collapsed]="!resultActive"
+        (click)="toggleResultsPane()"
+        [attr.aria-label]="Constants.resultPaneLabel"
+        [attr.aria-expanded]="!resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
-    <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
-         (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
+    <div id="results" tabIndex="0" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+         (onScroll)="onScroll($event)"
+         [scrollEnabled]="scrollEnabled"
+         [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
             [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
@@ -74,7 +80,12 @@ const template = `
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
-    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="toggleMessagesPane()" style="position: relative">
+    <div id="messagepane" role="button" tabIndex="1" class="boxRow header collapsible"
+        [class.collapsed]="!messageActive"
+        [attr.aria-label]="Constants.messagePaneLabel"
+        [attr.aria-expanded]="!messageActive"
+        (click)="toggleMessagesPane()"
+        style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
