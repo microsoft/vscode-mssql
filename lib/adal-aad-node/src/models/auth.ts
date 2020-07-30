@@ -12,19 +12,6 @@ export interface OAuthTokenResponse {
     expiresOn: string;
 }
 
-export interface TokenPostData {
-	grant_type: 'refresh_token' | 'authorization_code' | 'urn:ietf:params:oauth:grant-type:device_code';
-	client_id: string;
-	resource: string;
-}
-
-export interface RefreshTokenPostData extends TokenPostData {
-	grant_type: 'refresh_token';
-	refresh_token: string;
-	client_id: string;
-	tenant: string
-}
-
 export interface AccessToken {
 
 }
