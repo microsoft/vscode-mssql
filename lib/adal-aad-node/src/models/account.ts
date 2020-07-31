@@ -15,7 +15,7 @@ export interface AccountKey {
 }
 
 export interface AccountDisplayInfo {
-    accountType: 'microsoft' | 'work_school';
+    accountType: AccountType;
     userId: string;
     displayName: string;
     email?: string;
@@ -32,6 +32,11 @@ export interface Tenant {
 export enum AzureAuthType {
     AuthCodeGrant = 0,
     DeviceCode = 1
+}
+
+export enum AccountType {
+    Microsoft = 0,
+    WorkSchool = 1
 }
 
 interface AzureAccountProperties {

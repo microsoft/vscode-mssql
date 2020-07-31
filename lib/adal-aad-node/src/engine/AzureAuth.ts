@@ -1,7 +1,8 @@
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup, DeviceCodeStartPostData, DeviceCodeCheckPostData, AzureAuthType } from "../models";
-import { AzureAuthError } from "../errors/AzureAuthError";
+import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup, DeviceCodeStartPostData, DeviceCodeCheckPostData, AzureAuthType, AccountType } from '../models';
+import { AzureAuthError } from '../errors/azureAuthError';
+import { ErrorCodes }  from '../errors/errors';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from "../models/auth";
+import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from '../models/auth';
 import * as qs from 'qs';
 import * as url from 'url';
 
@@ -142,7 +143,8 @@ export abstract class AzureAuth {
 		if (!baseTokens) {
 			this.logger.error('User had no base tokens for the basic resource registered. This should not happen and indicates something went wrong with the authentication cycle');
 			account.isStale = true;
-			throw new AzureAuthError(2, this.errorLookup.getSimpleError(2));
+			// Something failed with the authentication, or your tokens have been deleted from the system. Please try adding your account to Azure Data Studio again
+			throw new AzureAuthError(ErrorCodes.AuthError, this.errorLookup.getSimpleError(ErrorCodes.AuthError));
 		}
 		// Let's try to convert the access token type, worst case we'll have to prompt the user to do an interactive authentication.
 		const result = await this.refreshToken(tenant, azureResource, baseTokens.refreshToken);
@@ -187,7 +189,8 @@ export abstract class AzureAuth {
 
 		if (response.data.error) {
 			this.logger.error('Response error!', response.data);
-			throw new AzureAuthError(3, this.errorLookup.getSimpleError(3));
+			// Token retrival failed with an error. Open developer tools to view the error
+			throw new AzureAuthError(ErrorCodes.TokenRetrieval, this.errorLookup.getSimpleError(ErrorCodes.TokenRetrieval));
 		}
 
 		const accessTokenString = response.data.access_token;
@@ -199,7 +202,8 @@ export abstract class AzureAuth {
 
 	public async getTokenHelper(tenant: Tenant, resource: AADResource, accessTokenString: string, refreshTokenString: string, expiresOnString: string): Promise<OAuthTokenResponse | undefined> {
 		if (!accessTokenString) {
-			throw new AzureAuthError(4, this.errorLookup.getSimpleError(4));
+			// No access token returned from Microsoft OAuth
+			throw new AzureAuthError(ErrorCodes.NoAccessTokenReturned, this.errorLookup.getSimpleError(ErrorCodes.NoAccessTokenReturned));
 		}
 
 		const tokenClaims = this.getTokenClaims(accessTokenString);
@@ -210,7 +214,8 @@ export abstract class AzureAuth {
 		const userKey = tokenClaims.home_oid ?? tokenClaims.oid ?? tokenClaims.unique_name ?? tokenClaims.sub;
 
 		if (!userKey) {
-			throw new AzureAuthError(5, this.errorLookup.getSimpleError(5));
+			// The user had no unique identifier within AAD
+			throw new AzureAuthError(ErrorCodes.UniqueIdentifier, this.errorLookup.getSimpleError(ErrorCodes.UniqueIdentifier));
 		}
 
 		const accessToken: AccessToken = {
@@ -274,7 +279,8 @@ export abstract class AzureAuth {
 
 			return tenants;
 		} catch (ex) {
-			throw new AzureAuthError(6, this.errorLookup.getSimpleError(6), ex);
+			// Error retrieving tenant information
+			throw new AzureAuthError(ErrorCodes.Tenant, this.errorLookup.getSimpleError(ErrorCodes.Tenant), ex);
 		}
 	}
 
@@ -284,7 +290,8 @@ export abstract class AzureAuth {
 	private async saveToken(tenant: Tenant, resource: AADResource, accountKey: AccountKey, { accessToken, refreshToken, expiresOn }: OAuthTokenResponse) {
 		if (!tenant.id || !resource.id) {
 			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
-			throw new AzureAuthError(9, this.errorLookup.getSimpleError(9));
+			// Error when adding your account to the cache
+			throw new AzureAuthError(ErrorCodes.AddAccount, this.errorLookup.getSimpleError(ErrorCodes.AddAccount));
 		}
 		try {
 			await this.cachingProvider.set(`${accountKey.id}_access_${resource.id}_${tenant.id}`, JSON.stringify(accessToken));
@@ -292,14 +299,16 @@ export abstract class AzureAuth {
 			await this.cachingProvider.set(`${accountKey.id}_${tenant.id}_${resource.id}`, expiresOn);
 		} catch (ex) {
 			this.logger.error(ex);
-			throw new AzureAuthError(9, this.errorLookup.getSimpleError(9));
+			// Error when adding your account to the cache
+			throw new AzureAuthError(ErrorCodes.AddAccount, this.errorLookup.getSimpleError(ErrorCodes.AddAccount));
 		}
 	}
 
 	public async getSavedToken(tenant: Tenant, resource: AADResource, accountKey: AccountKey): Promise<{ accessToken: AccessToken; refreshToken: RefreshToken; expiresOn: string; } | undefined> {
 		if (!tenant.id || !resource.id) {
 			this.logger.pii('Tenant ID or resource ID was undefined', tenant, resource);
-			throw new AzureAuthError(7, this.errorLookup.getSimpleError(7));
+			// Error when getting your account from the cache
+			throw new AzureAuthError(ErrorCodes.GetAccount, this.errorLookup.getSimpleError(ErrorCodes.GetAccount));
 		}
 
 		let accessTokenString: string;
@@ -311,7 +320,8 @@ export abstract class AzureAuth {
 			expiresOn = await this.cachingProvider.get(`${accountKey.id}_${tenant.id}_${resource.id}`);
 		} catch (ex) {
 			this.logger.error(ex);
-			throw new AzureAuthError(7, this.errorLookup.getSimpleError(7));
+			// Error when getting your account from the cache
+			throw new AzureAuthError(ErrorCodes.GetAccount, this.errorLookup.getSimpleError(ErrorCodes.GetAccount));
 		}
 
 		try {
@@ -331,7 +341,8 @@ export abstract class AzureAuth {
 			};
 		} catch (ex) {
 			this.logger.error(ex);
-			throw new AzureAuthError(8, this.errorLookup.getSimpleError(8));
+			// Error when parsing your account from the cache
+			throw new AzureAuthError(ErrorCodes.ParseAccount, this.errorLookup.getSimpleError(ErrorCodes.ParseAccount));
 		}
 	}
 	//#endregion
@@ -363,12 +374,12 @@ export abstract class AzureAuth {
 
 	public createAccount(tokenClaims: TokenClaims, key: string, tenants: Tenant[]): AzureAccount {
 		// Determine if this is a microsoft account
-		let accountType: 'microsoft' | 'work_school';
+		let accountType: AccountType;
 
 		if (tokenClaims?.idp === 'live.com') {
-			accountType = 'microsoft';
+			accountType = AccountType.Microsoft;
 		} else {
-			accountType = 'work_school';
+			accountType = AccountType.WorkSchool;
 		}
 
 		const name = tokenClaims.name ?? tokenClaims.email ?? tokenClaims.unique_name;
@@ -394,7 +405,7 @@ export abstract class AzureAuth {
 			},
 			properties: {
 				providerSettings: this.providerSettings,
-				isMsAccount: accountType === 'microsoft',
+				isMsAccount: accountType === AccountType.Microsoft,
 				tenants,
 				azureAuthType: this.azureAuthType
 			},
