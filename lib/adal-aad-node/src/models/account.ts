@@ -35,8 +35,8 @@ export enum AzureAuthType {
 }
 
 export enum AccountType {
-    Microsoft = 0,
-    WorkSchool = 1
+    Microsoft = 'microsoft',
+    WorkSchool = 'work_school'
 }
 
 interface AzureAccountProperties {
