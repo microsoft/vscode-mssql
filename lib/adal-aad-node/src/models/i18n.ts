@@ -1,4 +1,4 @@
-import { AADResource, Tenant } from ".";
+import { AADResource, Tenant } from '.';
 
 export interface StringLookup {
     getSimpleString: (code: number) => string;

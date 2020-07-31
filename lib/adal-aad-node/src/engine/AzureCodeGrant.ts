@@ -1,8 +1,9 @@
-import { AzureAuth } from "./AzureAuth";
-import { AzureAuthType, ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AADResource, LoginResponse, Tenant, Deferred, AuthorizationCodePostData, OAuthTokenResponse } from "../models";
+import { AzureAuth } from './azureAuth';
+import { AzureAuthType, ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AADResource, LoginResponse, Tenant, Deferred, AuthorizationCodePostData, OAuthTokenResponse } from '../models';
 import * as crypto from 'crypto';
 import * as qs from 'qs';
-import { AzureAuthError } from "../errors/AzureAuthError";
+import { AzureAuthError } from '../errors/azureAuthError';
+import { ErrorCodes } from '../errors/errors';
 
 export class AzureCodeGrant extends AzureAuth {
     constructor(
@@ -49,7 +50,7 @@ export class AzureCodeGrant extends AzureAuth {
             codeVerifier
         });
         if (!response) {
-            throw new AzureAuthError(10, this.errorLookup.getSimpleError(10));
+            throw new AzureAuthError(ErrorCodes.GetAccessTokenAuthCodeGrant, this.errorLookup.getSimpleError(ErrorCodes.GetAccessTokenAuthCodeGrant));
         }
 
 

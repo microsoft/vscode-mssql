@@ -1,4 +1,4 @@
-import { Deferred } from ".";
+import { Deferred } from '.';
 
 export interface LoginResponse {
     response: OAuthTokenResponse;

@@ -1,5 +1,7 @@
+import { ErrorCodes } from "../errors/errors";
+
 export interface ErrorLookup {
-    getSimpleError: (errorCode: number) => string;
+    getSimpleError: (errorCode: ErrorCodes) => string;
 
     getTenantNotFoundError: (context: Error1Context) => string;
 }

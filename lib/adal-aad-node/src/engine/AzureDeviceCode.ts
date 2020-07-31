@@ -1,6 +1,7 @@
-import { AzureAuth } from "./AzureAuth";
-import { ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AzureAuthType, Tenant, AADResource, LoginResponse, DeviceCodeStartPostData, Deferred, DeviceCodeCheckPostData } from "../models";
-import { AzureAuthError } from "../errors/AzureAuthError";
+import { AzureAuth } from './azureAuth';
+import { ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AzureAuthType, Tenant, AADResource, LoginResponse, DeviceCodeStartPostData, Deferred, DeviceCodeCheckPostData } from '../models';
+import { AzureAuthError } from '../errors/azureAuthError';
+import { ErrorCodes } from '../errors/errors';
 
 export class AzureDeviceCode extends AzureAuth {
     constructor(
@@ -43,7 +44,8 @@ export class AzureDeviceCode extends AzureAuth {
         const result = await this.getTokenHelper(tenant, resource, accessTokenString, refreshTokenString, expiresOn);
 
         if (!result) {
-            throw new AzureAuthError(11, this.errorLookup.getSimpleError(11));
+            // Error when getting access token for DeviceCodeLogin
+            throw new AzureAuthError(ErrorCodes.GetAccessTokenDeviceCodeLogin, this.errorLookup.getSimpleError(ErrorCodes.GetAccessTokenDeviceCodeLogin));
         }
 
         authCompletePromise.finally(async () => await this.authRequest.closeDeviceCodeScreen()).catch(this.logger.error);
@@ -72,6 +74,7 @@ export class AzureDeviceCode extends AzureAuth {
 
             timeout = setTimeout(() => {
                 clearInterval(timer);
+                // Error when getting access token for DeviceCodeLogin
                 reject(new AzureAuthError(11, this.errorLookup.getSimpleError(11)));
             }, fiveMinutes);
         });

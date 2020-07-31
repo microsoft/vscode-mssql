@@ -1,4 +1,4 @@
-import { StringLookup, InteractionRequiredContext } from "../models";
+import { StringLookup, InteractionRequiredContext } from '../models';
 
 type StringMapping = {
     [stringCode: number]: string;
