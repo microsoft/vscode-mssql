@@ -551,7 +551,7 @@ export interface ISubscription {
     /**
      * The subscription policies.
      */
-    subscriptionPolicies?: SubscriptionPolicies;
+    subscriptionPolicies?: ISubscriptionPolicies;
     /**
      * The authorization source of the request. Valid values are one or more combinations of Legacy,
      * RoleBased, Bypassed, Direct and Management. For example, 'Legacy, RoleBased'.
