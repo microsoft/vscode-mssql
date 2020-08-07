@@ -65,5 +65,9 @@ export interface IAccount {
      * Indicates if the account needs refreshing
      */
     isStale: boolean;
+    /**
+     * Indicates if the account is signed in
+     */
+    isSignedIn: boolean;
 }
 
