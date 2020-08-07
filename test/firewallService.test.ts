@@ -11,7 +11,7 @@ import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
     CreateFirewallRuleRequest, ICreateFirewallRuleResponse, IHandleFirewallRuleParams } from '../src/models/contracts/firewall/firewallRequest';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
-import { IAzureSession, IAzureResourceFilter, ISubscription, SubscriptionPolicies } from '../src/models/interfaces';
+import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
 
 
 suite('Firewall Service Tests', () => {
