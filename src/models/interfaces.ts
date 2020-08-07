@@ -570,7 +570,7 @@ export type SubscriptionState = 'Enabled' | 'Warned' | 'PastDue' | 'Disabled' | 
 /**
  * Subscription policies.
  */
-export interface SubscriptionPolicies {
+export interface ISubscriptionPolicies {
     /**
      * The subscription location placement ID. The ID indicates which regions are visible for a
      * subscription. For example, a subscription with a location placement Id of Public_2014-09-01
