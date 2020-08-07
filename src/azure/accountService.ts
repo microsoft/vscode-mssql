@@ -59,7 +59,7 @@ export class AccountService {
                 tenants: [tenant]
             },
             isStale: this._isStale,
-            isSignedIn: undefined
+            isSignedIn: false
         };
         return account;
     }

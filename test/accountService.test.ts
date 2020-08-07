@@ -54,11 +54,4 @@ suite('Firewall Service Tests', () => {
         accountService = new AccountService(client.object, vscodeWrapper.object);
     });
 
-
-    test('isSignedIn Test', () => {
-        let isSignedIn = accountService.isSignedIn;
-        assert.isNotTrue(isSignedIn, 'Firewall Service should not be signed in initially');
-        accountService.isSignedIn = true;
-        assert.isTrue(accountService.isSignedIn, 'Firewall Service should be signed in once set');
-    });
 });
