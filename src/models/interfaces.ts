@@ -519,3 +519,81 @@ export interface IAzureSession {
     readonly tenantId: string;
     readonly credentials: any;
 }
+
+export interface IAzureResourceFilter {
+    readonly session: IAzureSession;
+    readonly subscription: ISubscription;
+}
+
+export interface ISubscription {
+    /**
+     * The fully qualified ID for the subscription. For example,
+     * /subscriptions/00000000-0000-0000-0000-000000000000.
+     * **NOTE: This property will not be serialized. It can only be populated by the server.**
+     */
+    readonly id?: string;
+    /**
+     * The subscription ID.
+     * **NOTE: This property will not be serialized. It can only be populated by the server.**
+     */
+    readonly subscriptionId?: string;
+    /**
+     * The subscription display name.
+     * **NOTE: This property will not be serialized. It can only be populated by the server.**
+     */
+    readonly displayName?: string;
+    /**
+     * The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted.
+     * Possible values include: 'Enabled', 'Warned', 'PastDue', 'Disabled', 'Deleted'
+     * **NOTE: This property will not be serialized. It can only be populated by the server.**
+     */
+    readonly state?: SubscriptionState;
+    /**
+     * The subscription policies.
+     */
+    subscriptionPolicies?: ISubscriptionPolicies;
+    /**
+     * The authorization source of the request. Valid values are one or more combinations of Legacy,
+     * RoleBased, Bypassed, Direct and Management. For example, 'Legacy, RoleBased'.
+     */
+    authorizationSource?: string;
+}
+
+/**
+ * Defines values for SubscriptionState.
+ * Possible values include: 'Enabled', 'Warned', 'PastDue', 'Disabled', 'Deleted'
+ * @readonly
+ * @enum {string}
+ */
+export type SubscriptionState = 'Enabled' | 'Warned' | 'PastDue' | 'Disabled' | 'Deleted';
+
+/**
+ * Subscription policies.
+ */
+export interface ISubscriptionPolicies {
+    /**
+     * The subscription location placement ID. The ID indicates which regions are visible for a
+     * subscription. For example, a subscription with a location placement Id of Public_2014-09-01
+     * has access to Azure public regions.
+     * **NOTE: This property will not be serialized. It can only be populated by the server.**
+     */
+    readonly locationPlacementId?: string;
+    /**
+     * The subscription quota ID.
+     * **NOTE: This property will not be serialized. It can only be populated by the server.**
+     */
+    readonly quotaId?: string;
+    /**
+     * The subscription spending limit. Possible values include: 'On', 'Off', 'CurrentPeriodOff'
+     * **NOTE: This property will not be serialized. It can only be populated by the server.**
+     */
+    readonly spendingLimit?: SpendingLimit;
+}
+
+/**
+ * Defines values for SpendingLimit.
+ * Possible values include: 'On', 'Off', 'CurrentPeriodOff'
+ * @readonly
+ * @enum {string}
+ */
+export type SpendingLimit = 'On' | 'Off' | 'CurrentPeriodOff';

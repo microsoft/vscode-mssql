@@ -17,9 +17,10 @@ import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import VscodeWrapper from './vscodeWrapper';
-import {NotificationHandler} from 'vscode-languageclient';
-import {Runtime, PlatformInformation} from '../models/platform';
+import { NotificationHandler } from 'vscode-languageclient';
+import { Runtime, PlatformInformation } from '../models/platform';
 import { Deferred } from '../protocol';
+import { AccountService } from '../azure/accountService';
 import { FirewallService } from '../firewall/firewallService';
 import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
 import { ConnectionSummary } from '../models/contracts/connection';
@@ -76,6 +77,7 @@ export default class ConnectionManager {
         Map<IConnectionCredentials, ConnectionContracts.ServerInfo>;
     private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
     private _failedUriToFirewallIpMap: Map<string, string>;
+    private _accountService: AccountService;
     private _firewallService: FirewallService;
 
     constructor(context: vscode.ExtensionContext,
@@ -108,7 +110,8 @@ export default class ConnectionManager {
         }
 
         // Initiate the firewall service
-        this._firewallService = new FirewallService(this.client, this.vscodeWrapper);
+        this._accountService = new AccountService(this.client, this.vscodeWrapper);
+        this._firewallService = new FirewallService(this._accountService);
         this._failedUriToFirewallIpMap = new Map<string, string>();
 
         if (this.client !== undefined) {
@@ -190,6 +193,10 @@ export default class ConnectionManager {
 
     public get failedUriToFirewallIpMap(): Map<string, string> {
         return this._failedUriToFirewallIpMap;
+    }
+
+    public get accountService(): AccountService {
+        return this._accountService;
     }
 
     public get firewallService(): FirewallService {
