@@ -53,7 +53,7 @@ suite('Firewall Service Tests', () => {
             activate: undefined,
             extensionUri: undefined,
             exports: {
-                filter: [mockFilter]
+                filters: [mockFilter]
             }
         };
         vscodeWrapper.setup(v => v.azureAccountExtension).returns(() => mockExtension);
