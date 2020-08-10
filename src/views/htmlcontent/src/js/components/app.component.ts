@@ -37,12 +37,19 @@ export interface IGridDataSet {
 // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
-    <div *ngIf="dataSets.length > 0" id="resultspane" class="boxRow header collapsible" [class.collapsed]="!resultActive" (click)="toggleResultsPane()">
+    <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
+        [class.collapsed]="!resultActive"
+        (click)="toggleResultsPane()"
+        (keydown)="handleResultsKeydown($event)"
+        [attr.aria-label]="Constants.resultPaneLabel"
+        [attr.aria-expanded]="!resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
-    <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
-         (onScroll)="onScroll($event)" [scrollEnabled]="scrollEnabled" [class.hidden]="!resultActive">
+    <div id="results" tabIndex="0" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+         (onScroll)="onScroll($event)"
+         [scrollEnabled]="scrollEnabled"
+         [class.hidden]="!resultActive">
         <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
             [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
@@ -74,7 +81,13 @@ const template = `
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
-    <div id="messagepane" class="boxRow header collapsible" [class.collapsed]="!messageActive" (click)="toggleMessagesPane()" style="position: relative">
+    <div id="messagepane" role="button" tabIndex="1" class="boxRow header collapsible"
+        [class.collapsed]="!messageActive"
+        [attr.aria-label]="Constants.messagePaneLabel"
+        [attr.aria-expanded]="!messageActive"
+        (click)="toggleMessagesPane()"
+        (keydown)="handleMessagesKeydown($event)"
+        style="position: relative">
         <div id="messageResizeHandle" class="resizableHandle"></div>
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
@@ -465,6 +478,40 @@ export class AppComponent implements OnInit, AfterViewChecked {
         this.resultActive = !this.resultActive;
         this.resizeResults();
     }
+
+    /**
+     * Returns true if keydown was an Enter os Space
+     */
+    private handleKeydown(event: KeyboardEvent): boolean {
+        // Enter
+        if ((event.keyCode === 13 || event.code === 'Enter') ||
+            // Space bar
+            (event.keyCode === 32 || event.code === 'Space')) {
+                event.stopPropagation();
+                event.preventDefault();
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handles toggling messages via key event
+     */
+    private handleMessagesKeydown(event: KeyboardEvent): void {
+        if (this.handleKeydown(event)) {
+            this.toggleMessagesPane();
+        }
+    }
+
+    /**
+     * Handles toggling messages via key event
+     */
+    private handleResultsKeydown(event: KeyboardEvent): void {
+        if (this.handleKeydown(event)) {
+            this.toggleResultsPane();
+        }
+    }
+
 
     /**
      * Send save result set request to service
