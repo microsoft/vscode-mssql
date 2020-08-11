@@ -15,7 +15,7 @@ export class AzureCodeGrant extends AzureAuth {
         protected readonly errorLookup: ErrorLookup,
         protected readonly userInteraction: UserInteraction,
         protected readonly stringLookup: StringLookup,
-        protected readonly authRequest: AuthRequest,
+        protected readonly authRequest: AuthRequest
     ) {
         super(providerSettings, secureStorage, cachingProvider, logger, messageDisplayer, errorLookup, userInteraction, stringLookup, AzureAuthType.AuthCodeGrant);
     }
