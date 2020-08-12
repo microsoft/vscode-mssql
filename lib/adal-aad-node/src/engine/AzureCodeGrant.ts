@@ -1,5 +1,5 @@
 import { AzureAuth } from './azureAuth';
-import { AzureAuthType, ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AADResource, LoginResponse, Tenant, Deferred, AuthorizationCodePostData, OAuthTokenResponse } from '../models';
+import { AzureAuthType, ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AADResource, LoginResponse, Tenant, Deferred, AuthorizationCodePostData, OAuthTokenResponse, AuthRequest, UserInteraction } from '../models';
 import * as crypto from 'crypto';
 import * as qs from 'qs';
 import { AzureAuthError } from '../errors/azureAuthError';

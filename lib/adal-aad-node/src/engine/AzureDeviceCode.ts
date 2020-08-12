@@ -1,5 +1,5 @@
 import { AzureAuth } from './azureAuth';
-import { ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AzureAuthType, Tenant, AADResource, LoginResponse, DeviceCodeStartPostData, Deferred, DeviceCodeCheckPostData } from '../models';
+import { ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AzureAuthType, Tenant, AADResource, LoginResponse, DeviceCodeStartPostData, Deferred, DeviceCodeCheckPostData, AuthRequest, UserInteraction } from '../models';
 import { AzureAuthError } from '../errors/azureAuthError';
 import { ErrorCodes } from '../errors/errors';
 

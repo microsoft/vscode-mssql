@@ -1,18 +1,18 @@
-interface UserInteraction {
+export interface UserInteraction {
     /**
-     * Asks the user for consent. Expects a true or false response. True means that 
-     * @param msg 
+     * Asks the user for consent. Expects a true or false response. True means that
+     * @param msg
      */
     askForConsent(msg: string): Promise<boolean>;
 
     /**
      * Opens a browser page on the caller.
-     * @param url 
+     * @param url
      */
     openUrl(url: string): Promise<void>;
 }
 
-interface AuthRequest {
+export interface AuthRequest {
     /**
      * Gets the state to send with the oauth request
      */
@@ -20,15 +20,15 @@ interface AuthRequest {
 
     /**
      * After the auth mechanism opens the URL, it will request an auth token to be returned to the caller to finish the authentication process.
-     * @param state 
+     * @param state
      */
     getAuthorizationCode(state: string): Promise<string>;
 
     /**
      * Display the device code screen to the user.
-     * @param msg 
-     * @param userCode 
-     * @param verificationUrl 
+     * @param msg
+     * @param userCode
+     * @param verificationUrl
      */
     displayDeviceCodeScreen(msg: string, userCode: string, verificationUrl: string): Promise<void>;
 

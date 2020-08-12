@@ -1,4 +1,4 @@
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup, DeviceCodeStartPostData, DeviceCodeCheckPostData, AzureAuthType, AccountType } from '../models';
+import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup, DeviceCodeStartPostData, DeviceCodeCheckPostData, AzureAuthType, AccountType, UserInteraction } from '../models';
 import { AzureAuthError } from '../errors/azureAuthError';
 import { ErrorCodes }  from '../errors/errors';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
