@@ -11,6 +11,7 @@ import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import SqlToolsServerClient from '../languageservice/serviceclient';
+import { AzureCodeGrant } from '../../lib/adal-aad-node/src/engine/AzureCodeGrant';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
@@ -202,7 +203,9 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     } else if (value === utils.authTypeToString(AuthenticationTypes.ActiveDirectoryUniversal)) {
                         //TODO: parameterize all the strings
                         // check if Azure Account is installed - if not, prompt user to install
-
+                        let azureCodeGrant: AzureCodeGrant ;
+                        azureCodeGrant = new AzureCodeGrant(undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+                        azureCodeGrant.startLogin();
                         // need to prompt user to select code grant or device code for login
                         } else {
                         // Also, hook into AAD MFA here
@@ -308,8 +311,9 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public static getAuthenticationTypesChoice(): INameValueChoice[] {
         let choices: INameValueChoice[] = [
             { name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) },
-            { name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) }
-        ];        // TODO When Azure Active Directory is supported, add this here
+            { name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) },
+            { name: LocalizedConstants.authTypeAzureActiveDirectory, value: utils.authTypeToString(AuthenticationTypes.ActiveDirectoryUniversal)}
+        ];
 
         return choices;
     }
