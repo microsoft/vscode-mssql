@@ -199,6 +199,14 @@ export class ConnectionCredentials implements IConnectionCredentials {
                         && SqlToolsServerClient.instance.getServiceVersion() === 1
                     ) {
                         return LocalizedConstants.macSierraRequiredErrorMessage;
+                    } else if (value === utils.authTypeToString(AuthenticationTypes.ActiveDirectoryUniversal)) {
+                        //TODO: parameterize all the strings
+                        // check if Azure Account is installed - if not, prompt user to install
+
+                        // need to prompt user to select code grant or device code for login
+                        } else {
+                        // Also, hook into AAD MFA here
+                        return undefined;
                     }
                     return undefined;
                 },
