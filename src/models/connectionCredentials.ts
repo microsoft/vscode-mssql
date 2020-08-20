@@ -11,7 +11,6 @@ import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { AzureCodeGrant } from '../../lib/adal-aad-node/src/engine/AzureCodeGrant';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
@@ -203,10 +202,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     } else if (value === utils.authTypeToString(AuthenticationTypes.ActiveDirectoryUniversal)) {
                         //TODO: parameterize all the strings
                         // check if Azure Account is installed - if not, prompt user to install
-                        let azureCodeGrant: AzureCodeGrant ;
-                        azureCodeGrant = new AzureCodeGrant(undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
-                        azureCodeGrant.startLogin();
                         // need to prompt user to select code grant or device code for login
+                            return undefined;
                         } else {
                         // Also, hook into AAD MFA here
                         return undefined;

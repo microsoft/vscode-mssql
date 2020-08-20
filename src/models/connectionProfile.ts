@@ -10,6 +10,10 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
+import { AzureCodeGrant } from 'aad-library';
+import { AzureController } from '../azure/azureController';
+import providerSettings from '../azure/providerSettings';
+import { AzureLogger } from '../azure/azureLogger';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -41,6 +45,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true,
             false, connectionStore, defaultProfileValues);
+
         // Check if password needs to be saved
         questions.push(
             {
@@ -62,7 +67,18 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
         });
 
-        return prompter.prompt(questions, true).then(answers => {
+        return prompter.prompt(questions, true).then(async answers => {
+            if (profile.isAzureActiveDirectory()) {
+                let azureController = new AzureController();
+                await azureController.init();
+                let azureCodeGrant = new AzureCodeGrant(
+                    providerSettings, azureController.storageService, azureController.cacheService, AzureLogger,
+                    azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
+                    azureController.azureStringLookup, azureController.authRequest
+                );
+                let test = azureCodeGrant.startLogin();
+                console.log(test);
+            }
             if (answers && profile.isValidProfile()) {
                 return profile;
             }
@@ -78,7 +94,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         }
 
         if (this.authenticationType) {
-            if (this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated]) {
+            if (this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated] ||
+                this.authenticationType === AuthenticationTypes[AuthenticationTypes.ActiveDirectoryUniversal]) {
                 return utils.isNotEmpty(this.server);
             } else {
                 return utils.isNotEmpty(this.server)
@@ -86,5 +103,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             }
         }
         return false;
+    }
+
+    private isAzureActiveDirectory(): boolean {
+        return this.authenticationType === AuthenticationTypes[AuthenticationTypes.ActiveDirectoryUniversal];
     }
 }

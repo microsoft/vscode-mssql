@@ -1,9 +1,9 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the Source EULA. See License.txt in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ProviderSettings } from '../../lib/adal-aad-node/src/models/provider';
+import { ProviderSettings } from 'aad-library';
 
 
 const publicAzureSettings: ProviderSettings = {
@@ -15,7 +15,7 @@ const publicAzureSettings: ProviderSettings = {
     resources: {
         windowsManagementResource: {
             id: 'marm',
-            resource: '',
+            resource: 'MicrosoftResourceManagement',
             endpoint: 'https://management.core.windows.net/'
         },
         azureManagementResource: {
@@ -50,3 +50,6 @@ const publicAzureSettings: ProviderSettings = {
         // }
     }
 };
+
+const allSettings = publicAzureSettings;
+export default allSettings;
