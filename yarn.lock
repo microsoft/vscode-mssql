@@ -129,7 +129,7 @@
 
 "aad-library@git+https://49757267fe48e5093c901dedbacbc2982b7aa524:x-oauth-basic@github.com/cssuh/aad-library.git#master":
   version "1.0.0"
-  resolved "git+https://49757267fe48e5093c901dedbacbc2982b7aa524:x-oauth-basic@github.com/cssuh/aad-library.git#ecf65715e2c9420795c74f070d5fca68997383c6"
+  resolved "git+https://49757267fe48e5093c901dedbacbc2982b7aa524:x-oauth-basic@github.com/cssuh/aad-library.git#58bc220657d3eaef3d6839f7093fcc084a2f00f9"
   dependencies:
     axios "^0.19.2"
     qs "^6.9.4"
