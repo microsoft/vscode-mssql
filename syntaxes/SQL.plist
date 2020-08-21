@@ -393,7 +393,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(ascii|char|charindex|concat|difference|format|left|len|lower|ltrim|nchar|patindex|quotename|replace|replicate|reverse|rtrim|soundex|space|str|string_agg|string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b</string>
+			<string>(?i)\b(ascii|char|charindex|concat|difference|format|left|len|lower|ltrim|nchar|patindex|quotename|replace|replicate|reverse|right|rtrim|soundex|space|str|string_agg|string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b</string>
 			<key>name</key>
 			<string>support.function.string.sql</string>
 		</dict>
