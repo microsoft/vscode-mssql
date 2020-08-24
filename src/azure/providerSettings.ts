@@ -9,6 +9,7 @@ import { ProviderSettings } from 'aad-library';
 const publicAzureSettings: ProviderSettings = {
     displayName: 'publicCloudDisplayName',
     id: 'azure_publicCloud',
+    clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
     loginEndpoint: 'https://login.microsoftonline.com/',
     portalEndpoint: 'https://portal.azure.com',
     redirectUri: 'https://vscode-redirect.azurewebsites.net/',

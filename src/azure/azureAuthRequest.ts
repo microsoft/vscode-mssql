@@ -3,23 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import AuthRequest from 'aad-library';
+import { AuthRequest } from 'aad-library';
 import { SimpleWebServer } from './simpleWebServer';
 import * as crypto from 'crypto';
 import * as http from 'http';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as vscode from 'vscode';
+import { AzureLogger } from '../azure/azureLogger';
 
 export class AzureAuthRequest implements AuthRequest {
     simpleWebServer: SimpleWebServer;
     serverPort: string;
     nonce: string;
+    context: vscode.ExtensionContext;
+    logger: AzureLogger;
 
-    constructor() {
+    constructor(context: vscode.ExtensionContext, logger: AzureLogger) {
         this.simpleWebServer = new SimpleWebServer();
         this.serverPort = undefined;
         this.nonce = crypto.randomBytes(16).toString('base64');
+        this.context = context;
+        this.logger = logger;
     }
 
     public getState(): string {
@@ -27,15 +32,15 @@ export class AzureAuthRequest implements AuthRequest {
     }
 
     public async getAuthorizationCode(signInUrl: string, authComplete: Promise<void>): Promise<string> {
-        await vscode.env.openExternal(vscode.Uri.parse(signInUrl));
-        let mediaPath = path.join(vscode.workspace.workspaceFolders[0].name, 'media');
+        // await vscode.env.openExternal(vscode.Uri.parse(signInUrl));
+        let mediaPath = path.join(this.context.extensionPath, 'media');
         // media path goes here - working directory for this extension
         const sendFile = async (res: http.ServerResponse, filePath: string, contentType: string): Promise<void> => {
             let fileContents;
             try {
                 fileContents = await fs.readFile(filePath);
             } catch (ex) {
-                // Logger.error(ex);
+                this.logger.error(ex);
                 res.writeHead(400);
                 res.end();
                 return;
@@ -49,23 +54,23 @@ export class AzureAuthRequest implements AuthRequest {
             res.end(fileContents);
         };
 
-        // this.simpleWebServer.on('/landing.css', (req, reqUrl, res) => {
-        //     sendFile(res, path.join(mediaPath, 'landing.css'), 'text/css; charset=utf-8').catch(Logger.error);
-        // });
+        this.simpleWebServer.on('/landing.css', (req, reqUrl, res) => {
+            sendFile(res, path.join(mediaPath, 'landing.css'), 'text/css; charset=utf-8').catch(this.logger.error);
+        });
 
-        // this.simpleWebServer.on('/SignIn.svg', (req, reqUrl, res) => {
-        //     sendFile(res, path.join(mediaPath, 'SignIn.svg'), 'image/svg+xml').catch(Logger.error);
-        // });
+        this.simpleWebServer.on('/SignIn.svg', (req, reqUrl, res) => {
+            sendFile(res, path.join(mediaPath, 'SignIn.svg'), 'image/svg+xml').catch(this.logger.error);
+        });
 
         this.simpleWebServer.on('/signin', (req, reqUrl, res) => {
             let receivedNonce: string = reqUrl.query.nonce as string;
             receivedNonce = receivedNonce.replace(/ /g, '+');
 
-            if (receivedNonce !== this.nonce) {
+            if (receivedNonce !== encodeURIComponent(this.nonce)) {
                 res.writeHead(400, { 'content-type': 'text/html' });
                 // res.write(localize('azureAuth.nonceError', 'Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.'));
                 res.end();
-                // Logger.error('nonce no match', receivedNonce, nonce);
+                this.logger.error('nonce no match', receivedNonce, this.nonce);
                 return;
             }
             res.writeHead(302, { Location: signInUrl });

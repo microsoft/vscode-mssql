@@ -1,3 +1,4 @@
+import vscode = require('vscode');
 import { AzureStringLookup } from '../azure/azureStringLookup';
 import { AzureUserInteraction } from '../azure/azureUserInteraction';
 import { AzureErrorLookup } from '../azure/azureErrorLookup';
@@ -61,9 +62,15 @@ export class AzureController {
     azureMessageDisplayer: AzureMessageDisplayer;
     cacheService: SimpleTokenCache;
     storageService: StorageService;
+    context: vscode.ExtensionContext;
+    logger: AzureLogger;
 
+    constructor(context: vscode.ExtensionContext, logger: AzureLogger) {
+        this.context = context;
+        this.logger = logger;
+    }
     public async init(): Promise<void> {
-        this.authRequest = new AzureAuthRequest();
+        this.authRequest = new AzureAuthRequest(this.context, this.logger);
         await this.authRequest.startServer();
         let storagePath = await findOrMakeStoragePath();
         let credentialStore = new CredentialStore();

@@ -15,6 +15,7 @@ import { IAzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, 
 import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
+import { AzureAuthType } from 'aad-library';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
@@ -171,6 +172,10 @@ export function isNotEmpty(str: any): boolean {
 
 export function authTypeToString(value: AuthenticationTypes): string {
     return AuthenticationTypes[value];
+}
+
+export function azureAuthTypeToString(value: AzureAuthType): string {
+    return AzureAuthType[value];
 }
 
 export function escapeClosingBrackets(str: string): string {

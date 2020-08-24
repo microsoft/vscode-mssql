@@ -106,7 +106,7 @@ export default class ConnectionManager {
         }
 
         if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(this, this._connectionStore, prompter, this.vscodeWrapper);
+            this._connectionUI = new ConnectionUI(this, context, this._connectionStore, prompter, this.vscodeWrapper);
         }
 
         // Initiate the firewall service

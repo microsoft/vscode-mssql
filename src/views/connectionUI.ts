@@ -38,6 +38,7 @@ export class ConnectionUI {
 
     constructor(
         private _connectionManager: ConnectionManager,
+        private _context: vscode.ExtensionContext,
         private _connectionStore: ConnectionStore,
         private _prompter: IPrompter,
         private _vscodeWrapper?: VscodeWrapper) {
@@ -538,7 +539,7 @@ export class ConnectionUI {
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
-        return ConnectionProfile.createProfile(this._prompter, this._connectionStore);
+        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context);
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -555,7 +556,7 @@ export class ConnectionUI {
         let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
         return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
-                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, profile);
+                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, profile);
             } else {
                 return undefined;
             }
