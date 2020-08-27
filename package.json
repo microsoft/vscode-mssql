@@ -542,6 +542,16 @@
       "type": "object",
       "title": "MSSQL configuration",
       "properties": {
+        "mssql.azureActiveDirectory": {
+          "type": "string",
+          "default": "AuthCode",
+          "description": "Chooses which Authentication method to use",
+          "enum": [
+            "AuthCodeGrant",
+            "DeviceCode"
+          ],
+          "scope": "application"
+        },
         "mssql.logDebugInfo": {
           "type": "boolean",
           "default": false,

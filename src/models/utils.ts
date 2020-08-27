@@ -16,6 +16,7 @@ import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
 import { AzureAuthType } from 'aad-library';
+import { IAccount } from './contracts/azure/accountInterfaces';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
@@ -198,6 +199,13 @@ export function formatString(str: string, ...args: any[]): string {
         });
     }
     return result;
+}
+
+/**
+ * Compares 2 accounts to see if they are the same.
+ */
+export function isSameAccount(currentAccount: IAccount, newAccount: IAccount): boolean {
+    return currentAccount.key === newAccount.key;
 }
 
 /**

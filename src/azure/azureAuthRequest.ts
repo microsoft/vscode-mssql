@@ -119,6 +119,13 @@ export class AzureAuthRequest implements AuthRequest {
     // private addServerListeners(server: SimpleWebServer, )
     }
 
+    public async displayDeviceCodeScreen(msg: string, userCode: string, verificationUrl: string): Promise<void> {
+        // create a notification with the device code message, usercode, and verificationurl
+
+
+        return;
+    }
+
     public async startServer(): Promise<void> {
         try {
             this.serverPort = await this.simpleWebServer.startup();

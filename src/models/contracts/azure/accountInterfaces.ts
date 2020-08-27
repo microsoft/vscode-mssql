@@ -68,6 +68,6 @@ export interface IAccount {
     /**
      * Indicates if the account is signed in
      */
-    isSignedIn: boolean;
+    isSignedIn?: boolean;
 }
 

@@ -98,6 +98,7 @@ export const azureAccountExtensionId = 'ms-vscode.azure-account';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+export const configAzureAccount = 'azureAccount';
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';

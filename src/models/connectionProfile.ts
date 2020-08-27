@@ -11,10 +11,12 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureCodeGrant, AzureAuthType } from 'aad-library';
+import { AzureCodeGrant, AzureAuthType, AzureDeviceCode } from 'aad-library';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 import { AzureLogger } from '../azure/azureLogger';
+import { AccountStore } from '../azure/accountStore';
+import { IAccount } from './contracts/azure/accountInterfaces';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -26,6 +28,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;
+    public accountStore: AccountStore;
 
     /**
      * Creates a new profile by prompting the user for information.
@@ -39,6 +42,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         context: vscode.ExtensionContext,
         defaultProfileValues?: IConnectionProfile): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
+        let accountStore = new AccountStore(context);
         // Ensure all core properties are entered
         let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
         if (authOptions.length === 1) {
@@ -46,6 +50,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             profile.authenticationType = authOptions[0].value;
         }
         let azureAuthChoices: INameValueChoice[] = ConnectionProfile.getAzureAuthChoices();
+        let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
+        azureAccountChoices.unshift({ name: 'Add An Account...', value: 'addAccount'});
+
 
         let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true,
             false, connectionStore, defaultProfileValues);
@@ -59,14 +66,54 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 shouldPrompt: (answers) => !profile.connectionString && ConnectionCredentials.isPasswordBasedCredential(profile),
                 onAnswered: (value) => profile.savePassword = value
             },
+            // TODO: Make the azure auth choices a settings option
+            // {
+            //     type: QuestionTypes.expand,
+            //     name: LocalizedConstants.azureAuthTypePrompt,
+            //     message: LocalizedConstants.azureAuthTypePrompt,
+            //     choices: azureAuthChoices,
+            //     shouldPrompt: (answers) => profile.isAzureActiveDirectory(),
+            //     onAnswered: (value) => {
+            //         profile.azureAuthType = value;
+            //     }
+            // },
             {
                 type: QuestionTypes.expand,
-                name: LocalizedConstants.azureAuthTypePrompt,
-                message: LocalizedConstants.azureAuthTypePrompt,
-                choices: azureAuthChoices,
+                name: 'AAD',
+                message: 'Choose an Azure Active Directory Account',
+                choices: azureAccountChoices,
                 shouldPrompt: (answers) => profile.isAzureActiveDirectory(),
-                onAnswered: (value) => {
-                    profile.azureAuthType = value;
+                onAnswered: async value => {
+                    if (value === 'addAccount') {
+                        let account: IAccount;
+                        let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
+                        if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
+                            let azureLogger = new AzureLogger();
+                            let azureController = new AzureController(context, azureLogger);
+                            await azureController.init();
+                            let azureCodeGrant = new AzureCodeGrant(
+                                providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
+                                azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
+                                azureController.azureStringLookup, azureController.authRequest
+                            );
+                            account = await azureCodeGrant.startLogin();
+                            accountStore.addAccount(account);
+                        } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
+                            let azureLogger = new AzureLogger();
+                            let azureController = new AzureController(context, azureLogger);
+                            await azureController.init();
+                            let azureDeviceCode = new AzureDeviceCode (
+                                providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
+                                azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
+                                azureController.azureStringLookup, azureController.authRequest
+                            );
+                            account = await azureDeviceCode.startLogin();
+                            accountStore.addAccount(account);
+                        }
+                    } else {
+                        // TODO: Kick off refresh token process
+                    }
+
                 }
             },
             {
@@ -82,19 +129,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         });
 
-        return prompter.prompt(questions, true).then(async answers => {
-            if (profile.azureAuthType === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
-                let azureLogger = new AzureLogger();
-                let azureController = new AzureController(context, azureLogger);
-                await azureController.init();
-                let azureCodeGrant = new AzureCodeGrant(
-                    providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
-                    azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
-                    azureController.azureStringLookup, azureController.authRequest
-                );
-                let account = azureCodeGrant.startLogin();
-                console.log(test);
-            }
+        return prompter.prompt(questions, true).then(answers => {
             if (answers && profile.isValidProfile()) {
                 return profile;
             }
@@ -131,6 +166,18 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             { name: LocalizedConstants.azureAuthTypeDeviceCode, value: utils.azureAuthTypeToString(AzureAuthType.DeviceCode) }
         ];
 
+        return choices;
+    }
+
+    public static getAccountChoices(accountStore: AccountStore): INameValueChoice[] {
+        let accounts = accountStore.getAccounts();
+        let choices: Array<INameValueChoice> = [];
+
+        if (accounts.length > 0) {
+            for (let account of accounts) {
+                choices.push({ name: account.displayInfo.displayName, value: account });
+            }
+        }
         return choices;
     }
 }
