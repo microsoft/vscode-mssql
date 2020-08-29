@@ -199,11 +199,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
                         && SqlToolsServerClient.instance.getServiceVersion() === 1
                     ) {
                         return LocalizedConstants.macSierraRequiredErrorMessage;
-                    } else if (value === utils.authTypeToString(AuthenticationTypes.ActiveDirectoryUniversal)) {
+                    } else if (value === utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
                         //TODO: parameterize all the strings
                         // check if Azure Account is installed - if not, prompt user to install
                         // need to prompt user to select code grant or device code for login
-                            return undefined;
+                        return undefined;
                         } else {
                         // Also, hook into AAD MFA here
                         return undefined;
@@ -309,7 +309,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         let choices: INameValueChoice[] = [
             { name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) },
             { name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) },
-            { name: LocalizedConstants.authTypeAzureActiveDirectory, value: utils.authTypeToString(AuthenticationTypes.ActiveDirectoryUniversal)}
+            { name: LocalizedConstants.authTypeAzureActiveDirectory, value: utils.authTypeToString(AuthenticationTypes.AzureMFA)}
         ];
 
         return choices;

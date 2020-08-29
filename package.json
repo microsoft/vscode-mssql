@@ -544,7 +544,7 @@
       "properties": {
         "mssql.azureActiveDirectory": {
           "type": "string",
-          "default": "AuthCode",
+          "default": "AuthCodeGrant",
           "description": "Chooses which Authentication method to use",
           "enum": [
             "AuthCodeGrant",

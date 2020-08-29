@@ -34,7 +34,7 @@ export interface ISlickRange {
 export enum AuthenticationTypes {
     Integrated = 1,
     SqlLogin = 2,
-    ActiveDirectoryUniversal = 3
+    AzureMFA = 3
 }
 
 export const contentTypes = [

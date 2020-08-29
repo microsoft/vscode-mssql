@@ -28,6 +28,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;
+    public azureAccountToken: string;
     public accountStore: AccountStore;
 
     /**
@@ -66,17 +67,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 shouldPrompt: (answers) => !profile.connectionString && ConnectionCredentials.isPasswordBasedCredential(profile),
                 onAnswered: (value) => profile.savePassword = value
             },
-            // TODO: Make the azure auth choices a settings option
-            // {
-            //     type: QuestionTypes.expand,
-            //     name: LocalizedConstants.azureAuthTypePrompt,
-            //     message: LocalizedConstants.azureAuthTypePrompt,
-            //     choices: azureAuthChoices,
-            //     shouldPrompt: (answers) => profile.isAzureActiveDirectory(),
-            //     onAnswered: (value) => {
-            //         profile.azureAuthType = value;
-            //     }
-            // },
             {
                 type: QuestionTypes.expand,
                 name: 'AAD',
@@ -97,7 +87,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                                 azureController.azureStringLookup, azureController.authRequest
                             );
                             account = await azureCodeGrant.startLogin();
-                            accountStore.addAccount(account);
+                            accountStore.addAccount(account, azureCodeGrant);
+                            // azureController.cacheService.get()
+                            // profile.azureAccountToken
                         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                             let azureLogger = new AzureLogger();
                             let azureController = new AzureController(context, azureLogger);
@@ -108,10 +100,14 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                                 azureController.azureStringLookup, azureController.authRequest
                             );
                             account = await azureDeviceCode.startLogin();
-                            accountStore.addAccount(account);
+                            accountStore.addAccount(account, azureDeviceCode);
                         }
                     } else {
-                        // TODO: Kick off refresh token process
+                        let accountMapping = accountStore.getAccount(value.key.id);
+                        let azureAuth = accountMapping[1];
+                        let account = accountMapping[0];
+                        let newAccount = azureAuth.refreshAccess(account);
+                        accountStore.addAccount(newAccount, azureAuth);
                     }
 
                 }
@@ -146,7 +142,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         if (this.authenticationType) {
             if (this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated] ||
-                this.authenticationType === AuthenticationTypes[AuthenticationTypes.ActiveDirectoryUniversal]) {
+                this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA]) {
                 return utils.isNotEmpty(this.server);
             } else {
                 return utils.isNotEmpty(this.server)
@@ -157,7 +153,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     }
 
     private isAzureActiveDirectory(): boolean {
-        return this.authenticationType === AuthenticationTypes[AuthenticationTypes.ActiveDirectoryUniversal];
+        return this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA];
     }
 
     public static getAzureAuthChoices(): INameValueChoice[] {
@@ -173,9 +169,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         let accounts = accountStore.getAccounts();
         let choices: Array<INameValueChoice> = [];
 
-        if (accounts.length > 0) {
+        if (accounts.size > 0) {
             for (let account of accounts) {
-                choices.push({ name: account.displayInfo.displayName, value: account });
+                choices.push({ name: account[1][0].displayInfo.displayName, value: account[1][0] });
             }
         }
         return choices;

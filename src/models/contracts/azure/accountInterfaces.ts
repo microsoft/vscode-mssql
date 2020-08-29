@@ -42,7 +42,7 @@ export interface IAccountKey {
     /**
      * Identifier for the account, unique to the provider
      */
-    accountId: string;
+    id: string;
 }
 
 /**
