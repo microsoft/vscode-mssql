@@ -88,6 +88,11 @@ export interface IConnectionCredentials {
     authenticationType: string;
 
     /**
+     * Gets or sets the azure account token to use
+     */
+    azureAccountToken: string;
+
+    /**
      * Gets or sets a Boolean value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if
      * the server has a certificate installed.
      */

@@ -23,17 +23,17 @@ const publicAzureSettings: ProviderSettings = {
             id: 'arm',
             resource: '',
             endpoint: 'https://management.azure.com'
-        }
+        },
         // graphResource: {
         //     id: '',
         //     resource: '',
         //     endpoint: ''
         // },
-        // databaseResource: {
-        //     id: '',
-        //     resource: '',
-        //     endpoint: ''
-        // },
+        databaseResource: {
+            id: 'sql',
+            resource: 'Sql',
+            endpoint: 'https://database.windows.net/'
+        }
         // ossRdbmsResource: {
         //     id: '',
         //     resource: '',

@@ -89,7 +89,13 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                             account = await azureCodeGrant.startLogin();
                             accountStore.addAccount(account, azureCodeGrant);
                             // azureController.cacheService.get()
-                            // profile.azureAccountToken
+                            let commonTenant = {
+                                id: 'common',
+                                displayName: 'common'
+                            };
+                            profile.azureAccountToken =  azureCodeGrant.getAccountSecurityToken(
+                                account, commonTenant, providerSettings.resources.databaseResource
+                            );
                         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                             let azureLogger = new AzureLogger();
                             let azureController = new AzureController(context, azureLogger);

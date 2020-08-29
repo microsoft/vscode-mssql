@@ -20,6 +20,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public password: string;
     public port: number;
     public authenticationType: string;
+    public azureAccountToken: string;
     public encrypt: boolean;
     public trustServerCertificate: boolean;
     public persistSecurityInfo: boolean;
@@ -60,6 +61,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         details.options['user'] = credentials.user;
         details.options['password'] = credentials.password;
         details.options['authenticationType'] = credentials.authenticationType;
+        details.options['azureAccountToken'] = credentials.azureAccountToken;
         details.options['encrypt'] = credentials.encrypt;
         details.options['trustServerCertificate'] = credentials.trustServerCertificate;
         details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
