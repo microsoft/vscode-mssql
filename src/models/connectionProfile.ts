@@ -96,6 +96,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                             profile.azureAccountToken =  azureCodeGrant.getAccountSecurityToken(
                                 account, commonTenant, providerSettings.resources.databaseResource
                             );
+                            console.log('hi');
                         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                             let azureLogger = new AzureLogger();
                             let azureController = new AzureController(context, azureLogger);

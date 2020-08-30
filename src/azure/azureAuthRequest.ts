@@ -11,6 +11,7 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as vscode from 'vscode';
 import { AzureLogger } from '../azure/azureLogger';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class AzureAuthRequest implements AuthRequest {
     simpleWebServer: SimpleWebServer;
@@ -18,6 +19,8 @@ export class AzureAuthRequest implements AuthRequest {
     nonce: string;
     context: vscode.ExtensionContext;
     logger: AzureLogger;
+    _vscodeWrapper: VscodeWrapper;
+
 
     constructor(context: vscode.ExtensionContext, logger: AzureLogger) {
         this.simpleWebServer = new SimpleWebServer();
@@ -25,6 +28,7 @@ export class AzureAuthRequest implements AuthRequest {
         this.nonce = crypto.randomBytes(16).toString('base64');
         this.context = context;
         this.logger = logger;
+        this._vscodeWrapper = new VscodeWrapper();
     }
 
     public getState(): string {
@@ -121,6 +125,14 @@ export class AzureAuthRequest implements AuthRequest {
 
     public async displayDeviceCodeScreen(msg: string, userCode: string, verificationUrl: string): Promise<void> {
         // create a notification with the device code message, usercode, and verificationurl
+        const selection = await this._vscodeWrapper.showInformationMessage(msg, 'Copy code and open webpage');
+        if (selection === 'Copy code and open webpage') {
+            this._vscodeWrapper.clipboardWriteText(userCode);
+            let test = await vscode.env.openExternal(vscode.Uri.parse(verificationUrl));
+            console.log(msg);
+            console.log(userCode);
+            console.log(verificationUrl);
+        }
 
 
         return;
