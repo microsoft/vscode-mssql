@@ -1,4 +1,4 @@
-import UserInteraction from 'aad-library';
+import UserInteraction from '@cssuh/ads-adal-library';
 import * as vscode from 'vscode';
 
 export class AzureUserInteraction implements UserInteraction {

@@ -202,12 +202,6 @@ export class ConnectionCredentials implements IConnectionCredentials {
                     ) {
                         return LocalizedConstants.macSierraRequiredErrorMessage;
                     } else if (value === utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
-                        //TODO: parameterize all the strings
-                        // check if Azure Account is installed - if not, prompt user to install
-                        // need to prompt user to select code grant or device code for login
-                        return undefined;
-                        } else {
-                        // Also, hook into AAD MFA here
                         return undefined;
                     }
                     return undefined;

@@ -11,7 +11,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureCodeGrant, AzureAuthType, AzureDeviceCode } from 'aad-library';
+import { AzureCodeGrant, AzureAuthType, AzureDeviceCode } from '@cssuh/ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 import { AzureLogger } from '../azure/azureLogger';
@@ -92,7 +92,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                                 account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
                             );
                             profile.azureAccountToken = token.token;
-                            console.log('hi');
                         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                             let azureLogger = new AzureLogger();
                             let azureController = new AzureController(context, azureLogger);
@@ -104,6 +103,10 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                             );
                             account = await azureDeviceCode.startLogin();
                             accountStore.addAccount(account, azureDeviceCode);
+                            const token = await azureDeviceCode.getAccountSecurityToken(
+                                account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                            );
+                            profile.azureAccountToken = token.token;
                         }
                     } else {
                         let accountMapping = accountStore.getAccount(value.key.id);

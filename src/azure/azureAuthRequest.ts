@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AuthRequest } from 'aad-library';
+import { AuthRequest } from '@cssuh/ads-adal-library';
 import { SimpleWebServer } from './simpleWebServer';
 import * as crypto from 'crypto';
 import * as http from 'http';
@@ -135,6 +135,10 @@ export class AzureAuthRequest implements AuthRequest {
         }
 
 
+        return;
+    }
+
+    public async closeDeviceCodeScreen(): Promise<void> {
         return;
     }
 

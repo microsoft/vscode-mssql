@@ -58,6 +58,14 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
+"@cssuh/ads-adal-library@1.0.0":
+  version "1.0.0"
+  resolved "https://npm.pkg.github.com/download/@cssuh/ads-adal-library/1.0.0/3475c4bcaac6036bc710905e469bea41f5ade74bc414b28c00b9dd5d1f1ce9af#fe7e097fd27329828e9acbc6aef63a5969cd7fe5"
+  integrity sha512-OVh40tCQ/2nxhTMkQVp20aml3t91jguvlkGOSFiqauAAjT4+AdhE9GVwlrL6zylb8iRlf29uM0o60j5OM3j05w==
+  dependencies:
+    axios "^0.19.2"
+    qs "^6.9.4"
+
 "@gulp-sourcemaps/map-sources@1.X":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@gulp-sourcemaps/map-sources/-/map-sources-1.0.0.tgz#890ae7c5d8c877f6d384860215ace9d7ec945bda"
@@ -126,13 +134,6 @@
   version "1.47.0"
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.47.0.tgz#4a4051c21ecaadcf383a2c4387bea282540e96de"
   integrity sha512-nJA37ykkz9FYA0ZOQUSc3OZnhuzEW2vUhUEo4MiduUo82jGwwcLfyvmgd/Q7b0WrZAAceojGhZybg319L24bTA==
-
-"aad-library@git+https://4f8cdfdda9bd1a6e332437707412476b56022d9b:x-oauth-basic@github.com/cssuh/aad-library.git#master":
-  version "1.0.0"
-  resolved "git+https://4f8cdfdda9bd1a6e332437707412476b56022d9b:x-oauth-basic@github.com/cssuh/aad-library.git#7a7eae133b475958e81d905ffef6b2b39410cee7"
-  dependencies:
-    axios "^0.19.2"
-    qs "^6.9.4"
 
 abbrev@1:
   version "1.1.1"

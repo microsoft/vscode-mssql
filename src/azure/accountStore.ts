@@ -8,7 +8,7 @@ import vscode = require('vscode');
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import Constants = require('../constants/constants');
 import Utils = require('../models/utils');
-import { AzureAuth } from 'aad-library';
+import { AzureAuth } from '@cssuh/ads-adal-library';
 
 export interface IAccountMapping {
     account: IAccount;

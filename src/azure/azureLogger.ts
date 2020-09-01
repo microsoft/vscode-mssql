@@ -1,4 +1,4 @@
-import Logger from 'aad-library';
+import Logger from '@cssuh/ads-adal-library';
 
 export class AzureLogger implements Logger {
     public log(msg: any, ...vals: any[]): void {
