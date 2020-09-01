@@ -21,7 +21,7 @@ const publicAzureSettings: ProviderSettings = {
         },
         azureManagementResource: {
             id: 'arm',
-            resource: '',
+            resource: 'AzureResourceManagement',
             endpoint: 'https://management.azure.com'
         },
         // graphResource: {

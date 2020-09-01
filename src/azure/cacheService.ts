@@ -84,23 +84,23 @@ export class SimpleTokenCache implements CachingProvider {
 
         this.db = new StorageService(filePath, fileOpener, fileSaver);
         await this.db.initialize();
-
+        const self = this;
         const fileKeytar: Keytar = {
             async getPassword(service: string, account: string): Promise<string> {
-                return this.db.get(`${service}${separator}${account}`);
+                return self.db.get(`${service}${separator}${account}`);
             },
 
             async setPassword(service: string, account: string, password: string): Promise<void> {
-                await this.db.set(`${service}${separator}${account}`, password);
+                await self.db.set(`${service}${separator}${account}`, password);
             },
 
             async deletePassword(service: string, account: string): Promise<boolean> {
-                await this.db.remove(`${service}${separator}${account}`);
+                await self.db.remove(`${service}${separator}${account}`);
                 return true;
             },
 
             async getPasswords(service: string): Promise<MultipleAccountsResponse> {
-                const result = this.db.getPrefix(`${service}`);
+                const result = self.db.getPrefix(`${service}`);
                 if (!result) {
                     return [];
                 }

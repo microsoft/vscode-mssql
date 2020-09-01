@@ -127,6 +127,12 @@
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.47.0.tgz#4a4051c21ecaadcf383a2c4387bea282540e96de"
   integrity sha512-nJA37ykkz9FYA0ZOQUSc3OZnhuzEW2vUhUEo4MiduUo82jGwwcLfyvmgd/Q7b0WrZAAceojGhZybg319L24bTA==
 
+"aad-library@git+https://4f8cdfdda9bd1a6e332437707412476b56022d9b:x-oauth-basic@github.com/cssuh/aad-library.git#master":
+  version "1.0.0"
+  resolved "git+https://4f8cdfdda9bd1a6e332437707412476b56022d9b:x-oauth-basic@github.com/cssuh/aad-library.git#7a7eae133b475958e81d905ffef6b2b39410cee7"
+  dependencies:
+    axios "^0.19.2"
+    qs "^6.9.4"
 
 abbrev@1:
   version "1.1.1"

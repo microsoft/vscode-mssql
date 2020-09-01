@@ -88,14 +88,10 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                             );
                             account = await azureCodeGrant.startLogin();
                             accountStore.addAccount(account, azureCodeGrant);
-                            // azureController.cacheService.get()
-                            let commonTenant = {
-                                id: 'common',
-                                displayName: 'common'
-                            };
-                            profile.azureAccountToken =  azureCodeGrant.getAccountSecurityToken(
-                                account, commonTenant, providerSettings.resources.databaseResource
+                            const token = await azureCodeGrant.getAccountSecurityToken(
+                                account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
                             );
+                            profile.azureAccountToken = token.token;
                             console.log('hi');
                         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                             let azureLogger = new AzureLogger();
@@ -111,8 +107,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                         }
                     } else {
                         let accountMapping = accountStore.getAccount(value.key.id);
-                        let azureAuth = accountMapping[1];
-                        let account = accountMapping[0];
+                        let azureAuth = accountMapping.azureAuth;
+                        let account = accountMapping.account;
                         let newAccount = azureAuth.refreshAccess(account);
                         accountStore.addAccount(newAccount, azureAuth);
                     }
@@ -178,7 +174,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         if (accounts.size > 0) {
             for (let account of accounts) {
-                choices.push({ name: account[1][0].displayInfo.displayName, value: account[1][0] });
+                choices.push({ name: account[1].account.displayInfo.displayName, value: account[1].account });
             }
         }
         return choices;

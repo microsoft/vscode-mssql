@@ -66,6 +66,7 @@
     "@angular/platform-browser-dynamic": "~2.1.2",
     "@angular/router": "~3.1.2",
     "@angular/upgrade": "~2.1.2",
+    "@cssuh/ads-adal-library": "1.0.0",
     "@types/ejs": "^2.6.3",
     "@types/jquery": "^3.3.31",
     "@types/jqueryui": "^1.12.7",
