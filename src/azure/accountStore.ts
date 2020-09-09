@@ -11,47 +11,46 @@ import Utils = require('../models/utils');
 import AzureAuth = require('@cssuh/ads-adal-library');
 import { config } from 'vscode-nls';
 
-export interface IAccountMapping {
-    account: IAccount;
-    azureAuth: AzureAuth;
-}
-export class AccountMapping implements IAccountMapping {
-    account: IAccount;
-    azureAuth: AzureAuth;
-    constructor(
-        account: IAccount, azureAuth: AzureAuth
-    ) {
-        this.account = account;
-        this.azureAuth = azureAuth;
-    }
-}
+// export interface IAccount {
+//     account: IAccount;
+//     azureAuth: AzureAuth;
+// }
+// export class AccountMapping implements IAccount {
+//     account: IAccount;
+//     azureAuth: AzureAuth;
+//     constructor(
+//         account: IAccount, azureAuth: AzureAuth
+//     ) {
+//         this.account = account;
+//         this.azureAuth = azureAuth;
+//     }
+// }
 
 export class AccountStore {
-    private authMappings = new Map<string, IAccountMapping>();
+    private authMappings = new Map<string, IAccount>();
     constructor(
         private _context: vscode.ExtensionContext
     ) { }
 
-    public getAccounts(): Map<string, IAccountMapping> {
-        let configValues = this._context.globalState.get<Map<string, IAccountMapping>>(Constants.configAzureAccount);
+    public getAccounts(): Map<string, IAccount> {
+        let configValues = this._context.globalState.get<Map<string, IAccount>>(Constants.configAzureAccount);
         if (!configValues) {
-            configValues = new Map<string, IAccountMapping>();
+            configValues = new Map<string, IAccount>();
         }
         return configValues;
     }
 
-    public getAccount(key: string): IAccountMapping {
-        let configValues = this._context.globalState.get<Map<string, IAccountMapping>>(Constants.configAzureAccount);
+    public getAccount(key: string): IAccount {
+        let configValues = this._context.globalState.get<Map<string, IAccount>>(Constants.configAzureAccount);
         if (!configValues) {
             // Throw error message saying there are no accounts stored
         }
-        for (let account of configValues) {
-            if (account[0] === key) {
-                return account[1];
-            }
+        let account = configValues.get(key);
+        if (!account) {
+            // Throw error message saying the account was not found
+            return undefined;
         }
-        // Throw error message saying the account was not found
-        return undefined;
+        return account;
     }
 
     public removeAccount(key: string): void {
@@ -77,10 +76,9 @@ export class AccountStore {
                     configValues.delete(account.key.id);
                 }
             } else {
-                configValues = new Map<string, IAccountMapping>();
+                configValues = new Map<string, IAccount>();
             }
-            let object = new AccountMapping(account, azureAuth);
-            configValues.set(account.key.id, object);
+            configValues.set(account.key.id, account);
             self._context.globalState.update(Constants.configAzureAccount, configValues)
             .then(() => {
                 // And resolve / reject at the end of the process
@@ -93,7 +91,7 @@ export class AccountStore {
 
     public async clearAccounts(): Promise<void> {
         try {
-            let configValues = new Map<string, IAccountMapping>();
+            let configValues = new Map<string, IAccount>();
             await this._context.globalState.update(Constants.configAzureAccount, configValues);
         } catch (error) {
             Promise.reject(error);

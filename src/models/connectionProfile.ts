@@ -125,15 +125,13 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
             } else {
                 let aadResource: AADResource = answers.AAD;
-                let accountMapping = accountStore.getAccount(aadResource.key.id);
-                let azureAuth = accountMapping.azureAuth;
-                let account = accountMapping.account;
-                let newAccount = await azureAuth.refreshAccess(account);
-                await accountStore.addAccount(newAccount, azureAuth);
-                const token = await azureAuth.getAccountSecurityToken(
-                    account, azureAuth.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                );
-                profile.azureAccountToken = token.token;
+                let account = accountStore.getAccount(aadResource.key.id);
+                // let newAccount = await azureAuth.refreshAccess(account);
+                // await accountStore.addAccount(newAccount, azureAuth);
+                // const token = await azureAuth.getAccountSecurityToken(
+                //     account, azureAuth.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                // );
+                // profile.azureAccountToken = token.token;
             }
             if (answers && profile.isValidProfile()) {
                 return profile;
@@ -180,7 +178,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         if (accounts.size > 0) {
             for (let account of accounts) {
-                choices.push({ name: account[1].account.displayInfo.displayName, value: account[1].account });
+                choices.push({ name: account[1].displayInfo.displayName, value: account[1] });
             }
         }
         return choices;
