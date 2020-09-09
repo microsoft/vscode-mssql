@@ -58,10 +58,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@cssuh/ads-adal-library@1.0.0":
-  version "1.0.0"
-  resolved "https://npm.pkg.github.com/download/@cssuh/ads-adal-library/1.0.0/3475c4bcaac6036bc710905e469bea41f5ade74bc414b28c00b9dd5d1f1ce9af#fe7e097fd27329828e9acbc6aef63a5969cd7fe5"
-  integrity sha512-OVh40tCQ/2nxhTMkQVp20aml3t91jguvlkGOSFiqauAAjT4+AdhE9GVwlrL6zylb8iRlf29uM0o60j5OM3j05w==
+"@cssuh/ads-adal-library@1.0.3":
+  version "1.0.3"
+  resolved "https://npm.pkg.github.com/download/@cssuh/ads-adal-library/1.0.3/119eaf592af0e70789c5227a02ab41d4e535603f64ff7583a81396011f41814d#5c5040eb6dd37a0bd5ff073c098a15a5ae5fdf84"
+  integrity sha512-NZTuPTwHu3fLdZOaF9HvX3I7+Z1JBM+xzAmq9XHqMmmOxBl7+5kmSGHa7VNbay/zbDpGNFvGlKLUqanzBvLuuA==
   dependencies:
     axios "^0.19.2"
     qs "^6.9.4"

@@ -11,7 +11,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureCodeGrant, AzureAuthType, AzureDeviceCode } from '@cssuh/ads-adal-library';
+import { AzureCodeGrant, AzureAuthType, AzureDeviceCode, AADResource } from '@cssuh/ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 import { AzureLogger } from '../azure/azureLogger';
@@ -41,9 +41,10 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         prompter: IPrompter,
         connectionStore: ConnectionStore,
         context: vscode.ExtensionContext,
-        defaultProfileValues?: IConnectionProfile): Promise<IConnectionProfile> {
+        accountStore?: AccountStore,
+        defaultProfileValues?: IConnectionProfile
+        ): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
-        let accountStore = new AccountStore(context);
         // Ensure all core properties are entered
         let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
         if (authOptions.length === 1) {
@@ -72,51 +73,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 name: 'AAD',
                 message: 'Choose an Azure Active Directory Account',
                 choices: azureAccountChoices,
-                shouldPrompt: (answers) => profile.isAzureActiveDirectory(),
-                onAnswered: async value => {
-                    if (value === 'addAccount') {
-                        let account: IAccount;
-                        let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
-                        if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
-                            let azureLogger = new AzureLogger();
-                            let azureController = new AzureController(context, azureLogger);
-                            await azureController.init();
-                            let azureCodeGrant = new AzureCodeGrant(
-                                providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
-                                azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
-                                azureController.azureStringLookup, azureController.authRequest
-                            );
-                            account = await azureCodeGrant.startLogin();
-                            accountStore.addAccount(account, azureCodeGrant);
-                            const token = await azureCodeGrant.getAccountSecurityToken(
-                                account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                            );
-                            profile.azureAccountToken = token.token;
-                        } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
-                            let azureLogger = new AzureLogger();
-                            let azureController = new AzureController(context, azureLogger);
-                            await azureController.init();
-                            let azureDeviceCode = new AzureDeviceCode (
-                                providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
-                                azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
-                                azureController.azureStringLookup, azureController.authRequest
-                            );
-                            account = await azureDeviceCode.startLogin();
-                            accountStore.addAccount(account, azureDeviceCode);
-                            const token = await azureDeviceCode.getAccountSecurityToken(
-                                account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                            );
-                            profile.azureAccountToken = token.token;
-                        }
-                    } else {
-                        let accountMapping = accountStore.getAccount(value.key.id);
-                        let azureAuth = accountMapping.azureAuth;
-                        let account = accountMapping.account;
-                        let newAccount = azureAuth.refreshAccess(account);
-                        accountStore.addAccount(newAccount, azureAuth);
-                    }
-
-                }
+                shouldPrompt: (answers) => profile.isAzureActiveDirectory()
             },
             {
                 type: QuestionTypes.input,
@@ -131,7 +88,53 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         });
 
-        return prompter.prompt(questions, true).then(answers => {
+        return prompter.prompt(questions, true).then(async answers => {
+            if (answers.AAD === 'addAccount') {
+                let account: IAccount;
+                let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
+                if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
+                    let azureLogger = new AzureLogger();
+                    let azureController = new AzureController(context, azureLogger);
+                    await azureController.init();
+                    let azureCodeGrant = new AzureCodeGrant(
+                        providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
+                        azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
+                        azureController.azureStringLookup, azureController.authRequest
+                    );
+                    account = await azureCodeGrant.startLogin();
+                    await accountStore.addAccount(account, azureCodeGrant);
+                    const token = await azureCodeGrant.getAccountSecurityToken(
+                        account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                    );
+                    profile.azureAccountToken = token.token;
+                } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
+                    let azureLogger = new AzureLogger();
+                    let azureController = new AzureController(context, azureLogger);
+                    await azureController.init();
+                    let azureDeviceCode = new AzureDeviceCode (
+                        providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
+                        azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
+                        azureController.azureStringLookup, azureController.authRequest
+                    );
+                    account = await azureDeviceCode.startLogin();
+                    await accountStore.addAccount(account, azureDeviceCode);
+                    const token = await azureDeviceCode.getAccountSecurityToken(
+                        account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                    );
+                    profile.azureAccountToken = token.token;
+                }
+            } else {
+                let aadResource: AADResource = answers.AAD;
+                let accountMapping = accountStore.getAccount(aadResource.key.id);
+                let azureAuth = accountMapping.azureAuth;
+                let account = accountMapping.account;
+                let newAccount = await azureAuth.refreshAccess(account);
+                await accountStore.addAccount(newAccount, azureAuth);
+                const token = await azureAuth.getAccountSecurityToken(
+                    account, azureAuth.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                );
+                profile.azureAccountToken = token.token;
+            }
             if (answers && profile.isValidProfile()) {
                 return profile;
             }

@@ -204,8 +204,8 @@ export function formatString(str: string, ...args: any[]): string {
 /**
  * Compares 2 accounts to see if they are the same.
  */
-export function isSameAccount(currentAccount: IAccount, newAccount: IAccount): boolean {
-    return currentAccount.key === newAccount.key;
+export function isSameAccountKey(currentAccountKey: string, newAccountKey: string): boolean {
+    return currentAccountKey === newAccountKey;
 }
 
 /**

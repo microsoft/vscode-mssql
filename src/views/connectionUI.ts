@@ -18,6 +18,7 @@ import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
 import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
+import { AccountStore } from '../azure/accountStore';
 
 /**
  * The different tasks for managing connection profiles.
@@ -41,7 +42,12 @@ export class ConnectionUI {
         private _context: vscode.ExtensionContext,
         private _connectionStore: ConnectionStore,
         private _prompter: IPrompter,
-        private _vscodeWrapper?: VscodeWrapper) {
+        private _vscodeWrapper?: VscodeWrapper,
+        private _accountStore?: AccountStore
+        ) {
+        if (!this._accountStore) {
+            this._accountStore = new AccountStore(_context);
+        }
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
@@ -539,7 +545,7 @@ export class ConnectionUI {
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
-        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context);
+        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore);
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -556,7 +562,7 @@ export class ConnectionUI {
         let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
         return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
-                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, profile);
+                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore, profile);
             } else {
                 return undefined;
             }

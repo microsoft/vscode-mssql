@@ -8,11 +8,22 @@ import vscode = require('vscode');
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import Constants = require('../constants/constants');
 import Utils = require('../models/utils');
-import { AzureAuth } from '@cssuh/ads-adal-library';
+import AzureAuth = require('@cssuh/ads-adal-library');
+import { config } from 'vscode-nls';
 
 export interface IAccountMapping {
     account: IAccount;
     azureAuth: AzureAuth;
+}
+export class AccountMapping implements IAccountMapping {
+    account: IAccount;
+    azureAuth: AzureAuth;
+    constructor(
+        account: IAccount, azureAuth: AzureAuth
+    ) {
+        this.account = account;
+        this.azureAuth = azureAuth;
+    }
 }
 
 export class AccountStore {
@@ -23,8 +34,8 @@ export class AccountStore {
 
     public getAccounts(): Map<string, IAccountMapping> {
         let configValues = this._context.globalState.get<Map<string, IAccountMapping>>(Constants.configAzureAccount);
-        if (configValues.size === 0) {
-            return undefined;
+        if (!configValues) {
+            configValues = new Map<string, IAccountMapping>();
         }
         return configValues;
     }
@@ -43,6 +54,10 @@ export class AccountStore {
         return undefined;
     }
 
+    public removeAccount(key: string): void {
+        return;
+    }
+
     /**
      * Adds an account to the account store.
      * Password values are stored to a separate credential store if the "savePassword" option is true
@@ -55,16 +70,18 @@ export class AccountStore {
         //TODO: add check to make sure account is not already present from the current list of accounts
 
         return new Promise<void>((resolve, reject) => {
-            // let configValues = self.getAccounts();
-            // Remove the account from the list if it already exists
-            // configValues = configValues.filter(value => !Utils.isSameAccount(<IAccount>value, <IAccount>account));
-            let object = {
-                account: account,
-                azureAuth: azureAuth
-            };
-            self.authMappings.set(account.key.id, object);
-            // configValues.unshift(account);
-            self._context.globalState.update(Constants.configAzureAccount, self.authMappings)
+            let configValues = self.getAccounts();
+            // remove element if already present in map
+            if (configValues.size > 0) {
+                if (configValues.get(account.key.id)) {
+                    configValues.delete(account.key.id);
+                }
+            } else {
+                configValues = new Map<string, IAccountMapping>();
+            }
+            let object = new AccountMapping(account, azureAuth);
+            configValues.set(account.key.id, object);
+            self._context.globalState.update(Constants.configAzureAccount, configValues)
             .then(() => {
                 // And resolve / reject at the end of the process
                 resolve(undefined);
@@ -76,7 +93,8 @@ export class AccountStore {
 
     public async clearAccounts(): Promise<void> {
         try {
-            await this._context.globalState.update(Constants.configAzureAccount, []);
+            let configValues = new Map<string, IAccountMapping>();
+            await this._context.globalState.update(Constants.configAzureAccount, configValues);
         } catch (error) {
             Promise.reject(error);
         }
