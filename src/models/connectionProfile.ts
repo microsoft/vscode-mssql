@@ -126,12 +126,42 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             } else {
                 let aadResource: AADResource = answers.AAD;
                 let account = accountStore.getAccount(aadResource.key.id);
-                // let newAccount = await azureAuth.refreshAccess(account);
-                // await accountStore.addAccount(newAccount, azureAuth);
-                // const token = await azureAuth.getAccountSecurityToken(
-                //     account, azureAuth.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                // );
-                // profile.azureAccountToken = token.token;
+                if (!account) {
+                    throw new Error('account not found');
+                }
+                if (account.properties.azureAuthType === 0) {
+                    // Auth Code Grant
+                    let azureLogger = new AzureLogger();
+                    let azureController = new AzureController(context, azureLogger);
+                    await azureController.init();
+                    let azureCodeGrant = new AzureCodeGrant(
+                        providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
+                        azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
+                        azureController.azureStringLookup, azureController.authRequest
+                    );
+                    let newAccount = await azureCodeGrant.refreshAccess(account);
+                    await accountStore.addAccount(newAccount, azureCodeGrant);
+                    const token = await azureCodeGrant.getAccountSecurityToken(
+                        account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                    );
+                    profile.azureAccountToken = token.token;
+                } else if (account.properties.azureAuthType === 1) {
+                    // Device Code
+                    let azureLogger = new AzureLogger();
+                    let azureController = new AzureController(context, azureLogger);
+                    await azureController.init();
+                    let azureDeviceCode = new AzureDeviceCode(
+                        providerSettings, azureController.storageService, azureController.cacheService, azureLogger,
+                        azureController.azureMessageDisplayer, azureController.azureErrorLookup, azureController.azureUserInteraction,
+                        azureController.azureStringLookup, azureController.authRequest
+                    );
+                    let newAccount = await azureDeviceCode.refreshAccess(account);
+                    await accountStore.addAccount(newAccount, azureDeviceCode);
+                    const token = await azureDeviceCode.getAccountSecurityToken(
+                        account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                    );
+                    profile.azureAccountToken = token.token;
+                }
             }
             if (answers && profile.isValidProfile()) {
                 return profile;
@@ -176,9 +206,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         let accounts = accountStore.getAccounts();
         let choices: Array<INameValueChoice> = [];
 
-        if (accounts.size > 0) {
+        if (accounts.length > 0) {
             for (let account of accounts) {
-                choices.push({ name: account[1].displayInfo.displayName, value: account[1] });
+                choices.push({ name: account.displayInfo.displayName, value: account });
             }
         }
         return choices;

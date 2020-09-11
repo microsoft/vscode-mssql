@@ -27,25 +27,30 @@ import { config } from 'vscode-nls';
 // }
 
 export class AccountStore {
-    private authMappings = new Map<string, IAccount>();
     constructor(
         private _context: vscode.ExtensionContext
     ) { }
 
-    public getAccounts(): Map<string, IAccount> {
-        let configValues = this._context.globalState.get<Map<string, IAccount>>(Constants.configAzureAccount);
+    public getAccounts(): IAccount[] {
+        let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
         if (!configValues) {
-            configValues = new Map<string, IAccount>();
+            configValues = [];
         }
         return configValues;
     }
 
     public getAccount(key: string): IAccount {
-        let configValues = this._context.globalState.get<Map<string, IAccount>>(Constants.configAzureAccount);
+        let account: IAccount;
+        let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
         if (!configValues) {
             // Throw error message saying there are no accounts stored
         }
-        let account = configValues.get(key);
+        for (let value of configValues) {
+            if (value.key.id === key) {
+                account = value;
+                break;
+            }
+        }
         if (!account) {
             // Throw error message saying the account was not found
             return undefined;
@@ -71,14 +76,19 @@ export class AccountStore {
         return new Promise<void>((resolve, reject) => {
             let configValues = self.getAccounts();
             // remove element if already present in map
-            if (configValues.size > 0) {
-                if (configValues.get(account.key.id)) {
-                    configValues.delete(account.key.id);
+            if (configValues.length > 0) {
+                let i = 0;
+                for (let value of configValues) {
+                    if (value.key.id === account.key.id) {
+                        configValues.splice(i, 1);
+                        break;
+                    }
+                    i++;
                 }
             } else {
-                configValues = new Map<string, IAccount>();
+                configValues = [];
             }
-            configValues.set(account.key.id, account);
+            configValues.unshift(account);
             self._context.globalState.update(Constants.configAzureAccount, configValues)
             .then(() => {
                 // And resolve / reject at the end of the process
@@ -91,7 +101,7 @@ export class AccountStore {
 
     public async clearAccounts(): Promise<void> {
         try {
-            let configValues = new Map<string, IAccount>();
+            let configValues = [];
             await this._context.globalState.update(Constants.configAzureAccount, configValues);
         } catch (error) {
             Promise.reject(error);
