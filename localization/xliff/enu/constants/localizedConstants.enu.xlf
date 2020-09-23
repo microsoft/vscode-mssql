@@ -101,9 +101,6 @@
         <trans-unit id="authTypeSql">
             <source xml:lang="en">SQL Login</source>
         </trans-unit>
-        <trans-unit id="authTypeAzureActiveDirectory">
-            <source xml:lang="en">Azure Active Directory - Universal w/ MFA Support</source>
-        </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>
         </trans-unit>
