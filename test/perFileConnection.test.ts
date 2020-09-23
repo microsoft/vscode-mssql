@@ -81,8 +81,6 @@ function createTestConnectionManager(
     statusView?: StatusView,
     connectionStore?: ConnectionStore,
     connectionUI?: ConnectionUI): ConnectionManager {
-
-    let contextMock: TypeMoq.IMock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
     let prompterMock: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
     if (!statusView) {
         statusView = TypeMoq.Mock.ofType(StatusView).object;
@@ -95,7 +93,8 @@ function createTestConnectionManager(
         });
         connectionStore = connectionStoreMock.object;
     }
-    return new ConnectionManager(contextMock.object, statusView, prompterMock.object, serviceClient, wrapper, connectionStore, connectionUI);
+
+    return new ConnectionManager(TestExtensionContext.object, statusView, prompterMock.object, serviceClient, wrapper, connectionStore, connectionUI);
 }
 
 function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResult {
@@ -482,7 +481,6 @@ suite('Per File Connection Tests', () => {
 
     test('Prompts for new connection before running query if disconnected', () => {
         // Setup mocking
-        let contextMock: TypeMoq.IMock<ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => true);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'file://my/test/file.sql');
@@ -490,8 +488,7 @@ suite('Per File Connection Tests', () => {
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
         connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
         connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(undefined));
-
-        let controller: MainController = new MainController(contextMock.object,
+        let controller: MainController = new MainController(TestExtensionContext.object,
                                                             connectionManagerMock.object,
                                                             vscodeWrapperMock.object);
 
