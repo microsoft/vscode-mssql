@@ -16,7 +16,6 @@ import LocalizedConstants = require('../src/constants/localizedConstants');
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { TestExtensionContext } from './stubs';
 import assert = require('assert');
-import { connect } from 'http2';
 
 suite('MainController Tests', () => {
     let document: vscode.TextDocument;
@@ -186,9 +185,8 @@ suite('MainController Tests', () => {
     });
 
     test('TextDocument Events should handle non-initialized connection manager' , done => {
-        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-        let controller: MainController = new MainController(contextMock.object,
+        let controller: MainController = new MainController(TestExtensionContext.object,
             undefined,  // ConnectionManager
             vscodeWrapperMock.object);
 
@@ -228,10 +226,9 @@ suite('MainController Tests', () => {
     });
 
     test('validateTextDocumentHasFocus returns false if there is no active text document', () => {
-        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => undefined);
-        let controller: MainController = new MainController(contextMock.object,
+        let controller: MainController = new MainController(TestExtensionContext.object,
             undefined,  // ConnectionManager
             vscodeWrapperMock.object);
 
@@ -241,10 +238,9 @@ suite('MainController Tests', () => {
     });
 
     test('validateTextDocumentHasFocus returns true if there is an active text document', () => {
-        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test_uri');
-        let controller: MainController = new MainController(contextMock.object,
+        let controller: MainController = new MainController(TestExtensionContext.object,
             undefined,  // ConnectionManager
             vscodeWrapperMock.object);
 
@@ -253,10 +249,9 @@ suite('MainController Tests', () => {
     });
 
     test('onManageProfiles should call the connetion manager to manage profiles', async () => {
-        let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType(TestExtensionContext);
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         connectionManager.setup(c => c.onManageProfiles());
-        let controller: MainController = new MainController(contextMock.object,
+        let controller: MainController = new MainController(TestExtensionContext.object,
             connectionManager.object,
             vscodeWrapperMock.object);
         await controller.onManageProfiles();
