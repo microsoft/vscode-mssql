@@ -22,12 +22,13 @@ class TestPrompter implements IPrompter {
 }
 
 // Bare mock of the extension context for vscode
-const TestExtensionContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+const testExtensionContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 
 // Bare mock of a TextEditor for vscode
-const TestTextEditor = TypeMoq.Mock.ofType<vscode.TextEditor>();
+const testTextEditor = TypeMoq.Mock.ofType<vscode.TextEditor>();
 
-const TestMemento = TypeMoq.Mock.ofType<vscode.Memento>();
+// Bare mock of a memento object for vscode
+const testMemento = TypeMoq.Mock.ofType<vscode.Memento>();
 
 function createWorkspaceConfiguration(items: {[key: string]: any}, workspaceItems?: {[key: string]: any}): vscode.WorkspaceConfiguration {
     const result: vscode.WorkspaceConfiguration = {
@@ -121,4 +122,8 @@ class ExpressRequest {
     public body: any;
 }
 
-export { TestPrompter, TestExtensionContext, TestTextEditor, TestMemento, createWorkspaceConfiguration, ExpressRequest, ExpressResult };
+export { TestPrompter,
+    testExtensionContext as TestExtensionContext,
+    testTextEditor as TestTextEditor,
+    testMemento as TestMemento,
+    createWorkspaceConfiguration, ExpressRequest, ExpressResult };
