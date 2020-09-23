@@ -95,7 +95,7 @@
     "remap-istanbul": "^0.6.4",
     "rxjs": "5.0.0-beta.12",
     "systemjs-builder": "^0.15.32",
-    "slickgrid": "github:anthonydresser/SlickGrid#2.3.23-2",
+    "slickgrid": "github:kburtram/SlickGrid#2.3.23-2",
     "systemjs": "0.19.40",
     "systemjs-plugin-json": "^0.2.0",
     "tslint": "^5.16.0",
@@ -105,7 +105,7 @@
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vsce": "^1.58.0",
     "vscode-test": "^1.0.0",
-    "vscode-nls-dev": "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz",
+    "vscode-nls-dev": "2.0.1",
     "xmldom": "^0.1.27",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
