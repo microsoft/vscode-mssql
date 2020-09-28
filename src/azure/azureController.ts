@@ -2,7 +2,7 @@ import vscode = require('vscode');
 import { AzureStringLookup } from '../azure/azureStringLookup';
 import { AzureUserInteraction } from '../azure/azureUserInteraction';
 import { AzureErrorLookup } from '../azure/azureErrorLookup';
-import { AzureMessageDisplayer } from '../azure/azureMessageDisplayer';
+import { AzureMessageDisplayer } from './azureMessageDisplayer';
 import { AzureLogger } from '../azure/azureLogger';
 import { AzureAuthRequest } from './azureAuthRequest';
 import { SimpleTokenCache } from './cacheService';

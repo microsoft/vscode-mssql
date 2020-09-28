@@ -19,8 +19,7 @@ export class AzureUserInteraction implements UserInteraction {
         return;
     }
 
-    public async openUrl(signInUrl): Promise<void> {
-        await vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${this.port}/signin?nonce=${encodeURIComponent(this.nonce)}`));
-        return;
+    public async openUrl(signInUrl): Promise<boolean> {
+        return vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${this.port}/signin?nonce=${encodeURIComponent(this.nonce)}`));
     }
 }

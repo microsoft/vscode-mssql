@@ -20,7 +20,7 @@ body {
 }
 
 .branding {
-	background-image: url("https://ms-mssql.gallerycdn.vsassets.io/extensions/ms-mssql/mssql/1.9.0/1583529944241/Microsoft.VisualStudio.Services.Icons.Default");
+	background-image: url("/media/mssql-icon.Default");
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: left 50%;

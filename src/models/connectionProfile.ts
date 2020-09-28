@@ -53,7 +53,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         }
         let azureAuthChoices: INameValueChoice[] = ConnectionProfile.getAzureAuthChoices();
         let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
-        azureAccountChoices.unshift({ name: 'Add An Account...', value: 'addAccount'});
+        azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount'});
 
 
         let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true,
@@ -71,7 +71,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             {
                 type: QuestionTypes.expand,
                 name: 'AAD',
-                message: 'Choose an Azure Active Directory Account',
+                message: LocalizedConstants.azureChooseAccount,
                 choices: azureAccountChoices,
                 shouldPrompt: (answers) => profile.isAzureActiveDirectory()
             },
@@ -117,7 +117,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 }
                 if (account.properties.azureAuthType === 0) {
                     // Auth Code Grant
-                    let azureCodeGrant = profile.createAuthCodeGrant(context);
+                    let azureCodeGrant = await profile.createAuthCodeGrant(context);
                     let newAccount = await azureCodeGrant.refreshAccess(account);
                     await accountStore.addAccount(newAccount);
                     const token = await azureCodeGrant.getAccountSecurityToken(
@@ -126,7 +126,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     profile.azureAccountToken = token.token;
                 } else if (account.properties.azureAuthType === 1) {
                     // Device Code
-                    let azureDeviceCode = profile.createDeviceCode(context);
+                    let azureDeviceCode = await profile.createDeviceCode(context);
                     let newAccount = await azureDeviceCode.refreshAccess(account);
                     await accountStore.addAccount(newAccount);
                     const token = await azureDeviceCode.getAccountSecurityToken(

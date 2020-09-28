@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import LocalizedConstants = require('../constants/localizedConstants');
 import { AuthRequest } from '@cssuh/ads-adal-library';
 import { SimpleWebServer } from './simpleWebServer';
 import * as crypto from 'crypto';
@@ -36,7 +37,6 @@ export class AzureAuthRequest implements AuthRequest {
     }
 
     public async getAuthorizationCode(signInUrl: string, authComplete: Promise<void>): Promise<string> {
-        // await vscode.env.openExternal(vscode.Uri.parse(signInUrl));
         let mediaPath = path.join(this.context.extensionPath, 'media');
         // media path goes here - working directory for this extension
         const sendFile = async (res: http.ServerResponse, filePath: string, contentType: string): Promise<void> => {
@@ -125,8 +125,8 @@ export class AzureAuthRequest implements AuthRequest {
 
     public async displayDeviceCodeScreen(msg: string, userCode: string, verificationUrl: string): Promise<void> {
         // create a notification with the device code message, usercode, and verificationurl
-        const selection = await this._vscodeWrapper.showInformationMessage(msg, 'Copy code and open webpage');
-        if (selection === 'Copy code and open webpage') {
+        const selection = await this._vscodeWrapper.showInformationMessage(msg, LocalizedConstants.msgCopyAndOpenWebpage);
+        if (selection === LocalizedConstants.msgCopyAndOpenWebpage) {
             this._vscodeWrapper.clipboardWriteText(userCode);
             let test = await vscode.env.openExternal(vscode.Uri.parse(verificationUrl));
             console.log(msg);

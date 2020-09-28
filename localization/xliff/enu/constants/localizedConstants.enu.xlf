@@ -113,6 +113,15 @@
         <trans-unit id="azureAuthTypeDeviceCode">
             <source xml:lang="en">Azure Device Code</source>
         </trans-unit>
+        <trans-unit id="msgCopyAndOpenWebpage">
+            <source xml:lang="en">Copy code and open webpage</source>
+        </trans-unit>
+        <trans-unit id="azureChooseAccount">
+            <source xml:lang="en">Choose an Azure Active Directory Account</source>
+        </trans-unit>
+        <trans-unit id="azureAddAccount">
+            <source xml:lang="en">Add an Account...</source>
+        </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>
         </trans-unit>

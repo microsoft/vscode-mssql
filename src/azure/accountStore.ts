@@ -15,14 +15,11 @@ export class AccountStore {
     ) { }
 
     public getAccounts(): IAccount[] {
-        let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
-        if (!configValues) {
-            configValues = [];
-        }
+        let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount) ?? [];
         return configValues;
     }
 
-    public getAccount(key: string): IAccount {
+    public getAccount(key: string): IAccount | undefined {
         let account: IAccount;
         let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
         if (!configValues) {
@@ -42,6 +39,10 @@ export class AccountStore {
     }
 
     public removeAccount(key: string): void {
+        // TODO: implement function so users can sign out
+        let configValues = this.getAccounts();
+        configValues = configValues.filter(val => val.key.id !== key);
+        this._context.globalState.update(Constants.configAzureAccount, configValues);
         return;
     }
 
@@ -51,32 +52,17 @@ export class AccountStore {
      * @param {IAccount} account the account to add
      * @returns {Promise<void>} a Promise that returns when the account was saved
      */
-    public addAccount(account: IAccount): Promise<void> {
+    public async addAccount(account: IAccount): Promise<void> {
         const self = this;
-        return new Promise<void>((resolve, reject) => {
-            let configValues = self.getAccounts();
-            // remove element if already present in map
-            if (configValues.length > 0) {
-                let i = 0;
-                for (let value of configValues) {
-                    if (value.key.id === account.key.id) {
-                        configValues.splice(i, 1);
-                        break;
-                    }
-                    i++;
-                }
-            } else {
-                configValues = [];
-            }
-            configValues.unshift(account);
-            self._context.globalState.update(Constants.configAzureAccount, configValues)
-            .then(() => {
-                // And resolve / reject at the end of the process
-                resolve(undefined);
-            }, err => {
-                reject(err);
-            });
-        });
+        let configValues = self.getAccounts();
+        // remove element if already present in map
+        if (configValues.length > 0) {
+            configValues = configValues.filter(val => val.key.id !== account.key.id);
+        } else {
+            configValues = [];
+        }
+        configValues.unshift(account);
+        await self._context.globalState.update(Constants.configAzureAccount, configValues)
     }
 
     public async clearAccounts(): Promise<void> {
