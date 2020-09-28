@@ -22,7 +22,7 @@ suite('SqlOutputProvider Tests using mocks', () => {
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
     let mockContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
-    let context: TypeMoq.IMock<vscode.ExtensionContext>;
+    let context: TypeMoq.IMock<vscode.ExtensionContext> = stubs.TestExtensionContext;
     let statusView: TypeMoq.IMock<StatusView>;
     let mockMap: Map<string, any> = new Map<string, any>();
     let setSplitPaneSelectionConfig: (value: string) => void;
@@ -30,10 +30,10 @@ suite('SqlOutputProvider Tests using mocks', () => {
 
     setup(() => {
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
-        context = TypeMoq.Mock.ofType(stubs.TestExtensionContext);
         statusView = TypeMoq.Mock.ofType(StatusView);
         statusView.setup(x => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup(x => x.executedQuery(TypeMoq.It.isAny()));
+        context.setup(c => c.extensionPath).returns(() => 'test_uri');
         contentProvider = new SqlOutputContentProvider(context.object, statusView.object, vscodeWrapper.object);
         contentProvider.setVscodeWrapper = vscodeWrapper.object;
         setSplitPaneSelectionConfig = function(value: string): void {
@@ -46,12 +46,9 @@ suite('SqlOutputProvider Tests using mocks', () => {
             });
         };
         setCurrentEditorColumn = function(column: number): void {
-            vscodeWrapper.setup(x => x.activeTextEditor)
-            .returns(x => {
-                let editor: vscode.TextEditor = new stubs.TestTextEditor();
-                editor.viewColumn = column;
-                return editor;
-            });
+            let editor = stubs.TestTextEditor;
+            editor.setup(e => e.viewColumn).returns(() => column);
+            vscodeWrapper.setup(x => x.activeTextEditor).returns(() => editor.object);
         };
         mockContentProvider = TypeMoq.Mock.ofType(SqlOutputContentProvider, TypeMoq.MockBehavior.Loose);
         mockContentProvider.setup(p => p.getResultsMap).returns(() => mockMap);

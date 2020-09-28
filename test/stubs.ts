@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 'use strict';
+import * as TypeMoq from 'typemoq';
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
 import vscode = require('vscode');
 
@@ -21,52 +22,13 @@ class TestPrompter implements IPrompter {
 }
 
 // Bare mock of the extension context for vscode
-class TestExtensionContext implements vscode.ExtensionContext {
-    subscriptions: { dispose(): any }[];
-    workspaceState: vscode.Memento;
-    globalState: vscode.Memento;
-    extensionPath: string = 'test_path';
-    storagePath: string;
-    globalStoragePath: string;
-    logPath: string;
-    extensionUri: vscode.Uri = vscode.Uri.parse('test_uri');
-    environmentVariableCollection: vscode.EnvironmentVariableCollection = undefined;
-    extensionMode: vscode.ExtensionMode.Test;
-
-    asAbsolutePath(relativePath: string): string {
-        return undefined;
-    }
-}
+const testExtensionContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 
 // Bare mock of a TextEditor for vscode
-class TestTextEditor implements vscode.TextEditor {
-    document: vscode.TextDocument;
-    selection: vscode.Selection;
-    selections: vscode.Selection[];
-    options: vscode.TextEditorOptions;
-    viewColumn: vscode.ViewColumn;
-    visibleRanges: vscode.Range[];
+const testTextEditor = TypeMoq.Mock.ofType<vscode.TextEditor>();
 
-    edit(callback: (editBuilder: vscode.TextEditorEdit) => void): Thenable<boolean> { return undefined; }
-    setDecorations(decorationType: vscode.TextEditorDecorationType, rangesOrOptions: vscode.Range[] | vscode.DecorationOptions[]): void { return undefined; }
-    revealRange(range: vscode.Range, revealType?: vscode.TextEditorRevealType): void { return undefined; }
-    show(column?: vscode.ViewColumn): void { return undefined; }
-    hide(): void { return undefined; }
-    insertSnippet(snippet: vscode.SnippetString, location?: vscode.Position | vscode.Range | vscode.Position[] | vscode.Range[], options?:
-    { undoStopBefore: boolean; undoStopAfter: boolean; }): Thenable<boolean> {
-        return undefined;
-    }
-}
-
-class TestMemento implements vscode.Memento {
-    get<T>(key: string, defaultValue?: T): T {
-        return undefined;
-    }
-
-    update(key: string, value: any): Thenable<void> {
-        return Promise.resolve();
-    }
-}
+// Bare mock of a memento object for vscode
+const testMemento = TypeMoq.Mock.ofType<vscode.Memento>();
 
 function createWorkspaceConfiguration(items: {[key: string]: any}, workspaceItems?: {[key: string]: any}): vscode.WorkspaceConfiguration {
     const result: vscode.WorkspaceConfiguration = {
@@ -160,4 +122,8 @@ class ExpressRequest {
     public body: any;
 }
 
-export { TestPrompter, TestExtensionContext, TestTextEditor, TestMemento, createWorkspaceConfiguration, ExpressRequest, ExpressResult };
+export { TestPrompter,
+    testExtensionContext as TestExtensionContext,
+    testTextEditor as TestTextEditor,
+    testMemento as TestMemento,
+    createWorkspaceConfiguration, ExpressRequest, ExpressResult };

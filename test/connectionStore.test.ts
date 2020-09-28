@@ -50,9 +50,8 @@ suite('ConnectionStore tests', () => {
             password: 'asdf!@#$',
             savePassword: true
         });
-
-        context = TypeMoq.Mock.ofType<stubs.TestExtensionContext>();
-        globalstate = TypeMoq.Mock.ofType(stubs.TestMemento);
+        globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
+        context = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         context.setup(c => c.globalState).returns(() => globalstate.object);
         credentialStore = TypeMoq.Mock.ofType(CredentialStore);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
