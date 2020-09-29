@@ -41,13 +41,10 @@ export class ConnectionUI {
         private _connectionManager: ConnectionManager,
         private _context: vscode.ExtensionContext,
         private _connectionStore: ConnectionStore,
+        private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _vscodeWrapper?: VscodeWrapper,
-        private _accountStore?: AccountStore
+        private _vscodeWrapper?: VscodeWrapper
         ) {
-        if (!this._accountStore) {
-            this._accountStore = new AccountStore(_context);
-        }
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }

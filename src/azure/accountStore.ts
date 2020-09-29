@@ -53,8 +53,7 @@ export class AccountStore {
      * @returns {Promise<void>} a Promise that returns when the account was saved
      */
     public async addAccount(account: IAccount): Promise<void> {
-        const self = this;
-        let configValues = self.getAccounts();
+        let configValues = this.getAccounts();
         // remove element if already present in map
         if (configValues.length > 0) {
             configValues = configValues.filter(val => val.key.id !== account.key.id);
@@ -62,7 +61,7 @@ export class AccountStore {
             configValues = [];
         }
         configValues.unshift(account);
-        await self._context.globalState.update(Constants.configAzureAccount, configValues)
+        await this._context.globalState.update(Constants.configAzureAccount, configValues)
     }
 
     public async clearAccounts(): Promise<void> {

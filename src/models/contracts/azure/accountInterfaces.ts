@@ -25,6 +25,10 @@ export interface IAccountDisplayInfo {
      * User id that identifies the account, such as "user@contoso.com".
      */
     userId: string;
+    /**
+     * email for AAD
+     */
+    email?: string;
 }
 
 /**

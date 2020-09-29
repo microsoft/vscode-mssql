@@ -18,6 +18,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public database: string;
     public user: string;
     public password: string;
+    public email: string;
     public port: number;
     public authenticationType: string;
     public azureAccountToken: string;
@@ -43,6 +44,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public packetSize: number;
     public typeSystemVersion: string;
     public connectionString: string;
+
 
     /**
      * Create a connection details contract from connection credentials.

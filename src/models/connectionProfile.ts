@@ -100,6 +100,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                         account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
                     );
                     profile.azureAccountToken = token.token;
+                    profile.email = account.displayInfo.email;
                 } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                     let azureDeviceCode = await profile.createDeviceCode(context);
                     account = await azureDeviceCode.startLogin();
@@ -108,6 +109,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                         account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
                     );
                     profile.azureAccountToken = token.token;
+                    profile.email = account.displayInfo.email;
                 }
             } else {
                 let aadResource: AADResource = answers.AAD;
@@ -124,6 +126,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                         account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
                     );
                     profile.azureAccountToken = token.token;
+                    profile.email = account.displayInfo.email;
                 } else if (account.properties.azureAuthType === 1) {
                     // Device Code
                     let azureDeviceCode = await profile.createDeviceCode(context);
@@ -133,6 +136,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                         account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
                     );
                     profile.azureAccountToken = token.token;
+                    profile.email = account.displayInfo.email;
                 }
             }
             if (answers && profile.isValidProfile()) {

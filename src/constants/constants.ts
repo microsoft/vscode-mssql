@@ -62,6 +62,7 @@ export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
+export const azureMfa = 'AzureMFA';
 export const defaultPortNumber = 1433;
 export const sqlAuthentication = 'SqlLogin';
 export const defaultDatabase = 'master';

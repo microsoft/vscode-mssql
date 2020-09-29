@@ -130,10 +130,10 @@
   resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.8.3.tgz#d3cb512dd3dde32b2bbba4be0ca68bd3dad4a1f5"
   integrity sha512-DP70788BXjp9+CKArXOUlNkZaXa+rHonDpbqH3/74ez16dLL5z2/bMT37etbln5J+H9M07NbRUyduDIoTM2tnw==
 
-"@types/vscode@^1.47.0":
-  version "1.47.0"
-  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.47.0.tgz#4a4051c21ecaadcf383a2c4387bea282540e96de"
-  integrity sha512-nJA37ykkz9FYA0ZOQUSc3OZnhuzEW2vUhUEo4MiduUo82jGwwcLfyvmgd/Q7b0WrZAAceojGhZybg319L24bTA==
+"@types/vscode@^1.49.0":
+  version "1.49.0"
+  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.49.0.tgz#f3731d97d7e8b2697510eb26f6e6d04ee8c17352"
+  integrity sha512-wfNQmLmm1VdMBr6iuNdprWmC1YdrgZ9dQzadv+l2eSjJlElOdJw8OTm4RU4oGTBcfvG6RZI2jOcppkdSS18mZw==
 
 abbrev@1:
   version "1.1.1"
@@ -4773,9 +4773,9 @@ slash@^1.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
   integrity sha1-xB8vbDn8FtHNF61LXYlhFK5HDVU=
 
-"slickgrid@github:anthonydresser/SlickGrid#2.3.23-2":
+"slickgrid@github:kburtram/SlickGrid#2.3.23-2":
   version "2.3.23"
-  resolved "https://codeload.github.com/anthonydresser/SlickGrid/tar.gz/bdf93b113385502f9402170261390dc9065f2715"
+  resolved "https://codeload.github.com/kburtram/SlickGrid/tar.gz/bdf93b113385502f9402170261390dc9065f2715"
   dependencies:
     jquery ">=1.8.0"
     jquery-ui ">=1.8.0"
@@ -5776,9 +5776,10 @@ vscode-languageserver-types@3.14.0:
   resolved "https://registry.yarnpkg.com/vscode-languageserver-types/-/vscode-languageserver-types-3.14.0.tgz#d3b5952246d30e5241592b6dde8280e03942e743"
   integrity sha512-lTmS6AlAlMHOvPQemVwo3CezxBp0sNB95KNPkqp3Nxd5VFEnuG1ByM0zlRWos0zjO3ZWtkvhal0COgiV1xIA4A==
 
-"vscode-nls-dev@https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz":
+vscode-nls-dev@2.0.1:
   version "2.0.1"
-  resolved "https://github.com/Raymondd/vscode-nls-dev/releases/download/2.0.2/build.tar.gz#47707b8c825de23bf0891e7a129cfad0540db0cc"
+  resolved "https://registry.yarnpkg.com/vscode-nls-dev/-/vscode-nls-dev-2.0.1.tgz#df42222ac418c416f9f3ab3f13f12ab0c02a229d"
+  integrity sha1-30IiKsQYxBb586s/E/EqsMAqIp0=
   dependencies:
     clone "^1.0.2"
     event-stream "^3.3.2"

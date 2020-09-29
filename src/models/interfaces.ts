@@ -78,6 +78,11 @@ export interface IConnectionCredentials {
     password: string;
 
     /**
+     * email
+     */
+     email: string;
+
+    /**
      * The port number to connect to.
      */
     port: number;
