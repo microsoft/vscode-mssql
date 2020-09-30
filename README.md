@@ -375,3 +375,4 @@ This extension is [licensed under the MIT License]. Please see the [third-party 
 [opencode@microsoft.com]:mailto:opencode@microsoft.com
 [#669]:https://github.com/Microsoft/vscode-mssql/issues/669
 
+Thank you 😊,
