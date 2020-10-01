@@ -22,7 +22,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
 ## Version 1.9.0
-* Release date: March 5, 2019
+* Release date: March 5, 2020
 * Release status: GA
 
 ## What's new in 1.9.0
