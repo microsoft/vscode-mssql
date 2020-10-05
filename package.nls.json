@@ -30,6 +30,7 @@
 "mssql.objectExplorerNewQuery":"New Query",
 "mssql.toggleSqlCmd":"Toggle SQLCMD Mode",
 "mssql.copyObjectName":"Copy Object Name",
+"mssql.removeAadAccount":"Remove Azure Account",
 "mssql.rebuildIntelliSenseCache":"Refresh IntelliSense Cache",
 "mssql.logDebugInfo":"[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
 "mssql.maxRecentConnections":"The maximum number of recently used connections to store in the connection list.",

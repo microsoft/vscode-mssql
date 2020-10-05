@@ -58,6 +58,7 @@ export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const cmdAzureSignIn = 'azure-account.login';
 export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
 export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
+export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;

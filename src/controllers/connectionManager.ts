@@ -25,6 +25,9 @@ import { FirewallService } from '../firewall/firewallService';
 import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
 import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
+import { ConnectionProfile } from '../models/connectionProfile';
+import { QuestionTypes, IQuestion } from '../prompts/question';
+import { AADResource } from '@cssuh/ads-adal-library';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -778,6 +781,30 @@ export default class ConnectionManager {
         if (result) {
             await this.disconnect(oldFileUri);
         }
+    }
+
+    public async removeAccount(prompter: IPrompter): Promise<void> {
+        // list options for accounts to remove
+        let questions: IQuestion[] = [];
+        let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
+
+        questions.push(
+            {
+                type: QuestionTypes.expand,
+                name: 'account',
+                message: LocalizedConstants.azureChooseAccount,
+                choices: azureAccountChoices
+            }
+        );
+
+        return prompter.prompt(questions, true).then(async answers => {
+            if (answers.account) {
+                let aadResource: AADResource = answers.account;
+                this._accountStore.removeAccount(aadResource.key.id);
+            }
+        });
+
+
     }
 
     private getIsServerLinux(osVersion: string): string {

@@ -61,7 +61,7 @@ export class AccountStore {
             configValues = [];
         }
         configValues.unshift(account);
-        await this._context.globalState.update(Constants.configAzureAccount, configValues)
+        await this._context.globalState.update(Constants.configAzureAccount, configValues);
     }
 
     public async clearAccounts(): Promise<void> {

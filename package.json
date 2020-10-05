@@ -51,7 +51,8 @@
     "onCommand:mssql.addObjectExplorer",
     "onCommand:mssql.objectExplorerNewQuery",
     "onCommand:mssql.toggleSqlCmd",
-    "onCommand:mssql.loadCompletionExtension"
+    "onCommand:mssql.loadCompletionExtension",
+    "onCommand:mssql.removeAadAccount"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -504,6 +505,11 @@
       {
         "command": "mssql.copyObjectName",
         "title": "%mssql.copyObjectName%",
+        "group": "MS SQL"
+      },
+      {
+        "command": "mssql.removeAadAccount",
+        "title": "%mssql.removeAadAccount%",
         "group": "MS SQL"
       }
     ],
