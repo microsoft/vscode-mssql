@@ -11,6 +11,6 @@ export class AzureAuthError extends Error {
             errorCode: this.errorCode,
 			errorMessage: this.errorMessage,
 			originalException: this.originalException ?? ''
-		}, undefined, 2);
+		}, undefined, ErrorCodes.AuthError);
 	}
 }

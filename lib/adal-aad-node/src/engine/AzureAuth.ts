@@ -83,9 +83,9 @@ export abstract class AzureAuth {
 			return await this.hydrateAccount(tokenResult, tokenClaims);
 		} catch (ex) {
 			account.isStale = true;
-			return account;
 			// Let caller deal with it too.
 			throw ex;
+
 		}
 	}
 
@@ -103,7 +103,7 @@ export abstract class AzureAuth {
 		const tenant = account.properties.tenants.find(t => t.id === tenantId);
 
 		if (!tenant) {
-			throw new AzureAuthError(1, this.errorLookup.getTenantNotFoundError({ tenantId }), undefined);
+			throw new AzureAuthError(ErrorCodes.Tenant, this.errorLookup.getTenantNotFoundError({ tenantId }), undefined);
 		}
 
 		const cachedTokens = await this.getSavedToken(tenant, azureResource, account.key);

@@ -75,7 +75,7 @@ export class AzureDeviceCode extends AzureAuth {
             timeout = setTimeout(() => {
                 clearInterval(timer);
                 // Error when getting access token for DeviceCodeLogin
-                reject(new AzureAuthError(11, this.errorLookup.getSimpleError(11)));
+                reject(new AzureAuthError(ErrorCodes.GetAccessTokenDeviceCodeLogin, this.errorLookup.getSimpleError(ErrorCodes.GetAccessTokenDeviceCodeLogin)));
             }, fiveMinutes);
         });
     }

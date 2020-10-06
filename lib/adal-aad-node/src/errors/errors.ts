@@ -18,7 +18,7 @@ export enum ErrorCodes {
     TimedOutDeviceCode = 12
 }
 const simpleErrorMapping: ErrorMapping = {
-    [ErrorCodes.AuthError]: 'Something failed with the authentication, or your tokens have been deleted from the system. Please try adding your account to Azure Data Studio again',
+    [ErrorCodes.AuthError]: 'Something failed with the authentication, or your tokens have been deleted from the system. Please try adding your account to vscode-mssql again',
     [ErrorCodes.TokenRetrieval]: 'Token retrieval failed with an error. Open developer tools to view the error',
     [ErrorCodes.NoAccessTokenReturned]: 'No access token returned from Microsoft OAuth',
     [ErrorCodes.UniqueIdentifier]: 'The user had no unique identifier within AAD',
