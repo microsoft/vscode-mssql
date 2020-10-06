@@ -1,0 +1,32 @@
+{
+  "name": "@cssuh/ads-adal-library",
+  "version": "1.0.3",
+  "description": "ADAL NodeJS authentication library",
+  "main": "dist/index.js",
+  "repository": "git://github.com/cssuh/ads-adal-library.git",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "yarn run build-ts && yarn run lint",
+    "build-ts": "tsc",
+    "lint": "tsc --noEmit && eslint \"src/**/*.{js,ts}\" --quiet --fix",
+    "start-cli": "node dist/cli.js",
+    "watch": "yarn run watch-ts",
+    "watch-ts": "tsc -w"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.47.0",
+    "@types/node": "^14.0.26",
+    "@types/qs": "^6.9.4",
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
+    "eslint": "^7.5.0",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "qs": "^6.9.4"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
