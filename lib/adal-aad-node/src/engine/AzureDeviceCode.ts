@@ -1,3 +1,7 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 import { AzureAuth } from './azureAuth';
 import { ProviderSettings, SecureStorageProvider, CachingProvider, Logger, MessageDisplayer, ErrorLookup, StringLookup, AzureAuthType, Tenant, AADResource, LoginResponse, DeviceCodeStartPostData, Deferred, DeviceCodeCheckPostData, AuthRequest, UserInteraction } from '../models';
 import { AzureAuthError } from '../errors/azureAuthError';
