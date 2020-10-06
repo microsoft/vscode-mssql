@@ -92,6 +92,9 @@
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
         </trans-unit>
+        <trans-unit id="azureAuthTypePrompt">
+            <source xml:lang="en">Azure Authentication Type</source>
+        </trans-unit>
         <trans-unit id="authTypePrompt">
             <source xml:lang="en">Authentication Type</source>
         </trans-unit>
@@ -100,6 +103,24 @@
         </trans-unit>
         <trans-unit id="authTypeSql">
             <source xml:lang="en">SQL Login</source>
+        </trans-unit>
+        <trans-unit id="authTypeAzureActiveDirectory">
+            <source xml:lang="en">Azure Active Directory - Universal w/ MFA Support</source>
+        </trans-unit>
+        <trans-unit id="azureAuthTypeCodeGrant">
+            <source xml:lang="en">Azure Code Grant</source>
+        </trans-unit>
+        <trans-unit id="azureAuthTypeDeviceCode">
+            <source xml:lang="en">Azure Device Code</source>
+        </trans-unit>
+        <trans-unit id="msgCopyAndOpenWebpage">
+            <source xml:lang="en">Copy code and open webpage</source>
+        </trans-unit>
+        <trans-unit id="azureChooseAccount">
+            <source xml:lang="en">Choose an Azure Active Directory Account</source>
+        </trans-unit>
+        <trans-unit id="azureAddAccount">
+            <source xml:lang="en">Add an Account...</source>
         </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>

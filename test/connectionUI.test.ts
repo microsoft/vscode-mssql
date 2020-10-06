@@ -40,7 +40,7 @@ suite('Connection UI tests', () => {
         connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose);
         connectionStore.setup(c => c.getPickListItems()).returns(() => TypeMoq.It.isAny());
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
-        connectionUI = new ConnectionUI(connectionManager.object,
+        connectionUI = new ConnectionUI(connectionManager.object, undefined,
             connectionStore.object, prompter.object, vscodeWrapper.object);
     });
 

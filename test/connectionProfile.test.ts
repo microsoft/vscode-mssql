@@ -26,6 +26,7 @@ function createTestCredentials(): IConnectionCredentials {
         password:                       '12345678',
         port:                           1234,
         authenticationType:             AuthenticationTypes[AuthenticationTypes.SqlLogin],
+        azureAccountToken:              '',
         encrypt:                        false,
         trustServerCertificate:         false,
         persistSecurityInfo:            false,
@@ -77,7 +78,7 @@ suite('Connection Profile tests', () => {
                     return Promise.resolve(answers);
                 });
 
-        await ConnectionProfile.createProfile(prompter.object, undefined)
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined)
             .then(profile => profileReturned = profile);
 
         // Then expect the following flow:
@@ -117,7 +118,7 @@ suite('Connection Profile tests', () => {
                     return answers;
                 });
 
-        await ConnectionProfile.createProfile(prompter.object, undefined);
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined);
 
         // Then expect SqlAuth to be the only default type
         let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
@@ -140,7 +141,7 @@ suite('Connection Profile tests', () => {
                 });
 
         // When createProfile is called on an OS
-        await ConnectionProfile.createProfile(prompter.object, undefined);
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined);
 
         // Then integrated auth should/should not be supported
         // TODO if possible the test should mock out the OS dependency but it's not clear
@@ -148,7 +149,7 @@ suite('Connection Profile tests', () => {
         // for now, just validates expected behavior on the platform tests are running on
         let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
         let authChoices = <INameValueChoice[]>authQuestion.choices;
-        assert.strictEqual(authChoices.length, 2);
+        assert.strictEqual(authChoices.length, 3);
         assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
         assert.strictEqual(authChoices[1].value, AuthenticationTypes[AuthenticationTypes.Integrated]);
 
@@ -228,7 +229,7 @@ suite('Connection Profile tests', () => {
         let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
 
-        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object, vscodeWrapperMock.object);
+        let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined, connectionStoreMock.object, prompter.object, vscodeWrapperMock.object);
 
         // create a new connection profile
         connectionUI.createAndSaveProfile().then(profile => {
@@ -273,7 +274,7 @@ suite('Connection Profile tests', () => {
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
         vscodeWrapperMock.setup(x => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
-        let connectionUI = new ConnectionUI(connectionManagerMock.object, connectionStoreMock.object, prompter.object, vscodeWrapperMock.object);
+        let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined, connectionStoreMock.object, prompter.object, vscodeWrapperMock.object);
 
         // create a new connection profile
         connectionUI.createAndSaveProfile().then(profile => {
@@ -306,7 +307,7 @@ suite('Connection Profile tests', () => {
         });
 
         // Verify that a profile was created
-        ConnectionProfile.createProfile(prompter.object, undefined).then( profile => {
+        ConnectionProfile.createProfile(prompter.object, undefined, undefined).then( profile => {
             assert.equal(Boolean(profile), true);
             done();
         });

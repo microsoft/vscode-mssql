@@ -208,6 +208,7 @@ export class ConnectionStore {
             } else {
                 savedProfile = Object.assign({}, profile, { password: '' });
             }
+            savedProfile = Object.assign({}, profile, { azureAccountToken: ''});
 
             self._connectionConfig.addConnection(savedProfile)
             .then(() => {

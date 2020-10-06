@@ -45,7 +45,7 @@ export class AccountService {
         };
         let key: IAccountKey = {
             providerId: Constants.resourceProviderId,
-            accountId: azureSession.userId
+            id: azureSession.userId
         };
         let account: IAccount = {
             key: key,

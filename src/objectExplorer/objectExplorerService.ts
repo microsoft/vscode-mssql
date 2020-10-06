@@ -503,6 +503,9 @@ export class ObjectExplorerService {
         if (authType === Constants.sqlAuthentication) {
             userOrAuthType = credentials.user;
         }
+        if (authType === Constants.azureMfa) {
+            userOrAuthType = credentials.email;
+        }
         if (!database || database === '') {
             database = LocalizedConstants.defaultDatabaseLabel;
         }
