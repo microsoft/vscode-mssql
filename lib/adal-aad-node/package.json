@@ -1,5 +1,5 @@
 {
-  "name": "@cssuh/ads-adal-library",
+  "name": "ads-adal-library",
   "version": "1.0.3",
   "description": "ADAL NodeJS authentication library",
   "main": "dist/index.js",
