@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import LocalizedConstants = require('../constants/localizedConstants');
-import { AuthRequest } from '@cssuh/ads-adal-library';
+import { AuthRequest } from 'ads-adal-library';
 import { SimpleWebServer } from './simpleWebServer';
 import * as crypto from 'crypto';
 import * as http from 'http';

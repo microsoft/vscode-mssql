@@ -25,8 +25,5 @@
   "dependencies": {
     "axios": "^0.19.2",
     "qs": "^6.9.4"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
   }
 }

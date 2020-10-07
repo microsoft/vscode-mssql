@@ -7,7 +7,7 @@
 import vscode = require('vscode');
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import Constants = require('../constants/constants');
-import AzureAuth = require('@cssuh/ads-adal-library');
+import AzureAuth = require('ads-adal-library');
 
 export class AccountStore {
     constructor(
