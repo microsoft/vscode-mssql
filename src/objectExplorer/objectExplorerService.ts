@@ -13,7 +13,7 @@ import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
-import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
+import { AuthenticationTypes, IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
@@ -404,6 +404,10 @@ export class ObjectExplorerService {
                         }
                         connectionCredentials.password = password;
                     }
+                } else if (connectionCredentials.authenticationType === Constants.azureMfa) {
+                    // this._connectionManager.accountStore.getAccount()
+                    // TODO: need to refresh the auth token here
+                    return;
                 }
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);

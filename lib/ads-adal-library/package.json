@@ -1,9 +1,9 @@
 {
   "name": "ads-adal-library",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "ADAL NodeJS authentication library",
   "main": "dist/index.js",
-  "repository": "git://github.com/cssuh/ads-adal-library.git",
+  "repository": "git://github.com/microsoft/vscode-mssql.git",
   "types": "index.d.ts",
   "scripts": {
     "build": "yarn run build-ts && yarn run lint",

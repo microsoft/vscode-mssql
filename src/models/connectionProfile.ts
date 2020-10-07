@@ -30,6 +30,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public azureAuthType: AzureAuthType;
     public azureAccountToken: string;
     public accountStore: AccountStore;
+    public accountId: string;
 
     /**
      * Creates a new profile by prompting the user for information.
@@ -101,6 +102,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     );
                     profile.azureAccountToken = token.token;
                     profile.email = account.displayInfo.email;
+                    profile.accountId = account.key.id;
                 } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                     let azureDeviceCode = await profile.createDeviceCode(context);
                     account = await azureDeviceCode.startLogin();
@@ -110,6 +112,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     );
                     profile.azureAccountToken = token.token;
                     profile.email = account.displayInfo.email;
+                    profile.accountId = account.key.id;
                 }
             } else {
                 let aadResource: AADResource = answers.AAD;
@@ -127,6 +130,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     );
                     profile.azureAccountToken = token.token;
                     profile.email = account.displayInfo.email;
+                    profile.accountId = account.key.id;
                 } else if (account.properties.azureAuthType === 1) {
                     // Device Code
                     let azureDeviceCode = await profile.createDeviceCode(context);
@@ -137,6 +141,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     );
                     profile.azureAccountToken = token.token;
                     profile.email = account.displayInfo.email;
+                    profile.accountId = account.key.id;
                 }
             }
             if (answers && profile.isValidProfile()) {
@@ -146,6 +151,18 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             return undefined;
         });
     }
+
+    // public async refreshToken(): Promise<void> {
+    //     // Auth Code Grant
+    //     let azureCodeGrant = await profile.createAuthCodeGrant(context);
+    //     let newAccount = await azureCodeGrant.refreshAccess(account);
+    //     await accountStore.addAccount(newAccount);
+    //     const token = await azureCodeGrant.getAccountSecurityToken(
+    //         account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
+    //     );
+    //     profile.azureAccountToken = token.token;
+    //     profile.email = account.displayInfo.email;
+    // }
 
     private async createAuthCodeGrant(context): AzureCodeGrant {
         let azureLogger = new AzureLogger();

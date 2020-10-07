@@ -47,6 +47,7 @@ function createTestCredentials(): IConnectionCredentials {
         database:                       'my_db',
         user:                           'sa',
         password:                       '12345678',
+        email:                          'test-email',
         port:                           1234,
         authenticationType:             AuthenticationTypes[AuthenticationTypes.SqlLogin],
         azureAccountToken:              '',
