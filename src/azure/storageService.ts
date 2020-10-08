@@ -92,7 +92,7 @@ export class StorageService implements SecureStorageProvider {
         this.setupSaveTask();
         let fileContents: string;
         try {
-            await fs.access(this.dbPath, fsConstants.R_OK | fsConstants.R_OK); // eslint-disable-line no-bitwise
+            await fs.access(this.dbPath, fsConstants.R_OK);
             fileContents = await fs.readFile(this.dbPath, { encoding: 'utf8' });
             fileContents = await this.readHook(fileContents);
         } catch (ex) {
@@ -149,7 +149,9 @@ export class StorageService implements SecureStorageProvider {
 
         const sleepToFail = (time: number): Promise<void> => {
             return new Promise((_, reject) => {
-                const timeout = setTimeout(reject, time);
+                const timeout = setTimeout(function(): void {
+                    reject(new Error('timeout'));
+                  }, time);
                 cleanupCrew.push(timeout);
             });
         };
