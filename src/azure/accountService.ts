@@ -90,7 +90,11 @@ export class AccountService {
     }
 
     public initializeSessionAccount(): void {
-        this._session = this._vscodeWrapper.azureAccountExtension.exports.filters[0].session;
+        if (this._vscodeWrapper.azureAccountExtension.exports.sessions.length === 1) {
+            this._session = this._vscodeWrapper.azureAccountExtension.exports.sessions[0];
+        } else if (this._vscodeWrapper.azureAccountExtension.exports.filters) {
+            this._session = this._vscodeWrapper.azureAccountExtension.exports.filters[0].session;
+        }
         this._account = this.convertToAzureAccount(this._session);
     }
 
