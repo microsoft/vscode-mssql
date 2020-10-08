@@ -1,5 +1,5 @@
 
-import { ErrorLookup, ErrorCodes, Error1Context } from '@cssuh/ads-adal-library';
+import { ErrorLookup, ErrorCodes, Error1Context } from 'ads-adal-library';
 
 
 

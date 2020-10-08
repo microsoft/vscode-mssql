@@ -27,7 +27,7 @@ import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
-import { AADResource } from '@cssuh/ads-adal-library';
+import { AADResource } from 'ads-adal-library';
 
 /**
  * Information for a document's connection. Exported for testing purposes.

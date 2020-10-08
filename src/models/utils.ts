@@ -15,7 +15,7 @@ import { IAzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, 
 import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
-import { AzureAuthType } from '@cssuh/ads-adal-library';
+import { AzureAuthType } from 'ads-adal-library';
 import { IAccount } from './contracts/azure/accountInterfaces';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////

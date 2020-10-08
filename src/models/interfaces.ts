@@ -80,7 +80,12 @@ export interface IConnectionCredentials {
     /**
      * email
      */
-     email: string;
+    email: string;
+
+    /**
+     * accountId
+     */
+    accountId: string;
 
     /**
      * The port number to connect to.

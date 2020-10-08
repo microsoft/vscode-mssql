@@ -41,7 +41,7 @@ suite('Connection UI tests', () => {
         connectionStore.setup(c => c.getPickListItems()).returns(() => TypeMoq.It.isAny());
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
         connectionUI = new ConnectionUI(connectionManager.object, undefined,
-            connectionStore.object, prompter.object, vscodeWrapper.object);
+            connectionStore.object, undefined, prompter.object, vscodeWrapper.object);
     });
 
     test('showConnectionErrors should show errors in the output channel', () => {

@@ -19,6 +19,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public user: string;
     public password: string;
     public email: string;
+    public accountId: string;
     public port: number;
     public authenticationType: string;
     public azureAccountToken: string;

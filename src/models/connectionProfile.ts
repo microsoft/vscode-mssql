@@ -11,7 +11,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureCodeGrant, AzureAuthType, AzureDeviceCode, AADResource } from '@cssuh/ads-adal-library';
+import { AzureCodeGrant, AzureAuthType, AzureDeviceCode, AADResource, Token } from 'ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 import { AzureLogger } from '../azure/azureLogger';
@@ -30,6 +30,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public azureAuthType: AzureAuthType;
     public azureAccountToken: string;
     public accountStore: AccountStore;
+    public accountId: string;
 
     /**
      * Creates a new profile by prompting the user for information.
@@ -101,6 +102,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     );
                     profile.azureAccountToken = token.token;
                     profile.email = account.displayInfo.email;
+                    profile.accountId = account.key.id;
                 } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
                     let azureDeviceCode = await profile.createDeviceCode(context);
                     account = await azureDeviceCode.startLogin();
@@ -110,6 +112,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                     );
                     profile.azureAccountToken = token.token;
                     profile.email = account.displayInfo.email;
+                    profile.accountId = account.key.id;
                 }
             } else {
                 let aadResource: AADResource = answers.AAD;
@@ -117,27 +120,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 if (!account) {
                     throw new Error('account not found');
                 }
-                if (account.properties.azureAuthType === 0) {
-                    // Auth Code Grant
-                    let azureCodeGrant = await profile.createAuthCodeGrant(context);
-                    let newAccount = await azureCodeGrant.refreshAccess(account);
-                    await accountStore.addAccount(newAccount);
-                    const token = await azureCodeGrant.getAccountSecurityToken(
-                        account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                    );
-                    profile.azureAccountToken = token.token;
-                    profile.email = account.displayInfo.email;
-                } else if (account.properties.azureAuthType === 1) {
-                    // Device Code
-                    let azureDeviceCode = await profile.createDeviceCode(context);
-                    let newAccount = await azureDeviceCode.refreshAccess(account);
-                    await accountStore.addAccount(newAccount);
-                    const token = await azureDeviceCode.getAccountSecurityToken(
-                        account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                    );
-                    profile.azureAccountToken = token.token;
-                    profile.email = account.displayInfo.email;
-                }
+                profile.azureAccountToken = await profile.refreshToken(context, account, accountStore);
+                profile.email = account.displayInfo.email;
+                profile.accountId = account.key.id;
             }
             if (answers && profile.isValidProfile()) {
                 return profile;
@@ -145,6 +130,29 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             // returning undefined to indicate failure to create the profile
             return undefined;
         });
+    }
+
+    public async refreshToken(context: vscode.ExtensionContext,
+                              account: IAccount, accountStore: AccountStore): Promise<string> {
+        let token: Token;
+        if (account.properties.azureAuthType === 0) {
+            // Auth Code Grant
+            let azureCodeGrant = await this.createAuthCodeGrant(context);
+            let newAccount = await azureCodeGrant.refreshAccess(account);
+            await accountStore.addAccount(newAccount);
+            token = await azureCodeGrant.getAccountSecurityToken(
+                account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
+            );
+        } else if (account.properties.azureAuthType === 1) {
+            // Auth Device Code
+            let azureDeviceCode = await this.createDeviceCode(context);
+            let newAccount = await azureDeviceCode.refreshAccess(account);
+            await accountStore.addAccount(newAccount);
+            token = await azureDeviceCode.getAccountSecurityToken(
+                account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
+            );
+        }
+        return token.token;
     }
 
     private async createAuthCodeGrant(context): AzureCodeGrant {

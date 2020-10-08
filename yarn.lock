@@ -58,14 +58,6 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@cssuh/ads-adal-library@1.0.3":
-  version "1.0.3"
-  resolved "https://npm.pkg.github.com/download/@cssuh/ads-adal-library/1.0.3/119eaf592af0e70789c5227a02ab41d4e535603f64ff7583a81396011f41814d#5c5040eb6dd37a0bd5ff073c098a15a5ae5fdf84"
-  integrity sha512-NZTuPTwHu3fLdZOaF9HvX3I7+Z1JBM+xzAmq9XHqMmmOxBl7+5kmSGHa7VNbay/zbDpGNFvGlKLUqanzBvLuuA==
-  dependencies:
-    axios "^0.19.2"
-    qs "^6.9.4"
-
 "@gulp-sourcemaps/map-sources@1.X":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@gulp-sourcemaps/map-sources/-/map-sources-1.0.0.tgz#890ae7c5d8c877f6d384860215ace9d7ec945bda"
@@ -149,6 +141,14 @@ acorn@4.X:
   version "4.0.13"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.13.tgz#105495ae5361d697bd195c825192e1ad7f253787"
   integrity sha1-EFSVrlNh1pe9GVyCUZLhrX8lN4c=
+
+ads-adal-library@1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/ads-adal-library/-/ads-adal-library-1.0.4.tgz#1a6966e518fd84589c795d122bb1b6e2db71111d"
+  integrity sha512-d9PkOJFHnTOMt04bhmCPv0v6aSqJOUtRi/MzCFRT5a1sRObWE//TO9AfiHhrr/OxNTAb0USenfr2FCurkSJ4Pg==
+  dependencies:
+    axios "^0.19.2"
+    qs "^6.9.4"
 
 agent-base@4, agent-base@^4.3.0:
   version "4.3.0"
