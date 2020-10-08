@@ -242,7 +242,7 @@ export default class MainController implements vscode.Disposable {
      */
     private async createObjectExplorerSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
         let createSessionPromise = new Deferred<TreeNodeInfo>();
-        const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials);
+        const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
         if (sessionId) {
             const newNode = await createSessionPromise;
             if (newNode) {
