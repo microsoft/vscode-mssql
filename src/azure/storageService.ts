@@ -92,7 +92,7 @@ export class StorageService implements SecureStorageProvider {
         this.setupSaveTask();
         let fileContents: string;
         try {
-            await fs.access(this.dbPath, fsConstants.R_OK | fsConstants.R_OK);
+            await fs.access(this.dbPath, fsConstants.R_OK | fsConstants.R_OK); //eslint-disable-line no-bitwise
             fileContents = await fs.readFile(this.dbPath, { encoding: 'utf8' });
             fileContents = await this.readHook(fileContents);
         } catch (ex) {

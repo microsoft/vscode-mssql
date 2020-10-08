@@ -12,7 +12,7 @@ import { promises as fs } from 'fs';
 import { CredentialStore } from '../credentialstore/credentialstore';
 import { StorageService } from './StorageService';
 
-function getAppDataPath() {
+function getAppDataPath(): string {
     let platform = process.platform;
     switch (platform) {
         case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE'], 'AppData', 'Roaming');
@@ -22,11 +22,11 @@ function getAppDataPath() {
     }
 }
 
-function getDefaultLogLocation() {
+function getDefaultLogLocation(): string {
     return path.join(getAppDataPath(), 'vscode-mssql');
 }
 
-async function findOrMakeStoragePath() {
+async function findOrMakeStoragePath(): Promise<string | undefined> {
     let defaultLogLocation = getDefaultLogLocation();
     let storagePath = path.join(defaultLogLocation, 'AAD');
 

@@ -92,7 +92,7 @@ export class SimpleWebServer {
         return portPromise;
     }
 
-    public on(pathMapping: string, handler: WebHandler) {
+    public on(pathMapping: string, handler: WebHandler): void {
         this.pathMappings.set(pathMapping, handler);
     }
 

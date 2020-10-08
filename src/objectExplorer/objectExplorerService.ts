@@ -374,7 +374,7 @@ export class ObjectExplorerService {
      * @param connectionCredentials Connection Credentials for a node
      */
     public async createSession(promise: Deferred<vscode.TreeItem | undefined>, connectionCredentials?: IConnectionCredentials,
-        context?: vscode.ExtensionContext): Promise<string> {
+                               context?: vscode.ExtensionContext): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.showConnections(false);

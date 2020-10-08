@@ -97,7 +97,8 @@ export class AzureAuthRequest implements AuthRequest {
 
                 if (stateSplit[1] !== encodeURIComponent(this.nonce)) {
                     res.writeHead(400, { 'content-type': 'text/html' });
-                    // res.write(localize('azureAuth.nonceError', 'Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.'));
+                    // res.write(localize('azureAuth.nonceError', 'Authentication failed due to a nonce mismatch,
+                    // please close Azure Data Studio and try again.'));
                     res.end();
                     reject(new Error('Nonce mismatch'));
                     return;

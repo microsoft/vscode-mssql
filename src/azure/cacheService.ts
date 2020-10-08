@@ -48,10 +48,10 @@ export class SimpleTokenCache implements CachingProvider {
     async getFileKeytar(filePath: string, credentialService: ICredentialStore): Promise<Keytar | undefined> {
         const fileName = parse(filePath).base;
         const iv = await credentialService.readCredential(`${fileName}-iv`);
-        const key = await credentialService.readCredential(`${fileName}-key`);
+        const credentialKey = await credentialService.readCredential(`${fileName}-key`);
         let ivBuffer: Buffer;
         let keyBuffer: Buffer;
-        if (!iv?.password || !key?.password) {
+        if (!iv?.password || !credentialKey?.password) {
             ivBuffer = crypto.randomBytes(16);
             keyBuffer = crypto.randomBytes(32);
             try {
@@ -62,7 +62,7 @@ export class SimpleTokenCache implements CachingProvider {
             }
         } else {
             ivBuffer = Buffer.from(iv.password, 'hex');
-            keyBuffer = Buffer.from(key.password, 'hex');
+            keyBuffer = Buffer.from(credentialKey.password, 'hex');
         }
 
         const fileSaver = async (content: string): Promise<string> => {

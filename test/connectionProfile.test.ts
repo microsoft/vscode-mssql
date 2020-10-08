@@ -277,7 +277,8 @@ suite('Connection Profile tests', () => {
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
         vscodeWrapperMock.setup(x => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
-        let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined, connectionStoreMock.object, undefined, prompter.object, vscodeWrapperMock.object);
+        let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined,
+            connectionStoreMock.object, undefined, prompter.object, vscodeWrapperMock.object);
 
         // create a new connection profile
         connectionUI.createAndSaveProfile().then(profile => {
