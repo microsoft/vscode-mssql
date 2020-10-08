@@ -66,12 +66,9 @@ export class AccountStore {
     }
 
     public async clearAccounts(): Promise<void> {
-        try {
-            let configValues = [];
-            await this._context.globalState.update(Constants.configAzureAccount, configValues);
-        } catch (error) {
-            Promise.reject(error);
-        }
+        let configValues = [];
+        await this._context.globalState.update(Constants.configAzureAccount, configValues);
+
     }
 
 
