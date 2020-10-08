@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import LocalizedConstants = require('../constants/localizedConstants');
-import { AuthRequest } from 'ads-adal-library';
+import { AuthRequest, AzureAuthError } from 'ads-adal-library';
 import { SimpleWebServer } from './simpleWebServer';
 import * as crypto from 'crypto';
 import * as http from 'http';
@@ -146,8 +146,8 @@ export class AzureAuthRequest implements AuthRequest {
         try {
             this.serverPort = await this.simpleWebServer.startup();
         } catch (ex) {
-            // const msg = localize('azure.serverCouldNotStart', 'Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.');
-            // throw new AzureAuthError(msg, 'Server could not start', ex);
+            const msg = 'Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.';
+            throw new AzureAuthError(msg, 'Server could not start', ex);
         }
     }
 }

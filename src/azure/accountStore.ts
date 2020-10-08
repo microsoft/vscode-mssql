@@ -8,6 +8,7 @@ import vscode = require('vscode');
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import Constants = require('../constants/constants');
 import AzureAuth = require('ads-adal-library');
+import { AzureAuthError } from 'ads-adal-library';
 
 export class AccountStore {
     constructor(
@@ -23,7 +24,7 @@ export class AccountStore {
         let account: IAccount;
         let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
         if (!configValues) {
-            // Throw error message saying there are no accounts stored
+            throw new Error('no accounts stored');
         }
         for (let value of configValues) {
             if (value.key.id === key) {
