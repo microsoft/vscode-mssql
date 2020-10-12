@@ -90,39 +90,41 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         });
 
         return prompter.prompt(questions, true).then(async answers => {
-            if (answers.AAD === 'addAccount') {
-                let account: IAccount;
-                let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
-                if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
-                    let azureCodeGrant = await profile.createAuthCodeGrant(context);
-                    account = await azureCodeGrant.startLogin();
-                    await accountStore.addAccount(account);
-                    const token = await azureCodeGrant.getAccountSecurityToken(
-                        account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                    );
-                    profile.azureAccountToken = token.token;
-                    profile.email = account.displayInfo.email;
-                    profile.accountId = account.key.id;
-                } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
-                    let azureDeviceCode = await profile.createDeviceCode(context);
-                    account = await azureDeviceCode.startLogin();
-                    await accountStore.addAccount(account);
-                    const token = await azureDeviceCode.getAccountSecurityToken(
-                        account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                    );
-                    profile.azureAccountToken = token.token;
+            if (answers.authenticationType === 'AzureMFA') {
+                if (answers.AAD === 'addAccount') {
+                    let account: IAccount;
+                    let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
+                    if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
+                        let azureCodeGrant = await profile.createAuthCodeGrant(context);
+                        account = await azureCodeGrant.startLogin();
+                        await accountStore.addAccount(account);
+                        const token = await azureCodeGrant.getAccountSecurityToken(
+                            account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                        );
+                        profile.azureAccountToken = token.token;
+                        profile.email = account.displayInfo.email;
+                        profile.accountId = account.key.id;
+                    } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
+                        let azureDeviceCode = await profile.createDeviceCode(context);
+                        account = await azureDeviceCode.startLogin();
+                        await accountStore.addAccount(account);
+                        const token = await azureDeviceCode.getAccountSecurityToken(
+                            account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                        );
+                        profile.azureAccountToken = token.token;
+                        profile.email = account.displayInfo.email;
+                        profile.accountId = account.key.id;
+                    }
+                } else {
+                    let aadResource: AADResource = answers.AAD;
+                    let account = accountStore.getAccount(aadResource.key.id);
+                    if (!account) {
+                        throw new Error('account not found');
+                    }
+                    profile.azureAccountToken = await profile.refreshToken(context, account, accountStore);
                     profile.email = account.displayInfo.email;
                     profile.accountId = account.key.id;
                 }
-            } else {
-                let aadResource: AADResource = answers.AAD;
-                let account = accountStore.getAccount(aadResource.key.id);
-                if (!account) {
-                    throw new Error('account not found');
-                }
-                profile.azureAccountToken = await profile.refreshToken(context, account, accountStore);
-                profile.email = account.displayInfo.email;
-                profile.accountId = account.key.id;
             }
             if (answers && profile.isValidProfile()) {
                 return profile;
