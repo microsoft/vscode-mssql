@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 'use strict';
+import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
 import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
@@ -14,9 +15,10 @@ import { ConnectionUI } from '../src/views/connectionUI';
 import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-
+import Constants = require('../src/constants/constants');
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import assert = require('assert');
+import { AccountStore } from '../src/azure/accountStore';
 
 function createTestCredentials(): IConnectionCredentials {
     const creds: IConnectionCredentials = {
@@ -57,9 +59,16 @@ function createTestCredentials(): IConnectionCredentials {
 
 suite('Connection Profile tests', () => {
     let authTypeQuestionIndex = 2;
+    let mockAccountStore: AccountStore;
+    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
+    let globalstate: TypeMoq.IMock<vscode.Memento>;
 
     setup(() => {
-        // No setup currently needed
+
+        globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
+        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+        mockContext.setup(c => c.globalState).returns(() => globalstate.object);
+        mockAccountStore = new AccountStore(mockContext.object);
     });
 
     test('CreateProfile should ask questions in correct order', async () => {
@@ -80,7 +89,7 @@ suite('Connection Profile tests', () => {
                     return Promise.resolve(answers);
                 });
 
-        await ConnectionProfile.createProfile(prompter.object, undefined, undefined)
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore)
             .then(profile => profileReturned = profile);
 
         // Then expect the following flow:
@@ -91,6 +100,7 @@ suite('Connection Profile tests', () => {
             LocalizedConstants.usernamePrompt,   // UserName
             LocalizedConstants.passwordPrompt,   // Password
             LocalizedConstants.msgSavePassword,  // Save Password
+            LocalizedConstants.aad,              // Choose AAD Account
             LocalizedConstants.profileNamePrompt // Profile Name
         ];
 
@@ -120,7 +130,7 @@ suite('Connection Profile tests', () => {
                     return answers;
                 });
 
-        await ConnectionProfile.createProfile(prompter.object, undefined, undefined);
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore);
 
         // Then expect SqlAuth to be the only default type
         let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
@@ -143,7 +153,7 @@ suite('Connection Profile tests', () => {
                 });
 
         // When createProfile is called on an OS
-        await ConnectionProfile.createProfile(prompter.object, undefined, undefined);
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore);
 
         // Then integrated auth should/should not be supported
         // TODO if possible the test should mock out the OS dependency but it's not clear
@@ -232,7 +242,7 @@ suite('Connection Profile tests', () => {
         vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
 
         let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined,
-            connectionStoreMock.object, undefined, prompter.object, vscodeWrapperMock.object);
+            connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
         // create a new connection profile
         connectionUI.createAndSaveProfile().then(profile => {
@@ -278,7 +288,7 @@ suite('Connection Profile tests', () => {
         vscodeWrapperMock.setup(x => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
         let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined,
-            connectionStoreMock.object, undefined, prompter.object, vscodeWrapperMock.object);
+            connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
         // create a new connection profile
         connectionUI.createAndSaveProfile().then(profile => {
@@ -311,7 +321,7 @@ suite('Connection Profile tests', () => {
         });
 
         // Verify that a profile was created
-        ConnectionProfile.createProfile(prompter.object, undefined, undefined).then( profile => {
+        ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore).then( profile => {
             assert.equal(Boolean(profile), true);
             done();
         });

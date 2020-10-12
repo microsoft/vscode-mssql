@@ -40,8 +40,9 @@ suite('Firewall Service Tests', () => {
             tenantId: 'test',
             credentials: undefined
         };
+        let mockSessions: IAzureSession[] = [mockSession];
         let mockFilter: IAzureResourceFilter = {
-            session: mockSession,
+            sessions: mockSessions,
             subscription: undefined
         };
         let mockExtension: vscode.Extension<any> = {
@@ -53,7 +54,8 @@ suite('Firewall Service Tests', () => {
             activate: undefined,
             extensionUri: undefined,
             exports: {
-                filters: [mockFilter]
+                sessions: mockSessions,
+                filters: mockFilter
             }
         };
         vscodeWrapper.setup(v => v.azureAccountExtension).returns(() => mockExtension);
