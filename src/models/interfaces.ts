@@ -34,7 +34,7 @@ export interface ISlickRange {
 export enum AuthenticationTypes {
     Integrated = 1,
     SqlLogin = 2,
-    ActiveDirectoryUniversal = 3
+    AzureMFA = 3
 }
 
 export const contentTypes = [
@@ -78,6 +78,16 @@ export interface IConnectionCredentials {
     password: string;
 
     /**
+     * email
+     */
+    email: string;
+
+    /**
+     * accountId
+     */
+    accountId: string;
+
+    /**
      * The port number to connect to.
      */
     port: number;
@@ -86,6 +96,11 @@ export interface IConnectionCredentials {
      * Gets or sets the authentication to use.
      */
     authenticationType: string;
+
+    /**
+     * Gets or sets the azure account token to use
+     */
+    azureAccountToken: string;
 
     /**
      * Gets or sets a Boolean value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if

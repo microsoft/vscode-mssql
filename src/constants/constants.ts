@@ -58,10 +58,12 @@ export const cmdLoadCompletionExtension = 'mssql.loadCompletionExtension';
 export const cmdAzureSignIn = 'azure-account.login';
 export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
 export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
+export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const azureDatabase = 'Azure';
+export const azureMfa = 'AzureMFA';
 export const defaultPortNumber = 1433;
 export const sqlAuthentication = 'SqlLogin';
 export const defaultDatabase = 'master';
@@ -98,6 +100,7 @@ export const azureAccountExtensionId = 'ms-vscode.azure-account';
 export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+export const configAzureAccount = 'azureAccount';
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';

@@ -23,6 +23,7 @@ import Constants = require('../constants/constants');
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 import Utils = require('../models/utils');
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionProfile } from '../models/connectionProfile';
 
 export class ObjectExplorerService {
 
@@ -372,7 +373,8 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionCredentials Connection Credentials for a node
      */
-    public async createSession(promise: Deferred<vscode.TreeItem | undefined>, connectionCredentials?: IConnectionCredentials): Promise<string> {
+    public async createSession(promise: Deferred<vscode.TreeItem | undefined>, connectionCredentials?: IConnectionCredentials,
+                               context?: vscode.ExtensionContext): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.showConnections(false);
@@ -404,6 +406,18 @@ export class ObjectExplorerService {
                         }
                         connectionCredentials.password = password;
                     }
+                } else if (connectionCredentials.authenticationType === Constants.azureMfa) {
+                    let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
+                    let profile = new ConnectionProfile();
+                    profile.accountId = connectionCredentials.accountId;
+                    profile.authenticationType = connectionCredentials.authenticationType;
+                    profile.azureAccountToken = connectionCredentials.azureAccountToken;
+                    profile.database = connectionCredentials.database;
+                    profile.email = connectionCredentials.email;
+                    profile.password = connectionCredentials.password;
+                    profile.server = connectionCredentials.server;
+                    connectionCredentials.azureAccountToken = await profile.refreshToken(context,
+                        account, this._connectionManager.accountStore);
                 }
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
@@ -502,6 +516,9 @@ export class ObjectExplorerService {
         let userOrAuthType = authType;
         if (authType === Constants.sqlAuthentication) {
             userOrAuthType = credentials.user;
+        }
+        if (authType === Constants.azureMfa) {
+            userOrAuthType = credentials.email;
         }
         if (!database || database === '') {
             database = LocalizedConstants.defaultDatabaseLabel;

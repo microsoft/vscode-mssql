@@ -51,7 +51,8 @@
     "onCommand:mssql.addObjectExplorer",
     "onCommand:mssql.objectExplorerNewQuery",
     "onCommand:mssql.toggleSqlCmd",
-    "onCommand:mssql.loadCompletionExtension"
+    "onCommand:mssql.loadCompletionExtension",
+    "onCommand:mssql.removeAadAccount"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -66,15 +67,17 @@
     "@angular/platform-browser-dynamic": "~2.1.2",
     "@angular/router": "~3.1.2",
     "@angular/upgrade": "~2.1.2",
+    "@types/ejs": "^2.6.3",
     "@types/jquery": "^3.3.31",
     "@types/jqueryui": "^1.12.7",
-    "angular-in-memory-web-api": "0.1.13",
-    "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.2.2-patch1",
-    "@types/ejs": "^2.6.3",
+    "@types/keytar": "^4.4.2",
     "@types/mocha": "^5.2.7",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
     "@types/vscode": "^1.49.0",
+    "ads-adal-library": "1.0.4",
+    "angular-in-memory-web-api": "0.1.13",
+    "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.2.2-patch1",
     "assert": "^1.4.1",
     "chai": "^3.5.0",
     "coveralls": "^3.0.2",
@@ -94,14 +97,14 @@
     "pm-mocha-jenkins-reporter": "^0.2.6",
     "remap-istanbul": "^0.6.4",
     "rxjs": "5.0.0-beta.12",
-    "systemjs-builder": "^0.15.32",
     "slickgrid": "github:kburtram/SlickGrid#2.3.23-2",
     "systemjs": "0.19.40",
+    "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
     "tslint": "^5.16.0",
     "tslint-microsoft-contrib": "^5.2.0",
     "typemoq": "^1.7.0",
-    "typescript": "3.5.3",
+    "typescript": "^3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vsce": "^1.58.0",
     "vscode-test": "^1.0.0",
@@ -503,6 +506,11 @@
         "command": "mssql.copyObjectName",
         "title": "%mssql.copyObjectName%",
         "group": "MS SQL"
+      },
+      {
+        "command": "mssql.removeAadAccount",
+        "title": "%mssql.removeAadAccount%",
+        "group": "MS SQL"
       }
     ],
     "keybindings": [
@@ -540,6 +548,16 @@
       "type": "object",
       "title": "MSSQL configuration",
       "properties": {
+        "mssql.azureActiveDirectory": {
+          "type": "string",
+          "default": "AuthCodeGrant",
+          "description": "Chooses which Authentication method to use",
+          "enum": [
+            "AuthCodeGrant",
+            "DeviceCode"
+          ],
+          "scope": "application"
+        },
         "mssql.logDebugInfo": {
           "type": "boolean",
           "default": false,

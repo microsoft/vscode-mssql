@@ -24,6 +24,10 @@ import { AccountService } from '../azure/accountService';
 import { FirewallService } from '../firewall/firewallService';
 import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
 import { ConnectionSummary } from '../models/contracts/connection';
+import { AccountStore } from '../azure/accountStore';
+import { ConnectionProfile } from '../models/connectionProfile';
+import { QuestionTypes, IQuestion } from '../prompts/question';
+import { AADResource } from 'ads-adal-library';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -86,7 +90,8 @@ export default class ConnectionManager {
                 private _client?: SqlToolsServerClient,
                 private _vscodeWrapper?: VscodeWrapper,
                 private _connectionStore?: ConnectionStore,
-                private _connectionUI?: ConnectionUI) {
+                private _connectionUI?: ConnectionUI,
+                private _accountStore?: AccountStore) {
         this._statusView = statusView;
         this._connections = {};
         this._connectionCredentialsToServerInfoMap =
@@ -105,8 +110,12 @@ export default class ConnectionManager {
             this._connectionStore = new ConnectionStore(context);
         }
 
+        if (!this._accountStore) {
+            this._accountStore = new AccountStore(context);
+        }
+
         if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(this, this._connectionStore, prompter, this.vscodeWrapper);
+            this._connectionUI = new ConnectionUI(this, context, this._connectionStore, this._accountStore, prompter, this.vscodeWrapper);
         }
 
         // Initiate the firewall service
@@ -182,6 +191,20 @@ export default class ConnectionManager {
      */
     public set connectionStore(value: ConnectionStore) {
         this._connectionStore = value;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public get accountStore(): AccountStore {
+        return this._accountStore;
+    }
+
+    /**
+     * Exposed for testing purposes
+     */
+    public set accountStore(value: AccountStore) {
+        this._accountStore = value;
     }
 
     /**
@@ -758,6 +781,30 @@ export default class ConnectionManager {
         if (result) {
             await this.disconnect(oldFileUri);
         }
+    }
+
+    public async removeAccount(prompter: IPrompter): Promise<void> {
+        // list options for accounts to remove
+        let questions: IQuestion[] = [];
+        let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
+
+        questions.push(
+            {
+                type: QuestionTypes.expand,
+                name: 'account',
+                message: LocalizedConstants.azureChooseAccount,
+                choices: azureAccountChoices
+            }
+        );
+
+        return prompter.prompt(questions, true).then(async answers => {
+            if (answers.account) {
+                let aadResource: AADResource = answers.account;
+                this._accountStore.removeAccount(aadResource.key.id);
+            }
+        });
+
+
     }
 
     private getIsServerLinux(osVersion: string): string {

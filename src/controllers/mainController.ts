@@ -137,6 +137,8 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdLoadCompletionExtension, (params: CompletionExtensionParams) => { this.onLoadCompletionExtension(params); });
             this.registerCommand(Constants.cmdToggleSqlCmd);
             this._event.on(Constants.cmdToggleSqlCmd, async () => { await this.onToggleSqlCmd(); });
+            this.registerCommand(Constants.cmdAadRemoveAccount);
+            this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 
             this.initializeObjectExplorer();
 
@@ -240,7 +242,7 @@ export default class MainController implements vscode.Disposable {
      */
     private async createObjectExplorerSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
         let createSessionPromise = new Deferred<TreeNodeInfo>();
-        const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials);
+        const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
         if (sessionId) {
             const newNode = await createSessionPromise;
             if (newNode) {
@@ -1070,5 +1072,9 @@ export default class MainController implements vscode.Disposable {
                 this._objectExplorerProvider.refresh(undefined);
             }
         }
+    }
+
+    public removeAadAccount(prompter: IPrompter): void {
+        this.connectionManager.removeAccount(prompter);
     }
 }

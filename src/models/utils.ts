@@ -15,6 +15,8 @@ import { IAzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, 
 import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
+import { AzureAuthType } from 'ads-adal-library';
+import { IAccount } from './contracts/azure/accountInterfaces';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
@@ -173,6 +175,10 @@ export function authTypeToString(value: AuthenticationTypes): string {
     return AuthenticationTypes[value];
 }
 
+export function azureAuthTypeToString(value: AzureAuthType): string {
+    return AzureAuthType[value];
+}
+
 export function escapeClosingBrackets(str: string): string {
     return str.replace(']', ']]');
 }
@@ -193,6 +199,13 @@ export function formatString(str: string, ...args: any[]): string {
         });
     }
     return result;
+}
+
+/**
+ * Compares 2 accounts to see if they are the same.
+ */
+export function isSameAccountKey(currentAccountKey: string, newAccountKey: string): boolean {
+    return currentAccountKey === newAccountKey;
 }
 
 /**

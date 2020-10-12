@@ -25,6 +25,10 @@ export interface IAccountDisplayInfo {
      * User id that identifies the account, such as "user@contoso.com".
      */
     userId: string;
+    /**
+     * email for AAD
+     */
+    email?: string;
 }
 
 /**
@@ -42,7 +46,7 @@ export interface IAccountKey {
     /**
      * Identifier for the account, unique to the provider
      */
-    accountId: string;
+    id: string;
 }
 
 /**
@@ -68,6 +72,6 @@ export interface IAccount {
     /**
      * Indicates if the account is signed in
      */
-    isSignedIn: boolean;
+    isSignedIn?: boolean;
 }
 

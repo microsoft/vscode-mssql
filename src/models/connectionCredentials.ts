@@ -18,8 +18,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public database: string;
     public user: string;
     public password: string;
+    public email: string;
+    public accountId: string;
     public port: number;
     public authenticationType: string;
+    public azureAccountToken: string;
     public encrypt: boolean;
     public trustServerCertificate: boolean;
     public persistSecurityInfo: boolean;
@@ -43,6 +46,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public typeSystemVersion: string;
     public connectionString: string;
 
+
     /**
      * Create a connection details contract from connection credentials.
      */
@@ -60,6 +64,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
         details.options['user'] = credentials.user;
         details.options['password'] = credentials.password;
         details.options['authenticationType'] = credentials.authenticationType;
+        details.options['azureAccountToken'] = credentials.azureAccountToken;
         details.options['encrypt'] = credentials.encrypt;
         details.options['trustServerCertificate'] = credentials.trustServerCertificate;
         details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
@@ -199,6 +204,8 @@ export class ConnectionCredentials implements IConnectionCredentials {
                         && SqlToolsServerClient.instance.getServiceVersion() === 1
                     ) {
                         return LocalizedConstants.macSierraRequiredErrorMessage;
+                    } else if (value === utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
+                        return undefined;
                     }
                     return undefined;
                 },
@@ -300,8 +307,9 @@ export class ConnectionCredentials implements IConnectionCredentials {
     public static getAuthenticationTypesChoice(): INameValueChoice[] {
         let choices: INameValueChoice[] = [
             { name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) },
-            { name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) }
-        ];        // TODO When Azure Active Directory is supported, add this here
+            { name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) },
+            { name: LocalizedConstants.authTypeAzureActiveDirectory, value: utils.authTypeToString(AuthenticationTypes.AzureMFA)}
+        ];
 
         return choices;
     }
