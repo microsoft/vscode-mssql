@@ -14,6 +14,7 @@ import { IConnectionProfile, IConnectionCredentials, IConnectionCredentialsQuick
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import LocalizedConstants = require('../src/constants/localizedConstants');
+import { AccountStore } from '../src/azure/accountStore';
 
 suite('Connection UI tests', () => {
 
@@ -26,6 +27,9 @@ suite('Connection UI tests', () => {
     let prompter: TypeMoq.IMock<IPrompter>;
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
+    let mockAccountStore: AccountStore;
+    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
+    let globalstate: TypeMoq.IMock<vscode.Memento>;
 
     setup(() => {
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
@@ -40,8 +44,12 @@ suite('Connection UI tests', () => {
         connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose);
         connectionStore.setup(c => c.getPickListItems()).returns(() => TypeMoq.It.isAny());
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
+        globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
+        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+        mockContext.setup(c => c.globalState).returns(() => globalstate.object);
+        mockAccountStore = new AccountStore(mockContext.object);
         connectionUI = new ConnectionUI(connectionManager.object, undefined,
-            connectionStore.object, undefined, prompter.object, vscodeWrapper.object);
+            connectionStore.object, mockAccountStore, prompter.object, vscodeWrapper.object);
     });
 
     test('showConnectionErrors should show errors in the output channel', () => {

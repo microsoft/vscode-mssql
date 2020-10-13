@@ -536,7 +536,7 @@ export interface IAzureSession {
 }
 
 export interface IAzureResourceFilter {
-    readonly session: IAzureSession;
+    readonly sessions: IAzureSession[];
     readonly subscription: ISubscription;
 }
 

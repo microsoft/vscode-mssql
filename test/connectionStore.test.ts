@@ -171,7 +171,7 @@ suite('ConnectionStore tests', () => {
         // When SaveProfile is called with savePassword true
         let connectionProfile: interfaces.IConnectionProfile = Object.assign(new ConnectionProfile(), defaultNamedProfile, { savePassword: true });
 
-        connectionStore.saveProfile(connectionProfile)
+        connectionStore.saveProfile(connectionProfile, false)
             .then(savedProfile => {
                 // Then expect password saved in the credential store
                 assert.ok(credsToSave !== undefined && credsToSave.length === 1);

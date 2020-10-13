@@ -204,11 +204,10 @@ export class ConnectionStore {
             // Add the profile to the saved list, taking care to clear out the password field if necessary
             let savedProfile: IConnectionProfile;
             if (forceWritePlaintextPassword) {
-                savedProfile = Object.assign({}, profile);
+                savedProfile = Object.assign({}, profile, { azureAccountToken: ''});
             } else {
-                savedProfile = Object.assign({}, profile, { password: '' });
+                savedProfile = Object.assign({}, profile, { password: '', azureAccountToken: '' });
             }
-            savedProfile = Object.assign({}, profile, { azureAccountToken: ''});
 
             self._connectionConfig.addConnection(savedProfile)
             .then(() => {

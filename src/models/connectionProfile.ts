@@ -71,7 +71,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             },
             {
                 type: QuestionTypes.expand,
-                name: 'AAD',
+                name: LocalizedConstants.aad,
                 message: LocalizedConstants.azureChooseAccount,
                 choices: azureAccountChoices,
                 shouldPrompt: (answers) => profile.isAzureActiveDirectory()
