@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 'use strict';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
@@ -15,7 +15,6 @@ import { ConnectionUI } from '../src/views/connectionUI';
 import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import Constants = require('../src/constants/constants');
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import assert = require('assert');
 import { AccountStore } from '../src/azure/accountStore';

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import vscode = require('vscode');
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 import ConnInfo = require('../models/connectionInfo');
 import * as ConnectionContracts from '../models/contracts/connection';

@@ -10,7 +10,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as findRemoveSync from 'find-remove';
 import vscode = require('vscode');
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import { IAzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');

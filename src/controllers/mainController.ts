@@ -6,7 +6,7 @@
 'use strict';
 import * as events from 'events';
 import vscode = require('vscode');
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 import Utils = require('../models/utils');
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';

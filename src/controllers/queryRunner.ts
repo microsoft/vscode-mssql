@@ -25,7 +25,7 @@ import { BatchSummary, QueryExecuteParams, QueryExecuteRequest,
 import { QueryDisposeParams, QueryDisposeRequest } from '../models/contracts/queryDispose';
 import { QueryCancelParams, QueryCancelResult, QueryCancelRequest } from '../models/contracts/queryCancel';
 import { ISlickRange, ISelectionData, IResultMessage } from '../models/interfaces';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 import * as Utils from './../models/utils';
 import * as os from 'os';

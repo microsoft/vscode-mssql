@@ -19,7 +19,7 @@ import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
 import { ConnectTreeNode } from './connectTreeNode';
 import { Deferred } from '../protocol';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 import Utils = require('../models/utils');
 import { ConnectionCredentials } from '../models/connectionCredentials';

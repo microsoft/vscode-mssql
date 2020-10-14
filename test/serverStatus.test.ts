@@ -7,7 +7,7 @@
 
 import { ServerStatusView } from '../src/languageservice/serverStatus';
 import { assert } from 'chai';
-import Constants = require('../src/constants/constants');
+import * as Constants from '../src/constants/constants';
 
 suite('Server Status View Tests', () => {
 

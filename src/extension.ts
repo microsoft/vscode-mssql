@@ -5,7 +5,7 @@
 
 'use strict';
 import vscode = require('vscode');
-import Constants = require('./constants/constants');
+import * as Constants from './constants/constants';
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';

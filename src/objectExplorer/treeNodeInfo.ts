@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 import { IConnectionCredentials } from '../models/interfaces';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import { ObjectMetadata } from '../models/contracts/metadata/metadataRequest';
 
 export class TreeNodeInfo extends vscode.TreeItem {

@@ -5,7 +5,7 @@
 
 import { expect, assert } from 'chai';
 import * as Utils from './../src/models/utils';
-import Constants = require('../src/constants/constants');
+import * as Constants from '../src/constants/constants';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 
 suite('Utility Tests - parseTimeString', () => {

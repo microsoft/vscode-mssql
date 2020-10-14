@@ -6,7 +6,7 @@
 'use strict';
 import vscode = require('vscode');
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';

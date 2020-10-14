@@ -7,7 +7,7 @@ import { IAccount, IAccountKey, IAccountDisplayInfo } from '../models/contracts/
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
 import { Deferred } from '../protocol';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
 export class AccountService {

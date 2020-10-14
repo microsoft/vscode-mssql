@@ -11,7 +11,7 @@ import MainController from '../src/controllers/mainController';
 import ConnectionManager from '../src/controllers/connectionManager';
 import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
 import * as Extension from '../src/extension';
-import Constants = require('../src/constants/constants');
+import * as Constants from '../src/constants/constants';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { TestExtensionContext } from './stubs';

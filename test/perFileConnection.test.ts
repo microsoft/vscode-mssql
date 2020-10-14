@@ -23,7 +23,7 @@ import { TestExtensionContext, TestPrompter } from './stubs';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import { ConnectionUI } from '../src/views/connectionUI';
-import Constants = require('../src/constants/constants');
+import * as Constants from '../src/constants/constants';
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {
     let result = new ConnectionContracts.ConnectionCompleteParams();

@@ -5,7 +5,7 @@
 import * as path from 'path';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionProfile } from '../models/interfaces';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 
 export class ObjectExplorerUtils {

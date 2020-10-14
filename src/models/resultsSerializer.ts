@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import vscode = require('vscode');
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 import Interfaces = require('./interfaces');
 import * as path from 'path';
