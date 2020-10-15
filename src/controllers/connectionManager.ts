@@ -27,7 +27,7 @@ import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
-import { AADResource } from 'ads-adal-library';
+import { IAccount } from '../models/contracts/azure/accountInterfaces';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -797,10 +797,9 @@ export default class ConnectionManager {
             }
         );
 
-        return prompter.prompt(questions, true).then(async answers => {
+        return prompter.prompt<IAccount>(questions, true).then(async answers => {
             if (answers.account) {
-                let aadResource: AADResource = answers.account;
-                this._accountStore.removeAccount(aadResource.key.id);
+                this._accountStore.removeAccount(answers.account.key.id);
             }
         });
 

@@ -142,10 +142,10 @@ acorn@4.X:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.13.tgz#105495ae5361d697bd195c825192e1ad7f253787"
   integrity sha1-EFSVrlNh1pe9GVyCUZLhrX8lN4c=
 
-ads-adal-library@1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/ads-adal-library/-/ads-adal-library-1.0.6.tgz#7ce2d0efbe7a1f153c060366b711a4e50dafab58"
-  integrity sha512-ef6VdKJpFkErnmWLXD/2IaUiH4THHC8peMdFc2UQX9ERoAXGNEPLVcK3NwpCFrAgc3n6TjVId7GDJb5XrlYZ0A==
+ads-adal-library@1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/ads-adal-library/-/ads-adal-library-1.0.8.tgz#625a885d1f40b8b8c10c06612340ae22f84e1e9e"
+  integrity sha512-zIAgbANl3dH1w4niA+wKPnN+ORiCo2evw+LhGtvrVDrGZFVHoI+ySCQPDB/8lxAtehe2chuQbkz9POSPGuPioQ==
   dependencies:
     axios "^0.19.2"
     qs "^6.9.4"

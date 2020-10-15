@@ -9,6 +9,7 @@ export interface AzureAccount {
     displayInfo: AccountDisplayInfo;
     properties: AzureAccountProperties;
     isStale: boolean;
+    isSignedIn?: boolean;
     delete?: boolean;
 }
 

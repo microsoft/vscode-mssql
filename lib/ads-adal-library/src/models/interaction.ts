@@ -13,14 +13,14 @@ export interface UserInteraction {
      * Opens a browser page on the caller.
      * @param url
      */
-    openUrl(url: string): Promise<void>;
+    openUrl(url: string): Promise<boolean>;
 }
 
 export interface AuthRequest {
     /**
      * Gets the state to send with the oauth request
      */
-    getState(): Promise<string>;
+    getState(): string;
 
     /**
      * After the auth mechanism opens the URL, it will request an auth token to be returned to the caller to finish the authentication process.

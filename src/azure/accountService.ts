@@ -51,9 +51,9 @@ export class AccountService {
             key: key,
             displayInfo: {
                 userId: azureSession.userId,
-                contextualDisplayName: undefined,
                 displayName: undefined,
-                accountType: undefined
+                accountType: undefined,
+                name: undefined
             },
             properties: {
                 tenants: [tenant]

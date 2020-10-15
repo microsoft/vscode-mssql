@@ -19,7 +19,9 @@ export enum ErrorCodes {
     AddAccount = 9,
     GetAccessTokenAuthCodeGrant = 10,
     GetAccessTokenDeviceCodeLogin = 11,
-    TimedOutDeviceCode = 12
+    TimedOutDeviceCode = 12,
+    ServerStartFailure = 13
+
 }
 const simpleErrorMapping: ErrorMapping = {
     [ErrorCodes.AuthError]: 'Something failed with the authentication, or your tokens have been deleted from the system. Please try adding your account to vscode-mssql again',
@@ -32,7 +34,8 @@ const simpleErrorMapping: ErrorMapping = {
     [ErrorCodes.AddAccount]: 'Error when adding your account to the cache',
     [ErrorCodes.GetAccessTokenAuthCodeGrant]: 'Error when getting access token from authorization token for AuthCodeGrant',
     [ErrorCodes.GetAccessTokenDeviceCodeLogin]: 'Error when getting access token for DeviceCodeLogin',
-    [ErrorCodes.TimedOutDeviceCode]: 'Timed out when waiting for device code login results'
+    [ErrorCodes.TimedOutDeviceCode]: 'Timed out when waiting for device code login results',
+    [ErrorCodes.ServerStartFailure]: 'Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.'
 };
 
 export class DefaultErrorLookup implements ErrorLookup {

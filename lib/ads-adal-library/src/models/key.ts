@@ -4,9 +4,9 @@
  * ------------------------------------------------------------------------------------------ */
 interface KVProvider {
     set(key: string, value: string): Promise<void>;
-    get(key: string): string;
+    get(key: string): Promise<string>;
     clear(): Promise<void>;
-    remove(key: string): Promise<void>;
+    remove(key: string): Promise<boolean>;
 }
 
 // used for token storage

@@ -10,25 +10,25 @@
  */
 export interface IAccountDisplayInfo {
     /**
-     * A display name that offers context for the account, such as "Contoso".
-     */
-    contextualDisplayName: string;
-    /**
      * account provider (eg, Work/School vs Microsoft Account)
      */
-    accountType: string;
-    /**
-     * A display name that identifies the account, such as "User Name".
-     */
-    displayName: string;
+    accountType: AccountType;
     /**
      * User id that identifies the account, such as "user@contoso.com".
      */
     userId: string;
     /**
+     * A display name that identifies the account, such as "User Name".
+     */
+    displayName: string;
+    /**
      * email for AAD
      */
     email?: string;
+    /**
+     * name of account
+     */
+    name: string;
 }
 
 /**
@@ -36,17 +36,17 @@ export interface IAccountDisplayInfo {
  */
 export interface IAccountKey {
     /**
+     * Identifier for the account, unique to the provider
+     */
+    id: string;
+    /**
      * Identifier of the provider
      */
     providerId: string;
     /**
-     * Any arguments that identify an instantiation of the provider
+     * Version of the account
      */
-    providerArgs?: any;
-    /**
-     * Identifier for the account, unique to the provider
-     */
-    id: string;
+    accountVersion?: any;
 }
 
 /**
@@ -75,3 +75,7 @@ export interface IAccount {
     isSignedIn?: boolean;
 }
 
+export enum AccountType {
+    Microsoft = 'microsoft',
+    WorkSchool = 'work_school'
+}
