@@ -16,7 +16,6 @@ import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
 import { AzureAuthType } from 'ads-adal-library';
-import { IAccount } from './contracts/azure/accountInterfaces';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
