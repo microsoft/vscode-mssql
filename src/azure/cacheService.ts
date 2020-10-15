@@ -185,7 +185,7 @@ export class SimpleTokenCache implements CachingProvider {
 
     async clear(): Promise<void> {
         try {
-            return;
+            this.keytar = getSystemKeytar();
         } catch (ex) {
             console.log(`clear keytar failed ${ex}`);
         }
