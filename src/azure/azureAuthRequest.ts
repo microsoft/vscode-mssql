@@ -147,8 +147,7 @@ export class AzureAuthRequest implements AuthRequest {
         try {
             this.serverPort = await this.simpleWebServer.startup();
         } catch (ex) {
-            const msg = 'Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.';
-            throw new AzureAuthError(msg, 'Server could not start', ex);
+            throw new AzureAuthError(13, 'Server could not start', ex);
         }
     }
 }

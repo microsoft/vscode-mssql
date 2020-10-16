@@ -75,7 +75,6 @@
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
     "@types/vscode": "^1.49.0",
-    "ads-adal-library": "1.0.4",
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.2.2-patch1",
     "assert": "^1.4.1",
@@ -113,6 +112,7 @@
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
+    "ads-adal-library": "1.0.8",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "tar": "^6.0.1",

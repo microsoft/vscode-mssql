@@ -53,7 +53,7 @@ export class StorageService implements SecureStorageProvider {
         this.isDirty = true;
     }
 
-    public get(key: string): string {
+    public async get(key: string): Promise<string> {
         return this.db[key];
     }
 
@@ -63,10 +63,11 @@ export class StorageService implements SecureStorageProvider {
         this.isDirty = true;
     }
 
-    public async remove(key: string): Promise<void> {
+    public async remove(key: string): Promise<boolean> {
         await this.waitForFileSave();
         delete this.db[key];
         this.isDirty = true;
+        return true;
     }
 
     public getPrefix(keyPrefix: string): { key: string, value: string }[] {

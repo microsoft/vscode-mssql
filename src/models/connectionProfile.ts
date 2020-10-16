@@ -11,7 +11,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureCodeGrant, AzureAuthType, AzureDeviceCode, AADResource, Token } from 'ads-adal-library';
+import { AzureCodeGrant, AzureAuthType, AzureDeviceCode, Token } from 'ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 import { AzureLogger } from '../azure/azureLogger';
@@ -54,6 +54,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         }
         let azureAuthChoices: INameValueChoice[] = ConnectionProfile.getAzureAuthChoices();
         let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
+        let accountAnswer: IAccount;
         azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount'});
 
 
@@ -74,7 +75,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 name: LocalizedConstants.aad,
                 message: LocalizedConstants.azureChooseAccount,
                 choices: azureAccountChoices,
-                shouldPrompt: (answers) => profile.isAzureActiveDirectory()
+                shouldPrompt: (answers) => profile.isAzureActiveDirectory(),
+                onAnswered: (value: IAccount) => accountAnswer = value
             },
             {
                 type: QuestionTypes.input,
@@ -116,8 +118,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                         profile.accountId = account.key.id;
                     }
                 } else {
-                    let aadResource: AADResource = answers.AAD;
-                    let account = accountStore.getAccount(aadResource.key.id);
+                    let account = accountStore.getAccount(accountAnswer.key.id);
                     if (!account) {
                         throw new Error('account not found');
                     }
@@ -157,7 +158,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         return token.token;
     }
 
-    private async createAuthCodeGrant(context): AzureCodeGrant {
+    private async createAuthCodeGrant(context): Promise<AzureCodeGrant> {
         let azureLogger = new AzureLogger();
         let azureController = new AzureController(context, azureLogger);
         await azureController.init();
@@ -168,7 +169,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         );
     }
 
-    private async createDeviceCode(context): AzureDeviceCode {
+    private async createDeviceCode(context): Promise<AzureDeviceCode> {
         let azureLogger = new AzureLogger();
         let azureController = new AzureController(context, azureLogger);
         await azureController.init();

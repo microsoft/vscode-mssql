@@ -96,7 +96,7 @@ suite('Connection Profile tests', () => {
         let questionNames: string[] = [
             LocalizedConstants.serverPrompt,     // Server
             LocalizedConstants.databasePrompt,   // DB Name
-            LocalizedConstants.authTypePrompt,   // Authentication Type
+            LocalizedConstants.authTypeName,   // Authentication Type
             LocalizedConstants.usernamePrompt,   // UserName
             LocalizedConstants.passwordPrompt,   // Password
             LocalizedConstants.msgSavePassword,  // Save Password
@@ -229,7 +229,7 @@ suite('Connection Profile tests', () => {
                     answers[LocalizedConstants.databasePrompt] = 'my_db';
                     answers[LocalizedConstants.usernamePrompt] = 'sa';
                     answers[LocalizedConstants.passwordPrompt] = '12345678';
-                    answers[LocalizedConstants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+                    answers[LocalizedConstants.authTypeName] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
                     for (let key in answers) {
                         if (answers.hasOwnProperty(key)) {
                             questions.map(q => { if (q.name === key) { q.onAnswered(answers[key]); } });
@@ -274,7 +274,7 @@ suite('Connection Profile tests', () => {
                     answers[LocalizedConstants.databasePrompt] = 'my_db';
                     answers[LocalizedConstants.usernamePrompt] = 'sa';
                     answers[LocalizedConstants.passwordPrompt] = '12345678';
-                    answers[LocalizedConstants.authTypePrompt] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
+                    answers[LocalizedConstants.authTypeName] = AuthenticationTypes[AuthenticationTypes.SqlLogin];
                     for (let key in answers) {
                         if (answers.hasOwnProperty(key)) {
                             questions.map(q => { if (q.name === key) { q.onAnswered(answers[key]); } });

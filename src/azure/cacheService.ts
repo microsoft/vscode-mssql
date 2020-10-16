@@ -174,12 +174,20 @@ export class SimpleTokenCache implements CachingProvider {
         }
     }
 
-    async clear(id: string): Promise<boolean> {
+    async remove(key: string): Promise<boolean> {
         try {
-            return await this.keytar.deletePassword(this.serviceName, id);
+            return await this.keytar.deletePassword(this.serviceName, key);
         } catch (ex) {
             console.log(`Clearing key failed: ${ex}`);
             return false;
+        }
+    }
+
+    async clear(): Promise<void> {
+        try {
+            this.keytar = getSystemKeytar();
+        } catch (ex) {
+            console.log(`clear keytar failed ${ex}`);
         }
     }
 

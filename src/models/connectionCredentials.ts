@@ -195,7 +195,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
             // AuthenticationType is required if there is more than 1 option on this platform
             {
                 type: QuestionTypes.expand,
-                name: LocalizedConstants.authTypePrompt,
+                name: LocalizedConstants.authTypeName,
                 message: LocalizedConstants.authTypePrompt,
                 choices: authenticationChoices,
                 shouldPrompt: (answers) => !connectionStringSet() && utils.isEmpty(credentials.authenticationType) && authenticationChoices.length > 1,
