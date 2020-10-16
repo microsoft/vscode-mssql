@@ -11,7 +11,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureCodeGrant, AzureAuthType, AzureDeviceCode, AADResource, Token } from 'ads-adal-library';
+import { AzureCodeGrant, AzureAuthType, AzureDeviceCode, Token } from 'ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 import { AzureLogger } from '../azure/azureLogger';
