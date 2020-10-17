@@ -24,6 +24,7 @@ import { ObjectExplorerUtils } from './objectExplorerUtils';
 import Utils = require('../models/utils');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
+import { AzureController } from '../azure/azureController';
 
 export class ObjectExplorerService {
 
@@ -407,6 +408,7 @@ export class ObjectExplorerService {
                         connectionCredentials.password = password;
                     }
                 } else if (connectionCredentials.authenticationType === Constants.azureMfa) {
+                    let azureController = new AzureController(context);
                     let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
                     let profile = new ConnectionProfile();
                     profile.accountId = connectionCredentials.accountId;
@@ -416,8 +418,7 @@ export class ObjectExplorerService {
                     profile.email = connectionCredentials.email;
                     profile.password = connectionCredentials.password;
                     profile.server = connectionCredentials.server;
-                    connectionCredentials.azureAccountToken = await profile.refreshToken(context,
-                        account, this._connectionManager.accountStore);
+                    connectionCredentials.azureAccountToken = await azureController.refreshToken(account, this._connectionManager.accountStore);
                 }
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
