@@ -3,27 +3,35 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import vscode = require('vscode');
 import { IAccount, IAccountKey, IAccountDisplayInfo } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
-import { Deferred } from '../protocol';
 import Constants = require('../constants/constants');
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { AzureController } from './azureController';
+import { AccountStore } from './accountStore';
+import providerSettings from '../azure/providerSettings';
 
 export class AccountService {
 
-    private _session: IAzureSession = undefined;
     private _account: IAccount = undefined;
     private _token = undefined;
     private _isStale: boolean;
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _vscodeWrapper: VscodeWrapper
+        private _vscodeWrapper: VscodeWrapper,
+        private _context: vscode.ExtensionContext,
+        private _accountStore: AccountStore
     ) {}
 
     public get account(): IAccount {
         return this._account;
+    }
+
+    public setAccount(account: IAccount): void {
+        this._account = account;
     }
 
     public get client(): SqlToolsServiceClient {
@@ -65,40 +73,17 @@ export class AccountService {
     }
 
     public async createSecurityTokenMapping(): Promise<any> {
-        if (!this._token) {
-            let promise = new Deferred();
-            this._token = this._session.credentials.getToken((error, result ) => {
-                if (result) {
-                    this._isStale = false;
-                    this._token = result;
-                }
-                if (error) {
-                    this._isStale = true;
-                }
-                promise.resolve();
-            });
-            await promise;
-        }
         let mapping = {};
-        mapping[this._session.tenantId] = {
-            expiresOn: this._token.expiresOn.toISOString(),
-            resource: this._token.resource,
-            tokenType: this._token.tokenType,
-            token: this._token.accessToken
+        mapping[this.account.properties.tenants[0].id] = {
+            token: await this.refreshToken(this.account)
         };
         return mapping;
     }
 
-    public initializeSessionAccount(): void {
-        if (this._vscodeWrapper.azureAccountExtension.exports.sessions.length === 1) {
-            this._session = this._vscodeWrapper.azureAccountExtension.exports.sessions[0];
-        } else if (this._vscodeWrapper.azureAccountExtension.exports.filters) {
-            this._session = this._vscodeWrapper.azureAccountExtension.exports.filters[0].session;
-        }
-        this._account = this.convertToAzureAccount(this._session);
+    public async refreshToken(account): Promise<string> {
+        let azureController = new AzureController(this._context);
+        return await azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
     }
-
-
 
 
 }

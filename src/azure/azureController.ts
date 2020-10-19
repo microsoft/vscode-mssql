@@ -13,7 +13,7 @@ import { CredentialStore } from '../credentialstore/credentialstore';
 import { StorageService } from './StorageService';
 import * as utils from '../models/utils';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
-import { AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from 'ads-adal-library';
+import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, ProviderSettings, Token } from 'ads-adal-library';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
@@ -91,7 +91,7 @@ export class AzureController {
         this.azureMessageDisplayer = new AzureMessageDisplayer();
     }
 
-    public async getTokens(profile: ConnectionProfile, accountStore: AccountStore): Promise<ConnectionProfile> {
+    public async getTokens(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
         let account: IAccount;
         let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
         if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
@@ -99,7 +99,7 @@ export class AzureController {
             account = await azureCodeGrant.startLogin();
             await accountStore.addAccount(account);
             const token = await azureCodeGrant.getAccountSecurityToken(
-                account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                account, azureCodeGrant.getHomeTenant(account).id, settings
             );
             profile.azureAccountToken = token.token;
             profile.email = account.displayInfo.email;
@@ -109,7 +109,7 @@ export class AzureController {
             account = await azureDeviceCode.startLogin();
             await accountStore.addAccount(account);
             const token = await azureDeviceCode.getAccountSecurityToken(
-                account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
+                account, azureDeviceCode.getHomeTenant(account).id, settings
             );
             profile.azureAccountToken = token.token;
             profile.email = account.displayInfo.email;
@@ -118,27 +118,25 @@ export class AzureController {
         return profile;
     }
 
-    public async refreshTokenWrapper(profile, accountStore, accountAnswer): Promise<ConnectionProfile> {
+    public async refreshTokenWrapper(profile, accountStore, accountAnswer, settings: AADResource): Promise<ConnectionProfile> {
         let account = accountStore.getAccount(accountAnswer.key.id);
         if (!account) {
             throw new Error('account not found');
         }
-        profile.azureAccountToken = await this.refreshToken(account, accountStore);
+        profile.azureAccountToken = await this.refreshToken(account, accountStore, settings);
         profile.email = account.displayInfo.email;
         profile.accountId = account.key.id;
         return profile;
     }
 
-    public async refreshToken(account: IAccount, accountStore: AccountStore): Promise<string> {
+    public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<string> {
         let token: Token;
         if (account.properties.azureAuthType === 0) {
             // Auth Code Grant
             let azureCodeGrant = await this.createAuthCodeGrant();
             let newAccount = await azureCodeGrant.refreshAccess(account);
             await accountStore.addAccount(newAccount);
-            token = await azureCodeGrant.getAccountSecurityToken(
-                account, azureCodeGrant.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                );
+            token = await azureCodeGrant.getAccountSecurityToken(account, azureCodeGrant.getHomeTenant(account).id, settings);
         } else if (account.properties.azureAuthType === 1) {
             // Auth Device Code
             let azureDeviceCode = await this.createDeviceCode();

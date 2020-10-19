@@ -19,6 +19,10 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
 import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
 import { AccountStore } from '../azure/accountStore';
+import { AzureController } from '../azure/azureController';
+import { IAccount } from '../models/contracts/azure/accountInterfaces';
+import providerSettings from '../azure/providerSettings';
+
 
 /**
  * The different tasks for managing connection profiles.
@@ -498,40 +502,25 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
-        // Check whether the azure account extension is installed and active
-        if (this._vscodeWrapper.azureAccountExtensionActive) {
-            // Sign in to azure account
-            const signedIn = await this.promptForAccountSignIn();
-            if (signedIn) {
-                // Create a firewall rule for the server
-                let success = await this.createFirewallRule(profile, profile.server, ipAddress);
-                if (success) {
-                    this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
-                }
-                return success;
-            }
+        let azureController = new AzureController(this._context);
+        // TODO: Access account which firewall error needs to be added from:
+        // Try to match accountId to an account in account storage
+        if (profile.accountId) {
+            let account = this._accountStore.getAccount(profile.accountId);
+            this.connectionManager.accountService.setAccount(account);
+            // take that account from account storage and refresh tokens and create firewall rule
         } else {
-            // If the extension exists but not active
-            if (this._vscodeWrapper.azureAccountExtension) {
-                await this._vscodeWrapper.azureAccountExtension.activate();
-                return this.handleExtensionActivation();
-            } else {
-                // Show recommendation to download the azure account extension
-                const selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleExtNotInstalled,
-                    LocalizedConstants.downloadAndInstallLabel);
-                if (selection === LocalizedConstants.downloadAndInstallLabel) {
-                    await this._vscodeWrapper.executeCommand(Constants.cmdOpenExtension, Constants.azureAccountExtensionId);
-                    this._vscodeWrapper.onDidChangeExtensions(async (e) => {
-                        // Activate the Azure Account extension and call the function again
-                        if (this._vscodeWrapper.azureAccountExtension) {
-                            await this._vscodeWrapper.azureAccountExtension.activate();
-                            await this.handleExtensionActivation();
-                        }
-                    });
-                }
-                return false;
+            // If no match or no accountId present, need to add an azure account
+            let selection = await this._vscodeWrapper.showInformationMessage('Connection failed - firewall rule.', 'Add Azure Account');
+            if (selection === 'Add Azure Account') {
+                profile = await azureController.getTokens(profile, this._accountStore, providerSettings.resources.azureManagementResource);
             }
+            let account = this._accountStore.getAccount(profile.accountId);
+            this.connectionManager.accountService.setAccount(account);
+
         }
+        let success = await this.createFirewallRule(profile, profile.server, ipAddress);
+        return success;
     }
 
     /**
@@ -566,49 +555,24 @@ export class ConnectionUI {
         });
     }
 
-    private showSignInOptions(): Promise<boolean> {
-        return this.promptItemChoice({}, Utils.getSignInQuickPickItems()).then((selection) => {
-            if (selection && selection.command) {
-                return this._vscodeWrapper.executeCommand(selection.command).then(() => {
-                    this.connectionManager.accountService.initializeSessionAccount();
-                    this.connectionManager.accountService.account.isSignedIn = true;
-                    return true;
-                });
-            } else {
-                return false;
-            }
-        });
-    }
+    private promptForAccountSignIn(): void {
 
-    private async handleExtensionActivation(): Promise<boolean> {
-        if (!this._vscodeWrapper.isAccountSignedIn) {
-            const result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptAzureExtensionActivatedNotSignedIn,
-                LocalizedConstants.signInLabel);
-            if (result === LocalizedConstants.signInLabel) {
-                return this.showSignInOptions();
-            }
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    private async promptForAccountSignIn(): Promise<boolean> {
-        if (!this._vscodeWrapper.isAccountSignedIn) {
-            return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
-                LocalizedConstants.signInLabel).then(result => {
-                if (result === LocalizedConstants.signInLabel) {
-                    // show firewall dialog with all sign-in options
-                    return this.showSignInOptions();
-                } else {
-                    return false;
-                }
-            });
-        } else {
-            this.connectionManager.accountService.initializeSessionAccount();
-            this.connectionManager.accountService.account.isSignedIn = true;
-            return true;
-        }
+        // prompt to "add account"
+        // if (!this._vscodeWrapper.isAccountSignedIn) {
+        //     return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
+        //         LocalizedConstants.signInLabel).then(result => {
+        //         if (result === LocalizedConstants.signInLabel) {
+        //             // show firewall dialog with all sign-in options
+        //             return this.showSignInOptions();
+        //         } else {
+        //             return false;
+        //         }
+        //     });
+        // } else {
+        //     this.connectionManager.accountService.initializeSessionAccount();
+        //     this.connectionManager.accountService.account.isSignedIn = true;
+        //     return true;
+        // }
     }
 
     private async promptForIpAddress(startIpAddress: string): Promise<IFirewallIpAddressRange> {
@@ -654,7 +618,7 @@ export class ConnectionUI {
         });
     }
 
-    private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string): Promise<boolean> {
+    private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string, account?: IAccount): Promise<boolean> {
         return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
             LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {

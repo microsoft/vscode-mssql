@@ -12,6 +12,8 @@ import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
+import { Tenant } from 'ads-adal-library';
+import { IAccount } from '../src/models/contracts/azure/accountInterfaces';
 
 
 suite('Firewall Service Tests', () => {
@@ -59,7 +61,7 @@ suite('Firewall Service Tests', () => {
             }
         };
         vscodeWrapper.setup(v => v.azureAccountExtension).returns(() => mockExtension);
-        accountService = new AccountService(client.object, vscodeWrapper.object);
+        accountService = new AccountService(client.object, vscodeWrapper.object, undefined, undefined);
         firewallService = new FirewallService(accountService);
     });
 
@@ -74,14 +76,24 @@ suite('Firewall Service Tests', () => {
         let server = 'test_server';
         let startIpAddress = '1.2.3.1';
         let endIpAddress = '1.2.3.255';
-        accountService.initializeSessionAccount();
         let mockToken = {
             expiresOn: new Date(),
             resource: undefined,
             tokenType: 'test',
             accessToken: 'test_token'
         };
+        let mockTenants: Tenant = {
+            id: '1',
+            displayName: undefined
+        };
+        let mockAccount: IAccount = {
+            properties: [mockTenants],
+            key: undefined,
+            displayInfo: undefined,
+            isStale: undefined
+        };
         accountService.token = mockToken;
+        accountService.setAccount(mockAccount);
         let result = await firewallService.createFirewallRule(server, startIpAddress, endIpAddress);
         assert.isNotNull(result, 'Create Firewall Rule request is sent successfully');
     });

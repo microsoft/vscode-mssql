@@ -15,6 +15,7 @@ import { AzureAuthType } from 'ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
 import { IAccount } from './contracts/azure/accountInterfaces';
+import providerSettings from '../azure/providerSettings';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -93,9 +94,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         return prompter.prompt(questions, true).then(async answers => {
             if (answers.authenticationType === 'AzureMFA') {
                 if (answers.AAD === 'addAccount') {
-                    profile = await azureController.getTokens(profile, accountStore);
+                    profile = await azureController.getTokens(profile, accountStore, providerSettings.resources.databaseResource);
                 } else {
-                    profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer);
+                    profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer, providerSettings.resources.databaseResource);
                 }
             }
             if (answers && profile.isValidProfile()) {
@@ -108,7 +109,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
 
     // Assumption: having connection string or server + profile name indicates all requirements were met
-    private isValidProfile(): boolean {
+    public isValidProfile(): boolean {
         if (this.connectionString) {
             return true;
         }
@@ -125,7 +126,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         return false;
     }
 
-    private isAzureActiveDirectory(): boolean {
+    public isAzureActiveDirectory(): boolean {
         return this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA];
     }
 
