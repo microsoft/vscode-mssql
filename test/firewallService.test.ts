@@ -76,12 +76,6 @@ suite('Firewall Service Tests', () => {
         let server = 'test_server';
         let startIpAddress = '1.2.3.1';
         let endIpAddress = '1.2.3.255';
-        let mockToken = {
-            expiresOn: new Date(),
-            resource: undefined,
-            tokenType: 'test',
-            accessToken: 'test_token'
-        };
         let mockTenants: Tenant = {
             id: '1',
             displayName: undefined

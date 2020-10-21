@@ -555,26 +555,6 @@ export class ConnectionUI {
         });
     }
 
-    private promptForAccountSignIn(): void {
-
-        // prompt to "add account"
-        // if (!this._vscodeWrapper.isAccountSignedIn) {
-        //     return this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
-        //         LocalizedConstants.signInLabel).then(result => {
-        //         if (result === LocalizedConstants.signInLabel) {
-        //             // show firewall dialog with all sign-in options
-        //             return this.showSignInOptions();
-        //         } else {
-        //             return false;
-        //         }
-        //     });
-        // } else {
-        //     this.connectionManager.accountService.initializeSessionAccount();
-        //     this.connectionManager.accountService.account.isSignedIn = true;
-        //     return true;
-        // }
-    }
-
     private async promptForIpAddress(startIpAddress: string): Promise<IFirewallIpAddressRange> {
         let questions: IQuestion[] = [
             {
