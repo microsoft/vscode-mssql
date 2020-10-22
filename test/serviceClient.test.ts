@@ -64,23 +64,23 @@ suite('Service Client tests', () => {
     //     done();
     // });
 
-    test('initializeForPlatform should install the service if not exists', (done) => {
-        let fixture: IFixture = {
-            installedServerPath: undefined,
-            downloadedServerPath: 'downloaded service',
-            platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
-        };
+    // test('initializeForPlatform should install the service if not exists', (done) => {
+    //     let fixture: IFixture = {
+    //         installedServerPath: undefined,
+    //         downloadedServerPath: 'downloaded service',
+    //         platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
+    //     };
 
-        setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
+    //     setupMocks(fixture);
+    //     let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then(result => {
-            assert.notEqual(result, undefined);
-            assert.equal(result.serverPath, fixture.downloadedServerPath);
-            assert.equal(result.installedBeforeInitializing, true);
-        });
-        done();
-    });
+    //     serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then(result => {
+    //         assert.notEqual(result, undefined);
+    //         assert.equal(result.serverPath, fixture.downloadedServerPath);
+    //         assert.equal(result.installedBeforeInitializing, true);
+    //     });
+    //     done();
+    // });
 
     test('initializeForPlatform should fail given unsupported platform', () => {
         let fixture: IFixture = {
