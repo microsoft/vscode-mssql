@@ -126,33 +126,33 @@ suite('Service Client tests', () => {
     //     done();
     // });
 
-    test('initializeForPlatform should ignore service version given mac 10.12 or higher', (done) => {
-        let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
-        platformInfoMock.callBase = true;
-        platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => false);
+    // test('initializeForPlatform should ignore service version given mac 10.12 or higher', (done) => {
+    //     let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
+    //     platformInfoMock.callBase = true;
+    //     platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => false);
 
-        let fixture: IFixture = {
-            installedServerPath: 'already installed service',
-            downloadedServerPath: undefined,
-            platformInfo: platformInfoMock.object
-        };
+    //     let fixture: IFixture = {
+    //         installedServerPath: 'already installed service',
+    //         downloadedServerPath: undefined,
+    //         platformInfo: platformInfoMock.object
+    //     };
 
-        let serviceVersion: number = 0;
-        testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
+    //     let serviceVersion: number = 0;
+    //     testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
 
-        setupMocks(fixture);
-        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
+    //     setupMocks(fixture);
+    //     let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
-            assert.equal(serviceVersion, 0);
-            platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
-            testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.never());
-            assert.notEqual(result, undefined);
-            assert.equal(result.serverPath, fixture.installedServerPath);
-            assert.equal(result.installedBeforeInitializing, false);
-        });
-        done();
-    });
+    //     serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+    //         assert.equal(serviceVersion, 0);
+    //         platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
+    //         testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.never());
+    //         assert.notEqual(result, undefined);
+    //         assert.equal(result.serverPath, fixture.installedServerPath);
+    //         assert.equal(result.installedBeforeInitializing, false);
+    //     });
+    //     done();
+    // });
 
     test('handleLanguageServiceStatusNotification should change the UI status', (done) => {
         return new Promise((resolve, reject) => {
