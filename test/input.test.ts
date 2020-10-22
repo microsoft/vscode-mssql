@@ -30,17 +30,17 @@ suite('Input Prompt Tests', () => {
         vscodeWrapper.verify(v => v.showInputBox(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
-    test('Test prompt an error question should throw', () => {
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        const errorQuestion = {
-            default: new Error('test'),
-            placeHolder: undefined
-        };
-        vscodeWrapper.setup(v => v.showInputBox(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-        let listPrompt = new InputPrompt(errorQuestion, vscodeWrapper.object);
-        listPrompt.render();
-        vscodeWrapper.verify(v => v.showInputBox(TypeMoq.It.isAny()), TypeMoq.Times.once());
-    });
+    // test('Test prompt an error question should throw', () => {
+    //     let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+    //     const errorQuestion = {
+    //         default: new Error('test'),
+    //         placeHolder: undefined
+    //     };
+    //     vscodeWrapper.setup(v => v.showInputBox(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+    //     let listPrompt = new InputPrompt(errorQuestion, vscodeWrapper.object);
+    //     listPrompt.render();
+    //     vscodeWrapper.verify(v => v.showInputBox(TypeMoq.It.isAny()), TypeMoq.Times.once());
+    // });
 
     test('Test prompt question with default message', () => {
         let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
