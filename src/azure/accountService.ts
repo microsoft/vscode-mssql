@@ -12,12 +12,17 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
+import { Tenant } from 'ads-adal-library';
 
 export class AccountService {
 
     private _account: IAccount = undefined;
     private _token = undefined;
     private _isStale: boolean;
+    protected readonly commonTenant: Tenant = {
+        id: 'common',
+        displayName: 'common'
+    };
 
     constructor(
         private _client: SqlToolsServiceClient,
@@ -74,7 +79,7 @@ export class AccountService {
 
     public async createSecurityTokenMapping(): Promise<any> {
         let mapping = {};
-        mapping[this.account.properties.tenants[0].id] = {
+        mapping[this.getHomeTenant(this.account).id] = {
             token: await this.refreshToken(this.account)
         };
         return mapping;
@@ -83,6 +88,12 @@ export class AccountService {
     public async refreshToken(account): Promise<string> {
         let azureController = new AzureController(this._context);
         return await azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
+    }
+
+    public getHomeTenant(account: IAccount): Tenant {
+        // Home is defined by the API
+        // Lets pick the home tenant - and fall back to commonTenant if they don't exist
+        return account.properties.tenants.find(t => t.tenantCategory === 'Home') ?? account.properties.tenants[0] ?? this.commonTenant;
     }
 
 

@@ -38,7 +38,6 @@ export class AccountStore {
     }
 
     public removeAccount(key: string): void {
-        // TODO: implement function so users can sign out
         let configValues = this.getAccounts();
         configValues = configValues.filter(val => val.key.id !== key);
         this._context.globalState.update(Constants.configAzureAccount, configValues);

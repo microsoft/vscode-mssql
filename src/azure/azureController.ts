@@ -123,6 +123,10 @@ export class AzureController {
         if (!account) {
             throw new Error('account not found');
         }
+        if (account.isStale) {
+            accountStore.removeAccount(account.key.id);
+            throw new Error('account is stale. Please re-do login');
+        }
         profile.azureAccountToken = await this.refreshToken(account, accountStore, settings);
         profile.email = account.displayInfo.email;
         profile.accountId = account.key.id;
@@ -135,6 +139,9 @@ export class AzureController {
             // Auth Code Grant
             let azureCodeGrant = await this.createAuthCodeGrant();
             let newAccount = await azureCodeGrant.refreshAccess(account);
+            if (newAccount.isStale === true) {
+                return undefined;
+            }
             await accountStore.addAccount(newAccount);
             token = await azureCodeGrant.getAccountSecurityToken(account, azureCodeGrant.getHomeTenant(account).id, settings);
         } else if (account.properties.azureAuthType === 1) {
@@ -142,6 +149,9 @@ export class AzureController {
             let azureDeviceCode = await this.createDeviceCode();
             let newAccount = await azureDeviceCode.refreshAccess(account);
             await accountStore.addAccount(newAccount);
+            if (newAccount.isStale === true) {
+                return undefined;
+            }
             token = await azureDeviceCode.getAccountSecurityToken(
                 account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
                 );

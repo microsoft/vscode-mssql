@@ -22,6 +22,7 @@ import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
+import { FirewallService } from '../firewall/firewallService';
 
 
 /**
@@ -602,11 +603,13 @@ export class ConnectionUI {
         return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
             LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
-                const firewallService = this.connectionManager.firewallService;
+                const firewallService = new FirewallService(this._connectionManager.accountService);
                 let ipRange = await this.promptForIpAddress(ipAddress);
                 if (ipRange) {
                     let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
                     if (firewallResult.result) {
+                        this._vscodeWrapper.showInformationMessage('Firewall rule successfully created, please try reconnecting.');
+                        // this.promptForRetryCreateProfile(profile);
                         return true;
                     } else {
                         Utils.showErrorMsg(firewallResult.errorMessage);
