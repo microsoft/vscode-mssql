@@ -349,6 +349,14 @@ export abstract class AzureAuth {
 			throw new AzureAuthError(ErrorCodes.ParseAccount, this.errorLookup.getSimpleError(ErrorCodes.ParseAccount));
 		}
 	}
+
+	public async deleteAccountCache(accountKey: AccountKey): Promise<void> {
+		const results = await this.cachingProvider.findCredentials(accountKey.id);
+
+		for (let { account } of results) {
+			await this.cachingProvider.remove(account);
+		}
+	}
 	//#endregion
 
 	//#region interaction handling
