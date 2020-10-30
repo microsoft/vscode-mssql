@@ -28,6 +28,7 @@ import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
+import { AzureController } from '../azure/azureController';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -83,6 +84,7 @@ export default class ConnectionManager {
     private _failedUriToFirewallIpMap: Map<string, string>;
     private _accountService: AccountService;
     private _firewallService: FirewallService;
+    private _azureController: AzureController;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -116,6 +118,10 @@ export default class ConnectionManager {
 
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(this, context, this._connectionStore, this._accountStore, prompter, this.vscodeWrapper);
+        }
+
+        if (!this._azureController) {
+            this._azureController = new AzureController(context);
         }
 
         // Initiate the firewall service
@@ -800,6 +806,7 @@ export default class ConnectionManager {
         return prompter.prompt<IAccount>(questions, true).then(async answers => {
             if (answers.account) {
                 this._accountStore.removeAccount(answers.account.key.id);
+                this._azureController.removeToken(answers.account);
             }
         });
 

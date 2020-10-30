@@ -133,7 +133,7 @@ export class AzureController {
         return profile;
     }
 
-    public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<string> {
+    public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<string | undefined> {
         let token: Token;
         if (account.properties.azureAuthType === 0) {
             // Auth Code Grant
@@ -177,5 +177,12 @@ export class AzureController {
             this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
             this.azureStringLookup, this.authRequest
         );
+    }
+
+    public async removeToken(account): Promise<boolean> {
+        this.cacheService.findCredentials(account.key.id);
+        let azureAuth = this.createAuthCodeGrant();
+        azureAuth.deleteAccountCache(account.key);
+        return;
     }
 }

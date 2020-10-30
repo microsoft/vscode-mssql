@@ -603,7 +603,7 @@ export class ConnectionUI {
         return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
             LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
             if (result === LocalizedConstants.createFirewallRuleLabel) {
-                const firewallService = new FirewallService(this._connectionManager.accountService);
+                const firewallService = this.connectionManager.firewallService;
                 let ipRange = await this.promptForIpAddress(ipAddress);
                 if (ipRange) {
                     let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
