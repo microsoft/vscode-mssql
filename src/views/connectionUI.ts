@@ -609,7 +609,8 @@ export class ConnectionUI {
                 if (ipRange) {
                     let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
                     if (firewallResult.result) {
-                        this.promptForRetryCreateProfile(profile);
+                        this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
+                        // this.promptForRetryCreateProfile(profile);
                         return true;
                     } else {
                         Utils.showErrorMsg(firewallResult.errorMessage);
