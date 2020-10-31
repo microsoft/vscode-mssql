@@ -512,8 +512,9 @@ export class ConnectionUI {
             // take that account from account storage and refresh tokens and create firewall rule
         } else {
             // If no match or no accountId present, need to add an azure account
-            let selection = await this._vscodeWrapper.showInformationMessage('Connection failed - firewall rule.', 'Add Azure Account');
-            if (selection === 'Add Azure Account') {
+            let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
+                LocalizedConstants.azureAddAccount);
+            if (selection === LocalizedConstants.azureAddAccount) {
                 profile = await azureController.getTokens(profile, this._accountStore, providerSettings.resources.azureManagementResource);
             }
             let account = this._accountStore.getAccount(profile.accountId);
@@ -608,8 +609,7 @@ export class ConnectionUI {
                 if (ipRange) {
                     let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
                     if (firewallResult.result) {
-                        this._vscodeWrapper.showInformationMessage('Firewall rule successfully created, please try reconnecting.');
-                        // this.promptForRetryCreateProfile(profile);
+                        this.promptForRetryCreateProfile(profile);
                         return true;
                     } else {
                         Utils.showErrorMsg(firewallResult.errorMessage);

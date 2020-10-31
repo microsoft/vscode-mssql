@@ -1,4 +1,5 @@
 import vscode = require('vscode');
+import LocalizedConstants = require('../constants/localizedConstants');
 import { AzureStringLookup } from '../azure/azureStringLookup';
 import { AzureUserInteraction } from '../azure/azureUserInteraction';
 import { AzureErrorLookup } from '../azure/azureErrorLookup';
@@ -17,6 +18,7 @@ import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, ProviderSe
 import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 
 function getAppDataPath(): string {
     let platform = process.platform;
@@ -70,14 +72,19 @@ export class AzureController {
     private storageService: StorageService;
     private context: vscode.ExtensionContext;
     private logger: AzureLogger;
+    private _vscodeWrapper: VscodeWrapper;
 
     constructor(context: vscode.ExtensionContext, logger?: AzureLogger) {
         this.context = context;
         if (!this.logger) {
             this.logger = new AzureLogger();
         }
+        if (!this._vscodeWrapper) {
+            this._vscodeWrapper = new VscodeWrapper();
+        }
     }
     public async init(): Promise<void> {
+        // const session = await vscode.authentication.getSession('microsoft', )
         this.authRequest = new AzureAuthRequest(this.context, this.logger);
         await this.authRequest.startServer();
         let storagePath = await findOrMakeStoragePath();
@@ -125,7 +132,8 @@ export class AzureController {
         }
         if (account.isStale) {
             accountStore.removeAccount(account.key.id);
-            throw new Error('account is stale. Please re-do login');
+            let errorMessage = LocalizedConstants.msgAccountStale;
+            this._vscodeWrapper.showErrorMessage(errorMessage);
         }
         profile.azureAccountToken = await this.refreshToken(account, accountStore, settings);
         profile.email = account.displayInfo.email;
@@ -179,9 +187,9 @@ export class AzureController {
         );
     }
 
-    public async removeToken(account): Promise<boolean> {
+    public async removeToken(account): Promise<void> {
         this.cacheService.findCredentials(account.key.id);
-        let azureAuth = this.createAuthCodeGrant();
+        let azureAuth = await this.createAuthCodeGrant();
         azureAuth.deleteAccountCache(account.key);
         return;
     }
