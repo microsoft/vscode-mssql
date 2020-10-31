@@ -122,6 +122,7 @@ export default class ConnectionManager {
 
         if (!this._azureController) {
             this._azureController = new AzureController(context);
+            this._azureController.init();
         }
 
         // Initiate the firewall service

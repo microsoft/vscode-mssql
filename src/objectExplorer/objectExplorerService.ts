@@ -422,8 +422,10 @@ export class ObjectExplorerService {
                     profile.email = connectionCredentials.email;
                     profile.password = connectionCredentials.password;
                     profile.server = connectionCredentials.server;
-                    connectionCredentials.azureAccountToken = await azureController.refreshToken(
-                        account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+                    if (!connectionCredentials.azureAccountToken) {
+                        connectionCredentials.azureAccountToken = await azureController.refreshToken(
+                            account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+                    }
                 }
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);

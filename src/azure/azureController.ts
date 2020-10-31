@@ -188,9 +188,8 @@ export class AzureController {
     }
 
     public async removeToken(account): Promise<void> {
-        this.cacheService.findCredentials(account.key.id);
         let azureAuth = await this.createAuthCodeGrant();
-        azureAuth.deleteAccountCache(account.key);
+        await azureAuth.deleteAccountCache(account.key);
         return;
     }
 }
