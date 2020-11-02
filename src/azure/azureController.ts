@@ -84,7 +84,6 @@ export class AzureController {
         }
     }
     public async init(): Promise<void> {
-        // const session = await vscode.authentication.getSession('microsoft', )
         this.authRequest = new AzureAuthRequest(this.context, this.logger);
         await this.authRequest.startServer();
         let storagePath = await findOrMakeStoragePath();
@@ -128,7 +127,8 @@ export class AzureController {
     public async refreshTokenWrapper(profile, accountStore, accountAnswer, settings: AADResource): Promise<ConnectionProfile> {
         let account = accountStore.getAccount(accountAnswer.key.id);
         if (!account) {
-            throw new Error('account not found');
+            await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
+            throw new Error(LocalizedConstants.msgAccountNotFound);
         }
         if (account.isStale) {
             accountStore.removeAccount(account.key.id);

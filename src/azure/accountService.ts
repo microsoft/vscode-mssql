@@ -12,7 +12,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
-import { Tenant } from 'ads-adal-library';
+import { Tenant, Token } from 'ads-adal-library';
 
 export class AccountService {
 
@@ -77,11 +77,9 @@ export class AccountService {
         return account;
     }
 
-    public async createSecurityTokenMapping(): Promise<any> {
-        let mapping = {};
-        mapping[this.getHomeTenant(this.account).id] = {
-            token: await this.refreshToken(this.account)
-        };
+    public async createSecurityTokenMapping(): Promise<Map<string, string>> {
+        let mapping = new Map<string, string>();
+        mapping.set(this.getHomeTenant(this.account).id, await this.refreshToken(this.account));
         return mapping;
     }
 

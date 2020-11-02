@@ -96,7 +96,11 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 if (answers.AAD === 'addAccount') {
                     profile = await azureController.getTokens(profile, accountStore, providerSettings.resources.databaseResource);
                 } else {
-                    profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer, providerSettings.resources.databaseResource);
+                    try {
+                        profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer, providerSettings.resources.databaseResource);
+                    } catch (error) {
+                        console.log(`Refreshing tokens failed: ${error}`);
+                    }
                 }
             }
             if (answers && profile.isValidProfile()) {
