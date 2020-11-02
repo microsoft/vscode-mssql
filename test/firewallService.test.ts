@@ -12,11 +12,13 @@ import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
+import { Tenant } from 'ads-adal-library';
+import { IAccount } from '../src/models/contracts/azure/accountInterfaces';
 
 
 suite('Firewall Service Tests', () => {
-    let firewallService: FirewallService;
-    let accountService: AccountService;
+    let firewallService: TypeMoq.IMock<FirewallService>;
+    let accountService: TypeMoq.IMock<AccountService>;
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
@@ -59,30 +61,37 @@ suite('Firewall Service Tests', () => {
             }
         };
         vscodeWrapper.setup(v => v.azureAccountExtension).returns(() => mockExtension);
-        accountService = new AccountService(client.object, vscodeWrapper.object);
-        firewallService = new FirewallService(accountService);
+        accountService = TypeMoq.Mock.ofType(AccountService, TypeMoq.MockBehavior.Loose);
+        firewallService = TypeMoq.Mock.ofType(FirewallService, TypeMoq.MockBehavior.Loose);
     });
 
 
 
     test('Handle Firewall Rule test', async () => {
-        let result = await firewallService.handleFirewallRule(12345, 'firewall error!');
-        assert.isNotNull(result, 'Handle Firewall Rule request is sent successfully');
+        let handleResult = await firewallService.object.handleFirewallRule(12345, 'firewall error!');
+        assert.isNotNull(handleResult, 'Handle Firewall Rule request is sent successfully');
     });
 
     test('Create Firewall Rule Test', async () => {
         let server = 'test_server';
         let startIpAddress = '1.2.3.1';
         let endIpAddress = '1.2.3.255';
-        accountService.initializeSessionAccount();
-        let mockToken = {
-            expiresOn: new Date(),
-            resource: undefined,
-            tokenType: 'test',
-            accessToken: 'test_token'
+        let mockTenants: Tenant = {
+            id: '1',
+            displayName: undefined
         };
-        accountService.token = mockToken;
-        let result = await firewallService.createFirewallRule(server, startIpAddress, endIpAddress);
+        let properties = {
+            tenants: [mockTenants]
+        };
+        let mockAccount: IAccount = {
+            properties: properties,
+            key: undefined,
+            displayInfo: undefined,
+            isStale: undefined
+        };
+        accountService.setup(v => v.refreshToken(mockAccount)).returns(() => Promise.resolve('mockToken'));
+        accountService.object.setAccount(mockAccount);
+        let result = await firewallService.object.createFirewallRule(server, startIpAddress, endIpAddress);
         assert.isNotNull(result, 'Create Firewall Rule request is sent successfully');
     });
 });

@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
+import { AzureAuthType } from 'ads-adal-library';
 import vscode = require('vscode');
+import { AccountStore } from '../azure/accountStore';
 import Constants = require('../constants/constants');
 
 // interfaces
@@ -222,6 +224,10 @@ export interface IConnectionProfile extends IConnectionCredentials {
     profileName: string;
     savePassword: boolean;
     emptyPasswordInput: boolean;
+    azureAuthType: AzureAuthType;
+    accountStore: AccountStore;
+    isValidProfile(): boolean;
+    isAzureActiveDirectory(): boolean;
 }
 
 export enum CredentialsQuickPickItemType {

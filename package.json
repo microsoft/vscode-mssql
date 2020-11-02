@@ -112,7 +112,7 @@
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
-    "ads-adal-library": "1.0.8",
+    "ads-adal-library": "1.0.9",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "tar": "^6.0.1",
@@ -458,59 +458,59 @@
       {
         "command": "mssql.scriptExecute",
         "title": "%mssql.scriptExecute%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.scriptAlter",
         "title": "%mssql.scriptAlter%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.openQueryHistory",
         "title": "%mssql.openQueryHistory%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.runQueryHistory",
         "title": "%mssql.runQueryHistory%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.deleteQueryHistory",
         "title": "%mssql.deleteQueryHistory%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.clearAllQueryHistory",
         "title": "%mssql.clearAllQueryHistory%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.startQueryHistoryCapture",
         "title": "%mssql.startQueryHistoryCapture%",
-        "group": "MS SQL",
+        "category": "MS SQL",
         "icon": "$(debug-start)"
       },
       {
         "command": "mssql.pauseQueryHistoryCapture",
         "title": "%mssql.pauseQueryHistoryCapture%",
-        "group": "MS SQL",
+        "category": "MS SQL",
         "icon": "$(debug-stop)"
       },
       {
         "command": "mssql.commandPaletteQueryHistory",
         "title": "%mssql.commandPaletteQueryHistory%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.copyObjectName",
         "title": "%mssql.copyObjectName%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       },
       {
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
-        "group": "MS SQL"
+        "category": "MS SQL"
       }
     ],
     "keybindings": [

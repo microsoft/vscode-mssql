@@ -50,8 +50,9 @@ suite('Firewall Service Tests', () => {
                 sessions: [mockSession]
             }
         };
+
         vscodeWrapper.setup(v => v.azureAccountExtension).returns(() => mockExtension);
-        accountService = new AccountService(client.object, vscodeWrapper.object);
+        accountService = new AccountService(client.object, vscodeWrapper.object, undefined, undefined);
     });
 
 });

@@ -16,5 +16,5 @@ export interface SecureStorageProvider extends KVProvider {
 
 // used for various caching
 export interface CachingProvider extends KVProvider {
-
+    findCredentials(key: string): Promise<{ account: string; password: string; }[]>;
 }

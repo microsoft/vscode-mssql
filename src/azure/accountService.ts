@@ -3,27 +3,40 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import vscode = require('vscode');
 import { IAccount, IAccountKey, IAccountDisplayInfo } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
-import { Deferred } from '../protocol';
 import Constants = require('../constants/constants');
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { AzureController } from './azureController';
+import { AccountStore } from './accountStore';
+import providerSettings from '../azure/providerSettings';
+import { Tenant, Token } from 'ads-adal-library';
 
 export class AccountService {
 
-    private _session: IAzureSession = undefined;
     private _account: IAccount = undefined;
     private _token = undefined;
     private _isStale: boolean;
+    protected readonly commonTenant: Tenant = {
+        id: 'common',
+        displayName: 'common'
+    };
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _vscodeWrapper: VscodeWrapper
+        private _vscodeWrapper: VscodeWrapper,
+        private _context: vscode.ExtensionContext,
+        private _accountStore: AccountStore
     ) {}
 
     public get account(): IAccount {
         return this._account;
+    }
+
+    public setAccount(account: IAccount): void {
+        this._account = account;
     }
 
     public get client(): SqlToolsServiceClient {
@@ -64,41 +77,22 @@ export class AccountService {
         return account;
     }
 
-    public async createSecurityTokenMapping(): Promise<any> {
-        if (!this._token) {
-            let promise = new Deferred();
-            this._token = this._session.credentials.getToken((error, result ) => {
-                if (result) {
-                    this._isStale = false;
-                    this._token = result;
-                }
-                if (error) {
-                    this._isStale = true;
-                }
-                promise.resolve();
-            });
-            await promise;
-        }
-        let mapping = {};
-        mapping[this._session.tenantId] = {
-            expiresOn: this._token.expiresOn.toISOString(),
-            resource: this._token.resource,
-            tokenType: this._token.tokenType,
-            token: this._token.accessToken
-        };
+    public async createSecurityTokenMapping(): Promise<Map<string, string>> {
+        let mapping = new Map<string, string>();
+        mapping.set(this.getHomeTenant(this.account).id, await this.refreshToken(this.account));
         return mapping;
     }
 
-    public initializeSessionAccount(): void {
-        if (this._vscodeWrapper.azureAccountExtension.exports.sessions.length === 1) {
-            this._session = this._vscodeWrapper.azureAccountExtension.exports.sessions[0];
-        } else if (this._vscodeWrapper.azureAccountExtension.exports.filters) {
-            this._session = this._vscodeWrapper.azureAccountExtension.exports.filters[0].session;
-        }
-        this._account = this.convertToAzureAccount(this._session);
+    public async refreshToken(account): Promise<string> {
+        let azureController = new AzureController(this._context);
+        return await azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
     }
 
-
+    public getHomeTenant(account: IAccount): Tenant {
+        // Home is defined by the API
+        // Lets pick the home tenant - and fall back to commonTenant if they don't exist
+        return account.properties.tenants.find(t => t.tenantCategory === 'Home') ?? account.properties.tenants[0] ?? this.commonTenant;
+    }
 
 
 }

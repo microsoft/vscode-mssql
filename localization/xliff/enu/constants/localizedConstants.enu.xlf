@@ -261,13 +261,16 @@
             <source xml:lang="en">Your client IP address does not have access to the server. Download and install the Azure Account extension to sign in to an Azure account and create a new firewall rule to enable access.</source>
         </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
-            <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
+            <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
         </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
             <source xml:lang="en">Account signed In. Create new firewall rule? </source>
         </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleAdded">
             <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
+        </trans-unit>
+        <trans-unit id="msgAccountStale">
+            <source xml:lang="en">Account is stale. Please re-do login</source>
         </trans-unit>
         <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
             <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
@@ -277,6 +280,9 @@
         </trans-unit>
         <trans-unit id="msgPromptFirewallRuleCreated">
             <source xml:lang="en">Firewall rule successfully created.</source>
+        </trans-unit>
+        <trans-unit id="msgAccountNotFound">
+            <source xml:lang="en">Account not found</source>
         </trans-unit>
         <trans-unit id="msgChooseQueryHistory">
             <source xml:lang="en">Choose Query History</source>

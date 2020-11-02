@@ -24,6 +24,8 @@ import { ObjectExplorerUtils } from './objectExplorerUtils';
 import Utils = require('../models/utils');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
+import { AzureController } from '../azure/azureController';
+import providerSettings from '../azure/providerSettings';
 
 export class ObjectExplorerService {
 
@@ -403,10 +405,14 @@ export class ObjectExplorerService {
                         } else {
                             // look up saved password
                             password = await this._connectionManager.connectionStore.lookupPassword(connectionCredentials);
+                            if (connectionCredentials.authenticationType !== Constants.azureMfa) {
+                                connectionCredentials.azureAccountToken = undefined;
+                            }
                         }
                         connectionCredentials.password = password;
                     }
                 } else if (connectionCredentials.authenticationType === Constants.azureMfa) {
+                    let azureController = new AzureController(context);
                     let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
                     let profile = new ConnectionProfile();
                     profile.accountId = connectionCredentials.accountId;
@@ -416,8 +422,10 @@ export class ObjectExplorerService {
                     profile.email = connectionCredentials.email;
                     profile.password = connectionCredentials.password;
                     profile.server = connectionCredentials.server;
-                    connectionCredentials.azureAccountToken = await profile.refreshToken(context,
-                        account, this._connectionManager.accountStore);
+                    if (!connectionCredentials.azureAccountToken) {
+                        connectionCredentials.azureAccountToken = await azureController.refreshToken(
+                            account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+                    }
                 }
             }
             const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
