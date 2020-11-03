@@ -78,12 +78,11 @@ export class AccountService {
     }
 
     public async createSecurityTokenMapping(): Promise<any> {
-        // let mapping = new Map<string, string>();
+        //TODO: match type for mapping in mssql and sqltoolsservice
         let mapping = {};
         mapping[this.getHomeTenant(this.account).id] = {
             token: await this.refreshToken(this.account)
         };
-        // mapping.set(this.getHomeTenant(this.account).id, await this.refreshToken(this.account));
         return mapping;
     }
 
