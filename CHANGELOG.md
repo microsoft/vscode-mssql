@@ -1,5 +1,20 @@
 # Change Log
 
+## Version 1.10.0
+* Release date: November 4, 2020
+* Release status: GA
+
+## What's new in 1.10.0
+* Azure Active Directory authentication support
+* Accessibility improvements
+* SQL syntax colorization fixes
+
+### Contributions and "thank you"
+* [@asottile](https://github.com/asottile) for `make SQL plist parseable xml (#1660)`
+* [@KamasamaK](https://github.com/KamasamaK) for `Allow multiple whitespace between keywords (#1683)`
+* [@sharechiwai ](https://github.com/sharechiwai) for `fixed README.md version 1.9.0 release date typo (#1757)`
+* [@SJMakin](https://github.com/SJMakin ) for `Ammend sql.configuration.json to address syntax highlighting issue fo…`
+
 ## Version 1.9.0
 * Release date: March 5, 2020
 * Release status: GA

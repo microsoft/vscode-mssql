@@ -21,6 +21,15 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## Version 1.10.0
+* Release date: November 4, 2020
+* Release status: GA
+
+## What's new in 1.10.0
+* Azure Active Directory authentication support
+* Accessibility improvements
+* SQL syntax colorization fixes
+
 ## Version 1.9.0
 * Release date: March 5, 2020
 * Release status: GA
@@ -36,7 +45,6 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 * Fixed leading tabs when copying multiple selections
 * Fixed resizing messages pane causing double scrollbars to appear
 * Fixed errors are not getting cleared when a file is closed
-
 
 ## Version 1.8.0
 * Release date: December 16, 2019
