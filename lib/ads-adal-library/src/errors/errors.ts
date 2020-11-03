@@ -20,7 +20,8 @@ export enum ErrorCodes {
     GetAccessTokenAuthCodeGrant = 10,
     GetAccessTokenDeviceCodeLogin = 11,
     TimedOutDeviceCode = 12,
-    ServerStartFailure = 13
+    ServerStartFailure = 13,
+    UserKey = 14
 
 }
 const simpleErrorMapping: ErrorMapping = {
@@ -35,7 +36,8 @@ const simpleErrorMapping: ErrorMapping = {
     [ErrorCodes.GetAccessTokenAuthCodeGrant]: 'Error when getting access token from authorization token for AuthCodeGrant',
     [ErrorCodes.GetAccessTokenDeviceCodeLogin]: 'Error when getting access token for DeviceCodeLogin',
     [ErrorCodes.TimedOutDeviceCode]: 'Timed out when waiting for device code login results',
-    [ErrorCodes.ServerStartFailure]: 'Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.'
+    [ErrorCodes.ServerStartFailure]: 'Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.',
+    [ErrorCodes.UserKey]: '"User key was undefined - could not create a userKey from the tokenClaims"'
 };
 
 export class DefaultErrorLookup implements ErrorLookup {

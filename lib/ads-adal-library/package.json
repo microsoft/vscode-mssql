@@ -1,6 +1,6 @@
 {
   "name": "ads-adal-library",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "ADAL NodeJS authentication library",
   "main": "dist/index.js",
   "repository": "git://github.com/microsoft/vscode-mssql.git",

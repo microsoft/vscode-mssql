@@ -112,7 +112,7 @@
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
-    "ads-adal-library": "1.0.9",
+    "ads-adal-library": "1.0.10",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "tar": "^6.0.1",

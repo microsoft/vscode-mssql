@@ -204,6 +204,26 @@ export abstract class AzureAuth {
 		return this.getTokenHelper(tenant, resource, accessTokenString, refreshTokenString, expiresOnString);
 	}
 
+	public getUserKey(tokenClaims: TokenClaims): string {
+		// Personal accounts don't have an oid when logging into the `common` tenant, but when logging into their home tenant they end up having an oid.
+		// This makes the key for the same account be different.
+		// We need to special case personal accounts.
+
+		let userKey: string;
+		if (tokenClaims.idp === 'live.com') { // Personal account
+			userKey = tokenClaims.unique_name ?? tokenClaims.email ?? tokenClaims.sub;
+		} else {
+			userKey = tokenClaims.home_oid ?? tokenClaims.oid ?? tokenClaims.unique_name ?? tokenClaims.email ?? tokenClaims.sub;
+		}
+
+		if (!userKey) {
+			this.logger.pii(tokenClaims);
+			throw new AzureAuthError(ErrorCodes.UserKey, this.errorLookup.getSimpleError(ErrorCodes.UserKey));
+		}
+
+		return userKey;
+	}
+
 	public async getTokenHelper(tenant: Tenant, resource: AADResource, accessTokenString: string, refreshTokenString: string, expiresOnString: string): Promise<OAuthTokenResponse | undefined> {
 		if (!accessTokenString) {
 			// No access token returned from Microsoft OAuth
@@ -215,7 +235,7 @@ export abstract class AzureAuth {
 			return undefined;
 		}
 
-		const userKey = tokenClaims.home_oid ?? tokenClaims.oid ?? tokenClaims.unique_name ?? tokenClaims.sub;
+		const userKey = this.getUserKey(tokenClaims);
 
 		if (!userKey) {
 			// The user had no unique identifier within AAD
