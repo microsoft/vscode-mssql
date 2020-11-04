@@ -362,6 +362,10 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     self.complete = true;
                     self.messagesAdded = true;
                     self.hasRunQuery = true;
+                    // reset results and messages expansion state
+                    // for new queries
+                    self.resultActive = true;
+                    self.messageActive = true;
                     break;
                 case 'message':
                     self.messages.push(event.data);
