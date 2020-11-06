@@ -411,7 +411,8 @@ export class ObjectExplorerService {
                         }
                         connectionCredentials.password = password;
                     }
-                    // test
+                } else if (connectionCredentials.authenticationType === Utils.authTypeToString(AuthenticationTypes.Integrated)) {
+                    connectionCredentials.azureAccountToken = undefined;
                 } else if (connectionCredentials.authenticationType === Constants.azureMfa) {
                     let azureController = new AzureController(context);
                     let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
