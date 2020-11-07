@@ -46,7 +46,7 @@ suite('Connection UI tests', () => {
         connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
         globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext.setup(c => c.globalState).returns(() => globalstate.object);
+        mockContext.setup(c => c.workspaceState).returns(() => globalstate.object);
         mockAccountStore = new AccountStore(mockContext.object);
         connectionUI = new ConnectionUI(connectionManager.object, undefined,
             connectionStore.object, mockAccountStore, prompter.object, vscodeWrapper.object);

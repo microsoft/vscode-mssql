@@ -67,7 +67,7 @@ suite('Connection Profile tests', () => {
 
         globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext.setup(c => c.globalState).returns(() => globalstate.object);
+        mockContext.setup(c => c.workspaceState).returns(() => globalstate.object);
         mockAccountStore = new AccountStore(mockContext.object);
     });
 
