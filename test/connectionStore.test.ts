@@ -52,7 +52,7 @@ suite('ConnectionStore tests', () => {
         });
         globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
         context = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        context.setup(c => c.globalState).returns(() => globalstate.object);
+        context.setup(c => c.workspaceState).returns(() => globalstate.object);
         credentialStore = TypeMoq.Mock.ofType(CredentialStore);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         connectionConfig = TypeMoq.Mock.ofType(ConnectionConfig);
