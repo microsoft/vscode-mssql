@@ -414,7 +414,7 @@ export class ObjectExplorerService {
                 } else if (connectionCredentials.authenticationType === Utils.authTypeToString(AuthenticationTypes.Integrated)) {
                     connectionCredentials.azureAccountToken = undefined;
                 } else if (connectionCredentials.authenticationType === Constants.azureMfa) {
-                    let azureController = new AzureController(context);
+                    let azureController = this._connectionManager.azureController;
                     let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
                     let profile = new ConnectionProfile();
                     profile.accountId = connectionCredentials.accountId;
@@ -425,8 +425,23 @@ export class ObjectExplorerService {
                     profile.password = connectionCredentials.password;
                     profile.server = connectionCredentials.server;
                     if (!connectionCredentials.azureAccountToken) {
-                        connectionCredentials.azureAccountToken = await azureController.refreshToken(
+                        let azureAccountToken = await azureController.refreshToken(
                             account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+                        if (!azureAccountToken) {
+                            let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+                            await this._connectionManager.vscodeWrapper.showErrorMessage(
+                                errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
+                                if (result === LocalizedConstants.refreshTokenLabel) {
+                                    let refreshedProfile = await azureController.getTokens(
+                                        profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+
+                                } else {
+                                    return undefined;
+                                }
+                            });
+                        } else {
+                            connectionCredentials.azureAccountToken = azureAccountToken;
+                        }
                     }
                 }
             }

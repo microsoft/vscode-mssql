@@ -107,6 +107,10 @@ export class AzureController {
             const token = await azureCodeGrant.getAccountSecurityToken(
                 account, azureCodeGrant.getHomeTenant(account).id, settings
             );
+            if (!token) {
+                let errorMessage = LocalizedConstants.msgGetTokenFail;
+                this._vscodeWrapper.showErrorMessage(errorMessage);
+            }
             profile.azureAccountToken = token.token;
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
@@ -117,6 +121,10 @@ export class AzureController {
             const token = await azureDeviceCode.getAccountSecurityToken(
                 account, azureDeviceCode.getHomeTenant(account).id, settings
             );
+            if (!token) {
+                let errorMessage = LocalizedConstants.msgGetTokenFail;
+                this._vscodeWrapper.showErrorMessage(errorMessage);
+            }
             profile.azureAccountToken = token.token;
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
@@ -130,41 +138,52 @@ export class AzureController {
             await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
             throw new Error(LocalizedConstants.msgAccountNotFound);
         }
-        if (account.isStale) {
-            accountStore.removeAccount(account.key.id);
-            let errorMessage = LocalizedConstants.msgAccountStale;
-            this._vscodeWrapper.showErrorMessage(errorMessage);
+        let azureAccountToken = await this.refreshToken(account, accountStore, settings);
+        if (!azureAccountToken) {
+            let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+            return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
+                if (result === LocalizedConstants.refreshTokenLabel) {
+                    let refreshedProfile = await this.getTokens(profile, accountStore, settings);
+                    return refreshedProfile;
+                } else {
+                    return undefined;
+                }
+            });
         }
-        profile.azureAccountToken = await this.refreshToken(account, accountStore, settings);
+        profile.azureAccountToken = azureAccountToken;
         profile.email = account.displayInfo.email;
         profile.accountId = account.key.id;
         return profile;
     }
 
     public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<string | undefined> {
-        let token: Token;
-        if (account.properties.azureAuthType === 0) {
-            // Auth Code Grant
-            let azureCodeGrant = await this.createAuthCodeGrant();
-            let newAccount = await azureCodeGrant.refreshAccess(account);
-            if (newAccount.isStale === true) {
-                return undefined;
+        try {
+            let token: Token;
+            if (account.properties.azureAuthType === 0) {
+                // Auth Code Grant
+                let azureCodeGrant = await this.createAuthCodeGrant();
+                let newAccount = await azureCodeGrant.refreshAccess(account);
+                if (newAccount.isStale === true) {
+                    return undefined;
+                }
+                await accountStore.addAccount(newAccount);
+                token = await azureCodeGrant.getAccountSecurityToken(account, azureCodeGrant.getHomeTenant(account).id, settings);
+            } else if (account.properties.azureAuthType === 1) {
+                // Auth Device Code
+                let azureDeviceCode = await this.createDeviceCode();
+                let newAccount = await azureDeviceCode.refreshAccess(account);
+                await accountStore.addAccount(newAccount);
+                if (newAccount.isStale === true) {
+                    return undefined;
+                }
+                token = await azureDeviceCode.getAccountSecurityToken(
+                    account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource);
             }
-            await accountStore.addAccount(newAccount);
-            token = await azureCodeGrant.getAccountSecurityToken(account, azureCodeGrant.getHomeTenant(account).id, settings);
-        } else if (account.properties.azureAuthType === 1) {
-            // Auth Device Code
-            let azureDeviceCode = await this.createDeviceCode();
-            let newAccount = await azureDeviceCode.refreshAccess(account);
-            await accountStore.addAccount(newAccount);
-            if (newAccount.isStale === true) {
-                return undefined;
-            }
-            token = await azureDeviceCode.getAccountSecurityToken(
-                account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource
-                );
+            return token.token;
+        } catch (ex) {
+            let errorMsg = this.azureErrorLookup.getSimpleError(ex.errorCode);
+            this._vscodeWrapper.showErrorMessage(errorMsg);
         }
-        return token.token;
     }
 
     private async createAuthCodeGrant(): Promise<AzureCodeGrant> {

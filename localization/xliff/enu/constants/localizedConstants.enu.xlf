@@ -254,6 +254,12 @@
         <trans-unit id="msgPromptRetryCreateProfile">
             <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         </trans-unit>
+        <trans-unit id="refreshTokenLabel">
+            <source xml:lang="en">Refresh Credentials</source>
+        </trans-unit>
+        <trans-unit id="msgGetTokenFail">
+            <source xml:lang="en">Failed to fetch user tokens.</source>
+        </trans-unit>
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         </trans-unit>
@@ -269,8 +275,8 @@
         <trans-unit id="msgPromptRetryFirewallRuleAdded">
             <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
         </trans-unit>
-        <trans-unit id="msgAccountStale">
-            <source xml:lang="en">Account is stale. Please re-do login</source>
+        <trans-unit id="msgAccountRefreshFailed">
+            <source xml:lang="en">Credential Error: Account credentials have expired.  Please re-authenticate.</source>
         </trans-unit>
         <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
             <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
