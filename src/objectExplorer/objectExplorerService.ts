@@ -429,7 +429,8 @@ export class ObjectExplorerService {
                             account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
                         if (!azureAccountToken) {
                             let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-                            await this._connectionManager.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
+                            await this._connectionManager.vscodeWrapper.showErrorMessage(
+                                errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
                                 if (result === LocalizedConstants.refreshTokenLabel) {
                                     let refreshedProfile = await azureController.getTokens(
                                         profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
