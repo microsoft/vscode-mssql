@@ -183,6 +183,7 @@ export class ObjectExplorerService {
         if (response) {
             return response;
         } else {
+            await this._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
             this._expandParamsToPromiseMap.delete(expandParams);
             this._expandParamsToTreeNodeInfoMap.delete(expandParams);
             promise.resolve(undefined);
