@@ -278,6 +278,9 @@
         <trans-unit id="msgAccountRefreshFailed">
             <source xml:lang="en">Credential Error: Account credentials have expired.  Please re-authenticate.</source>
         </trans-unit>
+        <trans-unit id="msgUnableToExpand">
+            <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
+        </trans-unit>
         <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
             <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
         </trans-unit>
