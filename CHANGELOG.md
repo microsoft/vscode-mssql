@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 1.10.0
-* Release date: November 4, 2020
+* Release date: December 10, 2020
 * Release status: GA
 
 ## What's new in 1.10.0
