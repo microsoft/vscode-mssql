@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup, DeviceCodeStartPostData, DeviceCodeCheckPostData, AzureAuthType, AccountType, UserInteraction } from '../models';
-import { AzureAuthError } from '../errors/azureAuthError';
+import { AzureAuthError } from '../errors/AzureAuthError';
 import { ErrorCodes }  from '../errors/errors';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from '../models/auth';
