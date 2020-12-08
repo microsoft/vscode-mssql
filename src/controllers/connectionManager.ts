@@ -84,7 +84,7 @@ export default class ConnectionManager {
     private _failedUriToFirewallIpMap: Map<string, string>;
     private _accountService: AccountService;
     private _firewallService: FirewallService;
-    private _azureController: AzureController;
+    public azureController: AzureController;
 
     constructor(context: vscode.ExtensionContext,
                 statusView: StatusView,
@@ -120,9 +120,9 @@ export default class ConnectionManager {
             this._connectionUI = new ConnectionUI(this, context, this._connectionStore, this._accountStore, prompter, this.vscodeWrapper);
         }
 
-        if (!this._azureController) {
-            this._azureController = new AzureController(context);
-            this._azureController.init();
+        if (!this.azureController) {
+            this.azureController = new AzureController(context);
+            this.azureController.init();
         }
 
         // Initiate the firewall service
@@ -807,7 +807,7 @@ export default class ConnectionManager {
         return prompter.prompt<IAccount>(questions, true).then(async answers => {
             if (answers.account) {
                 this._accountStore.removeAccount(answers.account.key.id);
-                this._azureController.removeToken(answers.account);
+                this.azureController.removeToken(answers.account);
             }
         });
 
