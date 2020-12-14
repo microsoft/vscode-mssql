@@ -487,17 +487,12 @@ export class ObjectExplorerService {
             if (!(<IConnectionProfile>node.connectionCredentials).savePassword) {
                 node.connectionCredentials.password = '';
             }
-            let disconnectedNode;
+            const label = typeof node.label === 'string' ? node.label : node.label.label;
             // make a new node to show disconnected behavior
-            if (typeof node.label === 'string') {
-                disconnectedNode = new TreeNodeInfo(node.label, Constants.disconnectedServerLabel,
-                    node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
-                    undefined, node.connectionCredentials, node.parentNode);
-            } else {
-                disconnectedNode = new TreeNodeInfo(node.label.label, Constants.disconnectedServerLabel,
-                    node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
-                    undefined, node.connectionCredentials, node.parentNode);
-            }
+            let disconnectedNode = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
+                node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
+                undefined, node.connectionCredentials, node.parentNode);
+
             this.updateNode(disconnectedNode);
             this._currentNode = disconnectedNode;
             this._treeNodeToChildrenMap.set(this._currentNode, [new ConnectTreeNode(this._currentNode)]);
