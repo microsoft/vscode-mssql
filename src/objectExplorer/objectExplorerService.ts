@@ -229,15 +229,10 @@ export class ObjectExplorerService {
      */
     public sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
         const sortedNodeArray = array.sort((a, b) => {
-            if (typeof a.label === 'string' && typeof b.label === 'string') {
-                return (a.label).toLowerCase().localeCompare((b.label).toLowerCase());
-            } else if (typeof a.label === 'string' && typeof b.label !== 'string') {
-                return (a.label).toLowerCase().localeCompare((b.label.label).toLowerCase());
-            } else if (typeof a.label !== 'string' && typeof b.label === 'string') {
-                return (a.label.label).toLowerCase().localeCompare((b.label).toLowerCase());
-            } else if (typeof a.label !== 'string' && typeof b.label !== 'string') {
-                return (a.label.label).toLowerCase().localeCompare((b.label.label).toLowerCase());
-            }
+            const labelA = typeof a.label === 'string' ? a.label : a.label.label;
+            const labelB = typeof b.label === 'string' ? b.label : b.label.label;
+            return (labelA).toLowerCase().localeCompare(labelB.toLowerCase());
+
         });
         return sortedNodeArray;
     }

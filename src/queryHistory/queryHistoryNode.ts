@@ -58,11 +58,8 @@ export class QueryHistoryNode extends vscode.TreeItem {
 
     /** Getters */
     public get historyNodeLabel(): string {
-        if (typeof this.label === 'string') {
-            return this.label;
-        } else {
-            return this.label.label;
-        }
+        const label = typeof this.label === 'string' ? this.label : this.label.label;
+        return label
     }
 
     public get ownerUri(): string {
