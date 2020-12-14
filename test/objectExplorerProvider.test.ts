@@ -114,7 +114,7 @@ suite('Object Explorer Provider Tests', () => {
         objectExplorerService.setup(s => s.rootTreeNodeArray).returns(() => [testNode, serverTestNode, testNode2, testNode3, testNode4]);
         objectExplorerService.setup(s => s.sortByServerName(objectExplorerService.object.rootTreeNodeArray)).returns(() => {
             const sortedNodeArray = objectExplorerService.object.rootTreeNodeArray.sort((a, b) => {
-                return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+                return (a.label as string).toLowerCase().localeCompare((b.label as string).toLowerCase());
             });
             return sortedNodeArray;
         });

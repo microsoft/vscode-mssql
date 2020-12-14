@@ -229,7 +229,7 @@ export class ObjectExplorerService {
      */
     public sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
         const sortedNodeArray = array.sort((a, b) => {
-            return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+            return (a.label as string).toLowerCase().localeCompare((b.label as string).toLowerCase());
         });
         return sortedNodeArray;
     }
@@ -485,7 +485,7 @@ export class ObjectExplorerService {
                 node.connectionCredentials.password = '';
             }
             // make a new node to show disconnected behavior
-            let disconnectedNode = new TreeNodeInfo(node.label, Constants.disconnectedServerLabel,
+            let disconnectedNode = new TreeNodeInfo(node.label as string, Constants.disconnectedServerLabel,
                 node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
                 undefined, node.connectionCredentials, node.parentNode);
             this.updateNode(disconnectedNode);
