@@ -229,7 +229,10 @@ export class ObjectExplorerService {
      */
     public sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
         const sortedNodeArray = array.sort((a, b) => {
-            return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+            const labelA = typeof a.label === 'string' ? a.label : a.label.label;
+            const labelB = typeof b.label === 'string' ? b.label : b.label.label;
+            return (labelA).toLowerCase().localeCompare(labelB.toLowerCase());
+
         });
         return sortedNodeArray;
     }
@@ -484,10 +487,12 @@ export class ObjectExplorerService {
             if (!(<IConnectionProfile>node.connectionCredentials).savePassword) {
                 node.connectionCredentials.password = '';
             }
+            const label = typeof node.label === 'string' ? node.label : node.label.label;
             // make a new node to show disconnected behavior
-            let disconnectedNode = new TreeNodeInfo(node.label, Constants.disconnectedServerLabel,
+            let disconnectedNode = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
                 node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
                 undefined, node.connectionCredentials, node.parentNode);
+
             this.updateNode(disconnectedNode);
             this._currentNode = disconnectedNode;
             this._treeNodeToChildrenMap.set(this._currentNode, [new ConnectTreeNode(this._currentNode)]);
