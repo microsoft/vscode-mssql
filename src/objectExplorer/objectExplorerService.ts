@@ -229,7 +229,15 @@ export class ObjectExplorerService {
      */
     public sortByServerName(array: TreeNodeInfo[]): TreeNodeInfo[] {
         const sortedNodeArray = array.sort((a, b) => {
-            return (a.label as string).toLowerCase().localeCompare((b.label as string).toLowerCase());
+            if (typeof a.label === 'string' && typeof b.label === 'string') {
+                return (a.label).toLowerCase().localeCompare((b.label).toLowerCase());
+            } else if (typeof a.label === 'string' && typeof b.label !== 'string') {
+                return (a.label).toLowerCase().localeCompare((b.label.label).toLowerCase());
+            } else if (typeof a.label !== 'string' && typeof b.label === 'string') {
+                return (a.label.label).toLowerCase().localeCompare((b.label).toLowerCase());
+            } else if (typeof a.label !== 'string' && typeof b.label !== 'string') {
+                return (a.label.label).toLowerCase().localeCompare((b.label.label).toLowerCase());
+            }
         });
         return sortedNodeArray;
     }
@@ -484,10 +492,17 @@ export class ObjectExplorerService {
             if (!(<IConnectionProfile>node.connectionCredentials).savePassword) {
                 node.connectionCredentials.password = '';
             }
+            let disconnectedNode;
             // make a new node to show disconnected behavior
-            let disconnectedNode = new TreeNodeInfo(node.label as string, Constants.disconnectedServerLabel,
-                node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
-                undefined, node.connectionCredentials, node.parentNode);
+            if (typeof node.label === 'string') {
+                disconnectedNode = new TreeNodeInfo(node.label, Constants.disconnectedServerLabel,
+                    node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
+                    undefined, node.connectionCredentials, node.parentNode);
+            } else {
+                disconnectedNode = new TreeNodeInfo(node.label.label, Constants.disconnectedServerLabel,
+                    node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
+                    undefined, node.connectionCredentials, node.parentNode);
+            }
             this.updateNode(disconnectedNode);
             this._currentNode = disconnectedNode;
             this._treeNodeToChildrenMap.set(this._currentNode, [new ConnectTreeNode(this._currentNode)]);

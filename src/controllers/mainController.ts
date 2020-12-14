@@ -386,7 +386,11 @@ export default class MainController implements vscode.Disposable {
                     return;
                 } else if (node.contextValue === Constants.serverLabel ||
                     node.contextValue === Constants.disconnectedServerLabel) {
-                        await this._vscodeWrapper.clipboardWriteText(node.label as string);
+                        if (typeof node.label === 'string') {
+                            await this._vscodeWrapper.clipboardWriteText(node.label);
+                        } else {
+                            await this._vscodeWrapper.clipboardWriteText(node.label.label);
+                        }
                 } else {
                     let scriptingObject = this._scriptingService.getObjectFromNode(node);
                     const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
