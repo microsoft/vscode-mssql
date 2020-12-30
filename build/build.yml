@@ -70,7 +70,7 @@ steps:
 
 - script: |
    brew update
-   brew install --cask visual-studio-code
+   brew cask install visual-studio-code
   displayName: 'Install VS Code for testing'
 
 - task: Gulp@0
