@@ -149,7 +149,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
         if (accounts.length > 0) {
             for (let account of accounts) {
-                choices.push({ name: account.displayInfo.displayName, value: account });
+                choices.push({ name: account?.displayInfo?.displayName, value: account });
             }
         }
         return choices;
