@@ -231,7 +231,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * remove azureAccountToken from settings.json
      */
-    private async sanitizeProfiles() {
+    private async sanitizeProfiles(): Promise<void> {
         let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);
         for (let conn of userConnections) {
             if (conn.authenticationType !== 'AzureMFA') {
