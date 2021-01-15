@@ -222,10 +222,26 @@ export default class MainController implements vscode.Disposable {
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
             this.onDidOpenTextDocument(activeTextEditor.document);
         }
-
+        await this.sanitizeProfiles();
         Utils.logDebug('activated.');
         this._initialized = true;
         return true;
+    }
+
+    /**
+     * remove azureAccountToken from settings.json
+     */
+    private async sanitizeProfiles(): Promise<void> {
+        let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);
+        for (let conn of userConnections) {
+            if (conn.authenticationType !== 'AzureMFA') {
+                if (conn!.azureAccountToken === '') {
+                    // remove azure account token
+                    conn.azureAccountToken = undefined;
+                }
+            }
+        }
+        await this._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, userConnections);
     }
 
     /**

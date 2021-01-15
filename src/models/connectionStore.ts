@@ -11,7 +11,7 @@ import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
+import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CredentialStore } from '../credentialstore/credentialstore';
 import { IConnectionConfig } from '../connectionconfig/iconnectionconfig';
@@ -203,11 +203,16 @@ export class ConnectionStore {
         return new Promise<IConnectionProfile>((resolve, reject) => {
             // Add the profile to the saved list, taking care to clear out the password field if necessary
             let savedProfile: IConnectionProfile;
-            if (forceWritePlaintextPassword) {
-                savedProfile = Object.assign({}, profile, { azureAccountToken: ''});
+            if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
+                savedProfile = Object.assign({}, profile, { azureAccountToken: '' });
             } else {
-                savedProfile = Object.assign({}, profile, { password: '', azureAccountToken: '' });
+                if (forceWritePlaintextPassword) {
+                    savedProfile = Object.assign({}, profile);
+                } else {
+                    savedProfile = Object.assign({}, profile, { password: '' });
+                }
             }
+
 
             self._connectionConfig.addConnection(savedProfile)
             .then(() => {
