@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.10.1
+* Release date: January 20, 2021
+* Release status: GA
+
+## What's new in 1.10.1
+* Fixed bug in AAD support causing Integrated Auth connections to fail
+
 ## Version 1.10.0
 * Release date: December 10, 2020
 * Release status: GA
@@ -10,7 +17,6 @@
 * Fixes in SQL syntax colorization with comments
 * Added new functions/keywords to SQL syntax highlighting
 * Fixed keyboard shortcuts for results
-
 
 ### Contributions and "thank you"
 * [@asottile](https://github.com/asottile) for `make SQL plist parseable xml (#1660)`
