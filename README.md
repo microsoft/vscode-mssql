@@ -21,6 +21,13 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## Version 1.10.1
+* Release date: January 20, 2021
+* Release status: GA
+
+## What's new in 1.10.1
+* Fixed bug in AAD support causing Integrated Auth connections to fail
+
 ## Version 1.10.0
 * Release date: December 10, 2020
 * Release status: GA
