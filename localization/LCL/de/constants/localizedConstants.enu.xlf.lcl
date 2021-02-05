@@ -140,7 +140,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure Code Grant]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Authentifizierung über Azure-Code]]></Val>
+            <Val><![CDATA[Azure-Code]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
