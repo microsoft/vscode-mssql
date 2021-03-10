@@ -87,7 +87,7 @@ export class AzureController {
         this.authRequest = new AzureAuthRequest(this.context, this.logger);
         await this.authRequest.startServer();
         let storagePath = await findOrMakeStoragePath();
-        let credentialStore = new CredentialStore();
+        let credentialStore = new CredentialStore(this.context);
         this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
         await this.cacheService.init();
         this.storageService = this.cacheService.db;

@@ -484,3 +484,13 @@ export function limitStringSize(input: string, forCommandPalette: boolean = fals
     }
     return input;
 }
+
+/**
+ * Returns whether the credentials should use the native credential
+ * service or not
+ */
+export function useNativeCredentials(): boolean {
+    const isLinux: boolean = os.platform() === 'linux';
+    const useNativeCredentialSetting: boolean = true; // get from settings, same as ADS
+    return isLinux && useNativeCredentialSetting;
+}

@@ -11,7 +11,8 @@ import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';
+import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem,
+    CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CredentialStore } from '../credentialstore/credentialstore';
 import { IConnectionConfig } from '../connectionconfig/iconnectionconfig';
@@ -32,7 +33,7 @@ export class ConnectionStore {
         private _connectionConfig?: IConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper) {
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore();
+            this._credentialStore = new CredentialStore(this._context);
         }
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
