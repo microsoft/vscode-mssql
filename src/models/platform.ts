@@ -292,9 +292,11 @@ export class PlatformInformation {
                 throw new Error(`Unsupported Windows architecture: ${architecture}`);
 
             case 'darwin':
-                if (architecture === 'x86_64') {
+                switch (architecture) {
                     // Note: We return the El Capitan RID for Sierra
-                    return Runtime.OSX_10_11_64;
+                    case 'x86_64': return Runtime.OSX_10_11_64;
+                    case 'arm64': return Runtime.OSX_10_11_64;
+                    default:
                 }
 
                 throw new Error(`Unsupported macOS architecture: ${architecture}`);
