@@ -72,8 +72,14 @@ suite('Platform Tests', () => {
         expect(platformInfo.runtimeId).to.equal(undefined);
     });
 
-    test('Compute correct RID for OSX', () => {
+    test('Compute correct RID for MacOS Intel', () => {
         const platformInfo = new PlatformInformation('darwin', 'x86_64');
+
+        expect(platformInfo.runtimeId).to.equal(Runtime.OSX_10_11_64.toString());
+    });
+
+    test('Compute correct RID for MacOS ARM', () => {
+        const platformInfo = new PlatformInformation('darwin', 'arm64');
 
         expect(platformInfo.runtimeId).to.equal(Runtime.OSX_10_11_64.toString());
     });
