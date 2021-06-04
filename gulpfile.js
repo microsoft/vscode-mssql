@@ -25,6 +25,7 @@ gulp.task('ext:lint', () => {
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
         '!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
+        '!' + config.paths.project.root + '/src/dialogs/htmlcontent/**/*',
         config.paths.project.root + '/test/**/*.ts'
     ])
     .pipe((gulpTsLint({
@@ -57,7 +58,9 @@ gulp.task('ext:compile-src', (done) => {
                 config.paths.project.root + '/src/**/*.ts',
                 config.paths.project.root + '/src/**/*.js',
                 '!' + config.paths.project.root + '/typings/**/*.ts',
+                '!' + config.paths.project.root + '/src/dailogs/htmlcontent/**/*',
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
+
                 .pipe(srcmap.init())
                 .pipe(tsProject())
                 .on('error', function() {
@@ -100,6 +103,36 @@ gulp.task('ext:copy-html', (done) => {
     return gulp.src([
             config.paths.project.root + '/src/controllers/sqlOutput.ejs'])
         .pipe(gulp.dest('out/src/controllers/'));
+});
+
+
+// Compile dialog angular view
+gulp.task('ext:compile-dialog-view', (done) => {
+    return gulp.src([
+        config.paths.project.root + '/src/dialogs/htmlcontent/**/*.ts'])
+        .pipe(srcmap.init())
+        .pipe(tsProject())
+        .pipe(nls.rewriteLocalizeCalls())
+        .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
+        .pipe(srcmap.write('.', {
+            sourceRoot: function(file){ return file.cwd + '/src'; }
+        }))
+        .pipe(gulp.dest('out/src/dialogs/htmlcontent'));
+});
+
+// Copy dialog systemjs config file
+gulp.task('ext:copy-dialog-systemjs-config', (done) => {
+    return gulp.src([
+        config.paths.project.root + '/src/dialogs/htmlcontent/*.js'])
+        .pipe(gulp.dest('out/src/dialogs/htmlcontent'));
+});
+
+
+// Copy dialog html
+gulp.task('ext:copy-dialog-html', (done) => {
+    return gulp.src([
+            config.paths.project.root + '/src/dialogs/dialogOutput.ejs'])
+        .pipe(gulp.dest('out/src/dialogs/'));
 });
 
 // Copy css
@@ -239,11 +272,11 @@ gulp.task('ext:copy-js', () => {
 });
 
 // Copy the files which aren't used in compilation
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dialog-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-dialog-html', 'ext:copy-css', 'ext:copy-images'));
 
 gulp.task('ext:localization', gulp.series('ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 
-gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
+gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-dialog-view')); // removed lint before copy
 
 gulp.task('ext:test', (done) => {
     let workspace = process.env['WORKSPACE'];

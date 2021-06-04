@@ -52,7 +52,8 @@
     "onCommand:mssql.objectExplorerNewQuery",
     "onCommand:mssql.toggleSqlCmd",
     "onCommand:mssql.loadCompletionExtension",
-    "onCommand:mssql.removeAadAccount"
+    "onCommand:mssql.removeAadAccount",
+    "onCommand:mssql.testDialog"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -511,6 +512,11 @@
       {
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.testDialog",
+        "title": "Test Dialog",
         "category": "MS SQL"
       }
     ],

@@ -31,6 +31,8 @@ import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
+import { DialogService } from '../dialogs/dialogService';
+import { ConnectionDialog } from '../dialogs/connectionDialog';
 
 /**
  * The main controller class that initializes the extension
@@ -139,6 +141,12 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdToggleSqlCmd, async () => { await this.onToggleSqlCmd(); });
             this.registerCommand(Constants.cmdAadRemoveAccount);
             this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
+
+            this.registerCommand('mssql.testDialog');
+            this._event.on('mssql.testDialog', () => {
+                let connectionDialog = new ConnectionDialog(this._context);
+                connectionDialog.open();
+            });
 
             this.initializeObjectExplorer();
 
