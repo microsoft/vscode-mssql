@@ -35,7 +35,6 @@ export class DialogService implements vscode.Disposable {
 
     public async openDialog(dialog: Dialog): Promise<void> {
         let uri: string = 'dialog://' + generateGuid();
-        //vscode.window.showInformationMessage('open dialog');
         this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, dialog.title,
             {
                 viewColumn: vscode.ViewColumn.One,
@@ -59,13 +58,17 @@ export class DialogService implements vscode.Disposable {
             saveResults: (batchId: number, resultId: number, format: string, selection: ISlickRange[]) => undefined,
             setEditorSelection: (selection: ISelectionData) => undefined,
             showError: (message: string) => undefined,
-            showWarning: (message: string) => undefined,
-            sendReadyEvent: async () => undefined,
+            showWarning: (message: string) => {
+                vscode.window.showInformationMessage(message);
+            },
+            sendReadyEvent: async () =>  {
+                this.proxy.sendEvent('start', 'message from extension');
+                return true;
+            },
             dispose: () => undefined
 
         };
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), this._serverProxy, false);
-
         const sqlOutputPath = path.resolve(__dirname);
         const fileContent = await readFile(path.join(sqlOutputPath, 'dialogOutput.ejs'));
         const htmlViewPath = ['out', 'src'];
