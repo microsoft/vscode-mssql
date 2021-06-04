@@ -36,7 +36,94 @@ export interface IGridDataSet {
 
 // tslint:disable:max-line-length
 const template = `
-Hello World from my-app
+<div class="fullsize vertBox">
+    <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
+        [class.collapsed]="!resultActive"
+        (click)="toggleResultsPane()"
+        (keydown)="handleResultsKeydown($event)"
+        [attr.aria-label]="Constants.resultPaneLabel"
+        [attr.aria-expanded]="!resultActive">
+        <span> {{Constants.resultPaneLabel}} </span>
+        <span class="shortCut"> {{resultShortcut}} </span>
+    </div>
+    <div id="results" tabIndex="0" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+         (onScroll)="onScroll($event)"
+         [scrollEnabled]="scrollEnabled"
+         [class.hidden]="!resultActive">
+        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
+            [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
+            [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
+            [style.font-size]="resultsFontSize + 'px'">
+            <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+                        [ngClass]="i === activeGrid ? 'active' : ''"
+                        [dataRows]="dataSet.dataRows"
+                        (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
+                        enableAsyncPostRender="true"
+                        showDataTypeIcon="false"
+                        showHeader="true"
+                        [resized]="dataSet.resized"
+                        (mousedown)="navigateToGrid(i)"
+                        [selectionModel]="selectionModel"
+                        [plugins]="slickgridPlugins"
+                        class="boxCol content vertBox slickgrid">
+            </slick-grid>
+            <span class="boxCol content vertBox">
+                <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
+                    <div *ngIf="icon.showCondition()" class="gridIcon">
+                        <a class="icon" href="#"
+                        (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
+                        [title]="icon.hoverText()" [ngClass]="icon.icon()">
+                        </a>
+                    </div>
+                </div>
+            </span>
+        </div>
+    </div>
+    <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
+    <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
+    <div id="messagepane" role="button" tabIndex="1" class="boxRow header collapsible"
+        [class.collapsed]="!messageActive"
+        [attr.aria-label]="Constants.messagePaneLabel"
+        [attr.aria-expanded]="!messageActive"
+        (click)="toggleMessagesPane()"
+        (keydown)="handleMessagesKeydown($event)"
+        style="position: relative">
+        <div id="messageResizeHandle" class="resizableHandle"></div>
+        <span> {{Constants.messagePaneLabel}} </span>
+        <span class="shortCut"> {{messageShortcut}} </span>
+    </div>
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive"
+        (contextmenu)="openMessagesContextMenu($event)"
+        (mousedown)="onMouseDown($event)">
+        <br>
+        <table id="messageTable">
+            <colgroup>
+                <col span="1" class="wide">
+            </colgroup>
+            <tbody>
+                <template ngFor let-message [ngForOf]="messages">
+                    <tr class='messageRow'>
+                        <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>
+                        <td class="messageValue" [class.errorMessage]="message.isError" [class.batchMessage]="Utils.isNumber(message.batchId)">{{message.message}} <a *ngIf="message.link" href="#" (click)="sendGetRequest(message.selection)">{{message.link.text}}</a>
+                        </td>
+                    </tr>
+                </template>
+                <tr id='executionSpinner' *ngIf="!complete">
+                    <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
+                    <td>
+                        <img src="views/htmlcontent/src/images/progress_36x_animation.gif" height="18px" />
+                        <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span>
+                    </td>
+                </tr>
+                <tr *ngIf="complete">
+                    <td></td>
+                    <td>{{Utils.formatString(Constants.elapsedTimeLabel, totalElapsedTimeSpan)}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
+</div>
 `;
 // tslint:enable:max-line-length
 

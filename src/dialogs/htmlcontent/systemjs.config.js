@@ -4,11 +4,11 @@
  */
 (function(global) {
   var paths = {
-    'npm:': 'views/htmlcontent/src/js/lib/'
+    'npm:': 'dialogs/htmlcontent/src/js/lib/'
   }
   // map tells the System loader where to look for things
   var map = {
-    'app':                        'views/htmlcontent/src/js',
+    'app':                        'dialogs/htmlcontent/src/js',
     '@angular':                   'npm:@angular',
     'rxjs':                       'npm:rxjs',
     'json':                       'npm:json.js',
@@ -26,7 +26,7 @@
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
     'app':                        { main: 'main.js',  defaultExtension: 'js' },
-    '':                           { main: 'views/htmlcontent/src/js/constants.js', defaultExtension: 'js'},
+    '':                           { main: 'dialogs/htmlcontent/src/js/constants.js', defaultExtension: 'js'},
     'angular2-slickgrid':         { main: 'index.js', defaultExtension: 'js'},
     '/src/controllers':           { defaultExtension: 'js' },
     'rxjs':                       { main: 'Rx.js', defaultExtension: 'js' }
