@@ -9,12 +9,11 @@ import Constants = require('./constants/constants');
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
+import { IExtension } from 'vscode-mssql';
 
 let controller: MainController = undefined;
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export async function activate(context: vscode.ExtensionContext): Promise<boolean> {
+export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
@@ -28,8 +27,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<boolea
 
     // Exposed for testing purposes
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
-    const activated = await controller.activate();
-    return activated;
+    await controller.activate();
+    return {
+        dacFx: controller.dacFxService
+    };
 }
 
 // this method is called when your extension is deactivated
