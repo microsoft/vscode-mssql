@@ -56,7 +56,7 @@ gulp.task('ext:compile-src', (done) => {
     return gulp.src([
                 config.paths.project.root + '/src/**/*.ts',
                 config.paths.project.root + '/src/**/*.js',
-                '!' + config.paths.project.root + '/typings/**/*.ts',
+                config.paths.project.root + '/typings/**/*.d.ts',
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())
                 .pipe(tsProject())

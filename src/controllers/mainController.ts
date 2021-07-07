@@ -31,6 +31,7 @@ import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
+import { DacFxService } from '../dacFxService/dacFxService';
 
 /**
  * The main controller class that initializes the extension
@@ -53,6 +54,7 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
+    public dacFxService: DacFxService;
 
     /**
      * The main controller constructor
@@ -143,6 +145,8 @@ export default class MainController implements vscode.Disposable {
             this.initializeObjectExplorer();
 
             this.initializeQueryHistory();
+
+            this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
