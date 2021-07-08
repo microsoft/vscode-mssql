@@ -9,6 +9,7 @@ import { FormsModule }   from '@angular/forms';
 import { SlickGrid } from 'angular2-slickgrid';
 
 import { AppComponent }  from './components/app.component';
+import { ButtonComponent } from './components/button.component';
 import { ScrollDirective } from './directives/scroll.directive';
 import { MouseDownDirective } from './directives/mousedown.directive';
 import { ContextMenu } from './components/contextmenu.component';
@@ -30,7 +31,7 @@ const WINDOW_PROVIDER: ValueProvider = {
   providers: [
     WINDOW_PROVIDER
   ],
-  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective, ContextMenu, MessagesContextMenu],
+  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective, ContextMenu, MessagesContextMenu, ButtonComponent],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

@@ -27,7 +27,9 @@
     --color-cell-border-active: grey;
     --color-cell-bg-grid-selected: rgb(173, 214, 255);
   }
-
+  .vscode-light .Box_1{
+    background-color: var(--color-content);
+  }
   .vscode-light a {
     color: #0078D7;
   }
