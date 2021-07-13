@@ -35,9 +35,40 @@ export interface IGridDataSet {
 }
 
 // tslint:disable:max-line-length
-const template = `
-Hello world from my-app 2 <br />
-Label value is {{labelValue}}
+const template =  `
+<div class = "window" style="
+position: absolute;
+overflow: visible;
+width: 300px;
+height: 300px;
+left: 369px;
+top: 45px;
+border: 1px solid black;
+background-color: white;"
+>
+
+</div>
+<div class = "topBox" style = "
+position: absolute;
+overflow: visible;
+width: 300px;
+height: 34px;
+left: 369px;
+top: 45px;
+border: 1px solid black;
+background-color: rgba(230,230,230,1);">
+</div>
+<div class = "lowBox" style = "
+position: absolute;
+overflow: visible;
+width: 300px;
+height: 34px;
+left: 369px;
+top: 312px;
+border: 1px solid black;
+background-color: rgba(230,230,230,1);">
+</div>
+
 `;
 // tslint:enable:max-line-length
 
