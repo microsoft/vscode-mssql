@@ -20,7 +20,7 @@ import { IConnectionProfile } from '../src/models/interfaces';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 import assert = require('assert');
-import { IConnectionCredentials } from 'vscode-mssql';
+import { IConnectionInfo } from 'vscode-mssql';
 
 suite('ConnectionCredentials Tests', () => {
     let defaultProfile: interfaces.IConnectionProfile;
@@ -55,7 +55,7 @@ suite('ConnectionCredentials Tests', () => {
     });
 
     // ConnectProfile sets up a connection call to ensureRequiredPropertiesSet with the provided profile
-    function connectProfile( profile: IConnectionProfile, emptyPassword: boolean): Promise<IConnectionCredentials> {
+    function connectProfile( profile: IConnectionProfile, emptyPassword: boolean): Promise<IConnectionInfo> {
         // Setup input paramaters
         let isProfile: boolean = true;
         let isPasswordRequired: boolean = false;

@@ -58,7 +58,7 @@ export const contentTypes = [
 
 // A Connection Profile contains all the properties of connection credentials, with additional
 // optional name and details on whether password should be saved
-export interface IConnectionProfile extends vscodeMssql.IConnectionCredentials {
+export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     profileName: string;
     savePassword: boolean;
     emptyPasswordInput: boolean;
@@ -74,7 +74,7 @@ export enum CredentialsQuickPickItemType {
     NewConnection
 }
 export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
-    connectionCreds: vscodeMssql.IConnectionCredentials;
+    connectionCreds: vscodeMssql.IConnectionInfo;
     quickPickItemType: CredentialsQuickPickItemType;
 }
 

@@ -21,7 +21,7 @@ import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
-import { IConnectionCredentials } from 'vscode-mssql';
+import { IConnectionInfo } from 'vscode-mssql';
 
 /**
  * The different tasks for managing connection profiles.
@@ -85,7 +85,7 @@ export class ConnectionUI {
      * Return the ConnectionInfo for the user's choice
      * @returns The connection picked or created.
      */
-    public async promptForConnection(): Promise<IConnectionCredentials | undefined> {
+    public async promptForConnection(): Promise<IConnectionInfo | undefined> {
         let picklist = this._connectionStore.getPickListItems();
         // We have recent connections - show them in a picklist
         const selection = await this.promptItemChoice({
@@ -233,13 +233,13 @@ export class ConnectionUI {
 
     // Helper to let the user choose a database on the current server
     public showDatabasesOnCurrentServer(
-        currentCredentials: IConnectionCredentials,
-        databaseNames: Array<string>): Promise<IConnectionCredentials> {
+        currentCredentials: IConnectionInfo,
+        databaseNames: Array<string>): Promise<IConnectionInfo> {
         const self = this;
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
+        return new Promise<IConnectionInfo>((resolve, reject) => {
             const pickListItems: vscode.QuickPickItem[] = databaseNames.map(name => {
-                let newCredentials: IConnectionCredentials = <any>{};
-                Object.assign<IConnectionCredentials, IConnectionCredentials>(newCredentials, currentCredentials);
+                let newCredentials: IConnectionInfo = <any>{};
+                Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, currentCredentials);
                 if (newCredentials['profileName']) {
                     delete newCredentials['profileName'];
                 }
@@ -296,9 +296,9 @@ export class ConnectionUI {
         });
     }
 
-    public createProfileWithDifferentCredentials(connection: IConnectionCredentials): Promise<IConnectionCredentials> {
+    public createProfileWithDifferentCredentials(connection: IConnectionInfo): Promise<IConnectionInfo> {
 
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
+        return new Promise<IConnectionInfo>((resolve, reject) => {
             this.promptForRetryConnectWithDifferentCredentials().then(result => {
                 if (result) {
                     let connectionWithoutCredentials = Object.assign({}, connection, { user: '', password: '', emptyPasswordInput: false });
@@ -321,11 +321,11 @@ export class ConnectionUI {
         });
     }
 
-    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
         const self = this;
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
+        return new Promise<IConnectionInfo>((resolve, reject) => {
             if (selection !== undefined) {
-                let connectFunc: Promise<IConnectionCredentials>;
+                let connectFunc: Promise<IConnectionInfo>;
                 if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
                     // call the workflow to create a new connection
                     connectFunc = self.createAndSaveProfile();
@@ -621,10 +621,10 @@ export class ConnectionUI {
             });
     }
 
-    private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+    private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
         // If a connection string is present, don't prompt for any other info
         if (selection.connectionCreds.connectionString) {
-            return new Promise<IConnectionCredentials> ((resolve, reject) => {
+            return new Promise<IConnectionInfo> ((resolve, reject) => {
                 resolve(selection.connectionCreds);
             });
         }

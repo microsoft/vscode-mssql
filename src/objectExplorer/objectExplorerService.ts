@@ -25,7 +25,7 @@ import Utils = require('../models/utils');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';
-import { IConnectionCredentials } from 'vscode-mssql';
+import { IConnectionInfo } from 'vscode-mssql';
 
 export class ObjectExplorerService {
 
@@ -34,7 +34,7 @@ export class ObjectExplorerService {
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
     private _nodePathToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
-    private _sessionIdToConnectionCredentialsMap: Map<string, IConnectionCredentials>;
+    private _sessionIdToConnectionCredentialsMap: Map<string, IConnectionInfo>;
     private _expandParamsToTreeNodeInfoMap: Map<ExpandParams, TreeNodeInfo>;
 
     // Deferred promise maps
@@ -46,7 +46,7 @@ export class ObjectExplorerService {
         this._client = this._connectionManager.client;
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
-        this._sessionIdToConnectionCredentialsMap = new Map<string, IConnectionCredentials>();
+        this._sessionIdToConnectionCredentialsMap = new Map<string, IConnectionInfo>();
         this._nodePathToNodeLabelMap = new Map<string, string>();
         this._sessionIdToPromiseMap = new Map<string, Deferred<vscode.TreeItem>>();
         this._expandParamsToPromiseMap = new Map<ExpandParams, Deferred<TreeNodeInfo[]>>();
@@ -379,7 +379,7 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionCredentials Connection Credentials for a node
      */
-    public async createSession(promise: Deferred<vscode.TreeItem | undefined>, connectionCredentials?: IConnectionCredentials,
+    public async createSession(promise: Deferred<vscode.TreeItem | undefined>, connectionCredentials?: IConnectionInfo,
                                context?: vscode.ExtensionContext): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
@@ -463,7 +463,7 @@ export class ObjectExplorerService {
         }
     }
 
-    public getConnectionCredentials(sessionId: string): IConnectionCredentials {
+    public getConnectionCredentials(sessionId: string): IConnectionInfo {
         if (this._sessionIdToConnectionCredentialsMap.has(sessionId)) {
             return this._sessionIdToConnectionCredentialsMap.get(sessionId);
         }
@@ -501,7 +501,7 @@ export class ObjectExplorerService {
         this.cleanNodeChildren(node);
     }
 
-    public async removeConnectionNodes(connections: IConnectionCredentials[]): Promise<void> {
+    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
                 if (Utils.isSameConnection(node.connectionCredentials, conn)) {
@@ -529,7 +529,7 @@ export class ObjectExplorerService {
         }
     }
 
-    public addDisconnectedNode(connectionCredentials: IConnectionCredentials): void {
+    public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
         const label = (<IConnectionProfile>connectionCredentials).profileName ?
             (<IConnectionProfile>connectionCredentials).profileName :
             this.createNodeLabel(connectionCredentials);
@@ -540,7 +540,7 @@ export class ObjectExplorerService {
         this.updateNode(node);
     }
 
-    private createNodeLabel(credentials: IConnectionCredentials): string {
+    private createNodeLabel(credentials: IConnectionInfo): string {
         let database = credentials.database;
         const server = credentials.server;
         const authType = credentials.authenticationType;
@@ -591,7 +591,7 @@ export class ObjectExplorerService {
         return this._rootTreeNodeArray;
     }
 
-    public get rootNodeConnections(): IConnectionCredentials[] {
+    public get rootNodeConnections(): IConnectionInfo[] {
         const connections = this._rootTreeNodeArray.map(node => node.connectionCredentials);
         return connections;
     }

@@ -18,10 +18,10 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import assert = require('assert');
 import { AccountStore } from '../src/azure/accountStore';
-import { IConnectionCredentials } from 'vscode-mssql';
+import { IConnectionInfo } from 'vscode-mssql';
 
-function createTestCredentials(): IConnectionCredentials {
-    const creds: IConnectionCredentials = {
+function createTestCredentials(): IConnectionInfo {
+    const creds: IConnectionInfo = {
         server:                         'my-server',
         database:                       'my_db',
         user:                           'sa',

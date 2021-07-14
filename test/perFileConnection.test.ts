@@ -24,7 +24,7 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import { ConnectionUI } from '../src/views/connectionUI';
 import Constants = require('../src/constants/constants');
-import { IConnectionCredentials } from 'vscode-mssql';
+import { IConnectionInfo } from 'vscode-mssql';
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {
     let result = new ConnectionContracts.ConnectionCompleteParams();
@@ -42,8 +42,8 @@ function createTestFailedConnectionResult(ownerUri?: string, error?: number): Co
     return result;
 }
 
-function createTestCredentials(): IConnectionCredentials {
-    const creds: IConnectionCredentials = {
+function createTestCredentials(): IConnectionInfo {
+    const creds: IConnectionInfo = {
         server:                         'my-server',
         database:                       'my_db',
         user:                           'sa',
@@ -568,7 +568,7 @@ suite('Per File Connection Tests', () => {
         let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         let actualDbName = undefined;
         statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-        .callback((fileUri, creds: IConnectionCredentials, server: ConnectionContracts.ServerInfo) => {
+        .callback((fileUri, creds: IConnectionInfo, server: ConnectionContracts.ServerInfo) => {
             actualDbName = creds.database;
         });
 
@@ -587,7 +587,7 @@ suite('Per File Connection Tests', () => {
         });
     });
 
-    function createConnectionResultForCreds(connectionCreds: IConnectionCredentials, dbName?: string): ConnectionContracts.ConnectionCompleteParams {
+    function createConnectionResultForCreds(connectionCreds: IConnectionInfo, dbName?: string): ConnectionContracts.ConnectionCompleteParams {
         let myResult = new ConnectionContracts.ConnectionCompleteParams();
         if (!dbName) {
             dbName = connectionCreds.database;
@@ -626,10 +626,10 @@ suite('Per File Connection Tests', () => {
 
         let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-        .callback((fileUri, creds: IConnectionCredentials) => { return; });
+        .callback((fileUri, creds: IConnectionInfo) => { return; });
 
         // And we store any DBs saved to recent connections
-        let savedConnection: IConnectionCredentials = undefined;
+        let savedConnection: IConnectionInfo = undefined;
         let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
         connectionStoreMock.setup(x => x.addRecentlyUsed(TypeMoq.It.isAny())).returns( conn => {
             savedConnection = conn;

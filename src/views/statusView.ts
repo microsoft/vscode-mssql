@@ -10,7 +10,7 @@ import ConnInfo = require('../models/connectionInfo');
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import { IConnectionCredentials } from 'vscode-mssql';
+import { IConnectionInfo } from 'vscode-mssql';
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -146,7 +146,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
     }
 
-    public connecting(fileUri: string, connCreds: IConnectionCredentials): void {
+    public connecting(fileUri: string, connCreds: IConnectionInfo): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.text = LocalizedConstants.connectingLabel;
         bar.statusConnection.command = Constants.cmdDisconnect;
@@ -155,7 +155,7 @@ export default class StatusView implements vscode.Disposable {
         this.showProgress(fileUri, LocalizedConstants.connectingLabel, bar.statusConnection);
     }
 
-    public connectSuccess(fileUri: string, connCreds: IConnectionCredentials, serverInfo: ConnectionContracts.ServerInfo): void {
+    public connectSuccess(fileUri: string, connCreds: IConnectionInfo, serverInfo: ConnectionContracts.ServerInfo): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdChooseDatabase;
         bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
@@ -164,7 +164,7 @@ export default class StatusView implements vscode.Disposable {
         this.sqlCmdModeChanged(fileUri, false);
     }
 
-    public connectError(fileUri: string, credentials: IConnectionCredentials, error: ConnectionContracts.ConnectionCompleteParams): void {
+    public connectError(fileUri: string, credentials: IConnectionInfo, error: ConnectionContracts.ConnectionCompleteParams): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
         bar.statusConnection.text = LocalizedConstants.connectErrorLabel;

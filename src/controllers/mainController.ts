@@ -32,7 +32,7 @@ import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest'
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { DacFxService } from '../dacFxService/dacFxService';
-import { IConnectionCredentials } from 'vscode-mssql';
+import { IConnectionInfo } from 'vscode-mssql';
 
 /**
  * The main controller class that initializes the extension
@@ -259,7 +259,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Creates a new Object Explorer session
      */
-    private async createObjectExplorerSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
+    private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<void> {
         let createSessionPromise = new Deferred<TreeNodeInfo>();
         const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
         if (sessionId) {
@@ -340,7 +340,7 @@ export default class MainController implements vscode.Disposable {
             let profile = <IConnectionProfile>node.parentNode.connectionCredentials;
             profile = await self.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
             if (profile) {
-                node.parentNode.connectionCredentials = <IConnectionCredentials>profile;
+                node.parentNode.connectionCredentials = <IConnectionInfo>profile;
                 self._objectExplorerProvider.updateNode(node.parentNode);
                 self._objectExplorerProvider.signInNodeServer(node.parentNode);
                 return self._objectExplorerProvider.refresh(undefined);
