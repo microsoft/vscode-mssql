@@ -23,6 +23,43 @@ enableProdMode();
 // text selection helper library
 declare let rangy;
 
+export enum ModelComponentTypes {
+	NavContainer,
+	DivContainer,
+	FlexContainer,
+	SplitViewContainer,
+	Card,
+	InputBox,
+	DropDown,
+	DeclarativeTable,
+	ListBox,
+	Button,
+	CheckBox,
+	RadioButton,
+	WebView,
+	Text,
+	Table,
+	DashboardWidget,
+	DashboardWebview,
+	Form,
+	Group,
+	Toolbar,
+	LoadingComponent,
+	TreeComponent,
+	FileBrowserTree,
+	Editor,
+	DiffEditor,
+	Hyperlink,
+	Image,
+	RadioCardGroup,
+	ListView,
+	TabbedPanel,
+	Separator,
+	PropertiesContainer,
+	InfoBox,
+	Slider
+}
+
 export interface IGridDataSet {
     dataRows: IObservableCollection<IGridDataRow>;
     columnDefinitions: IColumnDefinition[];
@@ -58,6 +95,9 @@ top: 45px;
 border: 1px solid black;
 background-color: rgba(230,230,230,1);">
 </div>
+
+<div id="controlContainer"></div>
+
 <div class = "lowBox" style = "
 position: absolute;
 overflow: visible;
@@ -134,6 +174,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     break;
                 case 'resultSet':
                     break;
+
+                case 'modelView_initializeModel':
+                    this.buildFormLayout(event.data);
+                    let componentShape = JSON.stringify(event.data);
+                    this.dataService.showWarning(componentShape);
+                    console.error(componentShape);
+                    break;
+
                 default:
                     console.error('Unexpected proxy event type "' + event.type + '" sent');
                     break;
@@ -143,6 +191,30 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
         this.dataService.showWarning('Warning from dialog component');
     }
+
+    buildFormLayout(componentShape: any): void {
+        let controlContainer: HTMLElement = document.getElementById('controlContainer');
+        if (!controlContainer) {
+            this.dataService.showWarning('controlContainer is null');
+            return;
+        }
+
+        for (let i = 0; i < componentShape.itemConfigs.length; ++i) {
+            let itemConfig: any = componentShape.itemConfigs[i];
+            let title = itemConfig.config.title;
+            let type = itemConfig.componentShape.type;
+            if (type == ModelComponentTypes.Button) {
+                let button = document.createElement('button');
+                button.innerText = title;
+                button.onclick = event => {
+                    this.dataService.showWarning('button clicked');
+                };
+                controlContainer.appendChild(button);
+            }
+
+        }
+    }
+
 
     ngAfterViewChecked(): void {
     }

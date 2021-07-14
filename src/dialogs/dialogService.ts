@@ -12,6 +12,8 @@ import { generateGuid } from '../models/utils';
 import { createProxy, IMessageProtocol, IServerProxy, IWebviewProxy } from '../protocol';
 import { Dialog } from './interfaces';
 import * as vscode from 'vscode';
+import { ModelViewImpl } from './modelViewImpl';
+import { DialogImpl } from './dialogImpl';
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);
@@ -69,12 +71,19 @@ export class DialogService implements vscode.Disposable {
 
         };
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), this._serverProxy, false);
+
         const sqlOutputPath = path.resolve(__dirname);
         const fileContent = await readFile(path.join(sqlOutputPath, 'dialogOutput.ejs'));
         const htmlViewPath = ['out', 'src'];
         const baseUri = `${this._panel.webview.asWebviewUri(vscode.Uri.file(path.join(this._context.extensionPath, ...htmlViewPath)))}/`;
         const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
         this._panel.webview.html = formattedHTML;
+
+        let dialogImpl: DialogImpl = dialog as DialogImpl;
+        if (dialogImpl) {
+            let modelView: ModelViewImpl = new ModelViewImpl(this.proxy);
+            dialogImpl.contentHandler(modelView);
+        }
     }
 
 

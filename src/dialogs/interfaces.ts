@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { DialogImpl } from './dialogImpl';
 
 /**
  * Valid values for the position CSS property
@@ -85,6 +86,42 @@ export interface ComponentProperties {
     CSSStyles?: CssStyles;
 }
 
+export interface IItemConfig {
+	componentShape: IComponentShape;
+	config: any;
+}
+
+export interface IComponentShape {
+	type: ModelComponentTypes;
+	id: string;
+	properties?: { [key: string]: any };
+	layout?: any;
+	itemConfigs?: IItemConfig[];
+}
+
+export enum ComponentEventType {
+	PropertiesChanged,
+	onDidChange,
+	onDidClick,
+	validityChanged,
+	onMessage,
+	onSelectedRowChanged,
+	onComponentCreated,
+	onCellAction,
+	onEnterKeyPressed,
+	onInput
+}
+
+export enum ModelViewAction {
+	SelectTab = 'selectTab',
+	AppendData = 'appendData',
+	Filter = 'filter'
+}
+
+export interface IComponentEventArgs {
+	eventType: ComponentEventType;
+	args: any;
+}
 
 export interface Component extends ComponentProperties {
     readonly id: string;
@@ -145,6 +182,132 @@ export interface ContainerBuilder<TComponent extends Component, TLayout, TItemLa
 }
 
 /**
+	 * A component that contains other components
+	 */
+ export interface Container<TLayout, TItemLayout> extends Component {
+    /**
+     * A copy of the child items array. This cannot be added to directly -
+     * components must be created using the create methods instead
+     */
+    readonly items: Component[];
+
+    /**
+     * Removes all child items from this container
+     */
+    clearItems(): void;
+    /**
+     * Creates a collection of child components and adds them all to this container
+     *
+     * @param itemConfigs the definitions
+     * @param [itemLayout] Optional layout for the child items
+     */
+    addItems(itemConfigs: Array<Component>, itemLayout?: TItemLayout): void;
+
+    /**
+     * Creates a child component and adds it to this container.
+     * Adding component to multiple containers is not supported
+     *
+     * @param component the component to be added
+     * @param [itemLayout] Optional layout for this child item
+     */
+    addItem(component: Component, itemLayout?: TItemLayout): void;
+
+    /**
+     * Creates a child component and inserts it to this container. Returns error given invalid index
+     * Adding component to multiple containers is not supported
+     * @param component the component to be added
+     * @param index the index to insert the component to
+     * @param [itemLayout] Optional layout for this child item
+     */
+    insertItem(component: Component, index: number, itemLayout?: TItemLayout): void;
+
+    /**
+     *
+     * @param component Removes a component from this container
+     */
+    removeItem(component: Component): boolean;
+
+    /**
+     * Defines the layout for this container
+     *
+     * @param layout object
+     */
+    setLayout(layout: TLayout): void;
+}
+
+export interface FormItemLayout {
+    horizontal?: boolean;
+    componentWidth?: number | string;
+    componentHeight?: number | string;
+    titleFontSize?: number | string;
+    info?: string;
+}
+
+export interface FormContainer extends Container<FormLayout, FormItemLayout> {
+}
+
+export interface FormLayout {
+    width?: number | string;
+    height?: number | string;
+    padding?: string;
+}
+
+export interface FormComponent<T extends Component = Component> {
+    component: T;
+    title?: string;
+    actions?: Component[];
+    required?: boolean;
+}
+
+/**
+ * Used to create a group of components in a form layout
+ */
+    export interface FormComponentGroup {
+    /**
+     * The form components to display in the group along with optional layouts for each item
+     */
+    components: (FormComponent & { layout?: FormItemLayout })[];
+
+    /**
+     * The title of the group, displayed above its components
+     */
+    title: string;
+}
+
+export interface FormBuilder extends ContainerBuilder<FormContainer, FormLayout, FormItemLayout, ComponentProperties> {
+    withFormItems(components: (FormComponent | FormComponentGroup)[], itemLayout?: FormItemLayout): FormBuilder;
+
+    /**
+     * Creates a collection of child components and adds them all to this container
+     *
+     * @param formComponents the definitions
+     * @param [itemLayout] Optional layout for the child items
+     */
+    addFormItems(formComponents: Array<FormComponent | FormComponentGroup>, itemLayout?: FormItemLayout): void;
+
+    /**
+     * Creates a child component and adds it to this container.
+     *
+     * @param formComponent the component to be added
+     * @param [itemLayout] Optional layout for this child item
+     */
+    addFormItem(formComponent: FormComponent | FormComponentGroup, itemLayout?: FormItemLayout): void;
+
+    /**
+     * Inserts a from component in a given position in the form. Returns error given invalid index
+     * @param formComponent Form component
+     * @param index index to insert the component to
+     * @param itemLayout Item Layout
+     */
+    insertFormItem(formComponent: FormComponent | FormComponentGroup, index?: number, itemLayout?: FormItemLayout): void;
+
+    /**
+     * Removes a from item from the from
+     */
+    removeFormItem(formComponent: FormComponent | FormComponentGroup): boolean;
+}
+
+/**
  * Supports defining a model that can be instantiated as a view in the UI
  */
 export interface ModelBuilder {
@@ -172,7 +335,7 @@ export interface ModelBuilder {
     // declarativeTable(): ComponentBuilder<DeclarativeTableComponent, DeclarativeTableProperties>;
     // dashboardWidget(widgetId: string): ComponentBuilder<DashboardWidgetComponent, ComponentProperties>;
     // dashboardWebview(webviewId: string): ComponentBuilder<DashboardWebviewComponent, ComponentProperties>;
-    // formContainer(): FormBuilder;
+    formContainer(): FormBuilder;
     // groupContainer(): GroupBuilder;
     // toolbarContainer(): ToolbarBuilder;
     // loadingComponent(): LoadingComponentBuilder;
@@ -422,5 +585,62 @@ export interface ComponentWithIconProperties extends ComponentProperties {
     title?: string;
 }
 
+export enum ModelComponentTypes {
+	NavContainer,
+	DivContainer,
+	FlexContainer,
+	SplitViewContainer,
+	Card,
+	InputBox,
+	DropDown,
+	DeclarativeTable,
+	ListBox,
+	Button,
+	CheckBox,
+	RadioButton,
+	WebView,
+	Text,
+	Table,
+	DashboardWidget,
+	DashboardWebview,
+	Form,
+	Group,
+	Toolbar,
+	LoadingComponent,
+	TreeComponent,
+	FileBrowserTree,
+	Editor,
+	DiffEditor,
+	Hyperlink,
+	Image,
+	RadioCardGroup,
+	ListView,
+	TabbedPanel,
+	Separator,
+	PropertiesContainer,
+	InfoBox,
+	Slider
+}
+
 export type ThemedIconPath = { light: string | vscode.Uri; dark: string | vscode.Uri };
 export type IconPath = string | vscode.Uri | ThemedIconPath;
+
+export namespace window {
+        /**
+		 * The width of a dialog, either from a predetermined size list or a specific size (such as px)
+		 */
+		export type DialogWidth = 'narrow' | 'medium' | 'wide' | number | string;
+
+    	/**
+		 * Create a dialog with the given title
+		 * @param title Title of the dialog, displayed at the top.
+		 * @param dialogName Name of the dialog.
+		 * @param width Width of the dialog, default is 'narrow'.
+		 */
+		export function createModelViewDialog(title: string, dialogName?: string, width?: DialogWidth): Dialog {
+            let dialog: DialogImpl = new DialogImpl();
+            dialog.title = title;
+            dialog.dialogName = dialogName;
+            return dialog;
+        }
+}

@@ -4,8 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 
 import { DialogService } from "./dialogService";
-import { Dialog, ModelView } from "./interfaces";
 import * as vscode from 'vscode';
+import * as azdata from './interfaces';
 
 export class ConnectionDialog {
 
@@ -16,21 +16,25 @@ export class ConnectionDialog {
     }
 
     public open(): void {
-        let dialog: Dialog = {
-            title: 'Connection Dialog',
-            isWide: undefined,
-            content: undefined,
-            okButton: undefined,
-            cancelButton: undefined,
-            customButtons: undefined,
-            message: undefined,
-            dialogName: undefined,
-            modelView: undefined,
-            valid: undefined,
-            onValidityChanged: undefined,
-            registerCloseValidator(validator: () => boolean | Thenable<boolean>): void {},
-            registerContent(handler: (view: ModelView) => Thenable<void>): void {}
-        };
+        let dialog = azdata.window.createModelViewDialog('Connection Dialog', 'Connection Dialog', 'wide');
+        dialog.registerContent(async (view) => {
+            try {
+
+                let testButton1 = view.modelBuilder.button().component();
+
+                let formModel = view.modelBuilder.formContainer()
+                    .withFormItems([{
+                        component: testButton1,
+                        title: 'Test Button'
+                    },
+                    ]).component();
+
+                await view.initializeModel(formModel);
+            } catch (ex) {
+                //reject(ex);
+            }
+        });
+
         this._dialogService.openDialog(dialog);
     }
 
