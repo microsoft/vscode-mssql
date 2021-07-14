@@ -28,13 +28,13 @@ declare module 'vscode-mssql' {
         /**
          * Prompts the user to select an existing connection or create a new one, and then returns the result
          */
-        promptForConnection(): Promise<IConnectionCredentials | undefined>
+        promptForConnection(): Promise<IConnectionInfo | undefined>
     }
 
     /**
-     * Interface exposed to the user for creating new database connections.
+     * Information about a database connection
      */
-    export interface IConnectionCredentials {
+    export interface IConnectionInfo {
         /**
          * server name
          */
