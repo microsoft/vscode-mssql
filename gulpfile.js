@@ -77,7 +77,8 @@ gulp.task('ext:compile-src', (done) => {
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
     return gulp.src([
-        config.paths.project.root + '/src/views/htmlcontent/**/*.ts'])
+        config.paths.project.root + '/src/views/htmlcontent/**/*.ts',
+        config.paths.project.root + '/typings/**/*.d.ts'])
         .pipe(srcmap.init())
         .pipe(tsProject())
         .pipe(nls.rewriteLocalizeCalls())
