@@ -7,8 +7,8 @@ import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
 import { ObjectExplorerService } from './objectExplorerService';
 import { TreeNodeInfo } from './treeNodeInfo';
-import { IConnectionCredentials } from '../models/interfaces';
 import { Deferred } from '../protocol';
+import { IConnectionCredentials } from 'vscode-mssql';
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 

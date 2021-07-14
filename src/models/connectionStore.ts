@@ -11,12 +11,13 @@ import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';
+import { IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CredentialStore } from '../credentialstore/credentialstore';
 import { IConnectionConfig } from '../connectionconfig/iconnectionconfig';
 import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { IConnectionCredentials } from 'vscode-mssql';
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections

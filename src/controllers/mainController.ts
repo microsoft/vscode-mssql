@@ -18,7 +18,7 @@ import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
-import { ISelectionData, IConnectionProfile, IConnectionCredentials } from './../models/interfaces';
+import { ISelectionData, IConnectionProfile } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
@@ -32,6 +32,7 @@ import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest'
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { DacFxService } from '../dacFxService/dacFxService';
+import { IConnectionCredentials } from 'vscode-mssql';
 
 /**
  * The main controller class that initializes the extension

@@ -5,13 +5,13 @@
 
 import assert = require('assert');
 import * as TypeMoq from 'typemoq';
-import { ExtensionContext, OutputChannel } from 'vscode';
+import { OutputChannel } from 'vscode';
 
 import { IPrompter } from '../src/prompts/question';
 import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 
 import ConnectionManager from '../src/controllers/connectionManager';
-import { IConnectionCredentials, AuthenticationTypes } from '../src/models/interfaces';
+import { AuthenticationTypes } from '../src/models/interfaces';
 import * as ConnectionContracts from '../src/models/contracts/connection';
 import * as LanguageServiceContracts from '../src/models/contracts/languageService';
 import MainController from '../src/controllers/mainController';
@@ -24,6 +24,7 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import { ConnectionUI } from '../src/views/connectionUI';
 import Constants = require('../src/constants/constants');
+import { IConnectionCredentials } from 'vscode-mssql';
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {
     let result = new ConnectionContracts.ConnectionCompleteParams();
@@ -123,7 +124,7 @@ suite('Per File Connection Tests', () => {
 
         let connectionUIMock = TypeMoq.Mock.ofType(ConnectionUI);
         connectionUIMock.setup(x => x.promptToChangeLanguageMode()).returns(x => Promise.resolve(true));
-        connectionUIMock.setup(x => x.showConnections()).returns(x => Promise.resolve(connectionCreds));
+        connectionUIMock.setup(x => x.promptForConnection()).returns(x => Promise.resolve(connectionCreds));
 
         // Return undefined to simulate the scenario that user doesn't want to enter new credentials
         connectionUIMock.setup(x => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny())).returns(x => Promise.resolve(undefined));
@@ -164,7 +165,7 @@ suite('Per File Connection Tests', () => {
 
         let connectionUIMock = TypeMoq.Mock.ofType(ConnectionUI);
         connectionUIMock.setup(x => x.promptToChangeLanguageMode()).returns(x => Promise.resolve(true));
-        connectionUIMock.setup(x => x.showConnections()).returns(x => Promise.resolve(connectionCreds));
+        connectionUIMock.setup(x => x.promptForConnection()).returns(x => Promise.resolve(connectionCreds));
 
         connectionUIMock.setup(x => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny())).returns(x => Promise.resolve(connectionCreds));
         let manager: ConnectionManager = createTestConnectionManager(undefined, vscodeWrapperMock.object, undefined, undefined, connectionUIMock.object);

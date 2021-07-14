@@ -11,11 +11,12 @@ import * as path from 'path';
 import * as findRemoveSync from 'find-remove';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
-import { IAzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
 import { AzureAuthType } from 'ads-adal-library';
+import { IConnectionCredentials } from 'vscode-mssql';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;

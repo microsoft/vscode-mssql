@@ -29,6 +29,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
     await controller.activate();
     return {
+        promptForConnection: () => {
+            return controller.connectionManager.connectionUI.promptForConnection();
+        },
         dacFx: controller.dacFxService
     };
 }

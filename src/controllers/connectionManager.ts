@@ -22,13 +22,14 @@ import { Runtime, PlatformInformation } from '../models/platform';
 import { Deferred } from '../protocol';
 import { AccountService } from '../azure/accountService';
 import { FirewallService } from '../firewall/firewallService';
-import { IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
+import { IConnectionProfile } from '../models/interfaces';
 import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import { AzureController } from '../azure/azureController';
+import { IConnectionCredentials } from 'vscode-mssql';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -593,7 +594,7 @@ export default class ConnectionManager {
      */
     public async showConnectionsAndConnect(fileUri: string): Promise<IConnectionCredentials> {
         // show connection picklist
-        const connectionCreds = await this.connectionUI.showConnections();
+        const connectionCreds = await this.connectionUI.promptForConnection();
         if (connectionCreds) {
             // close active connection
             await this.disconnect(fileUri);

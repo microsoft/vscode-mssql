@@ -13,7 +13,7 @@ import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
-import { AuthenticationTypes, IConnectionCredentials, IConnectionProfile } from '../models/interfaces';
+import { AuthenticationTypes, IConnectionProfile } from '../models/interfaces';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
@@ -24,8 +24,8 @@ import { ObjectExplorerUtils } from './objectExplorerUtils';
 import Utils = require('../models/utils');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
-import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
+import { IConnectionCredentials } from 'vscode-mssql';
 
 export class ObjectExplorerService {
 
@@ -383,7 +383,7 @@ export class ObjectExplorerService {
                                context?: vscode.ExtensionContext): Promise<string> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
-            connectionCredentials = await connectionUI.showConnections(false);
+            connectionCredentials = await connectionUI.createAndSaveProfile();
         }
         if (connectionCredentials) {
             // connection string based credential

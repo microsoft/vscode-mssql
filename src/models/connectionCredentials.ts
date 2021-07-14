@@ -6,11 +6,12 @@
 'use strict';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { ConnectionDetails } from './contracts/connection';
-import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import SqlToolsServerClient from '../languageservice/serviceclient';
+import { IConnectionCredentials } from 'vscode-mssql';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionCredentials {
