@@ -10,10 +10,10 @@ import * as ejs from 'ejs';
 import * as path from 'path';
 import { ISelectionData, ISlickRange } from '../models/interfaces';
 import { generateGuid } from '../models/utils';
-import { createProxy, IMessageProtocol, IServerProxy, IWebviewProxy } from '../protocol';
 import { ModelViewImpl } from './modelViewImpl';
 import * as azdata from './interfaces';
 import * as vscode from 'vscode';
+import { createProxy, IMessageProtocol, IServerProxy, IWebviewProxy } from './modelViewProtocol';
 
 let context: vscode.ExtensionContext = undefined;
 let dialogService: DialogService = undefined;
@@ -721,13 +721,7 @@ class DialogService implements vscode.Disposable {
         });
 
         this._serverProxy = {
-            getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) => undefined,
-            copyResults: (batchId: number, resultsId: number, selection: ISlickRange[], includeHeaders?: boolean) => undefined,
             getConfig: () => undefined,
-            getLocalizedTexts: () => undefined,
-            openLink: (content: string, columnName: string, linkType: string) => undefined,
-            saveResults: (batchId: number, resultId: number, format: string, selection: ISlickRange[]) => undefined,
-            setEditorSelection: (selection: ISelectionData) => undefined,
             showError: (message: string) => undefined,
             showWarning: (message: string) => {
                 vscode.window.showInformationMessage(message);
@@ -735,6 +729,9 @@ class DialogService implements vscode.Disposable {
             sendReadyEvent: async () =>  {
                 this.proxy.sendEvent('start', 'message from extension');
                 return true;
+            },
+            sendButtonClickEvent: (controlId: string) => {
+                vscode.window.showInformationMessage('Click event raised by button id=' + controlId);
             },
             dispose: () => undefined
 

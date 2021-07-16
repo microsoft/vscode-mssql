@@ -5,15 +5,11 @@
 import { NgModule, ValueProvider }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule }   from '@angular/forms';
-
-import { SlickGrid } from 'angular2-slickgrid';
-
 import { AppComponent }  from './components/app.component';
-import { ScrollDirective } from './directives/scroll.directive';
-import { MouseDownDirective } from './directives/mousedown.directive';
-import { ContextMenu } from './components/contextmenu.component';
-import { MessagesContextMenu } from './components/messagescontextmenu.component';
-
+import { ButtonComponent } from './components/button.component';
+import { ComponentHostDirective } from './directives/componentHost.directive';
+import { ModelComponentWrapper } from './components/modelComponentWrapper.component';
+import { InputBoxComponent } from './components/inputBox.component';
 
 /**
  * Top level angular module, no actual content here
@@ -31,7 +27,8 @@ const WINDOW_PROVIDER: ValueProvider = {
   providers: [
     WINDOW_PROVIDER
   ],
-  declarations: [ AppComponent, SlickGrid, ScrollDirective, MouseDownDirective, ContextMenu, MessagesContextMenu],
+  declarations: [ AppComponent, ButtonComponent, InputBoxComponent, ModelComponentWrapper, ComponentHostDirective ],
+  entryComponents: [ ButtonComponent, InputBoxComponent ],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

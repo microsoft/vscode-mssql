@@ -3,35 +3,23 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, forwardRef, Inject, Input, OnDestroy, ViewChild } from '@angular/core';
-import { DataService } from '../services/data.service';
+import { ChangeDetectorRef, Component, ElementRef, forwardRef, Inject, Input, OnDestroy, ViewChild } from '@angular/core';
 import { IComponentDescriptor } from './app.component';
 
 @Component({
-	selector: 'modelview-button',
+	selector: 'modelview-inputbox',
 	template: `
-	<button #buttonElement (click)='onClick()'>{{this.label}}</button>
+    <span>{{this.label}}:<span>
+	<input type=text />
 `
 })
-export class ButtonComponent implements AfterViewInit {
-	@ViewChild('buttonElement') buttonElement: ElementRef;
-
+export class InputBoxComponent {
 	public descriptor: IComponentDescriptor;
-
-	constructor(@Inject(forwardRef(() => DataService)) public dataService: DataService) {
-	}
 
 	private get label(): string {
 		return this.descriptor ? this.descriptor.label : '';
 	}
 
 	private set label(newValue: string) {
-	}
-
-	ngAfterViewInit() {
-	}
-
-	onClick(): void {
-		this.dataService.sendButtonClickEvent(this.descriptor.id);
 	}
 }

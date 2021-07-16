@@ -7,27 +7,6 @@ import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryLi
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { DataService } from './../services/data.service';
 
-// import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
-// import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
-//     IGridIcon, IMessage, IRange, ISelectionData, DbCellValue } from '../../../../../models/interfaces';
-// import { ShortcutService } from './../services/shortcuts.service';
-// import { ContextMenu } from './contextmenu.component';
-// import { MessagesContextMenu } from './messagescontextmenu.component';
-// import * as Constants from './../constants';
-// import * as Utils from './../utils';
-// export interface IGridDataSet {
-//     dataRows: IObservableCollection<IGridDataRow>;
-//     columnDefinitions: IColumnDefinition[];
-//     resized: EventEmitter<any>;
-//     totalRows: number;
-//     batchId: number;
-//     resultId: number;
-//     maxHeight: number | string;
-//     minHeight: number | string;
-// }
-// // text selection helper library
-// declare let rangy;
-
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
 enableProdMode();
@@ -110,8 +89,40 @@ export enum ModelComponentTypes {
 
 // `;
 
+export class ItemDescriptor {
+	constructor(public descriptor: IComponentDescriptor, public config: any) { }
+}
+
+/**
+ * Defines a component and can be used to map from the model-backed version of the
+ * world to the frontend UI;
+ *
+ * @export
+ */
+ export interface IComponentDescriptor {
+	/**
+	 * The type of this component. Used to map to the correct angular selector
+	 * when loading the component
+	 */
+	type: string;
+	/**
+	 * A unique ID for this component
+	 */
+	id: string;
+
+    /**
+     * Temporary place to stick the label
+     */
+    label: string;
+}
+
 const template =  `
-<div id="controlContainer"></div>
+<div id="controlContainer">
+    <div *ngFor="let item of items">
+        <model-component-wrapper [descriptor]="item.descriptor">
+        </model-component-wrapper>
+    </div>
+</div>
 `;
 // tslint:enable:max-line-length
 
@@ -120,10 +131,8 @@ const template =  `
  */
 @Component({
     selector: 'my-app',
-    host: { '(window:keydown)': 'keyEvent($event)',
-        '(window:gridnav)': 'keyEvent($event)',
-        '(window:resize)' : 'resizeResults()'
-     },
+    host: { '(window:keydown)': 'keyEvent($event)'
+    },
     template: template,
     providers: [DataService],
     styles: [`
@@ -140,20 +149,21 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private config;
     private uri: string;
 
+    protected items: ItemDescriptor[];
+
     public labelValue: string = 'Not initialized';
 
     constructor(@Inject(forwardRef(() => DataService)) public dataService: DataService,
                 @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
-                @Inject(forwardRef(() => ChangeDetectorRef)) private _cd: ChangeDetectorRef) {}
+                @Inject(forwardRef(() => ChangeDetectorRef)) private _cd: ChangeDetectorRef) {
+        this.items = [];
+    }
 
     /**
      * Called by Angular when the component is initialized
      */
     ngOnInit(): void {
         const self = this;
-        //this.setupResizeBind();
-
-
         this.dataService.config.then((config) => {
             this.config = config;
         });
@@ -180,26 +190,46 @@ export class AppComponent implements OnInit, AfterViewChecked {
     }
 
     buildFormLayout(componentShape: any): void {
+        this.items = [];
+
         let controlContainer: HTMLElement = document.getElementById('controlContainer');
         if (!controlContainer) {
             this.dataService.showWarning('controlContainer is null');
             return;
         }
 
+        let nextComponentId: number = 0;
         for (let i = 0; i < componentShape.itemConfigs.length; ++i) {
             let itemConfig: any = componentShape.itemConfigs[i];
             let title = itemConfig.config.title;
             let type = itemConfig.componentShape.type;
+            let id = itemConfig.componentShape.id;
             if (type == ModelComponentTypes.Button) {
-                let button = document.createElement('button');
-                button.innerText = title;
-                button.onclick = event => {
-                    this.dataService.showWarning('button clicked');
+                let buttonItem: ItemDescriptor = {
+                    descriptor: {
+                        type: ModelComponentTypes.Button.toString(),
+                        id: id,
+                        label: title
+                    },
+                    config: undefined
                 };
-                controlContainer.appendChild(button);
+                this.items.push(buttonItem);
+            } else if (type == ModelComponentTypes.InputBox) {
+                let textItem: ItemDescriptor = {
+                    descriptor: {
+                        type: ModelComponentTypes.InputBox.toString(),
+                        id: id,
+                        label: title
+                    },
+                    config: undefined
+                };
+                this.items.push(textItem);
             }
 
+            ++nextComponentId;
         }
+
+        this._cd.detectChanges();
     }
 
     ngAfterViewChecked(): void {
