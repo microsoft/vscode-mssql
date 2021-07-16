@@ -1,9 +1,14 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import { ComponentImpl } from "./componentImpl";
 import { DropDownComponent, ModelComponentTypes, ComponentEventType, CategoryValue} from "./interfaces";
 import { Emitter } from "vscode-languageclient";
 import * as vscode from 'vscode';
 
-export class DropDownWrapper extends ComponentImpl implements DropDownComponent {
+export class DropDownImpl extends ComponentImpl implements DropDownComponent {
 
 	constructor(id: string) {
 		super(ModelComponentTypes.DropDown, id);

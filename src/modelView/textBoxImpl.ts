@@ -1,6 +1,10 @@
-import { ComponentImpl } from "./componentImpl";
-import { TextComponentProperties, ModelComponentTypes } from "./interfaces";
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 
+import { TextComponentProperties, ModelComponentTypes } from "./interfaces";
+import { ComponentImpl } from "./componentImpl";
 
 export class TextComponentImpl extends ComponentImpl implements TextComponentProperties {
 

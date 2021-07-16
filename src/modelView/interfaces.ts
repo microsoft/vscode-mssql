@@ -3,8 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
 import { DialogImpl } from './dialogImpl';
+import { readFile as fsreadFile } from 'fs';
+import { promisify } from 'util';
+import * as ejs from 'ejs';
+import * as path from 'path';
+import { ISelectionData, ISlickRange } from '../models/interfaces';
+import { generateGuid } from '../models/utils';
+import { createProxy, IMessageProtocol, IServerProxy, IWebviewProxy } from '../protocol';
+import { ModelViewImpl } from './modelViewImpl';
+import * as azdata from './interfaces';
+import * as vscode from 'vscode';
+
+let context: vscode.ExtensionContext = undefined;
+let dialogService: DialogService = undefined;
+export function initializeModelView(c: vscode.ExtensionContext): void {
+    context = c;
+    dialogService = new DialogService(context);
+}
 
 /**
  * Valid values for the position CSS property
@@ -408,67 +424,6 @@ export interface ModelViewPanel {
     readonly onValidityChanged: vscode.Event<boolean>;
 }
 
-// Model view dialog classes
-export interface Dialog extends ModelViewPanel {
-    /**
-     * The title of the dialog
-     */
-    title: string;
-
-    /**
-     * Indicates the width of the dialog
-     */
-    isWide: boolean;
-
-    /**
-     * The content of the dialog. If multiple tabs are given they will be displayed with tabs
-     * If a string is given, it should be the ID of the dialog's model view content
-     */
-    content: string | DialogTab[];
-
-    /**
-     * The ok button
-     */
-    okButton: Button;
-
-    /**
-     * The cancel button
-     */
-    cancelButton: Button;
-
-    /**
-     * Any additional buttons that should be displayed
-     */
-    customButtons: Button[];
-
-    /**
-     * Set the informational message shown in the dialog. Hidden when the message is
-     * undefined or the text is empty or undefined. The default level is error.
-     */
-    message: DialogMessage;
-
-    /**
-     * Set the dialog name when opening
-     * the dialog for telemetry
-     */
-    dialogName?: string;
-
-    /**
-     * Register a callback that will be called when the user tries to click done. Only
-     * one callback can be registered at once, so each registration call will clear
-     * the previous registration.
-     * @param validator The callback that gets executed when the user tries to click
-     * done. Return true to allow the dialog to close or false to block it from closing
-     */
-    registerCloseValidator(validator: () => boolean | Thenable<boolean>): void;
-
-    // /**
-    //  * Register an operation to run in the background when the dialog is done
-    //  * @param operationInfo Operation Information
-    //  */
-    // registerOperation(operationInfo: BackgroundOperationInfo): void;
-}
-
 export interface Button {
     /**
      * The label displayed on the button
@@ -729,25 +684,175 @@ export enum ModelComponentTypes {
 	Slider
 }
 
+function readFile(filePath: string): Promise<Buffer> {
+    return promisify(fsreadFile)(filePath);
+}
+
+function createMessageProtocol(webview: vscode.Webview): IMessageProtocol {
+    return {
+        sendMessage: message => webview.postMessage(message),
+        onMessage: message => webview.onDidReceiveMessage(message)
+    };
+}
+
+class DialogService implements vscode.Disposable {
+    private _panel: vscode.WebviewPanel;
+    private _disposables: vscode.Disposable[] = [];
+
+    private _serverProxy: IServerProxy;
+    public proxy: IWebviewProxy;
+
+    constructor(private _context: vscode.ExtensionContext) {}
+
+    public async openDialog(dialog: azdata.window.Dialog): Promise<void> {
+        let uri: string = 'dialog://' + generateGuid();
+        this._disposables.push(this._panel = vscode.window.createWebviewPanel(uri, dialog.title,
+            {
+                viewColumn: vscode.ViewColumn.One,
+                preserveFocus: true
+            },
+            {
+                retainContextWhenHidden: true,
+                enableScripts: true
+            }
+        ));
+        this._panel.onDidDispose(() => {
+            this.dispose();
+        });
+
+        this._serverProxy = {
+            getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) => undefined,
+            copyResults: (batchId: number, resultsId: number, selection: ISlickRange[], includeHeaders?: boolean) => undefined,
+            getConfig: () => undefined,
+            getLocalizedTexts: () => undefined,
+            openLink: (content: string, columnName: string, linkType: string) => undefined,
+            saveResults: (batchId: number, resultId: number, format: string, selection: ISlickRange[]) => undefined,
+            setEditorSelection: (selection: ISelectionData) => undefined,
+            showError: (message: string) => undefined,
+            showWarning: (message: string) => {
+                vscode.window.showInformationMessage(message);
+            },
+            sendReadyEvent: async () =>  {
+                this.proxy.sendEvent('start', 'message from extension');
+                return true;
+            },
+            dispose: () => undefined
+
+        };
+        this.proxy = createProxy(createMessageProtocol(this._panel.webview), this._serverProxy, false);
+
+        const sqlOutputPath = path.resolve(__dirname);
+        const fileContent = await readFile(path.join(sqlOutputPath, 'dialogOutput.ejs'));
+        const htmlViewPath = ['out', 'src'];
+        const baseUri = `${this._panel.webview.asWebviewUri(vscode.Uri.file(path.join(this._context.extensionPath, ...htmlViewPath)))}/`;
+        const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
+        this._panel.webview.html = formattedHTML;
+
+        let dialogImpl: DialogImpl = dialog as DialogImpl;
+        if (dialogImpl) {
+            let modelView: ModelViewImpl = new ModelViewImpl(this.proxy);
+            dialogImpl.contentHandler(modelView);
+        }
+    }
+
+    public closeDialog(dialog: azdata.window.Dialog): void {
+        vscode.window.showInformationMessage('close dialog');
+    }
+
+    public dispose(): void {
+        this._disposables.forEach(d => d.dispose());
+    }
+}
+
 export type ThemedIconPath = { light: string | vscode.Uri; dark: string | vscode.Uri };
 export type IconPath = string | vscode.Uri | ThemedIconPath;
 
 export namespace window {
-        /**
-		 * The width of a dialog, either from a predetermined size list or a specific size (such as px)
-		 */
-		export type DialogWidth = 'narrow' | 'medium' | 'wide' | number | string;
+    /**
+     * The width of a dialog, either from a predetermined size list or a specific size (such as px)
+     */
+    export type DialogWidth = 'narrow' | 'medium' | 'wide' | number | string;
 
-    	/**
-		 * Create a dialog with the given title
-		 * @param title Title of the dialog, displayed at the top.
-		 * @param dialogName Name of the dialog.
-		 * @param width Width of the dialog, default is 'narrow'.
-		 */
-		export function createModelViewDialog(title: string, dialogName?: string, width?: DialogWidth): Dialog {
-            let dialog: DialogImpl = new DialogImpl();
-            dialog.title = title;
-            dialog.dialogName = dialogName;
-            return dialog;
-        }
+    /**
+     * Create a dialog with the given title
+     * @param title Title of the dialog, displayed at the top.
+     * @param dialogName Name of the dialog.
+     * @param width Width of the dialog, default is 'narrow'.
+     */
+    export function createModelViewDialog(title: string, dialogName?: string, width?: DialogWidth): Dialog {
+        let dialog: DialogImpl = new DialogImpl();
+        dialog.title = title;
+        dialog.dialogName = dialogName;
+        return dialog;
+    }
+
+    /**
+     * Opens the given dialog if it is not already open
+     */
+    export function openDialog(dialog: Dialog): void {
+        dialogService.openDialog(dialog);
+    }
+
+    // Model view dialog classes
+    export interface Dialog extends ModelViewPanel {
+        /**
+         * The title of the dialog
+         */
+        title: string;
+
+        /**
+         * Indicates the width of the dialog
+         */
+        isWide: boolean;
+
+        /**
+         * The content of the dialog. If multiple tabs are given they will be displayed with tabs
+         * If a string is given, it should be the ID of the dialog's model view content
+         */
+        content: string | DialogTab[];
+
+        /**
+         * The ok button
+         */
+        okButton: Button;
+
+        /**
+         * The cancel button
+         */
+        cancelButton: Button;
+
+        /**
+         * Any additional buttons that should be displayed
+         */
+        customButtons: Button[];
+
+        /**
+         * Set the informational message shown in the dialog. Hidden when the message is
+         * undefined or the text is empty or undefined. The default level is error.
+         */
+        message: DialogMessage;
+
+        /**
+         * Set the dialog name when opening
+         * the dialog for telemetry
+         */
+        dialogName?: string;
+
+        /**
+         * Register a callback that will be called when the user tries to click done. Only
+         * one callback can be registered at once, so each registration call will clear
+         * the previous registration.
+         * @param validator The callback that gets executed when the user tries to click
+         * done. Return true to allow the dialog to close or false to block it from closing
+         */
+        registerCloseValidator(validator: () => boolean | Thenable<boolean>): void;
+
+        // /**
+        //  * Register an operation to run in the background when the dialog is done
+        //  * @param operationInfo Operation Information
+        //  */
+        // registerOperation(operationInfo: BackgroundOperationInfo): void;
+    }
+
+
 }

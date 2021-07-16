@@ -5,23 +5,32 @@
 
 import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
     EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
-import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
-import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
-    IGridIcon, IMessage, IRange, ISelectionData, DbCellValue } from '../../../../../models/interfaces';
 import { DataService } from './../services/data.service';
-import { ShortcutService } from './../services/shortcuts.service';
-import { ContextMenu } from './contextmenu.component';
-import { MessagesContextMenu } from './messagescontextmenu.component';
 
-import * as Constants from './../constants';
-import * as Utils from './../utils';
+// import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
+// import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
+//     IGridIcon, IMessage, IRange, ISelectionData, DbCellValue } from '../../../../../models/interfaces';
+// import { ShortcutService } from './../services/shortcuts.service';
+// import { ContextMenu } from './contextmenu.component';
+// import { MessagesContextMenu } from './messagescontextmenu.component';
+// import * as Constants from './../constants';
+// import * as Utils from './../utils';
+// export interface IGridDataSet {
+//     dataRows: IObservableCollection<IGridDataRow>;
+//     columnDefinitions: IColumnDefinition[];
+//     resized: EventEmitter<any>;
+//     totalRows: number;
+//     batchId: number;
+//     resultId: number;
+//     maxHeight: number | string;
+//     minHeight: number | string;
+// }
+// // text selection helper library
+// declare let rangy;
 
 /** enableProdMode */
 import {enableProdMode} from '@angular/core';
 enableProdMode();
-
-// text selection helper library
-declare let rangy;
 
 export enum ModelComponentTypes {
 	NavContainer,
@@ -60,55 +69,49 @@ export enum ModelComponentTypes {
 	Slider
 }
 
-export interface IGridDataSet {
-    dataRows: IObservableCollection<IGridDataRow>;
-    columnDefinitions: IColumnDefinition[];
-    resized: EventEmitter<any>;
-    totalRows: number;
-    batchId: number;
-    resultId: number;
-    maxHeight: number | string;
-    minHeight: number | string;
-}
 
 // tslint:disable:max-line-length
+// const template =  `
+// <div class = "window" style="
+// position: absolute;
+// overflow: visible;
+// width: 300px;
+// height: 300px;
+// left: 369px;
+// top: 45px;
+// border: 1px solid black;
+// background-color: white;"
+// >
+
+// </div>
+// <div class = "topBox" style = "
+// position: absolute;
+// overflow: visible;
+// width: 300px;
+// height: 34px;
+// left: 369px;
+// top: 45px;
+// border: 1px solid black;
+// background-color: rgba(230,230,230,1);">
+// </div>
+
+// <div id="controlContainer"></div>
+
+// <div class = "lowBox" style = "
+// position: absolute;
+// overflow: visible;
+// width: 300px;
+// height: 34px;
+// left: 369px;
+// top: 312px;
+// border: 1px solid black;
+// background-color: rgba(230,230,230,1);">
+// </div>
+
+// `;
+
 const template =  `
-<div class = "window" style="
-position: absolute;
-overflow: visible;
-width: 300px;
-height: 300px;
-left: 369px;
-top: 45px;
-border: 1px solid black;
-background-color: white;"
->
-
-</div>
-<div class = "topBox" style = "
-position: absolute;
-overflow: visible;
-width: 300px;
-height: 34px;
-left: 369px;
-top: 45px;
-border: 1px solid black;
-background-color: rgba(230,230,230,1);">
-</div>
-
 <div id="controlContainer"></div>
-
-<div class = "lowBox" style = "
-position: absolute;
-overflow: visible;
-width: 300px;
-height: 34px;
-left: 369px;
-top: 312px;
-border: 1px solid black;
-background-color: rgba(230,230,230,1);">
-</div>
-
 `;
 // tslint:enable:max-line-length
 
@@ -122,7 +125,7 @@ background-color: rgba(230,230,230,1);">
         '(window:resize)' : 'resizeResults()'
      },
     template: template,
-    providers: [DataService, ShortcutService],
+    providers: [DataService],
     styles: [`
     .errorMessage {
         color: var(--color-error);
@@ -153,33 +156,19 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
         this.dataService.config.then((config) => {
             this.config = config;
-            // self._messageActive = self.config.messagesDefaultOpen;
-            // self.resultsFontSize = self.config.resultsFontSize;
-            // this.shortcuts.stringCodeFor('event.toggleMessagePane').then((result) => {
-            //     self.messageShortcut = result;
-            // });
-            // this.shortcuts.stringCodeFor('event.toggleResultPane').then((result) => {
-            //     self.resultShortcut = result;
-            // });
         });
+
         this.dataService.dataEventObs.subscribe(event => {
             switch (event.type) {
                 case 'start':
                     this.labelValue = 'start message received - '  + event.data;
                     this._cd.detectChanges();
                     break;
-                case 'complete':
-                    break;
-                case 'message':
-                    break;
-                case 'resultSet':
-                    break;
 
                 case 'modelView_initializeModel':
                     this.buildFormLayout(event.data);
                     let componentShape = JSON.stringify(event.data);
                     this.dataService.showWarning(componentShape);
-                    console.error(componentShape);
                     break;
 
                 default:
@@ -188,8 +177,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             }
         });
         this.dataService.sendReadyEvent(this.uri);
-
-        this.dataService.showWarning('Warning from dialog component');
     }
 
     buildFormLayout(componentShape: any): void {
@@ -215,24 +202,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
     }
 
-
     ngAfterViewChecked(): void {
-    }
-
-    /**
-     * Perform copy and do other actions for context menu on the messages component
-     */
-    handleMessagesContextClick(event: {type: string, selectedRange: IRange}): void {
-        switch (event.type) {
-            case 'copySelection':
-                // let selectedText = event.selectedRange.text();
-                // this.executeCopy(selectedText);
-                break;
-            default:
-                break;
-        }
-    }
-
-    openMessagesContextMenu(event: any): void {
     }
 }

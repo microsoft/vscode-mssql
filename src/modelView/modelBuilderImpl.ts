@@ -2,14 +2,16 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { TextComponentImpl } from "./textboxImpl"
-import { InputBoxImpl } from "./inputboxImpl"
-import { ButtonImpl } from "./buttonImpl";
+
+import { ButtonComponent, ButtonProperties, Component, ComponentBuilder, ComponentProperties, FormBuilder, ModelBuilder, ModelComponentTypes,
+	TextComponent, TextComponentProperties, InputBoxComponent, InputBoxProperties, DropDownComponent, DropDownProperties } from "./interfaces";
+import { FormContainerBuilderImpl } from "./formContainerBuilderImpl";
 import { ComponentBuilderImpl } from "./componentBuilderImpl";
 import { ComponentImpl } from "./componentImpl";
-import { FormContainerBuilderImpl } from "./formContainerBuilderImpl";
-import { ButtonComponent, ButtonProperties, Component, ComponentBuilder, ComponentProperties, FormBuilder, ModelBuilder, ModelComponentTypes, TextComponent, TextComponentProperties, InputBoxComponent, InputBoxProperties, DropDownComponent, DropDownProperties } from "./interfaces";
-import { DropDownWrapper } from "./dropdownImpl";
+import { ButtonImpl } from "./buttonImpl";
+import { DropDownImpl } from "./dropdownImpl";
+import { InputBoxImpl } from "./inputBoxImpl"
+import { TextComponentImpl } from "./textBoxImpl"
 
 export class ModelBuilderImpl implements ModelBuilder {
     private nextComponentId: number;
@@ -37,7 +39,6 @@ export class ModelBuilderImpl implements ModelBuilder {
 		return builder;
 	}
 
-
 	formContainer(): FormBuilder {
         let id = this.getNextComponentId();
         let container = new FormContainerBuilderImpl(ModelComponentTypes.Form, id, this);
@@ -58,7 +59,7 @@ export class ModelBuilderImpl implements ModelBuilder {
 	}
 	dropDown(): ComponentBuilder<DropDownComponent, DropDownProperties> {
 		let id = this.getNextComponentId();
-		let builder: ComponentBuilderImpl<DropDownComponent, DropDownProperties> = this.getComponentBuilder(new DropDownWrapper(id), id);
+		let builder: ComponentBuilderImpl<DropDownComponent, DropDownProperties> = this.getComponentBuilder(new DropDownImpl(id), id);
 		this._componentBuilders.set(id, builder);
 		return builder;
 	}

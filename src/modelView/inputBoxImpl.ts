@@ -1,7 +1,12 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
 import { Emitter } from "vscode-languageclient";
 import * as vscode from 'vscode';
 import { ComponentImpl } from "./componentImpl";
-import { InputBoxProperties, ModelComponentTypes, InputBoxComponent, ComponentEventType, InputBoxInputType } from "./interfaces";
+import { ModelComponentTypes, InputBoxComponent, ComponentEventType, InputBoxInputType } from "./interfaces";
 
 export class InputBoxImpl extends ComponentImpl implements InputBoxComponent {
 

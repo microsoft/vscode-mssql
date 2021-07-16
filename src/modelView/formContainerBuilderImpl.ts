@@ -6,8 +6,8 @@
 import { assign } from 'underscore';
 import { ComponentBuilderImpl } from './componentBuilderImpl';
 import { ComponentImpl, InternalItemConfig } from './componentImpl';
-import * as azdata from './interfaces';
 import { ModelBuilderImpl } from './modelBuilderImpl';
+import * as azdata from './interfaces';
 
 class ContainerBuilderImpl<TComponent extends azdata.Component, TLayout, TItemLayout, TPropertyBag extends azdata.ComponentProperties> extends ComponentBuilderImpl<TComponent, TPropertyBag> implements azdata.ContainerBuilder<TComponent, TLayout, TItemLayout, TPropertyBag> {
 	constructor(componentWrapper: ComponentImpl) {

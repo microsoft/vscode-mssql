@@ -25,7 +25,7 @@ gulp.task('ext:lint', () => {
     return gulp.src([
         config.paths.project.root + '/src/**/*.ts',
         '!' + config.paths.project.root + '/src/views/htmlcontent/**/*',
-        '!' + config.paths.project.root + '/src/dialogs/htmlcontent/**/*',
+        '!' + config.paths.project.root + '/src/modelView/htmlcontent/**/*',
         config.paths.project.root + '/test/**/*.ts'
     ])
     .pipe((gulpTsLint({
@@ -122,7 +122,7 @@ gulp.task('ext:copy-images', (done) => {
 // Compile dialog angular view
 gulp.task('ext:compile-dialog-view', (done) => {
     return gulp.src([
-        config.paths.project.root + '/src/dialogs/htmlcontent/**/*.ts'])
+        config.paths.project.root + '/src/modelView/htmlcontent/**/*.ts'])
         .pipe(srcmap.init())
         .pipe(tsProject())
         .pipe(nls.rewriteLocalizeCalls())
@@ -130,35 +130,35 @@ gulp.task('ext:compile-dialog-view', (done) => {
         .pipe(srcmap.write('.', {
             sourceRoot: function(file){ return file.cwd + '/src'; }
         }))
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent'));
+        .pipe(gulp.dest('out/src/modelView/htmlcontent'));
 });
 
 // Copy dialog systemjs config file
 gulp.task('ext:copy-dialog-systemjs-config', (done) => {
     return gulp.src([
-        config.paths.project.root + '/src/dialogs/htmlcontent/*.js'])
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent'));
+        config.paths.project.root + '/src/modelView/htmlcontent/*.js'])
+        .pipe(gulp.dest('out/src/modelView/htmlcontent'));
 });
 
 // Copy dialog html
 gulp.task('ext:copy-dialog-html', (done) => {
     return gulp.src([
-            config.paths.project.root + '/src/dialogs/dialogOutput.ejs'])
-        .pipe(gulp.dest('out/src/dialogs/'));
+            config.paths.project.root + '/src/modelView/dialogOutput.ejs'])
+        .pipe(gulp.dest('out/src/modelView/'));
 });
 
 // Copy css
 gulp.task('ext:copy-dialog-css', (done) => {
     return gulp.src([
-            config.paths.project.root + '/src/dialogs/htmlcontent/src/css/*.css'])
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/css'));
+            config.paths.project.root + '/src/modelView/htmlcontent/src/css/*.css'])
+        .pipe(gulp.dest('out/src/modelView/htmlcontent/src/css'));
 });
 
 // Copy images
 gulp.task('ext:copy-dialog-images', (done) => {
     return gulp.src([
-            config.paths.project.root + '/src/dialogs/htmlcontent/src/images/**/*'])
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/images'));
+            config.paths.project.root + '/src/modelView/htmlcontent/src/images/**/*'])
+        .pipe(gulp.dest('out/src/modelView/htmlcontent/src/images'));
 });
 
 // Clean angular slickgrid library
@@ -171,10 +171,10 @@ gulp.task('ext:clean-library-ts-files', function() {
 // system.config.js can also bundled for convenience
 gulp.task('ext:copy-dependencies', (done) => {
     gulp.src([config.paths.project.root + '/node_modules/rxjs/**/*'])
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib/rxjs'));
+        .pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib/rxjs'));
 
     gulp.src([config.paths.project.root + '/node_modules/angular-in-memory-web-api/**/*'])
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib/angular-in-memory-web-api'));
+        .pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib/angular-in-memory-web-api'));
 
     // concatenate non-angular2 libs, shims & systemjs-config
     if (min) {
@@ -192,11 +192,11 @@ gulp.task('ext:copy-dependencies', (done) => {
             config.paths.project.root + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.project.root + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.project.root + '/node_modules/systemjs/dist/system.src.js',
-            config.paths.project.root + '/src/dialogs/htmlcontent/systemjs.config.js'
+            config.paths.project.root + '/src/modelView/htmlcontent/systemjs.config.js'
         ])
             .pipe(concat('vendors.min.js'))
             .pipe(minifier({}, uglifyjs))
-            .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib'));
+            .pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib'));
     } else {
         gulp.src([
             config.paths.project.root + '/node_modules/slickgrid/lib/jquery-1.8.3.js',
@@ -211,12 +211,12 @@ gulp.task('ext:copy-dependencies', (done) => {
             config.paths.project.root  + '/node_modules/rangy/lib/rangy-textrange.js',
             config.paths.project.root  + '/node_modules/reflect-metadata/Reflect.js',
             config.paths.project.root  + '/node_modules/systemjs/dist/system.src.js',
-            config.paths.project.root  + '/src/dialogs/htmlcontent/systemjs.config.js'
+            config.paths.project.root  + '/src/modelView/htmlcontent/systemjs.config.js'
         ])
-            .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib'));
+            .pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib'));
 
         gulp.src([config.paths.project.root + '/node_modules/zone.js/**/*'])
-            .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib/zone.js'));
+            .pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib/zone.js'));
     }
 
     // copy source maps
@@ -225,21 +225,21 @@ gulp.task('ext:copy-dependencies', (done) => {
         config.paths.project.root  + '/node_modules/reflect-metadata/Reflect.js.map',
         config.paths.project.root + '/node_modules/systemjs/dist/system-polyfills.js.map',
         config.paths.project.root + '/node_modules/systemjs-plugin-json/json.js'
-    ]).pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib'));
+    ]).pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib'));
 
     gulp.src([
         config.paths.project.root  + '/node_modules/angular2-slickgrid/components/css/SlickGrid.css',
         config.paths.project.root + '/node_modules/slickgrid/slick.grid.css'
-    ]).pipe(gulp.dest('out/src/dialogs/htmlcontent/src/css'));
+    ]).pipe(gulp.dest('out/src/modelView/htmlcontent/src/css'));
 
     gulp.src([
         config.paths.project.root  + '/node_modules/angular2-slickgrid/index.js',
         config.paths.project.root  + '/node_modules/angular2-slickgrid/components/**/*.js'
     ], { base: config.paths.project.root + '/node_modules/angular2-slickgrid' })
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib/angular2-slickgrid'));
+        .pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib/angular2-slickgrid'));
 
     return gulp.src([config.paths.project.root + '/node_modules/@angular/**/*'])
-        .pipe(gulp.dest('out/src/dialogs/htmlcontent/src/js/lib/@angular'));
+        .pipe(gulp.dest('out/src/modelView/htmlcontent/src/js/lib/@angular'));
 });
 
 

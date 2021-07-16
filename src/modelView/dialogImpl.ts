@@ -3,12 +3,11 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { Button, Dialog, DialogMessage, DialogTab, ModelView } from "./interfaces";
+import { Button, DialogMessage, DialogTab, ModelView } from "./interfaces";
+import * as azdata from '../modelView/interfaces';
 import * as vscode from 'vscode';
-import { ModelViewImpl } from "./modelViewImpl";
-import { ModelBuilderImpl } from "./modelBuilderImpl";
 
-export class DialogImpl implements Dialog {
+export class DialogImpl implements azdata.window.Dialog {
     /**
      * The title of the dialog
      */
@@ -78,8 +77,6 @@ export class DialogImpl implements Dialog {
      */
     registerCloseValidator(validator: () => boolean | Thenable<boolean>): void {
     }
-
-
 
     registerContent(handler: (view: ModelView) => Thenable<void>): void {
         this.contentHandler = handler;
