@@ -319,16 +319,16 @@ export interface ModelBuilder {
     //  * @deprecated please use radioCardGroup component.
     //  */
     // card(): ComponentBuilder<CardComponent, CardProperties>;
-    // inputBox(): ComponentBuilder<InputBoxComponent, InputBoxProperties>;
+    inputBox(): ComponentBuilder<InputBoxComponent, InputBoxProperties>;
     // checkBox(): ComponentBuilder<CheckBoxComponent, CheckBoxProperties>;
     // radioButton(): ComponentBuilder<RadioButtonComponent, RadioButtonProperties>;
     // webView(): ComponentBuilder<WebViewComponent, WebViewProperties>;
     // editor(): ComponentBuilder<EditorComponent, EditorProperties>;
     // diffeditor(): ComponentBuilder<DiffEditorComponent, DiffEditorComponent>;
-    // text(): ComponentBuilder<TextComponent, TextComponentProperties>;
+    text(): ComponentBuilder<TextComponent, TextComponentProperties>;
     // image(): ComponentBuilder<ImageComponent, ImageComponentProperties>;
     button(): ComponentBuilder<ButtonComponent, ButtonProperties>;
-    // dropDown(): ComponentBuilder<DropDownComponent, DropDownProperties>;
+    dropDown(): ComponentBuilder<DropDownComponent, DropDownProperties>;
     // tree<T>(): ComponentBuilder<TreeComponent<T>, TreeProperties>;
     // listBox(): ComponentBuilder<ListBoxComponent, ListBoxProperties>;
     // table(): ComponentBuilder<TableComponent, TableComponentProperties>;
@@ -563,6 +563,105 @@ export enum MessageLevel {
     Information = 2
 }
 
+export interface TextComponent extends Component, TextComponentProperties {
+}
+export interface TextComponentProperties extends ComponentProperties, TitledComponentProperties {
+    value?: string;
+    links?: LinkArea[];
+    description?: string;
+    requiredIndicator?: boolean;
+}
+
+export interface LinkArea {
+    text: string;
+    url: string;
+}
+
+export interface TitledComponentProperties extends ComponentProperties {
+    /**
+     * The title for the component. This title will show when hovered over
+     */
+    title?: string;
+}
+
+export interface InputBoxComponent extends Component, InputBoxProperties {
+    onTextChanged: vscode.Event<any>;
+    /**
+     * Event that's fired whenever enter is pressed within the input box
+     */
+    onEnterKeyPressed: vscode.Event<string>;
+}
+
+export interface InputBoxProperties extends ComponentProperties {
+    value?: string;
+    ariaLive?: string;
+    placeHolder?: string;
+    inputType?: InputBoxInputType;
+    required?: boolean;
+    multiline?: boolean;
+    rows?: number;
+    columns?: number;
+    /**
+     * The minimum value allowed for the input. Only valid for number inputs.
+     */
+    min?: number;
+    /**
+     * The maximum value allowed for the input. Only valid for number inputs.
+     */
+    max?: number;
+    /**
+     * Whether to stop key event propagation when enter is pressed in the input box. Leaving this as false
+     * means the event will propagate up to any parents that have handlers (such as validate on Dialogs)
+     */
+    stopEnterPropagation?: boolean;
+    /**
+     * The error message to show when custom validation fails. Note that built-in validations
+     * (such as min/max values) will use the default error messages for those validations
+     * as appropriate.
+     */
+    validationErrorMessage?: string;
+    /**
+     * Whether the input box is marked with the 'readonly' attribute
+     */
+    readOnly?: boolean;
+    /**
+     * This title will show when hovered over
+     */
+    title?: string;
+}
+
+export type InputBoxInputType = 'color' | 'date' | 'datetime-local' | 'email' | 'month' | 'number' | 'password' | 'range' | 'search' | 'text' | 'time' | 'url' | 'week';
+
+
+export interface DropDownComponent extends Component, DropDownProperties {
+    onValueChanged: vscode.Event<any>;
+}
+export interface DropDownProperties extends LoadingComponentProperties {
+    value?: string | CategoryValue;
+    values?: string[] | CategoryValue[];
+    editable?: boolean;
+    fireOnTextChange?: boolean;
+    required?: boolean;
+}
+export interface LoadingComponentProperties extends ComponentProperties {
+    /**
+     * Whether to show the loading spinner instead of the contained component. True by default
+     */
+    loading?: boolean;
+    /**
+     * Whether to show the loading text next to the spinner
+     */
+    showText?: boolean;
+    /**
+     * The text to display while loading is set to true
+     */
+    loadingText?: string;
+    /**
+     * The text to display while loading is set to false. Will also be announced through screen readers
+     * once loading is completed.
+     */
+    loadingCompletedText?: string;
+}
 
 export interface ComponentWithIcon extends ComponentWithIconProperties { }
 
@@ -583,6 +682,14 @@ export interface ComponentWithIconProperties extends ComponentProperties {
      * The title for the icon. This title will show when hovered over
      */
     title?: string;
+}
+export interface CategoryValue {
+    displayName: string;
+    name: string;
+}
+export interface IComponentEventArgs {
+	eventType: ComponentEventType;
+	args: any;
 }
 
 export enum ModelComponentTypes {
