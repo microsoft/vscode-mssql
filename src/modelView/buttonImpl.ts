@@ -32,6 +32,13 @@ export class ButtonImpl extends ComponentImpl implements ButtonComponent {
 
 	public get onDidClick(): vscode.Event<any> {
 		let emitter = this._emitterMap.get(ComponentEventType.onDidClick);
-		return emitter && emitter.event;
+		return emitter && emitter.event ? emitter.event : undefined;
+	}
+
+	public fireOnDidClick(): void {
+		let emitter = this._emitterMap.get(ComponentEventType.onDidClick);
+		if (emitter && emitter.event) {
+			emitter.fire(undefined);
+		}
 	}
 }

@@ -4,16 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DialogImpl } from './dialogImpl';
+import { generateGuid } from '../models/utils';
+import { ModelViewImpl } from './modelViewImpl';
+import { createProxy, IMessageProtocol, IServerProxy, IWebviewProxy } from './modelViewProtocol';
 import { readFile as fsreadFile } from 'fs';
 import { promisify } from 'util';
 import * as ejs from 'ejs';
 import * as path from 'path';
-import { ISelectionData, ISlickRange } from '../models/interfaces';
-import { generateGuid } from '../models/utils';
-import { ModelViewImpl } from './modelViewImpl';
 import * as azdata from './interfaces';
 import * as vscode from 'vscode';
-import { createProxy, IMessageProtocol, IServerProxy, IWebviewProxy } from './modelViewProtocol';
+import { ButtonImpl } from './buttonImpl';
+import { ComponentImpl, InternalItemConfig } from './componentImpl';
 
 let context: vscode.ExtensionContext = undefined;
 let dialogService: DialogService = undefined;
@@ -720,6 +721,7 @@ class DialogService implements vscode.Disposable {
             this.dispose();
         });
 
+        let modelView: ModelViewImpl = undefined;
         this._serverProxy = {
             getConfig: () => undefined,
             showError: (message: string) => undefined,
@@ -731,15 +733,31 @@ class DialogService implements vscode.Disposable {
                 return true;
             },
             sendButtonClickEvent: (controlId: string) => {
-                vscode.window.showInformationMessage('Click event raised by button id=' + controlId);
+                if (modelView && modelView.modelBuilder) {
+                    let rootComponent = modelView.rootComponent;
+                    let buttonComponent: ButtonImpl = undefined;
+                    let components = [ rootComponent ];
+                    while (components.length > 0) {
+                        let currentComponent = components.pop();
+                        if (currentComponent.id === controlId) {
+                            buttonComponent = currentComponent as ButtonImpl;
+                            if (buttonComponent) {
+                                buttonComponent.fireOnDidClick();
+                            }
+                            break;
+                        } else if (currentComponent.itemConfigs) {
+                            currentComponent.itemConfigs.forEach(item => components.push(item.component as ComponentImpl));
+                        }
+                    }
+                }
             },
             dispose: () => undefined
 
         };
         this.proxy = createProxy(createMessageProtocol(this._panel.webview), this._serverProxy, false);
 
-        const sqlOutputPath = path.resolve(__dirname);
-        const fileContent = await readFile(path.join(sqlOutputPath, 'dialogOutput.ejs'));
+        const outputPath = path.resolve(__dirname);
+        const fileContent = await readFile(path.join(outputPath, 'dialogOutput.ejs'));
         const htmlViewPath = ['out', 'src'];
         const baseUri = `${this._panel.webview.asWebviewUri(vscode.Uri.file(path.join(this._context.extensionPath, ...htmlViewPath)))}/`;
         const formattedHTML = ejs.render(fileContent.toString(), { basehref: baseUri, prod: false });
@@ -747,7 +765,7 @@ class DialogService implements vscode.Disposable {
 
         let dialogImpl: DialogImpl = dialog as DialogImpl;
         if (dialogImpl) {
-            let modelView: ModelViewImpl = new ModelViewImpl(this.proxy);
+            modelView = new ModelViewImpl(this.proxy);
             dialogImpl.contentHandler(modelView);
         }
     }

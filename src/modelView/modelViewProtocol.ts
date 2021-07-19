@@ -14,7 +14,7 @@ export interface IServerProxy extends Disposable {
     showWarning(message: string): void;
     showError(message: string): void;
     sendReadyEvent(uri: string): Promise<boolean>;
-    sendButtonClickEvent(controlId: string);
+    sendButtonClickEvent(controlId: string): void;
 }
 
 export interface IMessageProtocol {

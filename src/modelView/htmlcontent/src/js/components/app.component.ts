@@ -177,8 +177,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
                 case 'modelView_initializeModel':
                     this.buildFormLayout(event.data);
-                    let componentShape = JSON.stringify(event.data);
-                    this.dataService.showWarning(componentShape);
                     break;
 
                 default:
