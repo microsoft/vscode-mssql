@@ -6,14 +6,15 @@
 'use strict';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { ConnectionDetails } from './contracts/connection';
-import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import SqlToolsServerClient from '../languageservice/serviceclient';
+import { IConnectionInfo } from 'vscode-mssql';
 
 // Concrete implementation of the IConnectionCredentials interface
-export class ConnectionCredentials implements IConnectionCredentials {
+export class ConnectionCredentials implements IConnectionInfo {
     public server: string;
     public database: string;
     public user: string;
@@ -50,7 +51,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     /**
      * Create a connection details contract from connection credentials.
      */
-    public static createConnectionDetails(credentials: IConnectionCredentials): ConnectionDetails {
+    public static createConnectionDetails(credentials: IConnectionInfo): ConnectionDetails {
         let details: ConnectionDetails = new ConnectionDetails();
 
         details.options['connectionString'] = credentials.connectionString;
@@ -91,17 +92,17 @@ export class ConnectionCredentials implements IConnectionCredentials {
     }
 
     public static async ensureRequiredPropertiesSet(
-        credentials: IConnectionCredentials,
+        credentials: IConnectionInfo,
         isProfile: boolean,
         isPasswordRequired: boolean,
         wasPasswordEmptyInConfigFile: boolean,
         prompter: IPrompter,
         connectionStore: ConnectionStore,
-        defaultProfileValues?: IConnectionCredentials): Promise<IConnectionCredentials> {
+        defaultProfileValues?: IConnectionInfo): Promise<IConnectionInfo> {
 
         let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(credentials, false,
             isPasswordRequired, connectionStore, defaultProfileValues);
-        let unprocessedCredentials: IConnectionCredentials = Object.assign({}, credentials);
+        let unprocessedCredentials: IConnectionInfo = Object.assign({}, credentials);
 
         // Potentially ask to save password
         questions.push({
@@ -160,11 +161,11 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     // gets a set of questions that ensure all required and core values are set
     protected static async getRequiredCredentialValuesQuestions(
-        credentials: IConnectionCredentials,
+        credentials: IConnectionInfo,
         promptForDbName: boolean,
         isPasswordRequired: boolean,
         connectionStore: ConnectionStore,
-        defaultProfileValues?: IConnectionCredentials): Promise<IQuestion[]> {
+        defaultProfileValues?: IConnectionInfo): Promise<IQuestion[]> {
 
         let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
 
@@ -252,7 +253,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
     }
 
     // Detect if a given value is a server name or a connection string, and assign the result accordingly
-    private static processServerOrConnectionString(value: string, credentials: IConnectionCredentials): void {
+    private static processServerOrConnectionString(value: string, credentials: IConnectionInfo): void {
         // If the value contains a connection string server name key, assume it is a connection string
         const dataSourceKeys = ['data source=', 'server=', 'address=', 'addr=', 'network address='];
         let isConnectionString = dataSourceKeys.some(key => value.toLowerCase().indexOf(key) !== -1);
@@ -264,13 +265,13 @@ export class ConnectionCredentials implements IConnectionCredentials {
         }
     }
 
-    private static shouldPromptForUser(credentials: IConnectionCredentials): boolean {
+    private static shouldPromptForUser(credentials: IConnectionInfo): boolean {
         return utils.isEmpty(credentials.user) && ConnectionCredentials.isPasswordBasedCredential(credentials);
     }
 
     // Prompt for password if this is a password based credential and the password for the profile was empty
     // and not explicitly set as empty. If it was explicitly set as empty, only prompt if pw not saved
-    public static shouldPromptForPassword(credentials: IConnectionCredentials): boolean {
+    public static shouldPromptForPassword(credentials: IConnectionInfo): boolean {
         let isSavedEmptyPassword: boolean = (<IConnectionProfile>credentials).emptyPasswordInput
             && (<IConnectionProfile>credentials).savePassword;
 
@@ -280,7 +281,7 @@ export class ConnectionCredentials implements IConnectionCredentials {
 
     }
 
-    public static isPasswordBasedCredential(credentials: IConnectionCredentials): boolean {
+    public static isPasswordBasedCredential(credentials: IConnectionInfo): boolean {
         // TODO consider enum based verification and handling of AD auth here in the future
         let authenticationType = credentials.authenticationType;
         if (typeof credentials.authenticationType === 'undefined') {

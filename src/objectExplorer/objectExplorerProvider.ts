@@ -7,8 +7,8 @@ import * as vscode from 'vscode';
 import ConnectionManager from '../controllers/connectionManager';
 import { ObjectExplorerService } from './objectExplorerService';
 import { TreeNodeInfo } from './treeNodeInfo';
-import { IConnectionCredentials } from '../models/interfaces';
 import { Deferred } from '../protocol';
+import { IConnectionInfo } from 'vscode-mssql';
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
@@ -37,7 +37,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         }
     }
 
-    async createSession(promise: Deferred<TreeNodeInfo>, connectionCredentials?: IConnectionCredentials, context?: vscode.ExtensionContext): Promise<string> {
+    async createSession(promise: Deferred<TreeNodeInfo>, connectionCredentials?: IConnectionInfo, context?: vscode.ExtensionContext): Promise<string> {
         return this._objectExplorerService.createSession(promise, connectionCredentials, context);
     }
 
@@ -45,7 +45,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.expandNode(node, sessionId, promise);
     }
 
-    public getConnectionCredentials(sessionId: string): IConnectionCredentials {
+    public getConnectionCredentials(sessionId: string): IConnectionInfo {
         if (sessionId) {
             return this._objectExplorerService.getConnectionCredentials(sessionId);
         }
@@ -68,11 +68,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._objectExplorerService.updateNode(node);
     }
 
-    public async removeConnectionNodes(connections: IConnectionCredentials[]): Promise<void> {
+    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         await this._objectExplorerService.removeConnectionNodes(connections);
     }
 
-    public addDisconnectedNode(connectionCredentials: IConnectionCredentials): void {
+    public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
         this._objectExplorerService.addDisconnectedNode(connectionCredentials);
     }
 
@@ -85,7 +85,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerExists;
     }
 
-    public get rootNodeConnections(): IConnectionCredentials[] {
+    public get rootNodeConnections(): IConnectionInfo[] {
         return this._objectExplorerService.rootNodeConnections;
     }
 

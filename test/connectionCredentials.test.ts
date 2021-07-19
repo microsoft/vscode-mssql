@@ -16,10 +16,11 @@ import { ConnectionStore } from '../src/models/connectionStore';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { IPrompter, IQuestion} from '../src/prompts/question';
 import { TestPrompter } from './stubs';
-import { IConnectionProfile, IConnectionCredentials } from '../src/models/interfaces';
+import { IConnectionProfile } from '../src/models/interfaces';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
 import assert = require('assert');
+import { IConnectionInfo } from 'vscode-mssql';
 
 suite('ConnectionCredentials Tests', () => {
     let defaultProfile: interfaces.IConnectionProfile;
@@ -54,7 +55,7 @@ suite('ConnectionCredentials Tests', () => {
     });
 
     // ConnectProfile sets up a connection call to ensureRequiredPropertiesSet with the provided profile
-    function connectProfile( profile: IConnectionProfile, emptyPassword: boolean): Promise<IConnectionCredentials> {
+    function connectProfile( profile: IConnectionProfile, emptyPassword: boolean): Promise<IConnectionInfo> {
         // Setup input paramaters
         let isProfile: boolean = true;
         let isPasswordRequired: boolean = false;

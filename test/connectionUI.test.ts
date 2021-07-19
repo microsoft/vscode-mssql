@@ -10,11 +10,12 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { IPrompter } from '../src/prompts/question';
 import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
-import { IConnectionProfile, IConnectionCredentials, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../src/models/interfaces';
+import { IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../src/models/interfaces';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import { AccountStore } from '../src/azure/accountStore';
+import { IConnectionInfo } from 'vscode-mssql';
 
 suite('Connection UI tests', () => {
 
@@ -68,7 +69,7 @@ suite('Connection UI tests', () => {
         let mockConnection = { connectionString: 'test' };
         prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(item));
         prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
-        return connectionUI.showConnections(true).then(() => {
+        return connectionUI.promptForConnection().then(() => {
             connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
             prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
@@ -85,7 +86,7 @@ suite('Connection UI tests', () => {
         let mockConnection = { connectionString: 'test' };
         prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(item));
         prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
-        return connectionUI.showConnections(true).then(() => {
+        return connectionUI.promptForConnection().then(() => {
             connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
             prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
@@ -93,20 +94,9 @@ suite('Connection UI tests', () => {
 
     test('showConnections with recent but no selection', () => {
         prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-        return connectionUI.showConnections(true).then(() => {
+        return connectionUI.promptForConnection().then(() => {
             connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
             prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-        });
-    });
-
-    test('showConnection should not show recent connections if false', () => {
-        let mockProvider = { providerId: 'test' };
-        let mockConnection = { connectionString: 'test' };
-        prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(mockProvider));
-        prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
-        return connectionUI.showConnections(false).then(() => {
-            connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.never());
-            prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.never());
         });
     });
 

@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
+import * as vscode from 'vscode';
+import * as constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
-import { IConnectionCredentials, IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
+import { IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
 import { INameValueChoice, IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
 import { Timer } from '../models/utils';
 import * as Utils from '../models/utils';
@@ -22,8 +21,7 @@ import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
-import { FirewallService } from '../firewall/firewallService';
-
+import { IConnectionInfo } from 'vscode-mssql';
 
 /**
  * The different tasks for managing connection profiles.
@@ -81,37 +79,24 @@ export class ConnectionUI {
         this._errorOutputChannel.show(true);
     }
 
-    // Helper to let user choose a connection from a picklist
-    // Return the ConnectionInfo for the user's choice
-    public showConnections(showExistingConnections: boolean = true): Promise<IConnectionCredentials> {
-        const self = this;
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
-            let picklist: IConnectionCredentialsQuickPickItem[];
-            if (showExistingConnections) {
-                picklist = self._connectionStore.getPickListItems();
-            } else {
-                picklist = [];
-            }
-            if (picklist.length === 0) {
-                // No connections - go to the create profile workflow
-                self.createAndSaveProfile().then(resolvedProfile => {
-                    resolve(resolvedProfile);
-                });
-            } else {
-                // We have recent connections - show them in a picklist
-                self.promptItemChoice({
-                    placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
-                    matchOnDescription: true
-                }, picklist)
-                    .then(selection => {
-                        if (selection) {
-                            resolve(self.handleSelectedConnection(selection));
-                        } else {
-                            resolve(undefined);
-                        }
-                    });
-            }
-        });
+
+    /**
+     * Helper to let user choose a connection from a picklist, or to create a new connection.
+     * Return the ConnectionInfo for the user's choice
+     * @returns The connection picked or created.
+     */
+    public async promptForConnection(): Promise<IConnectionInfo | undefined> {
+        let picklist = this._connectionStore.getPickListItems();
+        // We have recent connections - show them in a picklist
+        const selection = await this.promptItemChoice({
+            placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
+            matchOnDescription: true
+        }, picklist);
+        if (selection) {
+            return this.handleSelectedConnection(selection);
+        } else {
+            return undefined;
+        }
     }
 
     public promptLanguageFlavor(): Promise<string> {
@@ -121,12 +106,12 @@ export class ConnectionUI {
                 {
                     label: LocalizedConstants.mssqlProviderName,
                     description: LocalizedConstants.flavorDescriptionMssql,
-                    providerId: Constants.mssqlProviderName
+                    providerId: constants.mssqlProviderName
                 },
                 {
                     label: LocalizedConstants.noneProviderName,
                     description: LocalizedConstants.flavorDescriptionNone,
-                    providerId: Constants.noneProviderName
+                    providerId: constants.noneProviderName
                 }
             ];
             self.promptItemChoice({
@@ -158,7 +143,7 @@ export class ConnectionUI {
      * Helper for waitForLanguageModeToBeSql() method.
      */
     private waitForLanguageModeToBeSqlHelper(resolve: any, timer: Timer): void {
-        if (timer.getDuration() > Constants.timeToWaitForLanguageModeChange) {
+        if (timer.getDuration() > constants.timeToWaitForLanguageModeChange) {
             resolve(false);
         } else if (this.vscodeWrapper.isEditingSqlFile) {
             resolve(true);
@@ -248,13 +233,13 @@ export class ConnectionUI {
 
     // Helper to let the user choose a database on the current server
     public showDatabasesOnCurrentServer(
-        currentCredentials: IConnectionCredentials,
-        databaseNames: Array<string>): Promise<IConnectionCredentials> {
+        currentCredentials: IConnectionInfo,
+        databaseNames: Array<string>): Promise<IConnectionInfo> {
         const self = this;
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
+        return new Promise<IConnectionInfo>((resolve, reject) => {
             const pickListItems: vscode.QuickPickItem[] = databaseNames.map(name => {
-                let newCredentials: IConnectionCredentials = <any>{};
-                Object.assign<IConnectionCredentials, IConnectionCredentials>(newCredentials, currentCredentials);
+                let newCredentials: IConnectionInfo = <any>{};
+                Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, currentCredentials);
                 if (newCredentials['profileName']) {
                     delete newCredentials['profileName'];
                 }
@@ -311,9 +296,9 @@ export class ConnectionUI {
         });
     }
 
-    public createProfileWithDifferentCredentials(connection: IConnectionCredentials): Promise<IConnectionCredentials> {
+    public createProfileWithDifferentCredentials(connection: IConnectionInfo): Promise<IConnectionInfo> {
 
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
+        return new Promise<IConnectionInfo>((resolve, reject) => {
             this.promptForRetryConnectWithDifferentCredentials().then(result => {
                 if (result) {
                     let connectionWithoutCredentials = Object.assign({}, connection, { user: '', password: '', emptyPasswordInput: false });
@@ -336,11 +321,11 @@ export class ConnectionUI {
         });
     }
 
-    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+    private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
         const self = this;
-        return new Promise<IConnectionCredentials>((resolve, reject) => {
+        return new Promise<IConnectionInfo>((resolve, reject) => {
             if (selection !== undefined) {
-                let connectFunc: Promise<IConnectionCredentials>;
+                let connectFunc: Promise<IConnectionInfo>;
                 if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
                     // call the workflow to create a new connection
                     connectFunc = self.createAndSaveProfile();
@@ -566,7 +551,7 @@ export class ConnectionUI {
                 placeHolder: startIpAddress,
                 default: startIpAddress,
                 validate: (value: string) => {
-                    if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex)) {
+                    if (!Number.parseFloat(value) || !value.match(constants.ipAddressRegex)) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     }
                 }
@@ -577,7 +562,7 @@ export class ConnectionUI {
                 message: LocalizedConstants.endIpAddressPrompt,
                 placeHolder: startIpAddress,
                 validate: (value: string) => {
-                    if (!Number.parseFloat(value) || !value.match(Constants.ipAddressRegex) ||
+                    if (!Number.parseFloat(value) || !value.match(constants.ipAddressRegex) ||
                         (Number.parseFloat(value) > Number.parseFloat(startIpAddress))) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     }
@@ -636,10 +621,10 @@ export class ConnectionUI {
             });
     }
 
-    private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentials> {
+    private fillOrPromptForMissingInfo(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
         // If a connection string is present, don't prompt for any other info
         if (selection.connectionCreds.connectionString) {
-            return new Promise<IConnectionCredentials> ((resolve, reject) => {
+            return new Promise<IConnectionInfo> ((resolve, reject) => {
                 resolve(selection.connectionCreds);
             });
         }

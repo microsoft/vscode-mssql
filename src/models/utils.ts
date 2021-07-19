@@ -11,11 +11,12 @@ import * as path from 'path';
 import * as findRemoveSync from 'find-remove';
 import vscode = require('vscode');
 import Constants = require('../constants/constants');
-import { IAzureSignInQuickPickItem, IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ExtensionContext } from 'vscode';
 import LocalizedConstants = require('../constants/localizedConstants');
 import fs = require('fs');
 import { AzureAuthType } from 'ads-adal-library';
+import { IConnectionInfo } from 'vscode-mssql';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
@@ -270,11 +271,11 @@ export function isSameProfile(currentProfile: IConnectionProfile, expectedProfil
  * match on all key properties (connectionString or server, db, auth type, user) being identical.
  * Other properties are ignored for this purpose
  *
- * @param {IConnectionCredentials} conn the connection to check
- * @param {IConnectionCredentials} expectedConn the connection to try to match
+ * @param {IConnectionInfo} conn the connection to check
+ * @param {IConnectionInfo} expectedConn the connection to try to match
  * @returns boolean that is true if the connections match
  */
-export function isSameConnection(conn: IConnectionCredentials, expectedConn: IConnectionCredentials): boolean {
+export function isSameConnection(conn: IConnectionInfo, expectedConn: IConnectionInfo): boolean {
     return (conn.connectionString || expectedConn.connectionString) ? conn.connectionString === expectedConn.connectionString :
         expectedConn.server === conn.server
         && isSameDatabase(expectedConn.database, conn.database)
