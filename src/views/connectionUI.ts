@@ -83,14 +83,16 @@ export class ConnectionUI {
     /**
      * Helper to let user choose a connection from a picklist, or to create a new connection.
      * Return the ConnectionInfo for the user's choice
+     * @param ignoreFocusOut Whether to ignoreFocusOut on the quickpick prompt
      * @returns The connection picked or created.
      */
-    public async promptForConnection(): Promise<IConnectionInfo | undefined> {
+    public async promptForConnection(ignoreFocusOut = false): Promise<IConnectionInfo | undefined> {
         let picklist = this._connectionStore.getPickListItems();
         // We have recent connections - show them in a picklist
         const selection = await this.promptItemChoice({
             placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
-            matchOnDescription: true
+            matchOnDescription: true,
+            ignoreFocusOut
         }, picklist);
         if (selection) {
             return this.handleSelectedConnection(selection);
