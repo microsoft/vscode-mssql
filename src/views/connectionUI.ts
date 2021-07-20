@@ -87,13 +87,12 @@ export class ConnectionUI {
      * Return the ConnectionInfo for the user's choice
      * @returns The connection picked or created.
      */
-    public async promptForConnection(ignoreFocusOut = false): Promise<IConnectionInfo | undefined> {
+    public async promptForConnection(): Promise<IConnectionInfo | undefined> {
         let picklist = this._connectionStore.getPickListItems();
         // We have recent connections - show them in a picklist
         const selection = await this.promptItemChoice({
             placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
-            matchOnDescription: true,
-            ignoreFocusOut
+            matchOnDescription: true
         }, picklist);
         if (selection) {
             return this.handleSelectedConnection(selection);

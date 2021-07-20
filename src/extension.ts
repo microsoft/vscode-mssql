@@ -29,8 +29,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
     await controller.activate();
     return {
-        promptForConnection: (ignoreFocusOut?: boolean) => {
-            return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
+        promptForConnection: () => {
+            return controller.connectionManager.connectionUI.promptForConnection();
         },
         listDatabases: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.listDatabases(connectionInfo);
