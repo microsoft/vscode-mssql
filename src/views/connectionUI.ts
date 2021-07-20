@@ -21,7 +21,9 @@ import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
+import * as ConnectionContracts from '../models/contracts/connection';
 import { IConnectionInfo } from 'vscode-mssql';
+import { Deferred } from '../protocol';
 
 /**
  * The different tasks for managing connection profiles.
@@ -85,12 +87,13 @@ export class ConnectionUI {
      * Return the ConnectionInfo for the user's choice
      * @returns The connection picked or created.
      */
-    public async promptForConnection(): Promise<IConnectionInfo | undefined> {
+    public async promptForConnection(ignoreFocusOut = false): Promise<IConnectionInfo | undefined> {
         let picklist = this._connectionStore.getPickListItems();
         // We have recent connections - show them in a picklist
         const selection = await this.promptItemChoice({
             placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
-            matchOnDescription: true
+            matchOnDescription: true,
+            ignoreFocusOut
         }, picklist);
         if (selection) {
             return this.handleSelectedConnection(selection);
