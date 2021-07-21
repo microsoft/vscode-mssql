@@ -13,7 +13,7 @@ import * as stubs from './stubs';
 import * as interfaces from '../src/models/interfaces';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionStore } from '../src/models/connectionStore';
-import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionInfo } from '../src/models/connectionCredentials';
 import { IPrompter, IQuestion} from '../src/prompts/question';
 import { TestPrompter } from './stubs';
 import { IConnectionProfile } from '../src/models/interfaces';
@@ -69,7 +69,7 @@ suite('ConnectionCredentials Tests', () => {
         prompter.setup(x => x.prompt(TypeMoq.It.isAny())).returns((questions: IQuestion[]) => Promise.resolve(answers));
 
         // Function Call to test
-        return ConnectionCredentials.ensureRequiredPropertiesSet(
+        return ConnectionInfo.ensureRequiredPropertiesSet(
             profile,
             isProfile,
             isPasswordRequired,
@@ -105,7 +105,7 @@ suite('ConnectionCredentials Tests', () => {
                 .returns((questions: IQuestion[]) => Promise.resolve(answers));
 
             // Call function to test
-            ConnectionCredentials.ensureRequiredPropertiesSet(
+            ConnectionInfo.ensureRequiredPropertiesSet(
                 profile,
                 isProfile,
                 isPasswordRequired,
@@ -201,18 +201,18 @@ suite('ConnectionCredentials Tests', () => {
 
     // A connection string can be set alongside other properties for createConnectionDetails
     test('createConnectionDetails sets properties in addition to the connection string', () => {
-        let credentials = new ConnectionCredentials();
+        let credentials = new ConnectionInfo();
         credentials.connectionString = 'server=some-server';
         credentials.database = 'some-db';
 
-        let connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
+        let connectionDetails = ConnectionInfo.createConnectionDetails(credentials);
         assert.equal(connectionDetails.options.connectionString, credentials.connectionString);
         assert.equal(connectionDetails.options.database, credentials.database);
     });
 
     test('Subsequent connection credential questions are skipped if a connection string is given', async () => {
-        let credentials = new ConnectionCredentials();
-        let questions = await ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false, undefined);
+        let credentials = new ConnectionInfo();
+        let questions = await ConnectionInfo['getRequiredCredentialValuesQuestions'](credentials, false, false, undefined);
         let serverQuestion = questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0];
 
         let connectionString = 'server=some-server';
@@ -224,8 +224,8 @@ suite('ConnectionCredentials Tests', () => {
     });
 
     test('Server question properly handles connection strings', async () => {
-        let credentials = new ConnectionCredentials();
-        let questions = await ConnectionCredentials['getRequiredCredentialValuesQuestions'](credentials, false, false, undefined);
+        let credentials = new ConnectionInfo();
+        let questions = await ConnectionInfo['getRequiredCredentialValuesQuestions'](credentials, false, false, undefined);
         let serverQuestion = questions.filter(question => question.name === LocalizedConstants.serverPrompt)[0];
 
         let connectionString = 'server=some-server';

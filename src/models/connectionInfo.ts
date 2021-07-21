@@ -17,50 +17,50 @@ import { IConnectionInfo } from 'vscode-mssql';
  * if connection to Azure
  *
  * @export connectionInfo/fixupConnectionCredentials
- * @param {Interfaces.IConnectionCredentials} connCreds connection to be fixed up
+ * @param {Interfaces.IConnectionCredentials} connectionInfo connection to be fixed up
  * @returns {Interfaces.IConnectionCredentials} the updated connection
  */
-export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnectionInfo {
-    if (!connCreds.server) {
-        connCreds.server = '';
+export function fixupConnectionInfo(connectionInfo: IConnectionInfo): IConnectionInfo {
+    if (!connectionInfo.server) {
+        connectionInfo.server = '';
     }
 
-    if (!connCreds.database) {
-        connCreds.database = '';
+    if (!connectionInfo.database) {
+        connectionInfo.database = '';
     }
 
-    if (!connCreds.user) {
-        connCreds.user = '';
+    if (!connectionInfo.user) {
+        connectionInfo.user = '';
     }
 
-    if (!connCreds.password) {
-        connCreds.password = '';
+    if (!connectionInfo.password) {
+        connectionInfo.password = '';
     }
 
-    if (!connCreds.connectTimeout) {
-        connCreds.connectTimeout = Constants.defaultConnectionTimeout;
+    if (!connectionInfo.connectTimeout) {
+        connectionInfo.connectTimeout = Constants.defaultConnectionTimeout;
     }
 
     // default value for encrypt
-    if (!connCreds.encrypt) {
-        connCreds.encrypt = false;
+    if (!connectionInfo.encrypt) {
+        connectionInfo.encrypt = false;
     }
 
     // default value for appName
-    if (!connCreds.applicationName) {
-        connCreds.applicationName = Constants.connectionApplicationName;
+    if (!connectionInfo.applicationName) {
+        connectionInfo.applicationName = Constants.connectionApplicationName;
     }
 
-    if (isAzureDatabase(connCreds.server)) {
+    if (isAzureDatabase(connectionInfo.server)) {
         // always encrypt connection if connecting to Azure SQL
-        connCreds.encrypt = true;
+        connectionInfo.encrypt = true;
 
         // Ensure minumum connection timeout if connecting to Azure SQL
-        if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
-            connCreds.connectTimeout = Constants.azureSqlDbConnectionTimeout;
+        if (connectionInfo.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
+            connectionInfo.connectTimeout = Constants.azureSqlDbConnectionTimeout;
         }
     }
-    return connCreds;
+    return connectionInfo;
 }
 
 // return true if server name ends with '.database.windows.net'
@@ -72,7 +72,7 @@ function isAzureDatabase(server: string): boolean {
  * Gets a label describing a connection in the picklist UI
  *
  * @export connectionInfo/getPicklistLabel
- * @param {Interfaces.IConnectionCredentials} connCreds connection to create a label for
+ * @param {Interfaces.IConnectionInfo} connectionInfo connection to create a label for
  * @param {Interfaces.CredentialsQuickPickItemType} itemType type of quickpick item to display - this influences the icon shown to the user
  * @returns {string} user readable label
  */

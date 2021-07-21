@@ -123,7 +123,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         let uri = editor.document.uri.toString(true);
         let title = path.basename(editor.document.fileName);
         const queryUriPromise = new Deferred<boolean>();
-        let credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
+        let credentials = this._connectionManager.getConnectionInfo(node.ownerUri).connectionInfo;
         await this._connectionManager.connect(uri, credentials, queryUriPromise);
         await queryUriPromise;
         this._statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
@@ -177,7 +177,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
      */
     private getConnectionLabel(ownerUri: string): string {
         const connInfo = this._connectionManager.getConnectionInfo(ownerUri);
-        const credentials = connInfo.credentials;
+        const credentials = connInfo.connectionInfo;
         let connString = `(${credentials.server}|${credentials.database})`;
         if (credentials.authenticationType === Constants.sqlAuthentication) {
             connString = `${connString} : ${credentials.user}`;

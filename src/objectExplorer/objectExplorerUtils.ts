@@ -26,7 +26,7 @@ export class ObjectExplorerUtils {
     }
 
     public static getNodeUri(node: TreeNodeInfo): string {
-        const profile = <IConnectionProfile>node.connectionCredentials;
+        const profile = <IConnectionProfile>node.connectionInfo;
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
 
@@ -48,7 +48,7 @@ export class ObjectExplorerUtils {
     public static getDatabaseName(node: TreeNodeInfo): string {
         if (node.nodeType === Constants.serverLabel ||
             node.nodeType === Constants.disconnectedServerLabel) {
-            return node.connectionCredentials.database;
+            return node.connectionInfo.database;
         }
         while (node) {
             if (node.metadata) {

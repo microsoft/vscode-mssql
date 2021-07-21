@@ -20,7 +20,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
     private _errorMessage: string;
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
-    private _connectionCredentials: IConnectionInfo;
+    private _connectionInfo: IConnectionInfo;
     private _metadata: ObjectMetadata;
 
     constructor(
@@ -42,7 +42,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._nodeType = nodeType;
         this._sessionId = sessionId;
         this._parentNode = parentNode;
-        this._connectionCredentials = connectionCredentials;
+        this._connectionInfo = connectionCredentials;
         this._metadata = objectMetadata;
         this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
     }
@@ -97,8 +97,8 @@ export class TreeNodeInfo extends vscode.TreeItem {
         return this._parentNode;
     }
 
-    public get connectionCredentials(): IConnectionInfo {
-        return this._connectionCredentials;
+    public get connectionInfo(): IConnectionInfo {
+        return this._connectionInfo;
     }
 
     public get metadata(): ObjectMetadata {
@@ -138,7 +138,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._parentNode = value;
     }
 
-    public set connectionCredentials(value: IConnectionInfo) {
-        this._connectionCredentials = value;
+    public set connectionInfo(value: IConnectionInfo) {
+        this._connectionInfo = value;
     }
 }

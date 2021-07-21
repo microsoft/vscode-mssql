@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import * as constants from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
-import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionInfo } from '../models/connectionCredentials';
 import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionProfile } from '../models/connectionProfile';
@@ -304,7 +304,7 @@ export class ConnectionUI {
             this.promptForRetryConnectWithDifferentCredentials().then(result => {
                 if (result) {
                     let connectionWithoutCredentials = Object.assign({}, connection, { user: '', password: '', emptyPasswordInput: false });
-                    ConnectionCredentials.ensureRequiredPropertiesSet(
+                    ConnectionInfo.ensureRequiredPropertiesSet(
                         connectionWithoutCredentials, // connection profile
                         true,                         // isProfile
                         false,                        // isPasswordRequired
@@ -634,7 +634,7 @@ export class ConnectionUI {
         const passwordEmptyInConfigFile: boolean = Utils.isEmpty(selection.connectionCreds.password);
         return this._connectionStore.addSavedPassword(selection)
             .then(sel => {
-                return ConnectionCredentials.ensureRequiredPropertiesSet(
+                return ConnectionInfo.ensureRequiredPropertiesSet(
                     sel.connectionCreds,
                     selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
                     false,

@@ -12,7 +12,7 @@ import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
 import { IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../src/models/interfaces';
 import { ConnectionProfile } from '../src/models/connectionProfile';
-import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionInfo } from '../src/models/connectionCredentials';
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import { AccountStore } from '../src/azure/accountStore';
 import { IConnectionInfo } from 'vscode-mssql';
@@ -76,7 +76,7 @@ suite('Connection UI tests', () => {
     });
 
     test('showConnections with recent and edit connection', () => {
-        let testCreds = new ConnectionCredentials();
+        let testCreds = new ConnectionInfo();
         testCreds.connectionString = 'test';
         let item: IConnectionCredentialsQuickPickItem = {
             connectionCreds: testCreds,
@@ -186,7 +186,7 @@ suite('Connection UI tests', () => {
     });
 
     test('createProfileWithDifferentCredentials should prompt to recreate connection', () => {
-        let credentials = new ConnectionCredentials();
+        let credentials = new ConnectionInfo();
         vscodeWrapper.setup(v => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve('test'));
         return connectionUI.createProfileWithDifferentCredentials(credentials).then(() => {
             vscodeWrapper.verify(v => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());

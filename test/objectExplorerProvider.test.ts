@@ -10,7 +10,7 @@ import ConnectionManager from '../src/controllers/connectionManager';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { expect, assert } from 'chai';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
-import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionInfo } from '../src/models/connectionCredentials';
 import { AddConnectionTreeNode } from '../src/objectExplorer/addConnectionTreeNode';
 import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountSignInTreeNode } from '../src/objectExplorer/accountSignInTreeNode';
@@ -71,7 +71,7 @@ suite('Object Explorer Provider Tests', () => {
     });
 
     test('Test Connection Credentials', () => {
-        let connectionCredentials = TypeMoq.Mock.ofType(ConnectionCredentials, TypeMoq.MockBehavior.Loose);
+        let connectionCredentials = TypeMoq.Mock.ofType(ConnectionInfo, TypeMoq.MockBehavior.Loose);
         objectExplorerService.setup(s => s.getConnectionCredentials(TypeMoq.It.isAnyString())).returns(() => connectionCredentials.object);
         let credentials = objectExplorerProvider.getConnectionCredentials('test_session_id');
         expect(credentials, 'Connection Credentials should not be null').is.not.equal(undefined);
@@ -175,7 +175,7 @@ suite('Object Explorer Provider Tests', () => {
     });
 
     test('Test rootNodeConnections getter', () => {
-        let testConnections = [new ConnectionCredentials()];
+        let testConnections = [new ConnectionInfo()];
         objectExplorerService.setup(s => s.rootNodeConnections).returns(() => testConnections);
         let rootConnections = objectExplorerProvider.rootNodeConnections;
         objectExplorerService.verify(s => s.rootNodeConnections, TypeMoq.Times.once());
@@ -233,8 +233,8 @@ suite('Object Explorer Node Types Test', () => {
         expect(treeNode.isLeaf, 'Node should not be a leaf').is.equal(false);
         treeNode.parentNode = treeNode.parentNode;
         expect(treeNode.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
-        treeNode.connectionCredentials = treeNode.connectionCredentials;
-        expect(treeNode.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+        treeNode.connectionInfo = treeNode.connectionInfo;
+        expect(treeNode.connectionInfo, 'Connection credentials should be equal to expected value').is.equal(undefined);
     });
 
     test('Test fromNodeInfo function', () => {
@@ -259,7 +259,7 @@ suite('Object Explorer Node Types Test', () => {
         treeNodeInfo.isLeaf = nodeInfo.isLeaf;
         expect(treeNodeInfo.isLeaf, 'Node should not be a leaf').is.equal(nodeInfo.isLeaf);
         expect(treeNodeInfo.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
-        expect(treeNodeInfo.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+        expect(treeNodeInfo.connectionInfo, 'Connection credentials should be equal to expected value').is.equal(undefined);
         expect(treeNodeInfo.errorMessage, 'Error message should be equal to expected value').is.equal('test_error');
         expect(treeNodeInfo.metadata, 'Node metadata should be the same as nodeInfo metadata').is.equal(nodeInfo.metadata);
     });

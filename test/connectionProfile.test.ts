@@ -7,7 +7,7 @@
 import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
 import { IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
-import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionInfo } from '../src/models/connectionCredentials';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
 import { TestPrompter } from './stubs';
@@ -171,12 +171,12 @@ suite('Connection Profile tests', () => {
 
     test('Port number is applied to server name when connection credentials are transformed into details', () => {
         // Given a connection credentials object with server and a port
-        let creds = new ConnectionCredentials();
+        let creds = new ConnectionInfo();
         creds.server = 'my-server';
         creds.port = 1234;
 
         // When credentials are transformed into a details contract
-        const details = ConnectionCredentials.createConnectionDetails(creds);
+        const details = ConnectionInfo.createConnectionDetails(creds);
 
         // Server name should be in the format <address>,<port>
         assert.strictEqual(details.options['server'], 'my-server,1234');
@@ -184,7 +184,7 @@ suite('Connection Profile tests', () => {
 
     test('All connection details properties can be set from connection credentials', () => {
         const creds = createTestCredentials();
-        const details = ConnectionCredentials.createConnectionDetails(creds);
+        const details = ConnectionInfo.createConnectionDetails(creds);
 
         assert.notStrictEqual(typeof details.options['applicationIntent'], 'undefined');
         assert.notStrictEqual(typeof details.options['applicationName'], 'undefined');

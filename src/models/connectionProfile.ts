@@ -7,7 +7,7 @@
 import vscode = require('vscode');
 import LocalizedConstants = require('../constants/localizedConstants');
 import { IConnectionProfile, AuthenticationTypes } from './interfaces';
-import { ConnectionCredentials } from './connectionCredentials';
+import { ConnectionInfo } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
@@ -22,7 +22,7 @@ import providerSettings from '../azure/providerSettings';
 /**
  * A concrete implementation of an IConnectionProfile with support for profile creation and validation
  */
-export class ConnectionProfile extends ConnectionCredentials implements IConnectionProfile {
+export class ConnectionProfile extends ConnectionInfo implements IConnectionProfile {
     public profileName: string;
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
@@ -46,7 +46,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         ): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
         // Ensure all core properties are entered
-        let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
+        let authOptions: INameValueChoice[] = ConnectionInfo.getAuthenticationTypesChoice();
         if (authOptions.length === 1) {
             // Set default value as there is only 1 option
             profile.authenticationType = authOptions[0].value;
@@ -58,7 +58,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount'});
 
 
-        let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true,
+        let questions: IQuestion[] = await ConnectionInfo.getRequiredCredentialValuesQuestions(profile, true,
             false, connectionStore, defaultProfileValues);
 
         // Check if password needs to be saved
@@ -67,7 +67,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 type: QuestionTypes.confirm,
                 name: LocalizedConstants.msgSavePassword,
                 message: LocalizedConstants.msgSavePassword,
-                shouldPrompt: (answers) => !profile.connectionString && ConnectionCredentials.isPasswordBasedCredential(profile),
+                shouldPrompt: (answers) => !profile.connectionString && ConnectionInfo.isPasswordBasedCredential(profile),
                 onAnswered: (value) => profile.savePassword = value
             },
             {

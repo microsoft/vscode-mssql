@@ -10,7 +10,7 @@ import LocalizedConstants = require('../constants/localizedConstants');
 import ConnInfo = require('./connectionInfo');
 import Utils = require('../models/utils');
 import ValidationException from '../utils/validationException';
-import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionInfo } from '../models/connectionCredentials';
 import { IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CredentialStore } from '../credentialstore/credentialstore';
@@ -183,7 +183,7 @@ export class ConnectionStore {
      * @memberof ConnectionStore
      */
     public shouldLookupSavedPassword(connectionCreds: IConnectionProfile): boolean {
-        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
+        if (ConnectionInfo.isPasswordBasedCredential(connectionCreds)) {
             // Only lookup if password isn't saved in the profile, and if it was not explicitly defined
             // as a blank password
             return Utils.isEmpty(connectionCreds.password) && !connectionCreds.emptyPasswordInput;
@@ -225,7 +225,7 @@ export class ConnectionStore {
             }).then(resolved => {
                 // Add necessary default properties before returning
                 // this is needed to support immediate connections
-                ConnInfo.fixupConnectionCredentials(profile);
+                ConnInfo.fixupConnectionInfo(profile);
                 resolve(profile);
             }, err => {
                 reject(err);
@@ -453,7 +453,7 @@ export class ConnectionStore {
                 if (Utils.isSameProfile(profile, <IConnectionProfile>recentConnections[index])) {
                     if (Utils.isSameConnection(profile, recentConnections[index])) {
                         // The MRU item should reflect the current profile's settings from user preferences if it is still the same database
-                        ConnInfo.fixupConnectionCredentials(profile);
+                        ConnInfo.fixupConnectionInfo(profile);
                         recentConnections[index] = Object.assign({}, profile);
                         profilesInRecentConnectionsList.push(index);
                     }
@@ -499,7 +499,7 @@ export class ConnectionStore {
             for (let index = 0; index < configValues.length; index++) {
                 let element = configValues[index];
                 if (element.server && element.server.trim() && !element.server.trim().startsWith('{{')) {
-                    let connection = ConnInfo.fixupConnectionCredentials(element);
+                    let connection = ConnInfo.fixupConnectionInfo(element);
                     connections.push(connection);
                 } else {
                     Utils.logDebug(`Missing server name in user preferences connection: index ( ${index} ): ${element.toString()}`);

@@ -6,7 +6,7 @@
 import { expect, assert } from 'chai';
 import * as Utils from './../src/models/utils';
 import Constants = require('../src/constants/constants');
-import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionInfo } from '../src/models/connectionCredentials';
 
 suite('Utility Tests - parseTimeString', () => {
     test('should return false if nothing passed', () => {
@@ -46,23 +46,23 @@ suite('Utility Tests - isSameConnection', () => {
     let database = 'my-db';
     let authType = Constants.sqlAuthentication;
     let user = 'my-user';
-    let connection1 = Object.assign(new ConnectionCredentials(), {
+    let connection1 = Object.assign(new ConnectionInfo(), {
         server: server,
         database: database,
         authenticationType: authType,
         user: user
     });
-    let connection2 = Object.assign(new ConnectionCredentials(), {
+    let connection2 = Object.assign(new ConnectionInfo(), {
         server: server,
         database: database,
         authenticationType: authType,
         user: user
     });
     let connectionString = 'Server=my-server;Database=my-db;Authentication=Sql Password;User ID=my-user';
-    let connection3 = Object.assign(new ConnectionCredentials(), {
+    let connection3 = Object.assign(new ConnectionInfo(), {
         connectionString: connectionString
     });
-    let connection4 = Object.assign(new ConnectionCredentials(), {
+    let connection4 = Object.assign(new ConnectionInfo(), {
         connectionString: connectionString
     });
 

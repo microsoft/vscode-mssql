@@ -395,7 +395,7 @@ suite('Per File Connection Tests', () => {
 
             // Check that the connection was established
             assert.equal(manager.isConnected(testFile), true);
-            assert.equal(manager.getConnectionInfo(testFile).credentials.database, connectionCreds.database);
+            assert.equal(manager.getConnectionInfo(testFile).connectionInfo.database, connectionCreds.database);
 
             // Change databases
             manager.onChooseDatabase().then( result2 => {
@@ -408,7 +408,7 @@ suite('Per File Connection Tests', () => {
 
                 // Check that the database was changed
                 assert.equal(manager.isConnected(testFile), true);
-                assert.equal(manager.getConnectionInfo(testFile).credentials.database, 'master');
+                assert.equal(manager.getConnectionInfo(testFile).connectionInfo.database, 'master');
 
                 done();
             }).catch(err => {
@@ -461,7 +461,7 @@ suite('Per File Connection Tests', () => {
 
             // Check that the connection was established
             assert.equal(manager.isConnected(testFile), true);
-            assert.equal(manager.getConnectionInfo(testFile).credentials.database, connectionCreds.database);
+            assert.equal(manager.getConnectionInfo(testFile).connectionInfo.database, connectionCreds.database);
 
             // Change databases
             manager.onChooseDatabase().then( result2 => {
@@ -524,7 +524,7 @@ suite('Per File Connection Tests', () => {
 
             // Check that the connection was established
             assert.equal(connectionManager.isConnected(testFile), true);
-            assert.equal(connectionManager.getConnectionInfo(testFile).credentials.database, connectionCreds.database);
+            assert.equal(connectionManager.getConnectionInfo(testFile).connectionInfo.database, connectionCreds.database);
 
             // Simulate a connection changed notification
             let parameters = new ConnectionContracts.ConnectionChangedParams();
@@ -538,7 +538,7 @@ suite('Per File Connection Tests', () => {
             notificationObject.call(connectionManager, parameters);
 
             // Verify that the connection changed to the other database for the file
-            assert.equal(connectionManager.getConnectionInfo(testFile).credentials.database, 'myOtherDatabase');
+            assert.equal(connectionManager.getConnectionInfo(testFile).connectionInfo.database, 'myOtherDatabase');
 
             done();
         });
@@ -578,7 +578,7 @@ suite('Per File Connection Tests', () => {
         // Then on connecting expect 'master' to be the database used in status view and URI mapping
         manager.connect(testFile, connectionCreds).then( result => {
             assert.equal(result, true);
-            assert.equal(manager.getConnectionInfo(testFile).credentials.database, expectedDbName);
+            assert.equal(manager.getConnectionInfo(testFile).connectionInfo.database, expectedDbName);
             assert.equal(actualDbName, expectedDbName);
 
             done();
