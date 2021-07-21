@@ -9,7 +9,7 @@ import Constants = require('./constants/constants');
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
-import { IExtension } from 'vscode-mssql';
+import { IConnectionInfo, IExtension } from 'vscode-mssql';
 
 let controller: MainController = undefined;
 
@@ -31,6 +31,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     return {
         promptForConnection: (ignoreFocusOut?: boolean) => {
             return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
+        },
+        listDatabases: (connectionInfo: IConnectionInfo) => {
+            return controller.connectionManager.listDatabases(connectionInfo);
         },
         dacFx: controller.dacFxService
     };

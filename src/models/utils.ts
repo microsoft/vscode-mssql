@@ -485,3 +485,15 @@ export function limitStringSize(input: string, forCommandPalette: boolean = fals
     }
     return input;
 }
+
+let uriIndex = 0;
+/**
+ * Generates a URI intended for use when running queries if a file connection isn't present (such
+ * as when running ad-hoc queries).
+ */
+export function generateQueryUri(scheme = 'vscode-mssql-adhoc'): vscode.Uri {
+    return vscode.Uri.from({
+        scheme: scheme,
+        authority: `Query${uriIndex++}`
+    });
+}

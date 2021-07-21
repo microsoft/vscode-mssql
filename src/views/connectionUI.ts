@@ -21,7 +21,9 @@ import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
+import * as ConnectionContracts from '../models/contracts/connection';
 import { IConnectionInfo } from 'vscode-mssql';
+import { Deferred } from '../protocol';
 
 /**
  * The different tasks for managing connection profiles.

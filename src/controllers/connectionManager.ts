@@ -336,7 +336,6 @@ export default class ConnectionManager {
                 if (result.connectionSummary && result.connectionSummary.databaseName) {
                     newCredentials.database = result.connectionSummary.databaseName;
                 }
-
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
                 mruConnection = connection.credentials;
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
@@ -509,6 +508,26 @@ export default class ConnectionManager {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Creates a new connection and gets the list of databases from that connection.
+     * @param connectionInfo The connection info to query databases for.
+     * @returns The list of databases retrieved from the connection
+     * @throws If an error occurs while connecting, this will be displayed to the user
+     */
+    public async listDatabases(connectionInfo: IConnectionInfo): Promise<string[]> {
+        // Currently we're creating a new connection each time, this could be updated to take
+        // in a URI as well for re-using connections, but that case isn't something we need now
+        // so just leaving it simpler like this.
+        const uri = Utils.generateQueryUri().toString();
+        const connectionPromise = new Deferred<boolean>();
+        this.connect(uri, connectionInfo, connectionPromise);
+        await connectionPromise;
+        const listParams = new ConnectionContracts.ListDatabasesParams();
+        listParams.ownerUri = uri;
+        const result = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
+        return result.databaseNames;
     }
 
     public async changeDatabase(newDatabaseCredentials: IConnectionInfo): Promise<boolean> {
