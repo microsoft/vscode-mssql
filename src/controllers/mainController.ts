@@ -31,8 +31,9 @@ import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
-import { DacFxService } from '../dacFxService/dacFxService';
+import { DacFxService } from '../services/dacFxService';
 import { IConnectionInfo } from 'vscode-mssql';
+import { SchemaCompareService } from '../services/schemaCompareService';
 
 /**
  * The main controller class that initializes the extension
@@ -56,6 +57,7 @@ export default class MainController implements vscode.Disposable {
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     public dacFxService: DacFxService;
+    public schemaCompareService: SchemaCompareService;
 
     /**
      * The main controller constructor
@@ -148,6 +150,7 @@ export default class MainController implements vscode.Disposable {
             this.initializeQueryHistory();
 
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
+            this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));

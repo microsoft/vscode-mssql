@@ -27,6 +27,11 @@ declare module 'vscode-mssql' {
         readonly dacFx: IDacFxService;
 
         /**
+         * Service for accessing SchemaCompare functionality
+         */
+        readonly schemaCompare: ISchemaCompareService;
+
+        /**
          * Prompts the user to select an existing connection or create a new one, and then returns the result
          * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
          */
@@ -210,6 +215,10 @@ declare module 'vscode-mssql' {
         objectType = 3,
         schema = 4,
         schemaObjectType = 5
+    }
+
+    export interface ISchemaCompareService {
+        schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
     }
 
     export interface IDacFxService {
@@ -465,6 +474,12 @@ declare module 'vscode-mssql' {
     export interface ValidateStreamingJobParams {
         packageFilePath: string;
         createStreamingJobTsql: string;
+    }
+
+    export interface SchemaCompareGetOptionsParams { }
+
+    export interface SchemaCompareOptionsResult extends ResultStatus {
+        defaultDeploymentOptions: DeploymentOptions;
     }
 
 }

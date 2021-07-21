@@ -35,7 +35,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         listDatabases: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.listDatabases(connectionInfo);
         },
-        dacFx: controller.dacFxService
+        dacFx: controller.dacFxService,
+        schemaCompare: controller.schemaCompareService
     };
 }
 
