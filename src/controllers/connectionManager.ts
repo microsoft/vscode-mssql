@@ -524,7 +524,7 @@ export default class ConnectionManager {
         const connectionPromise = new Deferred<boolean>();
         this.connect(uri, connectionInfo, connectionPromise);
         await connectionPromise;
-        let listParams = new ConnectionContracts.ListDatabasesParams();
+        const listParams = new ConnectionContracts.ListDatabasesParams();
         listParams.ownerUri = uri;
         const result = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
         return result.databaseNames;
