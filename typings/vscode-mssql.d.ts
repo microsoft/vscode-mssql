@@ -38,11 +38,19 @@ declare module 'vscode-mssql' {
         promptForConnection(ignoreFocusOut?: boolean): Promise<IConnectionInfo | undefined>;
 
         /**
-         * Lists the databases for a given connection. An error is thrown and displayed to the user if an
-         * error occurs while connecting
-         * @param connection The connection to list the databases for
+         * Attempts to create a new connection for the given connection info. An error is thrown and displayed
+         * to the user if an error occurs while connecting.
+         * @param connectionInfo The connection info
+         * @returns The URI associated with this connection
          */
-        listDatabases(connection: IConnectionInfo): Promise<string[]>;
+        connect(connectionInfo: IConnectionInfo): Promise<string>;
+
+        /**
+         * Lists the databases for a given connection. Must be given an already-opened connection to succeed.
+         * @param connectionUri The URI of the connection to list the databases for.
+         * @returns The list of database names
+         */
+        listDatabases(connectionUri: string): Promise<string[]>;
     }
 
     /**

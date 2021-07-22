@@ -511,21 +511,13 @@ export default class ConnectionManager {
     }
 
     /**
-     * Creates a new connection and gets the list of databases from that connection.
-     * @param connectionInfo The connection info to query databases for.
+     * Retrieves the list of databases for the connection specified by the given URI.
+     * @param connectionUri The URI of the connection to list the databases for
      * @returns The list of databases retrieved from the connection
-     * @throws If an error occurs while connecting, this will be displayed to the user
      */
-    public async listDatabases(connectionInfo: IConnectionInfo): Promise<string[]> {
-        // Currently we're creating a new connection each time, this could be updated to take
-        // in a URI as well for re-using connections, but that case isn't something we need now
-        // so just leaving it simpler like this.
-        const uri = Utils.generateQueryUri().toString();
-        const connectionPromise = new Deferred<boolean>();
-        this.connect(uri, connectionInfo, connectionPromise);
-        await connectionPromise;
+    public async listDatabases(connectionUri: string): Promise<string[]> {
         const listParams = new ConnectionContracts.ListDatabasesParams();
-        listParams.ownerUri = uri;
+        listParams.ownerUri = connectionUri;
         const result = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
         return result.databaseNames;
     }
