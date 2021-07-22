@@ -10,6 +10,8 @@ import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
 import { IConnectionInfo, IExtension } from 'vscode-mssql';
+import { Deferred } from './protocol';
+import * as utils from './models/utils';
 
 let controller: MainController = undefined;
 
@@ -32,8 +34,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         promptForConnection: (ignoreFocusOut?: boolean) => {
             return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
         },
-        listDatabases: (connectionInfo: IConnectionInfo) => {
-            return controller.connectionManager.listDatabases(connectionInfo);
+        connect: async (connectionInfo: IConnectionInfo) => {
+
+            const uri = utils.generateQueryUri().toString();
+            const connectionPromise = new Deferred<boolean>();
+            // First wait for initial connection request to succeed
+            const requestSucceeded = await controller.connectionManager.connect(uri, connectionInfo, connectionPromise);
+            if (!requestSucceeded) {
+                throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
+            }
+            // Next wait for the actual connection to be made
+            const connectionSucceeded = await connectionPromise;
+            if (!connectionSucceeded) {
+                throw new Error(`Connection for ${JSON.stringify(connectionInfo)} failed`);
+            }
+            return uri;
+        },
+        listDatabases: (connectionUri: string) => {
+            return controller.connectionManager.listDatabases(connectionUri);
         },
         dacFx: controller.dacFxService,
         schemaCompare: controller.schemaCompareService
