@@ -511,10 +511,9 @@ export default class ConnectionManager {
     }
 
     /**
-     * Creates a new connection and gets the list of databases from that connection.
-     * @param connectionInfo The connection info to query databases for.
+     * Retrieves the list of databases for the connection specified by the given URI.
+     * @param connectionUri The URI of the connection to list the databases for
      * @returns The list of databases retrieved from the connection
-     * @throws If an error occurs while connecting, this will be displayed to the user
      */
     public async listDatabases(connectionUri: string): Promise<string[]> {
         const listParams = new ConnectionContracts.ListDatabasesParams();
