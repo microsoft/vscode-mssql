@@ -152,3 +152,6 @@ export const tenantDisplayName = 'Microsoft';
 export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
 export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
 export const unixResourceClientPath = 'SqlToolsResourceProviderService';
+
+// Azure Functions
+export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
