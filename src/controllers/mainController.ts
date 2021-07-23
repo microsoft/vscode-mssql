@@ -34,6 +34,7 @@ import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { DacFxService } from '../services/dacFxService';
 import { IConnectionInfo } from 'vscode-mssql';
 import { SchemaCompareService } from '../services/schemaCompareService';
+import { SqlTasksService } from '../services/sqlTasksService';
 
 /**
  * The main controller class that initializes the extension
@@ -56,6 +57,7 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
+    private _sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
 
@@ -149,6 +151,7 @@ export default class MainController implements vscode.Disposable {
 
             this.initializeQueryHistory();
 
+            this._sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance);
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 
