@@ -77,6 +77,10 @@ export class SqlTasksService {
      * @param taskInfo The info for the new task that was created
      */
     private handleTaskCreatedNotification(taskInfo: TaskInfo): void {
+        // Default to no-op for the progressCallback since we don't have the progress callback from the notification yet. There's
+        // potential here for a race condition in which the first update comes in before this callback is updated - if that starts
+        // happening then we'd want to look into keeping track of the latest update message to display as soon as the progress
+        // callback is set such that we update the notification correctly.
         const newTaskInfo: ActiveTaskInfo = {
             taskInfo,
             progressCallback: () => { return; },
