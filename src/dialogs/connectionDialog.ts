@@ -56,6 +56,8 @@ export class ConnectionDialog {
                         let userName: string = this.userNameTextBox.value;
                         let password: string = this.passwordTextBox.value;
 
+                        let serverValue = this.serverTextBox.getValue();
+
                         vscode.window.showInformationMessage('OK button clicked with values server=' + server + ', database='
                             + database + ', username=' + ', ' + userName + ', password' +  password);
                     });

@@ -179,12 +179,31 @@ export class AppComponent implements OnInit, AfterViewChecked {
                     this.buildFormLayout(event.data);
                     break;
 
+
+                case 'readControlProperty':
+                    this.readControlProperty(event.data);
+                    break;
+
+
                 default:
                     console.error('Unexpected proxy event type "' + event.type + '" sent');
                     break;
             }
         });
         this.dataService.sendReadyEvent(this.uri);
+    }
+
+    readControlProperty(data: any): void {
+        let controlId: string = data.controlId;
+        let propertyName: string = data.propertyName;
+
+        // find the right control
+        /// loop through _el and child elements to find controlId and then read correct property
+
+
+
+        // send a event to extension with property value
+        this.dataService.sendControlProperyValue(controlId, propertyName, 'value from above');
     }
 
     buildFormLayout(componentShape: any): void {
@@ -196,7 +215,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
             return;
         }
 
-        let nextComponentId: number = 0;
         for (let i = 0; i < componentShape.itemConfigs.length; ++i) {
             let itemConfig: any = componentShape.itemConfigs[i];
             let title = itemConfig.config.title;
@@ -223,8 +241,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 };
                 this.items.push(textItem);
             }
-
-            ++nextComponentId;
         }
 
         this._cd.detectChanges();

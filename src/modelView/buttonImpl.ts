@@ -7,11 +7,12 @@ import { Emitter } from "vscode-languageclient";
 import { ComponentImpl } from "./componentImpl";
 import { ButtonComponent, ComponentEventType, ModelComponentTypes } from "./interfaces";
 import * as vscode from 'vscode';
+import { IWebviewProxy } from "./modelViewProtocol";
 
 export class ButtonImpl extends ComponentImpl implements ButtonComponent {
 
-	constructor(id: string) {
-		super(ModelComponentTypes.Button, id);
+	constructor(_proxy: IWebviewProxy, id: string) {
+		super(_proxy, ModelComponentTypes.Button, id);
 		this.properties = {};
 		this._emitterMap.set(ComponentEventType.onDidClick, new Emitter<any>());
 	}

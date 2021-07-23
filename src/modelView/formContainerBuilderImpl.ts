@@ -30,7 +30,7 @@ class ContainerBuilderImpl<TComponent extends azdata.Component, TLayout, TItemLa
 
 class GenericContainerBuilder<T extends azdata.Component, TLayout, TItemLayout, TPropertyBag extends azdata.ComponentProperties> extends ContainerBuilderImpl<T, TLayout, TItemLayout, TPropertyBag> {
 	constructor(type: azdata.ModelComponentTypes, id: string) {
-		super(new ComponentImpl(type, id));
+		super(new ComponentImpl(undefined, type, id));
 	}
 }
 

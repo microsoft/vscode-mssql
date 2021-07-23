@@ -7,6 +7,7 @@ import { Emitter } from "vscode-languageclient";
 import { Component, ComponentEventType, DisplayType, IComponentEventArgs, IComponentShape, IItemConfig, ModelComponentTypes, ModelViewAction } from "./interfaces";
 import * as vscode from 'vscode';
 import { assign } from "underscore";
+import { IWebviewProxy } from "./modelViewProtocol";
 
 export class InternalItemConfig {
 	constructor(private _component: ComponentImpl, public config: any) { }
@@ -37,6 +38,7 @@ export class ComponentImpl implements Component {
 	protected _emitterMap = new Map<ComponentEventType, Emitter<any>>();
 
 	constructor(
+		protected _proxy: IWebviewProxy,
         protected _type: ModelComponentTypes,
 		protected _id: string,) {
 		this.properties = {};

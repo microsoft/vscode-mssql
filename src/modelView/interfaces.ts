@@ -549,6 +549,9 @@ export interface InputBoxComponent extends Component, InputBoxProperties {
 }
 
 export interface InputBoxProperties extends ComponentProperties {
+
+    getValue(): string;
+
     value?: string;
     ariaLive?: string;
     placeHolder?: string;
@@ -750,6 +753,24 @@ class DialogService implements vscode.Disposable {
                         }
                     }
                 }
+            },
+            sendControlProperyValue: (controlId: string, propertyName: string, propertyValue: string) => {
+                if (modelView && modelView.modelBuilder) {
+                    let rootComponent = modelView.rootComponent;
+                    let components = [ rootComponent ];
+                    while (components.length > 0) {
+                        let currentComponent = components.pop();
+                        if (currentComponent.id === controlId) {
+                            let anyComponent: any = <any>currentComponent;
+                            anyComponent[propertyName] = propertyValue;
+                            break;
+                        } else if (currentComponent.itemConfigs) {
+                            currentComponent.itemConfigs.forEach(item => components.push(item.component as ComponentImpl));
+                        }
+                    }
+                }
+
+
             },
             dispose: () => undefined
 

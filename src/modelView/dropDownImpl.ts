@@ -7,11 +7,12 @@ import { ComponentImpl } from "./componentImpl";
 import { DropDownComponent, ModelComponentTypes, ComponentEventType, CategoryValue} from "./interfaces";
 import { Emitter } from "vscode-languageclient";
 import * as vscode from 'vscode';
+import { IWebviewProxy } from "./modelViewProtocol";
 
 export class DropDownImpl extends ComponentImpl implements DropDownComponent {
 
-	constructor(id: string) {
-		super(ModelComponentTypes.DropDown, id);
+	constructor(_proxy: IWebviewProxy, id: string) {
+		super(_proxy, ModelComponentTypes.DropDown, id);
 		this.properties = {};
 		this._emitterMap.set(ComponentEventType.onDidChange, new Emitter<any>());
 	}

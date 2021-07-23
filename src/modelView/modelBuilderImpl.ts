@@ -12,13 +12,14 @@ import { ButtonImpl } from "./buttonImpl";
 import { DropDownImpl } from "./dropdownImpl";
 import { InputBoxImpl } from "./inputBoxImpl"
 import { TextComponentImpl } from "./textBoxImpl"
+import { IWebviewProxy } from "./modelViewProtocol";
 
 export class ModelBuilderImpl implements ModelBuilder {
     private nextComponentId: number;
     private _handle: number = 1;
     private readonly _componentBuilders = new Map<string, ComponentBuilderImpl<any, ComponentProperties>>();
 
-	constructor() {
+	constructor(private _proxy: IWebviewProxy) {
 		this.nextComponentId = 0;
 	}
 
@@ -34,7 +35,7 @@ export class ModelBuilderImpl implements ModelBuilder {
 
     button(): ComponentBuilder<ButtonComponent, ButtonProperties> {
 		let id = this.getNextComponentId();
-		let builder: ComponentBuilderImpl<ButtonComponent, ButtonProperties> = this.getComponentBuilder(new ButtonImpl(id), id);
+		let builder: ComponentBuilderImpl<ButtonComponent, ButtonProperties> = this.getComponentBuilder(new ButtonImpl(this._proxy, id), id);
 		this._componentBuilders.set(id, builder);
 		return builder;
 	}
@@ -47,19 +48,19 @@ export class ModelBuilderImpl implements ModelBuilder {
     }
 	text(): ComponentBuilder<TextComponent, TextComponentProperties> {
 		let id = this.getNextComponentId();
-		let builder: ComponentBuilderImpl<TextComponent, TextComponentProperties> = this.getComponentBuilder(new TextComponentImpl(id), id);
+		let builder: ComponentBuilderImpl<TextComponent, TextComponentProperties> = this.getComponentBuilder(new TextComponentImpl(this._proxy, id), id);
 		this._componentBuilders.set(id, builder);
 		return builder;
 	}
 	inputBox(): ComponentBuilder<InputBoxComponent, InputBoxProperties> {
 		let id = this.getNextComponentId();
-		let builder: ComponentBuilderImpl<InputBoxComponent, InputBoxProperties> = this.getComponentBuilder(new InputBoxImpl(id), id);
+		let builder: ComponentBuilderImpl<InputBoxComponent, InputBoxProperties> = this.getComponentBuilder(new InputBoxImpl(this._proxy, id), id);
 		this._componentBuilders.set(id, builder);
 		return builder;
 	}
 	dropDown(): ComponentBuilder<DropDownComponent, DropDownProperties> {
 		let id = this.getNextComponentId();
-		let builder: ComponentBuilderImpl<DropDownComponent, DropDownProperties> = this.getComponentBuilder(new DropDownImpl(id), id);
+		let builder: ComponentBuilderImpl<DropDownComponent, DropDownProperties> = this.getComponentBuilder(new DropDownImpl(this._proxy, id), id);
 		this._componentBuilders.set(id, builder);
 		return builder;
 	}

@@ -6,6 +6,7 @@ import { Subject } from 'rxjs/Subject';
 import { Injectable, OnDestroy } from '@angular/core';
 import { QueryEvent, ResultSetSubset, ISelectionData } from './../../../../../models/interfaces';
 import { createProxy, IMessageProtocol, IServerProxy } from '../../../../modelViewProtocol';
+import { AppComponent } from '../components/app.component';
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void; };
 
@@ -72,6 +73,10 @@ export class DataService implements OnDestroy {
 
     sendButtonClickEvent(controlId: string) {
         this._proxy.sendButtonClickEvent(controlId);
+    }
+
+    sendControlProperyValue(controlId: string, propertyName: string, propertyValue: string): void {
+        this._proxy.sendControlProperyValue(controlId, propertyName, propertyValue);
     }
 
     get config(): Promise<{[key: string]: any}> {

@@ -7,18 +7,31 @@ import { Emitter } from "vscode-languageclient";
 import * as vscode from 'vscode';
 import { ComponentImpl } from "./componentImpl";
 import { ModelComponentTypes, InputBoxComponent, ComponentEventType, InputBoxInputType } from "./interfaces";
+import { IWebviewProxy } from "./modelViewProtocol";
 
 export class InputBoxImpl extends ComponentImpl implements InputBoxComponent {
 
-	constructor(id: string) {
-		super(ModelComponentTypes.InputBox, id,);
+	constructor(_proxy: IWebviewProxy, id: string) {
+		super(_proxy, ModelComponentTypes.InputBox, id,);
 		this.properties = {};
 		this._emitterMap.set(ComponentEventType.onDidChange, new Emitter<any>());
 		this._emitterMap.set(ComponentEventType.onEnterKeyPressed, new Emitter<string>());
 	}
 
+	public getValue(): string {
+		let data = {
+			controlId: this.id,
+			propertyName: 'value'
+		};
+
+		this._proxy.sendEvent('readControlProperty', data);
+
+		return undefined;
+	}
+
 	public get value(): string {
 		return this.properties['value'];
+
 	}
 	public set value(v: string) {
 		this.setProperty('value', v);

@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 
 export class ModelViewImpl implements ModelView {
     constructor(protected _proxy: IWebviewProxy) {
-        this.modelBuilder = new ModelBuilderImpl();
+        this.modelBuilder = new ModelBuilderImpl(_proxy);
     }
 
     /**

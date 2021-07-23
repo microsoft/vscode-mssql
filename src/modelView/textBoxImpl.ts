@@ -5,11 +5,12 @@
 
 import { TextComponentProperties, ModelComponentTypes } from "./interfaces";
 import { ComponentImpl } from "./componentImpl";
+import { IWebviewProxy } from "./modelViewProtocol";
 
 export class TextComponentImpl extends ComponentImpl implements TextComponentProperties {
 
-	constructor(id: string) {
-		super(ModelComponentTypes.Text, id,);
+	constructor(_proxy: IWebviewProxy, id: string) {
+		super(_proxy, ModelComponentTypes.Text, id,);
 		this.properties = {};
 	}
 
