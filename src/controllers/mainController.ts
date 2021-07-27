@@ -151,7 +151,7 @@ export default class MainController implements vscode.Disposable {
 
             this.initializeQueryHistory();
 
-            this._sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance);
+            this._sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 
