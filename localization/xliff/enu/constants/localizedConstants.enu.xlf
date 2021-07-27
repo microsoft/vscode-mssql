@@ -488,6 +488,36 @@
         <trans-unit id="azureSignInToAzureCloudDescription">
             <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         </trans-unit>
+        <trans-unit id="taskStatusWithName">
+            <source xml:lang="en">{0}: {1}</source>
+        </trans-unit>
+        <trans-unit id="taskStatusWithMessage">
+            <source xml:lang="en">{1}. {2}</source>
+        </trans-unit>
+        <trans-unit id="taskStatusWithNameAndMessage">
+            <source xml:lang="en">{0}: {1}. {2}</source>
+        </trans-unit>
+        <trans-unit id="failed">
+            <source xml:lang="en">Failed</source>
+        </trans-unit>
+        <trans-unit id="succeeded">
+            <source xml:lang="en">Succeeded</source>
+        </trans-unit>
+        <trans-unit id="succeededWithWarning">
+            <source xml:lang="en">Succeeded with warning</source>
+        </trans-unit>
+        <trans-unit id="canceled">
+            <source xml:lang="en">Canceled</source>
+        </trans-unit>
+        <trans-unit id="inProgress">
+            <source xml:lang="en">In progress</source>
+        </trans-unit>
+        <trans-unit id="canceling">
+            <source xml:lang="en">Canceling</source>
+        </trans-unit>
+        <trans-unit id="notStarted">
+            <source xml:lang="en">Not started</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
