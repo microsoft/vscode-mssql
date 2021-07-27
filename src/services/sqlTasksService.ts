@@ -65,8 +65,7 @@ export class SqlTasksService {
 
     private _activeTasks = new Map<string, ActiveTaskInfo>();
 
-    constructor(
-        private _client: SqlToolsServiceClient) {
+    constructor(private _client: SqlToolsServiceClient) {
         this._client.onNotification(TaskCreatedNotification.type, taskInfo => this.handleTaskCreatedNotification(taskInfo));
         this._client.onNotification(TaskStatusChangedNotification.type, taskProgressInfo => this.handleTaskChangedNotification(taskProgressInfo));
     }
@@ -124,7 +123,7 @@ export class SqlTasksService {
             const taskMessage = taskProgressInfo.message && taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase() ?
                 utils.formatString(localizedConstants.taskStatusWithMessage, taskInfo.taskInfo.name, taskStatusString, taskProgressInfo.message) :
                 utils.formatString(localizedConstants.taskStatusWithName, taskInfo.taskInfo.name, taskStatusString);
-            vscode.window.showInformationMessage(taskMessage);
+            showCompletionMessage(taskProgressInfo.status, taskMessage);
         } else {
             // Task is still ongoing so just update the progress notification with the latest status
 
@@ -149,6 +148,25 @@ function isTaskCompleted(taskStatus: TaskStatus): boolean {
         taskStatus === TaskStatus.Failed ||
         taskStatus === TaskStatus.Succeeded ||
         taskStatus === TaskStatus.SucceededWithWarning;
+}
+
+/**
+ * Shows a message for a task with a different type of toast notification being used for
+ * different status types.
+ *  Failed - Error notification
+ *  Canceled or SucceededWithWarning - Warning notification
+ *  All others - Information notification
+ * @param taskStatus The status of the task we're showing the message for
+ * @param message The message to show
+ */
+function showCompletionMessage(taskStatus: TaskStatus, message: string): void {
+    if (taskStatus === TaskStatus.Failed) {
+        vscode.window.showErrorMessage(message);
+    } else if (taskStatus === TaskStatus.Canceled || taskStatus === TaskStatus.SucceededWithWarning) {
+        vscode.window.showWarningMessage(message);
+    } else {
+        vscode.window.showInformationMessage(message);
+    }
 }
 
 /**
