@@ -10,6 +10,7 @@ import { TaskExecutionMode } from 'vscode-mssql';
 import { Deferred } from '../protocol';
 import * as utils from '../models/utils';
 import * as localizedConstants from '../constants/localizedConstants';
+import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 
 export enum TaskStatus {
     NotStarted = 0,
@@ -65,7 +66,7 @@ export class SqlTasksService {
 
     private _activeTasks = new Map<string, ActiveTaskInfo>();
 
-    constructor(private _client: SqlToolsServiceClient) {
+    constructor(private _client: SqlToolsServiceClient, private _untitledSqlDocumentService: UntitledSqlDocumentService) {
         this._client.onNotification(TaskCreatedNotification.type, taskInfo => this.handleTaskCreatedNotification(taskInfo));
         this._client.onNotification(TaskStatusChangedNotification.type, taskProgressInfo => this.handleTaskChangedNotification(taskProgressInfo));
     }
@@ -106,7 +107,7 @@ export class SqlTasksService {
      * informing the user that the task was completed.
      * @param taskProgressInfo The progress info for the task
      */
-    private handleTaskChangedNotification(taskProgressInfo: TaskProgressInfo): void {
+    private async handleTaskChangedNotification(taskProgressInfo: TaskProgressInfo): Promise<void> {
         const taskInfo = this._activeTasks.get(taskProgressInfo.taskId);
         if (!taskInfo) {
             console.warn(`Status update for unknown task ${taskProgressInfo.taskId}`!);
@@ -124,6 +125,9 @@ export class SqlTasksService {
                 utils.formatString(localizedConstants.taskStatusWithMessage, taskInfo.taskInfo.name, taskStatusString, taskProgressInfo.message) :
                 utils.formatString(localizedConstants.taskStatusWithName, taskInfo.taskInfo.name, taskStatusString);
             showCompletionMessage(taskProgressInfo.status, taskMessage);
+            if (taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script && taskProgressInfo.script) {
+                await this._untitledSqlDocumentService.newQuery(taskProgressInfo.script);
+            }
         } else {
             // Task is still ongoing so just update the progress notification with the latest status
 
