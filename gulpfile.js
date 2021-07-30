@@ -55,12 +55,11 @@ gulp.task('ext:copy-queryHistory-assets', (done) => {
 // Compile source
 gulp.task('ext:compile-src', (done) => {
     return gulp.src([
-                config.paths.project.root + '/src/**/*.ts',
-                config.paths.project.root + '/src/**/*.js',
-                config.paths.project.root + '/typings/**/*.d.ts',
-                '!' + config.paths.project.root + '/src/dailogs/htmlcontent/**/*',
-                '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
-
+        config.paths.project.root + '/src/**/*.ts',
+        config.paths.project.root + '/src/**/*.js',
+        config.paths.project.root + '/typings/**/*.d.ts',
+        '!' + config.paths.project.root + '/src/dailogs/htmlcontent/**/*',
+        '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
                 .pipe(srcmap.init())
                 .pipe(tsProject())
                 .on('error', function() {
@@ -123,7 +122,8 @@ gulp.task('ext:copy-images', (done) => {
 // Compile dialog angular view
 gulp.task('ext:compile-dialog-view', (done) => {
     return gulp.src([
-        config.paths.project.root + '/src/modelView/htmlcontent/**/*.ts'])
+        config.paths.project.root + '/src/modelView/htmlcontent/**/*.ts',
+        config.paths.project.root + '/typings/**/*.d.ts'])
         .pipe(srcmap.init())
         .pipe(tsProject())
         .pipe(nls.rewriteLocalizeCalls())
