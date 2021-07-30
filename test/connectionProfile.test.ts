@@ -6,7 +6,7 @@
 'use strict';
 import vscode = require('vscode');
 import * as TypeMoq from 'typemoq';
-import { IConnectionCredentials, IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
+import { IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import { ConnectionProfile } from '../src/models/connectionProfile';
 import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
@@ -15,13 +15,13 @@ import { ConnectionUI } from '../src/views/connectionUI';
 import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import Constants = require('../src/constants/constants');
 import LocalizedConstants = require('../src/constants/localizedConstants');
 import assert = require('assert');
 import { AccountStore } from '../src/azure/accountStore';
+import { IConnectionInfo } from 'vscode-mssql';
 
-function createTestCredentials(): IConnectionCredentials {
-    const creds: IConnectionCredentials = {
+function createTestCredentials(): IConnectionInfo {
+    const creds: IConnectionInfo = {
         server:                         'my-server',
         database:                       'my_db',
         user:                           'sa',

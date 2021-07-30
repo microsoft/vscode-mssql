@@ -57,7 +57,7 @@ gulp.task('ext:compile-src', (done) => {
     return gulp.src([
                 config.paths.project.root + '/src/**/*.ts',
                 config.paths.project.root + '/src/**/*.js',
-                '!' + config.paths.project.root + '/typings/**/*.ts',
+                config.paths.project.root + '/typings/**/*.d.ts',
                 '!' + config.paths.project.root + '/src/dailogs/htmlcontent/**/*',
                 '!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
 
@@ -80,7 +80,8 @@ gulp.task('ext:compile-src', (done) => {
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
     return gulp.src([
-        config.paths.project.root + '/src/views/htmlcontent/**/*.ts'])
+        config.paths.project.root + '/src/views/htmlcontent/**/*.ts',
+        config.paths.project.root + '/typings/**/*.d.ts'])
         .pipe(srcmap.init())
         .pipe(tsProject())
         .pipe(nls.rewriteLocalizeCalls())

@@ -9,12 +9,13 @@ import Constants = require('./constants/constants');
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
+import { IConnectionInfo, IExtension } from 'vscode-mssql';
+import { Deferred } from './protocol';
+import * as utils from './models/utils';
 
 let controller: MainController = undefined;
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export async function activate(context: vscode.ExtensionContext): Promise<boolean> {
+export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
@@ -28,8 +29,33 @@ export async function activate(context: vscode.ExtensionContext): Promise<boolea
 
     // Exposed for testing purposes
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
-    const activated = await controller.activate();
-    return activated;
+    await controller.activate();
+    return {
+        promptForConnection: (ignoreFocusOut?: boolean) => {
+            return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
+        },
+        connect: async (connectionInfo: IConnectionInfo) => {
+
+            const uri = utils.generateQueryUri().toString();
+            const connectionPromise = new Deferred<boolean>();
+            // First wait for initial connection request to succeed
+            const requestSucceeded = await controller.connectionManager.connect(uri, connectionInfo, connectionPromise);
+            if (!requestSucceeded) {
+                throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
+            }
+            // Next wait for the actual connection to be made
+            const connectionSucceeded = await connectionPromise;
+            if (!connectionSucceeded) {
+                throw new Error(`Connection for ${JSON.stringify(connectionInfo)} failed`);
+            }
+            return uri;
+        },
+        listDatabases: (connectionUri: string) => {
+            return controller.connectionManager.listDatabases(connectionUri);
+        },
+        dacFx: controller.dacFxService,
+        schemaCompare: controller.schemaCompareService
+    };
 }
 
 // this method is called when your extension is deactivated

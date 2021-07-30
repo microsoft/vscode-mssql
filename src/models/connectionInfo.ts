@@ -10,6 +10,7 @@ import Interfaces = require('./interfaces');
 import { IConnectionProfile } from '../models/interfaces';
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from './utils';
+import { IConnectionInfo } from 'vscode-mssql';
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -19,7 +20,7 @@ import * as Utils from './utils';
  * @param {Interfaces.IConnectionCredentials} connCreds connection to be fixed up
  * @returns {Interfaces.IConnectionCredentials} the updated connection
  */
-export function fixupConnectionCredentials(connCreds: Interfaces.IConnectionCredentials): Interfaces.IConnectionCredentials {
+export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnectionInfo {
     if (!connCreds.server) {
         connCreds.server = '';
     }
@@ -75,7 +76,7 @@ function isAzureDatabase(server: string): boolean {
  * @param {Interfaces.CredentialsQuickPickItemType} itemType type of quickpick item to display - this influences the icon shown to the user
  * @returns {string} user readable label
  */
-export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials, itemType: Interfaces.CredentialsQuickPickItemType): string {
+export function getPicklistLabel(connCreds: IConnectionInfo, itemType: Interfaces.CredentialsQuickPickItemType): string {
     let profile: Interfaces.IConnectionProfile = <Interfaces.IConnectionProfile> connCreds;
 
     if (profile.profileName) {
@@ -92,7 +93,7 @@ export function getPicklistLabel(connCreds: Interfaces.IConnectionCredentials, i
  * @param {Interfaces.IConnectionCredentials} connCreds connection
  * @returns {string} description
  */
-export function getPicklistDescription(connCreds: Interfaces.IConnectionCredentials): string {
+export function getPicklistDescription(connCreds: IConnectionInfo): string {
     let desc: string = `[${getConnectionDisplayString(connCreds)}]`;
     return desc;
 }
@@ -104,7 +105,7 @@ export function getPicklistDescription(connCreds: Interfaces.IConnectionCredenti
  * @param {Interfaces.IConnectionCredentials} connCreds connection
  * @returns {string} details
  */
-export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials): string {
+export function getPicklistDetails(connCreds: IConnectionInfo): string {
     // In the current spec this is left empty intentionally. Leaving the method as this may change in the future
     return undefined;
 }
@@ -117,7 +118,7 @@ export function getPicklistDetails(connCreds: Interfaces.IConnectionCredentials)
  * @param {Interfaces.IConnectionCredentials} conn connection
  * @returns {string} display string that can be used in status view or other locations
  */
-export function getConnectionDisplayString(creds: Interfaces.IConnectionCredentials): string {
+export function getConnectionDisplayString(creds: IConnectionInfo): string {
     // Update the connection text
     let text: string;
     if (creds.connectionString) {
@@ -163,7 +164,7 @@ function appendIfNotEmpty(connectionText: string, value: string): string {
  * @param {string} [defaultValue] optional default value to use if username is empty and this is not an Integrated auth profile
  * @returns {string}
  */
-export function getUserNameOrDomainLogin(creds: Interfaces.IConnectionCredentials, defaultValue?: string): string {
+export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: string): string {
     if (!defaultValue) {
         defaultValue = '';
     }
@@ -182,7 +183,7 @@ export function getUserNameOrDomainLogin(creds: Interfaces.IConnectionCredential
  * @param {Interfaces.IConnectionCredentials} connCreds connection
  * @returns {string} tooltip
  */
-export function getTooltip(connCreds: Interfaces.IConnectionCredentials, serverInfo?: ConnectionContracts.ServerInfo): string {
+export function getTooltip(connCreds: IConnectionInfo, serverInfo?: ConnectionContracts.ServerInfo): string {
     let tooltip: string =
            connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString + '\r\n' :
            ('Server name: ' + connCreds.server + '\r\n' +

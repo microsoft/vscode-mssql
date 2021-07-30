@@ -6,9 +6,9 @@
 import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
-import { IConnectionCredentials } from '../models/interfaces';
 import Constants = require('../constants/constants');
 import { ObjectMetadata } from '../models/contracts/metadata/metadataRequest';
+import { IConnectionInfo } from 'vscode-mssql';
 
 export class TreeNodeInfo extends vscode.TreeItem {
 
@@ -20,7 +20,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
     private _errorMessage: string;
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
-    private _connectionCredentials: IConnectionCredentials;
+    private _connectionCredentials: IConnectionInfo;
     private _metadata: ObjectMetadata;
 
     constructor(
@@ -31,7 +31,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         nodeStatus: string,
         nodeType: string,
         sessionId: string,
-        connectionCredentials: IConnectionCredentials,
+        connectionCredentials: IConnectionInfo,
         parentNode: TreeNodeInfo,
         objectMetadata?: ObjectMetadata
     ) {
@@ -51,7 +51,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         nodeInfo: NodeInfo,
         sessionId: string,
         parentNode: TreeNodeInfo,
-        connectionCredentials: IConnectionCredentials,
+        connectionCredentials: IConnectionInfo,
         label?: string,
         nodeType?: string): TreeNodeInfo {
         let type = nodeType ? nodeType : nodeInfo.nodeType;
@@ -97,7 +97,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         return this._parentNode;
     }
 
-    public get connectionCredentials(): IConnectionCredentials {
+    public get connectionCredentials(): IConnectionInfo {
         return this._connectionCredentials;
     }
 
@@ -138,7 +138,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._parentNode = value;
     }
 
-    public set connectionCredentials(value: IConnectionCredentials) {
+    public set connectionCredentials(value: IConnectionInfo) {
         this._connectionCredentials = value;
     }
 }

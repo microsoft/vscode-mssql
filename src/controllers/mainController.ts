@@ -18,7 +18,7 @@ import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
 import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
-import { ISelectionData, IConnectionProfile, IConnectionCredentials } from './../models/interfaces';
+import { ISelectionData, IConnectionProfile } from './../models/interfaces';
 import * as path from 'path';
 import fs = require('fs');
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
@@ -31,6 +31,10 @@ import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
+import { DacFxService } from '../services/dacFxService';
+import { IConnectionInfo } from 'vscode-mssql';
+import { SchemaCompareService } from '../services/schemaCompareService';
+import { SqlTasksService } from '../services/sqlTasksService';
 import { ConnectionDialog } from '../dialogs/connectionDialog';
 import { initializeModelView } from '../modelView/interfaces';
 
@@ -55,6 +59,9 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
+    private _sqlTasksService: SqlTasksService;
+    public dacFxService: DacFxService;
+    public schemaCompareService: SchemaCompareService;
 
     /**
      * The main controller constructor
@@ -152,6 +159,10 @@ export default class MainController implements vscode.Disposable {
             this.initializeObjectExplorer();
 
             this.initializeQueryHistory();
+
+            this._sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
+            this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
+            this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -263,7 +274,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Creates a new Object Explorer session
      */
-    private async createObjectExplorerSession(connectionCredentials?: IConnectionCredentials): Promise<void> {
+    private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<void> {
         let createSessionPromise = new Deferred<TreeNodeInfo>();
         const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
         if (sessionId) {
@@ -344,7 +355,7 @@ export default class MainController implements vscode.Disposable {
             let profile = <IConnectionProfile>node.parentNode.connectionCredentials;
             profile = await self.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
             if (profile) {
-                node.parentNode.connectionCredentials = <IConnectionCredentials>profile;
+                node.parentNode.connectionCredentials = <IConnectionInfo>profile;
                 self._objectExplorerProvider.updateNode(node.parentNode);
                 self._objectExplorerProvider.signInNodeServer(node.parentNode);
                 return self._objectExplorerProvider.refresh(undefined);

@@ -11,14 +11,11 @@ import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { expect, assert } from 'chai';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
-import { Deferred } from '../src/protocol';
 import { AddConnectionTreeNode } from '../src/objectExplorer/addConnectionTreeNode';
 import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountSignInTreeNode } from '../src/objectExplorer/accountSignInTreeNode';
 import { ConnectTreeNode } from '../src/objectExplorer/connectTreeNode';
 import { NodeInfo } from '../src/models/contracts/objectExplorer/nodeInfo';
-import { IConnectionCredentials } from '../src/models/interfaces';
-import { Type } from '@angular/core';
 
 suite('Object Explorer Provider Tests', () => {
 
