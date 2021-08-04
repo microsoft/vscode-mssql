@@ -233,8 +233,8 @@ suite('Object Explorer Node Types Test', () => {
         expect(treeNode.isLeaf, 'Node should not be a leaf').is.equal(false);
         treeNode.parentNode = treeNode.parentNode;
         expect(treeNode.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
-        treeNode.connectionCredentials = treeNode.connectionCredentials;
-        expect(treeNode.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+        treeNode.connectionInfo = treeNode.connectionInfo;
+        expect(treeNode.connectionInfo, 'Connection credentials should be equal to expected value').is.equal(undefined);
     });
 
     test('Test fromNodeInfo function', () => {
@@ -259,7 +259,7 @@ suite('Object Explorer Node Types Test', () => {
         treeNodeInfo.isLeaf = nodeInfo.isLeaf;
         expect(treeNodeInfo.isLeaf, 'Node should not be a leaf').is.equal(nodeInfo.isLeaf);
         expect(treeNodeInfo.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
-        expect(treeNodeInfo.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+        expect(treeNodeInfo.connectionInfo, 'Connection credentials should be equal to expected value').is.equal(undefined);
         expect(treeNodeInfo.errorMessage, 'Error message should be equal to expected value').is.equal('test_error');
         expect(treeNodeInfo.metadata, 'Node metadata should be the same as nodeInfo metadata').is.equal(nodeInfo.metadata);
     });

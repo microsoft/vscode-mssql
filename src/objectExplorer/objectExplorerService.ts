@@ -79,9 +79,9 @@ export class ObjectExplorerService {
                 // set connection and other things
                 let node: TreeNodeInfo;
                 if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
-                    nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionCredentials) : nodeLabel;
+                    nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionInfo) : nodeLabel;
                     node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
-                        undefined, self._currentNode.connectionCredentials, nodeLabel, Constants.serverLabel);
+                        undefined, self._currentNode.connectionInfo, nodeLabel, Constants.serverLabel);
                 } else {
                     nodeLabel = !nodeLabel ? self.createNodeLabel(nodeConnection) : nodeLabel;
                     node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
@@ -91,7 +91,7 @@ export class ObjectExplorerService {
                 const nodeUri = ObjectExplorerUtils.getNodeUri(node);
                 if (!this._connectionManager.isConnected(nodeUri) &&
                     !this._connectionManager.isConnecting(nodeUri)) {
-                    const profile = <IConnectionProfile>node.connectionCredentials;
+                    const profile = <IConnectionProfile>node.connectionInfo;
                     await this._connectionManager.connect(nodeUri, profile);
                 }
 
@@ -105,8 +105,8 @@ export class ObjectExplorerService {
                 return promise.resolve(node);
             } else {
                 // create session failure
-                if (self._currentNode.connectionCredentials?.password) {
-                    self._currentNode.connectionCredentials.password = '';
+                if (self._currentNode.connectionInfo?.password) {
+                    self._currentNode.connectionInfo.password = '';
                 }
                 let error = LocalizedConstants.connectErrorLabel;
                 if (result.errorMessage) {
@@ -121,7 +121,7 @@ export class ObjectExplorerService {
                     (Constants.errorFirewallRule, result.errorMessage);
                     if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
                         const nodeUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-                        const profile = <IConnectionProfile>self._currentNode.connectionCredentials;
+                        const profile = <IConnectionProfile>self._currentNode.connectionInfo;
                         self.updateNode(self._currentNode);
                         self._connectionManager.connectionUI.handleFirewallError(nodeUri, profile, handleFirewallResult.ipAddress);
                     }
@@ -193,7 +193,7 @@ export class ObjectExplorerService {
 
     public updateNode(node: TreeNodeInfo): void {
         for (let rootTreeNode of this._rootTreeNodeArray) {
-            if (Utils.isSameConnection(node.connectionCredentials, rootTreeNode.connectionCredentials) &&
+            if (Utils.isSameConnection(node.connectionInfo, rootTreeNode.connectionInfo) &&
                 rootTreeNode.label === node.label) {
                     const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
                     delete this._rootTreeNodeArray[index];
@@ -327,12 +327,12 @@ export class ObjectExplorerService {
                 } else {
                     // start node session
                     let promise = new Deferred<TreeNodeInfo>();
-                    const sessionId = await this.createSession(promise, element.connectionCredentials);
+                    const sessionId = await this.createSession(promise, element.connectionInfo);
                     if (sessionId) {
                         let node = await promise;
                         // if the server was found but connection failed
                         if (!node) {
-                            let profile = element.connectionCredentials as IConnectionProfile;
+                            let profile = element.connectionInfo as IConnectionProfile;
                             let password = await this._connectionManager.connectionStore.lookupPassword(profile);
                             if (password) {
                                 return this.createSignInNode(element);
@@ -484,14 +484,14 @@ export class ObjectExplorerService {
             node.nodeType = Constants.disconnectedServerLabel;
             node.contextValue = Constants.disconnectedServerLabel;
             node.sessionId = undefined;
-            if (!(<IConnectionProfile>node.connectionCredentials).savePassword) {
-                node.connectionCredentials.password = '';
+            if (!(<IConnectionProfile>node.connectionInfo).savePassword) {
+                node.connectionInfo.password = '';
             }
             const label = typeof node.label === 'string' ? node.label : node.label.label;
             // make a new node to show disconnected behavior
             let disconnectedNode = new TreeNodeInfo(label, Constants.disconnectedServerLabel,
                 node.collapsibleState, node.nodePath, node.nodeStatus, Constants.disconnectedServerLabel,
-                undefined, node.connectionCredentials, node.parentNode);
+                undefined, node.connectionInfo, node.parentNode);
 
             this.updateNode(disconnectedNode);
             this._currentNode = disconnectedNode;
@@ -504,7 +504,7 @@ export class ObjectExplorerService {
     public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
-                if (Utils.isSameConnection(node.connectionCredentials, conn)) {
+                if (Utils.isSameConnection(node.connectionInfo, conn)) {
                     await this.removeObjectExplorerNode(node);
                 }
             }
@@ -592,7 +592,7 @@ export class ObjectExplorerService {
     }
 
     public get rootNodeConnections(): IConnectionInfo[] {
-        const connections = this._rootTreeNodeArray.map(node => node.connectionCredentials);
+        const connections = this._rootTreeNodeArray.map(node => node.connectionInfo);
         return connections;
     }
 

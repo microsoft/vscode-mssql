@@ -7,6 +7,7 @@ import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionProfile } from '../models/interfaces';
 import Constants = require('../constants/constants');
 import LocalizedConstants = require('../constants/localizedConstants');
+import * as vscodeMssql from 'vscode-mssql';
 
 export class ObjectExplorerUtils {
 
@@ -26,7 +27,7 @@ export class ObjectExplorerUtils {
     }
 
     public static getNodeUri(node: TreeNodeInfo): string {
-        const profile = <IConnectionProfile>node.connectionCredentials;
+        const profile = <IConnectionProfile>node.connectionInfo;
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
 
@@ -45,11 +46,21 @@ export class ObjectExplorerUtils {
         return uri;
     }
 
-    public static getDatabaseName(node: TreeNodeInfo): string {
+    /**
+     * Gets the database name for the node - which is the database name of the connection for a server node, the database name
+     * for nodes at or under a database node or a default value if it's neither of those.
+     * @param node The node to get the database name of
+     * @returns The database name
+     */
+    public static getDatabaseName(node: vscodeMssql.ITreeNodeInfo): string {
+        // We're on a server node so just use the database directly from the connection string
         if (node.nodeType === Constants.serverLabel ||
             node.nodeType === Constants.disconnectedServerLabel) {
-            return node.connectionCredentials.database;
+            return node.connectionInfo.database;
         }
+        // Otherwise find the name from the node metadata - going up through the parents of the node
+        // until we find the database node (so anything under a database node will get the name of
+        // the database it's nested in)
         while (node) {
             if (node.metadata) {
                 if (node.metadata.metadataTypeName === Constants.databaseString) {

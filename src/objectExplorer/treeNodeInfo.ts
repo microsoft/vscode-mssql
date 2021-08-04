@@ -7,10 +7,9 @@ import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 import Constants = require('../constants/constants');
-import { ObjectMetadata } from '../models/contracts/metadata/metadataRequest';
-import { IConnectionInfo } from 'vscode-mssql';
+import { IConnectionInfo, ITreeNodeInfo, ObjectMetadata } from 'vscode-mssql';
 
-export class TreeNodeInfo extends vscode.TreeItem {
+export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
     private _nodePath: string;
     private _nodeStatus: string;
@@ -20,7 +19,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
     private _errorMessage: string;
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
-    private _connectionCredentials: IConnectionInfo;
+    private _connectionInfo: IConnectionInfo;
     private _metadata: ObjectMetadata;
 
     constructor(
@@ -31,7 +30,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         nodeStatus: string,
         nodeType: string,
         sessionId: string,
-        connectionCredentials: IConnectionInfo,
+        connectionInfo: IConnectionInfo,
         parentNode: TreeNodeInfo,
         objectMetadata?: ObjectMetadata
     ) {
@@ -42,7 +41,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._nodeType = nodeType;
         this._sessionId = sessionId;
         this._parentNode = parentNode;
-        this._connectionCredentials = connectionCredentials;
+        this._connectionInfo = connectionInfo;
         this._metadata = objectMetadata;
         this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
     }
@@ -51,7 +50,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         nodeInfo: NodeInfo,
         sessionId: string,
         parentNode: TreeNodeInfo,
-        connectionCredentials: IConnectionInfo,
+        connectionInfo: IConnectionInfo,
         label?: string,
         nodeType?: string): TreeNodeInfo {
         let type = nodeType ? nodeType : nodeInfo.nodeType;
@@ -60,7 +59,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
             (type === Constants.serverLabel ? vscode.TreeItemCollapsibleState.Expanded :
             vscode.TreeItemCollapsibleState.Collapsed),
             nodeInfo.nodePath, nodeInfo.nodeStatus,
-            type, sessionId, connectionCredentials, parentNode, nodeInfo.metadata);
+            type, sessionId, connectionInfo, parentNode, nodeInfo.metadata);
         return treeNodeInfo;
     }
 
@@ -97,8 +96,8 @@ export class TreeNodeInfo extends vscode.TreeItem {
         return this._parentNode;
     }
 
-    public get connectionCredentials(): IConnectionInfo {
-        return this._connectionCredentials;
+    public get connectionInfo(): IConnectionInfo {
+        return this._connectionInfo;
     }
 
     public get metadata(): ObjectMetadata {
@@ -138,7 +137,7 @@ export class TreeNodeInfo extends vscode.TreeItem {
         this._parentNode = value;
     }
 
-    public set connectionCredentials(value: IConnectionInfo) {
-        this._connectionCredentials = value;
+    public set connectionInfo(value: IConnectionInfo) {
+        this._connectionInfo = value;
     }
 }

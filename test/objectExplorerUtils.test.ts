@@ -8,7 +8,7 @@ import { expect, assert } from 'chai';
 import Constants = require('../src/constants/constants');
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ConnectionProfile } from '../src/models/connectionProfile';
-import { ObjectMetadata } from '../src/models/contracts/metadata/metadataRequest';
+import { ObjectMetadata } from 'vscode-mssql';
 
 suite('Object Explorer Utils Tests', () => {
 
