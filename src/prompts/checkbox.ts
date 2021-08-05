@@ -1,13 +1,10 @@
-'use strict';
-
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-
-const figures = require('figures');
+import * as figures from 'figures';
 
 export default class CheckboxPrompt extends Prompt {
 

@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import Config from  './config';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import * as Constants from '../constants/constants';

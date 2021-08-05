@@ -3,10 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import assert = require('assert');
+import * as assert from 'assert';
 
 import StatusView from '../src/views/statusView';
-import LocalizedConstants = require('../src/constants/localizedConstants');
+import * as LocalizedConstants from '../src/constants/localizedConstants';
 
 suite('Status View Tests', () => {
 

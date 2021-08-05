@@ -14,14 +14,14 @@ import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplore
 import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { AuthenticationTypes, IConnectionProfile } from '../models/interfaces';
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as LocalizedConstants from '../constants/localizedConstants';
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
 import { ConnectTreeNode } from './connectTreeNode';
 import { Deferred } from '../protocol';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
-import Utils = require('../models/utils');
+import * as Utils from '../models/utils';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';

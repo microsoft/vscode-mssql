@@ -5,8 +5,8 @@
 import * as path from 'path';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { IConnectionProfile } from '../models/interfaces';
-import Constants = require('../constants/constants');
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
 import * as vscodeMssql from 'vscode-mssql';
 
 export class ObjectExplorerUtils {

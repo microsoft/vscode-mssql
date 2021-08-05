@@ -510,7 +510,6 @@ declare module 'vscode-mssql' {
         Function = 3
     }
 
-    // tslint:disable-next-line:interface-name
     export interface ObjectMetadata {
         metadataType: MetadataType;
 

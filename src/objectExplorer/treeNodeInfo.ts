@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { NodeInfo } from '../models/contracts/objectExplorer/nodeInfo';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import { IConnectionInfo, ITreeNodeInfo, ObjectMetadata } from 'vscode-mssql';
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {

@@ -1,8 +1,11 @@
-'use strict';
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
 
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
-import assert = require('assert');
+import * as assert from 'assert';
 import { WebviewPanelController } from '../src/controllers/webviewController';
 
 suite('Webview Panel Controller Tests', () => {

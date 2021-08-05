@@ -4,14 +4,14 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-import assert = require('assert');
-import Interfaces = require('../src/models/interfaces');
+import * as assert from 'assert';
+import * as Interfaces from '../src/models/interfaces';
 import ResultsSerializer  from './../src/models/resultsSerializer';
 import { SaveResultsAsCsvRequestParams } from './../src/models/contracts';
 import SqlToolsServerClient from './../src/languageservice/serviceclient';
 import VscodeWrapper from './../src/controllers/vscodeWrapper';
 import * as vscode from 'vscode';
-import os = require('os');
+import * as os from 'os';
 
 suite('save results tests', () => {
 

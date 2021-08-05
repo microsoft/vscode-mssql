@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import { TreeNodeInfo } from './treeNodeInfo';
 
 export class ConnectTreeNode extends vscode.TreeItem {

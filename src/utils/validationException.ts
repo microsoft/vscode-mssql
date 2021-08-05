@@ -3,6 +3,5 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
+// tslint:disable-next-line:no-require-imports
 export default require('error-ex')('ValidationException');

@@ -7,7 +7,7 @@ import { CreateFirewallRuleRequest, HandleFirewallRuleRequest,
     IHandleFirewallRuleParams, IHandleFirewallRuleResponse,
     ICreateFirewallRuleResponse,
     ICreateFirewallRuleParams} from '../models/contracts/firewall/firewallRequest';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import { AccountService } from '../azure/accountService';
 
 export class FirewallService {

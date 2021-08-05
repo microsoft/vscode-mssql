@@ -3,11 +3,11 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import vscode = require('vscode');
-import { IAccount, IAccountKey, IAccountDisplayInfo } from '../models/contracts/azure/accountInterfaces';
+import * as vscode from 'vscode';
+import { IAccount, IAccountKey } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';

@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
 import * as events from 'events';
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
-import LocalizedConstants = require('../constants/localizedConstants');
-import Utils = require('../models/utils');
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
+import * as Utils from '../models/utils';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { RebuildIntelliSenseNotification, CompletionExtensionParams, CompletionExtLoadRequest } from '../models/contracts/languageService';
 import StatusView from '../views/statusView';
@@ -20,7 +19,7 @@ import VscodeWrapper from './vscodeWrapper';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import { ISelectionData, IConnectionProfile } from './../models/interfaces';
 import * as path from 'path';
-import fs = require('fs');
+import * as fs from 'fs';
 import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
 import { ScriptingService } from '../scripting/scriptingService';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';

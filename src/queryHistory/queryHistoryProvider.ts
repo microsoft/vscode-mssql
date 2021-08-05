@@ -11,7 +11,7 @@ import ConnectionManager from '../controllers/connectionManager';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { QueryHistoryNode, EmptyHistoryNode } from './queryHistoryNode';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import { Deferred } from '../protocol';
 import StatusView from '../views/statusView';

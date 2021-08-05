@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import { ServerStatusView } from '../src/languageservice/serverStatus';
 import { assert } from 'chai';
-import Constants = require('../src/constants/constants');
+import * as Constants from '../src/constants/constants';
 
 suite('Server Status View Tests', () => {
 
@@ -19,7 +17,7 @@ suite('Server Status View Tests', () => {
 
     test('Test installing service status', (done) => {
         serverStatusView.installingService();
-        let p = new Promise((resolve, reject) => {
+        let p = new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 let statusBarItem = serverStatusView.statusBarItem;
                 assert.isUndefined(statusBarItem.command, 'Status Bar Item command should be undefined');

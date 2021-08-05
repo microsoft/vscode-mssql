@@ -1,10 +1,8 @@
-'use strict';
-
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
 import Prompt from './prompt';
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as LocalizedConstants from '../constants/localizedConstants';
 import EscapeException from '../utils/EscapeException';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
