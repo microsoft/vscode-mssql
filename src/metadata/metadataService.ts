@@ -5,7 +5,8 @@
 
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
-import { MetadataQueryParams, MetadataQueryRequest, ObjectMetadata } from '../models/contracts/metadata/metadataRequest';
+import { MetadataQueryParams, MetadataQueryRequest } from '../models/contracts/metadata/metadataRequest';
+import { ObjectMetadata } from 'vscode-mssql';
 
 export class MetadataService {
 

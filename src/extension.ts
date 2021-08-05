@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 'use strict';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
+import * as vscodeMssql from 'vscode-mssql';
 import Constants = require('./constants/constants');
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
@@ -12,6 +13,7 @@ import VscodeWrapper from './controllers/vscodeWrapper';
 import { IConnectionInfo, IExtension } from 'vscode-mssql';
 import { Deferred } from './protocol';
 import * as utils from './models/utils';
+import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 
 let controller: MainController = undefined;
 
@@ -52,6 +54,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         },
         listDatabases: (connectionUri: string) => {
             return controller.connectionManager.listDatabases(connectionUri);
+        },
+        getDatabaseNameFromTreeNode: (node: vscodeMssql.ITreeNodeInfo) => {
+            return ObjectExplorerUtils.getDatabaseName(node);
         },
         dacFx: controller.dacFxService,
         schemaCompare: controller.schemaCompareService
