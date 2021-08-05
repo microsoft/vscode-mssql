@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import LocalizedConstants = require('../src/constants/localizedConstants');
+import * as LocalizedConstants from '../src/constants/localizedConstants';
 import ExpandPrompt from '../src/prompts/expand';
 
 suite('Test Expand Prompt', () => {

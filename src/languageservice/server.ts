@@ -3,13 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import * as path from 'path';
 import {Runtime} from '../models/platform';
 import ServiceDownloadProvider from './serviceDownloadProvider';
 import {IConfig, IStatusView} from './interfaces';
-let fs = require('fs-extra-promise');
+import * as fs from 'fs-extra-promise';
 
 
 /*

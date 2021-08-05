@@ -1,15 +1,13 @@
-'use strict';
-
 // This code is originally from https://github.com/DonJayamanne/bowerVSCode
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import Prompt from './prompt';
 import EscapeException from '../utils/EscapeException';
 import { INameValueChoice } from './question';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 
-const figures = require('figures');
+import * as figures from 'figures';
 
 export default class ExpandPrompt extends Prompt {
 

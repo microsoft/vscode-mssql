@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
-import LocalizedConstants = require('../constants/localizedConstants');
-import Utils = require('./utils');
-import Interfaces = require('./interfaces');
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
+import * as Utils from './utils';
+import * as Interfaces from './interfaces';
 import QueryRunner from '../controllers/queryRunner';
 import ResultsSerializer from  '../models/resultsSerializer';
 import StatusView from '../views/statusView';
@@ -17,6 +16,7 @@ import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
 import { IServerProxy, Deferred } from '../protocol';
 import { ResultSetSubset } from './contracts/queryExecute';
+// tslint:disable-next-line:no-require-imports
 const pd = require('pretty-data').pd;
 
 const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes

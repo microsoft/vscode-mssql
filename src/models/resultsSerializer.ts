@@ -3,18 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
-import LocalizedConstants = require('../constants/localizedConstants');
-import Interfaces = require('./interfaces');
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
+import * as Interfaces from './interfaces';
 import * as path from 'path';
 import { RequestType } from 'vscode-languageclient';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
 import * as Utils from '../models/utils';
-
-let opener = require('opener');
+import * as opener from 'opener';
 
 
 type SaveAsRequestParams =  Contracts.SaveResultsAsCsvRequestParams | Contracts.SaveResultsAsJsonRequestParams | Contracts.SaveResultsAsExcelRequestParams;

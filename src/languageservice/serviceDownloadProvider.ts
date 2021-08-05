@@ -3,15 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
 import * as path from 'path';
 import * as tmp from 'tmp';
 import {Runtime, getRuntimeDisplayName} from '../models/platform';
 import {IConfig, IStatusView, IPackage, PackageError, IHttpClient, IDecompressProvider} from './interfaces';
 import  {ILogger} from '../models/interfaces';
-import Constants = require('../constants/constants');
-
-let fse = require('fs-extra');
+import * as Constants from '../constants/constants';
+import * as fse from 'fs-extra';
 
 /*
 * Service Download Provider class which handles downloading the SQL Tools service.

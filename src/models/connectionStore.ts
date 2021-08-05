@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
-import LocalizedConstants = require('../constants/localizedConstants');
-import ConnInfo = require('./connectionInfo');
-import Utils = require('../models/utils');
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
+import * as ConnInfo from './connectionInfo';
+import * as Utils from '../models/utils';
 import ValidationException from '../utils/validationException';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';

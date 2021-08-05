@@ -3,16 +3,14 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-'use strict';
-
 import { SqlOutputContentProvider, QueryRunnerState } from '../src/models/sqlOutputContentProvider';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';
-import Constants = require('../src/constants/constants');
-import vscode = require('vscode');
+import * as Constants from '../src/constants/constants';
+import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
-import assert = require('assert');
+import * as assert from 'assert';
 import { ISelectionData } from '../src/models/interfaces';
 
 

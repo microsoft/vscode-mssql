@@ -1,5 +1,5 @@
-import vscode = require('vscode');
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as vscode from 'vscode';
+import * as LocalizedConstants from '../constants/localizedConstants';
 import { AzureStringLookup } from '../azure/azureStringLookup';
 import { AzureUserInteraction } from '../azure/azureUserInteraction';
 import { AzureErrorLookup } from '../azure/azureErrorLookup';

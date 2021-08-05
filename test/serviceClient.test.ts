@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-import assert = require('assert');
+import * as assert from 'assert';
 import ServerProvider from '../src/languageservice/server';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import {Logger} from '../src/models/logger';

@@ -3,8 +3,6 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import { RequestType } from 'vscode-languageclient';
 import { IAccount } from '../azure/accountInterfaces';
 

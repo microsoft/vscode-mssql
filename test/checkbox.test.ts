@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-const figures = require('figures');
+import * as figures from 'figures';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import CheckboxPrompt from '../src/prompts/checkbox';
 
