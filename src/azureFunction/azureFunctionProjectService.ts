@@ -8,7 +8,7 @@ import * as af from '../../typings/vscode-azurefunctions.api';
 import { azureFunctionsExtensionName } from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 export class AzureFunctionProjectService {
-    public async createAzureFunctionProject(tableName: string): Promise<void> {
+    public async createAzureFunction(tableName: string): Promise<void> {
         const afApi = await this.getAzureFunctionsExtensionApi();
         if (!afApi) {
             return;
@@ -21,6 +21,20 @@ export class AzureFunctionProjectService {
             language: 'C#',
             templateId: 'HttpTrigger'
         });
+
+        // TODO:
+        // 1. figure out the newly created file - alanren
+        let filePath = '';
+        console.log(filePath);
+
+        // 2. leverage STS to add sql binding - aditya
+        //
+
+        // 3. edit the csproj to add the sql binding package
+
+        // 4. retrieve connection string from OE - aditya
+
+        // 5. add connectionstring to local.settings.json
     }
 
     private async getAzureFunctionsExtensionApi(): Promise<af.AzureFunctionsExtensionApi> {

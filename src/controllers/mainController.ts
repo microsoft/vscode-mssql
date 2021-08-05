@@ -425,7 +425,7 @@ export default class MainController implements vscode.Disposable {
         // Generate Azure Function command
         this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdCreateAzureFunction, async (node: TreeNodeInfo) => {
             const service = new AzureFunctionProjectService();
-            await service.createAzureFunctionProject(node.metadata.name);
+            await service.createAzureFunction(node.metadata.name);
         }));
     }
 
