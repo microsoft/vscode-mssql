@@ -38,7 +38,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     ) {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
-        this._queryHistoryUI = new QueryHistoryUI(this._prompter, this._vscodeWrapper);
+        this._queryHistoryUI = new QueryHistoryUI(this._prompter);
     }
 
     clearAll(): void {
