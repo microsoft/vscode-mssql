@@ -9,7 +9,8 @@
         "allowUnusedLabels": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "rootDir": "."
+        "rootDir": ".",
+        "noUnusedLocals": true
     },
     "exclude": [
         "node_modules"

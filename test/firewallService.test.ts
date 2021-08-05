@@ -8,7 +8,7 @@ import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { FirewallService } from '../src/firewall/firewallService';
 import { AccountService } from '../src/azure/accountService';
 import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
-    CreateFirewallRuleRequest, ICreateFirewallRuleResponse, IHandleFirewallRuleParams } from '../src/models/contracts/firewall/firewallRequest';
+    CreateFirewallRuleRequest, ICreateFirewallRuleResponse } from '../src/models/contracts/firewall/firewallRequest';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';

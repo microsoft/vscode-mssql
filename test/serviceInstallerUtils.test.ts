@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assert } from 'chai';
-import { StubStatusView, StubLogger, getServiceInstallDirectoryRoot, getServiceInstallDirectory, installService } from '../src/languageservice/serviceInstallerUtil';
+import { StubStatusView, StubLogger, getServiceInstallDirectoryRoot, installService } from '../src/languageservice/serviceInstallerUtil';
 
 function setupConsole(): string[] {
     let logs = [];

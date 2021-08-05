@@ -2,7 +2,6 @@
 // License: https://github.com/DonJayamanne/bowerVSCode/blob/master/LICENSE
 
 import { OutputChannel } from 'vscode';
-import * as Constants from '../constants/constants';
 import * as nodeUtil from 'util';
 import PromptFactory from './factory';
 import EscapeException from '../utils/EscapeException';

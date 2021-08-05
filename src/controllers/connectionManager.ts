@@ -126,7 +126,7 @@ export default class ConnectionManager {
         }
 
         // Initiate the firewall service
-        this._accountService = new AccountService(this.client, this.vscodeWrapper, context, this._accountStore);
+        this._accountService = new AccountService(this.client, context, this._accountStore);
         this._firewallService = new FirewallService(this._accountService);
         this._failedUriToFirewallIpMap = new Map<string, string>();
 
@@ -274,15 +274,6 @@ export default class ConnectionManager {
         // Using a lambda here to perform variable capture on the 'this' reference
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
             this._statusView.languageServiceStatusChanged(event.ownerUri, LocalizedConstants.intelliSenseUpdatedStatus);
-            let connection = this.getConnectionInfo(event.ownerUri);
-            if (connection !== undefined) {
-                let numberOfCharacters: number = 0;
-                if (this.vscodeWrapper.activeTextEditor !== undefined
-                && this.vscodeWrapper.activeTextEditor.document !== undefined) {
-                    let document = this.vscodeWrapper.activeTextEditor.document;
-                    numberOfCharacters = document.getText().length;
-                }
-            }
         };
     }
 
@@ -821,18 +812,5 @@ export default class ConnectionManager {
                 this.azureController.removeToken(answers.account);
             }
         });
-
-
-    }
-
-    private getIsServerLinux(osVersion: string): string {
-        if (osVersion) {
-            if (osVersion.indexOf('Linux') !== -1) {
-                return 'Linux';
-            } else {
-                return 'Windows';
-            }
-        }
-        return '';
     }
 }

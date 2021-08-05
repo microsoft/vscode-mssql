@@ -6,7 +6,6 @@
 import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import * as LocalizedConstants from '../src/constants/localizedConstants';
 import ExpandPrompt from '../src/prompts/expand';
 
 suite('Test Expand Prompt', () => {
@@ -26,51 +25,51 @@ suite('Test Expand Prompt', () => {
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    // test('Test expand prompt with error question', () => {
-    //     let question = {
-    //         choices: [{ name: 'test', value: 'test' }],
-    //         validate: (e) => true
-    //     };
-    //     let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-    //     vscodeWrapper.setup(v => v.showQuickPickStrings(TypeMoq.It.isAny(),
-    //         TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-    //     let expand = new ExpandPrompt(question, vscodeWrapper.object);
-    //     expand.render();
-    //     vscodeWrapper.verify(v => v.showQuickPickStrings(TypeMoq.It.isAny(),
-    //         TypeMoq.It.isAny()), TypeMoq.Times.once());
-    // });
+    test.skip('Test expand prompt with error question', () => {
+        let question = {
+            choices: [{ name: 'test', value: 'test' }],
+            validate: (e) => true
+        };
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        vscodeWrapper.setup(v => v.showQuickPickStrings(TypeMoq.It.isAny(),
+            TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+        let expand = new ExpandPrompt(question, vscodeWrapper.object);
+        expand.render();
+        vscodeWrapper.verify(v => v.showQuickPickStrings(TypeMoq.It.isAny(),
+            TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
 
-    // test('Test expand prompt with quick pick item', () => {
-    //     let quickPickItem: vscode.QuickPickItem = {
-    //         label: 'test'
-    //     };
-    //     let question = {
-    //         choices: [quickPickItem],
-    //         validate: (e) => true
-    //     };
-    //     let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-    //     vscodeWrapper.setup(v => v.showQuickPick(TypeMoq.It.isAny(),
-    //         TypeMoq.It.isAny())).returns(() => Promise.resolve(quickPickItem));
-    //     let expand = new ExpandPrompt(question, vscodeWrapper.object);
-    //     expand.render();
-    //     vscodeWrapper.verify(v => v.showQuickPick(TypeMoq.It.isAny(),
-    //         TypeMoq.It.isAny()), TypeMoq.Times.once());
-    // });
+    test.skip('Test expand prompt with quick pick item', () => {
+        let quickPickItem: vscode.QuickPickItem = {
+            label: 'test'
+        };
+        let question = {
+            choices: [quickPickItem],
+            validate: (e) => true
+        };
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        vscodeWrapper.setup(v => v.showQuickPick(TypeMoq.It.isAny(),
+            TypeMoq.It.isAny())).returns(() => Promise.resolve(quickPickItem));
+        let expand = new ExpandPrompt(question, vscodeWrapper.object);
+        expand.render();
+        vscodeWrapper.verify(v => v.showQuickPick(TypeMoq.It.isAny(),
+            TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
 
-    // test('Test expand prompt with error quick pick item', () => {
-    //     let quickPickItem: vscode.QuickPickItem = {
-    //         label: 'test'
-    //     };
-    //     let question = {
-    //         choices: [quickPickItem],
-    //         validate: (e) => false
-    //     };
-    //     let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-    //     vscodeWrapper.setup(v => v.showQuickPick(TypeMoq.It.isAny(),
-    //         TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-    //     let expand = new ExpandPrompt(question, vscodeWrapper.object);
-    //     expand.render();
-    //     vscodeWrapper.verify(v => v.showQuickPick(TypeMoq.It.isAny(),
-    //         TypeMoq.It.isAny()), TypeMoq.Times.once());
-    // });
+    test.skip('Test expand prompt with error quick pick item', () => {
+        let quickPickItem: vscode.QuickPickItem = {
+            label: 'test'
+        };
+        let question = {
+            choices: [quickPickItem],
+            validate: (e) => false
+        };
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        vscodeWrapper.setup(v => v.showQuickPick(TypeMoq.It.isAny(),
+            TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+        let expand = new ExpandPrompt(question, vscodeWrapper.object);
+        expand.render();
+        vscodeWrapper.verify(v => v.showQuickPick(TypeMoq.It.isAny(),
+            TypeMoq.It.isAny()), TypeMoq.Times.once());
+    });
 });

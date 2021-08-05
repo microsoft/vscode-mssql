@@ -51,7 +51,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             profile.authenticationType = authOptions[0].value;
         }
         let azureController = new AzureController(context);
-        let azureAuthChoices: INameValueChoice[] = ConnectionProfile.getAzureAuthChoices();
         let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
         let accountAnswer: IAccount;
         azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount'});

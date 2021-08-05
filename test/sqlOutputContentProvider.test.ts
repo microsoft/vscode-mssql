@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { SqlOutputContentProvider, QueryRunnerState } from '../src/models/sqlOutputContentProvider';
+import { SqlOutputContentProvider } from '../src/models/sqlOutputContentProvider';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import StatusView from '../src/views/statusView';
 import * as stubs from './stubs';

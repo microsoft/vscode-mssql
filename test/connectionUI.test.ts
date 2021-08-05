@@ -15,7 +15,6 @@ import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountStore } from '../src/azure/accountStore';
-import { IConnectionInfo } from 'vscode-mssql';
 
 suite('Connection UI tests', () => {
 
