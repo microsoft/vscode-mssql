@@ -436,7 +436,7 @@ export class ObjectExplorerService {
                             await this._connectionManager.vscodeWrapper.showErrorMessage(
                                 errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
                                 if (result === LocalizedConstants.refreshTokenLabel) {
-                                    let refreshedProfile = await azureController.getTokens(
+                                    await azureController.getTokens(
                                         profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
 
                                 } else {
