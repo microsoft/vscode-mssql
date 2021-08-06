@@ -17,15 +17,19 @@ export class AzureFunctionProjectService {
             vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened);
             return;
         }
+
+        // because of an AF extension API issue, we have to get the newly created file by adding a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
+        const newFilePromise = this.getNewFunctionFile();
+
         await afApi.createFunction({
             language: 'C#',
             templateId: 'HttpTrigger'
         });
 
+
+        const functionFile = await newFilePromise;
+
         // TODO:
-        // 1. figure out the newly created file - alanren
-        let filePath = '';
-        console.log(filePath);
 
         // 2. leverage STS to add sql binding - aditya
         //
@@ -58,5 +62,16 @@ export class AzureFunctionProjectService {
         const projFiles = await vscode.workspace.findFiles('**/*.csproj');
         const hostFiles = await vscode.workspace.findFiles('**/host.json');
         return projFiles.length > 0 && hostFiles.length > 0;
+    }
+
+    private getNewFunctionFile(): Promise<string> {
+        return new Promise((resolve) => {
+            const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.workspace.workspaceFolders[0], '**/*.cs'), false, true, true);
+            watcher.onDidCreate((e) => {
+                resolve(e.fsPath);
+                watcher.dispose();
+            });
+
+        });
     }
 }
