@@ -531,7 +531,6 @@ declare module 'vscode-mssql' {
         schema: string;
     }
 
-
     export const enum BindingType {
         input,
         output
@@ -543,13 +542,5 @@ declare module 'vscode-mssql' {
         objectName: string;
         bindingType: BindingType;
         connectionStringSetting: string;
-    }
-
-    export interface GetAzureFunctionsParams {
-        filePath: string;
-    }
-
-    export interface GetAzureFunctionsResult extends ResultStatus {
-        azureFunctions: string[];
     }
 }
