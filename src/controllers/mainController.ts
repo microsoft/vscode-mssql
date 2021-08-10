@@ -34,6 +34,7 @@ import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { DacFxService } from '../dacFxService/dacFxService';
 import { IConnectionInfo } from 'vscode-mssql';
 import { AzureFunctionProjectService } from '../azureFunction/azureFunctionProjectService';
+import { getConnectionString } from '../utils/connectionStringUtil';
 
 /**
  * The main controller class that initializes the extension
@@ -422,10 +423,12 @@ export default class MainController implements vscode.Disposable {
                 }
             }));
 
+        const afService = new AzureFunctionProjectService();
         // Generate Azure Function command
         this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdCreateAzureFunction, async (node: TreeNodeInfo) => {
-            const service = new AzureFunctionProjectService();
-            await service.createAzureFunction(node.metadata.name);
+            const database = ObjectExplorerUtils.getDatabaseName(node);
+            const connStr = getConnectionString(node.connectionCredentials.server, node.connectionCredentials.authenticationType, database, node.connectionCredentials.user, node.connectionCredentials.password);
+            await afService.createAzureFunction(connStr, node.metadata.schema, node.metadata.name);
         }));
     }
 

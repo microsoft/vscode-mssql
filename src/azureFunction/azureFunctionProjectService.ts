@@ -5,10 +5,19 @@
 
 import * as vscode from 'vscode';
 import * as af from '../../typings/vscode-azurefunctions.api';
+import * as cp from 'child_process';
+import * as fs from 'fs';
 import { azureFunctionsExtensionName } from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
+import path = require('path');
+
+const SqlBindingNugetSource = 'https://www.myget.org/F/azure-appservice/api/v3/index.json';
+const SqlBindingPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
+const SqlBindingPackageVersion = '1.0.0-preview3';
+const SqlConnectionStringPropertyName = "SqlConnectionString";
+
 export class AzureFunctionProjectService {
-    public async createAzureFunction(tableName: string): Promise<void> {
+    public async createAzureFunction(connectionString: string, schema: string, table: string): Promise<void> {
         const afApi = await this.getAzureFunctionsExtensionApi();
         if (!afApi) {
             return;
@@ -26,19 +35,11 @@ export class AzureFunctionProjectService {
             templateId: 'HttpTrigger'
         });
 
-
+        await this.addNugetReferenceToProjectFile();
+        await this.addConnectionStringToConfig(connectionString);
         const functionFile = await newFilePromise;
-
         // TODO:
-
-        // 2. leverage STS to add sql binding - aditya
-        //
-
-        // 3. edit the csproj to add the sql binding package
-
-        // 4. retrieve connection string from OE - aditya
-
-        // 5. add connectionstring to local.settings.json
+        // 1. leverage STS to add sql binding - aditya
     }
 
     private async getAzureFunctionsExtensionApi(): Promise<af.AzureFunctionsExtensionApi> {
@@ -59,9 +60,24 @@ export class AzureFunctionProjectService {
 
     private async isAzureFunctionProjectOpen(): Promise<boolean> {
         if (vscode.workspace.workspaceFolders.length === 0) { return false; }
+        const projFile = await this.getProjectFile();
+        const hostFile = await this.getHostFile();
+        return projFile !== undefined && hostFile !== undefined;
+    }
+
+    private async getProjectFile(): Promise<string | undefined> {
         const projFiles = await vscode.workspace.findFiles('**/*.csproj');
+        return projFiles.length > 0 ? projFiles[0].fsPath : undefined;
+    }
+
+    private async getHostFile(): Promise<string | undefined> {
         const hostFiles = await vscode.workspace.findFiles('**/host.json');
-        return projFiles.length > 0 && hostFiles.length > 0;
+        return hostFiles.length > 0 ? hostFiles[0].fsPath : undefined;
+    }
+
+    private async getSettingsFile(): Promise<string | undefined> {
+        const settingsFiles = await vscode.workspace.findFiles('**/local.settings.json');
+        return settingsFiles.length > 0 ? settingsFiles[0].fsPath : undefined;
     }
 
     private getNewFunctionFile(): Promise<string> {
@@ -71,7 +87,42 @@ export class AzureFunctionProjectService {
                 resolve(e.fsPath);
                 watcher.dispose();
             });
+        });
+    }
 
+    private async addNugetReferenceToProjectFile(): Promise<void> {
+        // Make sure the nuget source is added
+        const currentSources = await this.executeCommand('dotnet nuget list source');
+        if (currentSources.indexOf(SqlBindingNugetSource) === -1) {
+            await this.executeCommand(`dotnet nuget add source ${SqlBindingNugetSource}`);
+        }
+        const projFile = await this.getProjectFile();
+        await this.executeCommand(`dotnet add package ${SqlBindingPackageName} --version ${SqlBindingPackageVersion}`, path.dirname(projFile));
+    }
+
+    private async addConnectionStringToConfig(connectionString: string): Promise<void> {
+        const settingsFile = await this.getSettingsFile();
+        const content = await fs.promises.readFile(settingsFile);
+        const config = JSON.parse(content.toString());
+        if (!(SqlConnectionStringPropertyName in config.Values)) {
+            config.Values[SqlConnectionStringPropertyName] = connectionString;
+            await fs.promises.writeFile(settingsFile, JSON.stringify(config, undefined, 2));
+        }
+    }
+
+    private executeCommand(command: string, cwd?: string): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            cp.exec(command, { maxBuffer: 500 * 1024, cwd: cwd }, (error: Error, stdout: string, stderr: string) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                if (stderr && stderr.length > 0) {
+                    reject(new Error(stderr));
+                    return;
+                }
+                resolve(stdout);
+            });
         });
     }
 }
