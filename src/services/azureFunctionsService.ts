@@ -9,10 +9,22 @@ import * as azureFunctionsContracts from '../models/contracts/azureFunctions/azu
 
 export const hostFileName: string = 'host.json';
 
+/**
+ * Adds SQL Bindings to generated Azure Functions in a file
+ */
 export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
     constructor(private _client: SqlToolsServiceClient) { }
 
+    /**
+     *
+     * @param bindingType Type of SQL Binding
+     * @param filePath Path of the file where the Azure Functions are
+     * @param functionName Name of the function where the SQL Binding is to be added
+     * @param objectName Name of Object for the SQL Query
+     * @param connectionStringSetting Setting for the connection string
+     * @returns
+     */
     addSqlBinding(
         bindingType: mssql.BindingType,
         filePath: string,
