@@ -58,7 +58,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             return ObjectExplorerUtils.getDatabaseName(node);
         },
         dacFx: controller.dacFxService,
-        schemaCompare: controller.schemaCompareService
+        schemaCompare: controller.schemaCompareService,
+        azureFunctions: controller.azureFunctionsService
     };
 }
 

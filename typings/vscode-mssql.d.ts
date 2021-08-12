@@ -35,6 +35,11 @@ declare module 'vscode-mssql' {
         readonly schemaCompare: ISchemaCompareService;
 
         /**
+         * Service for accessing AzureFunctions functionality
+         */
+        readonly azureFunctions: IAzureFunctionsService;
+
+        /**
          * Prompts the user to select an existing connection or create a new one, and then returns the result
          * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
          */
@@ -245,6 +250,10 @@ declare module 'vscode-mssql' {
         generateDeployPlan(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<GenerateDeployPlanResult>;
         getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
         validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
+    }
+
+    export interface IAzureFunctionsService {
+        addSqlBinding(bindingType: BindingType, filePath: string, functionName: string, objectName: string, connectionStringSetting: string): Thenable<ResultStatus>;
     }
 
     export const enum TaskExecutionMode {
@@ -520,5 +529,18 @@ declare module 'vscode-mssql' {
         name: string;
 
         schema: string;
+    }
+
+    export const enum BindingType {
+        input,
+        output
+    }
+
+    export interface AddSqlBindingParams {
+        filePath: string;
+        functionName: string;
+        objectName: string;
+        bindingType: BindingType;
+        connectionStringSetting: string;
     }
 }
