@@ -43,19 +43,19 @@ export interface TaskInfo {
     isCancelable: boolean;
 }
 
-export namespace TaskStatusChangedNotification {
+namespace TaskStatusChangedNotification {
     export const type = new NotificationType<TaskProgressInfo, void>('tasks/statuschanged');
 }
 
-export namespace TaskCreatedNotification {
+namespace TaskCreatedNotification {
     export const type = new NotificationType<TaskInfo, void>('tasks/newtaskcreated');
 }
 
-export interface CancelTaskParams {
+interface CancelTaskParams {
     taskId: string;
 }
 
-export namespace CancelTaskRequest {
+namespace CancelTaskRequest {
     export const type = new RequestType<CancelTaskParams, boolean, void, void>('tasks/canceltask');
 }
 
