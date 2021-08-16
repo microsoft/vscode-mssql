@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assert } from 'chai';
-import { StubStatusView, StubLogger, installService } from '../src/languageservice/serviceInstallerUtil';
+import { StubStatusView, StubLogger, getServiceInstallDirectoryRoot, installService } from '../src/languageservice/serviceInstallerUtil';
 
 function setupConsole(): string[] {
     let logs = [];
@@ -97,11 +97,21 @@ suite('Stub Logger tests', () => {
 });
 
 suite('Test Service Installer Util functions', () => {
+
+    test('Test getServiceInstallDirectoryRoot function', () => {
+        let path = getServiceInstallDirectoryRoot();
+        assert.isNotNull(path, 'Service install directory root should not be null');
+    });
+
+    // test('Test getgetServiceInstallDirectory function', async () => {
+    //     let dir = await getServiceInstallDirectory(undefined);
+    //     assert.isNotNull(dir, 'Service install directory should not be null');
+    // });
+
     test('Test installService function', async () => {
         let installedPath = await installService(undefined);
         assert.isNotNull(installedPath, 'Service installed path should not be null');
     });
 });
-
 
 
