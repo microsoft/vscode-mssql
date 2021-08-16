@@ -103,6 +103,14 @@ class LanguageClientErrorHandler {
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
 
+    private _sqlToolsServicePath: string | undefined = undefined;
+    /**
+     * Path to the root of the SQL Tools Service folder
+     */
+    public get sqlToolsServicePath(): string | undefined {
+        return this._sqlToolsServicePath;
+    }
+
     private _logPath: string;
 
     // singleton instance
@@ -189,10 +197,12 @@ export default class SqlToolsServiceClient {
                             _channel.show();
                         }
                         let installedServerPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
+                        this._sqlToolsServicePath = path.dirname(installedServerPath);
                         this.initializeLanguageClient(installedServerPath, context, platformInfo.isWindows());
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(true, true, installedServerPath));
                     } else {
+                        this._sqlToolsServicePath = path.dirname(serverPath);
                         this.initializeLanguageClient(serverPath, context, platformInfo.isWindows());
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(false, true, serverPath));

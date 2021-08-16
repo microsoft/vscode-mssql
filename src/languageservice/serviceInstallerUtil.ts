@@ -74,37 +74,3 @@ export function installService(runtime: Runtime): Promise<String> {
         return serverProvider.getOrDownloadServer(runtime);
     }
 }
-
-/*
-* Returns the install folder path for given platform.
-*/
-export function getServiceInstallDirectory(runtime: Runtime): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        if (runtime === undefined) {
-            PlatformInformation.getCurrent().then( platformInfo => {
-                if (platformInfo.isValidRuntime()) {
-                    resolve(downloadProvider.getInstallDirectory(platformInfo.runtimeId));
-                } else {
-                    reject('unsupported runtime');
-                }
-            }).catch( error => {
-                reject(error);
-            });
-        } else {
-            resolve(downloadProvider.getInstallDirectory(runtime));
-        }
-    });
-
-}
-
-/*
-* Returns the path to the root folder of service install location.
-*/
-export function getServiceInstallDirectoryRoot(): string {
-    let directoryPath: string = downloadProvider.getInstallDirectoryRoot();
-    directoryPath = directoryPath.replace('\\{#version#}\\{#platform#}', '');
-    directoryPath = directoryPath.replace('/{#version#}/{#platform#}', '');
-    return directoryPath;
-}
-
-
