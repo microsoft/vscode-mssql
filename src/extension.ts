@@ -13,6 +13,7 @@ import { IConnectionInfo, IExtension } from 'vscode-mssql';
 import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
+import SqlToolsServerClient from './languageservice/serviceclient';
 
 let controller: MainController = undefined;
 
@@ -32,6 +33,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
     await controller.activate();
     return {
+        sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
         promptForConnection: (ignoreFocusOut?: boolean) => {
             return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
         },
