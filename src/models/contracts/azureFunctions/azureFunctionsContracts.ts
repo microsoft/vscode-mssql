@@ -14,8 +14,8 @@ export namespace AddSqlBindingRequest {
 }
 
 /**
- * Gets the names of the azure functions in a file
+ * Gets the names of the Azure functions in a file
  */
 export namespace GetAzureFunctionsRequest {
-    export const type = new RequestType<mssql.getAzureFunctionsParams, mssql.getAzureFunctionsResult, void, void>('azureFunctions/getAzureFunctions');
+    export const type = new RequestType<mssql.GetAzureFunctionsParams, mssql.GetAzureFunctionsResult, void, void>('azureFunctions/getAzureFunctions');
 }

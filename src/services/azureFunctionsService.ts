@@ -48,8 +48,8 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
      * @param filePath Path of the file to get the Azure functions
      * @returns array of names of Azure functions in the file
      */
-    getAzureFunctions(filePath: string): Thenable<mssql.getAzureFunctionsResult> {
-        const params: mssql.getAzureFunctionsParams = {
+    getAzureFunctions(filePath: string): Thenable<mssql.GetAzureFunctionsResult> {
+        const params: mssql.GetAzureFunctionsParams = {
             filePath: filePath
         };
 
