@@ -265,6 +265,7 @@ declare module 'vscode-mssql' {
 
     export interface IAzureFunctionsService {
         addSqlBinding(bindingType: BindingType, filePath: string, functionName: string, objectName: string, connectionStringSetting: string): Thenable<ResultStatus>;
+        getAzureFunctions(filePath: string): Thenable<getAzureFunctionsResult>;
     }
 
     export const enum TaskExecutionMode {
@@ -553,5 +554,13 @@ declare module 'vscode-mssql' {
         objectName: string;
         bindingType: BindingType;
         connectionStringSetting: string;
+    }
+
+    export interface getAzureFunctionsParams {
+        filePath: string;
+    }
+
+    export interface getAzureFunctionsResult extends ResultStatus {
+        azureFunctions: string[];
     }
 }
