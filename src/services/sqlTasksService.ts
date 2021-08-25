@@ -152,7 +152,7 @@ export class SqlTasksService {
             // Only include the message if it isn't the same as the task status string we already have - some (but not all) task status
             // notifications include this string as the message
             const taskMessage = lastMessage ?
-                utils.formatString(localizedConstants.taskStatusWithMessage, taskInfo.taskInfo.name, taskStatusString, lastMessage) :
+                utils.formatString(localizedConstants.taskStatusWithNameAndMessage, taskInfo.taskInfo.name, taskStatusString, lastMessage) :
                 utils.formatString(localizedConstants.taskStatusWithName, taskInfo.taskInfo.name, taskStatusString);
             showCompletionMessage(taskProgressInfo.status, taskMessage);
             if (taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script && taskProgressInfo.script) {
