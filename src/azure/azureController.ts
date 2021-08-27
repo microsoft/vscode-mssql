@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { promises as fs } from 'fs';
 import { CredentialStore } from '../credentialstore/credentialstore';
-import { StorageService } from './StorageService';
+import { StorageService } from './storageService';
 import * as utils from '../models/utils';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from 'ads-adal-library';
