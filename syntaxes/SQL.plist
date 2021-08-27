@@ -640,12 +640,12 @@
 				<dict>
 					<key>captures</key>
 					<dict>
-						<key>1</key>
+						<key>2</key>
 						<dict>
 							<key>name</key>
 							<string>punctuation.definition.string.begin.sql</string>
 						</dict>
-						<key>2</key>
+						<key>3</key>
 						<dict>
 							<key>name</key>
 							<string>punctuation.definition.string.end.sql</string>
