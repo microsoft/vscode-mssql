@@ -3,13 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
-const semver = require('semver');
-const plist = require('plist');
+import * as semver from 'semver';
+import * as plist from 'plist';
 
 const unknown = 'unknown';
 

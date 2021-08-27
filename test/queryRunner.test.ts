@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-import assert = require('assert');
+import * as assert from 'assert';
 import { EventEmitter } from 'events';
 import QueryRunner from './../src/controllers/queryRunner';
 import { QueryNotificationHandler } from './../src/controllers/queryNotificationHandler';

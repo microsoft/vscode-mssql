@@ -3,21 +3,19 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import vscode = require('vscode');
-import { IAccount, IAccountKey, IAccountDisplayInfo } from '../models/contracts/azure/accountInterfaces';
+import * as vscode from 'vscode';
+import { IAccount, IAccountKey } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
-import Constants = require('../constants/constants');
-import VscodeWrapper from '../controllers/vscodeWrapper';
+import * as Constants from '../constants/constants';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
-import { Tenant, Token } from 'ads-adal-library';
+import { Tenant } from 'ads-adal-library';
 
 export class AccountService {
 
     private _account: IAccount = undefined;
-    private _token = undefined;
     private _isStale: boolean;
     protected readonly commonTenant: Tenant = {
         id: 'common',
@@ -26,7 +24,6 @@ export class AccountService {
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _vscodeWrapper: VscodeWrapper,
         private _context: vscode.ExtensionContext,
         private _accountStore: AccountStore
     ) {}
@@ -41,13 +38,6 @@ export class AccountService {
 
     public get client(): SqlToolsServiceClient {
         return this._client;
-    }
-
-    /**
-     * Public for testing purposes only
-     */
-    public set token(value: any) {
-        this._token = value;
     }
 
     public convertToAzureAccount(azureSession: IAzureSession): IAccount {

@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
 import { AzureAuthType } from 'ads-adal-library';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import { AccountStore } from '../azure/accountStore';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import * as vscodeMssql from 'vscode-mssql';
 
 // interfaces

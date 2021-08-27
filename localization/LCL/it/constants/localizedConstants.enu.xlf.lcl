@@ -239,7 +239,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Canceling]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Annullamento in corso]]></Val>
+            <Val><![CDATA[In fase di annullamento]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1465,12 +1465,18 @@
       <Item ItemId=";succeededWithWarning" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Succeeded with warning]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Completato con avviso]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";taskStatusWithMessage" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{1}. {2}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{1}. {2}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

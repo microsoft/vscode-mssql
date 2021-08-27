@@ -4,13 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 import * as keytarType from 'keytar';
 import { join, parse } from 'path';
-import { StorageService } from './StorageService';
+import { StorageService } from './storageService';
 import * as crypto from 'crypto';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { CachingProvider } from 'ads-adal-library';
 
 function getSystemKeytar(): Keytar | undefined | null {
     try {
+        // tslint:disable-next-line:no-require-imports
         return require('keytar');
     } catch (err) {
         console.log(err);

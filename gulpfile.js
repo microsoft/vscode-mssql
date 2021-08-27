@@ -68,9 +68,7 @@ gulp.task('ext:compile-src', (done) => {
                 })
                 .pipe(nls.rewriteLocalizeCalls())
                 .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-                .pipe(srcmap.write('.', {
-                   sourceRoot: function(file){ return file.cwd + '/src'; }
-                }))
+                .pipe(srcmap.write('.'))
                 .pipe(gulp.dest('out/src/'));
 });
 
@@ -83,9 +81,7 @@ gulp.task('ext:compile-view', (done) => {
         .pipe(tsProject())
         .pipe(nls.rewriteLocalizeCalls())
         .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-        .pipe(srcmap.write('.', {
-            sourceRoot: function(file){ return file.cwd + '/src'; }
-        }))
+        .pipe(srcmap.write('.'))
         .pipe(gulp.dest('out/src/views/htmlcontent'));
 });
 
@@ -210,9 +206,7 @@ gulp.task('ext:compile-tests', (done) => {
                 process.exit(1);
             }
         })
-        .pipe(srcmap.write('.', {
-           sourceRoot: function(file){ return file.cwd + '/test'; }
-                }))
+        .pipe(srcmap.write('.'))
         .pipe(gulp.dest('out/test/'));
 
 });

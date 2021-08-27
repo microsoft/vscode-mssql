@@ -3,8 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-'use strict';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import { IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
@@ -15,8 +14,8 @@ import { ConnectionUI } from '../src/views/connectionUI';
 import { ConnectionStore } from '../src/models/connectionStore';
 import ConnectionManager from '../src/controllers/connectionManager';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import LocalizedConstants = require('../src/constants/localizedConstants');
-import assert = require('assert');
+import * as LocalizedConstants from '../src/constants/localizedConstants';
+import * as assert from 'assert';
 import { AccountStore } from '../src/azure/accountStore';
 import { IConnectionInfo } from 'vscode-mssql';
 

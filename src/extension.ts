@@ -3,15 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import vscode = require('vscode');
-import Constants = require('./constants/constants');
+import * as vscode from 'vscode';
+import * as vscodeMssql from 'vscode-mssql';
+import * as Constants from './constants/constants';
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
 import { IConnectionInfo, IExtension } from 'vscode-mssql';
 import { Deferred } from './protocol';
 import * as utils from './models/utils';
+import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
+import SqlToolsServerClient from './languageservice/serviceclient';
 
 let controller: MainController = undefined;
 
@@ -31,6 +33,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
     await controller.activate();
     return {
+        sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
         promptForConnection: (ignoreFocusOut?: boolean) => {
             return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
         },
@@ -53,8 +56,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         listDatabases: (connectionUri: string) => {
             return controller.connectionManager.listDatabases(connectionUri);
         },
+        getDatabaseNameFromTreeNode: (node: vscodeMssql.ITreeNodeInfo) => {
+            return ObjectExplorerUtils.getDatabaseName(node);
+        },
         dacFx: controller.dacFxService,
-        schemaCompare: controller.schemaCompareService
+        schemaCompare: controller.schemaCompareService,
+        azureFunctions: controller.azureFunctionsService
     };
 }
 

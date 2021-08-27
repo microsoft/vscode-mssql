@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import { Component, OnInit, Inject, forwardRef, ViewChild, ViewChildren, QueryList, ElementRef,
-    EventEmitter, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
+    EventEmitter, AfterViewChecked } from '@angular/core';
 import { IObservableCollection, SlickGrid, VirtualizedCollection } from 'angular2-slickgrid';
 import { ISlickRange, FieldType, IColumnDefinition, IGridDataRow,
     IGridIcon, IMessage, IRange, ISelectionData, DbCellValue } from '../../../../../models/interfaces';
@@ -153,19 +153,18 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private scrollTimeOutTime = 200;
     private windowSize = 50;
     private maxScrollGrids = 8;
-    private selectionModel = 'DragRowSelectionModel';
-    private slickgridPlugins = ['AutoColumnSize'];
+    public selectionModel = 'DragRowSelectionModel';
+    public slickgridPlugins = ['AutoColumnSize'];
     private _rowHeight = 29;
     private _resultsPaneBoundary = 22;
     private _defaultNumShowingRows = 8;
-    private Constants = Constants;
-    private Utils = Utils;
-    private _messagesPaneHeight: number;
+    public Constants = Constants;
+    public Utils = Utils;
 
     // the function implementations of keyboard available events
     private shortcutfunc = {
         'event.focusResultsGrid': () => {
-            this.slickgrids.toArray()[this.activeGrid]._grid.setActiveCell(0, 1);
+            this.slickgrids.toArray()[this.activeGrid]['_grid'].setActiveCell(0, 1);
         },
         'event.toggleResultPane': () => {
             this.resultActive = !this.resultActive;
@@ -276,7 +275,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         }
     ];
 
-    private startString = new Date().toLocaleTimeString();
+    public startString = new Date().toLocaleTimeString();
     private config;
 
     // FIELDS
@@ -289,21 +288,21 @@ export class AppComponent implements OnInit, AfterViewChecked {
     private messages: IMessage[] = [];
     private scrollTimeOut: NodeJS.Timeout;
     private messagesAdded = false;
-    private resizing = false;
-    private resizeHandleTop = 0;
-    private scrollEnabled = true;
+    public resizing = false;
+    public resizeHandleTop = 0;
+    public scrollEnabled = true;
     private resultActive = true;
     private _messageActive = true;
     private firstRender = true;
-    private resultsScrollTop = 0;
+    public resultsScrollTop = 0;
     private activeGrid = 0;
-    private messageShortcut;
-    private resultShortcut;
-    private totalElapsedTimeSpan: number;
-    private complete = false;
+    public messageShortcut;
+    public resultShortcut;
+    public totalElapsedTimeSpan: number;
+    public complete = false;
     private uri: string;
     private hasRunQuery: boolean = false;
-    private resultsFontSize;
+    public resultsFontSize;
     @ViewChild('contextmenu') contextMenu: ContextMenu;
     @ViewChild('messagescontextmenu') messagesContextMenu: MessagesContextMenu;
     @ViewChildren('slickgrid') slickgrids: QueryList<SlickGrid>;
@@ -321,8 +320,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 
     constructor(@Inject(forwardRef(() => DataService)) public dataService: DataService,
                 @Inject(forwardRef(() => ShortcutService)) private shortcuts: ShortcutService,
-                @Inject(forwardRef(() => ElementRef)) private _el: ElementRef,
-                @Inject(forwardRef(() => ChangeDetectorRef)) private cd: ChangeDetectorRef) {}
+                @Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {}
 
     /**
      * Called by Angular when the component is initialized
@@ -469,7 +467,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Toggle the messages pane
      */
     private toggleMessagesPane(): void {
-        this.messageActive = !this.messageActive
+        this.messageActive = !this.messageActive;
         if (this.messageActive) {
             this.resizeResults();
         }
@@ -501,7 +499,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Handles toggling messages via key event
      */
-    private handleMessagesKeydown(event: KeyboardEvent): void {
+    public handleMessagesKeydown(event: KeyboardEvent): void {
         if (this.handleKeydown(event)) {
             this.toggleMessagesPane();
         }
@@ -510,7 +508,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
     /**
      * Handles toggling messages via key event
      */
-    private handleResultsKeydown(event: KeyboardEvent): void {
+    public handleResultsKeydown(event: KeyboardEvent): void {
         if (this.handleKeydown(event)) {
             this.toggleResultsPane();
         }
@@ -793,22 +791,20 @@ export class AppComponent implements OnInit, AfterViewChecked {
      * Sets up the resize for the messages/results panes bar
      */
     setupResizeBind(): void {
-        const self = this;
-        let $resizeHandle = $(self._el.nativeElement.querySelector('#messageResizeHandle'));
-        let $messagePane = $(self._el.nativeElement.querySelector('#messages'));
+        let $resizeHandle = $(this._el.nativeElement.querySelector('#messageResizeHandle'));
+        let $messagePane = $(this._el.nativeElement.querySelector('#messages'));
         $resizeHandle.bind('dragstart', (e) => {
-            self.resizing = true;
-            self.resizeHandleTop = e.pageY;
-            this._messagesPaneHeight = $('#messages').get(0).clientHeight;
+            this.resizing = true;
+            this.resizeHandleTop = e.pageY;
             return true;
         });
 
         $resizeHandle.bind('drag', (e) => {
-            self.resizeHandleTop = e.pageY;
+            this.resizeHandleTop = e.pageY;
         });
 
         $resizeHandle.bind('dragend', (e) => {
-            self.resizing = false;
+            this.resizing = false;
             // redefine the min size for the messages based on the final position
             $messagePane.css('min-height', $(window).height() - (e.pageY + 22));
             this.resizeResults();

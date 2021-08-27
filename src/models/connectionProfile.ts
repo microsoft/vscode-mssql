@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import vscode = require('vscode');
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as vscode from 'vscode';
+import * as LocalizedConstants from '../constants/localizedConstants';
 import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
@@ -52,7 +51,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             profile.authenticationType = authOptions[0].value;
         }
         let azureController = new AzureController(context);
-        let azureAuthChoices: INameValueChoice[] = ConnectionProfile.getAzureAuthChoices();
         let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
         let accountAnswer: IAccount;
         azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount'});

@@ -3,14 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import Constants = require('../constants/constants');
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
-import Utils = require('../models/utils');
+import * as Utils from '../models/utils';
 import { ConnectionStore } from '../models/connectionStore';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
@@ -127,7 +126,7 @@ export default class ConnectionManager {
         }
 
         // Initiate the firewall service
-        this._accountService = new AccountService(this.client, this.vscodeWrapper, context, this._accountStore);
+        this._accountService = new AccountService(this.client, context, this._accountStore);
         this._firewallService = new FirewallService(this._accountService);
         this._failedUriToFirewallIpMap = new Map<string, string>();
 
@@ -275,15 +274,6 @@ export default class ConnectionManager {
         // Using a lambda here to perform variable capture on the 'this' reference
         return (event: LanguageServiceContracts.IntelliSenseReadyParams): void => {
             this._statusView.languageServiceStatusChanged(event.ownerUri, LocalizedConstants.intelliSenseUpdatedStatus);
-            let connection = this.getConnectionInfo(event.ownerUri);
-            if (connection !== undefined) {
-                let numberOfCharacters: number = 0;
-                if (this.vscodeWrapper.activeTextEditor !== undefined
-                && this.vscodeWrapper.activeTextEditor.document !== undefined) {
-                    let document = this.vscodeWrapper.activeTextEditor.document;
-                    numberOfCharacters = document.getText().length;
-                }
-            }
         };
     }
 
@@ -822,18 +812,5 @@ export default class ConnectionManager {
                 this.azureController.removeToken(answers.account);
             }
         });
-
-
-    }
-
-    private getIsServerLinux(osVersion: string): string {
-        if (osVersion) {
-            if (osVersion.indexOf('Linux') !== -1) {
-                return 'Linux';
-            } else {
-                return 'Windows';
-            }
-        }
-        return '';
     }
 }

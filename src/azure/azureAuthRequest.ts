@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as LocalizedConstants from '../constants/localizedConstants';
 import { AuthRequest, AzureAuthError } from 'ads-adal-library';
 import { SimpleWebServer } from './simpleWebServer';
 import * as crypto from 'crypto';
@@ -129,7 +129,7 @@ export class AzureAuthRequest implements AuthRequest {
         const selection = await this._vscodeWrapper.showInformationMessage(msg, LocalizedConstants.msgCopyAndOpenWebpage);
         if (selection === LocalizedConstants.msgCopyAndOpenWebpage) {
             this._vscodeWrapper.clipboardWriteText(userCode);
-            let test = await vscode.env.openExternal(vscode.Uri.parse(verificationUrl));
+            await vscode.env.openExternal(vscode.Uri.parse(verificationUrl));
             console.log(msg);
             console.log(userCode);
             console.log(verificationUrl);

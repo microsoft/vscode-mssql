@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import assert = require('assert');
+import * as assert from 'assert';
 import * as TypeMoq from 'typemoq';
 import { OutputChannel } from 'vscode';
 
@@ -21,9 +21,9 @@ import StatusView from '../src/views/statusView';
 import * as Utils from '../src/models/utils';
 import { TestExtensionContext, TestPrompter } from './stubs';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import LocalizedConstants = require('../src/constants/localizedConstants');
+import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { ConnectionUI } from '../src/views/connectionUI';
-import Constants = require('../src/constants/constants');
+import * as Constants from '../src/constants/constants';
 import { IConnectionInfo } from 'vscode-mssql';
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-'use strict';
+
 import * as vscode from 'vscode';
 import {
     LanguageClient, LanguageClientOptions, ServerOptions,
@@ -14,7 +14,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
 import { VersionRequest } from '../models/contracts';
 import { Logger } from '../models/logger';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import ServerProvider from './server';
 import ServiceDownloadProvider from './serviceDownloadProvider';
 import DecompressProvider from './decompressProvider';
@@ -103,6 +103,14 @@ class LanguageClientErrorHandler {
 // The Service Client class handles communication with the VS Code LanguageClient
 export default class SqlToolsServiceClient {
 
+    private _sqlToolsServicePath: string | undefined = undefined;
+    /**
+     * Path to the root of the SQL Tools Service folder
+     */
+    public get sqlToolsServicePath(): string | undefined {
+        return this._sqlToolsServicePath;
+    }
+
     private _logPath: string;
 
     // singleton instance
@@ -189,10 +197,12 @@ export default class SqlToolsServiceClient {
                             _channel.show();
                         }
                         let installedServerPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
+                        this._sqlToolsServicePath = path.dirname(installedServerPath);
                         this.initializeLanguageClient(installedServerPath, context, platformInfo.isWindows());
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(true, true, installedServerPath));
                     } else {
+                        this._sqlToolsServicePath = path.dirname(serverPath);
                         this.initializeLanguageClient(serverPath, context, platformInfo.isWindows());
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(false, true, serverPath));

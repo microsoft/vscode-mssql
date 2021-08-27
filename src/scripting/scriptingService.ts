@@ -60,7 +60,7 @@ export class ScriptingService {
      */
     public createScriptingParams(node: TreeNodeInfo, uri: string, operation: ScriptOperation): IScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
-        let serverInfo = this._connectionManager.getServerInfo(node.connectionCredentials);
+        let serverInfo = this._connectionManager.getServerInfo(node.connectionInfo);
         let scriptCreateDropOption: string;
         switch (operation) {
             case (ScriptOperation.Select):

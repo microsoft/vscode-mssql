@@ -2,8 +2,6 @@
 *  Copyright (c) Microsoft Corporation. All rights reserved.
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
-'use strict';
-
 
 // This code is originally from https://github.com/microsoft/vsts-vscode
 // License: https://github.com/Microsoft/vsts-vscode/blob/master/LICENSE.txt

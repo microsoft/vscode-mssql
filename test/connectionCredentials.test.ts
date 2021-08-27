@@ -3,12 +3,11 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-'use strict';
 import * as TypeMoq from 'typemoq';
 
 import * as utils from '../src/models/utils';
 import * as Constants from '../src/constants/constants';
-import LocalizedConstants = require('../src/constants/localizedConstants');
+import * as LocalizedConstants from '../src/constants/localizedConstants';
 import * as stubs from './stubs';
 import * as interfaces from '../src/models/interfaces';
 import { ConnectionProfile } from '../src/models/connectionProfile';
@@ -19,7 +18,7 @@ import { TestPrompter } from './stubs';
 import { IConnectionProfile } from '../src/models/interfaces';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 
-import assert = require('assert');
+import * as assert from 'assert';
 import { IConnectionInfo } from 'vscode-mssql';
 
 suite('ConnectionCredentials Tests', () => {

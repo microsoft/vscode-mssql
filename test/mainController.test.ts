@@ -3,19 +3,17 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-'use strict';
 import * as TypeMoq from 'typemoq';
-
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import MainController from '../src/controllers/mainController';
 import ConnectionManager from '../src/controllers/connectionManager';
 import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
 import * as Extension from '../src/extension';
-import Constants = require('../src/constants/constants');
-import LocalizedConstants = require('../src/constants/localizedConstants');
+import * as Constants from '../src/constants/constants';
+import * as LocalizedConstants from '../src/constants/localizedConstants';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { TestExtensionContext } from './stubs';
-import assert = require('assert');
+import * as assert from 'assert';
 
 suite('MainController Tests', () => {
     let document: vscode.TextDocument;

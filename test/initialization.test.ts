@@ -3,8 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import assert = require('assert');
-import vscode = require('vscode');
+import * as assert from 'assert';
+import * as vscode from 'vscode';
 
 import * as Extension from '../src/extension';
 import ConnectionManager from '../src/controllers/connectionManager';

@@ -11,7 +11,7 @@ import ConnectionManager from '../controllers/connectionManager';
 import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { QueryHistoryNode, EmptyHistoryNode } from './queryHistoryNode';
 import VscodeWrapper from '../controllers/vscodeWrapper';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import UntitledSqlDocumentService from '../controllers/untitledSqlDocumentService';
 import { Deferred } from '../protocol';
 import StatusView from '../views/statusView';
@@ -38,7 +38,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     ) {
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
-        this._queryHistoryUI = new QueryHistoryUI(this._prompter, this._vscodeWrapper);
+        this._queryHistoryUI = new QueryHistoryUI(this._prompter);
     }
 
     clearAll(): void {

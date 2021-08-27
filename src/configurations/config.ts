@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-const fs = require('fs');
+import * as fs from 'fs';
 import * as path from 'path';
 import * as Constants from '../constants/constants';
 import {IConfig} from '../languageservice/interfaces';
@@ -91,7 +90,7 @@ export default class Config implements IConfig {
 
     static loadConfig(): any {
         let configContent = fs.readFileSync(path.join(__dirname, '../config.json'));
-        return JSON.parse(configContent);
+        return JSON.parse(configContent.toString());
     }
 }
 

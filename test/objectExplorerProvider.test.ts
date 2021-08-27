@@ -16,6 +16,7 @@ import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountSignInTreeNode } from '../src/objectExplorer/accountSignInTreeNode';
 import { ConnectTreeNode } from '../src/objectExplorer/connectTreeNode';
 import { NodeInfo } from '../src/models/contracts/objectExplorer/nodeInfo';
+import { Deferred } from '../src/protocol';
 
 suite('Object Explorer Provider Tests', () => {
 
@@ -38,28 +39,28 @@ suite('Object Explorer Provider Tests', () => {
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    // test('Test Create Session', () => {
-    //     expect(objectExplorerService.object.currentNode, 'Current Node should be undefined').is.equal(undefined);
-    //     expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer should not exist until started').is.equal(undefined);
-    //     const promise = new Deferred<TreeNodeInfo>();
-    //     objectExplorerService.setup(s => s.createSession(promise, undefined)).returns(() => {
-    //         return new Promise((resolve, reject) => {
-    //             objectExplorerService.setup(s => s.currentNode).returns(() => TypeMoq.It.isAny());
-    //             objectExplorerProvider.objectExplorerExists = true;
-    //             promise.resolve(new TreeNodeInfo(undefined, undefined,
-    //                 undefined, undefined,
-    //                 undefined, undefined,
-    //                 undefined, undefined,
-    //                 undefined));
-    //         });
-    //     });
-    //     objectExplorerProvider.createSession(promise, undefined).then(async () => {
-    //         expect(objectExplorerService.object.currentNode, 'Current Node should not be undefined').is.not.equal(undefined);
-    //         expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer session should exist').is.equal(true);
-    //         let node = await promise;
-    //         expect(node, 'Created session node not be undefined').is.not.equal(undefined);
-    //     });
-    // });
+    test.skip('Test Create Session', () => {
+        expect(objectExplorerService.object.currentNode, 'Current Node should be undefined').is.equal(undefined);
+        expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer should not exist until started').is.equal(undefined);
+        const promise = new Deferred<TreeNodeInfo>();
+        objectExplorerService.setup(s => s.createSession(promise, undefined)).returns(() => {
+            return new Promise((resolve, reject) => {
+                objectExplorerService.setup(s => s.currentNode).returns(() => TypeMoq.It.isAny());
+                objectExplorerProvider.objectExplorerExists = true;
+                promise.resolve(new TreeNodeInfo(undefined, undefined,
+                    undefined, undefined,
+                    undefined, undefined,
+                    undefined, undefined,
+                    undefined));
+            });
+        });
+        objectExplorerProvider.createSession(promise, undefined).then(async () => {
+            expect(objectExplorerService.object.currentNode, 'Current Node should not be undefined').is.not.equal(undefined);
+            expect(objectExplorerProvider.objectExplorerExists, 'Object Explorer session should exist').is.equal(true);
+            let node = await promise;
+            expect(node, 'Created session node not be undefined').is.not.equal(undefined);
+        });
+    });
 
     test('Test Refresh Node', (done) => {
         let treeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
@@ -233,8 +234,8 @@ suite('Object Explorer Node Types Test', () => {
         expect(treeNode.isLeaf, 'Node should not be a leaf').is.equal(false);
         treeNode.parentNode = treeNode.parentNode;
         expect(treeNode.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
-        treeNode.connectionCredentials = treeNode.connectionCredentials;
-        expect(treeNode.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+        treeNode.connectionInfo = treeNode.connectionInfo;
+        expect(treeNode.connectionInfo, 'Connection credentials should be equal to expected value').is.equal(undefined);
     });
 
     test('Test fromNodeInfo function', () => {
@@ -259,7 +260,7 @@ suite('Object Explorer Node Types Test', () => {
         treeNodeInfo.isLeaf = nodeInfo.isLeaf;
         expect(treeNodeInfo.isLeaf, 'Node should not be a leaf').is.equal(nodeInfo.isLeaf);
         expect(treeNodeInfo.parentNode, 'Parent node should be equal to expected value').is.equal(undefined);
-        expect(treeNodeInfo.connectionCredentials, 'Connection credentials should be equal to expected value').is.equal(undefined);
+        expect(treeNodeInfo.connectionInfo, 'Connection credentials should be equal to expected value').is.equal(undefined);
         expect(treeNodeInfo.errorMessage, 'Error message should be equal to expected value').is.equal('test_error');
         expect(treeNodeInfo.metadata, 'Node metadata should be the same as nodeInfo metadata').is.equal(nodeInfo.metadata);
     });

@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 import * as path from 'path';
 import * as vscode from 'vscode';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
 

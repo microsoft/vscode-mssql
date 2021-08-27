@@ -10,8 +10,8 @@ import { ScriptingService } from '../src/scripting/scriptingService';
 import { ScriptingRequest, IScriptingObject, IScriptingResult, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ServerInfo } from '../src/models/contracts/connection';
-import { ObjectMetadata, MetadataType } from '../src/models/contracts/metadata/metadataRequest';
 import { assert } from 'chai';
+import { MetadataType, ObjectMetadata } from 'vscode-mssql';
 
 suite('Scripting Service Tests', () => {
 
