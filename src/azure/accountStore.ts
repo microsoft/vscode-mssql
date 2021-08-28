@@ -13,8 +13,11 @@ export class AccountStore {
     ) { }
 
     public getAccounts(): IAccount[] {
-        let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount) ?? [];
-        return configValues;
+        if (this._context && this._context.globalState && this._context.globalState.get) {
+            let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount) ?? [];
+            return configValues;
+        }
+        return [];
     }
 
     public getAccount(key: string): IAccount | undefined {
