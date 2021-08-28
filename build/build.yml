@@ -79,18 +79,27 @@ steps:
     targets: 'ext:install-service'
 
 - task: Gulp@0
-  displayName: 'gulp cover:jenkins'
+  displayName: 'gulp test'
   inputs:
-    targets: 'cover:jenkins'
+    targets: 'test'
     publishJUnitResults: true
     testResultsFiles: '$(Build.SourcesDirectory)/test-reports/*.xml'
   continueOnError: true
 
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publish code coverage from $(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
+# disable code coverage pending investigation - 8/27/2021 (karlb)
+# - task: Gulp@0
+#   displayName: 'gulp cover:jenkins'
+#   inputs:
+#     targets: 'cover:jenkins'
+#     publishJUnitResults: true
+#     testResultsFiles: '$(Build.SourcesDirectory)/test-reports/*.xml'
+#   continueOnError: true
+
+# - task: PublishCodeCoverageResults@1
+#   displayName: 'Publish code coverage from $(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
+#   inputs:
+#     codeCoverageTool: Cobertura
+#     summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
 
 trigger:
   - master
