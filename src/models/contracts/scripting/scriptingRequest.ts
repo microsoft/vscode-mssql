@@ -208,13 +208,13 @@ export interface IScriptingObject {
     name: string;
 
     /**
-	 * The parent object name which is needed for scripting subobjects like triggers or indexes
-	 */
+     * The parent object name which is needed for scripting subobjects like triggers or indexes
+     */
     parentName?: string;
 
-	/**
-	 * The parent object type name such as Table, View, etc.
-	 */
+    /**
+     * The parent object type name such as Table, View, etc.
+     */
     parentTypeName?: string;
 }
 
