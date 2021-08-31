@@ -555,9 +555,9 @@ declare module 'vscode-mssql' {
 
         schema: string;
 
-	    parentName: string;
+	    parentName?: string;
 
-	    parentTypeName: string;
+	    parentTypeName?: string;
     }
 
    /**
