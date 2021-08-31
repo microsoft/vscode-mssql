@@ -52,7 +52,7 @@ export class ScriptingService {
             schema: metadata.schema,
             name: metadata.name,
             parentName: metadata.parentName,
-		    parentTypeName: metadata.parentTypeName
+            parentTypeName: metadata.parentTypeName
         };
         return scriptingObject;
     }
