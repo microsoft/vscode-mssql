@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import {IDecompressProvider, IPackage} from './interfaces';
 import  {ILogger} from '../models/interfaces';
 import * as DecompressTar from 'tar';

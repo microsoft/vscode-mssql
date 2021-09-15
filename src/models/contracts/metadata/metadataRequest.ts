@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import { RequestType } from 'vscode-languageclient';
-
+import * as vscodeMssql from 'vscode-mssql';
 
 export class MetadataQueryParams {
     /**
@@ -13,28 +13,8 @@ export class MetadataQueryParams {
     public ownerUri: string;
 }
 
-export enum MetadataType {
-    Table = 0,
-    View = 1,
-    SProc = 2,
-    Function = 3
-}
-
-// tslint:disable-next-line:interface-name
-export interface ObjectMetadata {
-    metadataType: MetadataType;
-
-    metadataTypeName: string;
-
-    urn: string;
-
-    name: string;
-
-    schema: string;
-}
-
 export class MetadataQueryResult {
-    public metadata: ObjectMetadata[];
+    public metadata: vscodeMssql.ObjectMetadata[];
 }
 
 

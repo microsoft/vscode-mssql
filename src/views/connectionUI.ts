@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as constants from '../constants/constants';
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as LocalizedConstants from '../constants/localizedConstants';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import ConnectionManager from '../controllers/connectionManager';
 import { ConnectionStore } from '../models/connectionStore';
@@ -21,7 +21,9 @@ import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
+import * as ConnectionContracts from '../models/contracts/connection';
 import { IConnectionInfo } from 'vscode-mssql';
+import { Deferred } from '../protocol';
 
 /**
  * The different tasks for managing connection profiles.
@@ -83,14 +85,16 @@ export class ConnectionUI {
     /**
      * Helper to let user choose a connection from a picklist, or to create a new connection.
      * Return the ConnectionInfo for the user's choice
+     * @param ignoreFocusOut Whether to ignoreFocusOut on the quickpick prompt
      * @returns The connection picked or created.
      */
-    public async promptForConnection(): Promise<IConnectionInfo | undefined> {
+    public async promptForConnection(ignoreFocusOut = false): Promise<IConnectionInfo | undefined> {
         let picklist = this._connectionStore.getPickListItems();
         // We have recent connections - show them in a picklist
         const selection = await this.promptItemChoice({
             placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
-            matchOnDescription: true
+            matchOnDescription: true,
+            ignoreFocusOut
         }, picklist);
         if (selection) {
             return this.handleSelectedConnection(selection);

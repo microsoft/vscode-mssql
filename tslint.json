@@ -54,13 +54,12 @@
     "no-inferrable-types": false,
     "no-internal-module": true,
     "no-null-keyword": true,
-    "no-require-imports": false,
+    "no-require-imports": true,
     "no-shadowed-variable": true,
     "no-string-literal": false,
     "no-switch-case-fall-through": false,
     "no-trailing-whitespace": true,
     "no-unused-expression": false,
-    "no-use-before-declare": true,
     "no-var-keyword": true,
     "no-var-requires": false,
     "object-literal-sort-keys": false,
@@ -106,7 +105,6 @@
         "variable-declaration": "nospace"
       }
     ],
-    "use-strict": false,
     "variable-name": [
       true,
       "allow-leading-underscore",

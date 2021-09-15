@@ -1,7 +1,4 @@
-
-'use strict';
-
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 
 export class QuestionTypes {
     public static get input(): string { return 'input'; }

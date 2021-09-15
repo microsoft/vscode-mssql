@@ -3,13 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import vscode = require('vscode');
-import Constants = require('./constants/constants');
+import * as vscode from 'vscode';
+import * as vscodeMssql from 'vscode-mssql';
+import * as Constants from './constants/constants';
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
-import { IExtension } from 'vscode-mssql';
+import { IConnectionInfo, IExtension } from 'vscode-mssql';
+import { Deferred } from './protocol';
+import * as utils from './models/utils';
+import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 
 let controller: MainController = undefined;
 
@@ -29,10 +32,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
     await controller.activate();
     return {
-        promptForConnection: () => {
-            return controller.connectionManager.connectionUI.promptForConnection();
+        promptForConnection: (ignoreFocusOut?: boolean) => {
+            return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
         },
-        dacFx: controller.dacFxService
+        connect: async (connectionInfo: IConnectionInfo) => {
+
+            const uri = utils.generateQueryUri().toString();
+            const connectionPromise = new Deferred<boolean>();
+            // First wait for initial connection request to succeed
+            const requestSucceeded = await controller.connectionManager.connect(uri, connectionInfo, connectionPromise);
+            if (!requestSucceeded) {
+                throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
+            }
+            // Next wait for the actual connection to be made
+            const connectionSucceeded = await connectionPromise;
+            if (!connectionSucceeded) {
+                throw new Error(`Connection for ${JSON.stringify(connectionInfo)} failed`);
+            }
+            return uri;
+        },
+        listDatabases: (connectionUri: string) => {
+            return controller.connectionManager.listDatabases(connectionUri);
+        },
+        getDatabaseNameFromTreeNode: (node: vscodeMssql.ITreeNodeInfo) => {
+            return ObjectExplorerUtils.getDatabaseName(node);
+        },
+        dacFx: controller.dacFxService,
+        schemaCompare: controller.schemaCompareService,
+        azureFunctions: controller.azureFunctionsService
     };
 }
 

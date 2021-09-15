@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import assert = require('assert');
+import * as assert from 'assert';
 import * as TypeMoq from 'typemoq';
 import {IConfig} from '../src/languageservice/interfaces';
 import { WorkspaceConfiguration, workspace } from 'vscode';

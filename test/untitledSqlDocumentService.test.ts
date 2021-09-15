@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 import UntitledSqlDocumentService from '../src/controllers/untitledSqlDocumentService';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 

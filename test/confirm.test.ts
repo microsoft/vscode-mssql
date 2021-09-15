@@ -3,11 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as TypeMoq from 'typemoq';
-import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import LocalizedConstants = require('../src/constants/localizedConstants');
-import ConfirmPrompt from '../src/prompts/confirm';
-
 suite('Test Confirm Prompt', () => {
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors

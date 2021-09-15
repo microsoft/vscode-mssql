@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
-import LocalizedConstants = require('../constants/localizedConstants');
-import ConnInfo = require('../models/connectionInfo');
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
+import * as ConnInfo from '../models/connectionInfo';
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from '../models/utils';
 import VscodeWrapper from '../controllers/vscodeWrapper';

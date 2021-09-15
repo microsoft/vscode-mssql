@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import assert = require('assert');
+import * as assert from 'assert';
 import * as TypeMoq from 'typemoq';
 import {IConfig, IStatusView, IHttpClient, IDecompressProvider} from '../src/languageservice/interfaces';
 import ServiceDownloadProvider from '../src/languageservice/serviceDownloadProvider';
@@ -14,7 +14,7 @@ import {Runtime} from '../src/models/platform';
 import * as path from 'path';
 import  {ILogger} from '../src/models/interfaces';
 import {Logger} from '../src/models/logger';
-let fse = require('fs-extra');
+import * as fse from 'fs-extra';
 
 interface IFixture {
     downloadUrl: string;

@@ -3,10 +3,8 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-'use strict';
-
 import * as LocalizedConstants from '../src/constants/localizedConstants';
-import assert = require('assert');
+import * as assert from 'assert';
 
 suite('Localization Tests', () => {
 

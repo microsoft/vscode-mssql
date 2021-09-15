@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import { Url, parse as parseUrl } from 'url';
-let httpProxyAgent = require('http-proxy-agent');
-let httpsProxyAgent = require('https-proxy-agent');
+import * as httpProxyAgent from 'http-proxy-agent';
+import * as httpsProxyAgent from 'https-proxy-agent';
 
 function getSystemProxyURL(requestURL: Url): string {
     if (requestURL.protocol === 'http:') {

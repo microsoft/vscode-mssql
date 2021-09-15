@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-import assert = require('assert');
+import * as assert from 'assert';
 import QueryRunner from './../src/controllers/queryRunner';
 import { QueryNotificationHandler } from './../src/controllers/queryNotificationHandler';
 import { NotificationHandler } from 'vscode-languageclient';

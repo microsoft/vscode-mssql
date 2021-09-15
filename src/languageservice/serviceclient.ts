@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-'use strict';
+
 import * as vscode from 'vscode';
 import {
     LanguageClient, LanguageClientOptions, ServerOptions,
@@ -14,7 +14,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
 import { VersionRequest } from '../models/contracts';
 import { Logger } from '../models/logger';
-import Constants = require('../constants/constants');
+import * as Constants from '../constants/constants';
 import ServerProvider from './server';
 import ServiceDownloadProvider from './serviceDownloadProvider';
 import DecompressProvider from './decompressProvider';

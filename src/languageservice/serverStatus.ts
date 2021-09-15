@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import {IStatusView} from './interfaces';
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
 
 /*
 * The status class which includes the service initialization result.

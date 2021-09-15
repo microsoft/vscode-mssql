@@ -3,18 +3,17 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-'use strict';
 import * as vscode from 'vscode';
-import paths = require('path');
-const fs = require('fs');
-import Mocha = require('mocha');
-import istanbul = require('istanbul');
-
-let glob = require('glob');
-let remapIstanbul = require('remap-istanbul');
+import * as paths from 'path';
+import * as fs from 'fs';
+import * as Mocha from 'mocha';
+import * as istanbul from 'istanbul';
+import * as glob from 'glob';
+import * as remapIstanbul from 'remap-istanbul';
 
 // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
 // Since we are not running in a tty environment, we just implementt he method statically
+// tslint:disable-next-line:no-require-imports
 let tty = require('tty');
 if (!tty.getWindowSize) {
     tty.getWindowSize = function (): number[] { return [80, 75]; };
@@ -66,6 +65,7 @@ class CoverageRunner {
         });
 
         // Create a match function - taken from the run-with-cover.js in istanbul.
+        // tslint:disable-next-line:no-require-imports
         let decache = require('decache');
         let fileMap = {};
         srcFiles.forEach(file => {
@@ -170,13 +170,14 @@ function readCoverOptions(testsRoot: string): ITestRunnerOptions {
     let coverConfig: ITestRunnerOptions = undefined;
     if (fs.existsSync(coverConfigPath)) {
         let configContent = fs.readFileSync(coverConfigPath);
-        coverConfig = JSON.parse(configContent);
+        coverConfig = JSON.parse(configContent.toString());
     }
     return coverConfig;
 }
 
 function run(testsRoot, clb): any {
     // Enable source map support
+    // tslint:disable-next-line:no-require-imports
     require('source-map-support').install();
 
     // Read configuration for the coverage file

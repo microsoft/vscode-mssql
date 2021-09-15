@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import LocalizedConstants = require('../constants/localizedConstants');
+import * as LocalizedConstants from '../constants/localizedConstants';
 import { ConnectionDetails } from './contracts/connection';
 import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionStore } from './connectionStore';

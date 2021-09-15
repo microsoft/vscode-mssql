@@ -3,18 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-import getmac = require('getmac');
+import * as getmac from 'getmac';
 import * as crypto from 'crypto';
 import * as os from 'os';
 import * as path from 'path';
 import * as findRemoveSync from 'find-remove';
-import vscode = require('vscode');
-import Constants = require('../constants/constants');
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ExtensionContext } from 'vscode';
-import LocalizedConstants = require('../constants/localizedConstants');
-import fs = require('fs');
+import * as LocalizedConstants from '../constants/localizedConstants';
+import * as fs from 'fs';
 import { AzureAuthType } from 'ads-adal-library';
 import { IConnectionInfo } from 'vscode-mssql';
 
@@ -484,4 +483,16 @@ export function limitStringSize(input: string, forCommandPalette: boolean = fals
         }
     }
     return input;
+}
+
+let uriIndex = 0;
+/**
+ * Generates a URI intended for use when running queries if a file connection isn't present (such
+ * as when running ad-hoc queries).
+ */
+export function generateQueryUri(scheme = 'vscode-mssql-adhoc'): vscode.Uri {
+    return vscode.Uri.from({
+        scheme: scheme,
+        authority: `Query${uriIndex++}`
+    });
 }

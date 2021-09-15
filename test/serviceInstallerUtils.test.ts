@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import { assert } from 'chai';
 import { StubStatusView, StubLogger, getServiceInstallDirectoryRoot, getServiceInstallDirectory, installService } from '../src/languageservice/serviceInstallerUtil';
 

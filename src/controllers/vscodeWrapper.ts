@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 
 import { AzureLoginStatus } from '../models/interfaces';
 import * as Constants from './../constants/constants';

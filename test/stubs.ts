@@ -3,10 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-'use strict';
 import * as TypeMoq from 'typemoq';
 import { IQuestion, IPrompter, IPromptCallback } from '../src/prompts/question';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 
 // Dummy implementation to simplify mocking
 class TestPrompter implements IPrompter {

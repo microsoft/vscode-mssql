@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { ObjectMetadata } from '../metadata/metadataRequest';
+import { ObjectMetadata } from 'vscode-mssql';
 
 /**
  * Information describing a Node in the Object Explorer tree.

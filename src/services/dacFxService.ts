@@ -7,7 +7,7 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import * as dacFxContracts from '../models/contracts/dacFx/dacFxContracts';
 import * as mssql from 'vscode-mssql';
 
-export class DacFxService {
+export class DacFxService implements mssql.IDacFxService {
 
     constructor(
         private _client: SqlToolsServiceClient) { }

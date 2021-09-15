@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-import assert = require('assert');
+import * as assert from 'assert';
 import ServiceDownloadProvider from '../src/languageservice/serviceDownloadProvider';
 import ServerProvider from '../src/languageservice/server';
 import {ServerStatusView} from '../src/languageservice/serverStatus';

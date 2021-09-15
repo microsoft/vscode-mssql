@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 declare module 'vscode-mssql' {
+
+    import * as vscode from 'vscode';
+
     /**
      * Covers defining what the vscode-mssql extension exports to other extensions
      *
@@ -25,10 +28,40 @@ declare module 'vscode-mssql' {
          * Service for accessing DacFx functionality
          */
         readonly dacFx: IDacFxService;
+
+        /**
+         * Service for accessing SchemaCompare functionality
+         */
+        readonly schemaCompare: ISchemaCompareService;
+
+        /**
+         * Service for accessing AzureFunctions functionality
+         */
+        readonly azureFunctions: IAzureFunctionsService;
+
         /**
          * Prompts the user to select an existing connection or create a new one, and then returns the result
+         * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
          */
-        promptForConnection(): Promise<IConnectionInfo | undefined>
+        promptForConnection(ignoreFocusOut?: boolean): Promise<IConnectionInfo | undefined>;
+
+        /**
+         * Attempts to create a new connection for the given connection info. An error is thrown and displayed
+         * to the user if an error occurs while connecting.
+         * @param connectionInfo The connection info
+         * @returns The URI associated with this connection
+         */
+        connect(connectionInfo: IConnectionInfo): Promise<string>;
+
+        /**
+         * Lists the databases for a given connection. Must be given an already-opened connection to succeed.
+         * @param connectionUri The URI of the connection to list the databases for.
+         * @returns The list of database names
+         */
+        listDatabases(connectionUri: string): Promise<string[]>;
+
+        getDatabaseNameFromTreeNode(node: ITreeNodeInfo): string;
+
     }
 
     /**
@@ -76,7 +109,7 @@ declare module 'vscode-mssql' {
         authenticationType: string;
 
         /**
-         * Gets or sets the azure account token to use
+         * Gets or sets the azure account token to use.
          */
         azureAccountToken: string;
 
@@ -189,7 +222,7 @@ declare module 'vscode-mssql' {
         typeSystemVersion: string;
 
         /**
-         * Gets or sets the connection string to use for this connection
+         * Gets or sets the connection string to use for this connection.
          */
         connectionString: string;
     }
@@ -203,6 +236,10 @@ declare module 'vscode-mssql' {
         schemaObjectType = 5
     }
 
+    export interface ISchemaCompareService {
+        schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
+    }
+
     export interface IDacFxService {
         exportBacpac(databaseName: string, packageFilePath: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<DacFxResult>;
         importBacpac(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<DacFxResult>;
@@ -213,6 +250,10 @@ declare module 'vscode-mssql' {
         generateDeployPlan(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<GenerateDeployPlanResult>;
         getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
         validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
+    }
+
+    export interface IAzureFunctionsService {
+        addSqlBinding(bindingType: BindingType, filePath: string, functionName: string, objectName: string, connectionStringSetting: string): Thenable<ResultStatus>;
     }
 
     export const enum TaskExecutionMode {
@@ -458,4 +499,48 @@ declare module 'vscode-mssql' {
         createStreamingJobTsql: string;
     }
 
+    export interface SchemaCompareGetOptionsParams { }
+
+    export interface SchemaCompareOptionsResult extends ResultStatus {
+        defaultDeploymentOptions: DeploymentOptions;
+    }
+
+    export interface ITreeNodeInfo extends vscode.TreeItem {
+        readonly connectionInfo: IConnectionInfo;
+        nodeType: string;
+        metadata: ObjectMetadata;
+        parentNode: ITreeNodeInfo;
+    }
+
+    export const enum MetadataType {
+        Table = 0,
+        View = 1,
+        SProc = 2,
+        Function = 3
+    }
+
+    export interface ObjectMetadata {
+        metadataType: MetadataType;
+
+        metadataTypeName: string;
+
+        urn: string;
+
+        name: string;
+
+        schema: string;
+    }
+
+    export const enum BindingType {
+        input,
+        output
+    }
+
+    export interface AddSqlBindingParams {
+        filePath: string;
+        functionName: string;
+        objectName: string;
+        bindingType: BindingType;
+        connectionStringSetting: string;
+    }
 }
