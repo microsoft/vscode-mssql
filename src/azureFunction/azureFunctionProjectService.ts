@@ -86,7 +86,6 @@ export class AzureFunctionProjectService {
         let defaultBindedFunctionText = fs.readFileSync(filePath, 'utf-8');
         // Add missing import for Enumerable
         let newValue = genericCollectionImport + os.EOL + defaultBindedFunctionText;
-
         // Replace default binding text
         let newValueLines = newValue.split(os.EOL);
         const defaultLineSet = new Set(defaultSqlBindingTextLines);
@@ -98,6 +97,7 @@ export class AzureFunctionProjectService {
             } else if (defaultLine.trimStart() === defaultBindingResult) { // Result change
                 replacedValueLines.push(defaultLine.replace(defaultBindingResult, sqlBindingResult));
             } else {
+                // Normal lines to be included
                 replacedValueLines.push(defaultLine);
             }
         }

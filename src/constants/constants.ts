@@ -156,7 +156,6 @@ export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 // Azure Functions
 export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
 export const genericCollectionImport = 'using System.Collections.Generic;'
-export const defaultBindingResult = 'return new OkObjectResult(responseMessage);';
 export const defaultSqlBindingTextLines =
 [
     'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
@@ -166,4 +165,5 @@ export const defaultSqlBindingTextLines =
     'name = name ?? data?.name;',
     'string responseMessage = string.IsNullOrEmpty(name) ? \"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.\" : $\"Hello, {name}. This HTTP triggered function executed successfully.\";'
 ];
+export const defaultBindingResult = 'return new OkObjectResult(responseMessage);';
 export const sqlBindingResult = `return new OkObjectResult(result);`
