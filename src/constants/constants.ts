@@ -155,6 +155,7 @@ export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 
 // Azure Functions
 export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
+export const sqlConnectionString = "SqlConnectionString"
 export const genericCollectionImport = 'using System.Collections.Generic;'
 export const defaultSqlBindingTextLines =
 [

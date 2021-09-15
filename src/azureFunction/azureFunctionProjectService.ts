@@ -8,7 +8,7 @@ import * as af from '../../typings/vscode-azurefunctions.api';
 import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as mssql from 'vscode-mssql';
-import { azureFunctionsExtensionName, defaultBindingResult, defaultSqlBindingTextLines, genericCollectionImport, sqlBindingResult } from '../constants/constants';
+import { azureFunctionsExtensionName, defaultBindingResult, defaultSqlBindingTextLines, genericCollectionImport, sqlBindingResult, sqlConnectionString } from '../constants/constants';
 import LocalizedConstants = require('../constants/localizedConstants');
 import path = require('path');
 import { AzureFunctionsService } from '../services/azureFunctionsService';
@@ -60,7 +60,7 @@ export class AzureFunctionProjectService {
             functionFile,
             functionName,
             schema+"."+table,
-            "SqlConnectionString"
+            sqlConnectionString
         );
 
         this.refactorAzureFunction(functionFile);
