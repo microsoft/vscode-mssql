@@ -107,4 +107,3 @@ export function getServiceInstallDirectoryRoot(): string {
     return directoryPath;
 }
 
-

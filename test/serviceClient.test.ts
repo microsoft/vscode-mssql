@@ -46,41 +46,41 @@ suite('Service Client tests', () => {
     }
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    // test('initializeForPlatform should not install the service if already exists', (done) => {
-    //     let fixture: IFixture = {
-    //         installedServerPath: 'already installed service',
-    //         downloadedServerPath: undefined,
-    //         platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
-    //     };
+    test.skip('initializeForPlatform should not install the service if already exists', (done) => {
+        let fixture: IFixture = {
+            installedServerPath: 'already installed service',
+            downloadedServerPath: undefined,
+            platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
+        };
 
-    //     setupMocks(fixture);
-    //     let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
+        setupMocks(fixture);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-    //     serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
-    //         assert.notEqual(result, undefined);
-    //         assert.equal(result.serverPath, fixture.installedServerPath);
-    //         assert.equal(result.installedBeforeInitializing, false);
-    //     });
-    //     done();
-    // });
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
+        });
+        done();
+    });
 
-    // test('initializeForPlatform should install the service if not exists', (done) => {
-    //     let fixture: IFixture = {
-    //         installedServerPath: undefined,
-    //         downloadedServerPath: 'downloaded service',
-    //         platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
-    //     };
+    test.skip('initializeForPlatform should install the service if not exists', (done) => {
+        let fixture: IFixture = {
+            installedServerPath: undefined,
+            downloadedServerPath: 'downloaded service',
+            platformInfo: new PlatformInformation('win32', 'x86_64', undefined)
+        };
 
-    //     setupMocks(fixture);
-    //     let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
+        setupMocks(fixture);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-    //     serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then(result => {
-    //         assert.notEqual(result, undefined);
-    //         assert.equal(result.serverPath, fixture.downloadedServerPath);
-    //         assert.equal(result.installedBeforeInitializing, true);
-    //     });
-    //     done();
-    // });
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then(result => {
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.downloadedServerPath);
+            assert.equal(result.installedBeforeInitializing, true);
+        });
+        done();
+    });
 
     test('initializeForPlatform should fail given unsupported platform', () => {
         let fixture: IFixture = {
@@ -98,61 +98,61 @@ suite('Service Client tests', () => {
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    // test('initializeForPlatform should set v1 given mac 10.11 or lower', (done) => {
-    //     let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
-    //     platformInfoMock.callBase = true;
-    //     platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => true);
+    test.skip('initializeForPlatform should set v1 given mac 10.11 or lower', (done) => {
+        let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
+        platformInfoMock.callBase = true;
+        platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => true);
 
-    //     let fixture: IFixture = {
-    //         installedServerPath: 'already installed service',
-    //         downloadedServerPath: undefined,
-    //         platformInfo: platformInfoMock.object
-    //     };
+        let fixture: IFixture = {
+            installedServerPath: 'already installed service',
+            downloadedServerPath: undefined,
+            platformInfo: platformInfoMock.object
+        };
 
-    //     let serviceVersion: number = 0;
-    //     testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
+        let serviceVersion: number = 0;
+        testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
 
-    //     setupMocks(fixture);
-    //     let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
+        setupMocks(fixture);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-    //     serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
-    //         assert.equal(serviceVersion, 1);
-    //         platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
-    //         testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.once());
-    //         assert.notEqual(result, undefined);
-    //         assert.equal(result.serverPath, fixture.installedServerPath);
-    //         assert.equal(result.installedBeforeInitializing, false);
-    //     });
-    //     done();
-    // });
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+            assert.equal(serviceVersion, 1);
+            platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.once());
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
+        });
+        done();
+    });
 
-    // test('initializeForPlatform should ignore service version given mac 10.12 or higher', (done) => {
-    //     let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
-    //     platformInfoMock.callBase = true;
-    //     platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => false);
+    test.skip('initializeForPlatform should ignore service version given mac 10.12 or higher', (done) => {
+        let platformInfoMock = TypeMoq.Mock.ofInstance(new PlatformInformation('darwin', 'x86_64', undefined));
+        platformInfoMock.callBase = true;
+        platformInfoMock.setup(x => x.isMacVersionLessThan(TypeMoq.It.isAnyString())).returns(() => false);
 
-    //     let fixture: IFixture = {
-    //         installedServerPath: 'already installed service',
-    //         downloadedServerPath: undefined,
-    //         platformInfo: platformInfoMock.object
-    //     };
+        let fixture: IFixture = {
+            installedServerPath: 'already installed service',
+            downloadedServerPath: undefined,
+            platformInfo: platformInfoMock.object
+        };
 
-    //     let serviceVersion: number = 0;
-    //     testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
+        let serviceVersion: number = 0;
+        testConfig.setup(x => x.useServiceVersion(TypeMoq.It.isAnyNumber())).callback(num => serviceVersion = num);
 
-    //     setupMocks(fixture);
-    //     let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
+        setupMocks(fixture);
+        let serviceClient = new SqlToolsServiceClient(testConfig.object, testServiceProvider.object, logger, testStatusView.object, vscodeWrapper.object);
 
-    //     serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
-    //         assert.equal(serviceVersion, 0);
-    //         platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
-    //         testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.never());
-    //         assert.notEqual(result, undefined);
-    //         assert.equal(result.serverPath, fixture.installedServerPath);
-    //         assert.equal(result.installedBeforeInitializing, false);
-    //     });
-    //     done();
-    // });
+        serviceClient.initializeForPlatform(fixture.platformInfo, undefined).then( result => {
+            assert.equal(serviceVersion, 0);
+            platformInfoMock.verify(x => x.isMacVersionLessThan(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            testConfig.verify(x => x.useServiceVersion(1), TypeMoq.Times.never());
+            assert.notEqual(result, undefined);
+            assert.equal(result.serverPath, fixture.installedServerPath);
+            assert.equal(result.installedBeforeInitializing, false);
+        });
+        done();
+    });
 
     test('handleLanguageServiceStatusNotification should change the UI status', (done) => {
         return new Promise((resolve, reject) => {

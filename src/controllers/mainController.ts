@@ -59,7 +59,7 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
-    private _sqlTasksService: SqlTasksService;
+    public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
     public azureFunctionsService: AzureFunctionsService;
@@ -155,7 +155,7 @@ export default class MainController implements vscode.Disposable {
 
             this.initializeQueryHistory();
 
-            this._sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
+            this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 

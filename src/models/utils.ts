@@ -25,8 +25,6 @@ const msInS = 1000;
 const configTracingLevel = 'tracingLevel';
 const configLogRetentionMinutes = 'logRetentionMinutes';
 const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
-const extensionConfigSectionName = 'mssql';
-const configLogDebugInfo = 'logDebugInfo';
 
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 

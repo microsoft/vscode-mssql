@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
-import { NotificationType } from 'vscode-languageclient';
+import { NotificationType, RequestType } from 'vscode-languageclient';
 import { TaskExecutionMode } from 'vscode-mssql';
 import { Deferred } from '../protocol';
 import * as utils from '../models/utils';
@@ -43,18 +43,27 @@ export interface TaskInfo {
     isCancelable: boolean;
 }
 
-export namespace TaskStatusChangedNotification {
+namespace TaskStatusChangedNotification {
     export const type = new NotificationType<TaskProgressInfo, void>('tasks/statuschanged');
 }
 
-export namespace TaskCreatedNotification {
+namespace TaskCreatedNotification {
     export const type = new NotificationType<TaskInfo, void>('tasks/newtaskcreated');
+}
+
+interface CancelTaskParams {
+    taskId: string;
+}
+
+namespace CancelTaskRequest {
+    export const type = new RequestType<CancelTaskParams, boolean, void, void>('tasks/canceltask');
 }
 
 type ActiveTaskInfo = {
     taskInfo: TaskInfo,
     progressCallback: ProgressCallback,
-    completionPromise: Deferred<void>
+    completionPromise: Deferred<void>,
+    lastMessage?: string
 };
 type ProgressCallback = (value: { message?: string; increment?: number }) => void;
 
@@ -69,6 +78,13 @@ export class SqlTasksService {
     constructor(private _client: SqlToolsServiceClient, private _untitledSqlDocumentService: UntitledSqlDocumentService) {
         this._client.onNotification(TaskCreatedNotification.type, taskInfo => this.handleTaskCreatedNotification(taskInfo));
         this._client.onNotification(TaskStatusChangedNotification.type, taskProgressInfo => this.handleTaskChangedNotification(taskProgressInfo));
+    }
+
+    private cancelTask(taskId: string): Thenable<boolean> {
+        const params: CancelTaskParams = {
+            taskId
+        };
+        return this._client.sendRequest(CancelTaskRequest.type, params);
     }
 
     /**
@@ -91,10 +107,13 @@ export class SqlTasksService {
             {
                 location: vscode.ProgressLocation.Notification,
                 title: taskInfo.name,
-                cancellable: false
+                cancellable: taskInfo.isCancelable
             },
-            async (progress, _token): Promise<void> => {
+            async (progress, token): Promise<void> => {
                 newTaskInfo.progressCallback = value => progress.report(value);
+                token.onCancellationRequested(() => {
+                    this.cancelTask(taskInfo.taskId);
+                });
                 await newTaskInfo.completionPromise;
             }
         );
@@ -114,15 +133,26 @@ export class SqlTasksService {
             return;
         }
         const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status);
+        if (taskProgressInfo.message && (taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase())) {
+            taskInfo.lastMessage = taskProgressInfo.message;
+        }
+
         if (isTaskCompleted(taskProgressInfo.status)) {
             // Task is completed, complete the progress notification and display a final toast informing the
             // user of the final status.
             this._activeTasks.delete(taskProgressInfo.taskId);
-            taskInfo.completionPromise.resolve();
+            if (taskProgressInfo.status === TaskStatus.Canceled) {
+                taskInfo.completionPromise.reject(new Error('Task cancelled'));
+            } else {
+                taskInfo.completionPromise.resolve();
+            }
+
+            // Get the message to display, if the last status doesn't have a valid message then get the last valid one
+            const lastMessage = (taskProgressInfo.message && taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()) ?? taskInfo.lastMessage;
             // Only include the message if it isn't the same as the task status string we already have - some (but not all) task status
             // notifications include this string as the message
-            const taskMessage = taskProgressInfo.message && taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase() ?
-                utils.formatString(localizedConstants.taskStatusWithMessage, taskInfo.taskInfo.name, taskStatusString, taskProgressInfo.message) :
+            const taskMessage = lastMessage ?
+                utils.formatString(localizedConstants.taskStatusWithNameAndMessage, taskInfo.taskInfo.name, taskStatusString, lastMessage) :
                 utils.formatString(localizedConstants.taskStatusWithName, taskInfo.taskInfo.name, taskStatusString);
             showCompletionMessage(taskProgressInfo.status, taskMessage);
             if (taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script && taskProgressInfo.script) {

@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import * as Utils from '../models/utils';
-import VscodeWrapper from '../controllers/vscodeWrapper';
 import { IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import * as LocalizedConstants from '../constants/localizedConstants';
@@ -25,8 +24,7 @@ export interface QueryHistoryQuickPickItem extends vscode.QuickPickItem {
 export class QueryHistoryUI {
 
     constructor(
-        private _prompter: IPrompter,
-        private _vscodeWrapper: VscodeWrapper
+        private _prompter: IPrompter
     ) {}
 
     public convertToQuickPickItem(node: vscode.TreeItem): QueryHistoryQuickPickItem {
