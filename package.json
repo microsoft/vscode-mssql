@@ -291,6 +291,11 @@
           "command": "mssql.deleteQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@3"
+        },
+        {
+          "command": "mssql.createAzureFunction",
+          "when": "view == objectExplorer && viewItem == Table",
+          "group": "MS_SQL@6"
         }
       ],
       "commandPalette": [
@@ -511,6 +516,11 @@
       {
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.createAzureFunction",
+        "title": "%mssql.createAzureFunction%",
         "category": "MS SQL"
       }
     ],

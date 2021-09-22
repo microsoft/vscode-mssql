@@ -32,6 +32,8 @@ import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { DacFxService } from '../services/dacFxService';
 import { IConnectionInfo } from 'vscode-mssql';
+import { AzureFunctionProjectService } from '../azureFunction/azureFunctionProjectService';
+import { getConnectionString } from '../utils/connectionStringUtil';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
@@ -67,8 +69,8 @@ export default class MainController implements vscode.Disposable {
      * @constructor
      */
     constructor(context: vscode.ExtensionContext,
-                connectionManager?: ConnectionManager,
-                vscodeWrapper?: VscodeWrapper) {
+        connectionManager?: ConnectionManager,
+        vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -114,7 +116,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Initializes the extension
      */
-    public async activate():  Promise<boolean> {
+    public async activate(): Promise<boolean> {
         // initialize the language client then register the commands
         const didInitialize = await this.initialize();
         if (didInitialize) {
@@ -130,9 +132,9 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdManageConnectionProfiles, async () => { await this.onManageProfiles(); });
             this.registerCommand(Constants.cmdChooseDatabase);
-            this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors( this.onChooseDatabase()) ; } );
+            this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
             this.registerCommand(Constants.cmdChooseLanguageFlavor);
-            this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()) ; } );
+            this._event.on(Constants.cmdChooseLanguageFlavor, () => { this.runAndLogErrors(this.onChooseLanguageFlavor()); });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, () => { this.onCancelQuery(); });
             this.registerCommand(Constants.cmdShowGettingStarted);
@@ -148,6 +150,7 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdAadRemoveAccount);
             this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 
+            this.azureFunctionsService = new AzureFunctionsService(SqlToolsServerClient.instance);
             this.initializeObjectExplorer();
 
             this.initializeQueryHistory();
@@ -155,7 +158,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
-            this.azureFunctionsService = new AzureFunctionsService(SqlToolsServerClient.instance);
+
 
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -338,8 +341,8 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdRefreshObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
-                await this._objectExplorerProvider.refreshNode(treeNodeInfo);
-        }));
+                    await this._objectExplorerProvider.refreshNode(treeNodeInfo);
+                }));
 
         // Sign In into Object Explorer Node
         this._context.subscriptions.push(
@@ -366,9 +369,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdDisconnectObjectExplorerNode, async (node: TreeNodeInfo) => {
-            await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
-            return this._objectExplorerProvider.refresh(undefined);
-        }));
+                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
+                    return this._objectExplorerProvider.refresh(undefined);
+                }));
 
         // Initiate the scripting service
         this._scriptingService = new ScriptingService(this._connectionMgr);
@@ -376,33 +379,33 @@ export default class MainController implements vscode.Disposable {
         // Script as Select
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-            Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
-                await this.scriptNode(node, ScriptOperation.Select, true);
-            }));
+                Constants.cmdScriptSelect, async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Select, true);
+                }));
 
         // Script as Create
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-            Constants.cmdScriptCreate, async (node: TreeNodeInfo) =>
-            await this.scriptNode(node, ScriptOperation.Create)));
+                Constants.cmdScriptCreate, async (node: TreeNodeInfo) =>
+                await this.scriptNode(node, ScriptOperation.Create)));
 
         // Script as Drop
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-            Constants.cmdScriptDelete, async (node: TreeNodeInfo) =>
-            await this.scriptNode(node, ScriptOperation.Delete)));
+                Constants.cmdScriptDelete, async (node: TreeNodeInfo) =>
+                await this.scriptNode(node, ScriptOperation.Delete)));
 
         // Script as Execute
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-            Constants.cmdScriptExecute, async (node: TreeNodeInfo) =>
-            await this.scriptNode(node, ScriptOperation.Execute)));
+                Constants.cmdScriptExecute, async (node: TreeNodeInfo) =>
+                await this.scriptNode(node, ScriptOperation.Execute)));
 
         // Script as Alter
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-            Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
-            await this.scriptNode(node, ScriptOperation.Alter)));
+                Constants.cmdScriptAlter, async (node: TreeNodeInfo) =>
+                await this.scriptNode(node, ScriptOperation.Alter)));
 
         // Copy object name command
         this._context.subscriptions.push(
@@ -413,8 +416,8 @@ export default class MainController implements vscode.Disposable {
                     return;
                 } else if (node.contextValue === Constants.serverLabel ||
                     node.contextValue === Constants.disconnectedServerLabel) {
-                        const label = typeof node.label === 'string' ? node.label : node.label.label;
-                        await this._vscodeWrapper.clipboardWriteText(label);
+                    const label = typeof node.label === 'string' ? node.label : node.label.label;
+                    await this._vscodeWrapper.clipboardWriteText(label);
                 } else {
                     let scriptingObject = this._scriptingService.getObjectFromNode(node);
                     const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
@@ -428,6 +431,14 @@ export default class MainController implements vscode.Disposable {
                     }
                 }
             }));
+
+        const afService = new AzureFunctionProjectService(this.azureFunctionsService );
+        // Generate Azure Function command
+        this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdCreateAzureFunction, async (node: TreeNodeInfo) => {
+            const database = ObjectExplorerUtils.getDatabaseName(node);
+            const connStr = getConnectionString(node.connectionInfo.server, node.connectionInfo.authenticationType, database, node.connectionInfo.user, node.connectionInfo.password);
+            await afService.createAzureFunction(connStr, node.metadata.schema, node.metadata.name);
+        }));
     }
 
     /**
@@ -451,63 +462,63 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdRefreshQueryHistory, (ownerUri: string, hasError: boolean) => {
-                    config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-                    let queryHistoryFeatureEnabled = config.get(Constants.configEnableQueryHistoryFeature);
-                    let queryHistoryCaptureEnabled = config.get(Constants.configEnableQueryHistoryCapture);
-                    if (queryHistoryFeatureEnabled && queryHistoryCaptureEnabled) {
-                        const timeStamp = new Date();
-                        this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
-                    }
-            }));
+                        config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+                        let queryHistoryFeatureEnabled = config.get(Constants.configEnableQueryHistoryFeature);
+                        let queryHistoryCaptureEnabled = config.get(Constants.configEnableQueryHistoryCapture);
+                        if (queryHistoryFeatureEnabled && queryHistoryCaptureEnabled) {
+                            const timeStamp = new Date();
+                            this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
+                        }
+                    }));
 
             // Command to enable clear all entries in Query History
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdClearAllQueryHistory, () => {
-                    this._queryHistoryProvider.clearAll();
-            }));
+                        this._queryHistoryProvider.clearAll();
+                    }));
 
             // Command to enable delete an entry in Query History
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdDeleteQueryHistory, (node: QueryHistoryNode) => {
-                    this._queryHistoryProvider.deleteQueryHistoryEntry(node);
-            }));
+                        this._queryHistoryProvider.deleteQueryHistoryEntry(node);
+                    }));
 
             // Command to enable open a query in Query History
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdOpenQueryHistory, async (node: QueryHistoryNode) => {
-                    await this._queryHistoryProvider.openQueryHistoryEntry(node);
-            }));
+                        await this._queryHistoryProvider.openQueryHistoryEntry(node);
+                    }));
 
             // Command to enable run a query in Query History
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdRunQueryHistory, async (node: QueryHistoryNode) => {
-                    await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
-            }));
+                        await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
+                    }));
 
             // Command to start the query history capture
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdStartQueryHistory, async (node: QueryHistoryNode) => {
-                    await this._queryHistoryProvider.startQueryHistoryCapture();
-            }));
+                        await this._queryHistoryProvider.startQueryHistoryCapture();
+                    }));
 
             // Command to pause the query history capture
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdPauseQueryHistory, async (node: QueryHistoryNode) => {
-                    await this._queryHistoryProvider.pauseQueryHistoryCapture();
-            }));
+                        await this._queryHistoryProvider.pauseQueryHistoryCapture();
+                    }));
 
             // Command to open the query history experience in the command palette
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdCommandPaletteQueryHistory, async () => {
-                    await this._queryHistoryProvider.showQueryHistoryCommandPalette();
-            }));
+                        await this._queryHistoryProvider.showQueryHistoryCommandPalette();
+                    }));
             this._queryHistoryRegistered = true;
         }
     }
@@ -843,9 +854,9 @@ export default class MainController implements vscode.Disposable {
         await vscode.env.openExternal(vscode.Uri.parse(Constants.changelogLink));
     }
 
-     /**
-      * Shows the Getting Started page in the preview browser
-      */
+    /**
+     * Shows the Getting Started page in the preview browser
+     */
     private async launchGettingStartedPage(): Promise<void> {
         await vscode.env.openExternal(vscode.Uri.parse(Constants.gettingStartedGuideLink));
     }
@@ -947,14 +958,14 @@ export default class MainController implements vscode.Disposable {
         // If there was a saveTextDoc event just before this closeTextDoc event and it
         // was untitled then we know it was an untitled save
         if (this._lastSavedUri &&
-                closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
-                this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
+            closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
+            this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold) {
             // Untitled file was saved and connection will be transfered
             await this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
 
-        // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
+            // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (this._lastOpenedUri &&
-                this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
+            this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold) {
             // File was renamed and connection will be transfered
             await this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastOpenedUri);
 
@@ -1060,8 +1071,8 @@ export default class MainController implements vscode.Disposable {
                 await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
                 if (profile.authenticationType === Constants.sqlAuthentication &&
                     profile.savePassword) {
-                        await this.connectionManager.deleteCredential(profile);
-                    }
+                    await this.connectionManager.deleteCredential(profile);
+                }
             }
             // remove them from object explorer
             await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
