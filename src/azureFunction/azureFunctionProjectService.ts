@@ -13,10 +13,10 @@ import LocalizedConstants = require('../constants/localizedConstants');
 import path = require('path');
 import { AzureFunctionsService } from '../services/azureFunctionsService';
 
-const SqlBindingNugetSource = 'https://www.myget.org/F/azure-appservice/api/v3/index.json';
-const SqlBindingPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
-const SqlBindingPackageVersion = '1.0.0-preview3';
-const SqlConnectionStringPropertyName = "SqlConnectionString";
+const sqlBindingNugetSource = 'https://www.myget.org/F/azure-appservice/api/v3/index.json';
+const sqlBindingPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
+const sqlBindingPackageVersion = '1.0.0-preview3';
+const sqlConnectionStringPropertyName = "SqlConnectionString";
 
 export class AzureFunctionProjectService {
 
@@ -140,19 +140,19 @@ export class AzureFunctionProjectService {
     private async addNugetReferenceToProjectFile(): Promise<void> {
         // Make sure the nuget source is added
         const currentSources = await this.executeCommand('dotnet nuget list source');
-        if (currentSources.indexOf(SqlBindingNugetSource) === -1) {
-            await this.executeCommand(`dotnet nuget add source ${SqlBindingNugetSource}`);
+        if (currentSources.indexOf(sqlBindingNugetSource) === -1) {
+            await this.executeCommand(`dotnet nuget add source ${sqlBindingNugetSource}`);
         }
         const projFile = await this.getProjectFile();
-        await this.executeCommand(`dotnet add package ${SqlBindingPackageName} --version ${SqlBindingPackageVersion}`, path.dirname(projFile));
+        await this.executeCommand(`dotnet add package ${sqlBindingPackageName} --version ${sqlBindingPackageVersion}`, path.dirname(projFile));
     }
 
     private async addConnectionStringToConfig(connectionString: string): Promise<void> {
         const settingsFile = await this.getSettingsFile();
         const content = await fs.promises.readFile(settingsFile);
         const config = JSON.parse(content.toString());
-        if (!(SqlConnectionStringPropertyName in config.Values)) {
-            config.Values[SqlConnectionStringPropertyName] = connectionString;
+        if (!(sqlConnectionStringPropertyName in config.Values)) {
+            config.Values[sqlConnectionStringPropertyName] = connectionString;
             await fs.promises.writeFile(settingsFile, JSON.stringify(config, undefined, 2));
         }
     }
