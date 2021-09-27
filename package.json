@@ -615,7 +615,8 @@
                 "default": "SqlLogin",
                 "enum": [
                   "Integrated",
-                  "SqlLogin"
+                  "SqlLogin",
+                  "AzureMFA"
                 ],
                 "description": "%mssql.connection.authenticationType%"
               },
