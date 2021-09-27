@@ -271,7 +271,8 @@
                 "default": "SqlLogin",
                 "enum": [
                   "Integrated",
-                  "SqlLogin"
+                  "SqlLogin",
+                  "AzureMFA"
                 ],
                 "description": "[Optional] Specify the SQL Server authentication type."
               },
