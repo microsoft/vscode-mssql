@@ -612,12 +612,12 @@ export default class ConnectionManager {
                     profile.email = connectionCreds.email;
                     profile.password = connectionCreds.password;
                     profile.server = connectionCreds.server;
-                    let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource)
+                    let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource);
                     if (!azureAccountToken) {
                         let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
                         await this.vscodeWrapper.showErrorMessage(
-                            errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
-                            if (result === LocalizedConstants.refreshTokenLabel) {
+                            errorMessage, LocalizedConstants.refreshTokenLabel).then(async refreshResult => {
+                            if (refreshResult === LocalizedConstants.refreshTokenLabel) {
                                 await this.azureController.getTokens(
                                     profile, this.accountStore, providerSettings.resources.databaseResource);
 
