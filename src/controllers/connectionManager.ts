@@ -29,6 +29,7 @@ import { QuestionTypes, IQuestion } from '../prompts/question';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import { AzureController } from '../azure/azureController';
 import { IConnectionInfo } from 'vscode-mssql';
+import providerSettings from '../azure/providerSettings';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -600,6 +601,35 @@ export default class ConnectionManager {
             // close active connection
             await this.disconnect(fileUri);
             // connect to the server/database
+            if (connectionCreds.authenticationType === Constants.azureMfa) {
+                if (!connectionCreds.azureAccountToken) {
+                    let account = this.accountStore.getAccount(connectionCreds.accountId);
+                    let profile = new ConnectionProfile();
+                    profile.accountId = connectionCreds.accountId;
+                    profile.authenticationType = connectionCreds.authenticationType;
+                    profile.azureAccountToken = connectionCreds.azureAccountToken;
+                    profile.database = connectionCreds.database;
+                    profile.email = connectionCreds.email;
+                    profile.password = connectionCreds.password;
+                    profile.server = connectionCreds.server;
+                    let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource)
+                    if (!azureAccountToken) {
+                        let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+                        await this.vscodeWrapper.showErrorMessage(
+                            errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
+                            if (result === LocalizedConstants.refreshTokenLabel) {
+                                await this.azureController.getTokens(
+                                    profile, this.accountStore, providerSettings.resources.databaseResource);
+
+                            } else {
+                                return undefined;
+                            }
+                        });
+                    } else {
+                        connectionCreds.azureAccountToken = azureAccountToken;
+                    }
+                }
+            }
             const result = await this.connect(fileUri, connectionCreds);
             await this.handleConnectionResult(result, fileUri, connectionCreds);
         }
