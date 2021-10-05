@@ -14,6 +14,7 @@ import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
+import { IConnectionProfile } from './models/interfaces';
 
 let controller: MainController = undefined;
 
@@ -37,7 +38,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         promptForConnection: (ignoreFocusOut?: boolean) => {
             return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
         },
-        connect: async (connectionInfo: IConnectionInfo) => {
+        connect: async (connectionInfo: IConnectionInfo, saveConnection?: boolean) => {
 
             const uri = utils.generateQueryUri().toString();
             const connectionPromise = new Deferred<boolean>();
@@ -50,6 +51,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             const connectionSucceeded = await connectionPromise;
             if (!connectionSucceeded) {
                 throw new Error(`Connection for ${JSON.stringify(connectionInfo)} failed`);
+            } else if (saveConnection) {
+                let profile: IConnectionProfile = <IConnectionProfile>connectionInfo;
+                await controller.connectionManager.connectionStore.saveProfile(profile);
             }
             return uri;
         },
