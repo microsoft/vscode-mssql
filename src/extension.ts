@@ -14,7 +14,6 @@ import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
-import { IConnectionProfile } from './models/interfaces';
 
 let controller: MainController = undefined;
 
