@@ -621,7 +621,7 @@ export default class MainController implements vscode.Disposable {
      * Makes a connection and save if saveConnection is set to true
      */
      public async onConnect(uri: string, connectionInfo: IConnectionInfo, connectionPromise : Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
-        if (this.canRunCommand()) {
+        if (this.canRunCommand() && uri && connectionInfo) {
             await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
             if (saveConnection) {
                 await this.createObjectExplorerSession(connectionInfo);
