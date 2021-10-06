@@ -618,6 +618,20 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Makes a connection and save if saveConnection is set to true
+     */
+     public async onConnect(uri: string, connectionInfo: IConnectionInfo, connectionPromise : Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
+        if (this.canRunCommand()) {
+            await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
+            if (saveConnection) {
+                await this.createObjectExplorerSession(connectionInfo);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Clear and rebuild the IntelliSense cache
      */
     public onRebuildIntelliSense(): void {
