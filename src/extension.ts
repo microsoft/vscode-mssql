@@ -42,7 +42,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             const uri = utils.generateQueryUri().toString();
             const connectionPromise = new Deferred<boolean>();
             // First wait for initial connection request to succeed
-            const requestSucceeded = await controller.onConnect(uri, connectionInfo, connectionPromise, saveConnection);
+            const requestSucceeded = await controller.connect(uri, connectionInfo, connectionPromise, saveConnection);
             if (!requestSucceeded) {
                 throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
             }

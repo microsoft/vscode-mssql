@@ -627,7 +627,7 @@ export default class MainController implements vscode.Disposable {
      * otherwise returns true for successful connection
      *
      */
-     public async onConnect(uri: string, connectionInfo: IConnectionInfo, connectionPromise: Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
+     public async connect(uri: string, connectionInfo: IConnectionInfo, connectionPromise: Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
             const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
             if (connectedSuccessfully) {
