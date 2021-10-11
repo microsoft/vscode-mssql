@@ -421,13 +421,7 @@ export class ObjectExplorerService {
                     let azureController = this._connectionManager.azureController;
                     let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
                     let profile = new ConnectionProfile();
-                    profile.accountId = connectionCredentials.accountId;
-                    profile.authenticationType = connectionCredentials.authenticationType;
-                    profile.azureAccountToken = connectionCredentials.azureAccountToken;
-                    profile.database = connectionCredentials.database;
-                    profile.email = connectionCredentials.email;
-                    profile.password = connectionCredentials.password;
-                    profile.server = connectionCredentials.server;
+                    profile.setProfile(connectionCredentials);
                     if (!connectionCredentials.azureAccountToken) {
                         let azureAccountToken = await azureController.refreshToken(
                             account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);

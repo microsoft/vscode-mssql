@@ -15,6 +15,7 @@ import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
 import { IAccount } from './contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
+import { IConnectionInfo } from 'vscode-mssql';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -151,5 +152,15 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             }
         }
         return choices;
+    }
+
+    public setProfile(connectionCredentials: IConnectionInfo): void {
+        this.accountId = connectionCredentials.accountId;
+        this.authenticationType = connectionCredentials.authenticationType;
+        this.azureAccountToken = connectionCredentials.azureAccountToken;
+        this.database = connectionCredentials.database;
+        this.email = connectionCredentials.email;
+        this.password = connectionCredentials.password;
+        this.server = connectionCredentials.server;
     }
 }

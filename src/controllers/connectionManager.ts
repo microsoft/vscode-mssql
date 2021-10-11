@@ -601,35 +601,6 @@ export default class ConnectionManager {
             // close active connection
             await this.disconnect(fileUri);
             // connect to the server/database
-            if (connectionCreds.authenticationType === Constants.azureMfa) {
-                if (!connectionCreds.azureAccountToken) {
-                    let account = this.accountStore.getAccount(connectionCreds.accountId);
-                    let profile = new ConnectionProfile();
-                    profile.accountId = connectionCreds.accountId;
-                    profile.authenticationType = connectionCreds.authenticationType;
-                    profile.azureAccountToken = connectionCreds.azureAccountToken;
-                    profile.database = connectionCreds.database;
-                    profile.email = connectionCreds.email;
-                    profile.password = connectionCreds.password;
-                    profile.server = connectionCreds.server;
-                    let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource);
-                    if (!azureAccountToken) {
-                        let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-                        await this.vscodeWrapper.showErrorMessage(
-                            errorMessage, LocalizedConstants.refreshTokenLabel).then(async refreshResult => {
-                            if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-                                await this.azureController.getTokens(
-                                    profile, this.accountStore, providerSettings.resources.databaseResource);
-
-                            } else {
-                                return undefined;
-                            }
-                        });
-                    } else {
-                        connectionCreds.azureAccountToken = azureAccountToken;
-                    }
-                }
-            }
             const result = await this.connect(fileUri, connectionCreds);
             await this.handleConnectionResult(result, fileUri, connectionCreds);
         }
@@ -702,6 +673,29 @@ export default class ConnectionManager {
     // create a new connection with the connectionCreds provided
     public async connect(fileUri: string, connectionCreds: IConnectionInfo, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
+        if (connectionCreds.authenticationType === Constants.azureMfa) {
+            if (!connectionCreds.azureAccountToken) {
+                let account = this.accountStore.getAccount(connectionCreds.accountId);
+                let profile = new ConnectionProfile();
+                profile.setProfile(connectionCreds);
+                let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource);
+                if (!azureAccountToken) {
+                    let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+                    await this.vscodeWrapper.showErrorMessage(
+                        errorMessage, LocalizedConstants.refreshTokenLabel).then(async refreshResult => {
+                        if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+                            await this.azureController.getTokens(
+                                profile, this.accountStore, providerSettings.resources.databaseResource);
+
+                        } else {
+                            return undefined;
+                        }
+                    });
+                } else {
+                    connectionCreds.azureAccountToken = azureAccountToken;
+                }
+            }
+        }
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.credentials = connectionCreds;
