@@ -681,16 +681,14 @@ export default class ConnectionManager {
                 let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource);
                 if (!azureAccountToken) {
                     let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-                    await this.vscodeWrapper.showErrorMessage(
-                        errorMessage, LocalizedConstants.refreshTokenLabel).then(async refreshResult => {
-                        if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-                            await this.azureController.getTokens(
-                                profile, this.accountStore, providerSettings.resources.databaseResource);
+                    let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
+                    if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+                        await this.azureController.getTokens(
+                            profile, this.accountStore, providerSettings.resources.databaseResource);
 
-                        } else {
-                            return undefined;
-                        }
-                    });
+                    } else {
+                        throw new Error(`${LocalizedConstants.cannotConnect}`);
+                    }
                 } else {
                     connectionCreds.azureAccountToken = azureAccountToken;
                 }
