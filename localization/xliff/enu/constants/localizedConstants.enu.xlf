@@ -126,7 +126,7 @@
             <source xml:lang="en">Add an Account...</source>
         </trans-unit>
         <trans-unit id="cannotConnect">
-            <source xml:lang="en">Cannot connect due to expired tokens</source>
+            <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
         </trans-unit>
         <trans-unit id="aad">
             <source xml:lang="en">AAD</source>
