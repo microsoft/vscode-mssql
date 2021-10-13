@@ -420,8 +420,7 @@ export class ObjectExplorerService {
                 } else if (connectionCredentials.authenticationType === Constants.azureMfa) {
                     let azureController = this._connectionManager.azureController;
                     let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
-                    let profile = new ConnectionProfile();
-                    profile.setProfile(connectionCredentials);
+                    let profile = new ConnectionProfile(connectionCredentials);
                     if (!connectionCredentials.azureAccountToken) {
                         let azureAccountToken = await azureController.refreshToken(
                             account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);

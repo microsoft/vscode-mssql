@@ -673,11 +673,11 @@ export default class ConnectionManager {
     // create a new connection with the connectionCreds provided
     public async connect(fileUri: string, connectionCreds: IConnectionInfo, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
+        // Check if the azure account token is present before sending connect request
         if (connectionCreds.authenticationType === Constants.azureMfa) {
             if (!connectionCreds.azureAccountToken) {
                 let account = this.accountStore.getAccount(connectionCreds.accountId);
-                let profile = new ConnectionProfile();
-                profile.setProfile(connectionCreds);
+                let profile = new ConnectionProfile(connectionCreds);
                 let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource);
                 if (!azureAccountToken) {
                     let errorMessage = LocalizedConstants.msgAccountRefreshFailed;

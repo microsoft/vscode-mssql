@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import { AccountStore } from '../azure/accountStore';
 import * as Constants from '../constants/constants';
 import * as vscodeMssql from 'vscode-mssql';
-import { ConnectionCredentials } from './connectionCredentials';
 
 // interfaces
 export enum ContentType {
@@ -66,7 +65,6 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     accountStore: AccountStore;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
-    setProfile(connectionCredentials: ConnectionCredentials): void;
 }
 
 export enum CredentialsQuickPickItemType {
