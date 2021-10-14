@@ -30,6 +30,18 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public accountStore: AccountStore;
     public accountId: string;
 
+    constructor(connectionCredentials?: ConnectionCredentials) {
+        super();
+        if (connectionCredentials) {
+            this.accountId = connectionCredentials.accountId;
+            this.authenticationType = connectionCredentials.authenticationType;
+            this.azureAccountToken = connectionCredentials.azureAccountToken;
+            this.database = connectionCredentials.database;
+            this.email = connectionCredentials.email;
+            this.password = connectionCredentials.password;
+            this.server = connectionCredentials.server;
+        }
+    }
     /**
      * Creates a new profile by prompting the user for information.
      * @param  {IPrompter} prompter that asks user the questions needed to complete a profile
