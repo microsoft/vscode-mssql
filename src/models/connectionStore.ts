@@ -116,7 +116,7 @@ export class ConnectionStore {
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
         pickListItems.push(<IConnectionCredentialsQuickPickItem> {
-            label: LocalizedConstants.CreateProfileFromConnectionsListLabel,
+            label: `$(add) ${LocalizedConstants.CreateProfileFromConnectionsListLabel}`,
             connectionCreds: undefined,
             quickPickItemType: CredentialsQuickPickItemType.NewConnection
         });

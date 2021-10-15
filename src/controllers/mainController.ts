@@ -618,6 +618,29 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Makes a connection and save if saveConnection is set to true
+     * @param uri The URI of the connection to list the databases for.
+     * @param connectionInfo The connection info
+     * @param connectionPromise connection promise object
+     * @param saveConnection saves the connection profile if sets to true
+     * @returns if saveConnection is set to true, returns true for successful connection and saving the profile
+     * otherwise returns true for successful connection
+     *
+     */
+     public async connect(uri: string, connectionInfo: IConnectionInfo, connectionPromise: Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
+        if (this.canRunCommand() && uri && connectionInfo) {
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
+            if (connectedSuccessfully) {
+                if (saveConnection) {
+                    await this.createObjectExplorerSession(connectionInfo);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Clear and rebuild the IntelliSense cache
      */
     public onRebuildIntelliSense(): void {

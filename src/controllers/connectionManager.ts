@@ -29,6 +29,7 @@ import { QuestionTypes, IQuestion } from '../prompts/question';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import { AzureController } from '../azure/azureController';
 import { IConnectionInfo } from 'vscode-mssql';
+import providerSettings from '../azure/providerSettings';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -672,6 +673,27 @@ export default class ConnectionManager {
     // create a new connection with the connectionCreds provided
     public async connect(fileUri: string, connectionCreds: IConnectionInfo, promise?: Deferred<boolean>): Promise<boolean> {
         const self = this;
+        // Check if the azure account token is present before sending connect request
+        if (connectionCreds.authenticationType === Constants.azureMfa) {
+            if (!connectionCreds.azureAccountToken) {
+                let account = this.accountStore.getAccount(connectionCreds.accountId);
+                let profile = new ConnectionProfile(connectionCreds);
+                let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource);
+                if (!azureAccountToken) {
+                    let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+                    let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
+                    if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+                        await this.azureController.getTokens(
+                            profile, this.accountStore, providerSettings.resources.databaseResource);
+
+                    } else {
+                        throw new Error(`${LocalizedConstants.cannotConnect}`);
+                    }
+                } else {
+                    connectionCreds.azureAccountToken = azureAccountToken;
+                }
+            }
+        }
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.credentials = connectionCreds;

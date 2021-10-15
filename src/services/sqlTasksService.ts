@@ -62,7 +62,8 @@ namespace CancelTaskRequest {
 type ActiveTaskInfo = {
     taskInfo: TaskInfo,
     progressCallback: ProgressCallback,
-    completionPromise: Deferred<void>
+    completionPromise: Deferred<void>,
+    lastMessage?: string
 };
 type ProgressCallback = (value: { message?: string; increment?: number }) => void;
 
@@ -132,6 +133,10 @@ export class SqlTasksService {
             return;
         }
         const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status);
+        if (taskProgressInfo.message && (taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase())) {
+            taskInfo.lastMessage = taskProgressInfo.message;
+        }
+
         if (isTaskCompleted(taskProgressInfo.status)) {
             // Task is completed, complete the progress notification and display a final toast informing the
             // user of the final status.
@@ -142,10 +147,12 @@ export class SqlTasksService {
                 taskInfo.completionPromise.resolve();
             }
 
+            // Get the message to display, if the last status doesn't have a valid message then get the last valid one
+            const lastMessage = (taskProgressInfo.message && taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()) ?? taskInfo.lastMessage;
             // Only include the message if it isn't the same as the task status string we already have - some (but not all) task status
             // notifications include this string as the message
-            const taskMessage = taskProgressInfo.message && taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase() ?
-                utils.formatString(localizedConstants.taskStatusWithMessage, taskInfo.taskInfo.name, taskStatusString, taskProgressInfo.message) :
+            const taskMessage = lastMessage ?
+                utils.formatString(localizedConstants.taskStatusWithNameAndMessage, taskInfo.taskInfo.name, taskStatusString, lastMessage) :
                 utils.formatString(localizedConstants.taskStatusWithName, taskInfo.taskInfo.name, taskStatusString);
             showCompletionMessage(taskProgressInfo.status, taskMessage);
             if (taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script && taskProgressInfo.script) {

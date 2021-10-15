@@ -37,12 +37,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         promptForConnection: (ignoreFocusOut?: boolean) => {
             return controller.connectionManager.connectionUI.promptForConnection(ignoreFocusOut);
         },
-        connect: async (connectionInfo: IConnectionInfo) => {
+        connect: async (connectionInfo: IConnectionInfo, saveConnection?: boolean) => {
 
             const uri = utils.generateQueryUri().toString();
             const connectionPromise = new Deferred<boolean>();
             // First wait for initial connection request to succeed
-            const requestSucceeded = await controller.connectionManager.connect(uri, connectionInfo, connectionPromise);
+            const requestSucceeded = await controller.connect(uri, connectionInfo, connectionPromise, saveConnection);
             if (!requestSucceeded) {
                 throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
             }

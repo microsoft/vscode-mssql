@@ -50,7 +50,9 @@ export class ScriptingService {
         let scriptingObject: IScriptingObject = {
             type: metadata.metadataTypeName,
             schema: metadata.schema,
-            name: metadata.name
+            name: metadata.name,
+            parentName: metadata.parentName,
+            parentTypeName: metadata.parentTypeName
         };
         return scriptingObject;
     }
