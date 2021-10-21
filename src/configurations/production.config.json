@@ -1,6 +1,6 @@
 {
     "service": {
-        "downloadUrl": "https://azuredatastudiobuilds.blob.core.windows.net/sqltoolsservice/v{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
+        "downloadUrl": "https://azuredatastudiobuilds.blob.core.windows.net/sqltoolsservice/v{#version#}/Microsoft.SqlTools.ServiceLayer-{#fileName#}",
         "version": "3.0.0-release.139",
         "downloadFileNames": {
             "Windows_7_86": "win-x86-net5.0.zip",
