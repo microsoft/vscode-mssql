@@ -1,7 +1,7 @@
 {
     "service": {
-        "downloadUrl": "https://download.microsoft.com/download/9/6/7/96792b35-04b8-4ef0-8d38-c634ef975e3b/microsoft.sqltools.servicelayer-{#fileName#}",
-        "version": "1.10.0",
+        "downloadUrl": "https://azuredatastudiobuilds.blob.core.windows.net/sqltoolsservice/v{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
+        "version": "3.0.0-release.139",
         "downloadFileNames": {
             "Windows_7_86": "win-x86-netcoreapp3.1.zip",
             "Windows_7_64": "win-x64-netcoreapp3.1.zip",
