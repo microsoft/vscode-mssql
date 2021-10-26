@@ -27,6 +27,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 ## What's new in 1.11.0
 * SQL Project and Workspace preview extension pack
+* Support Apple M1 with Rosetta2 enabled
 * Fixed bugs in Azure Active Directory authentication
 * Add support to script triggers
 * Additional SQL query execution settings
