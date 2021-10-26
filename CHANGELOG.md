@@ -1,5 +1,17 @@
 # Change Log
 
+## Version 1.11.0
+* Release date: October 27, 2021
+* Release status: GA
+
+## What's new in 1.11.0
+* SQL Project and Workspace preview extension pack
+* Support Apple M1 with Rosetta2 enabled
+* Fixed bugs in Azure Active Directory authentication
+* Add support to script triggers
+* Additional SQL query execution settings
+* Colorization improvements
+
 ## Version 1.10.1
 * Release date: January 20, 2021
 * Release status: GA
