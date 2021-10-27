@@ -59,8 +59,8 @@
     "vscode.sql"
   ],
   "extensionPack": [
-    "Microsoft.data-workspace-vscode",
-    "Microsoft.sql-database-projects-vscode"
+    "ms-mssql.data-workspace-vscode",
+    "ms-mssql.sql-database-projects-vscode"
   ],
   "devDependencies": {
     "@angular/common": "~2.1.2",
