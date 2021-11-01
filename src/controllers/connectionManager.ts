@@ -70,6 +70,8 @@ export class ConnectionInfo {
      */
     public errorMessage: string;
 
+    options: { [name: string]: any } = {};
+
     public get loginFailed(): boolean {
         return this.errorNumber && this.errorNumber === Constants.errorLoginFailed;
     }
@@ -502,11 +504,69 @@ export default class ConnectionManager {
     }
 
     /**
+	 * Refresh Azure access token if it's expired.
+	 * @param uri connection uri
+	 * @returns true if no need to refresh or successfully refreshed token
+	 */
+	public async refreshAzureAccountTokenIfNecessary(uri: string): Promise<boolean> {
+		const profile = this.getConnectionInfo(uri);
+		if (!profile) {
+            this.vscodeWrapper.logToOutputChannel(`Connection not found for uri ${uri}`);
+			return false;
+		}
+
+		//wait for the pending reconnction promise if any
+		const previousReconnectPromise = this._uriToConnectionPromiseMap.get(uri);
+		if (previousReconnectPromise) {
+			this.vscodeWrapper.logToOutputChannel(`Found pending reconnect promise for uri ${uri}, waiting.`);
+			try {
+				const previousConnectionResult = await previousReconnectPromise;
+				if (previousConnectionResult && previousConnectionResult.connected) {
+					this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} succeeded.`);
+					return true;
+				}
+				this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} failed.`);
+			} catch (err) {
+				this.vscodeWrapper.logToOutputChannel(`Previous pending reconnect promise for uri ${uri} is rejected with error ${err}, will attempt to reconnect if necessary.`);
+			}
+		}
+
+		const expiry = profile.options.expiresOn;
+		if (typeof expiry === 'number' && !Number.isNaN(expiry)) {
+			const currentTime = new Date().getTime() / 1000;
+			const maxTolerance = 2 * 60; // two minutes
+			if (expiry - currentTime < maxTolerance) {
+				this.vscodeWrapper.logToOutputChannel(`Access token expired for connection ${profile.connectionId} with uri ${uri}`);
+				try {
+					const connectionResultPromise = this.connect(profile, uri);
+					this._uriToConnectionPromiseMap.set(uri, connectionResultPromise);
+					const connectionResult = await connectionResultPromise;
+					if (!connectionResult) {
+						this._logService.error(`Failed to refresh connection ${profile.connectionId} with uri ${uri}, invalid connection result.`);
+						throw new Error(nls.localize('connection.invalidConnectionResult', "Connection result is invalid"));
+					} else if (!connectionResult.connected) {
+						this._logService.error(`Failed to refresh connection ${profile.connectionId} with uri ${uri}, error code: ${connectionResult.errorCode}, error message: ${connectionResult.errorMessage}`);
+						throw new Error(nls.localize('connection.refreshAzureTokenFailure', "Failed to refresh Azure account token for connection"));
+					}
+					this.vscodeWrapper.logToOutputChannel(`Successfully refreshed token for connection ${profile.connectionId} with uri ${uri}, result: ${connectionResult.connected} ${connectionResult.connectionProfile}, isConnected: ${this.isConnected(uri)}, ${this.getConnectionInfo(uri)}`);
+					return true;
+				} finally {
+					this._uriToConnectionPromiseMap.delete(uri);
+				}
+			}
+			this.vscodeWrapper.logToOutputChannel(`No need to refresh Azure acccount token for connection ${profile.connectionId} with uri ${uri}`);
+		}
+		return true;
+	}
+
+
+    /**
      * Retrieves the list of databases for the connection specified by the given URI.
      * @param connectionUri The URI of the connection to list the databases for
      * @returns The list of databases retrieved from the connection
      */
-    public async listDatabases(connectionUri: string): Promise<string[]> {
+    public async await listDatabases(connectionUri: string): Promise<string[]> {
+        await this.refreshAzureAccountTokenIfNecessary(connectionUri);
         const listParams = new ConnectionContracts.ListDatabasesParams();
         listParams.ownerUri = connectionUri;
         const result = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);

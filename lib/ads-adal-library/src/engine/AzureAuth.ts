@@ -122,20 +122,24 @@ export abstract class AzureAuth {
 			const currentTime = new Date().getTime() / 1000;
 
 			let accessToken = cachedTokens.accessToken;
+			let expiresOn = Number(cachedTokens.expiresOn);
 			const remainingTime = expiry - currentTime;
 			const maxTolerance = 2 * 60; // two minutes
 
 			if (remainingTime < maxTolerance) {
 				const result = await this.refreshToken(tenant, azureResource, cachedTokens.refreshToken);
 				if (!result) {
+					//TODO: return an error message here
 					return undefined;
 				}
 				accessToken = result.accessToken;
+				expiresOn = Number(result.expiresOn);
 			}
 			// Let's just return here.
 			if (accessToken) {
 				return {
 					...accessToken,
+					expiresOn: Number(expiresOn),
 					tokenType: 'Bearer'
 				};
 			}
