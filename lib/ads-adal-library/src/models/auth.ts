@@ -32,6 +32,12 @@ export interface AccessToken extends TokenKey {
 	 * Access Token
 	 */
 	token: string;
+
+	/**
+	 * Access token expiry timestamp
+	 */
+	 expiresOn?: number;
+
 }
 
 export interface Token extends AccessToken {

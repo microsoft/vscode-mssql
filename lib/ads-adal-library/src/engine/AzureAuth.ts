@@ -139,7 +139,7 @@ export abstract class AzureAuth {
 			if (accessToken) {
 				return {
 					...accessToken,
-					expiresOn: Number(expiresOn),
+					expiresOn: expiresOn,
 					tokenType: 'Bearer'
 				};
 			}
@@ -159,6 +159,7 @@ export abstract class AzureAuth {
 		if (result?.accessToken) {
 			return {
 				...result.accessToken,
+				expiresOn: Number(result.accessToken),
 				tokenType: 'Bearer'
 			};
 		}
