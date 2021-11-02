@@ -734,6 +734,9 @@ export default class MainController implements vscode.Disposable {
             if (!self.connectionManager.isConnected(uri)) {
                 await self.onNewConnection();
             }
+            // TODO: check if current connection is still valid / active
+            // no way to check if a current token is expired or not, refactor to include expiresOn field
+            // for token and check that field here
 
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
