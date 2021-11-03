@@ -150,13 +150,14 @@ export class AzureController {
                 }
             });
         }
-        profile.azureAccountToken = azureAccountToken;
+        profile.azureAccountToken = azureAccountToken.token;
+        profile.expiresOn = azureAccountToken.expiresOn;
         profile.email = account.displayInfo.email;
         profile.accountId = account.key.id;
         return profile;
     }
 
-    public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<string | undefined> {
+    public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<Token | undefined> {
         try {
             let token: Token;
             if (account.properties.azureAuthType === 0) {
@@ -179,7 +180,7 @@ export class AzureController {
                 token = await azureDeviceCode.getAccountSecurityToken(
                     account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource);
             }
-            return token.token;
+            return token;
         } catch (ex) {
             let errorMsg = this.azureErrorLookup.getSimpleError(ex.errorCode);
             this._vscodeWrapper.showErrorMessage(errorMsg);

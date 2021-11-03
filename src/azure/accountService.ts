@@ -11,7 +11,7 @@ import * as Constants from '../constants/constants';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
-import { Tenant } from 'ads-adal-library';
+import { Tenant, Token } from 'ads-adal-library';
 
 export class AccountService {
 
@@ -76,7 +76,7 @@ export class AccountService {
         return mapping;
     }
 
-    public async refreshToken(account): Promise<string> {
+    public async refreshToken(account): Promise<Token> {
         let azureController = new AzureController(this._context);
         return await azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
     }

@@ -257,7 +257,9 @@ export default class ConnectionManager {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
 
-    // public isExpired()
+    // public isExpired(fileUri: string): boolean {
+    //     return (fileUri)
+    // }
 
     public isConnecting(fileUri: string): boolean {
         return (fileUri in this._connections && this._connections[fileUri].connecting);
@@ -693,7 +695,7 @@ export default class ConnectionManager {
                         throw new Error(`${LocalizedConstants.cannotConnect}`);
                     }
                 } else {
-                    connectionCreds.azureAccountToken = azureAccountToken;
+                    connectionCreds.azureAccountToken = azureAccountToken.token;
                 }
             }
         }

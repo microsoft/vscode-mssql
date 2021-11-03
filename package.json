@@ -117,7 +117,7 @@
   },
   "dependencies": {
     "@types/node": "^14.14.16",
-    "ads-adal-library": "1.0.12",
+    "ads-adal-library": "file:./lib/ads-adal-library",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "ejs": "^2.6.2",
