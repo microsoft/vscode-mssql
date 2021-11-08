@@ -490,7 +490,7 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
-        let azureController = new AzureController(this._context);
+        let azureController = this.connectionManager.azureController;
         // TODO: Access account which firewall error needs to be added from:
         // Try to match accountId to an account in account storage
         if (profile.accountId) {

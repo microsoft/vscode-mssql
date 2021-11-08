@@ -11,7 +11,6 @@ import { CachingProvider } from 'ads-adal-library';
 
 function getSystemKeytar(): Keytar | undefined | null {
     try {
-        // tslint:disable-next-line:no-require-imports
         return require('keytar');
     } catch (err) {
         console.log(err);
