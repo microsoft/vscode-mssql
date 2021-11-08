@@ -73,10 +73,9 @@ export class AzureController {
     private context: vscode.ExtensionContext;
     private logger: AzureLogger;
     private _vscodeWrapper: VscodeWrapper;
-    private initialize: boolean;
+    private credentialStoreInitialized = false;
 
     constructor(context: vscode.ExtensionContext, logger?: AzureLogger) {
-        this.initialize = false;
         this.context = context;
         if (!this.logger) {
             this.logger = new AzureLogger();
@@ -185,7 +184,7 @@ export class AzureController {
 
     private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
         let azureLogger = new AzureLogger();
-        await this.initializeHelper();
+        await this.initializeCredentialStore();
         return new AzureCodeGrant(
             providerSettings, this.storageService, this.cacheService, azureLogger,
             this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
@@ -195,7 +194,7 @@ export class AzureController {
 
     private async createDeviceCode(): Promise<AzureDeviceCode> {
         let azureLogger = new AzureLogger();
-        await this.initializeHelper();
+        await this.initializeCredentialStore();
         return new AzureDeviceCode(
             providerSettings, this.storageService, this.cacheService, azureLogger,
             this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
@@ -212,14 +211,14 @@ export class AzureController {
     /**
      * Checks if this.init() has already been called
      */
-    private async initializeHelper(): Promise<void> {
-        if (!this.initialize) {
+    private async initializeCredentialStore(): Promise<void> {
+        if (!this.credentialStoreInitialized) {
             let storagePath = await findOrMakeStoragePath();
             let credentialStore = new CredentialStore();
             this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
             await this.cacheService.init();
             this.storageService = this.cacheService.db;
-            this.initialize = true;
+            this.credentialStoreInitialized = true;
         }
     }
 
