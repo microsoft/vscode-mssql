@@ -25,7 +25,8 @@ export class AccountService {
     constructor(
         private _client: SqlToolsServiceClient,
         private _context: vscode.ExtensionContext,
-        private _accountStore: AccountStore
+        private _accountStore: AccountStore,
+        private _azureController: AzureController
     ) {}
 
     public get account(): IAccount {
@@ -77,8 +78,7 @@ export class AccountService {
     }
 
     public async refreshToken(account): Promise<string> {
-        let azureController = new AzureController(this._context);
-        return await azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
+        return await this._azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
     }
 
     public getHomeTenant(account: IAccount): Tenant {

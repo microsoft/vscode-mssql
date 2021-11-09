@@ -489,7 +489,6 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
-        let azureController = this.connectionManager.azureController;
         // TODO: Access account which firewall error needs to be added from:
         // Try to match accountId to an account in account storage
         if (profile.accountId) {
@@ -501,7 +500,7 @@ export class ConnectionUI {
             let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
                 LocalizedConstants.azureAddAccount);
             if (selection === LocalizedConstants.azureAddAccount) {
-                profile = await azureController.getTokens(profile, this._accountStore, providerSettings.resources.azureManagementResource);
+                profile = await this.connectionManager.azureController.getTokens(profile, this._accountStore, providerSettings.resources.azureManagementResource);
             }
             let account = this._accountStore.getAccount(profile.accountId);
             this.connectionManager.accountService.setAccount(account);
@@ -519,7 +518,7 @@ export class ConnectionUI {
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
-        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore);
+        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore, this.connectionManager.azureController);
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -536,7 +535,7 @@ export class ConnectionUI {
         let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
         return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
-                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore, profile);
+                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore, this.connectionManager.azureController, profile);
             } else {
                 return undefined;
             }

@@ -53,6 +53,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         connectionStore: ConnectionStore,
         context: vscode.ExtensionContext,
         accountStore?: AccountStore,
+        azureController?: AzureController,
         defaultProfileValues?: IConnectionProfile
         ): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
@@ -62,7 +63,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             // Set default value as there is only 1 option
             profile.authenticationType = authOptions[0].value;
         }
-        let azureController = new AzureController(context);
         let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
         let accountAnswer: IAccount;
         azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount'});
