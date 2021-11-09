@@ -209,7 +209,7 @@ export class AzureController {
     }
 
     /**
-     * Checks if this.init() has already been called
+     * Checks if this.init() has already been called, initializes the credential store (should only be called once)
      */
     private async initializeCredentialStore(): Promise<void> {
         if (!this.credentialStoreInitialized) {

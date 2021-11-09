@@ -518,7 +518,7 @@ export class ConnectionUI {
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
-        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore, this.connectionManager.azureController);
+        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this.connectionManager.azureController, this._accountStore);
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -535,7 +535,7 @@ export class ConnectionUI {
         let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
         return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
-                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore, this.connectionManager.azureController, profile);
+                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this.connectionManager.azureController, this._accountStore, profile);
             } else {
                 return undefined;
             }

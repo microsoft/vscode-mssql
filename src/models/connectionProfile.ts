@@ -52,8 +52,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         prompter: IPrompter,
         connectionStore: ConnectionStore,
         context: vscode.ExtensionContext,
+        azureController: AzureController,
         accountStore?: AccountStore,
-        azureController?: AzureController,
         defaultProfileValues?: IConnectionProfile
         ): Promise<IConnectionProfile> {
         let profile: ConnectionProfile = new ConnectionProfile();
