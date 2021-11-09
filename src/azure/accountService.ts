@@ -3,7 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as vscode from 'vscode';
 import { IAccount, IAccountKey } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
@@ -24,7 +23,6 @@ export class AccountService {
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _context: vscode.ExtensionContext,
         private _accountStore: AccountStore,
         private _azureController: AzureController
     ) {}
