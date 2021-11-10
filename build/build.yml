@@ -1,5 +1,10 @@
 pool:
   name: Hosted macOS
+
+variables:
+- name: release
+  value: false
+
 steps:
 - task: ArchiveFiles@1
   displayName: 'Archive source '
