@@ -1,7 +1,9 @@
 pool:
   name: Hosted macOS
-  demands:
-  - node.js
+
+variables:
+- name: release
+  value: false
 
 steps:
 - task: ArchiveFiles@1
@@ -18,18 +20,35 @@ steps:
     PathtoPublish: '$(Build.BinariesDirectory)/source.tar.gz'
     ArtifactName: source
 
-- task: Yarn@1
-  displayName: 'yarn install'
+- task: NodeTool@0
+  displayName: 'Use Node 14.x'
   inputs:
-    workingDir: '$(Build.SourcesDirectory)'
+    versionSpec: 14.X
+
+- task: Npm@1
+  displayName: 'Use npm 6.14.8'
+  inputs:
+    command: custom
+    verbose: false
+    customCommand: 'install -g npm@6.14.8'
+
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
     verbose: false
 
-- task: Yarn@1
-  displayName: 'yarn custom'
+- task: Npm@1
+  displayName: 'npm custom'
   inputs:
     command: custom
     verbose: false
     customCommand: 'install -g gulp-cli'
+
+- task: gulp@0
+  displayName: 'gulp install'
+  inputs:
+    targets: install
+  enabled: false
 
 - bash: |
    export BUILDMACHINE=true
@@ -45,15 +64,18 @@ steps:
   displayName: 'gulp build (release)'
   condition: and(succeeded(), eq(variables['release'], true))
 
-- bash: 'yarn install -g vsce'
-  displayName: 'yarn install vsce'
+- bash: 'gulp lint'
+  displayName: 'gulp lint'
 
-- task: Gulp@0
+- bash: 'npm install -g vsce'
+  displayName: 'npm install vsce'
+
+- task: gulp@0
   displayName: 'gulp package:offline'
   inputs:
     targets: 'package:offline'
 
-- task: Gulp@0
+- task: gulp@0
   displayName: 'gulp package:online'
   inputs:
     targets: 'package:online'
@@ -73,17 +95,18 @@ steps:
    brew install --cask visual-studio-code
   displayName: 'Install VS Code for testing'
 
-- task: Gulp@0
+- task: gulp@0
   displayName: 'gulp ext:install-service'
   inputs:
     targets: 'ext:install-service'
 
-- task: Gulp@0
+- task: gulp@0
   displayName: 'gulp cover:jenkins'
   inputs:
     targets: 'cover:jenkins'
     publishJUnitResults: true
     testResultsFiles: '$(Build.SourcesDirectory)/test-reports/*.xml'
+  enabled: false
   continueOnError: true
 
 - task: PublishCodeCoverageResults@1
@@ -91,16 +114,5 @@ steps:
   inputs:
     codeCoverageTool: Cobertura
     summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
+  enabled: false
 
-trigger:
-  - master
-
-pr:
-  - master
-
-schedules:
-- cron: "0 3 * * Mon-Fri"
-  displayName: Mon-Fri at 3:00AM
-  branches:
-    include:
-    - master
