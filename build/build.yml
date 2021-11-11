@@ -19,7 +19,7 @@ steps:
 - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
   displayName: Install gulp-cli
   inputs:
-    arguments: 'install -g gulp-cli'
+    arguments: 'install gulp-cli'
 
 - bash: |
    export BUILDMACHINE=true
