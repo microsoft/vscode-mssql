@@ -16,6 +16,11 @@ steps:
   inputs:
     arguments: '--frozen-lockfile'
 
+- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+  displayName: Install gulp-cli
+  inputs:
+    arguments: 'global add gulp-cli@2.3.0'
+
 - bash: |
    export BUILDMACHINE=true
    export VsMsSqlEnv=dev
