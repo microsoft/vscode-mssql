@@ -130,7 +130,7 @@
     "https-proxy-agent": "^2.2.1",
     "jquery": "^3.4.1",
     "opener": "1.4.2",
-    "plist": "^2.1.0",
+    "plist": "^3.0.4",
     "pretty-data": "^0.40.0",
     "rangy": "^1.3.0",
     "reflect-metadata": "0.1.12",
