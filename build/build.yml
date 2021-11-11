@@ -38,8 +38,10 @@ steps:
 - bash: 'gulp lint'
   displayName: 'gulp lint'
 
-- bash: 'yarn install -g vsce'
+- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
   displayName: Install vsce
+  inputs:
+    arguments: 'global add vsce@2.3.0'
 
 - task: gulp@0
   displayName: 'gulp package:offline'
