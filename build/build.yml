@@ -11,26 +11,15 @@ steps:
   inputs:
     versionSpec: 14.X
 
-- task: Yarn@1
+- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
   displayName: Install dependencies
   inputs:
-    command: custom
-    workingDir: '$(Build.SourcesDirectory)'
-    verbose:
-    customCommand: '--frozen-lockfile'
+    arguments: '--frozen-lockfile'
 
-- task: Yarn@1
+- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
   displayName: Install gulp-cli
   inputs:
-    command: custom
-    verbose: false
-    customCommand: 'install -g gulp-cli'
-
-- task: gulp@0
-  displayName: 'gulp install'
-  inputs:
-    targets: install
-  enabled: false
+    arguments: 'install -g gulp-cli'
 
 - bash: |
    export BUILDMACHINE=true
