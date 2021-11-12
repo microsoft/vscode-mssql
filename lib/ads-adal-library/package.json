@@ -1,5 +1,5 @@
 {
-  "name": "ads-adal-library",
+  "name": "@microsoft/ads-adal-library",
   "version": "1.0.13",
   "description": "ADAL NodeJS authentication library",
   "main": "dist/index.js",
