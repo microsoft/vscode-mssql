@@ -73,7 +73,6 @@ export class AzureController {
     private context: vscode.ExtensionContext;
     private logger: AzureLogger;
     private _vscodeWrapper: VscodeWrapper;
-    private credentialStoreInitialized = false;
 
     constructor(context: vscode.ExtensionContext, logger?: AzureLogger) {
         this.context = context;
@@ -87,6 +86,11 @@ export class AzureController {
     public async init(): Promise<void> {
         this.authRequest = new AzureAuthRequest(this.context, this.logger);
         await this.authRequest.startServer();
+        let storagePath = await findOrMakeStoragePath();
+        let credentialStore = new CredentialStore();
+        this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
+        await this.cacheService.init();
+        this.storageService = this.cacheService.db;
         this.azureStringLookup = new AzureStringLookup();
         this.azureUserInteraction = new AzureUserInteraction(this.authRequest.getState());
         this.azureErrorLookup = new AzureErrorLookup();
@@ -184,7 +188,7 @@ export class AzureController {
 
     private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
         let azureLogger = new AzureLogger();
-        await this.initializeCredentialStore();
+        await this.init();
         return new AzureCodeGrant(
             providerSettings, this.storageService, this.cacheService, azureLogger,
             this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
@@ -194,7 +198,7 @@ export class AzureController {
 
     private async createDeviceCode(): Promise<AzureDeviceCode> {
         let azureLogger = new AzureLogger();
-        await this.initializeCredentialStore();
+        await this.init();
         return new AzureDeviceCode(
             providerSettings, this.storageService, this.cacheService, azureLogger,
             this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
@@ -207,19 +211,4 @@ export class AzureController {
         await azureAuth.deleteAccountCache(account.key);
         return;
     }
-
-    /**
-     * Checks if this.init() has already been called, initializes the credential store (should only be called once)
-     */
-    private async initializeCredentialStore(): Promise<void> {
-        if (!this.credentialStoreInitialized) {
-            let storagePath = await findOrMakeStoragePath();
-            let credentialStore = new CredentialStore();
-            this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
-            await this.cacheService.init();
-            this.storageService = this.cacheService.db;
-            this.credentialStoreInitialized = true;
-        }
-    }
-
 }

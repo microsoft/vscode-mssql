@@ -18,7 +18,6 @@ import * as LocalizedConstants from '../src/constants/localizedConstants';
 import * as assert from 'assert';
 import { AccountStore } from '../src/azure/accountStore';
 import { IConnectionInfo } from 'vscode-mssql';
-import { AzureController } from '../src/azure/azureController';
 
 function createTestCredentials(): IConnectionInfo {
     const creds: IConnectionInfo = {
@@ -60,7 +59,6 @@ function createTestCredentials(): IConnectionInfo {
 suite('Connection Profile tests', () => {
     let authTypeQuestionIndex = 2;
     let mockAccountStore: AccountStore;
-    let mockAzureController: AzureController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let globalstate: TypeMoq.IMock<vscode.Memento>;
 
@@ -69,7 +67,6 @@ suite('Connection Profile tests', () => {
         globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockContext.setup(c => c.workspaceState).returns(() => globalstate.object);
-        mockAzureController = new AzureController(mockContext.object);
         mockAccountStore = new AccountStore(mockContext.object);
     });
 
@@ -91,7 +88,7 @@ suite('Connection Profile tests', () => {
                     return Promise.resolve(answers);
                 });
 
-        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAzureController, mockAccountStore)
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore)
             .then(profile => profileReturned = profile);
 
         // Then expect the following flow:
@@ -132,7 +129,7 @@ suite('Connection Profile tests', () => {
                     return answers;
                 });
 
-        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAzureController, mockAccountStore);
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore);
 
         // Then expect SqlAuth to be the only default type
         let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
@@ -155,7 +152,7 @@ suite('Connection Profile tests', () => {
                 });
 
         // When createProfile is called on an OS
-        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAzureController, mockAccountStore);
+        await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore);
 
         // Then integrated auth should/should not be supported
         // TODO if possible the test should mock out the OS dependency but it's not clear
@@ -323,7 +320,7 @@ suite('Connection Profile tests', () => {
         });
 
         // Verify that a profile was created
-        ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAzureController, mockAccountStore).then( profile => {
+        ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAccountStore).then( profile => {
             assert.equal(Boolean(profile), true);
             done();
         });

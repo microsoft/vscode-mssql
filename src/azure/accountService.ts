@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import * as vscode from 'vscode';
 import { IAccount, IAccountKey } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
@@ -23,8 +24,8 @@ export class AccountService {
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _accountStore: AccountStore,
-        private _azureController: AzureController
+        private _context: vscode.ExtensionContext,
+        private _accountStore: AccountStore
     ) {}
 
     public get account(): IAccount {
@@ -76,7 +77,8 @@ export class AccountService {
     }
 
     public async refreshToken(account): Promise<string> {
-        return await this._azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
+        let azureController = new AzureController(this._context);
+        return await azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
     }
 
     public getHomeTenant(account: IAccount): Tenant {
