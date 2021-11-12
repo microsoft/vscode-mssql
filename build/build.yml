@@ -1,54 +1,26 @@
 pool:
   name: Hosted macOS
+  vmImage: macOS-latest
 
 variables:
 - name: release
   value: false
 
 steps:
-- task: ArchiveFiles@1
-  displayName: 'Archive source '
-  inputs:
-    rootFolder: '$(Build.SourcesDirectory)'
-    includeRootFolder: false
-    archiveType: tar
-    archiveFile: '$(Build.BinariesDirectory)/source.tar.gz'
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: source'
-  inputs:
-    PathtoPublish: '$(Build.BinariesDirectory)/source.tar.gz'
-    ArtifactName: source
-
 - task: NodeTool@0
   displayName: 'Use Node 14.x'
   inputs:
     versionSpec: 14.X
 
-- task: Npm@1
-  displayName: 'Use npm 6.14.8'
+- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+  displayName: Install dependencies
   inputs:
-    command: custom
-    verbose: false
-    customCommand: 'install -g npm@6.14.8'
+    arguments: '--frozen-lockfile'
 
-- task: Npm@1
-  displayName: 'npm install'
+- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+  displayName: Install gulp-cli
   inputs:
-    verbose: false
-
-- task: Npm@1
-  displayName: 'npm custom'
-  inputs:
-    command: custom
-    verbose: false
-    customCommand: 'install -g gulp-cli'
-
-- task: gulp@0
-  displayName: 'gulp install'
-  inputs:
-    targets: install
-  enabled: false
+    arguments: 'global add gulp-cli@2.3.0'
 
 - bash: |
    export BUILDMACHINE=true
@@ -67,8 +39,10 @@ steps:
 - bash: 'gulp lint'
   displayName: 'gulp lint'
 
-- bash: 'npm install -g vsce'
-  displayName: 'npm install vsce'
+- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+  displayName: Install vsce
+  inputs:
+    arguments: 'global add vsce@2.3.0'
 
 - task: gulp@0
   displayName: 'gulp package:offline'

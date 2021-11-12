@@ -86,7 +86,7 @@
     "coveralls": "^3.0.2",
     "decache": "^4.1.0",
     "del": "^2.2.1",
-    "gulp": "github:gulpjs/gulp#v4.0.0",
+    "gulp": "^4.0.2",
     "gulp-concat": "^2.6.0",
     "gulp-istanbul-report": "0.0.1",
     "gulp-json-editor": "^2.2.1",
