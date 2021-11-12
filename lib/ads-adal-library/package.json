@@ -8,7 +8,7 @@
   "scripts": {
     "build": "yarn run build-ts && yarn run lint",
     "build-ts": "tsc",
-    "lint": "tsc --noEmit && eslint \"src/**/*.{js,ts}\" --quiet --fix",
+    "lint": "tsc --noEmit && eslint \"src/**/*.{js,ts}\" --quiet",
     "start-cli": "node dist/cli.js",
     "watch": "yarn run watch-ts",
     "watch-ts": "tsc -w"
