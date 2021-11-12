@@ -12,7 +12,7 @@ import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
-import { Tenant } from 'ads-adal-library';
+import { Tenant } from '@microsoft/ads-adal-library';
 import { IAccount } from '../src/models/contracts/azure/accountInterfaces';
 
 

@@ -10,7 +10,7 @@ import * as Constants from '../constants/constants';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
-import { Tenant } from 'ads-adal-library';
+import { Tenant } from '@microsoft/ads-adal-library';
 
 export class AccountService {
 
