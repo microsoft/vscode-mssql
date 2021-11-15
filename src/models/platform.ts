@@ -144,19 +144,19 @@ export class PlatformInformation {
         }
     }
 
-    public isWindows(): boolean {
+    public get isWindows(): boolean {
         return this.platform === 'win32';
     }
 
-    public isMacOS(): boolean {
+    public get isMacOS(): boolean {
         return this.platform === 'darwin';
     }
 
-    public isLinux(): boolean {
+    public get isLinux(): boolean {
         return this.platform === 'linux';
     }
 
-    public isValidRuntime(): boolean {
+    public get isValidRuntime(): boolean {
         return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime && this.runtimeId !== Runtime.UnknownVersion;
     }
 
