@@ -64,7 +64,7 @@ let serverProvider = new  ServerProvider(downloadProvider, config, statusView);
 export function installService(runtime: Runtime): Promise<String> {
     if (runtime === undefined) {
         return PlatformInformation.getCurrent().then( platformInfo => {
-            if (platformInfo.isValidRuntime()) {
+            if (platformInfo.isValidRuntime) {
                 return serverProvider.getOrDownloadServer(platformInfo.runtimeId);
             } else {
                 throw new Error('unsupported runtime');
@@ -82,7 +82,7 @@ export function getServiceInstallDirectory(runtime: Runtime): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         if (runtime === undefined) {
             PlatformInformation.getCurrent().then( platformInfo => {
-                if (platformInfo.isValidRuntime()) {
+                if (platformInfo.isValidRuntime) {
                     resolve(downloadProvider.getInstallDirectory(platformInfo.runtimeId));
                 } else {
                     reject('unsupported runtime');

@@ -390,7 +390,7 @@ export default class ConnectionManager {
             connection.errorMessage = result.errorMessage;
         } else {
             const platformInfo = await PlatformInformation.getCurrent();
-            if (!platformInfo.isWindows() && result.errorMessage && result.errorMessage.includes('Kerberos')) {
+            if (!platformInfo.isWindows && result.errorMessage && result.errorMessage.includes('Kerberos')) {
                 const action = await this.vscodeWrapper.showErrorMessage(
                     Utils.formatString(LocalizedConstants.msgConnectionError2, result.errorMessage),
                     LocalizedConstants.macOpenSslHelpButton);
