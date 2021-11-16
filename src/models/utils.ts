@@ -494,3 +494,13 @@ export function generateQueryUri(scheme = 'vscode-mssql-adhoc'): vscode.Uri {
         authority: `Query${uriIndex++}`
     });
 }
+
+/**
+ * Returns whether a given saved connection in user connection is a default one
+ * or not
+ */
+export function isDefaultConnection(connection: IConnectionInfo): boolean {
+    return connection.database === '{{put-database-name-here}}' &&
+        connection.server === '{{put-server-name-here}}' &&
+        connection.user === '{{put-username-here}}';
+}

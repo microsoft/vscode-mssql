@@ -1065,6 +1065,7 @@ export default class MainController implements vscode.Disposable {
             let needsRefresh = false;
             // user connections is a super set of object explorer connections
             let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);
+            userConnections = userConnections.filter(conn => !Utils.isDefaultConnection(conn));
             let objectExplorerConnections = this._objectExplorerProvider.rootNodeConnections;
 
             // if a connection(s) was/were manually removed
