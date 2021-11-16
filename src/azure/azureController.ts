@@ -14,7 +14,7 @@ import { CredentialStore } from '../credentialstore/credentialstore';
 import { StorageService } from './storageService';
 import * as utils from '../models/utils';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
-import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from 'ads-adal-library';
+import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from '@microsoft/ads-adal-library';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';

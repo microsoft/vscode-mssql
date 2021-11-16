@@ -1,4 +1,4 @@
-import { MessageDisplayer } from 'ads-adal-library';
+import { MessageDisplayer } from '@microsoft/ads-adal-library';
 
 export class AzureMessageDisplayer implements MessageDisplayer {
     async displayInfoMessage(msg: string): Promise<void> {

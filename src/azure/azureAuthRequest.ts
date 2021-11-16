@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from '../constants/localizedConstants';
-import { AuthRequest, AzureAuthError } from 'ads-adal-library';
+import { AuthRequest, AzureAuthError } from '@microsoft/ads-adal-library';
 import { SimpleWebServer } from './simpleWebServer';
 import * as crypto from 'crypto';
 import * as http from 'http';

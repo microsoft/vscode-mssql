@@ -7,7 +7,7 @@ import { join, parse } from 'path';
 import { StorageService } from './storageService';
 import * as crypto from 'crypto';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
-import { CachingProvider } from 'ads-adal-library';
+import { CachingProvider } from '@microsoft/ads-adal-library';
 
 function getSystemKeytar(): Keytar | undefined | null {
     try {
