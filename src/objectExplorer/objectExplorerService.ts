@@ -195,13 +195,16 @@ export class ObjectExplorerService {
         }
     }
 
-    public updateNode(node): void {
-        for (let rootTreeNode of this._rootTreeNodeArray) {
+    public updateNode(node: TreeNodeInfo | ConnectTreeNode): void {
+        if (node instanceof ConnectTreeNode) {
+            node = node.parentNode;
             if (!(node instanceof TreeNodeInfo)) {
-                node = node.parentNode;
+                throw new Error(`Something went wrong when trying to find the correct node.`)
             }
+        }
+        for (let rootTreeNode of this._rootTreeNodeArray) {
             if (Utils.isSameConnection(node.connectionInfo, rootTreeNode.connectionInfo) &&
-                    rootTreeNode.label === node.label) {
+                rootTreeNode.label === node.label) {
                     const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
                     delete this._rootTreeNodeArray[index];
                     this._rootTreeNodeArray[index] = node;
