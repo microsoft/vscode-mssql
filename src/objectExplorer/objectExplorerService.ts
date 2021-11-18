@@ -61,6 +61,9 @@ export class ObjectExplorerService {
     private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
         const self = this;
         const handler = async (result: SessionCreatedParameters) => {
+            if (!(self._currentNode instanceof TreeNodeInfo)) {
+                self.currentNode = self.currentNode.parentNode;
+            }
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
                 // if no node label, check if it has a name in saved profiles
@@ -78,6 +81,7 @@ export class ObjectExplorerService {
                 }
                 // set connection and other things
                 let node: TreeNodeInfo;
+
                 if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
                     nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionInfo) : nodeLabel;
                     node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
@@ -191,10 +195,13 @@ export class ObjectExplorerService {
         }
     }
 
-    public updateNode(node: TreeNodeInfo): void {
+    public updateNode(node): void {
         for (let rootTreeNode of this._rootTreeNodeArray) {
+            if (!(node instanceof TreeNodeInfo)) {
+                node = node.parentNode;
+            }
             if (Utils.isSameConnection(node.connectionInfo, rootTreeNode.connectionInfo) &&
-                rootTreeNode.label === node.label) {
+                    rootTreeNode.label === node.label) {
                     const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
                     delete this._rootTreeNodeArray[index];
                     this._rootTreeNodeArray[index] = node;

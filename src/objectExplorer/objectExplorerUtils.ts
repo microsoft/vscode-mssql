@@ -26,8 +26,13 @@ export class ObjectExplorerUtils {
         }
     }
 
-    public static getNodeUri(node: TreeNodeInfo): string {
-        const profile = <IConnectionProfile>node.connectionInfo;
+    public static getNodeUri(node): string {
+        let profile: IConnectionProfile;
+        if (node instanceof TreeNodeInfo) {
+            profile = <IConnectionProfile>node.connectionInfo;
+        } else {
+            profile = <IConnectionProfile>node.parentNode.connectionInfo;
+        }
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
 
