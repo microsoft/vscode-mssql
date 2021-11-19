@@ -522,7 +522,7 @@
             <source xml:lang="en">Not started</source>
         </trans-unit>
         <trans-unit id="nodeErrorMessage">
-            <source xml:lang="en">Something went wrong when trying to find the correct node.</source>
+            <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
         </trans-unit>
     </body>
   </file>
