@@ -31,7 +31,7 @@ function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
     if (!(node instanceof TreeNodeInfo)) {
         vscode.window.showErrorMessage(LocalizedConstants.nodeErrorMessage);
-        throw new Error(`Something went wrong when trying to find the correct node.`);
+        throw new Error(`Parent node was not TreeNodeInfo.`);
     }
     return node;
 }
