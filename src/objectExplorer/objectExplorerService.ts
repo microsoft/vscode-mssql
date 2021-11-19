@@ -27,6 +27,15 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
 
+function getParentNode(node: TreeNodeType): TreeNodeInfo {
+    node = node.parentNode;
+    if (!(node instanceof TreeNodeInfo)) {
+        vscode.window.showErrorMessage(LocalizedConstants.nodeErrorMessage);
+        throw new Error(`Something went wrong when trying to find the correct node.`);
+    }
+    return node;
+}
+
 export class ObjectExplorerService {
 
     private _client: SqlToolsServiceClient;
@@ -62,7 +71,7 @@ export class ObjectExplorerService {
         const self = this;
         const handler = async (result: SessionCreatedParameters) => {
             if (self._currentNode instanceof ConnectTreeNode) {
-                self.currentNode = this.getParentNode(self.currentNode);
+                self.currentNode = getParentNode(self.currentNode);
             }
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
@@ -197,7 +206,7 @@ export class ObjectExplorerService {
 
     public updateNode(node: TreeNodeType): void {
         if (node instanceof ConnectTreeNode) {
-            node = this.getParentNode(node);
+            node = getParentNode(node);
         }
         for (let rootTreeNode of this._rootTreeNodeArray) {
             if (Utils.isSameConnection(node.connectionInfo, rootTreeNode.connectionInfo) &&
@@ -582,13 +591,6 @@ export class ObjectExplorerService {
         return;
     }
 
-    private getParentNode(node: TreeNodeType): TreeNodeInfo {
-        node = node.parentNode;
-        if (!(node instanceof TreeNodeInfo)) {
-            throw new Error(`${LocalizedConstants.nodeErrorMessage}`);
-        }
-        return node;
-    }
 
     /** Getters */
     public get currentNode(): TreeNodeInfo {
