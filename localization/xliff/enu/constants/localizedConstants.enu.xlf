@@ -521,6 +521,9 @@
         <trans-unit id="notStarted">
             <source xml:lang="en">Not started</source>
         </trans-unit>
+        <trans-unit id="nodeErrorMessage">
+            <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
