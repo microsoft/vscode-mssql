@@ -17,7 +17,7 @@ import { AuthenticationTypes, IConnectionProfile } from '../models/interfaces';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
-import { ConnectTreeNode } from './connectTreeNode';
+import { ConnectTreeNode, TreeNodeType } from './connectTreeNode';
 import { Deferred } from '../protocol';
 import * as Constants from '../constants/constants';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
@@ -61,8 +61,8 @@ export class ObjectExplorerService {
     private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
         const self = this;
         const handler = async (result: SessionCreatedParameters) => {
-            if (!(self._currentNode instanceof TreeNodeInfo)) {
-                self.currentNode = self.currentNode.parentNode;
+            if (self._currentNode instanceof ConnectTreeNode) {
+                self.currentNode = this.getParentNode(self.currentNode);
             }
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
@@ -195,12 +195,9 @@ export class ObjectExplorerService {
         }
     }
 
-    public updateNode(node: TreeNodeInfo | ConnectTreeNode): void {
+    public updateNode(node: TreeNodeType): void {
         if (node instanceof ConnectTreeNode) {
-            node = node.parentNode;
-            if (!(node instanceof TreeNodeInfo)) {
-                throw new Error(`Something went wrong when trying to find the correct node.`)
-            }
+            node = this.getParentNode(node);
         }
         for (let rootTreeNode of this._rootTreeNodeArray) {
             if (Utils.isSameConnection(node.connectionInfo, rootTreeNode.connectionInfo) &&
@@ -583,6 +580,14 @@ export class ObjectExplorerService {
             }
         }
         return;
+    }
+
+    private getParentNode(node: TreeNodeType): TreeNodeInfo {
+        node = node.parentNode;
+        if (!(node instanceof TreeNodeInfo)) {
+            throw new Error(`${LocalizedConstants.nodeErrorMessage}`);
+        }
+        return node;
     }
 
     /** Getters */
