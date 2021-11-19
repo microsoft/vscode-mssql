@@ -591,7 +591,6 @@ export class ObjectExplorerService {
         return;
     }
 
-
     /** Getters */
     public get currentNode(): TreeNodeInfo {
         return this._currentNode;
