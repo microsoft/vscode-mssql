@@ -127,7 +127,7 @@ export default class ConnectionManager {
         }
 
         // Initiate the firewall service
-        this._accountService = new AccountService(this.client, context, this._accountStore);
+        this._accountService = new AccountService(this.client, this._accountStore, this.azureController);
         this._firewallService = new FirewallService(this._accountService);
         this._failedUriToFirewallIpMap = new Map<string, string>();
 
@@ -394,7 +394,7 @@ export default class ConnectionManager {
             connection.errorMessage = result.errorMessage;
         } else {
             const platformInfo = await PlatformInformation.getCurrent();
-            if (!platformInfo.isWindows() && result.errorMessage && result.errorMessage.includes('Kerberos')) {
+            if (!platformInfo.isWindows && result.errorMessage && result.errorMessage.includes('Kerberos')) {
                 const action = await this.vscodeWrapper.showErrorMessage(
                     Utils.formatString(LocalizedConstants.msgConnectionError2, result.errorMessage),
                     LocalizedConstants.macOpenSslHelpButton);

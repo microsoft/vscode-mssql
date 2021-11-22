@@ -26,3 +26,8 @@ export class ConnectTreeNode extends vscode.TreeItem {
         return this._parentNode;
     }
 }
+
+export type TreeNodeType =
+    | TreeNodeInfo
+    | ConnectTreeNode;
+

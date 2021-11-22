@@ -17,7 +17,7 @@ import { AuthenticationTypes, IConnectionProfile } from '../models/interfaces';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { AddConnectionTreeNode } from './addConnectionTreeNode';
 import { AccountSignInTreeNode } from './accountSignInTreeNode';
-import { ConnectTreeNode } from './connectTreeNode';
+import { ConnectTreeNode, TreeNodeType } from './connectTreeNode';
 import { Deferred } from '../protocol';
 import * as Constants from '../constants/constants';
 import { ObjectExplorerUtils } from './objectExplorerUtils';
@@ -26,6 +26,15 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
+
+function getParentNode(node: TreeNodeType): TreeNodeInfo {
+    node = node.parentNode;
+    if (!(node instanceof TreeNodeInfo)) {
+        vscode.window.showErrorMessage(LocalizedConstants.nodeErrorMessage);
+        throw new Error(`Parent node was not TreeNodeInfo.`);
+    }
+    return node;
+}
 
 export class ObjectExplorerService {
 
@@ -61,6 +70,9 @@ export class ObjectExplorerService {
     private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
         const self = this;
         const handler = async (result: SessionCreatedParameters) => {
+            if (self._currentNode instanceof ConnectTreeNode) {
+                self.currentNode = getParentNode(self.currentNode);
+            }
             if (result.success) {
                 let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
                 // if no node label, check if it has a name in saved profiles
@@ -78,6 +90,7 @@ export class ObjectExplorerService {
                 }
                 // set connection and other things
                 let node: TreeNodeInfo;
+
                 if (self._currentNode && (self._currentNode.sessionId === result.sessionId)) {
                     nodeLabel = !nodeLabel ? self.createNodeLabel(self._currentNode.connectionInfo) : nodeLabel;
                     node = TreeNodeInfo.fromNodeInfo(result.rootNode, result.sessionId,
@@ -191,7 +204,10 @@ export class ObjectExplorerService {
         }
     }
 
-    public updateNode(node: TreeNodeInfo): void {
+    public updateNode(node: TreeNodeType): void {
+        if (node instanceof ConnectTreeNode) {
+            node = getParentNode(node);
+        }
         for (let rootTreeNode of this._rootTreeNodeArray) {
             if (Utils.isSameConnection(node.connectionInfo, rootTreeNode.connectionInfo) &&
                 rootTreeNode.label === node.label) {

@@ -24,13 +24,13 @@
         {
             "label": "cover:enable",
             "type": "gulp",
-            "task": "--no-color",
+            "task": "cover:disable",
             "problemMatcher": []
         },
         {
             "label": "cover:disable",
             "type": "gulp",
-            "task": "--no-color",
+            "task": "cover:disable",
             "problemMatcher": []
         }
     ]

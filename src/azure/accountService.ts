@@ -3,7 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as vscode from 'vscode';
 import { IAccount, IAccountKey } from '../models/contracts/azure/accountInterfaces';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
@@ -11,7 +10,7 @@ import * as Constants from '../constants/constants';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
-import { Tenant, Token } from 'ads-adal-library';
+import { Tenant } from '@microsoft/ads-adal-library';
 
 export class AccountService {
 
@@ -24,8 +23,8 @@ export class AccountService {
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _context: vscode.ExtensionContext,
-        private _accountStore: AccountStore
+        private _accountStore: AccountStore,
+        private _azureController: AzureController
     ) {}
 
     public get account(): IAccount {
@@ -76,9 +75,14 @@ export class AccountService {
         return mapping;
     }
 
+<<<<<<< HEAD
     public async refreshToken(account): Promise<Token> {
         let azureController = new AzureController(this._context);
         return await azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
+=======
+    public async refreshToken(account): Promise<string> {
+        return await this._azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
+>>>>>>> main
     }
 
     public getHomeTenant(account: IAccount): Tenant {

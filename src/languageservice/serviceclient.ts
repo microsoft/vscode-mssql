@@ -176,7 +176,7 @@ export default class SqlToolsServiceClient {
             this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
             this._logger.appendLine();
             this._logger.append(`Platform: ${platformInfo.toString()}`);
-            if (!platformInfo.isValidRuntime()) {
+            if (!platformInfo.isValidRuntime) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
                 reject('Invalid Platform');
             } else {
@@ -198,12 +198,12 @@ export default class SqlToolsServiceClient {
                         }
                         let installedServerPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
                         this._sqlToolsServicePath = path.dirname(installedServerPath);
-                        this.initializeLanguageClient(installedServerPath, context, platformInfo.isWindows());
+                        this.initializeLanguageClient(installedServerPath, context, platformInfo.isWindows);
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(true, true, installedServerPath));
                     } else {
                         this._sqlToolsServicePath = path.dirname(serverPath);
-                        this.initializeLanguageClient(serverPath, context, platformInfo.isWindows());
+                        this.initializeLanguageClient(serverPath, context, platformInfo.isWindows);
                         await this._client.onReady();
                         resolve(new ServerInitializationResult(false, true, serverPath));
                     }
@@ -217,7 +217,7 @@ export default class SqlToolsServiceClient {
     }
 
     private updateServiceVersion(platformInfo: PlatformInformation): void {
-        if (platformInfo.isMacOS() && platformInfo.isMacVersionLessThan('10.12.0')) {
+        if (platformInfo.isMacOS && platformInfo.isMacVersionLessThan('10.12.0')) {
             // Version 1.0 is required as this is the last one supporting downlevel macOS versions
             this._config.useServiceVersion(1);
         }

@@ -8,6 +8,7 @@ import { IConnectionProfile } from '../models/interfaces';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as vscodeMssql from 'vscode-mssql';
+import { TreeNodeType } from './connectTreeNode';
 
 export class ObjectExplorerUtils {
 
@@ -26,8 +27,13 @@ export class ObjectExplorerUtils {
         }
     }
 
-    public static getNodeUri(node: TreeNodeInfo): string {
-        const profile = <IConnectionProfile>node.connectionInfo;
+    public static getNodeUri(node: TreeNodeType): string {
+        let profile: IConnectionProfile;
+        if (node instanceof TreeNodeInfo) {
+            profile = <IConnectionProfile>node.connectionInfo;
+        } else {
+            profile = <IConnectionProfile>node.parentNode.connectionInfo;
+        }
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
 

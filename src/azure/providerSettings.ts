@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ProviderSettings } from 'ads-adal-library';
+import { ProviderSettings } from '@microsoft/ads-adal-library';
 
 
 const publicAzureSettings: ProviderSettings = {

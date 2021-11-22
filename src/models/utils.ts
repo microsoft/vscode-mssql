@@ -14,7 +14,7 @@ import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } fr
 import { ExtensionContext } from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as fs from 'fs';
-import { AzureAuthType } from 'ads-adal-library';
+import { AzureAuthType } from '@microsoft/ads-adal-library';
 import { IConnectionInfo } from 'vscode-mssql';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
