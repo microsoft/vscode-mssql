@@ -575,6 +575,11 @@
           "description": "%mssql.maxRecentConnections%",
           "scope": "window"
         },
+        "mssql.useNativeCredentials": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.useNativeCredentials%"
+        },
         "mssql.connections": {
           "type": "array",
           "default": [

@@ -25,6 +25,7 @@ const msInS = 1000;
 const configTracingLevel = 'tracingLevel';
 const configLogRetentionMinutes = 'logRetentionMinutes';
 const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
+export const configPasswordsMigrated = 'passwordsMigrated';
 
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 
@@ -493,4 +494,24 @@ export function generateQueryUri(scheme = 'vscode-mssql-adhoc'): vscode.Uri {
         scheme: scheme,
         authority: `Query${uriIndex++}`
     });
+}
+
+/**
+ * Returns whether the credentials should use the native credential
+ * service or not
+ */
+ export function useNativeCredentials(): boolean {
+    const isLinux: boolean = os.platform() === 'linux';
+    const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+    const useNativeCredentialSetting = config.get<boolean>(Constants.configUseNativeCredentials);
+    return isLinux && useNativeCredentialSetting;
+}
+
+/**
+ * Returns the credential folder path on the user's system
+ */
+ export async function removeCredentialFile(): Promise<void> {
+	const home = os.homedir();
+	const credentialPath = path.join(home, '.sqlsecrets');
+	await fs.promises.rmdir(credentialPath, { recursive: true });
 }

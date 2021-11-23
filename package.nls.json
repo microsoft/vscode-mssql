@@ -121,5 +121,6 @@
 "mssql.query.ansiWarnings":"Enable SET ANSI_WARNINGS",
 "mssql.query.ansiNulls":"Enable SET ANSI_NULLS",
 "mssql.query.alwaysEncryptedParameterization":"Enable Parameterization for Always Encrypted",
-"mssql.ignorePlatformWarning":"[Optional] Do not show unsupported platform warnings"
+"mssql.ignorePlatformWarning":"[Optional] Do not show unsupported platform warnings",
+"mssql.useNativeCredentials":"Migrate all passwords to native password storage"
 }
