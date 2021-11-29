@@ -696,6 +696,7 @@ export default class ConnectionManager {
                     }
                 } else {
                     connectionCreds.azureAccountToken = azureAccountToken.token;
+                    connectionCreds.expiresOn = azureAccountToken.expiresOn
                 }
             }
         }

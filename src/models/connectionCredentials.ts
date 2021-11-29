@@ -11,6 +11,7 @@ import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IConnectionInfo } from 'vscode-mssql';
+import { Token } from '@microsoft/ads-adal-library';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionInfo {
@@ -22,7 +23,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     public accountId: string | undefined;
     public port: number;
     public authenticationType: string;
-    public azureAccountToken: string | undefined;
+    public azureAccountToken: Token | undefined;
     public encrypt: boolean;
     public trustServerCertificate: boolean | undefined;
     public persistSecurityInfo: boolean | undefined;

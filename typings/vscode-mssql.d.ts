@@ -3,6 +3,8 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Token } from '@microsoft/ads-adal-library';
+
 declare module 'vscode-mssql' {
 
     import * as vscode from 'vscode';
@@ -125,12 +127,7 @@ declare module 'vscode-mssql' {
         /**
          * Gets or sets the azure account token to use.
          */
-        azureAccountToken: string | undefined;
-
-        /**
-	     * Access token expiry timestamp
-	     */
-        expiresOn: number;
+        azureAccountToken: Token | undefined;
 
         /**
          * Gets or sets a Boolean value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if

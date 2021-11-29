@@ -107,7 +107,7 @@ export class AzureController {
                 let errorMessage = LocalizedConstants.msgGetTokenFail;
                 this._vscodeWrapper.showErrorMessage(errorMessage);
             }
-            profile.azureAccountToken = token.token;
+            profile.azureAccountToken = token;
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
@@ -121,7 +121,7 @@ export class AzureController {
                 let errorMessage = LocalizedConstants.msgGetTokenFail;
                 this._vscodeWrapper.showErrorMessage(errorMessage);
             }
-            profile.azureAccountToken = token.token;
+            profile.azureAccountToken = token;
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
         }

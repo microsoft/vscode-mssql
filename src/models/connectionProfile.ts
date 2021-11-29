@@ -10,7 +10,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureAuthType } from '@microsoft/ads-adal-library';
+import { AzureAuthType, Token } from '@microsoft/ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
 import { IAccount } from './contracts/azure/accountInterfaces';
@@ -26,7 +26,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;
-    public azureAccountToken: string;
+    public azureAccountToken: Token;
     public accountStore: AccountStore;
     public accountId: string;
 
