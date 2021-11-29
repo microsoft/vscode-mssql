@@ -46,18 +46,11 @@ export class CredentialStore implements ICredentialStore {
      */
     public async readCredential(credentialId: string): Promise<Contracts.Credential> {
         const cred: Contracts.Credential = new Contracts.Credential();
-        try {
-            let returnedCred: Contracts.Credential;
-
-            // Use native credential if the setting is on
-            if (this._useNativeCredentials) {
-                returnedCred = await this.nativeReadCredential(credentialId, cred);
-            } else {
-                returnedCred = await this._client.sendRequest(Contracts.ReadCredentialRequest.type, cred);
-            }
-            return returnedCred;
-        } catch (err) {
-            throw(err);
+        // Use native credential if the setting is on
+        if (this._useNativeCredentials) {
+            return this.nativeReadCredential(credentialId, cred);
+        } else {
+            return this._client.sendRequest(Contracts.ReadCredentialRequest.type, cred);
         }
     }
 
@@ -68,21 +61,16 @@ export class CredentialStore implements ICredentialStore {
      * @param credentialId the ID uniquely identifying this credential
      * @param password the password that needs to be saved with the credential
      */
-    public async saveCredential(credentialId: string, password: any): Promise<boolean> {
+    public async saveCredential(credentialId: string, password: string): Promise<boolean> {
         let cred: Contracts.Credential = new Contracts.Credential();
         cred.credentialId = credentialId;
         cred.password = password;
-        try {
-            let success: boolean;
-            // Use native credential if the setting is on
-            if (this._useNativeCredentials) {
-                success = await this.nativeSaveCredential(credentialId, cred);
-            } else {
-                success = await this._client.sendRequest(Contracts.SaveCredentialRequest.type, cred);
-            }
-            return success;
-        } catch (err) {
-            throw(err);
+        // Use native credential if the setting is on
+        if (this._useNativeCredentials) {
+            await this.nativeSaveCredential(credentialId, cred);
+            return true;
+        } else {
+            return this._client.sendRequest(Contracts.SaveCredentialRequest.type, cred);
         }
     }
 
@@ -93,56 +81,29 @@ export class CredentialStore implements ICredentialStore {
     public async deleteCredential(credentialId: string): Promise<boolean> {
         let cred: Contracts.Credential = new Contracts.Credential();
         cred.credentialId = credentialId;
-        try {
-            let success: boolean;
-            // Use native credential if the setting is on
-            if (this._useNativeCredentials) {
-                success = await this.nativeDeleteCredential(credentialId);
-            } else {
-                success = await this._client.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
-            }
-            return success;
-        } catch (err) {
-            throw(err);
+        // Use native credential if the setting is on
+        if (this._useNativeCredentials) {
+            await this.nativeDeleteCredential(credentialId);
+            return true;
+        } else {
+            return this._client.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
         }
     }
 
     // Native Credential implementations
 
     private async nativeReadCredential(credentialId: string, cred: Contracts.Credential): Promise<Contracts.Credential> {
-        try {
-            const savedPassword: string = await this._context.secrets.get(credentialId);
-            cred.password = savedPassword;
-            return cred;
-        } catch (err) {
-            throw(err);
-        }
+        const savedPassword: string = await this._context.secrets.get(credentialId);
+        cred.password = savedPassword;
+        return cred;
     }
 
-    private async nativeSaveCredential(credentialId: string, password: any): Promise<boolean> {
-        try {
-            await this._context.secrets.store(credentialId, password);
-            const savedPassword = await this._context.secrets.get(credentialId);
-            if (savedPassword === password) {
-                return true;
-            }
-            return false;
-        } catch (err) {
-            throw(err);
-        }
+    private async nativeSaveCredential(credentialId: string, password: any): Promise<void> {
+        await this._context.secrets.store(credentialId, password);
     }
 
-    private async nativeDeleteCredential(credentialId: string): Promise<boolean> {
-        try {
-            await this._context.secrets.delete(credentialId);
-            const savedPassword = await this._context.secrets.get(credentialId);
-            if (!savedPassword) {
-                return true;
-            }
-            return false;
-        } catch (err) {
-            throw(err);
-        }
+    private async nativeDeleteCredential(credentialId: string): Promise<void> {
+        await this._context.secrets.delete(credentialId);
     }
 
     /**
@@ -156,7 +117,7 @@ export class CredentialStore implements ICredentialStore {
             let conn = savedPasswordConnections[i];
             await this.cleanCredential(conn);
         }
-        await Utils.removeCredentialFile();
+        return Utils.removeCredentialFile();
     }
 
 
@@ -167,16 +128,8 @@ export class CredentialStore implements ICredentialStore {
             const password = credential.password;
             // save it in secret store
             await this._secretStorage.store(credentialId, password);
-            // check if it's saved
-            const savedPassword = await this._secretStorage.get(credentialId);
-            if (savedPassword === password) {
-                // delete from tools service
-                const result = await this._client.sendRequest(Contracts.DeleteCredentialRequest.type,
+            return this._client.sendRequest(Contracts.DeleteCredentialRequest.type,
                     { credentialId, password: undefined });
-                return result;
-            } else {
-                return false;
-            }
         } else {
             return false;
         }
