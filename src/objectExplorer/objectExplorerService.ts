@@ -453,7 +453,7 @@ export class ObjectExplorerService {
                                 }
                             });
                         } else {
-                            connectionCredentials.azureAccountToken = azureAccountToken.token;
+                            connectionCredentials.azureAccountToken = azureAccountToken;
                         }
                     }
                 }

@@ -695,8 +695,7 @@ export default class ConnectionManager {
                         throw new Error(`${LocalizedConstants.cannotConnect}`);
                     }
                 } else {
-                    connectionCreds.azureAccountToken = azureAccountToken.token;
-                    connectionCreds.expiresOn = azureAccountToken.expiresOn
+                    connectionCreds.azureAccountToken = azureAccountToken;
                 }
             }
         }

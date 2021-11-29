@@ -3,10 +3,9 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Token } from '@microsoft/ads-adal-library';
-
 declare module 'vscode-mssql' {
 
+    import { Token } from '@microsoft/ads-adal-library';
     import * as vscode from 'vscode';
 
     /**
