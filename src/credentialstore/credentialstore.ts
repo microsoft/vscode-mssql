@@ -31,9 +31,9 @@ export class CredentialStore implements ICredentialStore {
         this._passwordsMigrated = this._context.globalState.get(Utils.configPasswordsMigrated);
         this._useNativeCredentials = Utils.useNativeCredentials();
         if (this._useNativeCredentials && !this._passwordsMigrated) {
-            this.migratePasswords().then((success) => {
-                this._passwordsMigrated = success;
-                this._context.globalState.update(Utils.configPasswordsMigrated, success);
+            this.migratePasswords().then(() => {
+                this._passwordsMigrated = true;
+                this._context.globalState.update(Utils.configPasswordsMigrated, this._passwordsMigrated);
             });
         }
     }
@@ -149,7 +149,7 @@ export class CredentialStore implements ICredentialStore {
      *
      * @returns Migrates all saved credentials to the native credential system
      */
-    private async migratePasswords(): Promise<boolean> {
+    private async migratePasswords(): Promise<void> {
         const connections = vscode.workspace.getConfiguration(Constants.extensionName).get<any[]>(Constants.connectionsArrayName);
         const savedPasswordConnections = connections.filter(conn => conn.savePassword === true);
         for (let i = 0; i < savedPasswordConnections.length; i++) {
@@ -157,7 +157,6 @@ export class CredentialStore implements ICredentialStore {
             await this.cleanCredential(conn);
         }
         await Utils.removeCredentialFile();
-        return true;
     }
 
 

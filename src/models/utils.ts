@@ -399,7 +399,7 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
-export function getConfigTracingLevel(): string {
+export function getConfigTracingLevel(): string | undefined {
     let config = getConfiguration();
     if (config) {
         return config.get(configTracingLevel);
@@ -408,7 +408,7 @@ export function getConfigTracingLevel(): string {
     }
 }
 
-export function getConfigLogFilesRemovalLimit(): number {
+export function getConfigLogFilesRemovalLimit(): number | undefined {
     let config = getConfiguration();
     if (config) {
         return Number((config.get(configLogFilesRemovalLimit, 0).toFixed(0)));
@@ -417,7 +417,7 @@ export function getConfigLogFilesRemovalLimit(): number {
     }
 }
 
-export function getConfigLogRetentionSeconds(): number {
+export function getConfigLogRetentionSeconds(): number | undefined {
     let config = getConfiguration();
     if (config) {
         return Number((config.get(configLogRetentionMinutes, 0) * 60).toFixed(0));
