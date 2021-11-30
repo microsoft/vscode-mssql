@@ -822,23 +822,23 @@ export default class ConnectionManager {
     public async refreshAzureAccountToken(uri: string): Promise<boolean> {
         const profile = this.getConnectionInfo(uri);
         if (!profile) {
-            this.vscodeWrapper.logToOutputChannel(`Connection not found for uri ${uri}`);
+            this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgConnectionNotFound, uri));
             return false;
         }
 
         // Wait for the pending reconnction promise if any
         const previousReconnectPromise = this._uriToConnectionPromiseMap.get(uri);
         if (previousReconnectPromise) {
-            this.vscodeWrapper.logToOutputChannel(`Found pending reconnect promise for uri ${uri}, waiting.`);
+            this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFoundPendingReconnect, uri));
             try {
                 const previousConnectionResult = await previousReconnectPromise;
                 if (previousConnectionResult) {
-                    this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} succeeded.`);
+                    this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgPendingReconnectSuccess, uri));
                     return true;
                 }
-                this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} failed.`);
+                this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFoundPendingReconnectFailed, uri));
             } catch (err) {
-                this.vscodeWrapper.logToOutputChannel(`Previous pending reconnect promise for uri ${uri} is rejected with error ${err}, will attempt to reconnect if necessary.`);
+                this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFoundPendingReconnectError, uri, err));
             }
         }
 
@@ -847,20 +847,20 @@ export default class ConnectionManager {
             const currentTime = new Date().getTime() / 1000;
             const maxTolerance = 2 * 60; // two minutes
             if (expiry - currentTime < maxTolerance) {
-                this.vscodeWrapper.logToOutputChannel(`Access token expired for connection ${profile.connectionId} with uri ${uri}`);
+                this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgAcessTokenExpired, profile.connectionId, uri));
                 try {
                     let connectionResult = await this.connect(uri, profile.credentials);
                     if (!connectionResult) {
-                        this.vscodeWrapper.showErrorMessage(`Failed to refresh connection ${profile.connectionId} with uri ${uri}, invalid connection result.`);
-                        throw new Error('Connection result is invalid');
+                        this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgRefreshConnection, profile.connectionId, uri));
+                        throw new Error('Unable to refresh connection');
                     }
-                    this.vscodeWrapper.logToOutputChannel(`Successfully refreshed token for connection ${profile.connectionId} with uri ${uri}, result: ${connectionResult}, isConnected: ${this.isConnected(uri)}, ${this.getConnectionInfo(uri)}`);
+                    this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgRefreshTokenSuccess, profile.connectionId, uri, this.getConnectionInfo(uri)));
                     return true;
                 } catch {
-                    this.vscodeWrapper.showInformationMessage('Error when refreshing token to execute query');
+                    this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.msgRefreshTokenError));
                 }
             }
-            this.vscodeWrapper.logToOutputChannel(`No need to refresh Azure acccount token for connection ${profile.connectionId} with uri ${uri}`);
+            this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgRefreshTokenNotNeeded, profile.connectionId, uri));
         }
         return true;
     }
