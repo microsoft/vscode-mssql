@@ -854,7 +854,8 @@ export default class ConnectionManager {
                         this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgRefreshConnection, profile.connectionId, uri));
                         throw new Error('Unable to refresh connection');
                     }
-                    this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgRefreshTokenSuccess, profile.connectionId, uri, this.getConnectionInfo(uri)));
+                    this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgRefreshTokenSuccess,
+                        profile.connectionId, uri, this.getConnectionInfo(uri)));
                     return true;
                 } catch {
                     this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.msgRefreshTokenError));
