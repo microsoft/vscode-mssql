@@ -734,10 +734,7 @@ export default class MainController implements vscode.Disposable {
             if (!self.connectionManager.isConnected(uri)) {
                 await self.onNewConnection();
             }
-            // TODO: check if current connection is still valid / active
-            // no way to check if a current token is expired or not, refactor to include expiresOn field
-            // for token and check that field here
-
+            // check if current connection is still valid / active - if not, refresh azure account token
             this._connectionMgr.refreshAzureAccountToken(uri);
 
             let title = path.basename(editor.document.fileName);

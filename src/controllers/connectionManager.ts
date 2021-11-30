@@ -257,10 +257,6 @@ export default class ConnectionManager {
         return (fileUri in this._connections && this._connections[fileUri].connectionId && Utils.isNotEmpty(this._connections[fileUri].connectionId));
     }
 
-    // public isExpired(fileUri: string): boolean {
-    //     return (fileUri)
-    // }
-
     public isConnecting(fileUri: string): boolean {
         return (fileUri in this._connections && this._connections[fileUri].connecting);
     }
@@ -511,7 +507,7 @@ export default class ConnectionManager {
      * @returns The list of databases retrieved from the connection
      */
     public async listDatabases(connectionUri: string): Promise<string[]> {
-        // await this.refreshAzureAccountTokenIfNecessary(connectionUri);
+        await this.refreshAzureAccountToken(connectionUri);
         const listParams = new ConnectionContracts.ListDatabasesParams();
         listParams.ownerUri = connectionUri;
         const result = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
@@ -829,7 +825,7 @@ export default class ConnectionManager {
 			return false;
 		}
 
-        // 	//wait for the pending reconnction promise if any
+        // Wait for the pending reconnction promise if any
 		const previousReconnectPromise = this._uriToConnectionPromiseMap.get(uri);
 		if (previousReconnectPromise) {
 			this.vscodeWrapper.logToOutputChannel(`Found pending reconnect promise for uri ${uri}, waiting.`);
