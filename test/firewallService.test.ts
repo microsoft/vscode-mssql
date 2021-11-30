@@ -94,7 +94,7 @@ suite('Firewall Service Tests', () => {
             tokenType: '',
             token: '',
             expiresOn: 0
-        }
+        };
         accountService.setup(v => v.refreshToken(mockAccount)).returns(() => Promise.resolve(mockToken));
         accountService.object.setAccount(mockAccount);
         let result = await firewallService.object.createFirewallRule(server, startIpAddress, endIpAddress);

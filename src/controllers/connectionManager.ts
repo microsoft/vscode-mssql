@@ -354,10 +354,11 @@ export default class ConnectionManager {
         };
     }
 
-    private handleConnectionSuccess(fileUri: string,
-                                    connection: ConnectionInfo,
-                                    newCredentials: IConnectionInfo,
-                                    result: ConnectionContracts.ConnectionCompleteParams): void {
+    private handleConnectionSuccess(
+        fileUri: string,
+        connection: ConnectionInfo,
+        newCredentials: IConnectionInfo,
+        result: ConnectionContracts.ConnectionCompleteParams): void {
         connection.connectionId = result.connectionId;
         connection.serverInfo = result.serverInfo;
         connection.credentials = newCredentials;
@@ -398,7 +399,7 @@ export default class ConnectionManager {
                     await vscode.env.openExternal(vscode.Uri.parse(Constants.integratedAuthHelpLink));
                 }
             } else if (platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
-            result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
+                result.messages.indexOf('Unable to load DLL \'System.Security.Cryptography.Native\'') !== -1) {
                 const action = await this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.msgConnectionError2,
                     LocalizedConstants.macOpenSslErrorMessage), LocalizedConstants.macOpenSslHelpButton);
                 if (action && action === LocalizedConstants.macOpenSslHelpButton) {
@@ -535,11 +536,11 @@ export default class ConnectionManager {
         if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
             if (isSqlCmdMode) {
                 SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
-                    <LanguageServiceContracts.DidChangeLanguageFlavorParams> {
-                    uri: fileUri,
-                    language: isSqlCmd ? 'sqlcmd' : 'sql',
-                    flavor: 'MSSQL'
-                });
+                    <LanguageServiceContracts.DidChangeLanguageFlavorParams>{
+                        uri: fileUri,
+                        language: isSqlCmd ? 'sqlcmd' : 'sql',
+                        flavor: 'MSSQL'
+                    });
                 return true;
             }
             const flavor = await this._connectionUI.promptLanguageFlavor();
@@ -548,11 +549,11 @@ export default class ConnectionManager {
             }
             this.statusView.languageFlavorChanged(fileUri, flavor);
             SqlToolsServerClient.instance.sendNotification(LanguageServiceContracts.LanguageFlavorChangedNotification.type,
-                <LanguageServiceContracts.DidChangeLanguageFlavorParams> {
-                uri: fileUri,
-                language: 'sql',
-                flavor: flavor
-            });
+                <LanguageServiceContracts.DidChangeLanguageFlavorParams>{
+                    uri: fileUri,
+                    language: 'sql',
+                    flavor: flavor
+                });
             return true;
         } else {
             await this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
@@ -677,7 +678,7 @@ export default class ConnectionManager {
         // Check if the azure account token is present before sending connect request
         if (connectionCreds.authenticationType === Constants.azureMfa) {
             const currentTime = new Date().getTime() / 1000;
-			const maxTolerance = 2 * 60; // two minutes
+            const maxTolerance = 2 * 60; // two minutes
             if (!connectionCreds.azureAccountToken || connectionCreds.expiresOn - currentTime < maxTolerance) {
                 let account = this.accountStore.getAccount(connectionCreds.accountId);
                 let profile = new ConnectionProfile(connectionCreds);
@@ -799,7 +800,7 @@ export default class ConnectionManager {
 
     public onDidOpenTextDocument(doc: vscode.TextDocument): void {
         let uri = doc.uri.toString(true);
-        if (doc.languageId === 'sql' && typeof(this._connections[uri]) === 'undefined') {
+        if (doc.languageId === 'sql' && typeof (this._connections[uri]) === 'undefined') {
             this.statusView.notConnected(uri);
         }
     }
@@ -820,49 +821,49 @@ export default class ConnectionManager {
 
     public async refreshAzureAccountToken(uri: string): Promise<boolean> {
         const profile = this.getConnectionInfo(uri);
-		if (!profile) {
+        if (!profile) {
             this.vscodeWrapper.logToOutputChannel(`Connection not found for uri ${uri}`);
-			return false;
-		}
+            return false;
+        }
 
         // Wait for the pending reconnction promise if any
-		const previousReconnectPromise = this._uriToConnectionPromiseMap.get(uri);
-		if (previousReconnectPromise) {
-			this.vscodeWrapper.logToOutputChannel(`Found pending reconnect promise for uri ${uri}, waiting.`);
-			try {
-				const previousConnectionResult = await previousReconnectPromise;
-				if (previousConnectionResult) {
-					this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} succeeded.`);
-					return true;
-				}
-				this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} failed.`);
-			} catch (err) {
-				this.vscodeWrapper.logToOutputChannel(`Previous pending reconnect promise for uri ${uri} is rejected with error ${err}, will attempt to reconnect if necessary.`);
-			}
-		}
+        const previousReconnectPromise = this._uriToConnectionPromiseMap.get(uri);
+        if (previousReconnectPromise) {
+            this.vscodeWrapper.logToOutputChannel(`Found pending reconnect promise for uri ${uri}, waiting.`);
+            try {
+                const previousConnectionResult = await previousReconnectPromise;
+                if (previousConnectionResult) {
+                    this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} succeeded.`);
+                    return true;
+                }
+                this.vscodeWrapper.logToOutputChannel(`Previous pending reconnection for uri ${uri} failed.`);
+            } catch (err) {
+                this.vscodeWrapper.logToOutputChannel(`Previous pending reconnect promise for uri ${uri} is rejected with error ${err}, will attempt to reconnect if necessary.`);
+            }
+        }
 
         const expiry = profile.credentials.expiresOn;
-		if (typeof expiry === 'number' && !Number.isNaN(expiry)) {
-			const currentTime = new Date().getTime() / 1000;
-			const maxTolerance = 2 * 60; // two minutes
-			if (expiry - currentTime < maxTolerance) {
-				this.vscodeWrapper.logToOutputChannel(`Access token expired for connection ${profile.connectionId} with uri ${uri}`);
-				try {
-					let connectionResult = await this.connect(uri, profile.credentials);
-					if (!connectionResult) {
-						this.vscodeWrapper.showErrorMessage(`Failed to refresh connection ${profile.connectionId} with uri ${uri}, invalid connection result.`);
-						throw new Error("Connection result is invalid");
-					}
-					this.vscodeWrapper.logToOutputChannel(`Successfully refreshed token for connection ${profile.connectionId} with uri ${uri}, result: ${connectionResult}, isConnected: ${this.isConnected(uri)}, ${this.getConnectionInfo(uri)}`);
-					return true;
-				} catch {
+        if (typeof expiry === 'number' && !Number.isNaN(expiry)) {
+            const currentTime = new Date().getTime() / 1000;
+            const maxTolerance = 2 * 60; // two minutes
+            if (expiry - currentTime < maxTolerance) {
+                this.vscodeWrapper.logToOutputChannel(`Access token expired for connection ${profile.connectionId} with uri ${uri}`);
+                try {
+                    let connectionResult = await this.connect(uri, profile.credentials);
+                    if (!connectionResult) {
+                        this.vscodeWrapper.showErrorMessage(`Failed to refresh connection ${profile.connectionId} with uri ${uri}, invalid connection result.`);
+                        throw new Error('Connection result is invalid');
+                    }
+                    this.vscodeWrapper.logToOutputChannel(`Successfully refreshed token for connection ${profile.connectionId} with uri ${uri}, result: ${connectionResult}, isConnected: ${this.isConnected(uri)}, ${this.getConnectionInfo(uri)}`);
+                    return true;
+                } catch {
                     this.vscodeWrapper.showInformationMessage('Error when refreshing token to execute query');
-				}
-			}
-			this.vscodeWrapper.logToOutputChannel(`No need to refresh Azure acccount token for connection ${profile.connectionId} with uri ${uri}`);
-		}
-		return true;
-	}
+                }
+            }
+            this.vscodeWrapper.logToOutputChannel(`No need to refresh Azure acccount token for connection ${profile.connectionId} with uri ${uri}`);
+        }
+        return true;
+    }
 
     public async removeAccount(prompter: IPrompter): Promise<void> {
         // list options for accounts to remove
