@@ -53,6 +53,7 @@ function createTestCredentials(): IConnectionInfo {
         port:                           1234,
         authenticationType:             AuthenticationTypes[AuthenticationTypes.SqlLogin],
         azureAccountToken:              '',
+        expiresOn:                      0,
         encrypt:                        false,
         trustServerCertificate:         false,
         persistSecurityInfo:            false,

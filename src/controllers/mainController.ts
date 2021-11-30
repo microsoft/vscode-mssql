@@ -738,6 +738,8 @@ export default class MainController implements vscode.Disposable {
             // no way to check if a current token is expired or not, refactor to include expiresOn field
             // for token and check that field here
 
+            this._connectionMgr.refreshAzureAccountToken(uri);
+
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
             // Calculate the selection if we have a selection, otherwise we'll treat null as
