@@ -126,7 +126,12 @@ declare module 'vscode-mssql' {
         /**
          * Gets or sets the azure account token to use.
          */
-        azureAccountToken: Token | undefined;
+        azureAccountToken: string | undefined;
+
+        /**
+         * Access token expiry timestamp
+         */
+        expiresOn: number | undefined;
 
         /**
          * Gets or sets a Boolean value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if

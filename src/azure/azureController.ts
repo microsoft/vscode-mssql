@@ -107,7 +107,8 @@ export class AzureController {
                 let errorMessage = LocalizedConstants.msgGetTokenFail;
                 this._vscodeWrapper.showErrorMessage(errorMessage);
             }
-            profile.azureAccountToken = token;
+            profile.azureAccountToken = token.token;
+            profile.expiresOn = token.expiresOn
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
@@ -121,7 +122,8 @@ export class AzureController {
                 let errorMessage = LocalizedConstants.msgGetTokenFail;
                 this._vscodeWrapper.showErrorMessage(errorMessage);
             }
-            profile.azureAccountToken = token;
+            profile.azureAccountToken = token.token;
+            profile.expiresOn = token.expiresOn;
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
         }
@@ -147,7 +149,7 @@ export class AzureController {
             });
         }
         profile.azureAccountToken = azureAccountToken.token;
-        profile.expiresOn = azureAccountToken.expiresOn;
+        profile.expiresOn = azureAccountToken.expiresOn
         profile.email = account.displayInfo.email;
         profile.accountId = account.key.id;
         return profile;
