@@ -70,7 +70,7 @@ export class AccountService {
         // TODO: match type for mapping in mssql and sqltoolsservice
         let mapping = {};
         mapping[this.getHomeTenant(this.account).id] = {
-            token: await (await this.refreshToken(this.account)).token
+            token: (await this.refreshToken(this.account)).token
         };
         return mapping;
     }
