@@ -158,7 +158,7 @@ export abstract class AzureAuth {
 		if (result?.accessToken) {
 			return {
 				...result.accessToken,
-				expiresOn: Number(result.accessToken),
+				expiresOn: Number(result.expiresOn),
 				tokenType: 'Bearer'
 			};
 		}
