@@ -12,7 +12,7 @@ import { HandleFirewallRuleRequest, IHandleFirewallRuleResponse,
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
-import { Tenant } from '@microsoft/ads-adal-library';
+import { Tenant, Token } from '@microsoft/ads-adal-library';
 import { IAccount } from '../src/models/contracts/azure/accountInterfaces';
 
 
@@ -89,7 +89,13 @@ suite('Firewall Service Tests', () => {
             displayInfo: undefined,
             isStale: undefined
         };
-        accountService.setup(v => v.refreshToken(mockAccount)).returns(() => Promise.resolve('mockToken'));
+        let mockToken: Token = {
+            key: '',
+            tokenType: '',
+            token: '',
+            expiresOn: 0
+        };
+        accountService.setup(v => v.refreshToken(mockAccount)).returns(() => Promise.resolve(mockToken));
         accountService.object.setAccount(mockAccount);
         let result = await firewallService.object.createFirewallRule(server, startIpAddress, endIpAddress);
         assert.isNotNull(result, 'Create Firewall Rule request is sent successfully');

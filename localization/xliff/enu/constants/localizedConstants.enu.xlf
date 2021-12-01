@@ -329,6 +329,36 @@
         <trans-unit id="msgConnecting">
             <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         </trans-unit>
+        <trans-unit id="msgConnectionNotFound">
+            <source xml:lang="en">Connection not found for uri "{0}".</source>
+        </trans-unit>
+        <trans-unit id="msgFoundPendingReconnect">
+            <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
+        </trans-unit>
+        <trans-unit id="msgPendingReconnectSuccess">
+            <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
+        </trans-unit>
+        <trans-unit id="msgFoundPendingReconnectFailed">
+            <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
+        </trans-unit>
+        <trans-unit id="msgFoundPendingReconnectError">
+            <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
+        </trans-unit>
+        <trans-unit id="msgAcessTokenExpired">
+            <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
+        </trans-unit>
+        <trans-unit id="msgRefreshTokenError">
+            <source xml:lang="en">Error when refreshing token</source>
+        </trans-unit>
+        <trans-unit id="msgRefreshConnection">
+            <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
+        </trans-unit>
+        <trans-unit id="msgRefreshTokenSuccess">
+            <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
+        </trans-unit>
+        <trans-unit id="msgRefreshTokenNotNeeded">
+            <source xml:lang="en">No need to refresh Azure acccount token for connection {0} with uri {1}</source>
+        </trans-unit>
         <trans-unit id="msgConnectedServerInfo">
             <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
         </trans-unit>

@@ -10,7 +10,7 @@ import * as Constants from '../constants/constants';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
-import { Tenant } from '@microsoft/ads-adal-library';
+import { Tenant, Token } from '@microsoft/ads-adal-library';
 
 export class AccountService {
 
@@ -70,12 +70,12 @@ export class AccountService {
         // TODO: match type for mapping in mssql and sqltoolsservice
         let mapping = {};
         mapping[this.getHomeTenant(this.account).id] = {
-            token: await this.refreshToken(this.account)
+            token: (await this.refreshToken(this.account)).token
         };
         return mapping;
     }
 
-    public async refreshToken(account): Promise<string> {
+    public async refreshToken(account): Promise<Token> {
         return await this._azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
     }
 
