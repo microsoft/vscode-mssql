@@ -26,8 +26,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;
-    public azureAccountToken: string;
-    public expiresOn: number;
+    public azureAccountToken: string | undefined;
+    public expiresOn: number | undefined;
     public accountStore: AccountStore;
     public accountId: string;
 

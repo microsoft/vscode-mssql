@@ -819,11 +819,11 @@ export default class ConnectionManager {
         }
     }
 
-    public async refreshAzureAccountToken(uri: string): Promise<boolean> {
+    public async refreshAzureAccountToken(uri: string): Promise<void> {
         const profile = this.getConnectionInfo(uri);
         if (!profile) {
             this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgConnectionNotFound, uri));
-            return false;
+            return;
         }
 
         // Wait for the pending reconnction promise if any
@@ -834,7 +834,7 @@ export default class ConnectionManager {
                 const previousConnectionResult = await previousReconnectPromise;
                 if (previousConnectionResult) {
                     this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgPendingReconnectSuccess, uri));
-                    return true;
+                    return;
                 }
                 this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgFoundPendingReconnectFailed, uri));
             } catch (err) {
@@ -856,14 +856,14 @@ export default class ConnectionManager {
                     }
                     this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgRefreshTokenSuccess,
                         profile.connectionId, uri, this.getConnectionInfo(uri)));
-                    return true;
+                    return;
                 } catch {
                     this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.msgRefreshTokenError));
                 }
             }
             this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgRefreshTokenNotNeeded, profile.connectionId, uri));
         }
-        return true;
+        return;
     }
 
     public async removeAccount(prompter: IPrompter): Promise<void> {
