@@ -5,7 +5,6 @@
 
 declare module 'vscode-mssql' {
 
-    import { Token } from '@microsoft/ads-adal-library';
     import * as vscode from 'vscode';
 
     /**
