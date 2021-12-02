@@ -538,6 +538,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', false);
         } catch (err) {
             console.warn(`Unexpected error cancelling query : ${err}`);
+            vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', true);
         }
     }
 
@@ -752,6 +753,7 @@ export default class MainController implements vscode.Disposable {
             await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);
+            vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', false);
         }
     }
 
