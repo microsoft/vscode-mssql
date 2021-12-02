@@ -142,6 +142,11 @@
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
   },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [
