@@ -194,12 +194,12 @@
       "editor/title": [
         {
           "command": "mssql.runQuery",
-          "when": "editorLangId == sql",
+          "when": "editorLangId == sql && !mssql.isQueryRunning",
           "group": "navigation@1"
         },
         {
           "command": "mssql.cancelQuery",
-          "when": "editorLangId == sql",
+          "when": "editorLangId == sql && mssql.isQueryRunning",
           "group": "navigation@2"
         }
       ],
@@ -360,6 +360,12 @@
       {
         "command": "mssql.runQuery",
         "title": "%mssql.runQuery%",
+        "category": "MS SQL",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "mssql.runCancelQuery",
+        "title": "%mssql.runCancelQuery%",
         "category": "MS SQL",
         "icon": "$(debug-start)"
       },
