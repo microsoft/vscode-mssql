@@ -93,6 +93,10 @@ export class ConnectionStore {
         return cred.join(ConnectionStore.CRED_SEPARATOR);
     }
 
+    public get connectionConfig(): IConnectionConfig {
+        return this._connectionConfig;
+    }
+
     private static pushIfNonEmpty(value: string, prefix: string, arr: string[]): void {
         if (Utils.isNotEmpty(value)) {
             arr.push(prefix.concat(value));
@@ -115,7 +119,7 @@ export class ConnectionStore {
      */
     public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
         let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
-        pickListItems.push(<IConnectionCredentialsQuickPickItem> {
+        pickListItems.push(<IConnectionCredentialsQuickPickItem>{
             label: `$(add) ${LocalizedConstants.CreateProfileFromConnectionsListLabel}`,
             connectionCreds: undefined,
             quickPickItemType: CredentialsQuickPickItemType.NewConnection
@@ -135,22 +139,22 @@ export class ConnectionStore {
 
     public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
         let self = this;
-        return new Promise<IConnectionCredentialsQuickPickItem>( (resolve, reject) => {
-            if (typeof(credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
+        return new Promise<IConnectionCredentialsQuickPickItem>((resolve, reject) => {
+            if (typeof (credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
                 credentialsItem.connectionCreds['savePassword'] === false) {
                 // Don't try to lookup a saved password if savePassword is set to false for the credential
                 resolve(credentialsItem);
-            // Note that 'emptyPasswordInput' property is only present for connection profiles
+                // Note that 'emptyPasswordInput' property is only present for connection profiles
             } else if (self.shouldLookupSavedPassword(<IConnectionProfile>credentialsItem.connectionCreds)) {
                 let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
                 self._credentialStore.readCredential(credentialId)
-                .then(savedCred => {
-                    if (savedCred) {
-                        credentialsItem.connectionCreds.password = savedCred.password;
-                    }
-                    resolve(credentialsItem);
-                })
-                .catch(err => reject(err));
+                    .then(savedCred => {
+                        if (savedCred) {
+                            credentialsItem.connectionCreds.password = savedCred.password;
+                        }
+                        resolve(credentialsItem);
+                    })
+                    .catch(err => reject(err));
             } else {
                 // Already have a password, no need to look up
                 resolve(credentialsItem);
@@ -215,20 +219,20 @@ export class ConnectionStore {
 
 
             self._connectionConfig.addConnection(savedProfile)
-            .then(() => {
-                // Only save if we successfully added the profile
-                return self.saveProfilePasswordIfNeeded(profile);
-                // And resolve / reject at the end of the process
-            }, err => {
-                reject(err);
-            }).then(resolved => {
-                // Add necessary default properties before returning
-                // this is needed to support immediate connections
-                ConnInfo.fixupConnectionCredentials(profile);
-                resolve(profile);
-            }, err => {
-                reject(err);
-            });
+                .then(() => {
+                    // Only save if we successfully added the profile
+                    return self.saveProfilePasswordIfNeeded(profile);
+                    // And resolve / reject at the end of the process
+                }, err => {
+                    reject(err);
+                }).then(resolved => {
+                    // Add necessary default properties before returning
+                    // this is needed to support immediate connections
+                    ConnInfo.fixupConnectionCredentials(profile);
+                    resolve(profile);
+                }, err => {
+                    reject(err);
+                });
         });
     }
 
@@ -273,16 +277,16 @@ export class ConnectionStore {
             }
 
             self._context.globalState.update(Constants.configRecentConnections, configValues)
-            .then(() => {
-                // Only save if we successfully added the profile and if savePassword
-                if ((<IConnectionProfile>conn).savePassword) {
-                    self.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
-                }
-                // And resolve / reject at the end of the process
-                resolve(undefined);
-            }, err => {
-                reject(err);
-            });
+                .then(() => {
+                    // Only save if we successfully added the profile and if savePassword
+                    if ((<IConnectionProfile>conn).savePassword) {
+                        self.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
+                    }
+                    // And resolve / reject at the end of the process
+                    resolve(undefined);
+                }, err => {
+                    reject(err);
+                });
         });
     }
 
@@ -318,12 +322,12 @@ export class ConnectionStore {
 
             // Update the MRU list
             self._context.globalState.update(Constants.configRecentConnections, configValues)
-            .then(() => {
-                // And resolve / reject at the end of the process
-                resolve(undefined);
-            }, err => {
-                reject(err);
-            });
+                .then(() => {
+                    // And resolve / reject at the end of the process
+                    resolve(undefined);
+                }, err => {
+                    reject(err);
+                });
         });
     }
 
@@ -349,12 +353,12 @@ export class ConnectionStore {
                 let credType: string = type === CredentialsQuickPickItemType.Mru ? ConnectionStore.CRED_MRU_USER : ConnectionStore.CRED_PROFILE_USER;
                 let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType, isConnectionString);
                 self._credentialStore.saveCredential(credentialId, password)
-                .then((result) => {
-                    resolve(result);
-                }).catch(err => {
-                    // Bubble up error if there was a problem executing the set command
-                    reject(err);
-                });
+                    .then((result) => {
+                        resolve(result);
+                    }).catch(err => {
+                        // Bubble up error if there was a problem executing the set command
+                        reject(err);
+                    });
             } else {
                 resolve(true);
             }
@@ -400,7 +404,7 @@ export class ConnectionStore {
     }
 
     private createQuickPickItem(item: IConnectionInfo, itemType: CredentialsQuickPickItemType): IConnectionCredentialsQuickPickItem {
-        return <IConnectionCredentialsQuickPickItem> {
+        return <IConnectionCredentialsQuickPickItem>{
             label: ConnInfo.getPicklistLabel(item, itemType),
             description: ConnInfo.getPicklistDescription(item),
             detail: ConnInfo.getPicklistDetails(item),
@@ -511,7 +515,7 @@ export class ConnectionStore {
         let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
 
         let maxConnections: number = config[Constants.configMaxRecentConnections];
-        if (typeof(maxConnections) !== 'number' || maxConnections <= 0) {
+        if (typeof (maxConnections) !== 'number' || maxConnections <= 0) {
             maxConnections = 5;
         }
         return maxConnections;

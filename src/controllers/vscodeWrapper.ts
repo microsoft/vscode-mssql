@@ -9,6 +9,7 @@ import { AzureLoginStatus } from '../models/interfaces';
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
+export import ConfigurationTarget = vscode.ConfigurationTarget;
 import { TextDocumentShowOptions } from 'vscode';
 
 export default class VscodeWrapper {
@@ -177,7 +178,7 @@ export default class VscodeWrapper {
      * @see vscode.workspace.openTextDocument
      */
     public async openMsSqlTextDocument(content?: string): Promise<vscode.TextDocument> {
-        const doc = await vscode.workspace.openTextDocument({ language: 'sql', content: content});
+        const doc = await vscode.workspace.openTextDocument({ language: 'sql', content: content });
         return doc;
     }
 
@@ -287,7 +288,7 @@ export default class VscodeWrapper {
      * Formats and shows a vscode warning message
      */
     public showWarningMessage(msg: string): Thenable<string> {
-        return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg );
+        return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg);
     }
 
     /**
@@ -341,8 +342,8 @@ export default class VscodeWrapper {
     /**
      * Change a configuration setting
      */
-    public setConfiguration(extensionName: string, resource: string, value: any): Thenable<void> {
-        return this.getConfiguration(extensionName).update(resource, value, vscode.ConfigurationTarget.Global);
+    public setConfiguration(extensionName: string, resource: string, value: any, target: ConfigurationTarget = ConfigurationTarget.Global): Thenable<void> {
+        return this.getConfiguration(extensionName).update(resource, value, target);
     }
 
     /**
