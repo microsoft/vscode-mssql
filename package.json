@@ -364,12 +364,6 @@
         "icon": "$(debug-start)"
       },
       {
-        "command": "mssql.runCancelQuery",
-        "title": "%mssql.runCancelQuery%",
-        "category": "MS SQL",
-        "icon": "$(debug-start)"
-      },
-      {
         "command": "mssql.runCurrentStatement",
         "title": "%mssql.runCurrentStatement%",
         "category": "MS SQL"
