@@ -504,7 +504,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Handles the command to enable SQLCMD mode
+     * Handles the command to toggle SQLCMD mode
      */
     private async onToggleSqlCmd(): Promise<void> {
         let isSqlCmd: boolean;
