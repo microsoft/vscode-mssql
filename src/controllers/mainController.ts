@@ -256,15 +256,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Helper function to toggle SQLCMD mode
-     */
-    private async toggleSqlCmdMode(isSqlCmd: boolean): Promise<boolean> {
-        await this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri);
-        await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
-        return true;
-    }
-
-    /**
      * Creates a new Object Explorer session
      */
     private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<void> {
@@ -513,9 +504,9 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Handles the command to enable SQLCMD mode
+     * Handles the command to toggle SQLCMD mode
      */
-    private async onToggleSqlCmd(): Promise<boolean> {
+    private async onToggleSqlCmd(): Promise<void> {
         let isSqlCmd: boolean;
         const uri = this._vscodeWrapper.activeTextEditorUri;
         const queryRunner = this._outputContentProvider.getQueryRunner(uri);
@@ -529,9 +520,9 @@ export default class MainController implements vscode.Disposable {
             const title = path.basename(editor.document.fileName);
             this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
         }
+        await this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri);
+        await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
         this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
-        const result = await this.toggleSqlCmdMode(!isSqlCmd);
-        return result;
     }
 
     /**
