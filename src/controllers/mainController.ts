@@ -66,9 +66,7 @@ export default class MainController implements vscode.Disposable {
      * The main controller constructor
      * @constructor
      */
-    constructor(context: vscode.ExtensionContext,
-        connectionManager?: ConnectionManager,
-        vscodeWrapper?: VscodeWrapper) {
+    constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager, vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
