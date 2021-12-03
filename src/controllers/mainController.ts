@@ -233,7 +233,7 @@ export default class MainController implements vscode.Disposable {
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
             this.onDidOpenTextDocument(activeTextEditor.document);
         }
-        this.sanitizeConnectionProfiles();
+        await this.sanitizeConnectionProfiles();
         Utils.logDebug('activated.');
         this._initialized = true;
         return true;
