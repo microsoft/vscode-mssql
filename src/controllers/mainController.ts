@@ -35,6 +35,7 @@ import { IConnectionInfo } from 'vscode-mssql';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
+import { formArrayNameProvider } from '../../out/src/views/htmlcontent/src/js/lib/@angular/forms/src/directives/reactive_directives/form_group_name';
 
 /**
  * The main controller class that initializes the extension
@@ -750,11 +751,10 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
             vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', true);
-            await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title).then(() => {
-                vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', false);
-            });
+            await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);
+        } finally {
             vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', false);
         }
     }
