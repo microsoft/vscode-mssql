@@ -35,7 +35,6 @@ import { IConnectionInfo } from 'vscode-mssql';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
-import { formArrayNameProvider } from '../../out/src/views/htmlcontent/src/js/lib/@angular/forms/src/directives/reactive_directives/form_group_name';
 
 /**
  * The main controller class that initializes the extension
