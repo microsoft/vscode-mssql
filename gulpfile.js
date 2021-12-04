@@ -6,7 +6,6 @@ var tslint = require('tslint');
 var tsProject = ts.createProject('tsconfig.json');
 var del = require('del');
 var srcmap = require('gulp-sourcemaps');
-var mapSources = require('@gulp-sourcemaps/map-sources');
 var config = require('./tasks/config');
 var concat = require('gulp-concat');
 var minifier = require('gulp-uglify/minifier');
@@ -63,14 +62,13 @@ gulp.task('ext:compile-src', (done) => {
                 .pipe(tsProject())
                 .on('error', function() {
                     if (process.env.BUILDMACHINE) {
-                        done('Extension Tests failed to build. See Above.');
+                        done('Extension source failed to build. See Above.');
                         process.exit(1);
                     }
                 })
                 .pipe(nls.rewriteLocalizeCalls())
                 .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-                .pipe(mapSources(function(sourcePath, file) { return '../' + sourcePath; }))
-                .pipe(srcmap.write('.'))
+                .pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src'}))
                 .pipe(gulp.dest('out/src/'));
 });
 
@@ -83,8 +81,7 @@ gulp.task('ext:compile-view', (done) => {
         .pipe(tsProject())
         .pipe(nls.rewriteLocalizeCalls())
         .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-        .pipe(mapSources(function(sourcePath, file) { return '../../' + sourcePath; }))
-        .pipe(srcmap.write('.'))
+        .pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src'}))
         .pipe(gulp.dest('out/src/views/htmlcontent'));
 });
 
@@ -209,8 +206,7 @@ gulp.task('ext:compile-tests', (done) => {
                 process.exit(1);
             }
         })
-        .pipe(mapSources(function(sourcePath, file) { return '../' + sourcePath; }))
-        .pipe(srcmap.write('.'))
+        .pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../test'}))
         .pipe(gulp.dest('out/test/'));
 
 });
