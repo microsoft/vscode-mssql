@@ -294,8 +294,14 @@ export class ConnectionStore {
      * Clear all recently used connections from the MRU list.
      */
     public async clearRecentlyUsed(): Promise<void> {
-        // Update the MRU list to be empty
         try {
+            // Get all recent connection profiles and delete the associated credentials.
+            const mruList = this.getRecentlyUsedConnections();
+            for (const connection of mruList) {
+                const credentialId = ConnectionStore.formatCredentialId(connection.server, connection.database, connection.user, ConnectionStore.CRED_MRU_USER);
+                await this._credentialStore.deleteCredential(credentialId);
+            }
+            // Update the MRU list to be empty
             await this._context.globalState.update(Constants.configRecentConnections, []);
         } catch (error) {
             Promise.reject(error);

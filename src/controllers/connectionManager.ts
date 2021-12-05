@@ -88,13 +88,13 @@ export default class ConnectionManager {
     public azureController: AzureController;
 
     constructor(context: vscode.ExtensionContext,
-                statusView: StatusView,
-                prompter: IPrompter,
-                private _client?: SqlToolsServerClient,
-                private _vscodeWrapper?: VscodeWrapper,
-                private _connectionStore?: ConnectionStore,
-                private _connectionUI?: ConnectionUI,
-                private _accountStore?: AccountStore) {
+        statusView: StatusView,
+        prompter: IPrompter,
+        private _client?: SqlToolsServerClient,
+        private _vscodeWrapper?: VscodeWrapper,
+        private _connectionStore?: ConnectionStore,
+        private _connectionUI?: ConnectionUI,
+        private _accountStore?: AccountStore) {
         this._statusView = statusView;
         this._connections = {};
         this._connectionCredentialsToServerInfoMap =
@@ -314,6 +314,11 @@ export default class ConnectionManager {
             let mruConnection: IConnectionInfo = <any>{};
 
             if (Utils.isNotEmpty(result.connectionId)) {
+                // Use the original connection information to save the MRU connection.
+                // for connections that a database is not provided, the database information will be updated to the default database name, if we use the new information
+                // as the MRU connection, the connection information will be different from the saved connections (saved connection's database property is empty).
+                // When deleting the saved connection, we won't be able to find its corresponding recent connection, and the saved connection credentials will become orphaned.
+                mruConnection = Object.assign({}, connection.credentials);
                 // Convert to credentials if it's a connection string based connection
                 if (connection.credentials.connectionString) {
                     connection.credentials = this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
@@ -328,7 +333,6 @@ export default class ConnectionManager {
                     newCredentials.database = result.connectionSummary.databaseName;
                 }
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
-                mruConnection = connection.credentials;
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     promise.resolve(true);
