@@ -109,12 +109,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.Configuration" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MSSQL configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configuration MSSQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.applyLocalization" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[Facultatif]5D; Options de configuration pour effectuer la localisation dans les paramètres régionaux configurés dans VSCode (vous devez redémarrer VSCode pour appliquer les paramètres)]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.authCodeGrant.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Prompts users to sign in using their browser.]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.chooseAuthMethod" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Chooses which Authentication method to use]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -421,6 +442,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[Facultatif]5D; Options de configuration pour copier les résultats multilignes à partir de la vue Résultats]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.deviceCode.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allows users to sign in to input-constrained devices.]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
