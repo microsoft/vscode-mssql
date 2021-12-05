@@ -556,15 +556,19 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "MSSQL configuration",
+      "title": "%mssql.Configuration%",
       "properties": {
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",
-          "description": "Chooses which Authentication method to use",
+          "description": "%mssql.chooseAuthMethod%",
           "enum": [
             "AuthCodeGrant",
             "DeviceCode"
+          ],
+          "enumDescriptions": [
+            "%mssql.authCodeGrant.description%",
+            "%mssql.deviceCode.description%"
           ],
           "scope": "application"
         },
