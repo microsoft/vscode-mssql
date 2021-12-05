@@ -566,6 +566,10 @@
             "AuthCodeGrant",
             "DeviceCode"
           ],
+          "enumDescriptions": [
+            "%mssql.authCodeGrant.description%",
+            "%mssql.deviceCode.description%"
+          ],
           "scope": "application"
         },
         "mssql.logDebugInfo": {
