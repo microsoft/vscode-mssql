@@ -302,8 +302,7 @@ export class ConnectionStore {
             const credentialId = ConnectionStore.formatCredentialId(connection.server, connection.database, connection.user, ConnectionStore.CRED_MRU_USER);
             try {
                 await this._credentialStore.deleteCredential(credentialId);
-            }
-            catch (err) {
+            } catch (err) {
                 deleteCredentialSuccess = false;
                 Utils.logToOutputChannel(Utils.formatString(LocalizedConstants.deleteCredentialError, credentialId, err));
             }
