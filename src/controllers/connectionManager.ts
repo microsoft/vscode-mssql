@@ -318,7 +318,7 @@ export default class ConnectionManager {
                 // the connection information will be different from the saved connections (saved connection's database property is empty).
                 // When deleting the saved connection, we won't be able to find its corresponding recent connection,
                 // and the saved connection credentials will become orphaned.
-                mruConnection = Object.assign({}, connection.credentials);
+                mruConnection = Utils.deepClone(connection.credentials);
                 // Convert to credentials if it's a connection string based connection
                 if (connection.credentials.connectionString) {
                     connection.credentials = this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
