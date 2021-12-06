@@ -142,6 +142,11 @@
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
   },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -551,15 +556,19 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "MSSQL configuration",
+      "title": "%mssql.Configuration%",
       "properties": {
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",
-          "description": "Chooses which Authentication method to use",
+          "description": "%mssql.chooseAuthMethod%",
           "enum": [
             "AuthCodeGrant",
             "DeviceCode"
+          ],
+          "enumDescriptions": [
+            "%mssql.authCodeGrant.description%",
+            "%mssql.deviceCode.description%"
           ],
           "scope": "application"
         },

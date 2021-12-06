@@ -35,6 +35,18 @@
         <trans-unit id="extension.rebuildIntelliSenseCache">
             <source xml:lang="en">Refresh IntelliSense Cache</source>
         </trans-unit>
+        <trans-unit id="mssql.Configuration">
+            <source xml:lang="en">MSSQL configuration</source>
+        </trans-unit>
+        <trans-unit id="mssql.chooseAuthMethod">
+            <source xml:lang="en">Chooses which Authentication method to use</source>
+        </trans-unit>
+        <trans-unit id="mssql.authCodeGrant.description">
+            <source xml:lang="en">Prompts users to sign in using their browser.</source>
+        </trans-unit>
+        <trans-unit id="mssql.deviceCode.description">
+            <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
+        </trans-unit>
         <trans-unit id="mssql.logDebugInfo">
             <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)</source>
         </trans-unit>
