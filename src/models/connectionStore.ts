@@ -108,6 +108,14 @@ export class ConnectionStore {
     }
 
     /**
+     * Inititalizes the connection store
+     * @returns {Promise<void>}
+     */
+    public async initialize(): Promise<void> {
+        await (this._credentialStore as CredentialStore).initialize();
+    }
+
+    /**
      * Load connections from MRU and profile list and return them as a formatted picklist.
      * Note: connections will not include password value
      *

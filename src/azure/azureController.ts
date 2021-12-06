@@ -218,6 +218,7 @@ export class AzureController {
         if (!this.credentialStoreInitialized) {
             let storagePath = await findOrMakeStoragePath();
             let credentialStore = new CredentialStore(this.context);
+            await credentialStore.initialize();
             this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
             await this.cacheService.init();
             this.storageService = this.cacheService.db;

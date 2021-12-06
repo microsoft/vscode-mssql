@@ -505,6 +505,7 @@ export function useNativeCredentials(): boolean {
     const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
     const useNativeCredentialSetting = config.get<boolean>(Constants.configUseNativeCredentials);
     return isLinux && useNativeCredentialSetting;
+    return true;
 }
 
 /**

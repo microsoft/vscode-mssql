@@ -887,4 +887,8 @@ export default class ConnectionManager {
             }
         });
     }
+
+    public async initialize(): Promise<void> {
+        await this._connectionStore?.initialize();
+    }
 }

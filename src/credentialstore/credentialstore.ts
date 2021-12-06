@@ -9,6 +9,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Utils from '../models/utils';
 import * as Constants from '../constants/constants';
 import { ConnectionStore } from '../models/connectionStore';
+import { IConnectionProfile } from '../models/interfaces';
 
 /**
  * Implements a credential storage for Windows, Mac (darwin), or Linux.
@@ -28,13 +29,20 @@ export class CredentialStore implements ICredentialStore {
             this._client = SqlToolsServerClient.instance;
         }
         this._secretStorage = this._context.secrets;
+        this._context.globalState.update(Utils.configPasswordsMigrated, false);
         this._passwordsMigrated = this._context.globalState.get(Utils.configPasswordsMigrated);
         this._useNativeCredentials = Utils.useNativeCredentials();
+    }
+
+    /**
+     * Initializes the credential store by migrating any old passwords
+     * to the native secret store if the native credential setting is set
+     */
+    public async initialize(): Promise<void> {
         if (this._useNativeCredentials && !this._passwordsMigrated) {
-            this.migratePasswords().then(() => {
-                this._passwordsMigrated = true;
-                this._context.globalState.update(Utils.configPasswordsMigrated, this._passwordsMigrated);
-            });
+            await this.migratePasswords();
+            this._passwordsMigrated = true;
+            this._context.globalState.update(Utils.configPasswordsMigrated, this._passwordsMigrated);
         }
     }
 
@@ -115,14 +123,14 @@ export class CredentialStore implements ICredentialStore {
         const savedPasswordConnections = connections.filter(conn => conn.savePassword === true);
         for (let i = 0; i < savedPasswordConnections.length; i++) {
             let conn = savedPasswordConnections[i];
-            await this.cleanCredential(conn);
+            await this.migrateCredential(conn);
         }
         return Utils.removeCredentialFile();
     }
 
 
-    private async cleanCredential(conn): Promise<boolean> {
-        const credentialId = ConnectionStore.formatCredentialId(conn);
+    private async migrateCredential(conn: IConnectionProfile): Promise<boolean> {
+        const credentialId = ConnectionStore.formatCredentialIdForCred(conn);
         const credential = await this._client.sendRequest(Contracts.ReadCredentialRequest.type, { credentialId, password: undefined });
         if (credential.password) {
             const password = credential.password;
