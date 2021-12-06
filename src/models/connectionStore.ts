@@ -292,14 +292,24 @@ export class ConnectionStore {
 
     /**
      * Clear all recently used connections from the MRU list.
+     * @returns a boolean value indicating whether the credentials were deleted successfully.
      */
-    public async clearRecentlyUsed(): Promise<void> {
-        // Update the MRU list to be empty
-        try {
-            await this._context.globalState.update(Constants.configRecentConnections, []);
-        } catch (error) {
-            Promise.reject(error);
+    public async clearRecentlyUsed(): Promise<boolean> {
+        // Get all recent connection profiles and delete the associated credentials.
+        const mruList = this.getRecentlyUsedConnections();
+        let deleteCredentialSuccess = true;
+        for (const connection of mruList) {
+            const credentialId = ConnectionStore.formatCredentialId(connection.server, connection.database, connection.user, ConnectionStore.CRED_MRU_USER);
+            try {
+                await this._credentialStore.deleteCredential(credentialId);
+            } catch (err) {
+                deleteCredentialSuccess = false;
+                Utils.logToOutputChannel(Utils.formatString(LocalizedConstants.deleteCredentialError, credentialId, err));
+            }
         }
+        // Update the MRU list to be empty
+        await this._context.globalState.update(Constants.configRecentConnections, []);
+        return deleteCredentialSuccess;
     }
 
     /**
