@@ -389,8 +389,12 @@ export class ConnectionUI {
                         case ManageProfileTask.ClearRecentlyUsed:
                             self.promptToClearRecentConnectionsList().then(result => {
                                 if (result) {
-                                    self.connectionManager.clearRecentConnectionsList().then(() => {
-                                        self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgClearedRecentConnections);
+                                    self.connectionManager.clearRecentConnectionsList().then((credentialsDeleted) => {
+                                        if (credentialsDeleted) {
+                                            self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgClearedRecentConnections);
+                                        } else {
+                                            self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgClearedRecentConnectionsWithErrors);
+                                        }
                                         resolve(true);
                                     });
                                 } else {

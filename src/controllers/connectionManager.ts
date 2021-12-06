@@ -468,9 +468,10 @@ export default class ConnectionManager {
     }
 
     /**
-     * Clear the recently used connections list in the connection store
+     * Clear the recently used connections list in the connection store.
+     * @returns a boolean value indicating whether the credentials were deleted successfully.
      */
-    public clearRecentConnectionsList(): Promise<void> {
+    public clearRecentConnectionsList(): Promise<boolean> {
         return this.connectionStore.clearRecentlyUsed();
     }
 
