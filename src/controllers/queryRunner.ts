@@ -29,6 +29,7 @@ import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from './../models/utils';
 import * as os from 'os';
 import { Deferred } from '../protocol';
+import { NullLogger } from 'vscode-jsonrpc';
 
 export interface IResultSet {
     columns: string[];
@@ -50,6 +51,7 @@ export default class QueryRunner {
     public eventEmitter: EventEmitter = new EventEmitter();
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
+    private static _activeQueries = [];
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -175,6 +177,14 @@ export default class QueryRunner {
                 // Set the query string for the uri
                 this._uriToQueryStringMap.set(this._ownerUri, queryString);
 
+                let lastIndexOfSlash = this._ownerUri.lastIndexOf('/');
+                let lastIndexOfColon = this._ownerUri.lastIndexOf(':');
+                let lastIndexOfSeperator = lastIndexOfSlash != -1 ? lastIndexOfSlash : lastIndexOfColon != -1 ? lastIndexOfColon : -1;
+                let newString = "";
+                if(lastIndexOfSeperator > -1){
+                    newString = this._ownerUri.substr(lastIndexOfSeperator).replace('.sql', '');
+                }
+                console.log('newString is ' + newString);
                 // Send the request to execute the query
                 if (promise) {
                     this._uriToQueryPromiseMap.set(this._ownerUri, promise);

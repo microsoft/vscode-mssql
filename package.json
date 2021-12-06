@@ -194,12 +194,12 @@
       "editor/title": [
         {
           "command": "mssql.runQuery",
-          "when": "editorLangId == sql && !mssql.isQueryRunning",
+          "when": "editorLangId == sql",
           "group": "navigation@1"
         },
         {
           "command": "mssql.cancelQuery",
-          "when": "editorLangId == sql && mssql.isQueryRunning",
+          "when": "editorLangId == sql && resourceFilename == Untitled-1",
           "group": "navigation@2"
         }
       ],
