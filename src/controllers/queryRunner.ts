@@ -177,12 +177,12 @@ export default class QueryRunner {
                 // Set the query string for the uri
                 this._uriToQueryStringMap.set(this._ownerUri, queryString);
 
-                let lastIndexOfSlash = this._ownerUri.lastIndexOf('/');
-                let lastIndexOfColon = this._ownerUri.lastIndexOf(':');
-                let lastIndexOfSeperator = lastIndexOfSlash != -1 ? lastIndexOfSlash : lastIndexOfColon != -1 ? lastIndexOfColon : -1;
                 let newString = "";
-                if(lastIndexOfSeperator > -1){
-                    newString = this._ownerUri.substr(lastIndexOfSeperator).replace('.sql', '');
+                if(this._ownerUri.startsWith("untitled:")){
+                    newString = this._ownerUri.substr(9);
+                }
+                else{
+                    newString = this._ownerUri.substr(this._ownerUri.lastIndexOf("/") + 1);
                 }
                 console.log('newString is ' + newString);
                 // Send the request to execute the query
