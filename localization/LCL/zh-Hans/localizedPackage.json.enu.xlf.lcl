@@ -130,12 +130,18 @@
       <Item ItemId=";mssql.authCodeGrant.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Prompts users to sign in using their browser.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[提示用户使用其浏览器登录。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";mssql.chooseAuthMethod" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Chooses which Authentication method to use]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择要使用的身份验证方法]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -448,6 +454,9 @@
       <Item ItemId=";mssql.deviceCode.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Allows users to sign in to input-constrained devices.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[允许用户登录到输入受限设备。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
