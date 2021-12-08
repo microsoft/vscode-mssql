@@ -415,6 +415,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";deleteCredentialError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to delete credential with id: {0}. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato possibile eliminare le credenziali con ID: {0}. {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";disconnectConfirmationMsg" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
@@ -807,6 +816,15 @@
           <Val><![CDATA[Recent connections list cleared]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[L'elenco delle connessioni recenti è stato cancellato]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgClearedRecentConnectionsWithErrors" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[L'elenco delle connessioni recenti è stato cancellato, ma si sono verificati degli errori nell'eliminazione di alcune credenziali associate. Visualizzare gli errori nel canale di output MSSQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
