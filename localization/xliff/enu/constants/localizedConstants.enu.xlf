@@ -554,6 +554,12 @@
         <trans-unit id="nodeErrorMessage">
             <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
         </trans-unit>
+        <trans-unit id="deleteCredentialError">
+            <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
+        </trans-unit>
+        <trans-unit id="msgClearedRecentConnectionsWithErrors">
+            <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
