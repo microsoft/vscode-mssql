@@ -586,8 +586,6 @@
         },
         "mssql.connections": {
           "type": "array",
-          "default": [
-          ],
           "description": "%mssql.connections%",
           "items": {
             "type": "object",
