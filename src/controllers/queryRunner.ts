@@ -29,7 +29,6 @@ import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from './../models/utils';
 import * as os from 'os';
 import { Deferred } from '../protocol';
-import { NullLogger } from 'vscode-jsonrpc';
 
 export interface IResultSet {
     columns: string[];
@@ -177,14 +176,6 @@ export default class QueryRunner {
                 // Set the query string for the uri
                 this._uriToQueryStringMap.set(this._ownerUri, queryString);
 
-                let newString = "";
-                if(this._ownerUri.startsWith("untitled:")){
-                    newString = this._ownerUri.substr(9);
-                }
-                else{
-                    newString = this._ownerUri.substr(this._ownerUri.lastIndexOf("/") + 1);
-                }
-                console.log('newString is ' + newString);
                 // Send the request to execute the query
                 if (promise) {
                     this._uriToQueryPromiseMap.set(this._ownerUri, promise);
@@ -205,17 +196,32 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
+            QueryRunner._activeQueries.push(this.getFileName());
+            vscode.commands.executeCommand('setContext', 'mssql.activeQueries', QueryRunner._activeQueries);
+            console.log(this.getFileName() + ' has been added to activeQueries');
             this.eventEmitter.emit('start', this.uri);
             this._notificationHandler.registerRunner(this, this._ownerUri);
         };
         let onError = (error) => {
             this._statusView.executedQuery(this.uri);
             this._isExecuting = false;
+            QueryRunner._activeQueries = QueryRunner._activeQueries.filter(fileName => fileName !== this.getFileName());
+            vscode.commands.executeCommand('setContext', 'mssql.activeQueries', QueryRunner._activeQueries);
+            console.log(this.getFileName() + ' has been removed from activeQueries');
             // TODO: localize
             this._vscodeWrapper.showErrorMessage('Execution failed: ' + error.message);
         };
 
         await queryCallback(onSuccess, onError);
+    }
+
+    private getFileName() : string {
+        if(this._ownerUri.startsWith("untitled:")){
+            return this._ownerUri.substr(9);
+        }
+        else{
+            return this._ownerUri.substr(this._ownerUri.lastIndexOf("/") + 1);
+        }
     }
 
     // handle the result of the notification
@@ -242,6 +248,9 @@ export default class QueryRunner {
         }
         this._statusView.executedQuery(result.ownerUri);
         let hasError = this._batchSets.some(batch => batch.hasError === true);
+        QueryRunner._activeQueries = QueryRunner._activeQueries.filter(fileName => fileName !== this.getFileName());
+        vscode.commands.executeCommand('setContext', 'mssql.activeQueries', QueryRunner._activeQueries);
+        console.log(this.getFileName() + ' has been removed from activeQueries');
         this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), hasError);
     }
 
