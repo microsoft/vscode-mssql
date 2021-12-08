@@ -62,13 +62,13 @@ gulp.task('ext:compile-src', (done) => {
                 .pipe(tsProject())
                 .on('error', function() {
                     if (process.env.BUILDMACHINE) {
-                        done('Extension Tests failed to build. See Above.');
+                        done('Extension source failed to build. See Above.');
                         process.exit(1);
                     }
                 })
                 .pipe(nls.rewriteLocalizeCalls())
                 .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-                .pipe(srcmap.write('.'))
+                .pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src'}))
                 .pipe(gulp.dest('out/src/'));
 });
 
@@ -81,7 +81,7 @@ gulp.task('ext:compile-view', (done) => {
         .pipe(tsProject())
         .pipe(nls.rewriteLocalizeCalls())
         .pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
-        .pipe(srcmap.write('.'))
+        .pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src'}))
         .pipe(gulp.dest('out/src/views/htmlcontent'));
 });
 
@@ -206,7 +206,7 @@ gulp.task('ext:compile-tests', (done) => {
                 process.exit(1);
             }
         })
-        .pipe(srcmap.write('.'))
+        .pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../test'}))
         .pipe(gulp.dest('out/test/'));
 
 });

@@ -676,6 +676,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";msgAcessTokenExpired" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zugriffstoken für die Verbindung {0} mit URI {1} ist abgelaufen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";msgAddConnection" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Connection]]></Val>
@@ -865,6 +874,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";msgConnectionNotFound" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection not found for uri "{0}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Verbindung für URI „{0}“ wurde nicht gefunden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";msgCopyAndOpenWebpage" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy code and open webpage]]></Val>
@@ -906,6 +924,33 @@
           <Val><![CDATA[Finished query execution for document "{0}"]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Die Abfrageausführung für Dokument "{0}" wurde abgeschlossen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgFoundPendingReconnect" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Found pending reconnect promise for uri {0}, waiting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ausstehende Zusage für Verbindungswiederherstellung für URI {0} gefunden, wartend.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgFoundPendingReconnectError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die vorherige ausstehende Zusage für die Verbindungswiederherstellung für URI {0} wird mit dem Fehler {1} abgelehnt, bei Bedarf wird versucht, die Verbindung wiederherzustellen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgFoundPendingReconnectFailed" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Found pending reconnect promise for uri {0}, failed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ausstehende Zusage für Verbindungswiederherstellung für URI {0} gefunden, fehlgeschlagen.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -978,6 +1023,15 @@
           <Val><![CDATA[To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Öffnen Sie zum Verwenden dieses Befehls eine SQL-Datei – oder – Ändern Sie die Editorsprache in "SQL" – oder – Wählen Sie im aktiven SQL-Editor "T-SQL-Text" aus.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgPendingReconnectSuccess" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Previous pending reconnection for uri {0}, succeeded.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vorherige ausstehende Verbindungswiederherstellung für URI {0}, erfolgreich.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1107,6 +1161,42 @@
           <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Die Kontoanmeldung war erfolgreich. Neue Firewallregel erstellen? ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgRefreshConnection" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to refresh connection ${0} with uri {1}, invalid connection result.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Aktualisieren der Verbindung ${0} mit URI {1}, ungültiges Verbindungsergebnis.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgRefreshTokenError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error when refreshing token]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Aktualisieren des Tokens]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgRefreshTokenNotNeeded" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No need to refresh Azure acccount token for connection {0} with uri {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure-Zugriffstoken für die Verbindung {0} mit URI {1} muss nicht aktualisiert werden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgRefreshTokenSuccess" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Successfully refreshed token for connection {0} with uri {1}, {2}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Token für Verbindung {0} mit URI {1}, {2} wurde erfolgreich aktualisiert]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
