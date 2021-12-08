@@ -215,7 +215,7 @@ export default class QueryRunner {
         await queryCallback(onSuccess, onError);
     }
 
-    //helper function for parsing the ownerUri
+    // helper function for parsing the ownerUri
     private getFilePath() : string {
         let newUri = vscode.Uri.parse(this._ownerUri);
         return newUri.fsPath;
