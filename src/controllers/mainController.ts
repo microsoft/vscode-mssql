@@ -555,10 +555,8 @@ export default class MainController implements vscode.Disposable {
         try {
             let uri = this._vscodeWrapper.activeTextEditorUri;
             this._outputContentProvider.cancelQuery(uri);
-            //vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', false);
         } catch (err) {
             console.warn(`Unexpected error cancelling query : ${err}`);
-            //vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', true);
         }
     }
 
@@ -769,13 +767,9 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
-            let filename = editor.document.fileName;
-            console.log('filename is ' + filename + ' uri is ' + uri);
-            //vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', true);
             await self._outputContentProvider.runQuery(self._statusview, uri, querySelection, title);
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);
-            //vscode.commands.executeCommand('setContext', 'mssql.isQueryRunning', false);
         }
     }
 
