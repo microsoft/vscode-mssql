@@ -705,6 +705,12 @@ export default class ConnectionManager {
             }
         }
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
+            if (connectionCreds.connectionString.includes(ConnectionStore.CRED_PREFIX)
+                && connectionCreds.connectionString.includes('isConnectionString:true')) {
+                let connectionString = await this.connectionStore.lookupPassword(connectionCreds, true);
+                connectionCreds.connectionString = connectionString;
+            }
+
             let connectionInfo: ConnectionInfo = new ConnectionInfo();
             connectionInfo.credentials = connectionCreds;
             connectionInfo.connecting = true;
