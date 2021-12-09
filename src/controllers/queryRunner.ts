@@ -50,7 +50,7 @@ export default class QueryRunner {
     public eventEmitter: EventEmitter = new EventEmitter();
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
-    private static _activeQueries = [];
+    private static _runningQueries = [];
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -196,18 +196,15 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
-            QueryRunner._activeQueries.push(this.getFilePath());
-            vscode.commands.executeCommand('setContext', 'mssql.activeQueries', QueryRunner._activeQueries);
-            console.log(this.getFilePath() + ' has been added to activeQueries');
+            QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
+            vscode.commands.executeCommand('setContext', 'mssql.runningQueries', QueryRunner._runningQueries);
             this.eventEmitter.emit('start', this.uri);
             this._notificationHandler.registerRunner(this, this._ownerUri);
         };
         let onError = (error) => {
             this._statusView.executedQuery(this.uri);
             this._isExecuting = false;
-            QueryRunner._activeQueries = QueryRunner._activeQueries.filter(fileName => fileName !== this.getFilePath());
-            vscode.commands.executeCommand('setContext', 'mssql.activeQueries', QueryRunner._activeQueries);
-            console.log(this.getFilePath() + ' has been removed from activeQueries');
+            this.removeRunningQuery();
             // TODO: localize
             this._vscodeWrapper.showErrorMessage('Execution failed: ' + error.message);
         };
@@ -215,10 +212,12 @@ export default class QueryRunner {
         await queryCallback(onSuccess, onError);
     }
 
-    // helper function for parsing the ownerUri
-    private getFilePath(): string {
-        let newUri = vscode.Uri.parse(this._ownerUri);
-        return newUri.fsPath;
+    /**
+     * Remove uri from runningQueries
+     */
+    private removeRunningQuery(): void {
+        QueryRunner._runningQueries = QueryRunner._runningQueries.filter(fileName => fileName !== vscode.Uri.parse(this._ownerUri).fsPath);
+        vscode.commands.executeCommand('setContext', 'mssql.runningQueries', QueryRunner._runningQueries);
     }
 
     // handle the result of the notification
@@ -245,9 +244,7 @@ export default class QueryRunner {
         }
         this._statusView.executedQuery(result.ownerUri);
         let hasError = this._batchSets.some(batch => batch.hasError === true);
-        QueryRunner._activeQueries = QueryRunner._activeQueries.filter(fileName => fileName !== this.getFilePath());
-        vscode.commands.executeCommand('setContext', 'mssql.activeQueries', QueryRunner._activeQueries);
-        console.log(this.getFilePath() + ' has been removed from activeQueries');
+        this.removeRunningQuery();
         this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), hasError);
     }
 
