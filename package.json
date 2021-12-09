@@ -199,7 +199,7 @@
       "editor/title": [
         {
           "command": "mssql.runQuery",
-          "when": "!mssql.runningQueries",
+          "when": "editorLangId == sql",
           "group": "navigation@1"
         },
         {
