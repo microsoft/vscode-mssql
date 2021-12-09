@@ -204,7 +204,7 @@
         },
         {
           "command": "mssql.cancelQuery",
-          "when": "editorLangId == sql",
+          "when": "editorLangId == sql && resourcePath in mssql.runningQueries",
           "group": "navigation@2"
         }
       ],
