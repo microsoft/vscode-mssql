@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 1.12.0
+* Release date: December 15, 2021
+* Release status: GA
+
+## What's new in 1.20.0
+* Fix AAD token refresh bugs
+* Fix Azure SQL DB connectivity bug
+* Add support for SELECT * column expansion
+* Add Untrusted Workspace support
+
 ## Version 1.11.1
 * Release date: November 17, 2021
 * Release status: GA
