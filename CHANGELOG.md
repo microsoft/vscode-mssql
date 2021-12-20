@@ -4,7 +4,7 @@
 * Release date: December 15, 2021
 * Release status: GA
 
-## What's new in 1.20.0
+## What's new in 1.12.0
 * Fix AAD token refresh bugs
 * Fix Azure SQL DB connectivity bug
 * Add support for SELECT * column expansion
