@@ -79,7 +79,7 @@ declare module 'vscode-mssql' {
         /**
          * Get the connection string for the provided connection ID
         */
-        getConnectionString(connectionId: string, includePassword: boolean): Promise<string>;
+        getConnectionString(connectionInfo: IConnectionInfo, includePassword: boolean): Promise<string>;
     }
 
     /**
