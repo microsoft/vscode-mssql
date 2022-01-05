@@ -62,8 +62,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         dacFx: controller.dacFxService,
         schemaCompare: controller.schemaCompareService,
         azureFunctions: controller.azureFunctionsService,
-        getConnectionString: (connectionInfo: IConnectionInfo, includePassword: boolean) => {
-            return controller.connectionManager.getConnectionString(connectionInfo, includePassword);
+        getConnectionString: (connectionUri: string, includePassword: boolean) => {
+            return controller.connectionManager.getConnectionString(connectionUri, includePassword);
         }
     };
 }
