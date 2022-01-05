@@ -260,6 +260,18 @@ export default class ConnectionManager {
     }
 
     /**
+     * Get the connection string for the provided connection ID
+     * @param connectionId The connection ID for the connection.
+     * @param includePassword if password should be included in connection string.
+     * @returns connection string for the connection
+     */
+    public async getConnectionString(connectionId: string, includePassword: boolean = false): Promise<string> {
+        const listParams = new ConnectionContracts.GetConnectionStringParams();
+        const result = await this.client.sendRequest(ConnectionContracts.GetConnectionStringRequest.type, listParams);
+        return result.connectionString;
+    }
+
+    /**
      * Exposed for testing purposes.
      */
     public getConnectionInfo(fileUri: string): ConnectionInfo {
