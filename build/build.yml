@@ -1,6 +1,5 @@
 pool:
-  name: Hosted macOS
-  vmImage: macOS-latest
+  vmImage: 'macOS-10.15'
 
 variables:
 - name: release
