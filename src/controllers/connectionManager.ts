@@ -260,9 +260,9 @@ export default class ConnectionManager {
     }
 
     /**
-     * Get the connection string for the provided connection ID
-     * @param connectionId The connection ID for the connection.
-     * @param includePassword if password should be included in connection string.
+     * Get the connection string for the provided connection Uri
+     * @param connectionUri The connection Uri for the connection.
+     * @param includePassword (optional) if password should be included in connection string.
      * @returns connection string for the connection
      */
     public async getConnectionString(connectionUri: string, includePassword: boolean = false): Promise<string> {
