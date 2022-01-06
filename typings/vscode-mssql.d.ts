@@ -77,7 +77,7 @@ declare module 'vscode-mssql' {
         getDatabaseNameFromTreeNode(node: ITreeNodeInfo): string;
 
         /**
-         * Get the connection string for the provided connection ID
+         * Get the connection string for the provided connection Uri
         */
         getConnectionString(connectionUri: String, includePassword: boolean): Promise<string>;
     }
@@ -572,9 +572,9 @@ declare module 'vscode-mssql' {
         parentTypeName?: string;
     }
 
-    /**
-      * Azure functions binding type
-      */
+   /**
+    * Azure functions binding type
+    */
     export const enum BindingType {
         input,
         output
