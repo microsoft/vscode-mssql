@@ -256,22 +256,31 @@ export class ListDatabasesResult {
 // ------------------------------- </ List Databases Request > --------------------------------------
 
 // ------------------------------- < Connection String Request > ---------------------------------------
-
-// Get Connection String request callback declaration
+/**
+ * Get Connection String request callback declaration
+ */
 export namespace GetConnectionStringRequest {
     export const type = new RequestType<GetConnectionStringParams, GetConnectionStringResult, void, void>('connection/getconnectionstring');
 }
 
-// Get Connection String request format
+/**
+ * Get Connection String request format
+ */
 export class GetConnectionStringParams {
-    // Connection key to lookup connection string for the provided connection Uri
+    /**
+     * Connection key to lookup connection string for the provided connection Uri
+     */
     public ownerUri: string;
 
-    // Indicates whether to include the password in the connection string
+    /**
+     * Indicates whether to include the password in the connection string
+     */
     public includePassword?: boolean;
 }
 
-// Connection string response format
+/**
+ * Connection string response format
+ */
 export class GetConnectionStringResult {
     public connectionString: string;
 }
