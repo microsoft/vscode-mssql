@@ -269,8 +269,7 @@ export default class ConnectionManager {
         const listParams = new ConnectionContracts.GetConnectionStringParams();
         listParams.ownerUri = connectionUri;
         listParams.includePassword = includePassword;
-        const result = await this.client.sendRequest(ConnectionContracts.GetConnectionStringRequest.type, listParams);
-        return result.connectionString;
+        return this.client.sendRequest(ConnectionContracts.GetConnectionStringRequest.type, listParams);
     }
 
     /**
