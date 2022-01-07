@@ -260,7 +260,7 @@ export class ListDatabasesResult {
  * Get Connection String request callback declaration
  */
 export namespace GetConnectionStringRequest {
-    export const type = new RequestType<GetConnectionStringParams, GetConnectionStringResult, void, void>('connection/getconnectionstring');
+    export const type = new RequestType<GetConnectionStringParams, string, void, void>('connection/getconnectionstring');
 }
 
 /**
@@ -276,13 +276,6 @@ export class GetConnectionStringParams {
      * Indicates whether to include the password in the connection string
      */
     public includePassword?: boolean;
-}
-
-/**
- * Connection string response format
- */
-export class GetConnectionStringResult {
-    public connectionString: string;
 }
 
 // ------------------------------- </ Connection String Request > --------------------------------------
