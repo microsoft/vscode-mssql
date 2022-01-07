@@ -70,7 +70,7 @@ const template = `
             <span class="boxCol content vertBox">
                 <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
                     <div *ngIf="icon.showCondition()" class="gridIcon">
-                        <a class="icon" href="#"
+                        <a class="icon" href="#" role="button"
                         (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
                         [title]="icon.hoverText()" [ngClass]="icon.icon()">
                         </a>
