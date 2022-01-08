@@ -124,5 +124,6 @@
 "mssql.ignorePlatformWarning":"[Optional] Do not show unsupported platform warnings",
 "mssql.chooseAuthMethod":"Chooses which Authentication method to use",
 "mssql.authCodeGrant.description":"Prompts users to sign in using their browser.",
-"mssql.deviceCode.description":"Allows users to sign in to input-constrained devices."
+"mssql.deviceCode.description":"Allows users to sign in to input-constrained devices.",
+"mssql.Configuration":"MSSQL configuration"
 }
