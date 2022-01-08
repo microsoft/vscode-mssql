@@ -122,7 +122,7 @@
 "mssql.query.ansiNulls":"Enable SET ANSI_NULLS",
 "mssql.query.alwaysEncryptedParameterization":"Enable Parameterization for Always Encrypted",
 "mssql.ignorePlatformWarning":"[Optional] Do not show unsupported platform warnings",
-"mssql.aad.chooseAuthMethod":"Authentication method",
-"mssql.aad.authMethod.authCodeGrant.description":"Authorization code grant",
-"mssql.aad.authMethod.deviceCode.description":"Device code"
+"mssql.chooseAuthMethod":"Chooses which Authentication method to use",
+"mssql.authCodeGrant.description":"Prompts users to sign in using their browser.",
+"mssql.deviceCode.description":"Allows users to sign in to input-constrained devices."
 }

@@ -561,14 +561,14 @@
         "mssql.azureActiveDirectory": {
           "type": "string",
           "default": "AuthCodeGrant",
-          "description": "%mssql.aad.chooseAuthMethod%",
+          "description": "%mssql.chooseAuthMethod%",
           "enum": [
             "AuthCodeGrant",
             "DeviceCode"
           ],
           "enumDescriptions": [
-            "%mssql.aad.authMethod.authCodeGrant.description%",
-            "%mssql.aad.authMethod.deviceCode.description%"
+            "%mssql.authCodeGrant.description%",
+            "%mssql.deviceCode.description%"
           ],
           "scope": "application"
         },
