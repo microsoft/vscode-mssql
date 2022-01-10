@@ -18,3 +18,4 @@ gulpfile.js
 tsconfig.json
 tslint*.json
 **/*.map
+**/*.ts
