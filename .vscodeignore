@@ -16,8 +16,5 @@ packages
 coverconfig.json
 gulpfile.js
 tsconfig.json
-tslint.*.json
-*.map
-*.exe
-*.dat
-*.yml
+tslint*.json
+**/*.map
