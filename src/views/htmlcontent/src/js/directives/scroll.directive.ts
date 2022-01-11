@@ -6,18 +6,18 @@ import { Directive, Output, EventEmitter, ElementRef, Inject, forwardRef, Input 
 import { Observable } from 'rxjs/Observable';
 
 @Directive({
-  selector: '[onScroll]'
+	selector: '[onScroll]'
 })
 export class ScrollDirective {
-    @Input() scrollEnabled: boolean = true;
-    @Output('onScroll') onScroll: EventEmitter<number> = new EventEmitter<number>();
+	@Input() scrollEnabled: boolean = true;
+	@Output('onScroll') onScroll: EventEmitter<number> = new EventEmitter<number>();
 
-    constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {
-        const self = this;
-        Observable.fromEvent(this._el.nativeElement, 'scroll').subscribe((event) => {
-            if (self.scrollEnabled) {
-                self.onScroll.emit(self._el.nativeElement.scrollTop);
-            }
-        });
-    }
+	constructor(@Inject(forwardRef(() => ElementRef)) private _el: ElementRef) {
+		const self = this;
+		Observable.fromEvent(this._el.nativeElement, 'scroll').subscribe((event) => {
+			if (self.scrollEnabled) {
+				self.onScroll.emit(self._el.nativeElement.scrollTop);
+			}
+		});
+	}
 }
