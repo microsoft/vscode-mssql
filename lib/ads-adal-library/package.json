@@ -1,6 +1,6 @@
 {
-  "name": "ads-adal-library",
-  "version": "1.0.12",
+  "name": "@microsoft/ads-adal-library",
+  "version": "1.0.14",
   "description": "ADAL NodeJS authentication library",
   "main": "dist/index.js",
   "repository": "git://github.com/microsoft/vscode-mssql.git",
@@ -8,7 +8,7 @@
   "scripts": {
     "build": "yarn run build-ts && yarn run lint",
     "build-ts": "tsc",
-    "lint": "tsc --noEmit && eslint \"src/**/*.{js,ts}\" --quiet --fix",
+    "lint": "tsc --noEmit && eslint \"src/**/*.{js,ts}\" --quiet",
     "start-cli": "node dist/cli.js",
     "watch": "yarn run watch-ts",
     "watch-ts": "tsc -w"

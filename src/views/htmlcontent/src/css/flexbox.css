@@ -21,6 +21,10 @@ body {
     flex: 1 1 0;
 }
 
+.vertBox .boxRow.content.maxHeight {
+    flex: 0 0 0;
+}
+
 .results {
     flex: 100 1 0;
 }

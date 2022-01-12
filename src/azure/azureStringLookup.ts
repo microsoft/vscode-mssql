@@ -1,4 +1,4 @@
-import { StringLookup, InteractionRequiredContext } from 'ads-adal-library';
+import { StringLookup, InteractionRequiredContext } from '@microsoft/ads-adal-library';
 
 export class AzureStringLookup implements StringLookup {
     getSimpleString: (code: number) => string;

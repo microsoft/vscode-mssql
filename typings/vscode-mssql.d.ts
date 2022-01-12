@@ -53,10 +53,13 @@ declare module 'vscode-mssql' {
         /**
          * Attempts to create a new connection for the given connection info. An error is thrown and displayed
          * to the user if an error occurs while connecting.
+         * Warning: setting the saveConnection to true will save a new connection profile each time this is called.
+         * Make sure to use that parameter only when you want to actually save a new profile.
          * @param connectionInfo The connection info
+         * @param saveConnection Save the connection profile if sets to true
          * @returns The URI associated with this connection
          */
-        connect(connectionInfo: IConnectionInfo): Promise<string>;
+        connect(connectionInfo: IConnectionInfo, saveConnection?: boolean): Promise<string>;
 
         /**
          * Lists the databases for a given connection. Must be given an already-opened connection to succeed.
@@ -73,6 +76,13 @@ declare module 'vscode-mssql' {
          */
         getDatabaseNameFromTreeNode(node: ITreeNodeInfo): string;
 
+        /**
+         * Get the connection string for the provided connection Uri
+         * @param connectionUri The URI of the connection to get the connection string for.
+         * @param includePassword to include password with connection string
+         * @returns connection string
+         */
+        getConnectionString(connectionUri: String, includePassword?: boolean): Promise<string>;
     }
 
     /**
@@ -123,6 +133,11 @@ declare module 'vscode-mssql' {
          * Gets or sets the azure account token to use.
          */
         azureAccountToken: string | undefined;
+
+        /**
+         * Access token expiry timestamp
+         */
+        expiresOn: number | undefined;
 
         /**
          * Gets or sets a Boolean value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if
@@ -561,8 +576,8 @@ declare module 'vscode-mssql' {
     }
 
    /**
-     * Azure functions binding type
-     */
+    * Azure functions binding type
+    */
     export const enum BindingType {
         input,
         output

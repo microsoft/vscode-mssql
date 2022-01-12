@@ -1,5 +1,5 @@
 
-import { ErrorLookup, ErrorCodes, Error1Context } from 'ads-adal-library';
+import { ErrorLookup, ErrorCodes, Error1Context } from '@microsoft/ads-adal-library';
 
 type ErrorMapping = {
     [errorCodes in ErrorCodes]: string;

@@ -68,9 +68,7 @@ export default class MainController implements vscode.Disposable {
      * The main controller constructor
      * @constructor
      */
-    constructor(context: vscode.ExtensionContext,
-        connectionManager?: ConnectionManager,
-        vscodeWrapper?: VscodeWrapper) {
+    constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager, vscodeWrapper?: VscodeWrapper) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -238,33 +236,46 @@ export default class MainController implements vscode.Disposable {
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
             this.onDidOpenTextDocument(activeTextEditor.document);
         }
-        await this.sanitizeProfiles();
+        await this.sanitizeConnectionProfiles();
         Utils.logDebug('activated.');
         this._initialized = true;
         return true;
     }
 
     /**
-     * remove azureAccountToken from settings.json
+     * Sanitize the connection profiles in the settings.
      */
-    private async sanitizeProfiles(): Promise<void> {
-        let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);
-        for (let conn of userConnections) {
-            if (conn && conn.authenticationType !== 'AzureMFA') {
+    public async sanitizeConnectionProfiles(): Promise<void> {
+        const sanitize = async (connectionProfiles: IConnectionProfile[], target: vscode.ConfigurationTarget) => {
+            let profileChanged = false;
+            for (const conn of connectionProfiles) {
                 // remove azure account token
-                conn.azureAccountToken = undefined;
+                if (conn && conn.authenticationType !== 'AzureMFA' && conn.azureAccountToken !== undefined) {
+                    conn.azureAccountToken = undefined;
+                    profileChanged = true;
+                }
+                // remove password
+                if (!Utils.isEmpty(conn.password)) {
+                    // save the password in the credential store if save password is true
+                    await this.connectionManager.connectionStore.saveProfilePasswordIfNeeded(conn);
+                    conn.password = '';
+                    profileChanged = true;
+                }
             }
+            if (profileChanged) {
+                await this._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, connectionProfiles, target);
+            }
+        };
+        const profileMapping = new Map<vscode.ConfigurationTarget, IConnectionProfile[]>();
+        const configuration = this._vscodeWrapper.getConfiguration(Constants.extensionName, this._vscodeWrapper.activeTextEditorUri);
+        const configValue = configuration.inspect<IConnectionProfile[]>(Constants.connectionsArrayName);
+        profileMapping.set(vscode.ConfigurationTarget.Global, configValue.globalValue || []);
+        profileMapping.set(vscode.ConfigurationTarget.Workspace, configValue.workspaceValue || []);
+        profileMapping.set(vscode.ConfigurationTarget.WorkspaceFolder, configValue.workspaceFolderValue || []);
+        for (const target of profileMapping.keys()) {
+            // sanitize the connections and save them back to their original target.
+            await sanitize(profileMapping.get(target), target);
         }
-        await this._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, userConnections);
-    }
-
-    /**
-     * Helper function to toggle SQLCMD mode
-     */
-    private async toggleSqlCmdMode(isSqlCmd: boolean): Promise<boolean> {
-        await this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri);
-        await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
-        return true;
     }
 
     /**
@@ -315,27 +326,27 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery, async (treeNodeInfo: TreeNodeInfo) => {
-            const connectionCredentials = Object.assign({}, treeNodeInfo.connectionInfo);
-            const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
-            if (databaseName !== connectionCredentials.database &&
-                databaseName !== LocalizedConstants.defaultDatabaseLabel) {
-                connectionCredentials.database = databaseName;
-            } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
-                connectionCredentials.database = '';
-            }
-            treeNodeInfo.connectionInfo = connectionCredentials;
-            await self.onNewQuery(treeNodeInfo);
-        }));
+                    const connectionCredentials = Object.assign({}, treeNodeInfo.connectionInfo);
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    if (databaseName !== connectionCredentials.database &&
+                        databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                        connectionCredentials.database = databaseName;
+                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
+                        connectionCredentials.database = '';
+                    }
+                    treeNodeInfo.connectionInfo = connectionCredentials;
+                    await self.onNewQuery(treeNodeInfo);
+                }));
 
         // Remove Object Explorer Node
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdRemoveObjectExplorerNode, async (treeNodeInfo: TreeNodeInfo) => {
-            await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
-            let profile = <IConnectionProfile>treeNodeInfo.connectionInfo;
-            await this._connectionMgr.connectionStore.removeProfile(profile, false);
-            return this._objectExplorerProvider.refresh(undefined);
-        }));
+                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
+                    let profile = <IConnectionProfile>treeNodeInfo.connectionInfo;
+                    await this._connectionMgr.connectionStore.removeProfile(profile, false);
+                    return this._objectExplorerProvider.refresh(undefined);
+                }));
 
         // Refresh Object Explorer Node
         this._context.subscriptions.push(
@@ -348,22 +359,22 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNodeSignIn, async (node: AccountSignInTreeNode) => {
-            let profile = <IConnectionProfile>node.parentNode.connectionInfo;
-            profile = await self.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
-            if (profile) {
-                node.parentNode.connectionInfo = <IConnectionInfo>profile;
-                self._objectExplorerProvider.updateNode(node.parentNode);
-                self._objectExplorerProvider.signInNodeServer(node.parentNode);
-                return self._objectExplorerProvider.refresh(undefined);
-            }
-        }));
+                    let profile = <IConnectionProfile>node.parentNode.connectionInfo;
+                    profile = await self.connectionManager.connectionUI.promptForRetryCreateProfile(profile);
+                    if (profile) {
+                        node.parentNode.connectionInfo = <IConnectionInfo>profile;
+                        self._objectExplorerProvider.updateNode(node.parentNode);
+                        self._objectExplorerProvider.signInNodeServer(node.parentNode);
+                        return self._objectExplorerProvider.refresh(undefined);
+                    }
+                }));
 
         // Connect to Object Explorer Node
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdConnectObjectExplorerNode, async (node: ConnectTreeNode) => {
-                await self.createObjectExplorerSession(node.parentNode.connectionInfo);
-        }));
+                    await self.createObjectExplorerSession(node.parentNode.connectionInfo);
+                }));
 
         // Disconnect Object Explorer Node
         this._context.subscriptions.push(
@@ -436,7 +447,8 @@ export default class MainController implements vscode.Disposable {
         // Generate Azure Function command
         this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdCreateAzureFunction, async (node: TreeNodeInfo) => {
             const database = ObjectExplorerUtils.getDatabaseName(node);
-            const connStr = getConnectionString(node.connectionInfo.server, node.connectionInfo.authenticationType, database, node.connectionInfo.user, node.connectionInfo.password);
+            const connStr = getConnectionString(node.connectionInfo.server, node.connectionInfo.authenticationType,
+                database, node.connectionInfo.user, node.connectionInfo.password);
             await afService.createAzureFunction(connStr, node.metadata.schema, node.metadata.name);
         }));
     }
@@ -524,9 +536,9 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Handles the command to enable SQLCMD mode
+     * Handles the command to toggle SQLCMD mode
      */
-    private async onToggleSqlCmd(): Promise<boolean> {
+    private async onToggleSqlCmd(): Promise<void> {
         let isSqlCmd: boolean;
         const uri = this._vscodeWrapper.activeTextEditorUri;
         const queryRunner = this._outputContentProvider.getQueryRunner(uri);
@@ -540,9 +552,9 @@ export default class MainController implements vscode.Disposable {
             const title = path.basename(editor.document.fileName);
             this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
         }
+        await this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri);
+        await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
         this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
-        const result = await this.toggleSqlCmdMode(!isSqlCmd);
-        return result;
     }
 
     /**
@@ -622,6 +634,29 @@ export default class MainController implements vscode.Disposable {
             let credentials = await this._connectionMgr.onNewConnection();
             if (credentials) {
                 await this.createObjectExplorerSession(credentials);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Makes a connection and save if saveConnection is set to true
+     * @param uri The URI of the connection to list the databases for.
+     * @param connectionInfo The connection info
+     * @param connectionPromise connection promise object
+     * @param saveConnection saves the connection profile if sets to true
+     * @returns if saveConnection is set to true, returns true for successful connection and saving the profile
+     * otherwise returns true for successful connection
+     *
+     */
+    public async connect(uri: string, connectionInfo: IConnectionInfo, connectionPromise: Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
+        if (this.canRunCommand() && uri && connectionInfo) {
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
+            if (connectedSuccessfully) {
+                if (saveConnection) {
+                    await this.createObjectExplorerSession(connectionInfo);
+                }
                 return true;
             }
         }
@@ -722,6 +757,8 @@ export default class MainController implements vscode.Disposable {
             if (!self.connectionManager.isConnected(uri)) {
                 await self.onNewConnection();
             }
+            // check if current connection is still valid / active - if not, refresh azure account token
+            await this._connectionMgr.refreshAzureAccountToken(uri);
 
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
@@ -1052,7 +1089,8 @@ export default class MainController implements vscode.Disposable {
             // Connections change
             let needsRefresh = false;
             // user connections is a super set of object explorer connections
-            let userConnections: any[] = this._vscodeWrapper.getConfiguration(Constants.extensionName).get(Constants.connectionsArrayName);
+            // read the connections from glocal settings and workspace settings.
+            let userConnections: any[] = this.connectionManager.connectionStore.connectionConfig.getConnections(true);
             let objectExplorerConnections = this._objectExplorerProvider.rootNodeConnections;
 
             // if a connection(s) was/were manually removed
@@ -1096,16 +1134,7 @@ export default class MainController implements vscode.Disposable {
                 }
             }
 
-            // Get rid of all passwords in the settings file
-            for (let conn of userConnections) {
-                if (!Utils.isEmpty(conn.password)) {
-                    // save the password in the credential store if save password is true
-                    await this.connectionManager.connectionStore.saveProfilePasswordIfNeeded(conn);
-                }
-                conn.password = '';
-            }
-
-            await this._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, userConnections);
+            await this.sanitizeConnectionProfiles();
 
             if (needsRefresh) {
                 this._objectExplorerProvider.refresh(undefined);

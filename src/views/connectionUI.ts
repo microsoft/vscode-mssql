@@ -18,7 +18,6 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils} from '../objectExplorer/objectExplorerUtils';
 import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
 import { AccountStore } from '../azure/accountStore';
-import { AzureController } from '../azure/azureController';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
@@ -391,8 +390,12 @@ export class ConnectionUI {
                         case ManageProfileTask.ClearRecentlyUsed:
                             self.promptToClearRecentConnectionsList().then(result => {
                                 if (result) {
-                                    self.connectionManager.clearRecentConnectionsList().then(() => {
-                                        self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgClearedRecentConnections);
+                                    self.connectionManager.clearRecentConnectionsList().then((credentialsDeleted) => {
+                                        if (credentialsDeleted) {
+                                            self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgClearedRecentConnections);
+                                        } else {
+                                            self.vscodeWrapper.showWarningMessage(LocalizedConstants.msgClearedRecentConnectionsWithErrors);
+                                        }
                                         resolve(true);
                                     });
                                 } else {
@@ -491,7 +494,6 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(uri: string, profile: IConnectionProfile, ipAddress: string): Promise<boolean> {
-        let azureController = new AzureController(this._context);
         // TODO: Access account which firewall error needs to be added from:
         // Try to match accountId to an account in account storage
         if (profile.accountId) {
@@ -503,7 +505,8 @@ export class ConnectionUI {
             let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
                 LocalizedConstants.azureAddAccount);
             if (selection === LocalizedConstants.azureAddAccount) {
-                profile = await azureController.getTokens(profile, this._accountStore, providerSettings.resources.azureManagementResource);
+                profile = await this.connectionManager.azureController.getTokens(profile, this._accountStore,
+                    providerSettings.resources.azureManagementResource);
             }
             let account = this._accountStore.getAccount(profile.accountId);
             this.connectionManager.accountService.setAccount(account);
@@ -521,7 +524,8 @@ export class ConnectionUI {
     }
 
     private promptForCreateProfile(): Promise<IConnectionProfile> {
-        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore);
+        return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+            this.connectionManager.azureController, this._accountStore);
     }
 
     private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
@@ -538,7 +542,8 @@ export class ConnectionUI {
         let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
         return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
             if (result === LocalizedConstants.retryLabel) {
-                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context, this._accountStore, profile);
+                return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+                    this.connectionManager.azureController, this._accountStore, profile);
             } else {
                 return undefined;
             }

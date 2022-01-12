@@ -14,7 +14,7 @@ import { CredentialStore } from '../credentialstore/credentialstore';
 import { StorageService } from './storageService';
 import * as utils from '../models/utils';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
-import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from 'ads-adal-library';
+import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from '@microsoft/ads-adal-library';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
@@ -73,6 +73,7 @@ export class AzureController {
     private context: vscode.ExtensionContext;
     private logger: AzureLogger;
     private _vscodeWrapper: VscodeWrapper;
+    private credentialStoreInitialized = false;
 
     constructor(context: vscode.ExtensionContext, logger?: AzureLogger) {
         this.context = context;
@@ -86,11 +87,6 @@ export class AzureController {
     public async init(): Promise<void> {
         this.authRequest = new AzureAuthRequest(this.context, this.logger);
         await this.authRequest.startServer();
-        let storagePath = await findOrMakeStoragePath();
-        let credentialStore = new CredentialStore();
-        this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
-        await this.cacheService.init();
-        this.storageService = this.cacheService.db;
         this.azureStringLookup = new AzureStringLookup();
         this.azureUserInteraction = new AzureUserInteraction(this.authRequest.getState());
         this.azureErrorLookup = new AzureErrorLookup();
@@ -112,6 +108,7 @@ export class AzureController {
                 this._vscodeWrapper.showErrorMessage(errorMessage);
             }
             profile.azureAccountToken = token.token;
+            profile.expiresOn = token.expiresOn;
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
         } else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
@@ -126,6 +123,7 @@ export class AzureController {
                 this._vscodeWrapper.showErrorMessage(errorMessage);
             }
             profile.azureAccountToken = token.token;
+            profile.expiresOn = token.expiresOn;
             profile.email = account.displayInfo.email;
             profile.accountId = account.key.id;
         }
@@ -150,13 +148,14 @@ export class AzureController {
                 }
             });
         }
-        profile.azureAccountToken = azureAccountToken;
+        profile.azureAccountToken = azureAccountToken.token;
+        profile.expiresOn = azureAccountToken.expiresOn;
         profile.email = account.displayInfo.email;
         profile.accountId = account.key.id;
         return profile;
     }
 
-    public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<string | undefined> {
+    public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<Token | undefined> {
         try {
             let token: Token;
             if (account.properties.azureAuthType === 0) {
@@ -179,7 +178,7 @@ export class AzureController {
                 token = await azureDeviceCode.getAccountSecurityToken(
                     account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource);
             }
-            return token.token;
+            return token;
         } catch (ex) {
             let errorMsg = this.azureErrorLookup.getSimpleError(ex.errorCode);
             this._vscodeWrapper.showErrorMessage(errorMsg);
@@ -188,7 +187,7 @@ export class AzureController {
 
     private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
         let azureLogger = new AzureLogger();
-        await this.init();
+        await this.initializeCredentialStore();
         return new AzureCodeGrant(
             providerSettings, this.storageService, this.cacheService, azureLogger,
             this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
@@ -198,7 +197,7 @@ export class AzureController {
 
     private async createDeviceCode(): Promise<AzureDeviceCode> {
         let azureLogger = new AzureLogger();
-        await this.init();
+        await this.initializeCredentialStore();
         return new AzureDeviceCode(
             providerSettings, this.storageService, this.cacheService, azureLogger,
             this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
@@ -211,4 +210,19 @@ export class AzureController {
         await azureAuth.deleteAccountCache(account.key);
         return;
     }
+
+    /**
+     * Checks if this.init() has already been called, initializes the credential store (should only be called once)
+     */
+    private async initializeCredentialStore(): Promise<void> {
+        if (!this.credentialStoreInitialized) {
+            let storagePath = await findOrMakeStoragePath();
+            let credentialStore = new CredentialStore();
+            this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
+            await this.cacheService.init();
+            this.storageService = this.cacheService.db;
+            this.credentialStoreInitialized = true;
+        }
+    }
+
 }

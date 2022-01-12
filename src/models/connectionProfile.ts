@@ -10,7 +10,7 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureAuthType } from 'ads-adal-library';
+import { AzureAuthType } from '@microsoft/ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
 import { IAccount } from './contracts/azure/accountInterfaces';
@@ -26,10 +26,24 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;
-    public azureAccountToken: string;
+    public azureAccountToken: string | undefined;
+    public expiresOn: number | undefined;
     public accountStore: AccountStore;
     public accountId: string;
 
+    constructor(connectionCredentials?: ConnectionCredentials) {
+        super();
+        if (connectionCredentials) {
+            this.accountId = connectionCredentials.accountId;
+            this.authenticationType = connectionCredentials.authenticationType;
+            this.azureAccountToken = connectionCredentials.azureAccountToken;
+            this.expiresOn = connectionCredentials.expiresOn;
+            this.database = connectionCredentials.database;
+            this.email = connectionCredentials.email;
+            this.password = connectionCredentials.password;
+            this.server = connectionCredentials.server;
+        }
+    }
     /**
      * Creates a new profile by prompting the user for information.
      * @param  {IPrompter} prompter that asks user the questions needed to complete a profile
@@ -40,6 +54,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         prompter: IPrompter,
         connectionStore: ConnectionStore,
         context: vscode.ExtensionContext,
+        azureController: AzureController,
         accountStore?: AccountStore,
         defaultProfileValues?: IConnectionProfile
         ): Promise<IConnectionProfile> {
@@ -50,7 +65,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             // Set default value as there is only 1 option
             profile.authenticationType = authOptions[0].value;
         }
-        let azureController = new AzureController(context);
         let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
         let accountAnswer: IAccount;
         azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount'});

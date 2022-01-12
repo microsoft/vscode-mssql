@@ -151,7 +151,7 @@ gulp.task('ext:localization:xliff-to-ts', function () {
 
 // Generates a localized package.nls.*.json
 gulp.task('ext:localization:xliff-to-package.nls', function () {
-    return gulp.src([config.paths.project.localization + '/xliff/**/localizedPackage.json.*.xlf', '!' + config.paths.project.localization + '/xliff/en/localizedPackage.json.*.xlf'],  { base: '' })
+    return gulp.src([config.paths.project.localization + '/xliff/**/localizedPackage.json.*.xlf', '!' + config.paths.project.localization + '/xliff/enu/localizedPackage.json.enu.xlf'],  { base: '' })
     .pipe(through.obj(function (file, enc, callback) {
         // convert xliff into json document
         let dict = convertXmlToDictionary(String(file.contents), false);

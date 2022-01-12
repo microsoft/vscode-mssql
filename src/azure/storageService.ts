@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { promises as fs, constants as fsConstants } from 'fs';
-import { SecureStorageProvider } from 'ads-adal-library';
+import { SecureStorageProvider } from '@microsoft/ads-adal-library';
 
 export type ReadWriteHook = (contents: string) => Promise<string>;
 const noOpHook: ReadWriteHook = async (contents): Promise<string> => {

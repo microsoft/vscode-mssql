@@ -23,6 +23,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     public port: number;
     public authenticationType: string;
     public azureAccountToken: string | undefined;
+    public expiresOn: number | undefined;
     public encrypt: boolean;
     public trustServerCertificate: boolean | undefined;
     public persistSecurityInfo: boolean | undefined;

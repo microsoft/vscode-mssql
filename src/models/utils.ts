@@ -14,7 +14,7 @@ import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } fr
 import { ExtensionContext } from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as fs from 'fs';
-import { AzureAuthType } from 'ads-adal-library';
+import { AzureAuthType } from '@microsoft/ads-adal-library';
 import { IConnectionInfo } from 'vscode-mssql';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
@@ -493,4 +493,26 @@ export function generateQueryUri(scheme = 'vscode-mssql-adhoc'): vscode.Uri {
         scheme: scheme,
         authority: `Query${uriIndex++}`
     });
+}
+
+/**
+ * deep clone the object. Copied from vscode: https://github.com/microsoft/vscode/blob/main/src/vs/base/common/objects.ts#L8
+ */
+export function deepClone<T>(obj: T): T {
+    if (!obj || typeof obj !== 'object') {
+        return obj;
+    }
+    if (obj instanceof RegExp) {
+        // See https://github.com/microsoft/TypeScript/issues/10990
+        return obj as any;
+    }
+    const result: any = Array.isArray(obj) ? [] : {};
+    Object.keys(<any>obj).forEach((key: string) => {
+        if ((<any>obj)[key] && typeof (<any>obj)[key] === 'object') {
+            result[key] = deepClone((<any>obj)[key]);
+        } else {
+            result[key] = (<any>obj)[key];
+        }
+    });
+    return result;
 }
