@@ -11,99 +11,99 @@ export type WebHandler = (req: http.IncomingMessage, reqUrl: url.UrlWithParsedQu
 export class AlreadyRunningError extends Error { }
 
 export class SimpleWebServer {
-    private hasStarted: boolean;
+	private hasStarted: boolean;
 
-    private readonly pathMappings = new Map<string, WebHandler>();
-    private readonly server: http.Server;
-    private lastUsed: number;
-    private shutoffInterval: NodeJS.Timer;
+	private readonly pathMappings = new Map<string, WebHandler>();
+	private readonly server: http.Server;
+	private lastUsed: number;
+	private shutoffInterval: NodeJS.Timer;
 
-    constructor(private readonly autoShutoffTimer = 5 * 60 * 1000) { // Default to five minutes.
-        this.bumpLastUsed();
-        this.autoShutoff();
-        this.server = http.createServer((req, res) => {
-            this.bumpLastUsed();
-            const reqUrl = url.parse(req.url!, /* parseQueryString */ true);
+	constructor(private readonly autoShutoffTimer = 5 * 60 * 1000) { // Default to five minutes.
+		this.bumpLastUsed();
+		this.autoShutoff();
+		this.server = http.createServer((req, res) => {
+			this.bumpLastUsed();
+			const reqUrl = url.parse(req.url!, /* parseQueryString */ true);
 
-            const handler = this.pathMappings.get(reqUrl.pathname);
-            if (handler) {
-                return handler(req, reqUrl, res);
-            }
+			const handler = this.pathMappings.get(reqUrl.pathname);
+			if (handler) {
+				return handler(req, reqUrl, res);
+			}
 
-            res.writeHead(404);
-            res.end();
-        });
-    }
+			res.writeHead(404);
+			res.end();
+		});
+	}
 
-    private bumpLastUsed(): void {
-        this.lastUsed = new Date().getTime();
-    }
+	private bumpLastUsed(): void {
+		this.lastUsed = new Date().getTime();
+	}
 
-    public async shutdown(): Promise<void> {
-        clearInterval(this.shutoffInterval);
-        return new Promise<void>((resolve, reject) => {
-            this.server.close((error) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve();
-                }
-            });
-        });
-    }
+	public async shutdown(): Promise<void> {
+		clearInterval(this.shutoffInterval);
+		return new Promise<void>((resolve, reject) => {
+			this.server.close((error) => {
+				if (error) {
+					reject(error);
+				} else {
+					resolve();
+				}
+			});
+		});
+	}
 
-    public async startup(): Promise<string> {
-        if (this.hasStarted) {
-            throw new AlreadyRunningError();
-        }
-        this.hasStarted = true;
-        let portTimeout: NodeJS.Timer;
-        const portPromise = new Promise<string>((resolve, reject) => {
-            portTimeout = setTimeout(() => {
-                reject(new Error('Timed out waiting for the server to start'));
-            }, 5000);
+	public async startup(): Promise<string> {
+		if (this.hasStarted) {
+			throw new AlreadyRunningError();
+		}
+		this.hasStarted = true;
+		let portTimeout: NodeJS.Timer;
+		const portPromise = new Promise<string>((resolve, reject) => {
+			portTimeout = setTimeout(() => {
+				reject(new Error('Timed out waiting for the server to start'));
+			}, 5000);
 
-            this.server.on('listening', () => {
-                // TODO: What are string addresses?
-                const address = this.server.address() as AddressInfo;
-                if (address!.port === undefined) {
-                    reject(new Error('Port was not defined'));
-                }
-                resolve(address.port.toString());
-            });
+			this.server.on('listening', () => {
+				// TODO: What are string addresses?
+				const address = this.server.address() as AddressInfo;
+				if (address!.port === undefined) {
+					reject(new Error('Port was not defined'));
+				}
+				resolve(address.port.toString());
+			});
 
-            this.server.on('error', () => {
-                reject(new Error('Server error'));
-            });
+			this.server.on('error', () => {
+				reject(new Error('Server error'));
+			});
 
-            this.server.on('close', () => {
-                reject(new Error('Server closed'));
-            });
+			this.server.on('close', () => {
+				reject(new Error('Server closed'));
+			});
 
-            this.server.listen(0, '127.0.0.1');
-        });
+			this.server.listen(0, '127.0.0.1');
+		});
 
-        const clearPortTimeout = () => {
-            clearTimeout(portTimeout);
-        };
+		const clearPortTimeout = () => {
+			clearTimeout(portTimeout);
+		};
 
-        portPromise.finally(clearPortTimeout);
+		portPromise.finally(clearPortTimeout);
 
-        return portPromise;
-    }
+		return portPromise;
+	}
 
-    public on(pathMapping: string, handler: WebHandler): void {
-        this.pathMappings.set(pathMapping, handler);
-    }
+	public on(pathMapping: string, handler: WebHandler): void {
+		this.pathMappings.set(pathMapping, handler);
+	}
 
-    private autoShutoff(): void {
-        this.shutoffInterval = setInterval(() => {
-            const time = new Date().getTime();
+	private autoShutoff(): void {
+		this.shutoffInterval = setInterval(() => {
+			const time = new Date().getTime();
 
-            if (time - this.lastUsed > this.autoShutoffTimer) {
-                console.log('Shutting off webserver...');
-                this.shutdown().catch(console.error);
-            }
-        }, 1000);
-    }
+			if (time - this.lastUsed > this.autoShutoffTimer) {
+				console.log('Shutting off webserver...');
+				this.shutdown().catch(console.error);
+			}
+		}, 1000);
+	}
 }

@@ -12,25 +12,25 @@ import { assert } from 'chai';
 
 
 suite('Metadata Service Tests', () => {
-    let metdataService: MetadataService;
-    let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let client: TypeMoq.IMock<SqlToolsServiceClient>;
+	let metdataService: MetadataService;
+	let connectionManager: TypeMoq.IMock<ConnectionManager>;
+	let client: TypeMoq.IMock<SqlToolsServiceClient>;
 
-    setup(() => {
-        connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
-        connectionManager.setup(c => c.client).returns(() => client.object);
-        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
-        const mockMetadata: MetadataQueryResult = {
-            metadata: TypeMoq.It.isAny()
-        };
-        client.setup(c => c.sendRequest(MetadataQueryRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(mockMetadata));
-        connectionManager.object.client = client.object;
-        metdataService = new MetadataService(connectionManager.object);
-    });
+	setup(() => {
+		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
+		connectionManager.setup(c => c.client).returns(() => client.object);
+		client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
+		const mockMetadata: MetadataQueryResult = {
+			metadata: TypeMoq.It.isAny()
+		};
+		client.setup(c => c.sendRequest(MetadataQueryRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(mockMetadata));
+		connectionManager.object.client = client.object;
+		metdataService = new MetadataService(connectionManager.object);
+	});
 
-    test('Test getMetadata function', async () => {
-        let metadata = await metdataService.getMetadata('test_uri');
-        assert.notEqual(metadata, undefined);
-    });
+	test('Test getMetadata function', async () => {
+		let metadata = await metdataService.getMetadata('test_uri');
+		assert.notEqual(metadata, undefined);
+	});
 });
 
