@@ -91,7 +91,6 @@ steps:
   inputs:
     BuildDropPath: '$(Build.ArtifactStagingDirectory)'
     PackageName: 'MSSQL for VS Code'
-#    PackageVersion: '1.14.0'
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: drop'
