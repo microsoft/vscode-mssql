@@ -22,7 +22,7 @@ export let elapsedTimeLabel = 'Total execution time: {0}';
 export let msgCannotSaveMultipleSelections = 'Save results command cannot be used with multiple selections.';
 
 export let loadLocalizedConstant = (key: string, value: string) => {
-    // Update the value of the property with the name equal to key in this file
-    this[key] = value;
+	// Update the value of the property with the name equal to key in this file
+	this[key] = value;
 };
 

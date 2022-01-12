@@ -1,122 +1,121 @@
 pool:
-  vmImage: 'macOS-10.15'
+  vmImage: "macOS-10.15"
 
 variables:
-- name: release
-  value: false
+  - name: release
+    value: false
 
 steps:
-- task: NodeTool@0
-  displayName: 'Use Node 14.x'
-  inputs:
-    versionSpec: 14.X
+  - task: NodeTool@0
+    displayName: "Use Node 14.x"
+    inputs:
+      versionSpec: 14.X
 
-- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-  displayName: Install dependencies
-  inputs:
-    arguments: '--frozen-lockfile'
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: Install dependencies
+    inputs:
+      arguments: "--frozen-lockfile"
 
-- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-  displayName: Install gulp-cli
-  inputs:
-    arguments: 'global add gulp-cli@2.3.0'
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: Install gulp-cli
+    inputs:
+      arguments: "global add gulp-cli@2.3.0"
 
-- bash: |
-   export BUILDMACHINE=true
-   export VsMsSqlEnv=dev
-   node node_modules/gulp/bin/gulp.js build --gulpfile $(Build.SourcesDirectory)/gulpfile.js
-  displayName: 'gulp build (dev)'
-  condition: and(succeeded(), eq(variables['release'], false))
+  - bash: |
+      export BUILDMACHINE=true
+      export VsMsSqlEnv=dev
+      node node_modules/gulp/bin/gulp.js build --gulpfile $(Build.SourcesDirectory)/gulpfile.js
+    displayName: "gulp build (dev)"
+    condition: and(succeeded(), eq(variables['release'], false))
 
-- bash: |
-   export BUILDMACHINE=true
-   export VsMsSqlEnv=production
-   node node_modules/gulp/bin/gulp.js build --gulpfile $(Build.SourcesDirectory)/gulpfile.js
-  displayName: 'gulp build (release)'
-  condition: and(succeeded(), eq(variables['release'], true))
+  - bash: |
+      export BUILDMACHINE=true
+      export VsMsSqlEnv=production
+      node node_modules/gulp/bin/gulp.js build --gulpfile $(Build.SourcesDirectory)/gulpfile.js
+    displayName: "gulp build (release)"
+    condition: and(succeeded(), eq(variables['release'], true))
 
-- bash: 'gulp lint'
-  displayName: 'gulp lint'
+  - bash: "gulp lint"
+    displayName: "gulp lint"
 
-- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-  displayName: Install vsce
-  inputs:
-    arguments: 'global add vsce@2.3.0'
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: Install vsce
+    inputs:
+      arguments: "global add vsce@2.3.0"
 
-- task: gulp@0
-  displayName: 'gulp package:offline'
-  inputs:
-    targets: 'package:offline'
+  - task: gulp@0
+    displayName: "gulp package:offline"
+    inputs:
+      targets: "package:offline"
 
-- task: gulp@0
-  displayName: 'gulp package:online'
-  inputs:
-    targets: 'package:online'
+  - task: gulp@0
+    displayName: "gulp package:online"
+    inputs:
+      targets: "package:online"
 
-- task: CopyFiles@2
-  displayName: 'Copy VSIXs to artifacts directory'
-  inputs:
-    SourceFolder: '$(Build.SourcesDirectory)'
-    Contents: '*.vsix'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: CopyFiles@2
+    displayName: "Copy VSIXs to artifacts directory"
+    inputs:
+      SourceFolder: "$(Build.SourcesDirectory)"
+      Contents: "*.vsix"
+      TargetFolder: "$(Build.ArtifactStagingDirectory)"
 
-- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-  displayName: Install ads-adal-library dependencies
-  inputs:
-    projectDirectory: $(Build.SourcesDirectory)/lib/ads-adal-library
-    arguments: --frozen-lockfile
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: Install ads-adal-library dependencies
+    inputs:
+      projectDirectory: $(Build.SourcesDirectory)/lib/ads-adal-library
+      arguments: --frozen-lockfile
 
-- task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-  displayName: Build ads-adal-library
-  inputs:
-    projectDirectory: $(Build.SourcesDirectory)/lib/ads-adal-library
-    arguments: build
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: Build ads-adal-library
+    inputs:
+      projectDirectory: $(Build.SourcesDirectory)/lib/ads-adal-library
+      arguments: build
 
-- task: Npm@1
-  displayName: Package ads-adal-library
-  inputs:
-    command: custom
-    customCommand: pack
-    workingDir: $(Build.SourcesDirectory)/lib/ads-adal-library
+  - task: Npm@1
+    displayName: Package ads-adal-library
+    inputs:
+      command: custom
+      customCommand: pack
+      workingDir: $(Build.SourcesDirectory)/lib/ads-adal-library
 
-- task: CopyFiles@2
-  displayName: 'Copy ads-adal-library package to artifacts directory'
-  inputs:
-    SourceFolder: $(Build.SourcesDirectory)/lib/ads-adal-library
-    Contents: '*.tgz'
-    TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: CopyFiles@2
+    displayName: "Copy ads-adal-library package to artifacts directory"
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)/lib/ads-adal-library
+      Contents: "*.tgz"
+      TargetFolder: $(Build.ArtifactStagingDirectory)
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: drop'
+  - task: PublishBuildArtifacts@1
+    displayName: "Publish Artifact: drop"
 
-- script: |
-   brew update
-   brew install --cask visual-studio-code
-  displayName: 'Install VS Code for testing'
+  - script: |
+      brew update
+      brew install --cask visual-studio-code
+    displayName: "Install VS Code for testing"
 
-- task: gulp@0
-  displayName: 'gulp ext:install-service'
-  inputs:
-    targets: 'ext:install-service'
+  - task: gulp@0
+    displayName: "gulp ext:install-service"
+    inputs:
+      targets: "ext:install-service"
 
-- task: gulp@0
-  displayName: 'gulp cover:jenkins'
-  inputs:
-    targets: 'cover:jenkins'
-    publishJUnitResults: true
-    testResultsFiles: '$(Build.SourcesDirectory)/test-reports/*.xml'
-  enabled: false
-  continueOnError: true
+  - task: gulp@0
+    displayName: "gulp cover:jenkins"
+    inputs:
+      targets: "cover:jenkins"
+      publishJUnitResults: true
+      testResultsFiles: "$(Build.SourcesDirectory)/test-reports/*.xml"
+    enabled: false
+    continueOnError: true
 
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publish code coverage from $(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
-  enabled: false
+  - task: PublishCodeCoverageResults@1
+    displayName: "Publish code coverage from $(Build.SourcesDirectory)/coverage/cobertura-coverage.xml"
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: "$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml"
+    enabled: false
 
-- task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-  displayName: 'Component Detection'
-  inputs:
-    failOnAlert: true
-
+  - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+    displayName: "Component Detection"
+    inputs:
+      failOnAlert: true

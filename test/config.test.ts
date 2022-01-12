@@ -5,16 +5,16 @@
 
 import * as assert from 'assert';
 
-import Config from  '../src/configurations/config';
+import Config from '../src/configurations/config';
 
 suite('Config Tests', () => {
 
-    test('getSqlToolsServiceDownloadUrl should return valid value', (done) => {
-        return new Promise((resolve, reject) => {
-            let config = new Config();
-            let serviceDownloawUrl = config.getSqlToolsServiceDownloadUrl;
-            assert.notEqual(serviceDownloawUrl, undefined);
-            done();
-         });
-    });
+	test('getSqlToolsServiceDownloadUrl should return valid value', (done) => {
+		return new Promise((resolve, reject) => {
+			let config = new Config();
+			let serviceDownloawUrl = config.getSqlToolsServiceDownloadUrl;
+			assert.notEqual(serviceDownloawUrl, undefined);
+			done();
+		});
+	});
 });
