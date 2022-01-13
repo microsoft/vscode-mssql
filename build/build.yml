@@ -86,6 +86,12 @@ steps:
       Contents: "*.tgz"
       TargetFolder: $(Build.ArtifactStagingDirectory)
 
+ - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+    displayName: 'SBOM Generation Task'
+    inputs:
+      BuildDropPath: '$(Build.ArtifactStagingDirectory)'
+      PackageName: 'MSSQL for VS Code'
+
   - task: PublishBuildArtifacts@1
     displayName: "Publish Artifact: drop"
 
