@@ -86,7 +86,7 @@ steps:
       Contents: "*.tgz"
       TargetFolder: $(Build.ArtifactStagingDirectory)
 
- - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+  - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
     displayName: 'SBOM Generation Task'
     inputs:
       BuildDropPath: '$(Build.ArtifactStagingDirectory)'
