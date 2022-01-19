@@ -14,10 +14,10 @@ import * as glob from 'fast-glob';
  * Represents the settings in an Azure function project's local.settings.json file
  */
 export interface ILocalSettingsJson {
-    IsEncrypted?: boolean;
-    Values?: { [key: string]: string };
-    Host?: { [key: string]: string };
-    ConnectionStrings?: { [key: string]: string };
+	IsEncrypted?: boolean;
+	Values?: { [key: string]: string };
+	Host?: { [key: string]: string };
+	ConnectionStrings?: { [key: string]: string };
 }
 
 /**
@@ -26,20 +26,20 @@ export interface ILocalSettingsJson {
  * @returns settings in local.settings.json. If no settings are found, returns default "empty" settings
  */
 export async function getLocalSettingsJson(localSettingsPath: string): Promise<ILocalSettingsJson> {
-    if (await fse.pathExists(localSettingsPath)) {
-        const data: string = (await fse.readFile(localSettingsPath)).toString();
-        if (/[^\s]/.test(data)) {
-            try {
-                return parseJson(data);
-            } catch (error) {
-                throw new Error(constants.failedToParse(error.message));
-            }
-        }
-    }
+	if (await fse.pathExists(localSettingsPath)) {
+		const data: string = (await fse.readFile(localSettingsPath)).toString();
+		if (/[^\s]/.test(data)) {
+			try {
+				return parseJson(data);
+			} catch (error) {
+				throw new Error(constants.failedToParse(error.message));
+			}
+		}
+	}
 
-    return {
-        IsEncrypted: false // Include this by default otherwise the func cli assumes settings are encrypted and fails to run
-    };
+	return {
+		IsEncrypted: false // Include this by default otherwise the func cli assumes settings are encrypted and fails to run
+	};
 }
 
 /**
@@ -51,25 +51,25 @@ export async function getLocalSettingsJson(localSettingsPath: string): Promise<I
  * @returns true if successful adding the new setting, false if unsuccessful
  */
 export async function setLocalAppSetting(projectFolder: string, key: string, value: string): Promise<boolean> {
-    const localSettingsPath: string = path.join(projectFolder, constants.azureFunctionLocalSettingsFileName);
-    const settings: ILocalSettingsJson = await getLocalSettingsJson(localSettingsPath);
+	const localSettingsPath: string = path.join(projectFolder, constants.azureFunctionLocalSettingsFileName);
+	const settings: ILocalSettingsJson = await getLocalSettingsJson(localSettingsPath);
 
-    settings.Values = settings.Values || {};
-    if (settings.Values[key] === value) {
-        // don't do anything if it's the same as the existing value
-        return true;
-    } else if (settings.Values[key]) {
-        const result = await vscode.window.showWarningMessage(constants.settingAlreadyExists(key), { modal: true }, constants.yesString);
-        if (result !== constants.yesString) {
-            // key already exists and user doesn't want to overwrite it
-            return false;
-        }
-    }
+	settings.Values = settings.Values || {};
+	if (settings.Values[key] === value) {
+		// don't do anything if it's the same as the existing value
+		return true;
+	} else if (settings.Values[key]) {
+		const result = await vscode.window.showWarningMessage(constants.settingAlreadyExists(key), { modal: true }, constants.yesString);
+		if (result !== constants.yesString) {
+			// key already exists and user doesn't want to overwrite it
+			return false;
+		}
+	}
 
-    settings.Values[key] = value;
-    await fse.writeJson(localSettingsPath, settings, { spaces: 2 });
+	settings.Values[key] = value;
+	await fse.writeJson(localSettingsPath, settings, { spaces: 2 });
 
-    return true;
+	return true;
 }
 
 /**
@@ -79,29 +79,29 @@ export async function setLocalAppSetting(projectFolder: string, key: string, val
  * @param packageVersion optional version of package. If none, latest will be pulled in
  */
 export async function addPackageToAFProjectContainingFile(
-    fileUri: vscode.Uri, packageName: string,
-    packageVersion?: string): Promise<void> {
-    try {
-        const project = await getAFProjectContainingFile(fileUri);
+	fileUri: vscode.Uri, packageName: string,
+	packageVersion?: string): Promise<void> {
+	try {
+		const project = await getAFProjectContainingFile(fileUri);
 
-        // if no AF projects were found, an error gets thrown from getAFProjectContainingFile(). This check is temporary until
-        // multiple AF projects in the workspace is handled. That scenario returns undefined and shows an info message telling the
-        // user to make sure their project has the package reference
-        if (project) {
-            await this.addPackage(project, packageName, packageVersion);
-        } else {
-            void vscode.window.showInformationMessage(constants.addPackageReferenceMessage, constants.moreInformation).then((result) => {
-                if (result === constants.moreInformation) {
-                    void vscode.env.openExternal(vscode.Uri.parse(constants.sqlBindingsHelpLink));
-                }
-            });
-        }
-    } catch (e) {
-        const result = await vscode.window.showErrorMessage(constants.addSqlBindingPackageError, constants.checkoutOutputMessage);
-        if (result === constants.checkoutOutputMessage) {
-            this._outputChannel.show();
-        }
-    }
+		// if no AF projects were found, an error gets thrown from getAFProjectContainingFile(). This check is temporary until
+		// multiple AF projects in the workspace is handled. That scenario returns undefined and shows an info message telling the
+		// user to make sure their project has the package reference
+		if (project) {
+			await this.addPackage(project, packageName, packageVersion);
+		} else {
+			void vscode.window.showInformationMessage(constants.addPackageReferenceMessage, constants.moreInformation).then((result) => {
+				if (result === constants.moreInformation) {
+					void vscode.env.openExternal(vscode.Uri.parse(constants.sqlBindingsHelpLink));
+				}
+			});
+		}
+	} catch (e) {
+		const result = await vscode.window.showErrorMessage(constants.addSqlBindingPackageError, constants.checkoutOutputMessage);
+		if (result === constants.checkoutOutputMessage) {
+			this._outputChannel.show();
+		}
+	}
 }
 
 
@@ -111,29 +111,29 @@ export async function addPackageToAFProjectContainingFile(
  * @returns uri of project or undefined if project couldn't be found
  */
 export async function getAFProjectContainingFile(fileUri: vscode.Uri): Promise<vscode.Uri | undefined> {
-    // get functions csprojs in the workspace
-    const projectPromises = vscode.workspace.workspaceFolders?.map(f => getAllProjectsInFolder(f.uri, '.csproj')) ?? [];
-    const functionsProjects = (await Promise.all(projectPromises)).reduce((prev, curr) =>
-        prev.concat(curr), []).filter(p => isFunctionProject(path.dirname(p.fsPath)));
+	// get functions csprojs in the workspace
+	const projectPromises = vscode.workspace.workspaceFolders?.map(f => getAllProjectsInFolder(f.uri, '.csproj')) ?? [];
+	const functionsProjects = (await Promise.all(projectPromises)).reduce((prev, curr) =>
+		prev.concat(curr), []).filter(p => isFunctionProject(path.dirname(p.fsPath)));
 
-    // look for project folder containing file if there's more than one
-    if (functionsProjects.length > 1) {
-        // TODO: figure out which project contains the file
-        // the new style csproj doesn't list all the files in the project anymore, unless the file isn't in the same folder
-        // so we can't rely on using that to check
-        console.error('need to find which project contains the file ' + fileUri.fsPath);
-        return undefined;
-    } else if (functionsProjects.length === 0) {
-        throw new Error(constants.noAzureFunctionsProjectsInWorkspace);
-    } else {
-        return functionsProjects[0];
-    }
+	// look for project folder containing file if there's more than one
+	if (functionsProjects.length > 1) {
+		// TODO: figure out which project contains the file
+		// the new style csproj doesn't list all the files in the project anymore, unless the file isn't in the same folder
+		// so we can't rely on using that to check
+		console.error('need to find which project contains the file ' + fileUri.fsPath);
+		return undefined;
+	} else if (functionsProjects.length === 0) {
+		throw new Error(constants.noAzureFunctionsProjectsInWorkspace);
+	} else {
+		return functionsProjects[0];
+	}
 }
 
 // Use 'host.json' as an indicator that this is a functions project
 // copied from verifyIsproject.ts in vscode-azurefunctions extension
 export async function isFunctionProject(folderPath: string): Promise<boolean> {
-    return fse.pathExists(path.join(folderPath, constants.hostFileName));
+	return fse.pathExists(path.join(folderPath, constants.hostFileName));
 }
 
 /**
@@ -143,12 +143,12 @@ export async function isFunctionProject(folderPath: string): Promise<boolean> {
  * @returns array of project uris
  */
 export async function getAllProjectsInFolder(folder: vscode.Uri, projectExtension: string): Promise<vscode.Uri[]> {
-    // path needs to use forward slashes for glob to work
-    const escapedPath = glob.escapePath(folder.fsPath.replace(/\\/g, '/'));
+	// path needs to use forward slashes for glob to work
+	const escapedPath = glob.escapePath(folder.fsPath.replace(/\\/g, '/'));
 
-    // filter for projects with the specified project extension
-    const projFilter = path.posix.join(escapedPath, '**', `*${projectExtension}`);
+	// filter for projects with the specified project extension
+	const projFilter = path.posix.join(escapedPath, '**', `*${projectExtension}`);
 
-    // glob will return an array of file paths with forward slashes, so they need to be converted back if on windows
-    return (await glob(projFilter)).map(p => vscode.Uri.file(path.resolve(p)));
+	// glob will return an array of file paths with forward slashes, so they need to be converted back if on windows
+	return (await glob(projFilter)).map(p => vscode.Uri.file(path.resolve(p)));
 }

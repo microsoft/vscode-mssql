@@ -13,7 +13,7 @@ import * as constants from './constants';
  * Has extra logic to remove a BOM character if it exists and handle comments
  */
 export function parseJson<T extends object>(data: string): T {
-   if (data.charCodeAt(0) === 0xFEFF) {
+	if (data.charCodeAt(0) === 0xFEFF) {
 		data = data.slice(1);
 	}
 

@@ -160,30 +160,30 @@ export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions'
 export const sqlConnectionString = 'SqlConnectionString';
 export const genericCollectionImport = 'using System.Collections.Generic;';
 export const defaultSqlBindingTextLines =
-    [
-        'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
-        'string name = req.Query[\"name\"];',
-        'string requestBody = await new StreamReader(req.Body).ReadToEndAsync();',
-        'dynamic data = JsonConvert.DeserializeObject(requestBody);',
-        'name = name ?? data?.name;',
-        'string responseMessage = string.IsNullOrEmpty(name) ? \"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.\" : $\"Hello, {name}. This HTTP triggered function executed successfully.\";'
-    ];
+	[
+		'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
+		'string name = req.Query[\"name\"];',
+		'string requestBody = await new StreamReader(req.Body).ReadToEndAsync();',
+		'dynamic data = JsonConvert.DeserializeObject(requestBody);',
+		'name = name ?? data?.name;',
+		'string responseMessage = string.IsNullOrEmpty(name) ? \"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.\" : $\"Hello, {name}. This HTTP triggered function executed successfully.\";'
+	];
 export const defaultBindingResult = 'return new OkObjectResult(responseMessage);';
 export const sqlBindingResult = `return new OkObjectResult(result);`;
 export const azureFunctionLocalSettingsFileName = 'local.settings.json';
 export const sqlExtensionPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
 // tslint:disable-next-line:typedef
 export function jsonParseError(error: string, line: number, column: number) {
-    return localize('jsonParseError', '{0} near line "{1}", column "{2}"', error, line, column);
+	return localize('jsonParseError', '{0} near line "{1}", column "{2}"', error, line, column);
 }
 // tslint:disable-next-line:typedef
 export function failedToParse(errorMessage: string) {
-    return localize('failedToParse', 'Failed to parse "{0}": {1}.',
-        azureFunctionLocalSettingsFileName, errorMessage);
+	return localize('failedToParse', 'Failed to parse "{0}": {1}.',
+		azureFunctionLocalSettingsFileName, errorMessage);
 }
 // tslint:disable-next-line:typedef
 export function settingAlreadyExists(settingName: string) {
-    return localize('SettingAlreadyExists', 'Local app setting \'{0}\' already exists. Overwrite?', settingName);
+	return localize('SettingAlreadyExists', 'Local app setting \'{0}\' already exists. Overwrite?', settingName);
 }
 export const yesString = localize('yesString', 'Yes');
 export const noAzureFunctionsProjectsInWorkspace = localize('noAzureFunctionsProjectsInWorkspace', 'No Azure functions projects found in the workspace');
