@@ -1,7 +1,7 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-	"files.trimTrailingWhitespace": true,
-
+    "editor.insertSpaces": false,
+    "files.trimTrailingWhitespace": true,
     "files.exclude": {
         "out": false // set this to true to hide the "out" folder with the compiled JS files
     },
