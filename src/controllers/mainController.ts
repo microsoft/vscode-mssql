@@ -443,12 +443,16 @@ export default class MainController implements vscode.Disposable {
                 }
             }));
 
-        const afService = new AzureFunctionProjectService(this.azureFunctionsService );
+        const afService = new AzureFunctionProjectService(this.azureFunctionsService);
         // Generate Azure Function command
         this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdCreateAzureFunction, async (node: TreeNodeInfo) => {
             const database = ObjectExplorerUtils.getDatabaseName(node);
-            const connStr = getConnectionString(node.connectionInfo.server, node.connectionInfo.authenticationType,
-                database, node.connectionInfo.user, node.connectionInfo.password);
+            const connStr = getConnectionString(
+                node.connectionInfo.server,
+                node.connectionInfo.authenticationType,
+                database,
+                node.connectionInfo.user,
+                node.connectionInfo.password);
             await afService.createAzureFunction(connStr, node.metadata.schema, node.metadata.name);
         }));
     }

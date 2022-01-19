@@ -2,6 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import * as nls from 'vscode-nls';
+const localize = nls.loadMessageBundle();
 
 // Collection of Non-localizable Constants
 export const languageId = 'sql';
@@ -155,16 +157,44 @@ export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 
 // Azure Functions
 export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
-export const sqlConnectionString = "SqlConnectionString"
-export const genericCollectionImport = 'using System.Collections.Generic;'
+export const sqlConnectionString = 'SqlConnectionString';
+export const genericCollectionImport = 'using System.Collections.Generic;';
 export const defaultSqlBindingTextLines =
-[
-    'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
-    'string name = req.Query[\"name\"];',
-    'string requestBody = await new StreamReader(req.Body).ReadToEndAsync();',
-    'dynamic data = JsonConvert.DeserializeObject(requestBody);',
-    'name = name ?? data?.name;',
-    'string responseMessage = string.IsNullOrEmpty(name) ? \"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.\" : $\"Hello, {name}. This HTTP triggered function executed successfully.\";'
-];
+    [
+        'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
+        'string name = req.Query[\"name\"];',
+        'string requestBody = await new StreamReader(req.Body).ReadToEndAsync();',
+        'dynamic data = JsonConvert.DeserializeObject(requestBody);',
+        'name = name ?? data?.name;',
+        'string responseMessage = string.IsNullOrEmpty(name) ? \"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.\" : $\"Hello, {name}. This HTTP triggered function executed successfully.\";'
+    ];
 export const defaultBindingResult = 'return new OkObjectResult(responseMessage);';
-export const sqlBindingResult = `return new OkObjectResult(result);`
+export const sqlBindingResult = `return new OkObjectResult(result);`;
+export const azureFunctionLocalSettingsFileName = 'local.settings.json';
+export const sqlExtensionPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
+// tslint:disable-next-line:typedef
+export function jsonParseError(error: string, line: number, column: number) {
+    return localize('jsonParseError', '{0} near line "{1}", column "{2}"', error, line, column);
+}
+// tslint:disable-next-line:typedef
+export function failedToParse(errorMessage: string) {
+    return localize('failedToParse', 'Failed to parse "{0}": {1}.',
+        azureFunctionLocalSettingsFileName, errorMessage);
+}
+// tslint:disable-next-line:typedef
+export function settingAlreadyExists(settingName: string) {
+    return localize('SettingAlreadyExists', 'Local app setting \'{0}\' already exists. Overwrite?', settingName);
+}
+export const yesString = localize('yesString', 'Yes');
+export const noAzureFunctionsProjectsInWorkspace = localize('noAzureFunctionsProjectsInWorkspace', 'No Azure functions projects found in the workspace');
+export const hostFileName = 'host.json';
+// tslint:disable-next-line:typedef
+export const sqlBindingsHelpLink = 'https://github.com/Azure/azure-functions-sql-extension/blob/main/README.md';
+
+export const addPackageReferenceMessage = localize('addPackageReferenceMessage', 'To use SQL bindings, ensure your Azure Functions project has a reference to {0}', sqlExtensionPackageName);
+export const moreInformation = localize('moreInformation', 'More Information');
+export const addSqlBindingPackageError = localize('addSqlBindingPackageError', 'Error adding Sql Binding extension package to project');
+export const checkoutOutputMessage = localize('checkoutOutputMessage', 'Check output pane for more details');
+
+
+

@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AuthenticationTypes } from "../models/interfaces"
+import { AuthenticationTypes } from '../models/interfaces';
 
 export function getConnectionString(server: string, authType: string, database: string, userName: string, password: string): string {
-    const serverDatabasePart = `Server=${server};Database=${database};`
+    const serverDatabasePart = `Server=${server};Database=${database};`;
     switch (authType) {
         case AuthenticationTypes[AuthenticationTypes.SqlLogin]:
             return `${serverDatabasePart}User Id=${userName};Password=${password}`;
