@@ -6,8 +6,11 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as constants from '../constants/constants';
-import { parseJson } from '../constants/parseJson';
+import * as LocalizedConstants from '../constants/localizedConstants';
 import * as glob from 'fast-glob';
+import * as af from '../../typings/vscode-azurefunctions.api';
+import { parseJson } from '../constants/parseJson';
+
 
 
 /**
@@ -78,9 +81,7 @@ export async function setLocalAppSetting(projectFolder: string, key: string, val
  * @param packageName package to add reference to
  * @param packageVersion optional version of package. If none, latest will be pulled in
  */
-export async function addPackageToAFProjectContainingFile(
-	fileUri: vscode.Uri, packageName: string,
-	packageVersion?: string): Promise<void> {
+export async function addPackageToAFProjectContainingFile(fileUri: vscode.Uri, packageName: string, packageVersion?: string): Promise<void> {
 	try {
 		const project = await getAFProjectContainingFile(fileUri);
 
@@ -97,10 +98,11 @@ export async function addPackageToAFProjectContainingFile(
 			});
 		}
 	} catch (e) {
-		const result = await vscode.window.showErrorMessage(constants.addSqlBindingPackageError, constants.checkoutOutputMessage);
-		if (result === constants.checkoutOutputMessage) {
-			this._outputChannel.show();
-		}
+		await vscode.window.showErrorMessage(constants.addSqlBindingPackageError, constants.checkoutOutputMessage).then((result) => {
+			if (result === constants.checkoutOutputMessage) {
+				this._outputChannel.show();
+			}
+		});
 	}
 }
 
@@ -112,7 +114,7 @@ export async function addPackageToAFProjectContainingFile(
  */
 export async function getAFProjectContainingFile(fileUri: vscode.Uri): Promise<vscode.Uri | undefined> {
 	// get functions csprojs in the workspace
-	const projectPromises = vscode.workspace.workspaceFolders?.map(f => getAllProjectsInFolder(f.uri, '.csproj')) ?? [];
+	const projectPromises = vscode.workspace.workspaceFolders?.map(f => getAllFilesInFolder(f.uri, '.csproj')) ?? [];
 	const functionsProjects = (await Promise.all(projectPromises)).reduce((prev, curr) =>
 		prev.concat(curr), []).filter(p => isFunctionProject(path.dirname(p.fsPath)));
 
@@ -121,6 +123,7 @@ export async function getAFProjectContainingFile(fileUri: vscode.Uri): Promise<v
 		// TODO: figure out which project contains the file
 		// the new style csproj doesn't list all the files in the project anymore, unless the file isn't in the same folder
 		// so we can't rely on using that to check
+		vscode.window.showWarningMessage('Unable to find which project contains the file: ' + fileUri.fsPath);
 		console.error('need to find which project contains the file ' + fileUri.fsPath);
 		return undefined;
 	} else if (functionsProjects.length === 0) {
@@ -130,8 +133,13 @@ export async function getAFProjectContainingFile(fileUri: vscode.Uri): Promise<v
 	}
 }
 
-// Use 'host.json' as an indicator that this is a functions project
-// copied from verifyIsproject.ts in vscode-azurefunctions extension
+
+/**
+ * Use 'host.json' as an indicator that this is a functions project
+ * copied from verifyIsproject.ts in vscode-azurefunctions extension
+ * @param folderPath functions file directory path
+ * @returns whether the path for the function is exists
+ */
 export async function isFunctionProject(folderPath: string): Promise<boolean> {
 	return fse.pathExists(path.join(folderPath, constants.hostFileName));
 }
@@ -142,7 +150,7 @@ export async function isFunctionProject(folderPath: string): Promise<boolean> {
  * @param projectExtension project extension to filter on
  * @returns array of project uris
  */
-export async function getAllProjectsInFolder(folder: vscode.Uri, projectExtension: string): Promise<vscode.Uri[]> {
+export async function getAllFilesInFolder(folder: vscode.Uri, projectExtension: string): Promise<vscode.Uri[]> {
 	// path needs to use forward slashes for glob to work
 	const escapedPath = glob.escapePath(folder.fsPath.replace(/\\/g, '/'));
 
@@ -151,4 +159,18 @@ export async function getAllProjectsInFolder(folder: vscode.Uri, projectExtensio
 
 	// glob will return an array of file paths with forward slashes, so they need to be converted back if on windows
 	return (await glob(projFilter)).map(p => vscode.Uri.file(path.resolve(p)));
+}
+
+
+export async function getAzureFunctionsExtensionApi(): Promise<af.AzureFunctionsExtensionApi | undefined> {
+	const afExtension = vscode.extensions.getExtension(constants.azureFunctionsExtensionName);
+	if (afExtension) {
+		let azureFunctionApi = await afExtension.activate();
+		if (azureFunctionApi) {
+			return azureFunctionApi.getApi('*') as af.AzureFunctionsExtensionApi;
+		} else {
+			vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsExtensionNotInstalled);
+			return undefined;
+		}
+	}
 }

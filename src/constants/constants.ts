@@ -172,29 +172,26 @@ export const defaultBindingResult = 'return new OkObjectResult(responseMessage);
 export const sqlBindingResult = `return new OkObjectResult(result);`;
 export const azureFunctionLocalSettingsFileName = 'local.settings.json';
 export const sqlExtensionPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
-// tslint:disable-next-line:typedef
-export function jsonParseError(error: string, line: number, column: number) {
+export function jsonParseError(error: string, line: number, column: number): string {
 	return localize('jsonParseError', '{0} near line "{1}", column "{2}"', error, line, column);
 }
-// tslint:disable-next-line:typedef
-export function failedToParse(errorMessage: string) {
+export function failedToParse(errorMessage: string): string {
 	return localize('failedToParse', 'Failed to parse "{0}": {1}.',
 		azureFunctionLocalSettingsFileName, errorMessage);
 }
-// tslint:disable-next-line:typedef
-export function settingAlreadyExists(settingName: string) {
+export function settingAlreadyExists(settingName: string): string {
 	return localize('SettingAlreadyExists', 'Local app setting \'{0}\' already exists. Overwrite?', settingName);
 }
 export const yesString = localize('yesString', 'Yes');
 export const noAzureFunctionsProjectsInWorkspace = localize('noAzureFunctionsProjectsInWorkspace', 'No Azure functions projects found in the workspace');
 export const hostFileName = 'host.json';
-// tslint:disable-next-line:typedef
 export const sqlBindingsHelpLink = 'https://github.com/Azure/azure-functions-sql-extension/blob/main/README.md';
-
 export const addPackageReferenceMessage = localize('addPackageReferenceMessage', 'To use SQL bindings, ensure your Azure Functions project has a reference to {0}', sqlExtensionPackageName);
 export const moreInformation = localize('moreInformation', 'More Information');
 export const addSqlBindingPackageError = localize('addSqlBindingPackageError', 'Error adding Sql Binding extension package to project');
 export const checkoutOutputMessage = localize('checkoutOutputMessage', 'Check output pane for more details');
+export const functionNameTitle = localize('functionNameTitle', 'Function Name');
+export const failedToGetConnectionString = localize('failedToGetConnectionString', 'An error occurred generating the connection string for the selected connection');
 
 
 
