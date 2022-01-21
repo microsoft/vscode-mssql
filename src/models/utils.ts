@@ -516,3 +516,9 @@ export function deepClone<T>(obj: T): T {
 	});
 	return result;
 }
+
+/**
+ * Returns whether the credentials should use the native credential
+ * service or not
+ */
+ export const isLinux = os.platform() === 'linux';
