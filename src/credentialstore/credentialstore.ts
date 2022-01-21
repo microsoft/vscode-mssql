@@ -37,12 +37,8 @@ export class CredentialStore implements ICredentialStore {
 		let self = this;
 		let cred: Contracts.Credential = new Contracts.Credential();
 		cred.credentialId = credentialId;
-		try {
-			const returnedCred = await self._client.sendRequest(Contracts.ReadCredentialRequest.type, cred)
-			return returnedCred;
-		} catch (error) {
-			throw error;
-		}
+		const returnedCred = await self._client.sendRequest(Contracts.ReadCredentialRequest.type, cred);
+		return returnedCred;
 	}
 
 	public async saveCredential(credentialId: string, password: any): Promise<boolean> {
@@ -51,17 +47,13 @@ export class CredentialStore implements ICredentialStore {
 		cred.credentialId = credentialId;
 		cred.password = password;
 		/* This is only done for linux because this is going to be
-		* the default credential system for linux in the next release
+		* the default credential system for linux in a future release
 		*/
 		if (Utils.isLinux) {
 			await this._secretStorage.store(credentialId, password);
 		}
-		try {
-			const success = await self._client.sendRequest(Contracts.SaveCredentialRequest.type, cred);
-			return success;
-		} catch (error) {
-			throw error;
-		}
+		const success = await self._client.sendRequest(Contracts.SaveCredentialRequest.type, cred);
+		return success;
 	}
 
 	public async deleteCredential(credentialId: string): Promise<boolean> {
@@ -71,12 +63,7 @@ export class CredentialStore implements ICredentialStore {
 		if (Utils.isLinux) {
 			await this._secretStorage.delete(credentialId);
 		}
-		try {
-			const success = await self._client.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
-			return success;
-		} catch (error) {
-			throw error;
-		}
-
+		const success = await self._client.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
+		return success;
 	}
 }
