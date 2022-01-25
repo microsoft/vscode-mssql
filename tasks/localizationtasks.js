@@ -149,6 +149,7 @@ gulp.task('ext:localization:xliff-to-ts', function () {
 		.pipe(gulp.dest(config.paths.project.root + '/src/constants/'));
 });
 
+// Generates a package.nls.json file from localizedPackage.json.enu.xlf
 gulp.task('ext:localization:generate-eng-package.nls', function () {
 	return gulp.src([config.paths.project.localization + '/xliff/enu/localizedPackage.json.enu.xlf'], { base: '.' })
 		.pipe(through.obj(function (file, enc, callback) {
@@ -158,28 +159,20 @@ gulp.task('ext:localization:generate-eng-package.nls', function () {
 			var contents = ['{'];
 			var regxForReplacingQuots = new RegExp('"', 'g');
 
-			// Get all the keys from package.nls.json which is the English version and get the localized value from xlf
-			// Use the English value if not translated, right now there's no fall back to English if the text is not localized.
-			// So all the keys have to exist in all package.nls.*.json
-			Object.keys(packageAllKeys).forEach(key => {
-				let value = packageAllKeys[key];
+			// Get all keys and values from localizedPackage.json.enu.xlf
+			Object.keys(dict).forEach(key => {
+				let value = '';
 				if (contents.length >= 2) {
 					contents[contents.length - 1] += ',';
 				}
 				if (dict.hasOwnProperty(key)) {
-
-					value = dict[key]['target'];
+					value = dict[key]['source'];
 				}
-				if (value === '') {
-					value = packageAllKeys[key];
-				}
-
 				if (value && value.indexOf('"') >= 0) {
 					value = value.replace(regxForReplacingQuots, '\'');
 				}
 				let instantiation = '"' + key + '":"' + value + '"';
 				contents.push(instantiation);
-
 			});
 
 			// end the function
@@ -187,26 +180,22 @@ gulp.task('ext:localization:generate-eng-package.nls', function () {
 
 			// Join with new lines in between
 			let fullFileContents = contents.join('\r\n') + '\r\n';
+			console.log(fullFileContents);
 			file.contents = new Buffer(fullFileContents);
 
 			let indexToStart = 'localizedPackage.json.'.length + 1;
 			let languageIndex = file.basename.indexOf('.', indexToStart);
 			let language = file.basename.substr(indexToStart - 1, (languageIndex - indexToStart) + 1);
 
-			// Name our file
-			if (language === 'enu') {
-				file.basename = 'package.nls.json';
-			} else {
-				file.basename = 'package.nls.' + iso639_3_to_2[language] + '.json';
-			}
+			file.basename = 'package.nls.json';
 
 			// Make the new file create on root
 			file.dirname = file.dirname.replace(language, '').replace('xliff', '').replace('localization', '');
-			console.log('dirname is ' + file.dirname);
 
 			// callback to notify we have completed the current file
 			callback(null, file);
 		}))
+		.pipe(gulp.dest(config.paths.project.root));
 })
 
 // Generates a localized package.nls.*.json
