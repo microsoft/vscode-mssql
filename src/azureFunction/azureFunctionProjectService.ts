@@ -6,13 +6,16 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as mssql from 'vscode-mssql';
-import { defaultBindingResult, defaultSqlBindingTextLines, genericCollectionImport, sqlBindingResult } from '../constants/constants';
+import { defaultBindingResult, defaultSqlBindingTextLines, sqlBindingResult } from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
 import * as path from 'path';
+import * as cp from 'child_process';
 
+const sqlBindingNugetSource = 'https://www.myget.org/F/azure-appservice/api/v3/index.json';
+const sqlBindingPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
 export class AzureFunctionProjectService {
 
 	constructor(private azureFunctionsService: AzureFunctionsService) {
@@ -35,7 +38,7 @@ export class AzureFunctionProjectService {
 		// get function name from user
 		const functionName = await vscode.window.showInputBox({
 			title: constants.functionNameTitle,
-			value: 'HttpTrigger1'
+			value: table
 		});
 
 		// create C# HttpTrigger
@@ -56,7 +59,7 @@ export class AzureFunctionProjectService {
 			mssql.BindingType.input,
 			functionFile,
 			functionName,
-			schema + escape('.') + table,
+			'[' + schema + ']' + '.' + '[' + table + ']',
 			constants.sqlConnectionString
 		);
 
@@ -68,10 +71,8 @@ export class AzureFunctionProjectService {
 	 */
 	private refactorAzureFunction(filePath: string): void {
 		let defaultBindedFunctionText = fs.readFileSync(filePath, 'utf-8');
-		// Add missing import for Enumerable
-		let newValue = genericCollectionImport + os.EOL + defaultBindedFunctionText;
 		// Replace default binding text
-		let newValueLines = newValue.split(os.EOL);
+		let newValueLines = defaultBindedFunctionText.split(os.EOL);
 		const defaultLineSet = new Set(defaultSqlBindingTextLines);
 		let replacedValueLines = [];
 		for (let defaultLine of newValueLines) {
@@ -85,8 +86,8 @@ export class AzureFunctionProjectService {
 				replacedValueLines.push(defaultLine);
 			}
 		}
-		newValue = replacedValueLines.join(os.EOL);
-		fs.writeFileSync(filePath, newValue, 'utf-8');
+		defaultBindedFunctionText = replacedValueLines.join(os.EOL);
+		fs.writeFileSync(filePath, defaultBindedFunctionText, 'utf-8');
 	}
 }
 
@@ -133,12 +134,32 @@ function getNewFunctionFile(): Promise<string> {
 // adds the required nuget package to the project
 async function addNugetReferenceToProjectFile(): Promise<void> {
 	// Make sure the nuget source is added
+	const currentSources = await executeCommand('dotnet nuget list source');
+	if (currentSources.indexOf(sqlBindingNugetSource) === -1) {
+		await executeCommand(`dotnet nuget add source ${sqlBindingNugetSource}`);
+	}
 	const projFile = await getProjectFile();
-	azureFunctionUtils.addPackageToAFProjectContainingFile(vscode.Uri.file(projFile), constants.sqlExtensionPackageName);
+	await executeCommand(`dotnet add package ${sqlBindingPackageName} --prerelease`, path.dirname(projFile));
 }
 
 // adds the Sql Connection String to the local.settings.json
 async function addConnectionStringToConfig(connectionString: string): Promise<void> {
 	const settingsFile = await getSettingsFile();
 	await azureFunctionUtils.setLocalAppSetting(path.dirname(settingsFile), constants.sqlConnectionString, connectionString);
+}
+
+async function executeCommand(command: string, cwd?: string): Promise<string> {
+	return new Promise<string>((resolve, reject) => {
+		cp.exec(command, { maxBuffer: 500 * 1024, cwd: cwd }, (error: Error, stdout: string, stderr: string) => {
+			if (error) {
+				reject(error);
+				return;
+			}
+			if (stderr && stderr.length > 0) {
+				reject(new Error(stderr));
+				return;
+			}
+			resolve(stdout);
+		});
+	});
 }
