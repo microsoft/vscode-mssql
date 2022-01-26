@@ -29,7 +29,8 @@
             "args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
             "stopOnEntry": false,
             "sourceMaps": true,
-            "outFiles": ["${workspaceRoot}/out/src/**/*.js"]
+            "outFiles": ["${workspaceRoot}/out/src/**/*.js"],
+            "preLaunchTask": "cover:disable"
         },
         {
             "name": "Launch Tests",
