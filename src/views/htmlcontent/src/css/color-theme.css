@@ -260,9 +260,7 @@
     background: transparent;
   }
 
-  .vscode-light .shortCut,
-  .vscode-dark .shortCut,
-  .vscode-high-contrast .shortCut {
+  .shortCut {
     color: var(--color-content);
   }
 
