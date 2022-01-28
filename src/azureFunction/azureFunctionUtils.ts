@@ -7,7 +7,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import * as af from '../../typings/vscode-azurefunctions.api';
+// https://github.com/microsoft/vscode-azuretools/blob/main/ui/api.d.ts
+import { AzureFunctionsExtensionApi } from '../../typings/vscode-azurefunctions.api';
+// https://github.com/microsoft/vscode-azuretools/blob/main/ui/api.d.ts
+import { AzureExtensionApiProvider } from '../../typings/vscode-azuretools.api';
 import { parseJson } from '../constants/parseJson';
 
 
@@ -24,6 +27,7 @@ export interface ILocalSettingsJson {
 
 /**
  * copied and modified from vscode-azurefunctions extension
+ * https://github.com/microsoft/vscode-azurefunctions/blob/main/src/funcConfig/local.settings.ts
  * @param localSettingsPath full path to local.settings.json
  * @returns settings in local.settings.json. If no settings are found, returns default "empty" settings
  */
@@ -74,15 +78,13 @@ export async function setLocalAppSetting(projectFolder: string, key: string, val
 	return true;
 }
 
-export async function getAzureFunctionsExtensionApi(): Promise<af.AzureFunctionsExtensionApi | undefined> {
-	const afExtension = vscode.extensions.getExtension(constants.azureFunctionsExtensionName);
-	if (afExtension) {
-		let azureFunctionApi = await afExtension.activate();
-		if (azureFunctionApi) {
-			return azureFunctionApi.getApi('*') as af.AzureFunctionsExtensionApi;
-		} else {
-			vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsExtensionNotInstalled);
-			return undefined;
-		}
+export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExtensionApi | undefined> {
+	const apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
+	const azureFunctionApi = apiProvider.getApi<AzureFunctionsExtensionApi>('*');
+	if (azureFunctionApi) {
+		return azureFunctionApi;
+	} else {
+		vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsExtensionNotInstalled);
+		return undefined;
 	}
 }

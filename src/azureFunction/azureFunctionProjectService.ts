@@ -12,10 +12,9 @@ import { AzureFunctionsService } from '../services/azureFunctionsService';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
 import * as path from 'path';
-import * as cp from 'child_process';
-
+import { executeCommand } from '../utils/utils';
 const sqlBindingNugetSource = 'https://www.myget.org/F/azure-appservice/api/v3/index.json';
-const sqlBindingPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
+let selectedProjectFile: string | undefined = '';
 export class AzureFunctionProjectService {
 
 	constructor(private azureFunctionsService: AzureFunctionsService) {
@@ -54,12 +53,12 @@ export class AzureFunctionProjectService {
 		await addConnectionStringToConfig(connectionString);
 		const functionFile = await newFilePromise;
 
-
+		let objectName = escapeObjectName(schema, table);
 		await this.azureFunctionsService.addSqlBinding(
 			mssql.BindingType.input,
 			functionFile,
 			functionName,
-			'[' + schema + ']' + '.' + '[' + table + ']',
+			objectName,
 			constants.sqlConnectionString
 		);
 
@@ -95,16 +94,30 @@ export class AzureFunctionProjectService {
 async function isAzureFunctionProjectOpen(): Promise<boolean> {
 	if (vscode.workspace.workspaceFolders === undefined || vscode.workspace.workspaceFolders.length === 0) {
 		return false;
+	} else {
+		const hostFile = await getHostFile();
+		const projectFiles = await getProjectFile();
+		if (projectFiles !== undefined && hostFile !== undefined) {
+			// select project to add azure function to
+			selectedProjectFile = (await vscode.window.showQuickPick(projectFiles, {
+				canPickMany: false,
+				title: constants.selectProject,
+				ignoreFocusOut: true
+			}));
+			return selectedProjectFile !== undefined;
+		}
+		return;
 	}
-	const projFile = await getProjectFile();
-	const hostFile = await getHostFile();
-	return projFile !== undefined && hostFile !== undefined;
 }
 
 // gets the azure functions project file path
-async function getProjectFile(): Promise<string | undefined> {
-	const projFiles = await vscode.workspace.findFiles('**/*.csproj');
-	return projFiles.length > 0 ? projFiles[0].fsPath : undefined;
+async function getProjectFile(): Promise<string[] | undefined> {
+	const projUris = await vscode.workspace.findFiles('**/*.csproj');
+	let projFiles: string[] = [];
+	for (let projUri of projUris) {
+		projFiles.push(projUri.fsPath);
+	}
+	return projFiles.length > 0 ? projFiles : undefined;
 }
 
 // gets the host file config file path
@@ -138,8 +151,7 @@ async function addNugetReferenceToProjectFile(): Promise<void> {
 	if (currentSources.indexOf(sqlBindingNugetSource) === -1) {
 		await executeCommand(`dotnet nuget add source ${sqlBindingNugetSource}`);
 	}
-	const projFile = await getProjectFile();
-	await executeCommand(`dotnet add package ${sqlBindingPackageName} --prerelease`, path.dirname(projFile));
+	await executeCommand(`dotnet add package ${constants.sqlExtensionPackageName} --prerelease`, path.dirname(selectedProjectFile));
 }
 
 // adds the Sql Connection String to the local.settings.json
@@ -148,18 +160,8 @@ async function addConnectionStringToConfig(connectionString: string): Promise<vo
 	await azureFunctionUtils.setLocalAppSetting(path.dirname(settingsFile), constants.sqlConnectionString, connectionString);
 }
 
-async function executeCommand(command: string, cwd?: string): Promise<string> {
-	return new Promise<string>((resolve, reject) => {
-		cp.exec(command, { maxBuffer: 500 * 1024, cwd: cwd }, (error: Error, stdout: string, stderr: string) => {
-			if (error) {
-				reject(error);
-				return;
-			}
-			if (stderr && stderr.length > 0) {
-				reject(new Error(stderr));
-				return;
-			}
-			resolve(stdout);
-		});
-	});
+// escapes objectName for add SQL Binding
+function escapeObjectName(schema: string, table: string): string {
+	table = table.replace(/\]/g, ']]');
+	return '[' + schema + ']' + '.' + '[' + table + ']';
 }

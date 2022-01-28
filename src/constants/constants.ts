@@ -183,15 +183,8 @@ export function settingAlreadyExists(settingName: string): string {
 	return localize('SettingAlreadyExists', 'Local app setting \'{0}\' already exists. Overwrite?', settingName);
 }
 export const yesString = localize('yesString', 'Yes');
-export const noAzureFunctionsProjectsInWorkspace = localize('noAzureFunctionsProjectsInWorkspace', 'No Azure functions projects found in the workspace');
-export const hostFileName = 'host.json';
-export const sqlBindingsHelpLink = 'https://github.com/Azure/azure-functions-sql-extension/blob/main/README.md';
-export const addPackageReferenceMessage = localize('addPackageReferenceMessage', 'To use SQL bindings, ensure your Azure Functions project has a reference to {0}', sqlExtensionPackageName);
-export const moreInformation = localize('moreInformation', 'More Information');
-export const addSqlBindingPackageError = localize('addSqlBindingPackageError', 'Error adding Sql Binding extension package to project');
-export const checkoutOutputMessage = localize('checkoutOutputMessage', 'Check output pane for more details');
 export const functionNameTitle = localize('functionNameTitle', 'Function Name');
-export const failedToGetConnectionString = localize('failedToGetConnectionString', 'An error occurred generating the connection string for the selected connection');
+export const selectProject = localize('selectProject', 'Select an project to add a Azure function with SQL binding to');
 
 
 
