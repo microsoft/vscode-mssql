@@ -46,7 +46,7 @@ const template = `
         (click)="toggleResultsPane()"
         (keydown)="handleResultsKeydown($event)"
         [attr.aria-label]="Constants.resultPaneLabel"
-        [attr.aria-expanded]="!resultActive">
+        [attr.aria-expanded]="resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
@@ -88,7 +88,7 @@ const template = `
     <div id="messagepane" role="button" tabIndex="1" class="boxRow header collapsible"
         [class.collapsed]="!messageActive"
         [attr.aria-label]="Constants.messagePaneLabel"
-        [attr.aria-expanded]="!messageActive"
+        [attr.aria-expanded]="messageActive"
         (click)="toggleMessagesPane()"
         (keydown)="handleMessagesKeydown($event)"
         style="position: relative">
