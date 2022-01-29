@@ -158,7 +158,6 @@ export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 // Azure Functions
 export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
 export const sqlConnectionString = 'SqlConnectionString';
-export const genericCollectionImport = 'using System.Collections.Generic;';
 export const defaultSqlBindingTextLines =
 	[
 		'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
@@ -184,7 +183,4 @@ export function settingAlreadyExists(settingName: string): string {
 }
 export const yesString = localize('yesString', 'Yes');
 export const functionNameTitle = localize('functionNameTitle', 'Function Name');
-export const selectProject = localize('selectProject', 'Select an project to add a Azure function with SQL binding to');
-
-
-
+export const selectProject = localize('selectProject', 'Select the Azure Function project for the SQL Binding');

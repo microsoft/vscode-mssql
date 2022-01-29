@@ -12,9 +12,8 @@ import { AzureFunctionsService } from '../services/azureFunctionsService';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
 import * as path from 'path';
-import { executeCommand } from '../utils/utils';
-const sqlBindingNugetSource = 'https://www.myget.org/F/azure-appservice/api/v3/index.json';
-let selectedProjectFile: string | undefined = '';
+import { executeCommand, generateQuotedFullName } from '../utils/utils';
+
 export class AzureFunctionProjectService {
 
 	constructor(private azureFunctionsService: AzureFunctionsService) {
@@ -25,35 +24,41 @@ export class AzureFunctionProjectService {
 		if (!azureFunctionApi) {
 			return;
 		}
-		if (!await isAzureFunctionProjectOpen()) {
+		let projectFile = await isAzureFunctionProjectOpen();
+		if (!projectFile) {
 			vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened);
 			return;
 		}
 
 		// because of an AF extension API issue, we have to get the newly created file by adding
 		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
-		const newFilePromise = getNewFunctionFile();
+		const newFilePromise = getNewFunctionFile(projectFile);
 
 		// get function name from user
 		const functionName = await vscode.window.showInputBox({
 			title: constants.functionNameTitle,
-			value: table
+			value: table,
+			ignoreFocusOut: true
 		});
+		if (!functionName) {
+			return;
+		}
 
 		// create C# HttpTrigger
 		await azureFunctionApi.createFunction({
 			language: 'C#',
 			templateId: 'HttpTrigger',
-			functionName: functionName
+			functionName: functionName,
+			folderPath: projectFile
 		});
 
 		// once steps are addressed we add SQL Bindings Nuget and Connection String to local.settings.json
 		// and then create a new functions file
-		await addNugetReferenceToProjectFile();
+		await addNugetReferenceToProjectFile(projectFile);
 		await addConnectionStringToConfig(connectionString);
 		const functionFile = await newFilePromise;
 
-		let objectName = escapeObjectName(schema, table);
+		let objectName = generateQuotedFullName(schema, table);
 		await this.azureFunctionsService.addSqlBinding(
 			mssql.BindingType.input,
 			functionFile,
@@ -62,13 +67,14 @@ export class AzureFunctionProjectService {
 			constants.sqlConnectionString
 		);
 
-		this.refactorAzureFunction(functionFile);
+		this.overwriteAzureFunctionMethodBody(functionFile);
 	}
+
 	/**
-	 * Refactors the Azure function file to include the sql binding specific function
+	 * Overwrites the Azure function file to include the new binding in the method body
 	 * @param filePath is the path for the function file (.cs for C# functions)
 	 */
-	private refactorAzureFunction(filePath: string): void {
+	private overwriteAzureFunctionMethodBody(filePath: string): void {
 		let defaultBindedFunctionText = fs.readFileSync(filePath, 'utf-8');
 		// Replace default binding text
 		let newValueLines = defaultBindedFunctionText.split(os.EOL);
@@ -90,21 +96,38 @@ export class AzureFunctionProjectService {
 	}
 }
 
-// A C# Azure Functions project must be present in order to create a new Azure Function for the table
-async function isAzureFunctionProjectOpen(): Promise<boolean> {
+/**
+ * A C# Azure Functions project must be present in order to create a new Azure Function for the table
+ * @returns the selected project file path or indicates to user there is no C# Azure Functions project
+ */
+async function isAzureFunctionProjectOpen(): Promise<string> {
+	let selectedProjectFile: string | undefined = '';
 	if (vscode.workspace.workspaceFolders === undefined || vscode.workspace.workspaceFolders.length === 0) {
-		return false;
+		return selectedProjectFile;
 	} else {
-		const hostFile = await getHostFile();
+		const hostFiles = await getHostFile();
 		const projectFiles = await getProjectFile();
-		if (projectFiles !== undefined && hostFile !== undefined) {
-			// select project to add azure function to
-			selectedProjectFile = (await vscode.window.showQuickPick(projectFiles, {
-				canPickMany: false,
-				title: constants.selectProject,
-				ignoreFocusOut: true
-			}));
-			return selectedProjectFile !== undefined;
+		if (projectFiles !== undefined && hostFiles !== undefined) {
+			// Check to see if its only a function project using host.json and project file
+			let functionProjects = [];
+			let count = 0;
+			for (let host of hostFiles) {
+				for (let project of projectFiles) {
+					path.dirname(host) === path.dirname(project) ? functionProjects.push(project) && count++ : count;
+				}
+			}
+			if (count > 1) {
+				// select project to add azure function to
+				selectedProjectFile = (await vscode.window.showQuickPick(projectFiles, {
+					canPickMany: false,
+					title: constants.selectProject,
+					ignoreFocusOut: true
+				}));
+				return selectedProjectFile;
+			} else if (count === 1) {
+				// only one azure function project found
+				return functionProjects[0];
+			}
 		}
 		return;
 	}
@@ -121,9 +144,13 @@ async function getProjectFile(): Promise<string[] | undefined> {
 }
 
 // gets the host file config file path
-async function getHostFile(): Promise<string | undefined> {
-	const hostFiles = await vscode.workspace.findFiles('**/host.json');
-	return hostFiles.length > 0 ? hostFiles[0].fsPath : undefined;
+async function getHostFile(): Promise<string[] | undefined> {
+	const hostUris = await vscode.workspace.findFiles('**/host.json');
+	let hostFiles = [];
+	for (let hostUri of hostUris) {
+		hostFiles.push(hostUri.fsPath);
+	}
+	return hostFiles.length > 0 ? hostFiles : undefined;
 }
 
 // gets the local.settings.json file path
@@ -133,10 +160,10 @@ async function getSettingsFile(): Promise<string | undefined> {
 }
 
 // retrieves the new function file once the file is created
-function getNewFunctionFile(): Promise<string> {
+function getNewFunctionFile(projectFile: string): Promise<string> {
 	return new Promise((resolve) => {
-		const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(
-			vscode.workspace.workspaceFolders[0], '**/*.cs'), false, true, true);
+		const watcher = vscode.workspace.createFileSystemWatcher((
+			path.dirname(projectFile), '**/*.cs'), false, true, true);
 		watcher.onDidCreate((e) => {
 			resolve(e.fsPath);
 			watcher.dispose();
@@ -145,23 +172,15 @@ function getNewFunctionFile(): Promise<string> {
 }
 
 // adds the required nuget package to the project
-async function addNugetReferenceToProjectFile(): Promise<void> {
-	// Make sure the nuget source is added
-	const currentSources = await executeCommand('dotnet nuget list source');
-	if (currentSources.indexOf(sqlBindingNugetSource) === -1) {
-		await executeCommand(`dotnet nuget add source ${sqlBindingNugetSource}`);
-	}
-	await executeCommand(`dotnet add package ${constants.sqlExtensionPackageName} --prerelease`, path.dirname(selectedProjectFile));
+async function addNugetReferenceToProjectFile(selectedProjectFile: string): Promise<void> {
+	await executeCommand(`dotnet add ${selectedProjectFile} package ${constants.sqlExtensionPackageName} --prerelease`);
 }
 
-// adds the Sql Connection String to the local.settings.json
+/**
+ * Adds the Sql Connection String to the local.settings.json
+ * @param connectionString of the SQL Server connection that was chosen by the user
+ */
 async function addConnectionStringToConfig(connectionString: string): Promise<void> {
 	const settingsFile = await getSettingsFile();
 	await azureFunctionUtils.setLocalAppSetting(path.dirname(settingsFile), constants.sqlConnectionString, connectionString);
-}
-
-// escapes objectName for add SQL Binding
-function escapeObjectName(schema: string, table: string): string {
-	table = table.replace(/\]/g, ']]');
-	return '[' + schema + ']' + '.' + '[' + table + ']';
 }

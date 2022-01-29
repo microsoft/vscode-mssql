@@ -7,13 +7,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
-// https://github.com/microsoft/vscode-azuretools/blob/main/ui/api.d.ts
+// https://github.com/microsoft/vscode-azurefunctions/blob/main/src/vscode-azurefunctions.api.d.ts
 import { AzureFunctionsExtensionApi } from '../../typings/vscode-azurefunctions.api';
 // https://github.com/microsoft/vscode-azuretools/blob/main/ui/api.d.ts
 import { AzureExtensionApiProvider } from '../../typings/vscode-azuretools.api';
-import { parseJson } from '../constants/parseJson';
-
-
 
 /**
  * Represents the settings in an Azure function project's local.settings.json file
@@ -36,7 +33,7 @@ export async function getLocalSettingsJson(localSettingsPath: string): Promise<I
 		const data: string = (await fse.readFile(localSettingsPath)).toString();
 		if (/[^\s]/.test(data)) {
 			try {
-				return parseJson(data);
+				return JSON.parse(data);
 			} catch (error) {
 				throw new Error(constants.failedToParse(error.message));
 			}
