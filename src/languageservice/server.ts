@@ -34,7 +34,7 @@ export default class ServerProvider {
 		if (this._config !== undefined) {
 			let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
 			for (const executableFile of executableFiles) {
-				let executablePath = path.join(filePath, executableFile);
+				const executablePath = path.join(filePath, executableFile);
 				try {
 					if (await fs.stat(executablePath)) {
 						return executablePath;
