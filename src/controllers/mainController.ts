@@ -148,7 +148,6 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdAadRemoveAccount);
 			this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 
-			this.azureFunctionsService = new AzureFunctionsService(SqlToolsServerClient.instance);
 			this.initializeObjectExplorer();
 
 			this.initializeQueryHistory();
@@ -156,7 +155,7 @@ export default class MainController implements vscode.Disposable {
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
-
+			this.azureFunctionsService = new AzureFunctionsService(SqlToolsServerClient.instance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
