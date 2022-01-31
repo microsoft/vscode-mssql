@@ -40,7 +40,7 @@ export interface IGridDataSet {
 
 // tslint:disable:max-line-length
 const template = `
-<div class="fullsize vertBox" tabindex="-1">
+<div class="fullsize vertBox">
     <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="1" class="boxRow header collapsible"
         [class.collapsed]="!resultActive"
         (click)="toggleResultsPane()"
@@ -50,15 +50,15 @@ const template = `
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
-    <div id="results" tabindex="-1" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+    <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)"
          [scrollEnabled]="scrollEnabled"
          [class.hidden]="!resultActive">
-        <div class="boxRow content horzBox slickgrid" tabindex="-1" *ngFor="let dataSet of renderedDataSets; let i = index"
+        <div class="boxRow content horzBox slickgrid" *ngFor="let dataSet of renderedDataSets; let i = index"
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
             [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
             [style.font-size]="resultsFontSize + 'px'">
-            <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+            <slick-grid tabindex="2" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
@@ -69,11 +69,10 @@ const template = `
                         (mousedown)="navigateToGrid(i)"
                         [selectionModel]="selectionModel"
                         [plugins]="slickgridPlugins"
-                        class="boxCol content vertBox slickgrid"
-						tabindex="2">
+                        class="boxCol content vertBox slickgrid">
             </slick-grid>
             <span class="boxCol content vertBox">
-                <div class="boxRow content maxHeight" tabindex="-1"  *ngFor="let icon of dataIcons">
+                <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
                     <div *ngIf="icon.showCondition()" class="gridIcon" tabindex="3">
                         <a class="icon" href="#" role="button"
                         (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
@@ -127,7 +126,7 @@ const template = `
             </tbody>
         </table>
     </div>
-    <div id="resizeHandle" tabindex="-1" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
+    <div id="resizeHandle" [class.hidden]="!resizing" [style.top.px]="resizeHandleTop"></div>
 </div>
 `;
 // tslint:enable:max-line-length
