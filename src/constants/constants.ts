@@ -181,3 +181,4 @@ export function settingAlreadyExists(settingName: string): string {
 export const yesString = localize('yesString', 'Yes');
 export const functionNameTitle = localize('functionNameTitle', 'Function Name');
 export const selectProject = localize('selectProject', 'Select the Azure Function project for the SQL Binding');
+export const timeoutError = localize('timeoutError', 'Timed out waiting for azure function file creation');

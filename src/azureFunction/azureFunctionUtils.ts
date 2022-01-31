@@ -185,7 +185,7 @@ export function waitForNewFunctionFile(projectFile: string): Promise<string> {
 		const watcher = vscode.workspace.createFileSystemWatcher((
 			path.dirname(projectFile), '**/*.cs'), false, true, true);
 		const timeout = setTimeout(async () => {
-			reject('Timed out waiting for azure function file creation');
+			reject(new Error(constants.timeoutError));
 			watcher.dispose();
 		}, 10000);
 		watcher.onDidCreate((e) => {
