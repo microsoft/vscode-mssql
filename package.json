@@ -76,6 +76,7 @@
     "@types/jqueryui": "^1.12.7",
     "@types/keytar": "^4.4.2",
     "@types/mocha": "^5.2.7",
+    "@types/node": "^14.14.16",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
     "@types/vscode": "1.57.0",
@@ -116,7 +117,6 @@
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
-    "@types/node": "^14.14.16",
     "@microsoft/ads-adal-library": "1.0.13",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
@@ -299,6 +299,11 @@
           "command": "mssql.deleteQueryHistory",
           "when": "view == queryHistory && viewItem == queryHistoryNode",
           "group": "MS_SQL@3"
+        },
+        {
+          "command": "mssql.createAzureFunction",
+          "when": "view == objectExplorer && viewItem == Table",
+          "group": "MS_SQL@6"
         }
       ],
       "commandPalette": [
@@ -519,6 +524,11 @@
       {
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.createAzureFunction",
+        "title": "%mssql.createAzureFunction%",
         "category": "MS SQL"
       }
     ],

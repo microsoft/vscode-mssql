@@ -32,6 +32,8 @@ import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { DacFxService } from '../services/dacFxService';
 import { IConnectionInfo } from 'vscode-mssql';
+import { AzureFunctionProjectService } from '../azureFunction/azureFunctionProjectService';
+import { getConnectionString } from '../utils/connectionStringUtil';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
@@ -439,6 +441,19 @@ export default class MainController implements vscode.Disposable {
 					}
 				}
 			}));
+
+		const afService = new AzureFunctionProjectService(this.azureFunctionsService);
+		// Generate Azure Function command
+		this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdCreateAzureFunction, async (node: TreeNodeInfo) => {
+			const database = ObjectExplorerUtils.getDatabaseName(node);
+			const connStr = getConnectionString(
+				node.connectionInfo.server,
+				node.connectionInfo.authenticationType,
+				database,
+				node.connectionInfo.user,
+				node.connectionInfo.password);
+			await afService.createAzureFunction(connStr, node.metadata.schema, node.metadata.name);
+		}));
 	}
 
 	/**

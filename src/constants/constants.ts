@@ -2,6 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import * as nls from 'vscode-nls';
+const localize = nls.loadMessageBundle();
 
 // Collection of Non-localizable Constants
 export const languageId = 'sql';
@@ -59,6 +61,7 @@ export const cmdAzureSignIn = 'azure-account.login';
 export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
 export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
+export const cmdCreateAzureFunction = 'mssql.createAzureFunction';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -151,3 +154,31 @@ export const tenantDisplayName = 'Microsoft';
 export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
 export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
 export const unixResourceClientPath = 'SqlToolsResourceProviderService';
+
+// Azure Functions
+export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
+export const sqlConnectionString = 'SqlConnectionString';
+export const defaultSqlBindingTextLines =
+	[
+		'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
+		'string name = req.Query[\"name\"];',
+		'string requestBody = await new StreamReader(req.Body).ReadToEndAsync();',
+		'dynamic data = JsonConvert.DeserializeObject(requestBody);',
+		'name = name ?? data?.name;',
+		'string responseMessage = string.IsNullOrEmpty(name) ? \"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.\" : $\"Hello, {name}. This HTTP triggered function executed successfully.\";'
+	];
+export const defaultBindingResult = 'return new OkObjectResult(responseMessage);';
+export const sqlBindingResult = `return new OkObjectResult(result);`;
+export const azureFunctionLocalSettingsFileName = 'local.settings.json';
+export const sqlExtensionPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
+export function failedToParse(errorMessage: string): string {
+	return localize('failedToParse', 'Failed to parse "{0}": {1}.',
+		azureFunctionLocalSettingsFileName, errorMessage);
+}
+export function settingAlreadyExists(settingName: string): string {
+	return localize('SettingAlreadyExists', 'Local app setting \'{0}\' already exists. Overwrite?', settingName);
+}
+export const yesString = localize('yesString', 'Yes');
+export const functionNameTitle = localize('functionNameTitle', 'Function Name');
+export const selectProject = localize('selectProject', 'Select the Azure Function project for the SQL Binding');
+export const timeoutError = localize('timeoutError', 'Timed out waiting for azure function file creation');
