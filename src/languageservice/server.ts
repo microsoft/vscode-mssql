@@ -75,25 +75,22 @@ export default class ServerProvider {
 	/**
 	 * Returns the path of the installed service
 	 */
-	public getServerPath(runtime: Runtime): Promise<string> {
-		const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
+	public async getServerPath(runtime: Runtime): Promise<string> {
+		const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
 		return this.findServerPath(installDirectory);
 	}
 
 	/**
 	 * Downloads the service and returns the path of the installed service
 	 */
-	public downloadServerFiles(runtime: Runtime): Promise<string> {
-		return new Promise<string>((resolve, reject) => {
-			const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
-			return this._downloadProvider.installSQLToolsService(runtime).then(_ => {
-				return this.findServerPath(installDirectory).then(result => {
-					return resolve(result);
-				});
-			}).catch(err => {
-				this._statusView.serviceInstallationFailed();
-				reject(err);
-			});
-		});
+	public async downloadServerFiles(runtime: Runtime): Promise<string> {
+		const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
+		try {
+			await this._downloadProvider.installSQLToolsService(runtime);
+			return this.findServerPath(installDirectory);
+		} catch (err) {
+			this._statusView.serviceInstallationFailed();
+			throw err;
+		}
 	}
 }

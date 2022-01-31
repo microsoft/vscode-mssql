@@ -33,7 +33,7 @@ suite('Server tests', () => {
 
 	function setupMocks(fixture: IFixture): void {
 		testConfig.setup(x => x.getSqlToolsExecutableFiles()).returns(() => fixture.executablesFromConfig);
-		testDownloadProvider.setup(x => x.getInstallDirectory(fixture.runtime)).returns(() => fixture.installDir);
+		testDownloadProvider.setup(x => x.getOrMakeInstallDirectory(fixture.runtime)).returns(() => Promise.resolve(fixture.installDir));
 		testDownloadProvider.setup(x => x.installSQLToolsService(fixture.runtime)).callback(() => {
 			fixture.executablesFromConfig = [fixture.executableFileName.replace(fixture.installDir, '')];
 		}).returns(() => { return Promise.resolve(true); });

@@ -83,7 +83,7 @@ export function getServiceInstallDirectory(runtime: Runtime): Promise<string> {
 		if (runtime === undefined) {
 			PlatformInformation.getCurrent().then(platformInfo => {
 				if (platformInfo.isValidRuntime) {
-					resolve(downloadProvider.getInstallDirectory(platformInfo.runtimeId));
+					resolve(downloadProvider.getOrMakeInstallDirectory(platformInfo.runtimeId));
 				} else {
 					reject('unsupported runtime');
 				}
@@ -91,7 +91,7 @@ export function getServiceInstallDirectory(runtime: Runtime): Promise<string> {
 				reject(error);
 			});
 		} else {
-			resolve(downloadProvider.getInstallDirectory(runtime));
+			resolve(downloadProvider.getOrMakeInstallDirectory(runtime));
 		}
 	});
 
