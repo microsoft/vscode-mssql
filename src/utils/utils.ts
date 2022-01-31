@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as cp from 'child_process';
+import { escapeClosingBrackets } from '../models/utils';
 
 export async function executeCommand(command: string, cwd?: string): Promise<string> {
 	return new Promise<string>((resolve, reject) => {
@@ -28,7 +29,5 @@ export async function executeCommand(command: string, cwd?: string): Promise<str
  * @returns the quoted and escaped full name of the specified schema and object
  */
 export function generateQuotedFullName(schema: string, objectName: string): string {
-	schema = schema.replace(/\]/g, ']]');
-	objectName = objectName.replace(/\]/g, ']]');
-	return `[${schema}].[${objectName}]`;
+	return `[${escapeClosingBrackets(schema)}].[${escapeClosingBrackets(objectName)}]`;
 }
