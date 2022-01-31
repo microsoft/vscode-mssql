@@ -162,10 +162,7 @@ export async function getAzureFunctionProjectFiles(): Promise<string[] | undefin
  */
 export async function getHostFiles(): Promise<string[] | undefined> {
 	const hostUris = await vscode.workspace.findFiles('**/host.json');
-	let hostFiles = [];
-	for (let hostUri of hostUris) {
-		hostFiles.push(hostUri.fsPath);
-	}
+	const hostFiles = hostUris.map(uri => uri.fsPath);
 	return hostFiles.length > 0 ? hostFiles : undefined;
 }
 
@@ -175,8 +172,7 @@ export async function getHostFiles(): Promise<string[] | undefined> {
  * @returns the local.settings.json file path
  */
 export async function getSettingsFile(projectFile: string): Promise<string | undefined> {
-	let settingsFile = path.join(path.dirname(projectFile), 'local.settings.json');
-	return settingsFile.length > 0 ? settingsFile : undefined;
+	return path.join(path.dirname(projectFile), 'local.settings.json');
 }
 
 /**
@@ -185,12 +181,17 @@ export async function getSettingsFile(projectFile: string): Promise<string | und
  * @returns the function file path once created
  */
 export function waitForNewFunctionFile(projectFile: string): Promise<string> {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		const watcher = vscode.workspace.createFileSystemWatcher((
 			path.dirname(projectFile), '**/*.cs'), false, true, true);
+		const timeout = setTimeout(async () => {
+			reject('Timed out waiting for azure function file creation');
+			watcher.dispose();
+		}, 10000);
 		watcher.onDidCreate((e) => {
 			resolve(e.fsPath);
 			watcher.dispose();
+			clearTimeout(timeout);
 		});
 	});
 }

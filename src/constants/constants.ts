@@ -171,9 +171,6 @@ export const defaultBindingResult = 'return new OkObjectResult(responseMessage);
 export const sqlBindingResult = `return new OkObjectResult(result);`;
 export const azureFunctionLocalSettingsFileName = 'local.settings.json';
 export const sqlExtensionPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
-export function jsonParseError(error: string, line: number, column: number): string {
-	return localize('jsonParseError', '{0} near line "{1}", column "{2}"', error, line, column);
-}
 export function failedToParse(errorMessage: string): string {
 	return localize('failedToParse', 'Failed to parse "{0}": {1}.',
 		azureFunctionLocalSettingsFileName, errorMessage);
