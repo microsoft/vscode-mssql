@@ -9,7 +9,7 @@ import { Runtime, getRuntimeDisplayName } from '../models/platform';
 import { IConfig, IStatusView, IPackage, PackageError, IHttpClient, IDecompressProvider } from './interfaces';
 import { ILogger } from '../models/interfaces';
 import * as Constants from '../constants/constants';
-import * as fse from 'fs-extra';
+import * as fs from 'fs/promises';
 
 /*
 * Service Download Provider class which handles downloading the SQL Tools service.
@@ -45,16 +45,19 @@ export default class ServiceDownloadProvider {
 
 
 	/**
-	 * Returns SQL tools service installed folder.
+	 * Returns SQL tools service installed folder, creating it if it doesn't exist.
 	 */
-	public getInstallDirectory(platform: Runtime): string {
+	public async getOrMakeInstallDirectory(platform: Runtime): Promise<string> {
 
 		let basePath = this.getInstallDirectoryRoot();
 		let versionFromConfig = this._config.getSqlToolsPackageVersion();
 		basePath = basePath.replace('{#version#}', versionFromConfig);
 		basePath = basePath.replace('{#platform#}', getRuntimeDisplayName(platform));
-		if (!fse.existsSync(basePath)) {
-			fse.mkdirsSync(basePath);
+		try {
+			await fs.mkdir(basePath, { recursive: true });
+		} catch {
+			// Best effort to make the folder, if it already exists (expected scenario) or something else happens
+			// then just carry on
 		}
 		return basePath;
 	}
@@ -85,45 +88,39 @@ export default class ServiceDownloadProvider {
 	/**
 	 * Downloads the SQL tools service and decompress it in the install folder.
 	 */
-	public installSQLToolsService(platform: Runtime): Promise<boolean> {
+	public async installSQLToolsService(platform: Runtime): Promise<boolean> {
 		const proxy = <string>this._config.getWorkspaceConfig('http.proxy');
 		const strictSSL = this._config.getWorkspaceConfig('http.proxyStrictSSL', true);
 		const authorization = this._config.getWorkspaceConfig('http.proxyAuthorization');
 
-		return new Promise<boolean>((resolve, reject) => {
-			const fileName = this.getDownloadFileName(platform);
-			const installDirectory = this.getInstallDirectory(platform);
+		const fileName = this.getDownloadFileName(platform);
+		const installDirectory = await this.getOrMakeInstallDirectory(platform);
 
-			this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
-			const urlString = this.getGetDownloadUrl(fileName);
+		this._logger.appendLine(`${Constants.serviceInstallingTo} ${installDirectory}.`);
+		const urlString = this.getGetDownloadUrl(fileName);
 
-			const isZipFile: boolean = path.extname(fileName) === '.zip';
+		const isZipFile: boolean = path.extname(fileName) === '.zip';
 
-			this._logger.appendLine(`${Constants.serviceDownloading} ${urlString}`);
-			let pkg: IPackage = {
-				installPath: installDirectory,
-				url: urlString,
-				tmpFile: undefined,
-				isZipFile: isZipFile
-			};
-			this.createTempFile(pkg).then(tmpResult => {
-				pkg.tmpFile = tmpResult;
+		this._logger.appendLine(`${Constants.serviceDownloading} ${urlString}`);
+		let pkg: IPackage = {
+			installPath: installDirectory,
+			url: urlString,
+			tmpFile: undefined,
+			isZipFile: isZipFile
+		};
+		const tmpResult = await this.createTempFile(pkg);
+		pkg.tmpFile = tmpResult;
 
-				this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView, proxy, strictSSL, authorization).then(_ => {
-
-					this._logger.logDebug(`Downloaded to ${pkg.tmpFile.name}...`);
-					this._logger.appendLine(' Done!');
-					this.install(pkg).then(result => {
-						resolve(true);
-					}).catch(installError => {
-						reject(installError);
-					});
-				}).catch(downloadError => {
-					this._logger.appendLine(`[ERROR] ${downloadError}`);
-					reject(downloadError);
-				});
-			});
-		});
+		try {
+			await this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView, proxy, strictSSL, authorization);
+			this._logger.logDebug(`Downloaded to ${pkg.tmpFile.name}...`);
+			this._logger.appendLine(' Done!');
+			await this.install(pkg);
+		} catch (err) {
+			this._logger.appendLine(`[ERROR] ${err}`);
+			throw err;
+		}
+		return true;
 	}
 
 	private createTempFile(pkg: IPackage): Promise<tmp.SynchrounousResult> {
