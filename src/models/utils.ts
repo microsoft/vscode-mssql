@@ -516,3 +516,5 @@ export function deepClone<T>(obj: T): T {
 	});
 	return result;
 }
+
+export const isLinux = os.platform() === 'linux';

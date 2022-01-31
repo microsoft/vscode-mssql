@@ -32,7 +32,7 @@ export class ConnectionStore {
 		private _connectionConfig?: IConnectionConfig,
 		private _vscodeWrapper?: VscodeWrapper) {
 		if (!this._credentialStore) {
-			this._credentialStore = new CredentialStore();
+			this._credentialStore = new CredentialStore(this._context);
 		}
 		if (!this.vscodeWrapper) {
 			this.vscodeWrapper = new VscodeWrapper();

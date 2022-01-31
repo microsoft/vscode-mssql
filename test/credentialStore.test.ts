@@ -19,7 +19,7 @@ suite('Credential Store Tests', () => {
 		client.setup(c => c.sendRequest(Contracts.SaveCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
 		client.setup(c => c.sendRequest(Contracts.ReadCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 		client.setup(c => c.sendRequest(Contracts.DeleteCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-		credentialStore = new CredentialStore(client.object);
+		credentialStore = new CredentialStore(undefined, client.object);
 	});
 
 	test('Read credential should send a ReadCredentialRequest', () => {

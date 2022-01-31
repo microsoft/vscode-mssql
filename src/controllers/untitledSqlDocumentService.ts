@@ -27,10 +27,6 @@ export default class UntitledSqlDocumentService {
 				preserveFocus: false,
 				preview: false
 			});
-		const position = editor.selection.active;
-		let newPosition = position.with(position.line + 1, 0);
-		let newSelection = new vscode.Selection(newPosition, newPosition);
-		editor.selection = newSelection;
 		return editor;
 	}
 }

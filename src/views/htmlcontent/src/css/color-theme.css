@@ -154,11 +154,6 @@
     border-color: silver;
   }
 
-  .vscode-light .shortCut {
-    color: grey;
-  }
-
-
   /** Dark Theme and High Contrast **/
 
   .vscode-dark *, .vscode-high-contrast * {
@@ -265,8 +260,7 @@
     background: transparent;
   }
 
-  .vscode-dark .shortCut,
-  .vscode-high-contrast .shortCut {
+  .shortCut {
     color: var(--color-content);
   }
 
