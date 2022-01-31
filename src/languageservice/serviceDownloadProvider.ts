@@ -45,7 +45,7 @@ export default class ServiceDownloadProvider {
 
 
 	/**
-	 * Returns SQL tools service installed folder.
+	 * Returns SQL tools service installed folder, creating it if it doesn't exist.
 	 */
 	public async getOrMakeInstallDirectory(platform: Runtime): Promise<string> {
 
