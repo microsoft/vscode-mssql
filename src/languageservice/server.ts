@@ -7,7 +7,7 @@ import * as path from 'path';
 import { Runtime } from '../models/platform';
 import ServiceDownloadProvider from './serviceDownloadProvider';
 import { IConfig, IStatusView } from './interfaces';
-import * as fs from 'fs-extra-promise';
+import * as fs from 'fs/promises';
 
 
 /*
@@ -23,29 +23,29 @@ export default class ServerProvider {
 	/**
 	 * Given a file path, returns the path to the SQL Tools service file.
 	 */
-	public findServerPath(filePath: string): Promise<string> {
-		return fs.lstatAsync(filePath).then(stats => {
-			// If a file path was passed, assume its the launch file.
-			if (stats.isFile()) {
-				return filePath;
-			}
+	public async findServerPath(filePath: string): Promise<string | undefined> {
+		const stats = await fs.lstat(filePath);
+		// If a file path was passed, assume its the launch file.
+		if (stats.isFile()) {
+			return filePath;
+		}
 
-			// Otherwise, search the specified folder.
-			let candidate: string;
-
-			if (this._config !== undefined) {
-				let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
-				executableFiles.forEach(element => {
-					let executableFile = path.join(filePath, element);
-					if (candidate === undefined && fs.existsSync(executableFile)) {
-						candidate = executableFile;
-						return candidate;
+		// Otherwise, search the specified folder.
+		if (this._config !== undefined) {
+			let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
+			for (const executableFile of executableFiles) {
+				let executablePath = path.join(filePath, executableFile);
+				try {
+					if (await fs.stat(executablePath)) {
+						return executablePath;
 					}
-				});
+				} catch (err) {
+					// no-op, the exe files list has all possible options and so depending on the platform we expect some
+					// to always fail
+				}
 			}
-
-			return candidate;
-		});
+		}
+		return undefined;
 	}
 
 	/**
