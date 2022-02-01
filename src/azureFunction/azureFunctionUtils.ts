@@ -78,6 +78,14 @@ export async function setLocalAppSetting(projectFolder: string, key: string, val
 
 export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExtensionApi | undefined> {
 	const apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
+	if (!apiProvider) {
+		const response = await vscode.window.showInformationMessage(constants.azureFunctionsExtensionNotFound,
+			constants.installAzureFunction, constants.doNotInstall);
+		if (response === constants.installAzureFunction) {
+			await vscode.env.openExternal(vscode.Uri.parse(constants.linkToAzureFunctionExtension));
+		}
+		return undefined;
+	}
 	const azureFunctionApi = apiProvider.getApi<AzureFunctionsExtensionApi>('*');
 	if (azureFunctionApi) {
 		return azureFunctionApi;
