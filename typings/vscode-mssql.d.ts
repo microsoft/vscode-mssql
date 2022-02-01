@@ -79,10 +79,11 @@ declare module 'vscode-mssql' {
 		/**
 		 * Get the connection string for the provided connection Uri
 		 * @param connectionUri The URI of the connection to get the connection string for.
+		 * @param connectionInfo The connection info to use for the connection string
 		 * @param includePassword to include password with connection string
 		 * @returns connection string
 		 */
-		getConnectionString(connectionUri: String, includePassword?: boolean): Promise<string>;
+		getConnectionString(connectionUri: string, connectionInfo?: IConnectionInfo, includePassword?: boolean): Promise<string>;
 	}
 
 	/**
