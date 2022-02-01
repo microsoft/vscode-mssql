@@ -77,14 +77,27 @@ export async function setLocalAppSetting(projectFolder: string, key: string, val
 }
 
 export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExtensionApi | undefined> {
-	const apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
+	let apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
 	if (!apiProvider) {
 		const response = await vscode.window.showInformationMessage(constants.azureFunctionsExtensionNotFound,
-			constants.installAzureFunction, constants.doNotInstall);
+			constants.installAzureFunction, constants.learnMore, constants.doNotInstall);
 		if (response === constants.installAzureFunction) {
+			await vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					title: constants.azureFunctionsExtensionName,
+					cancellable: false
+				}, async (_progress, _token) => {
+					await vscode.commands.executeCommand('workbench.extensions.installExtension', constants.azureFunctionsExtensionName);
+				}
+			);
+			apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
+		} else if (response === constants.learnMore) {
 			await vscode.env.openExternal(vscode.Uri.parse(constants.linkToAzureFunctionExtension));
+			return undefined;
+		} else {
+			return undefined;
 		}
-		return undefined;
 	}
 	const azureFunctionApi = apiProvider.getApi<AzureFunctionsExtensionApi>('*');
 	if (azureFunctionApi) {

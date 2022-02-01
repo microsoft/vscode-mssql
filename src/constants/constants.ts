@@ -182,8 +182,9 @@ export const yesString = localize('yesString', 'Yes');
 export const functionNameTitle = localize('functionNameTitle', 'Function Name');
 export const selectProject = localize('selectProject', 'Select the Azure Function project for the SQL Binding');
 export const timeoutError = localize('timeoutError', 'Timed out waiting for azure function file creation');
-export const azureFunctionsExtensionNotFound = localize('azureFunctionsExtensionNotFound', 'Azure Functions extension is not installed. Install the extension to use the Azure Functions binding.');
-export const installAzureFunction = localize('install', 'Link to install');
-export const linkToAzureFunctionExtension = localize('linkToAzureFunction', 'https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions');
+export const azureFunctionsExtensionNotFound = localize('azureFunctionsExtensionNotFound', 'The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?');
+export const installAzureFunction = localize('install', 'Install');
+export const learnMore = localize('learnMore', 'Learn more');
+export const linkToAzureFunctionExtension = 'https://docs.microsoft.com/azure/azure-functions/functions-develop-vs-code';
 export const doNotInstall = localize('doNotInstall', 'Do not install');
 
