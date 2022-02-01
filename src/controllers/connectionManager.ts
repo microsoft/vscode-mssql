@@ -265,10 +265,11 @@ export default class ConnectionManager {
 	 * @param includePassword (optional) if password should be included in connection string.
 	 * @returns connection string for the connection
 	 */
-	public async getConnectionString(connectionUri: string, includePassword: boolean = false): Promise<string> {
+	public async getConnectionString(connectionUri: string, includePassword: boolean = false, includeApplicationName: boolean = true): Promise<string> {
 		const listParams = new ConnectionContracts.GetConnectionStringParams();
 		listParams.ownerUri = connectionUri;
 		listParams.includePassword = includePassword;
+		listParams.includeApplicationName = includeApplicationName;
 		return this.client.sendRequest(ConnectionContracts.GetConnectionStringRequest.type, listParams);
 	}
 
