@@ -149,6 +149,9 @@ export async function getAzureFunctionProject(): Promise<string | undefined> {
 export async function getAzureFunctionProjectFiles(): Promise<string[] | undefined> {
 	let projFiles: string[] = [];
 	const hostFiles = await getHostFiles();
+	if (!hostFiles) {
+		return undefined;
+	}
 	for (let host of hostFiles) {
 		let projectFile = await vscode.workspace.findFiles('*.csproj', path.dirname(host));
 		projectFile.filter(file => path.dirname(file.fsPath) === path.dirname(host) ? projFiles.push(file?.fsPath) : projFiles);
