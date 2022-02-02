@@ -87,17 +87,7 @@ export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExt
 		const response = await vscode.window.showInformationMessage(constants.azureFunctionsExtensionNotFound,
 			constants.installAzureFunction, constants.learnMore, constants.doNotInstall);
 		if (response === constants.installAzureFunction) {
-			await vscode.window.withProgress(
-				{
-					location: vscode.ProgressLocation.Notification,
-					title: constants.azureFunctionsExtensionName,
-					cancellable: false
-				}, async (_progress, _token) => {
-					await vscode.commands.executeCommand('workbench.extensions.installExtension', constants.azureFunctionsExtensionName);
-				}
-			);
-			// the extension has not been notified that the extension is installed so wait till it is to then activate it
-			await new Promise<void>((resolve, reject) => {
+			const extensionInstalled = new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(async () => {
 					reject(new Error(constants.timeoutError));
 					extensionChange.dispose();
@@ -110,6 +100,17 @@ export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExt
 					}
 				});
 			});
+			await vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					title: constants.azureFunctionsExtensionName,
+					cancellable: false
+				}, async (_progress, _token) => {
+					await vscode.commands.executeCommand('workbench.extensions.installExtension', constants.azureFunctionsExtensionName);
+				}
+			);
+			// the extension has not been notified that the azure function extension is installed so wait till it is to then activate it
+			await extensionInstalled;
 			apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
 		} else if (response === constants.learnMore) {
 			await vscode.env.openExternal(vscode.Uri.parse(constants.linkToAzureFunctionExtension));
