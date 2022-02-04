@@ -158,6 +158,7 @@ export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 // Azure Functions
 export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
 export const sqlConnectionString = 'SqlConnectionString';
+export const linkToAzureFunctionExtension = 'https://docs.microsoft.com/azure/azure-functions/functions-develop-vs-code';
 export const defaultSqlBindingTextLines =
 	[
 		'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
@@ -182,3 +183,7 @@ export const yesString = localize('yesString', 'Yes');
 export const functionNameTitle = localize('functionNameTitle', 'Function Name');
 export const selectProject = localize('selectProject', 'Select the Azure Function project for the SQL Binding');
 export const timeoutError = localize('timeoutError', 'Timed out waiting for azure function file creation');
+export const azureFunctionsExtensionNotFound = localize('azureFunctionsExtensionNotFound', 'The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?');
+export const installAzureFunction = localize('install', 'Install');
+export const learnMore = localize('learnMore', 'Learn more');
+export const doNotInstall = localize('doNotInstall', 'Do not install');
