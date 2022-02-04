@@ -46,11 +46,11 @@ const template = `
         (click)="toggleResultsPane()"
         (keydown)="handleResultsKeydown($event)"
         [attr.aria-label]="Constants.resultPaneLabel"
-        [attr.aria-expanded]="!resultActive">
+        [attr.aria-expanded]="resultActive">
         <span> {{Constants.resultPaneLabel}} </span>
         <span class="shortCut"> {{resultShortcut}} </span>
     </div>
-    <div id="results" tabIndex="0" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
+    <div id="results" *ngIf="renderedDataSets.length > 0" class="results vertBox scrollable"
          (onScroll)="onScroll($event)"
          [scrollEnabled]="scrollEnabled"
          [class.hidden]="!resultActive">
@@ -58,7 +58,7 @@ const template = `
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
             [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
             [style.font-size]="resultsFontSize + 'px'">
-            <slick-grid tabindex="0" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+            <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
@@ -85,10 +85,10 @@ const template = `
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
-    <div id="messagepane" role="button" tabIndex="1" class="boxRow header collapsible"
+    <div id="messagepane" role="button" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!messageActive"
         [attr.aria-label]="Constants.messagePaneLabel"
-        [attr.aria-expanded]="!messageActive"
+        [attr.aria-expanded]="messageActive"
         (click)="toggleMessagesPane()"
         (keydown)="handleMessagesKeydown($event)"
         style="position: relative">
