@@ -41,7 +41,7 @@ export interface IGridDataSet {
 // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
-    <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="1" class="boxRow header collapsible"
+    <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!resultActive"
         (click)="toggleResultsPane()"
         (keydown)="handleResultsKeydown($event)"
@@ -58,7 +58,7 @@ const template = `
             [style.max-height]="renderedDataSets.length > 1 ? dataSet.maxHeight + 'px' : 'inherit'"
             [style.min-height]="renderedDataSets.length > 1 ? dataSet.minHeight + 'px' : 'inherit'"
             [style.font-size]="resultsFontSize + 'px'">
-            <slick-grid tabindex="2" #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
+            <slick-grid #slickgrid id="slickgrid_{{i}}" [columnDefinitions]="dataSet.columnDefinitions"
                         [ngClass]="i === activeGrid ? 'active' : ''"
                         [dataRows]="dataSet.dataRows"
                         (contextMenu)="openContextMenu($event, dataSet.batchId, dataSet.resultId, i)"
@@ -73,7 +73,7 @@ const template = `
             </slick-grid>
             <span class="boxCol content vertBox">
                 <div class="boxRow content maxHeight" *ngFor="let icon of dataIcons">
-                    <div *ngIf="icon.showCondition()" class="gridIcon" tabindex="3">
+                    <div *ngIf="icon.showCondition()" class="gridIcon">
                         <a class="icon" href="#" role="button"
                         (click)="icon.functionality(dataSet.batchId, dataSet.resultId, i)"
                         [title]="icon.hoverText()" [ngClass]="icon.icon()">
@@ -85,7 +85,7 @@ const template = `
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
-    <div id="messagepane" role="button" tabIndex="4" class="boxRow header collapsible"
+    <div id="messagepane" role="button" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!messageActive"
         [attr.aria-label]="Constants.messagePaneLabel"
         [attr.aria-expanded]="messageActive"
@@ -96,7 +96,7 @@ const template = `
         <span> {{Constants.messagePaneLabel}} </span>
         <span class="shortCut"> {{messageShortcut}} </span>
     </div>
-    <div id="messages" class="scrollable messages" tabindex="5" [class.hidden]="!messageActive"
+    <div id="messages" class="scrollable messages" [class.hidden]="!messageActive"
         (contextmenu)="openMessagesContextMenu($event)"
         (mousedown)="onMouseDown($event)">
         <br>
