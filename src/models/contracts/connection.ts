@@ -276,6 +276,12 @@ export class GetConnectionStringParams {
 	 * Indicates whether to include the password in the connection string
 	 */
 	public includePassword?: boolean;
+
+	/**
+	 * Indicates whether to include the password in the connection string
+	 * default is set to true
+	 */
+	public includeApplicationName?: boolean;
 }
 
 // ------------------------------- </ Connection String Request > --------------------------------------
