@@ -180,7 +180,6 @@ gulp.task('ext:localization:generate-eng-package.nls', function () {
 
 			// Join with new lines in between
 			let fullFileContents = contents.join('\r\n') + '\r\n';
-			console.log(fullFileContents);
 			file.contents = new Buffer(fullFileContents);
 
 			let indexToStart = 'localizedPackage.json.'.length + 1;
@@ -252,7 +251,6 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
 
 			// Make the new file create on root
 			file.dirname = file.dirname.replace(language, '').replace('xliff', '').replace('localization', '');
-			console.log('dirname is ' + file.dirname);
 
 			// callback to notify we have completed the current file
 			callback(null, file);
