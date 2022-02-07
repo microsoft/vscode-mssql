@@ -94,6 +94,7 @@
 "mssql.intelliSense.lowerCaseSuggestions":"Should IntelliSense suggestions be lowercase",
 "mssql.persistQueryResultTabs":"Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
 "mssql.queryHistoryLimit":"Number of query history entries to show in the Query History view",
+"mssql.createAzureFunction":"Create Azure Function with SQL input binding",
 "mssql.query.maxXmlCharsToStore":"Number of XML characters to store after running a query",
 "mssql.tracingLevel":"[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information",
 "mssql.logRetentionMinutes":"Number of minutes to retain log files for backend services. Default is 1 week.",
