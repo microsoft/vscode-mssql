@@ -83,7 +83,7 @@ declare module 'vscode-mssql' {
 		 * @param includeApplicationName Whether the Application Name is included in the connection string. Default is true
 		 * @returns connection string
 		 */
-		getConnectionString(connectionUri: String, includePassword?: boolean, includeApplicationName?: boolean): Promise<string>;
+		getConnectionString(connectionUri?: string, connectionDetails?: IConnectionInfo, includePassword?: boolean, includeApplicationName?: boolean): Promise<string>;
 	}
 
 	/**
