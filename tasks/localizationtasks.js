@@ -2,7 +2,6 @@ var dom = require('xmldom').DOMParser
 var gulp = require('gulp')
 var config = require('./config')
 var through = require('through2')
-var packageAllKeys = require('./../package.nls.json')
 
 const iso639_3_to_2 = {
 	chs: 'zh-cn',
@@ -203,6 +202,8 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
 		.pipe(through.obj(function (file, enc, callback) {
 			// convert xliff into json document
 			let dict = convertXmlToDictionary(String(file.contents), false);
+			// Get the latest changes from package.nls.json after being updated.
+			var packageAllKeys = require('./../package.nls.json')
 
 			var contents = ['{'];
 			var regxForReplacingQuots = new RegExp('"', 'g');
