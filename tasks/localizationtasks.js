@@ -244,8 +244,9 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
 				file.basename = 'package.nls.' + iso639_3_to_2[language] + '.json';
 			}
 
-			// Make the new file create on root
-			file.dirname = file.dirname.replace(language, '').replace('xliff', '').replace('localization', '');
+			// Make the new file create on root.
+			// the original directory path was 'vscode-mssql\localization\xliff\<lang>'
+			file.dirname = file.dirname.replace(language, '').replace('localization', '').replace('xliff', '');
 
 			// callback to notify we have completed the current file
 			callback(null, file);
