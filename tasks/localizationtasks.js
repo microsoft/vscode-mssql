@@ -1,3 +1,4 @@
+var os = require('os');
 var dom = require('xmldom').DOMParser
 var gulp = require('gulp')
 var config = require('./config')
@@ -132,11 +133,11 @@ gulp.task('ext:localization:xliff-to-ts', function () {
 					contents.push(instantiation);
 				}
 			}
-			// end the function
+
 			contents.push('};');
 
 			// Join with new lines in between
-			let fullFileContents = contents.join('\r\n') + '\r\n';
+			let fullFileContents = contents.join(os.EOL) + os.EOL;
 			file.contents = new Buffer(fullFileContents);
 
 			// Name our file
@@ -156,7 +157,7 @@ gulp.task('ext:localization:generate-eng-package.nls', function () {
 			let dict = convertXmlToDictionary(String(file.contents), false);
 
 			var contents = ['{'];
-			var regxForReplacingQuots = new RegExp('"', 'g');
+			var regxForReplacingQuotes = new RegExp('"', 'g');
 
 			// Get all keys and values from localizedPackage.json.enu.xlf
 			Object.keys(dict).forEach(key => {
@@ -168,17 +169,16 @@ gulp.task('ext:localization:generate-eng-package.nls', function () {
 					value = dict[key]['source'];
 				}
 				if (value && value.indexOf('"') >= 0) {
-					value = value.replace(regxForReplacingQuots, '\'');
+					value = value.replace(regxForReplacingQuotes, '\'');
 				}
 				let instantiation = '"' + key + '":"' + value + '"';
 				contents.push(instantiation);
 			});
 
-			// end the function
 			contents.push('}');
 
 			// Join with new lines in between
-			let fullFileContents = contents.join('\r\n') + '\r\n';
+			let fullFileContents = contents.join(os.EOL) + os.EOL;
 			file.contents = new Buffer(fullFileContents);
 
 			let indexToStart = 'localizedPackage.json.'.length + 1;
@@ -206,7 +206,7 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
 			var packageAllKeys = require('./../package.nls.json')
 
 			var contents = ['{'];
-			var regxForReplacingQuots = new RegExp('"', 'g');
+			var regxForReplacingQuotes = new RegExp('"', 'g');
 
 			// Get all the keys from package.nls.json which is the English version and get the localized value from xlf
 			// Use the English value if not translated, right now there's no fall back to English if the text is not localized.
@@ -225,18 +225,17 @@ gulp.task('ext:localization:xliff-to-package.nls', function () {
 				}
 
 				if (value && value.indexOf('"') >= 0) {
-					value = value.replace(regxForReplacingQuots, '\'');
+					value = value.replace(regxForReplacingQuotes, '\'');
 				}
 				let instantiation = '"' + key + '":"' + value + '"';
 				contents.push(instantiation);
 
 			});
 
-			// end the function
 			contents.push('}');
 
 			// Join with new lines in between
-			let fullFileContents = contents.join('\r\n') + '\r\n';
+			let fullFileContents = contents.join(os.EOL) + os.EOL;
 			file.contents = new Buffer(fullFileContents);
 
 			let indexToStart = 'localizedPackage.json.'.length + 1;
