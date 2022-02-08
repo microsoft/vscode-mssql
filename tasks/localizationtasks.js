@@ -72,11 +72,6 @@ function escapeChars(input, escapeChar = true) {
 	}
 }
 
-// converts plain text json into a json object
-function convertJsonToDictionary(jsonInput) {
-	return JSON.parse(jsonInput);
-}
-
 // export json files from *.xlf
 // mirrors the file paths and names
 gulp.task('ext:localization:xliff-to-json', function () {
