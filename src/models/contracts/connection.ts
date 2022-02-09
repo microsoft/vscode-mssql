@@ -269,9 +269,14 @@ export namespace GetConnectionStringRequest {
  */
 export class GetConnectionStringParams {
 	/**
-	 * Connection key to lookup connection string for the provided connection Uri or connection info to create connection string
+	 * Connection key to lookup connection string for the provided connection Uri
 	 */
-	public connectionContext: string | IConnectionInfo;
+	public ownerUri?: string;
+
+	/**
+	 * Connection info to create connection string
+	 */
+	public connectionInfo?: IConnectionInfo;
 
 	/**
 	 * Indicates whether to include the password in the connection string
