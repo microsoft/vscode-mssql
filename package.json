@@ -529,7 +529,8 @@
       {
         "command": "mssql.createAzureFunction",
         "title": "%mssql.createAzureFunction%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "when": "view == objectExplorer && viewItem == database"
       }
     ],
     "keybindings": [
