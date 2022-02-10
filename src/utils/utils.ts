@@ -37,7 +37,10 @@ export function generateQuotedFullName(schema: string, objectName: string): stri
 
 /**
  * Copied from Azure function: Create Function
- * NOTE: This will always at least add `1` to the default value
+ * https://github.com/microsoft/vscode-azurefunctions/blob/main/src/commands/createFunction/FunctionNameStepBase.ts
+ * @param folderPath selected azure project folder path
+ * @param functionName objectName that was chosen by the user
+ * @returns the function name that will always add at least `1` to the function name
  */
 export async function getUniqueFsPath(folderPath: string, functionName: string): Promise<string | undefined> {
 	let count: number = 1;
