@@ -227,6 +227,9 @@
         <trans-unit id="mssql.persistQueryResultTabs">
             <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         </trans-unit>
+        <trans-unit id="mssql.createAzureFunction">
+            <source xml:lang="en">Create Azure Function with SQL binding</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
