@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import { escapeClosingBrackets } from '../models/utils';
 
 export async function executeCommand(command: string, cwd?: string): Promise<string> {
@@ -30,4 +32,24 @@ export async function executeCommand(command: string, cwd?: string): Promise<str
  */
 export function generateQuotedFullName(schema: string, objectName: string): string {
 	return `[${escapeClosingBrackets(schema)}].[${escapeClosingBrackets(objectName)}]`;
+}
+
+
+/**
+ * Copied from Azure function: Create Function
+ * NOTE: This will always at least add `1` to the default value
+ */
+export async function getUniqueFsPath(folderPath: string, functionName: string): Promise<string | undefined> {
+	let count: number = 1;
+	const maxCount: number = 1024;
+
+	while (count < maxCount) {
+		const fileName: string = functionName + count.toString();
+		if (!(fs.existsSync(path.join(folderPath, '.cs' ? fileName + '.cs' : fileName)))) {
+			return fileName;
+		}
+		count += 1;
+	}
+
+	return undefined;
 }
