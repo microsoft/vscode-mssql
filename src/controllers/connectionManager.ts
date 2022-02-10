@@ -260,18 +260,18 @@ export default class ConnectionManager {
 	}
 
 	/**
-	 * Get the connection string for the provided connection Uri
-	 * @param connectionUri The connection Uri for the connection.
-	 * @param connectionInfo The connection info for the connection.
+	 * Get the connection string for the provided connection Uri or ConnectionDetails.
+	 * @param connectionUri The connection Uri for the connection. If undefined then a ConnectionDetails should be specified.
+	 * @param connectionDetails The connection details for the connection. If undefined then a connection URI should be specified.
 	 * @param includePassword (optional) if password should be included in connection string.
 	 * @param includeApplicationName (optional) if application name should be included in connection string.
 	 * @returns connection string for the connection
 	 */
-	public async getConnectionString(connectionUri?: string, connectionInfo?: IConnectionInfo,
+	public async getConnectionString(connectionUri?: string, connectionDetails?: ConnectionContracts.ConnectionDetails,
 		includePassword: boolean = false, includeApplicationName: boolean = true): Promise<string> {
 		const listParams = new ConnectionContracts.GetConnectionStringParams();
 		listParams.ownerUri = connectionUri;
-		listParams.connectionInfo = connectionInfo;
+		listParams.connectionDetails = connectionDetails;
 		listParams.includePassword = includePassword;
 		listParams.includeApplicationName = includeApplicationName;
 		return this.client.sendRequest(ConnectionContracts.GetConnectionStringRequest.type, listParams);

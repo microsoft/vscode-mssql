@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from 'vscode-languageclient';
-import { IConnectionInfo } from 'vscode-mssql';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
@@ -274,9 +273,9 @@ export class GetConnectionStringParams {
 	public ownerUri?: string;
 
 	/**
-	 * Connection info to create connection string
+	 * Connection details used to create the connection string
 	 */
-	public connectionInfo?: IConnectionInfo;
+	public connectionDetails?: ConnectionDetails;
 
 	/**
 	 * Indicates whether to include the password in the connection string
