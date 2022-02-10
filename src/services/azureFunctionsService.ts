@@ -106,11 +106,11 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			}
 		];
 
-		const selectedBinding = (await vscode.window.showQuickPick(inputOutputItems, {
+		const selectedBinding = await vscode.window.showQuickPick(inputOutputItems, {
 			canPickMany: false,
 			title: constants.selectBindingType,
 			ignoreFocusOut: true
-		}));
+		});
 
 		if (!selectedBinding) {
 			return;
