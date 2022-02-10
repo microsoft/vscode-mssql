@@ -187,3 +187,6 @@ export const azureFunctionsExtensionNotFound = localize('azureFunctionsExtension
 export const installAzureFunction = localize('install', 'Install');
 export const learnMore = localize('learnMore', 'Learn more');
 export const doNotInstall = localize('doNotInstall', 'Do not install');
+export const input = localize('input', 'Input');
+export const output = localize('output', 'Output');
+export const selectBindingType = localize('selectBindingType', 'Select type of binding');
