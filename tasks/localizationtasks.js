@@ -1,4 +1,3 @@
-var os = require('os');
 var dom = require('xmldom').DOMParser
 var gulp = require('gulp')
 var config = require('./config')
@@ -132,7 +131,7 @@ gulp.task('ext:localization:xliff-to-ts', function () {
 			contents.push('};');
 
 			// Join with new lines in between
-			let fullFileContents = contents.join(os.EOL) + os.EOL;
+			let fullFileContents = contents.join('\r\n') + '\r\n';
 			file.contents = new Buffer(fullFileContents);
 
 			// Name our file
@@ -169,8 +168,13 @@ function dictionaryMapping(file, packageAllKeys = undefined) {
 		if (contents.length >= 2) {
 			contents[contents.length - 1] += ',';
 		}
-		if (dict.hasOwnProperty(key)) {
+		if (packageAllKeys && dict.hasOwnProperty(key)) {
+			//running in localized mode, use localized value.
 			value = dict[key]['target'];
+		}
+		else if (dict.hasOwnProperty(key)) {
+			//running in generation mode, use original source value.
+			value = dict[key]['source'];
 		}
 		if (packageAllKeys && value === '') {
 			// If localizing and value is not provided, use original English value.
@@ -188,7 +192,7 @@ function dictionaryMapping(file, packageAllKeys = undefined) {
 	contents.push('}');
 
 	// Join with new lines in between
-	let fullFileContents = contents.join(os.EOL) + os.EOL;
+	let fullFileContents = contents.join('\r\n') + '\r\n';
 	file.contents = new Buffer(fullFileContents);
 
 	let indexToStart = 'localizedPackage.json.'.length + 1;
