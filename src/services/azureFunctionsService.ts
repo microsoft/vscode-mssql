@@ -70,7 +70,7 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		if (!projectFile) {
 			let projectCreate = await vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened, constants.learnMore, constants.createProject);
 			if (projectCreate === constants.learnMore) {
-				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://aka.ms/sqlbindings'));
+				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(constants.sqlBindingsDoc));
 			} else if (projectCreate === constants.createProject) {
 				// ask what folder the project should be created in
 				const options: vscode.OpenDialogOptions = {
