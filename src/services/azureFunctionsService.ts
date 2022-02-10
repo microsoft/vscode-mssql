@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as azureFunctionsContracts from '../models/contracts/azureFunctions/azureFunctionsContracts';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
-import { generateQuotedFullName, getUniqueFsPath } from '../utils/utils';
+import { generateQuotedFullName, getUniqueFileName } from '../utils/utils';
 import * as LocalizedConstants from '../constants/localizedConstants';
 
 export const hostFileName: string = 'host.json';
@@ -78,11 +78,12 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
 
 		// get function name from user
-		let uniqueFunctionName = await getUniqueFsPath(path.dirname(projectFile), table);
+		let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
 		const functionName = await vscode.window.showInputBox({
 			title: constants.functionNameTitle,
 			value: uniqueFunctionName,
-			ignoreFocusOut: true
+			ignoreFocusOut: true,
+			validateInput: input => input ? undefined : constants.nameMustNotBeEmpty
 		});
 		if (!functionName) {
 			return;

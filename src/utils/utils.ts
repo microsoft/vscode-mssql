@@ -36,23 +36,22 @@ export function generateQuotedFullName(schema: string, objectName: string): stri
 
 
 /**
- * Copied from Azure function: Create Function
- * https://github.com/microsoft/vscode-azurefunctions/blob/main/src/commands/createFunction/FunctionNameStepBase.ts
+ * Gets a unique file name
+ * Increment the file name by adding 1 to function name if the file already exists
  * @param folderPath selected azure project folder path
- * @param functionName objectName that was chosen by the user
+ * @param fileName objectName that was chosen by the user
  * @returns the function name that will always add at least `1` to the function name
  */
-export async function getUniqueFsPath(folderPath: string, functionName: string): Promise<string | undefined> {
-	let count: number = 1;
+export async function getUniqueFileName(folderPath: string, fileName: string): Promise<string | undefined> {
+	let count: number = 0;
 	const maxCount: number = 1024;
+	let uniqueFileName = fileName;
 
 	while (count < maxCount) {
-		const fileName: string = functionName + count.toString();
-		if (!(fs.existsSync(path.join(folderPath, '.cs' ? fileName + '.cs' : fileName)))) {
-			return fileName;
+		if (!fs.existsSync(path.join(folderPath, uniqueFileName + '.cs'))) {
+			return uniqueFileName;
 		}
 		count += 1;
+		uniqueFileName = fileName + count.toString();
 	}
-
-	return undefined;
 }
