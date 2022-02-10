@@ -187,3 +187,6 @@ export const azureFunctionsExtensionNotFound = localize('azureFunctionsExtension
 export const installAzureFunction = localize('install', 'Install');
 export const learnMore = localize('learnMore', 'Learn more');
 export const doNotInstall = localize('doNotInstall', 'Do not install');
+export const createProject = localize('createProject', 'Create Azure Function Project');
+export const selectFolder = localize('selectFolder', 'Select Folder for Azure Function Project');
+export const select = localize('select', 'Select');
