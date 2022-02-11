@@ -94,13 +94,35 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			folderPath: projectFile
 		});
 
+		// select input or output binding
+		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [
+			{
+				label: LocalizedConstants.input,
+				type: mssql.BindingType.input
+			},
+			{
+				label: LocalizedConstants.output,
+				type: mssql.BindingType.output
+			}
+		];
+
+		const selectedBinding = await vscode.window.showQuickPick(inputOutputItems, {
+			canPickMany: false,
+			title: LocalizedConstants.selectBindingType,
+			ignoreFocusOut: true
+		});
+
+		if (!selectedBinding) {
+			return;
+		}
+
 		await azureFunctionUtils.addNugetReferenceToProjectFile(projectFile);
 		await azureFunctionUtils.addConnectionStringToConfig(connectionString, projectFile);
 		const functionFile = await newFilePromise;
 
 		let objectName = generateQuotedFullName(schema, table);
 		await this.addSqlBinding(
-			mssql.BindingType.input,
+			selectedBinding.type,
 			functionFile,
 			functionName,
 			objectName,

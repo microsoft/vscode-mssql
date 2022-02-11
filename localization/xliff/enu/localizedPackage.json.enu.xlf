@@ -288,7 +288,7 @@
             <source xml:lang="en">Number of query history entries to show in the Query History view</source>
         </trans-unit>
         <trans-unit id="mssql.createAzureFunction">
-            <source xml:lang="en">Create Azure Function with SQL input binding</source>
+            <source xml:lang="en">Create Azure Function with SQL binding</source>
         </trans-unit>
         <trans-unit id="mssql.query.maxXmlCharsToStore">
             <source xml:lang="en">Number of XML characters to store after running a query</source>

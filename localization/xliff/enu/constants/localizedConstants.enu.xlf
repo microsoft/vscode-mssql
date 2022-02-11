@@ -551,6 +551,15 @@
         <trans-unit id="doNotInstall">
             <source xml:lang="en">Do not install</source>
         </trans-unit>
+        <trans-unit id="input">
+            <source xml:lang="en">Input</source>
+        </trans-unit>
+        <trans-unit id="output">
+            <source xml:lang="en">Output</source>
+        </trans-unit>
+        <trans-unit id="selectBindingType">
+            <source xml:lang="en">Select type of binding</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
