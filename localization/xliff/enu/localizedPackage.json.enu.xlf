@@ -374,6 +374,9 @@
         <trans-unit id="mssql.ignorePlatformWarning">
             <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
         </trans-unit>
+        <trans-unit id="mssql.Configuration">
+            <source xml:lang="en">MSSQL configuration</source>
+        </trans-unit>
         <trans-unit id="mssql.chooseAuthMethod">
             <source xml:lang="en">Chooses which Authentication method to use</source>
         </trans-unit>
