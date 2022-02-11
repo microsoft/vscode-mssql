@@ -89,7 +89,7 @@ export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExt
 		if (response === constants.installAzureFunction) {
 			const extensionInstalled = new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(async () => {
-					reject(new Error(constants.timeoutError));
+					reject(new Error(constants.timeoutExtensionError));
 					extensionChange.dispose();
 				}, 10000);
 				let extensionChange = vscode.extensions.onDidChange(async () => {
@@ -229,7 +229,7 @@ export function waitForNewFunctionFile(projectFile: string): Promise<string> {
 		const watcher = vscode.workspace.createFileSystemWatcher((
 			path.dirname(projectFile), '**/*.cs'), false, true, true);
 		const timeout = setTimeout(async () => {
-			reject(new Error(constants.timeoutError));
+			reject(constants.timeoutSqlBindingError);
 			watcher.dispose();
 		}, 10000);
 		watcher.onDidCreate((e) => {

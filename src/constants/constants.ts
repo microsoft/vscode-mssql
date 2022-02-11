@@ -182,7 +182,8 @@ export function settingAlreadyExists(settingName: string): string {
 export const yesString = localize('yesString', 'Yes');
 export const functionNameTitle = localize('functionNameTitle', 'Function Name');
 export const selectProject = localize('selectProject', 'Select the Azure Function project for the SQL Binding');
-export const timeoutError = localize('timeoutError', 'Timed out waiting for azure function file creation');
+export const timeoutExtensionError = localize('timeoutExtensionError', 'Timed out waiting for extension to install');
+export const timeoutSqlBindingError = localize('timeoutSqlBindingError', 'Timed out waiting to add SQL Binding to azure function file');
 export const azureFunctionsExtensionNotFound = localize('azureFunctionsExtensionNotFound', 'The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?');
 export const installAzureFunction = localize('install', 'Install');
 export const learnMore = localize('learnMore', 'Learn more');
