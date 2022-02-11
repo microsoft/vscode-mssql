@@ -6,10 +6,11 @@
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import * as vscode from 'vscode';
 import * as mssql from 'vscode-mssql';
+import * as path from 'path';
 import * as azureFunctionsContracts from '../models/contracts/azureFunctions/azureFunctionsContracts';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
-import { generateQuotedFullName } from '../utils/utils';
+import { generateQuotedFullName, getUniqueFileName } from '../utils/utils';
 import * as LocalizedConstants from '../constants/localizedConstants';
 
 export const hostFileName: string = 'host.json';
@@ -84,10 +85,12 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
 
 		// get function name from user
+		let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
 		const functionName = await vscode.window.showInputBox({
 			title: LocalizedConstants.functionNameTitle,
-			value: table,
-			ignoreFocusOut: true
+			value: uniqueFunctionName,
+			ignoreFocusOut: true,
+			validateInput: input => input ? undefined : LocalizedConstants.nameMustNotBeEmpty
 		});
 		if (!functionName) {
 			return;

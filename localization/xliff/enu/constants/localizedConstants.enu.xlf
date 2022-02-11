@@ -566,6 +566,9 @@
         <trans-unit id="selectAzureFunctionProjFolder">
             <source xml:lang="en">Select folder for the Azure Function project</source>
         </trans-unit>
+         <trans-unit id="nameMustNotBeEmpty">
+            <source xml:lang="en">Name must not be empty</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
