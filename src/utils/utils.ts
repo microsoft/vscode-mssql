@@ -38,10 +38,10 @@ export function generateQuotedFullName(schema: string, objectName: string): stri
 /**
  * Gets a unique file name
  * Increment the file name by adding 1 to function name if the file already exists
- * Undefined if the filename suffix count is greater than 1024
+ * Undefined if the filename suffix count becomes greater than 1024
  * @param folderPath selected project folder path
  * @param fileName base filename to use
- * @returns the unique file name or undefined
+ * @returns a promise with the unique file name, or undefined
  */
 export async function getUniqueFileName(folderPath: string, fileName: string): Promise<string | undefined> {
 	let count: number = 0;
