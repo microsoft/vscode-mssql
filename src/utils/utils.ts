@@ -38,7 +38,7 @@ export function generateQuotedFullName(schema: string, objectName: string): stri
  * @param errorMessage error message to be returned in the rejection
  * @returns a promise that rejects after the specified timeout
  */
-export function timeoutPromise(ms: number = 10000, errorMessage: string): Promise<string> {
+export function timeoutPromise(errorMessage: string, ms: number = 10000): Promise<string> {
 	return new Promise((_, reject) => {
 		setTimeout(() => {
 			reject(new Error(errorMessage));

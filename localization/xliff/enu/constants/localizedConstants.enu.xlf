@@ -566,8 +566,8 @@
         <trans-unit id="timeoutExtensionError">
             <source xml:lang="en">Timed out waiting for extension to install</source>
         </trans-unit>
-        <trans-unit id="timeoutSqlBindingError">
-            <source xml:lang="en">Timed out waiting to add SQL Binding to Azure Function file</source>
+        <trans-unit id="timeoutAzureFunctionFileError">
+            <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
         </trans-unit>
     </body>
   </file>

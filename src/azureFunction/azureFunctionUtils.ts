@@ -229,13 +229,14 @@ export async function getSettingsFile(projectFile: string): Promise<string | und
  * @returns the function file path once created
  */
 export function waitForNewFunctionFile(projectFile: string): Promise<string> {
-	return new Promise((resolve, _) => {
+	return new Promise((resolve, reject) => {
 		const watcher = vscode.workspace.createFileSystemWatcher((
 			path.dirname(projectFile), '**/*.cs'), false, true, true);
 		watcher.onDidCreate((e) => {
 			resolve(e.fsPath);
 			watcher.dispose();
 		});
+		reject(watcher.dispose);
 	});
 }
 
