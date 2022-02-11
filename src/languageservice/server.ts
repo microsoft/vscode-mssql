@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import {Runtime} from '../models/platform';
+import { Runtime } from '../models/platform';
 import ServiceDownloadProvider from './serviceDownloadProvider';
-import {IConfig, IStatusView} from './interfaces';
-import * as fs from 'fs-extra-promise';
+import { IConfig, IStatusView } from './interfaces';
+import * as fs from 'fs/promises';
 
 
 /*
@@ -15,85 +15,82 @@ import * as fs from 'fs-extra-promise';
 */
 export default class ServerProvider {
 
-    constructor(private _downloadProvider: ServiceDownloadProvider,
-                private _config: IConfig,
-                private _statusView: IStatusView) {
-    }
+	constructor(private _downloadProvider: ServiceDownloadProvider,
+		private _config: IConfig,
+		private _statusView: IStatusView) {
+	}
 
-    /**
-     * Given a file path, returns the path to the SQL Tools service file.
-     */
-    public findServerPath(filePath: string): Promise<string> {
-        return fs.lstatAsync(filePath).then(stats => {
-            // If a file path was passed, assume its the launch file.
-            if (stats.isFile()) {
-                return filePath;
-            }
+	/**
+	 * Given a file path, returns the path to the SQL Tools service file.
+	 */
+	public async findServerPath(filePath: string): Promise<string | undefined> {
+		const stats = await fs.lstat(filePath);
+		// If a file path was passed, assume its the launch file.
+		if (stats.isFile()) {
+			return filePath;
+		}
 
-            // Otherwise, search the specified folder.
-            let candidate: string;
+		// Otherwise, search the specified folder.
+		if (this._config !== undefined) {
+			let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
+			for (const executableFile of executableFiles) {
+				const executablePath = path.join(filePath, executableFile);
+				try {
+					if (await fs.stat(executablePath)) {
+						return executablePath;
+					}
+				} catch (err) {
+					// no-op, the exe files list has all possible options and so depending on the platform we expect some
+					// to always fail
+				}
+			}
+		}
+		return undefined;
+	}
 
-            if (this._config !== undefined) {
-                let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
-                executableFiles.forEach(element => {
-                    let executableFile = path.join(filePath, element);
-                    if (candidate === undefined && fs.existsSync(executableFile)) {
-                        candidate = executableFile;
-                        return candidate;
-                    }
-                });
-            }
+	/**
+	 * Download the SQL tools service if doesn't exist and returns the file path.
+	 */
+	public getOrDownloadServer(runtime: Runtime): Promise<string> {
+		// Attempt to find launch file path first from options, and then from the default install location.
+		// If SQL tools service can't be found, download it.
 
-            return candidate;
-        });
-    }
+		return new Promise<string>((resolve, reject) => {
+			return this.getServerPath(runtime).then(result => {
+				if (result === undefined) {
+					return this.downloadServerFiles(runtime).then(downloadResult => {
+						resolve(downloadResult);
+					});
+				} else {
+					return resolve(result);
+				}
+			}).catch(err => {
+				return reject(err);
+			});
+		}).catch(err => {
+			throw err;
+		});
+	}
 
-   /**
-    * Download the SQL tools service if doesn't exist and returns the file path.
-    */
-    public getOrDownloadServer(runtime: Runtime): Promise<string> {
-        // Attempt to find launch file path first from options, and then from the default install location.
-        // If SQL tools service can't be found, download it.
+	/**
+	 * Returns the path of the installed service
+	 */
+	public async getServerPath(runtime: Runtime): Promise<string> {
+		const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
+		return this.findServerPath(installDirectory);
+	}
 
-        return new Promise<string>((resolve, reject) => {
-            return this.getServerPath(runtime).then(result => {
-                if (result === undefined) {
-                    return this.downloadServerFiles(runtime).then ( downloadResult => {
-                        resolve(downloadResult);
-                    });
-                } else {
-                  return resolve(result);
-                }
-            }).catch(err => {
-                    return reject(err);
-                });
-        }).catch(err => {
-           throw err;
-        });
-    }
-
-   /**
-    * Returns the path of the installed service
-    */
-    public getServerPath(runtime: Runtime): Promise<string> {
-        const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
-        return this.findServerPath(installDirectory);
-    }
-
-   /**
-    * Downloads the service and returns the path of the installed service
-    */
-    public downloadServerFiles(runtime: Runtime): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            const installDirectory = this._downloadProvider.getInstallDirectory(runtime);
-            return this._downloadProvider.installSQLToolsService(runtime).then( _ => {
-                return this.findServerPath(installDirectory).then ( result => {
-                    return resolve(result);
-                });
-            }).catch(err => {
-                this._statusView.serviceInstallationFailed();
-                reject(err);
-            });
-        });
-    }
+	/**
+	 * Downloads the service and returns the path of the installed service
+	 */
+	public async downloadServerFiles(runtime: Runtime): Promise<string> {
+		const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
+		try {
+			await this._downloadProvider.installSQLToolsService(runtime);
+			return this.findServerPath(installDirectory);
+		} catch (err) {
+			this._statusView.serviceInstallationFailed();
+			throw err;
+		}
+	}
 }
