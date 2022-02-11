@@ -78,7 +78,7 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
 		// get function name from user
 		const functionName = await vscode.window.showInputBox({
-			title: constants.functionNameTitle,
+			title: LocalizedConstants.functionNameTitle,
 			value: table,
 			ignoreFocusOut: true
 		});
@@ -97,18 +97,18 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		// select input or output binding
 		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [
 			{
-				label: constants.input,
+				label: LocalizedConstants.input,
 				type: mssql.BindingType.input
 			},
 			{
-				label: constants.output,
+				label: LocalizedConstants.output,
 				type: mssql.BindingType.output
 			}
 		];
 
 		const selectedBinding = await vscode.window.showQuickPick(inputOutputItems, {
 			canPickMany: false,
-			title: constants.selectBindingType,
+			title: LocalizedConstants.selectBindingType,
 			ignoreFocusOut: true
 		});
 
