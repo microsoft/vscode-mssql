@@ -157,6 +157,7 @@ export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
 export const sqlConnectionString = 'SqlConnectionString';
 export const linkToAzureFunctionExtension = 'https://docs.microsoft.com/azure/azure-functions/functions-develop-vs-code';
+export const sqlBindingsDoc = 'https://aka.ms/sqlbindings';
 export const defaultSqlBindingTextLines =
 	[
 		'log.LogInformation(\"C# HTTP trigger function processed a request.\");',

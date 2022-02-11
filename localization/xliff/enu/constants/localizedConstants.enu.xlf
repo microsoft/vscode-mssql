@@ -560,6 +560,12 @@
         <trans-unit id="selectBindingType">
             <source xml:lang="en">Select type of binding</source>
         </trans-unit>
+        <trans-unit id="createProject">
+            <source xml:lang="en">Create Azure Function Project</source>
+        </trans-unit>
+        <trans-unit id="selectAzureFunctionProjFolder">
+            <source xml:lang="en">Select folder for the Azure Function project</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

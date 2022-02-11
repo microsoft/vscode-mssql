@@ -68,7 +68,14 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		}
 		let projectFile = await azureFunctionUtils.getAzureFunctionProject();
 		if (!projectFile) {
-			vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened);
+			let projectCreate = await vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened,
+				LocalizedConstants.createProject, LocalizedConstants.learnMore);
+			if (projectCreate === LocalizedConstants.learnMore) {
+				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(constants.sqlBindingsDoc));
+			} else if (projectCreate === LocalizedConstants.createProject) {
+				// start the create azure function project flow
+				await azureFunctionApi.createFunction({});
+			}
 			return;
 		}
 
