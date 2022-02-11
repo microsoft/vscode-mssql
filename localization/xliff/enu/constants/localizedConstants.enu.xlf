@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en">
+  <file datatype="xml" original="src/constants/localizedConstants" source-language="en">
     <body>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document "{0}"</source>
@@ -92,9 +92,6 @@
         <trans-unit id="databasePlaceholder">
             <source xml:lang="en">[Optional] Database to connect (press Enter to connect to &lt;default&gt; database)</source>
         </trans-unit>
-        <trans-unit id="azureAuthTypePrompt">
-            <source xml:lang="en">Azure Authentication Type</source>
-        </trans-unit>
         <trans-unit id="authTypePrompt">
             <source xml:lang="en">Authentication Type</source>
         </trans-unit>
@@ -151,18 +148,6 @@
         </trans-unit>
         <trans-unit id="profileNamePlaceholder">
             <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
-        </trans-unit>
-        <trans-unit id="filepathPrompt">
-            <source xml:lang="en">File path</source>
-        </trans-unit>
-        <trans-unit id="filepathMessage">
-            <source xml:lang="en">File name</source>
-        </trans-unit>
-        <trans-unit id="overwritePrompt">
-            <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
-        </trans-unit>
-        <trans-unit id="overwritePlaceholder">
-            <source xml:lang="en">A file with this name already exists</source>
         </trans-unit>
         <trans-unit id="msgCannotOpenContent">
             <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -266,9 +251,6 @@
         <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
             <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         </trans-unit>
-        <trans-unit id="msgPromptRetryFirewallRuleExtNotInstalled">
-            <source xml:lang="en">Your client IP address does not have access to the server. Download and install the Azure Account extension to sign in to an Azure account and create a new firewall rule to enable access.</source>
-        </trans-unit>
         <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
             <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
         </trans-unit>
@@ -283,12 +265,6 @@
         </trans-unit>
         <trans-unit id="msgUnableToExpand">
             <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
-        </trans-unit>
-        <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
-            <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
-        </trans-unit>
-        <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
-            <source xml:lang="en">Azure Account extension activated and signed in.</source>
         </trans-unit>
         <trans-unit id="msgPromptFirewallRuleCreated">
             <source xml:lang="en">Firewall rule successfully created.</source>
@@ -316,12 +292,6 @@
         </trans-unit>
         <trans-unit id="retryLabel">
             <source xml:lang="en">Retry</source>
-        </trans-unit>
-        <trans-unit id="signInLabel">
-            <source xml:lang="en">Sign In</source>
-        </trans-unit>
-        <trans-unit id="downloadAndInstallLabel">
-            <source xml:lang="en">Download and Install</source>
         </trans-unit>
         <trans-unit id="createFirewallRuleLabel">
             <source xml:lang="en">Create Firewall Rule</source>
@@ -373,12 +343,6 @@
         </trans-unit>
         <trans-unit id="msgDisconnected">
             <source xml:lang="en">Disconnected on document "{0}"</source>
-        </trans-unit>
-        <trans-unit id="msgErrorReadingConfigFile">
-            <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-        </trans-unit>
-        <trans-unit id="titleResultsPane">
-            <source xml:lang="en">Results: {0}</source>
         </trans-unit>
         <trans-unit id="macOpenSslErrorMessage">
             <source xml:lang="en">OpenSSL version >=1.0.1 is required to connect.</source>
@@ -479,9 +443,6 @@
         <trans-unit id="noneProviderName">
             <source xml:lang="en">None</source>
         </trans-unit>
-        <trans-unit id="chooseSqlLang">
-            <source xml:lang="en">Choose SQL Language</source>
-        </trans-unit>
         <trans-unit id="flavorChooseLanguage">
             <source xml:lang="en">Choose SQL Language</source>
         </trans-unit>
@@ -490,12 +451,6 @@
         </trans-unit>
         <trans-unit id="flavorDescriptionNone">
             <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
-        </trans-unit>
-        <trans-unit id="queryOutputDocumentTitle">
-            <source xml:lang="en">Query Output Document</source>
-        </trans-unit>
-        <trans-unit id="queryOutputHostTitle">
-            <source xml:lang="en">Query Output Document Host</source>
         </trans-unit>
         <trans-unit id="msgAddConnection">
             <source xml:lang="en">Add Connection</source>
@@ -526,6 +481,7 @@
         </trans-unit>
         <trans-unit id="azureFunctionsProjectMustBeOpened">
             <source xml:lang="en">A C# Azure Functions project must be present in order to create a new Azure Function for this table.</source>
+        </trans-unit>
         <trans-unit id="taskStatusWithName">
             <source xml:lang="en">{0}: {1}</source>
         </trans-unit>
@@ -564,6 +520,36 @@
         </trans-unit>
         <trans-unit id="msgClearedRecentConnectionsWithErrors">
             <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+        </trans-unit>
+        <trans-unit id="failedToParse">
+            <source xml:lang="en">Failed to parse "{0}": {1}.</source>
+        </trans-unit>
+        <trans-unit id="settingAlreadyExists">
+            <source xml:lang="en">Local app setting '{0}' already exists. Overwrite?</source>
+        </trans-unit>
+        <trans-unit id="yesString">
+            <source xml:lang="en">Yes</source>
+        </trans-unit>
+        <trans-unit id="functionNameTitle">
+            <source xml:lang="en">Function Name</source>
+        </trans-unit>
+        <trans-unit id="selectProject">
+            <source xml:lang="en">Select the Azure Function project for the SQL Binding</source>
+        </trans-unit>
+        <trans-unit id="timeoutError">
+            <source xml:lang="en">Timed out waiting for azure function file creation</source>
+        </trans-unit>
+        <trans-unit id="azureFunctionsExtensionNotFound">
+            <source xml:lang="en">The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?</source>
+        </trans-unit>
+        <trans-unit id="install">
+            <source xml:lang="en">Install</source>
+        </trans-unit>
+        <trans-unit id="learnMore">
+            <source xml:lang="en">Learn more</source>
+        </trans-unit>
+        <trans-unit id="doNotInstall">
+            <source xml:lang="en">Do not install</source>
         </trans-unit>
     </body>
   </file>

@@ -78,7 +78,7 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
 		// get function name from user
 		const functionName = await vscode.window.showInputBox({
-			title: constants.functionNameTitle,
+			title: LocalizedConstants.functionNameTitle,
 			value: table,
 			ignoreFocusOut: true
 		});
