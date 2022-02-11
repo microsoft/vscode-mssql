@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as cp from 'child_process';
-import * as constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
 import { escapeClosingBrackets } from '../models/utils';
 
 export async function executeCommand(command: string, cwd?: string): Promise<string> {
@@ -40,7 +40,7 @@ export function generateQuotedFullName(schema: string, objectName: string): stri
 export function waitForPromise(): Promise<void> {
 	return new Promise((_, reject) => {
 		setTimeout(() => {
-			reject(new Error(constants.timeoutSqlBindingError));
+			reject(new Error(LocalizedConstants.timeoutSqlBindingError));
 		}, 10000);
 	});
 }

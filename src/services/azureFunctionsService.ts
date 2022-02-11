@@ -68,7 +68,14 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		}
 		let projectFile = await azureFunctionUtils.getAzureFunctionProject();
 		if (!projectFile) {
-			vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened);
+			let projectCreate = await vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened,
+				LocalizedConstants.createProject, LocalizedConstants.learnMore);
+			if (projectCreate === LocalizedConstants.learnMore) {
+				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(constants.sqlBindingsDoc));
+			} else if (projectCreate === LocalizedConstants.createProject) {
+				// start the create azure function project flow
+				await azureFunctionApi.createFunction({});
+			}
 			return;
 		}
 
@@ -79,7 +86,7 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
 		// get function name from user
 		const functionName = await vscode.window.showInputBox({
-			title: constants.functionNameTitle,
+			title: LocalizedConstants.functionNameTitle,
 			value: table,
 			ignoreFocusOut: true
 		});
@@ -103,13 +110,34 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		} catch (err) {
 			console.log(err);
 		}
+		// select input or output binding
+		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [
+			{
+				label: LocalizedConstants.input,
+				type: mssql.BindingType.input
+			},
+			{
+				label: LocalizedConstants.output,
+				type: mssql.BindingType.output
+			}
+		];
+
+		const selectedBinding = await vscode.window.showQuickPick(inputOutputItems, {
+			canPickMany: false,
+			title: LocalizedConstants.selectBindingType,
+			ignoreFocusOut: true
+		});
+
+		if (!selectedBinding) {
+			return;
+		}
 
 		await azureFunctionUtils.addNugetReferenceToProjectFile(projectFile);
 		await azureFunctionUtils.addConnectionStringToConfig(connectionString, projectFile);
 
 		let objectName = generateQuotedFullName(schema, table);
 		await this.addSqlBinding(
-			mssql.BindingType.input,
+			selectedBinding.type,
 			functionFile,
 			functionName,
 			objectName,
