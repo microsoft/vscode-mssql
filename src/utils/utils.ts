@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as cp from 'child_process';
-import * as LocalizedConstants from '../constants/localizedConstants';
 import { escapeClosingBrackets } from '../models/utils';
 
 export async function executeCommand(command: string, cwd?: string): Promise<string> {
@@ -34,13 +33,15 @@ export function generateQuotedFullName(schema: string, objectName: string): stri
 }
 
 /**
- * Promise with timeout to check for another promise fulfillment
- * @returns a promise that resolves after the specified timeout
+ * Returns a promise that will reject after the specified timeout
+ * @param ms timeout in milliseconds. Default is 10 seconds
+ * @param errorMessage error message to be returned in the rejection
+ * @returns a promise that rejects after the specified timeout
  */
-export function waitForPromise(): Promise<void> {
+export function timeoutPromise(ms: number = 10000, errorMessage: string): Promise<string> {
 	return new Promise((_, reject) => {
 		setTimeout(() => {
-			reject(new Error(LocalizedConstants.timeoutSqlBindingError));
-		}, 10000);
+			reject(new Error(errorMessage));
+		}, ms);
 	});
 }
