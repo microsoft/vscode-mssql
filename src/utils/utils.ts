@@ -38,9 +38,10 @@ export function generateQuotedFullName(schema: string, objectName: string): stri
 /**
  * Gets a unique file name
  * Increment the file name by adding 1 to function name if the file already exists
- * @param folderPath selected azure function project folder path
- * @param fileName objectName that was chosen by the user
- * @returns the unique file name that will always add at least `1` to the function name
+ * Undefined if the filename suffix count is greater than 1024
+ * @param folderPath selected project folder path
+ * @param fileName base filename to use
+ * @returns the unique file name or undefined
  */
 export async function getUniqueFileName(folderPath: string, fileName: string): Promise<string | undefined> {
 	let count: number = 0;
