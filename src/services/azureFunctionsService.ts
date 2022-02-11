@@ -94,9 +94,9 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			folderPath: projectFile
 		});
 
+		const functionFile = await newFilePromise;
 		await azureFunctionUtils.addNugetReferenceToProjectFile(projectFile);
 		await azureFunctionUtils.addConnectionStringToConfig(connectionString, projectFile);
-		const functionFile = await newFilePromise;
 
 		let objectName = generateQuotedFullName(schema, table);
 		await this.addSqlBinding(
