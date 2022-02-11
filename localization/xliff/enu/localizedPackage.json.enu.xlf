@@ -1,51 +1,105 @@
 <?xml version="1.0" ?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en">
+  <file datatype="xml" original="package" source-language="en">
     <body>
-        <trans-unit id="extension.runQuery">
+        <trans-unit id="mssql.runQuery">
             <source xml:lang="en">Execute Query</source>
         </trans-unit>
-        <trans-unit id="extension.runCurrentStatement">
+        <trans-unit id="mssql.runCurrentStatement">
             <source xml:lang="en">Execute Current Statement</source>
         </trans-unit>
-        <trans-unit id="extension.cancelQuery">
+        <trans-unit id="mssql.cancelQuery">
             <source xml:lang="en">Cancel Query</source>
         </trans-unit>
-        <trans-unit id="extension.connect">
+        <trans-unit id="mssql.addObjectExplorer">
+            <source xml:lang="en">Add Connection</source>
+        </trans-unit>
+        <trans-unit id="mssql.scriptSelect">
+            <source xml:lang="en">Select Top 1000</source>
+        </trans-unit>
+        <trans-unit id="mssql.scriptCreate">
+            <source xml:lang="en">Script as Create</source>
+        </trans-unit>
+        <trans-unit id="mssql.scriptDelete">
+            <source xml:lang="en">Script as Drop</source>
+        </trans-unit>
+        <trans-unit id="mssql.scriptExecute">
+            <source xml:lang="en">Script as Execute</source>
+        </trans-unit>
+        <trans-unit id="mssql.scriptAlter">
+            <source xml:lang="en">Script as Alter</source>
+        </trans-unit>
+        <trans-unit id="mssql.openQueryHistory">
+            <source xml:lang="en">Open Query</source>
+        </trans-unit>
+        <trans-unit id="mssql.runQueryHistory">
+            <source xml:lang="en">Run Query</source>
+        </trans-unit>
+        <trans-unit id="mssql.deleteQueryHistory">
+            <source xml:lang="en">Delete</source>
+        </trans-unit>
+        <trans-unit id="mssql.clearAllQueryHistory">
+            <source xml:lang="en">Clear All Query History</source>
+        </trans-unit>
+        <trans-unit id="mssql.enableQueryHistoryCapture">
+            <source xml:lang="en">Enable Query History Capture</source>
+        </trans-unit>
+        <trans-unit id="mssql.startQueryHistoryCapture">
+            <source xml:lang="en">Start Query History Capture</source>
+        </trans-unit>
+        <trans-unit id="mssql.pauseQueryHistoryCapture">
+            <source xml:lang="en">Pause Query History Capture</source>
+        </trans-unit>
+        <trans-unit id="mssql.commandPaletteQueryHistory">
+            <source xml:lang="en">Open Query History in Command Palette</source>
+        </trans-unit>
+        <trans-unit id="mssql.removeObjectExplorerNode">
+            <source xml:lang="en">Remove</source>
+        </trans-unit>
+        <trans-unit id="mssql.refreshObjectExplorerNode">
+            <source xml:lang="en">Refresh</source>
+        </trans-unit>
+        <trans-unit id="extension.connections">
+            <source xml:lang="en">Connections</source>
+        </trans-unit>
+        <trans-unit id="extension.queryHistory">
+            <source xml:lang="en">Query History</source>
+        </trans-unit>
+        <trans-unit id="mssql.connect">
             <source xml:lang="en">Connect</source>
         </trans-unit>
-        <trans-unit id="extension.disconnect">
+        <trans-unit id="mssql.disconnect">
             <source xml:lang="en">Disconnect</source>
         </trans-unit>
-        <trans-unit id="extension.manageProfiles">
+        <trans-unit id="mssql.manageProfiles">
             <source xml:lang="en">Manage Connection Profiles</source>
         </trans-unit>
-        <trans-unit id="extension.chooseDatabase">
+        <trans-unit id="mssql.chooseDatabase">
             <source xml:lang="en">Use Database</source>
         </trans-unit>
-        <trans-unit id="extension.chooseLanguageFlavor">
+        <trans-unit id="mssql.chooseLanguageFlavor">
             <source xml:lang="en">Choose SQL handler for this file</source>
         </trans-unit>
-        <trans-unit id="extension.showGettingStarted">
+        <trans-unit id="mssql.showGettingStarted">
             <source xml:lang="en">Getting Started Guide</source>
         </trans-unit>
-        <trans-unit id="extension.newQuery">
+        <trans-unit id="mssql.newQuery">
             <source xml:lang="en">New Query</source>
         </trans-unit>
-        <trans-unit id="extension.rebuildIntelliSenseCache">
+        <trans-unit id="mssql.objectExplorerNewQuery">
+            <source xml:lang="en">New Query</source>
+        </trans-unit>
+        <trans-unit id="mssql.toggleSqlCmd">
+            <source xml:lang="en">Toggle SQLCMD Mode</source>
+        </trans-unit>
+        <trans-unit id="mssql.copyObjectName">
+            <source xml:lang="en">Copy Object Name</source>
+        </trans-unit>
+        <trans-unit id="mssql.removeAadAccount">
+            <source xml:lang="en">Remove Azure Account</source>
+        </trans-unit>
+        <trans-unit id="mssql.rebuildIntelliSenseCache">
             <source xml:lang="en">Refresh IntelliSense Cache</source>
-        </trans-unit>
-        <trans-unit id="mssql.Configuration">
-            <source xml:lang="en">MSSQL configuration</source>
-        </trans-unit>
-        <trans-unit id="mssql.chooseAuthMethod">
-            <source xml:lang="en">Chooses which Authentication method to use</source>
-        </trans-unit>
-        <trans-unit id="mssql.authCodeGrant.description">
-            <source xml:lang="en">Prompts users to sign in using their browser.</source>
-        </trans-unit>
-        <trans-unit id="mssql.deviceCode.description">
-            <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         </trans-unit>
         <trans-unit id="mssql.logDebugInfo">
             <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)</source>
@@ -57,7 +111,7 @@
             <source xml:lang="en">Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.</source>
         </trans-unit>
         <trans-unit id="mssql.connection.server">
-            <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
+            <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
         </trans-unit>
         <trans-unit id="mssql.connection.database">
             <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source>
@@ -221,11 +275,113 @@
         <trans-unit id="mssql.intelliSense.enableQuickInfo">
             <source xml:lang="en">Should IntelliSense quick info be enabled</source>
         </trans-unit>
+        <trans-unit id="mssql.enableQueryHistoryFeature">
+            <source xml:lang="en">Should Query History feature be enabled</source>
+        </trans-unit>
         <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
             <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
         </trans-unit>
         <trans-unit id="mssql.persistQueryResultTabs">
             <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
+        </trans-unit>
+        <trans-unit id="mssql.queryHistoryLimit">
+            <source xml:lang="en">Number of query history entries to show in the Query History view</source>
+        </trans-unit>
+        <trans-unit id="mssql.createAzureFunction">
+            <source xml:lang="en">Create Azure Function with SQL input binding</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.maxXmlCharsToStore">
+            <source xml:lang="en">Number of XML characters to store after running a query</source>
+        </trans-unit>
+        <trans-unit id="mssql.tracingLevel">
+            <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
+        </trans-unit>
+        <trans-unit id="mssql.logRetentionMinutes">
+            <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
+        </trans-unit>
+        <trans-unit id="mssql.logFilesRemovalLimit">
+            <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.setRowCount">
+            <source xml:lang="en">Maximum number of rows to return before the server stops processing your query.</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.textSize">
+            <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.executionTimeout">
+            <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.noCount">
+            <source xml:lang="en">Enable SET NOCOUNT option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.noExec">
+            <source xml:lang="en">Enable SET NOEXEC option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.parseOnly">
+            <source xml:lang="en">Enable SET PARSEONLY option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.arithAbort">
+            <source xml:lang="en">Enable SET ARITHABORT option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.statisticsTime">
+            <source xml:lang="en">Enable SET STATISTICS TIME option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.statisticsIO">
+            <source xml:lang="en">Enable SET STATISTICS IO option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.xactAbortOn">
+            <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.transactionIsolationLevel">
+            <source xml:lang="en">Enable SET TRANSACTION ISOLATION LEVEL option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.deadlockPriority">
+            <source xml:lang="en">Enable SET DEADLOCK_PRIORITY option</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.lockTimeout">
+            <source xml:lang="en">Enable SET LOCK TIMEOUT option (in milliseconds)</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.queryGovernorCostLimit">
+            <source xml:lang="en">Enable SET QUERY_GOVERNOR_COST_LIMIT</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.ansiDefaults">
+            <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.quotedIdentifier">
+            <source xml:lang="en">Enable SET QUOTED_IDENTIFIER</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.ansiNullDefaultOn">
+            <source xml:lang="en">Enable SET ANSI_NULL_DFLT_ON</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.implicitTransactions">
+            <source xml:lang="en">Enable SET IMPLICIT_TRANSACTIONS</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.cursorCloseOnCommit">
+            <source xml:lang="en">Enable SET CURSOR_CLOSE_ON_COMMIT</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.ansiPadding">
+            <source xml:lang="en">Enable SET ANSI_PADDING</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.ansiWarnings">
+            <source xml:lang="en">Enable SET ANSI_WARNINGS</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.ansiNulls">
+            <source xml:lang="en">Enable SET ANSI_NULLS</source>
+        </trans-unit>
+        <trans-unit id="mssql.query.alwaysEncryptedParameterization">
+            <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
+        </trans-unit>
+        <trans-unit id="mssql.ignorePlatformWarning">
+            <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
+        </trans-unit>
+        <trans-unit id="mssql.chooseAuthMethod">
+            <source xml:lang="en">Chooses which Authentication method to use</source>
+        </trans-unit>
+        <trans-unit id="mssql.authCodeGrant.description">
+            <source xml:lang="en">Prompts users to sign in using their browser.</source>
+        </trans-unit>
+        <trans-unit id="mssql.deviceCode.description">
+            <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         </trans-unit>
     </body>
   </file>
