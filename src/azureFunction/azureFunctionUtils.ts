@@ -231,6 +231,7 @@ export function waitForNewFunctionFile(projectFile: string): Promise<string> {
 		const timeout = setTimeout(async () => {
 			reject(constants.timeoutSqlBindingError);
 			watcher.dispose();
+			throw new Error();
 		}, 10000);
 		watcher.onDidCreate((e) => {
 			resolve(e.fsPath);

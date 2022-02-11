@@ -72,10 +72,6 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			return;
 		}
 
-		// because of an AF extension API issue, we have to get the newly created file by adding
-		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
-		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
-
 		// get function name from user
 		const functionName = await vscode.window.showInputBox({
 			title: constants.functionNameTitle,
@@ -93,6 +89,10 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			functionName: functionName,
 			folderPath: projectFile
 		});
+
+		// because of an AF extension API issue, we have to get the newly created file by adding
+		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
+		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
 
 		const functionFile = await newFilePromise;
 		await azureFunctionUtils.addNugetReferenceToProjectFile(projectFile);
