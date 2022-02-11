@@ -9,7 +9,7 @@ import * as mssql from 'vscode-mssql';
 import * as azureFunctionsContracts from '../models/contracts/azureFunctions/azureFunctionsContracts';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
-import { generateQuotedFullName } from '../utils/utils';
+import { generateQuotedFullName, waitForPromise } from '../utils/utils';
 import * as LocalizedConstants from '../constants/localizedConstants';
 
 export const hostFileName: string = 'host.json';
@@ -72,6 +72,11 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			return;
 		}
 
+		// because of an AF extension API issue, we have to get the newly created file by adding
+		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
+		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
+		const checkFunctionFile = waitForPromise();
+
 		// get function name from user
 		const functionName = await vscode.window.showInputBox({
 			title: constants.functionNameTitle,
@@ -90,11 +95,15 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			folderPath: projectFile
 		});
 
-		// because of an AF extension API issue, we have to get the newly created file by adding
-		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
-		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
-
+		// check for the new function file to be created
 		const functionFile = await newFilePromise;
+		const timeoutFunctionFile = await checkFunctionFile;
+		try {
+			await Promise.race([functionFile, timeoutFunctionFile]);
+		} catch (err) {
+			console.log(err);
+		}
+
 		await azureFunctionUtils.addNugetReferenceToProjectFile(projectFile);
 		await azureFunctionUtils.addConnectionStringToConfig(connectionString, projectFile);
 

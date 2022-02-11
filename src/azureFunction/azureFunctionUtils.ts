@@ -225,18 +225,12 @@ export async function getSettingsFile(projectFile: string): Promise<string | und
  * @returns the function file path once created
  */
 export function waitForNewFunctionFile(projectFile: string): Promise<string> {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve, _) => {
 		const watcher = vscode.workspace.createFileSystemWatcher((
 			path.dirname(projectFile), '**/*.cs'), false, true, true);
-		const timeout = setTimeout(async () => {
-			reject(constants.timeoutSqlBindingError);
-			watcher.dispose();
-			throw new Error();
-		}, 10000);
 		watcher.onDidCreate((e) => {
 			resolve(e.fsPath);
 			watcher.dispose();
-			clearTimeout(timeout);
 		});
 	});
 }

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as cp from 'child_process';
+import * as constants from '../constants/constants';
 import { escapeClosingBrackets } from '../models/utils';
 
 export async function executeCommand(command: string, cwd?: string): Promise<string> {
@@ -30,4 +31,16 @@ export async function executeCommand(command: string, cwd?: string): Promise<str
  */
 export function generateQuotedFullName(schema: string, objectName: string): string {
 	return `[${escapeClosingBrackets(schema)}].[${escapeClosingBrackets(objectName)}]`;
+}
+
+/**
+ * Promise with timeout to check for another promise fulfillment
+ * @returns a promise that resolves after the specified timeout
+ */
+export function waitForPromise(): Promise<void> {
+	return new Promise((_, reject) => {
+		setTimeout(() => {
+			reject(new Error(constants.timeoutSqlBindingError));
+		}, 10000);
+	});
 }
