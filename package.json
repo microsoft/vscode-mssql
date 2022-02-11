@@ -303,7 +303,7 @@
         {
           "command": "mssql.createAzureFunction",
           "when": "view == objectExplorer && viewItem == Table",
-          "group": "Azure_Function@1"
+          "group": "zAzure_Function@1"
         }
       ],
       "commandPalette": [
