@@ -6,6 +6,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as utils from '../models/utils';
 import * as constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 // https://github.com/microsoft/vscode-azurefunctions/blob/main/src/vscode-azurefunctions.api.d.ts
@@ -37,7 +38,7 @@ export async function getLocalSettingsJson(localSettingsPath: string): Promise<I
 			return JSON.parse(data);
 		} catch (error) {
 			console.log(error);
-			throw new Error(constants.failedToParse(error.message));
+			throw new Error(utils.formatString(LocalizedConstants.failedToParse, constants.azureFunctionLocalSettingsFileName, error.message));
 		}
 	}
 
@@ -63,8 +64,11 @@ export async function setLocalAppSetting(projectFolder: string, key: string, val
 		// don't do anything if it's the same as the existing value
 		return true;
 	} else if (settings.Values[key]) {
-		const result = await vscode.window.showWarningMessage(constants.settingAlreadyExists(key), { modal: true }, constants.yesString);
-		if (result !== constants.yesString) {
+		const result = await vscode.window.showWarningMessage(
+			utils.formatString(LocalizedConstants.settingAlreadyExists, key), { modal: true },
+			LocalizedConstants.yesString
+		);
+		if (result !== LocalizedConstants.yesString) {
 			// key already exists and user doesn't want to overwrite it
 			return false;
 		}
@@ -84,12 +88,12 @@ export async function setLocalAppSetting(projectFolder: string, key: string, val
 export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExtensionApi | undefined> {
 	let apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
 	if (!apiProvider) {
-		const response = await vscode.window.showInformationMessage(constants.azureFunctionsExtensionNotFound,
-			constants.installAzureFunction, constants.learnMore, constants.doNotInstall);
-		if (response === constants.installAzureFunction) {
+		const response = await vscode.window.showInformationMessage(LocalizedConstants.azureFunctionsExtensionNotFound,
+			LocalizedConstants.install, LocalizedConstants.learnMore, LocalizedConstants.doNotInstall);
+		if (response === LocalizedConstants.install) {
 			const extensionInstalled = new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(async () => {
-					reject(new Error(constants.timeoutError));
+					reject(new Error(LocalizedConstants.timeoutError));
 					extensionChange.dispose();
 				}, 10000);
 				let extensionChange = vscode.extensions.onDidChange(async () => {
@@ -112,7 +116,7 @@ export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExt
 			// the extension has not been notified that the azure function extension is installed so wait till it is to then activate it
 			await extensionInstalled;
 			apiProvider = await vscode.extensions.getExtension(constants.azureFunctionsExtensionName)?.activate() as AzureExtensionApiProvider;
-		} else if (response === constants.learnMore) {
+		} else if (response === LocalizedConstants.learnMore) {
 			await vscode.env.openExternal(vscode.Uri.parse(constants.linkToAzureFunctionExtension));
 			return undefined;
 		} else {
@@ -170,7 +174,7 @@ export async function getAzureFunctionProject(): Promise<string | undefined> {
 				// select project to add azure function to
 				selectedProjectFile = (await vscode.window.showQuickPick(projectFiles, {
 					canPickMany: false,
-					title: constants.selectProject,
+					title: LocalizedConstants.selectProject,
 					ignoreFocusOut: true
 				}));
 				return selectedProjectFile;
@@ -229,7 +233,7 @@ export function waitForNewFunctionFile(projectFile: string): Promise<string> {
 		const watcher = vscode.workspace.createFileSystemWatcher((
 			path.dirname(projectFile), '**/*.cs'), false, true, true);
 		const timeout = setTimeout(async () => {
-			reject(new Error(constants.timeoutError));
+			reject(new Error(LocalizedConstants.timeoutError));
 			watcher.dispose();
 		}, 10000);
 		watcher.onDidCreate((e) => {

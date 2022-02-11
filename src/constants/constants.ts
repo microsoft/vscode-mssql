@@ -2,8 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as nls from 'vscode-nls';
-const localize = nls.loadMessageBundle();
 
 // Collection of Non-localizable Constants
 export const languageId = 'sql';
@@ -159,6 +157,7 @@ export const unixResourceClientPath = 'SqlToolsResourceProviderService';
 export const azureFunctionsExtensionName = 'ms-azuretools.vscode-azurefunctions';
 export const sqlConnectionString = 'SqlConnectionString';
 export const linkToAzureFunctionExtension = 'https://docs.microsoft.com/azure/azure-functions/functions-develop-vs-code';
+export const sqlBindingsDoc = 'https://aka.ms/sqlbindings';
 export const defaultSqlBindingTextLines =
 	[
 		'log.LogInformation(\"C# HTTP trigger function processed a request.\");',
@@ -172,19 +171,3 @@ export const defaultBindingResult = 'return new OkObjectResult(responseMessage);
 export const sqlBindingResult = `return new OkObjectResult(result);`;
 export const azureFunctionLocalSettingsFileName = 'local.settings.json';
 export const sqlExtensionPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
-export function failedToParse(errorMessage: string): string {
-	return localize('failedToParse', 'Failed to parse "{0}": {1}.',
-		azureFunctionLocalSettingsFileName, errorMessage);
-}
-export function settingAlreadyExists(settingName: string): string {
-	return localize('SettingAlreadyExists', 'Local app setting \'{0}\' already exists. Overwrite?', settingName);
-}
-export const yesString = localize('yesString', 'Yes');
-export const functionNameTitle = localize('functionNameTitle', 'Function Name');
-export const selectProject = localize('selectProject', 'Select the Azure Function project for the SQL Binding');
-export const timeoutError = localize('timeoutError', 'Timed out waiting for azure function file creation');
-export const azureFunctionsExtensionNotFound = localize('azureFunctionsExtensionNotFound', 'The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?');
-export const installAzureFunction = localize('install', 'Install');
-export const learnMore = localize('learnMore', 'Learn more');
-export const doNotInstall = localize('doNotInstall', 'Do not install');
-export const nameMustNotBeEmpty = localize('nameMustNotBeEmpty', 'Name must not be empty');
