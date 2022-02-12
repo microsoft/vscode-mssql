@@ -32,7 +32,7 @@ export interface ILocalSettingsJson {
  * @returns settings in local.settings.json. If no settings are found, returns default "empty" settings
  */
 export async function getLocalSettingsJson(localSettingsPath: string): Promise<ILocalSettingsJson> {
-	if (await fs.existsSync(localSettingsPath)) {
+	if (fs.existsSync(localSettingsPath)) {
 		const data: string = (fs.readFileSync(localSettingsPath)).toString();
 		try {
 			return JSON.parse(data);
