@@ -83,30 +83,35 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		// because of an AF extension API issue, we have to get the newly created file by adding
 		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
 		const newFunctionFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
+		let functionFile: string;
 
-		// get function name from user
-		let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
-		const functionName = await vscode.window.showInputBox({
-			title: LocalizedConstants.functionNameTitle,
-			value: uniqueFunctionName,
-			ignoreFocusOut: true,
-			validateInput: input => input ? undefined : LocalizedConstants.nameMustNotBeEmpty
-		});
-		if (!functionName) {
-			return;
+		try {
+			// get function name from user
+			let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
+			const functionName = await vscode.window.showInputBox({
+				title: LocalizedConstants.functionNameTitle,
+				value: uniqueFunctionName,
+				ignoreFocusOut: true,
+				validateInput: input => input ? undefined : LocalizedConstants.nameMustNotBeEmpty
+			});
+			if (!functionName) {
+				return;
+			}
+
+			// create C# HttpTrigger
+			await azureFunctionApi.createFunction({
+				language: 'C#',
+				templateId: 'HttpTrigger',
+				functionName: functionName,
+				folderPath: projectFile
+			});
+
+			// check for the new function file to be created and dispose of the file system watcher
+			const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
+			functionFile = await Promise.race([newFunctionFileObject.filePromise, timeout]);
+		} finally {
+			newFunctionFileObject.watcherDisposable.dispose();
 		}
-
-		// create C# HttpTrigger
-		await azureFunctionApi.createFunction({
-			language: 'C#',
-			templateId: 'HttpTrigger',
-			functionName: functionName,
-			folderPath: projectFile
-		});
-
-		// check for the new function file to be created and dispose of the file system watcher
-		const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
-		const functionFile = await Promise.race([newFunctionFileObject.filePromise, timeout]).finally(newFunctionFileObject.watcherDisposable.dispose());
 
 		// select input or output binding
 		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [
