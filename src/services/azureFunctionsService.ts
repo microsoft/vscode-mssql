@@ -84,11 +84,12 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
 		const newFunctionFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
 		let functionFile: string;
+		let functionName: string;
 
 		try {
 			// get function name from user
 			let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
-			const functionName = await vscode.window.showInputBox({
+			functionName = await vscode.window.showInputBox({
 				title: LocalizedConstants.functionNameTitle,
 				value: uniqueFunctionName,
 				ignoreFocusOut: true,
