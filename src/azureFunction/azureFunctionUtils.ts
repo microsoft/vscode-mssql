@@ -236,12 +236,15 @@ export async function getSettingsFile(projectFile: string): Promise<string | und
 export function waitForNewFunctionFile(projectFile: string): IFileFunctionObject {
 	const watcher = vscode.workspace.createFileSystemWatcher((
 		path.dirname(projectFile), '**/*.cs'), false, true, true);
-	new Promise((resolve, _) => {
+	const filePromise = new Promise<string>((resolve, _) => {
 		watcher.onDidCreate((e) => {
-			return {filePromise: resolve(e.fsPath), watcherDisposable: watcher};
+			resolve(e.fsPath);
 		});
 	});
-	return undefined;
+	return {
+		filePromise,
+		watcherDisposable: watcher
+	};
 }
 
 /**
