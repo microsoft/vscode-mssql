@@ -536,9 +536,6 @@
         <trans-unit id="selectProject">
             <source xml:lang="en">Select the Azure Function project for the SQL Binding</source>
         </trans-unit>
-        <trans-unit id="timeoutError">
-            <source xml:lang="en">Timed out waiting for azure function file creation</source>
-        </trans-unit>
         <trans-unit id="azureFunctionsExtensionNotFound">
             <source xml:lang="en">The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?</source>
         </trans-unit>
@@ -565,6 +562,12 @@
         </trans-unit>
         <trans-unit id="selectAzureFunctionProjFolder">
             <source xml:lang="en">Select folder for the Azure Function project</source>
+        </trans-unit>
+        <trans-unit id="timeoutExtensionError">
+            <source xml:lang="en">Timed out waiting for extension to install</source>
+        </trans-unit>
+        <trans-unit id="timeoutAzureFunctionFileError">
+            <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
         </trans-unit>
          <trans-unit id="nameMustNotBeEmpty">
             <source xml:lang="en">Name must not be empty</source>

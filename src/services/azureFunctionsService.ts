@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as azureFunctionsContracts from '../models/contracts/azureFunctions/azureFunctionsContracts';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
-import { generateQuotedFullName, getUniqueFileName } from '../utils/utils';
+import { generateQuotedFullName, timeoutPromise, getUniqueFileName } from '../utils/utils';
 import * as LocalizedConstants from '../constants/localizedConstants';
 
 export const hostFileName: string = 'host.json';
@@ -82,27 +82,37 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
 		// because of an AF extension API issue, we have to get the newly created file by adding
 		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
-		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
+		const newFunctionFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
+		let functionFile: string;
+		let functionName: string;
 
-		// get function name from user
-		let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
-		const functionName = await vscode.window.showInputBox({
-			title: LocalizedConstants.functionNameTitle,
-			value: uniqueFunctionName,
-			ignoreFocusOut: true,
-			validateInput: input => input ? undefined : LocalizedConstants.nameMustNotBeEmpty
-		});
-		if (!functionName) {
-			return;
+		try {
+			// get function name from user
+			let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
+			functionName = await vscode.window.showInputBox({
+				title: LocalizedConstants.functionNameTitle,
+				value: uniqueFunctionName,
+				ignoreFocusOut: true,
+				validateInput: input => input ? undefined : LocalizedConstants.nameMustNotBeEmpty
+			});
+			if (!functionName) {
+				return;
+			}
+
+			// create C# HttpTrigger
+			await azureFunctionApi.createFunction({
+				language: 'C#',
+				templateId: 'HttpTrigger',
+				functionName: functionName,
+				folderPath: projectFile
+			});
+
+			// check for the new function file to be created and dispose of the file system watcher
+			const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
+			functionFile = await Promise.race([newFunctionFileObject.filePromise, timeout]);
+		} finally {
+			newFunctionFileObject.watcherDisposable.dispose();
 		}
-
-		// create C# HttpTrigger
-		await azureFunctionApi.createFunction({
-			language: 'C#',
-			templateId: 'HttpTrigger',
-			functionName: functionName,
-			folderPath: projectFile
-		});
 
 		// select input or output binding
 		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [
@@ -128,7 +138,6 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
 		await azureFunctionUtils.addNugetReferenceToProjectFile(projectFile);
 		await azureFunctionUtils.addConnectionStringToConfig(connectionString, projectFile);
-		const functionFile = await newFilePromise;
 
 		let objectName = generateQuotedFullName(schema, table);
 		await this.addSqlBinding(

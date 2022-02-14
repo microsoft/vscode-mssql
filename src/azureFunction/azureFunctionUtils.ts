@@ -25,6 +25,11 @@ export interface ILocalSettingsJson {
 	ConnectionStrings?: { [key: string]: string };
 }
 
+export interface IFileFunctionObject {
+	filePromise: Promise<string>;
+	watcherDisposable: vscode.Disposable;
+}
+
 /**
  * copied and modified from vscode-azurefunctions extension
  * https://github.com/microsoft/vscode-azurefunctions/blob/main/src/funcConfig/local.settings.ts
@@ -93,7 +98,7 @@ export async function getAzureFunctionsExtensionApi(): Promise<AzureFunctionsExt
 		if (response === LocalizedConstants.install) {
 			const extensionInstalled = new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(async () => {
-					reject(new Error(LocalizedConstants.timeoutError));
+					reject(new Error(LocalizedConstants.timeoutExtensionError));
 					extensionChange.dispose();
 				}, 10000);
 				let extensionChange = vscode.extensions.onDidChange(async () => {
@@ -224,24 +229,22 @@ export async function getSettingsFile(projectFile: string): Promise<string | und
 }
 
 /**
- * Retrieves the new function file once the file is created
+ * Retrieves the new function file once the file is created and the watcher disposable
  * @param projectFile is the path to the project file
- * @returns the function file path once created
+ * @returns the function file path once created and the watcher disposable
  */
-export function waitForNewFunctionFile(projectFile: string): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const watcher = vscode.workspace.createFileSystemWatcher((
-			path.dirname(projectFile), '**/*.cs'), false, true, true);
-		const timeout = setTimeout(async () => {
-			reject(new Error(LocalizedConstants.timeoutError));
-			watcher.dispose();
-		}, 10000);
+export function waitForNewFunctionFile(projectFile: string): IFileFunctionObject {
+	const watcher = vscode.workspace.createFileSystemWatcher((
+		path.dirname(projectFile), '**/*.cs'), false, true, true);
+	const filePromise = new Promise<string>((resolve, _) => {
 		watcher.onDidCreate((e) => {
 			resolve(e.fsPath);
-			watcher.dispose();
-			clearTimeout(timeout);
 		});
 	});
+	return {
+		filePromise,
+		watcherDisposable: watcher
+	};
 }
 
 /**
