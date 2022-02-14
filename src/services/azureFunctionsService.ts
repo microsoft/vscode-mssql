@@ -106,7 +106,7 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
 		// check for the new function file to be created
 		const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
-		const functionFile = await Promise.race([newFilePromise, timeout]);
+		const functionFile = await Promise.race([newFilePromise.filePromise, timeout]).finally(newFilePromise.watcherDisposable.dispose());
 
 		// select input or output binding
 		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [

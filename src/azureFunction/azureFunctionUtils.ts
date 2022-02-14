@@ -25,6 +25,11 @@ export interface ILocalSettingsJson {
 	ConnectionStrings?: { [key: string]: string };
 }
 
+export interface IFileFunctionObject {
+	filePromise: Promise<string>;
+	watcherDisposable: vscode.Disposable;
+}
+
 /**
  * copied and modified from vscode-azurefunctions extension
  * https://github.com/microsoft/vscode-azurefunctions/blob/main/src/funcConfig/local.settings.ts
@@ -224,20 +229,19 @@ export async function getSettingsFile(projectFile: string): Promise<string | und
 }
 
 /**
- * Retrieves the new function file once the file is created
+ * Retrieves the new function file once the file is created and the watcher
  * @param projectFile is the path to the project file
  * @returns the function file path once created
  */
-export function waitForNewFunctionFile(projectFile: string): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const watcher = vscode.workspace.createFileSystemWatcher((
-			path.dirname(projectFile), '**/*.cs'), false, true, true);
+export function waitForNewFunctionFile(projectFile: string): IFileFunctionObject {
+	const watcher = vscode.workspace.createFileSystemWatcher((
+		path.dirname(projectFile), '**/*.cs'), false, true, true);
+	new Promise((resolve, _) => {
 		watcher.onDidCreate((e) => {
-			resolve(e.fsPath);
-			watcher.dispose();
+			return {filePromise: resolve(e.fsPath), watcherDisposable: watcher};
 		});
-		reject(watcher.dispose);
 	});
+	return undefined;
 }
 
 /**
