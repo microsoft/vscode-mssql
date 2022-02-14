@@ -82,7 +82,7 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 
 		// because of an AF extension API issue, we have to get the newly created file by adding
 		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
-		const newFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
+		const newFunctionFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
 
 		// get function name from user
 		let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
@@ -104,9 +104,9 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			folderPath: projectFile
 		});
 
-		// check for the new function file to be created
+		// check for the new function file to be created and dispose of the file system watcher
 		const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
-		const functionFile = await Promise.race([newFileObject.filePromise, timeout]).finally(newFileObject.watcherDisposable.dispose());
+		const functionFile = await Promise.race([newFunctionFileObject.filePromise, timeout]).finally(newFunctionFileObject.watcherDisposable.dispose());
 
 		// select input or output binding
 		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [
