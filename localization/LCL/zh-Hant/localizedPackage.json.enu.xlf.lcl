@@ -364,8 +364,8 @@
       <Item ItemId=";mssql.connection.server" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[[必要]5D; 指定要連線的伺服器名稱。Azure SQL Database 請使用 'hostname\\instance' 或 '<server>.database.windows.net'。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[必要]5D; 指定要連線的伺服器名稱。Azure SQL Database 請使用 'hostname instance' 或 '<server>.database.windows.net'。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>

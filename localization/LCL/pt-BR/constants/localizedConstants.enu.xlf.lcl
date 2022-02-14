@@ -382,6 +382,9 @@
       <Item ItemId=";createProject" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Azure Function Project]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Criar projeto de função do Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1534,6 +1537,9 @@
       <Item ItemId=";selectAzureFunctionProjFolder" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select folder for the Azure Function project]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Selecionar pasta para o projeto do Azure Function]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

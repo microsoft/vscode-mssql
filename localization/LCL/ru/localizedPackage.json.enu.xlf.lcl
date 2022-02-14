@@ -364,8 +364,8 @@
       <Item ItemId=";mssql.connection.server" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[[Обязательно]5D; Укажите имя сервера, к которому необходимо подключиться. Используйте формат «имя_узла\\экземпляр» или «<сервер>.database.windows.net» для Базы данных Azure SQL Database.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Обязательно]5D; Укажите имя сервера, к которому необходимо подключиться. Используйте формат \"экземпляр имени узла\" или \"<server>.database.windows.net\" для Базы данных SQL Azure.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[[Required]5D; Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></Val>
@@ -448,6 +448,9 @@
       <Item ItemId=";mssql.createAzureFunction" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Azure Function with SQL binding]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Создание Функций Azure с привязкой SQL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
