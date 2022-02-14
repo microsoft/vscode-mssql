@@ -229,9 +229,9 @@ export async function getSettingsFile(projectFile: string): Promise<string | und
 }
 
 /**
- * Retrieves the new function file once the file is created and the watcher
+ * Retrieves the new function file once the file is created and the watcher disposable
  * @param projectFile is the path to the project file
- * @returns the function file path once created
+ * @returns the function file path once created and the watcher disposable
  */
 export function waitForNewFunctionFile(projectFile: string): IFileFunctionObject {
 	const watcher = vscode.workspace.createFileSystemWatcher((
