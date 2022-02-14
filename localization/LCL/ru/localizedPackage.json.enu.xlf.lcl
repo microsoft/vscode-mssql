@@ -14,7 +14,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Connections]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Соединения]]></Val>
+            <Val><![CDATA[Подключения]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -24,6 +24,15 @@
           <Val><![CDATA[Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Журнал запросов]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.Configuration" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MSSQL configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Конфигурация MSSQL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -94,12 +103,18 @@
       <Item ItemId=";mssql.clearAllQueryHistory" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear All Query History]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Очистить весь Журнал запросов]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";mssql.commandPaletteQueryHistory" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Query History in Command Palette]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Открыть Журнал запросов в палитре команд]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -415,6 +430,9 @@
       <Item ItemId=";mssql.copyObjectName" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy Object Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Копировать имя объекта]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -429,7 +447,7 @@
       </Item>
       <Item ItemId=";mssql.createAzureFunction" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Create Azure Function with SQL input binding]]></Val>
+          <Val><![CDATA[Create Azure Function with SQL binding]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -463,12 +481,18 @@
       <Item ItemId=";mssql.enableQueryHistoryCapture" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable Query History Capture]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включить ведение Журнала запросов]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";mssql.enableQueryHistoryFeature" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Should Query History feature be enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Следует ли включить функцию \"Журнал запросов\"]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -683,7 +707,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_DEFAULTS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET ANSI_DEFAULTS]]></Val>
+            <Val><![CDATA[Включить параметр SET ANSI_DEFAULTS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -692,7 +716,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_NULL_DFLT_ON]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET ANSI_NULL_DFLT_ON]]></Val>
+            <Val><![CDATA[Включить параметр SET ANSI_NULL_DFLT_ON]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -701,7 +725,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_NULLS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET ANSI_NULLS]]></Val>
+            <Val><![CDATA[Включить параметр SET ANSI_NULLS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -710,7 +734,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_PADDING]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET ANSI_PADDING]]></Val>
+            <Val><![CDATA[Включить параметр SET ANSI_PADDING]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -719,7 +743,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET ANSI_WARNINGS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET ANSI_WARNINGS]]></Val>
+            <Val><![CDATA[Включить параметр SET ANSI_WARNINGS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -737,7 +761,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET CURSOR_CLOSE_ON_COMMIT]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET CURSOR_CLOSE_ON_COMMIT]]></Val>
+            <Val><![CDATA[Включить параметр SET CURSOR_CLOSE_ON_COMMIT]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -773,7 +797,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET IMPLICIT_TRANSACTIONS]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET IMPLICIT_TRANSACTIONS]]></Val>
+            <Val><![CDATA[Включить параметр SET IMPLICIT_TRANSACTIONS]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -827,7 +851,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET QUERY_GOVERNOR_COST_LIMIT]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET QUERY_GOVERNOR_COST_LIMIT]]></Val>
+            <Val><![CDATA[Включить параметр SET QUERY_GOVERNOR_COST_LIMIT]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -836,7 +860,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable SET QUOTED_IDENTIFIER]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Установить параметр SET QUOTED_IDENTIFIER]]></Val>
+            <Val><![CDATA[Включить параметр SET QUOTED_IDENTIFIER]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -898,6 +922,9 @@
       <Item ItemId=";mssql.queryHistoryLimit" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Number of query history entries to show in the Query History view]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Число записей журнала запросов, отображаемых в представлении \"Журнал запросов\"]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -922,6 +949,9 @@
       <Item ItemId=";mssql.removeAadAccount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove Azure Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Удалить учетную запись Azure]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -974,7 +1004,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Run Query]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выполнить запрос]]></Val>
+            <Val><![CDATA[Запуск запроса]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1028,7 +1058,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Alter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выполнение сценария в режиме изменения]]></Val>
+            <Val><![CDATA[Сценарий в режиме изменения]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1037,7 +1067,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выполнение сценария в режиме создания]]></Val>
+            <Val><![CDATA[Сценарий в режиме создания]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1046,7 +1076,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Drop]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выполнение сценария в режиме удаления]]></Val>
+            <Val><![CDATA[Сценарий в режиме удаления]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1055,7 +1085,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Script as Execute]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выполнение сценария в режиме выполнения]]></Val>
+            <Val><![CDATA[Сценарий в режиме выполнения]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1064,7 +1094,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Select Top 1000]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Выберите первые 1000]]></Val>
+            <Val><![CDATA[Выбрать первые 1000]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1117,6 +1147,9 @@
       <Item ItemId=";mssql.toggleSqlCmd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle SQLCMD Mode]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Переключить режим SQLCMD]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
