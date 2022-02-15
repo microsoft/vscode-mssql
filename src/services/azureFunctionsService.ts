@@ -6,10 +6,11 @@
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import * as vscode from 'vscode';
 import * as mssql from 'vscode-mssql';
+import * as path from 'path';
 import * as azureFunctionsContracts from '../models/contracts/azureFunctions/azureFunctionsContracts';
 import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
-import { generateQuotedFullName } from '../utils/utils';
+import { generateQuotedFullName, timeoutPromise, getUniqueFileName } from '../utils/utils';
 import * as LocalizedConstants from '../constants/localizedConstants';
 
 export const hostFileName: string = 'host.json';
@@ -68,39 +69,79 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 		}
 		let projectFile = await azureFunctionUtils.getAzureFunctionProject();
 		if (!projectFile) {
-			vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened);
+			let projectCreate = await vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened,
+				LocalizedConstants.createProject, LocalizedConstants.learnMore);
+			if (projectCreate === LocalizedConstants.learnMore) {
+				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(constants.sqlBindingsDoc));
+			} else if (projectCreate === LocalizedConstants.createProject) {
+				// start the create azure function project flow
+				await azureFunctionApi.createFunction({});
+			}
 			return;
 		}
 
 		// because of an AF extension API issue, we have to get the newly created file by adding
 		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
-		const newFilePromise = azureFunctionUtils.waitForNewFunctionFile(projectFile);
+		const newFunctionFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
+		let functionFile: string;
+		let functionName: string;
 
-		// get function name from user
-		const functionName = await vscode.window.showInputBox({
-			title: constants.functionNameTitle,
-			value: table,
+		try {
+			// get function name from user
+			let uniqueFunctionName = await getUniqueFileName(path.dirname(projectFile), table);
+			functionName = await vscode.window.showInputBox({
+				title: LocalizedConstants.functionNameTitle,
+				value: uniqueFunctionName,
+				ignoreFocusOut: true,
+				validateInput: input => input ? undefined : LocalizedConstants.nameMustNotBeEmpty
+			});
+			if (!functionName) {
+				return;
+			}
+
+			// create C# HttpTrigger
+			await azureFunctionApi.createFunction({
+				language: 'C#',
+				templateId: 'HttpTrigger',
+				functionName: functionName,
+				folderPath: projectFile
+			});
+
+			// check for the new function file to be created and dispose of the file system watcher
+			const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
+			functionFile = await Promise.race([newFunctionFileObject.filePromise, timeout]);
+		} finally {
+			newFunctionFileObject.watcherDisposable.dispose();
+		}
+
+		// select input or output binding
+		const inputOutputItems: (vscode.QuickPickItem & { type: mssql.BindingType })[] = [
+			{
+				label: LocalizedConstants.input,
+				type: mssql.BindingType.input
+			},
+			{
+				label: LocalizedConstants.output,
+				type: mssql.BindingType.output
+			}
+		];
+
+		const selectedBinding = await vscode.window.showQuickPick(inputOutputItems, {
+			canPickMany: false,
+			title: LocalizedConstants.selectBindingType,
 			ignoreFocusOut: true
 		});
-		if (!functionName) {
+
+		if (!selectedBinding) {
 			return;
 		}
 
-		// create C# HttpTrigger
-		await azureFunctionApi.createFunction({
-			language: 'C#',
-			templateId: 'HttpTrigger',
-			functionName: functionName,
-			folderPath: projectFile
-		});
-
 		await azureFunctionUtils.addNugetReferenceToProjectFile(projectFile);
 		await azureFunctionUtils.addConnectionStringToConfig(connectionString, projectFile);
-		const functionFile = await newFilePromise;
 
 		let objectName = generateQuotedFullName(schema, table);
 		await this.addSqlBinding(
-			mssql.BindingType.input,
+			selectedBinding.type,
 			functionFile,
 			functionName,
 			objectName,

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import { escapeClosingBrackets } from '../models/utils';
 
 export async function executeCommand(command: string, cwd?: string): Promise<string> {
@@ -30,4 +32,41 @@ export async function executeCommand(command: string, cwd?: string): Promise<str
  */
 export function generateQuotedFullName(schema: string, objectName: string): string {
 	return `[${escapeClosingBrackets(schema)}].[${escapeClosingBrackets(objectName)}]`;
+}
+
+/**
+ * Returns a promise that will reject after the specified timeout
+ * @param ms timeout in milliseconds. Default is 10 seconds
+ * @param errorMessage error message to be returned in the rejection
+ * @returns a promise that rejects after the specified timeout
+ */
+export function timeoutPromise(errorMessage: string, ms: number = 10000): Promise<string> {
+	return new Promise((_, reject) => {
+		setTimeout(() => {
+			reject(new Error(errorMessage));
+		}, ms);
+	});
+}
+
+/**
+ * Gets a unique file name
+ * Increment the file name by adding 1 to function name if the file already exists
+ * Undefined if the filename suffix count becomes greater than 1024
+ * @param folderPath selected project folder path
+ * @param fileName base filename to use
+ * @returns a promise with the unique file name, or undefined
+ */
+export async function getUniqueFileName(folderPath: string, fileName: string): Promise<string | undefined> {
+	let count: number = 0;
+	const maxCount: number = 1024;
+	let uniqueFileName = fileName;
+
+	while (count < maxCount) {
+		if (!fs.existsSync(path.join(folderPath, uniqueFileName + '.cs'))) {
+			return uniqueFileName;
+		}
+		count += 1;
+		uniqueFileName = fileName + count.toString();
+	}
+	return undefined;
 }
