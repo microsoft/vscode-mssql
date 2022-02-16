@@ -14,6 +14,7 @@ import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
+import { ConnectionDetails } from './models/contracts/connection';
 
 let controller: MainController = undefined;
 
@@ -62,8 +63,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		dacFx: controller.dacFxService,
 		schemaCompare: controller.schemaCompareService,
 		azureFunctions: controller.azureFunctionsService,
-		getConnectionString: (connectionUri: string, includePassword?: boolean, includeApplicationName?: boolean) => {
-			return controller.connectionManager.getConnectionString(connectionUri, undefined, includePassword, includeApplicationName);
+		getConnectionString: (connectionUri?: string,
+			connectionDetails?: ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean) => {
+			return controller.connectionManager.getConnectionString(connectionUri, connectionDetails, includePassword, includeApplicationName);
 		}
 	};
 }
