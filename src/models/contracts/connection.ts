@@ -269,11 +269,13 @@ export namespace GetConnectionStringRequest {
 export class GetConnectionStringParams {
 	/**
 	 * Connection key to lookup connection string for the provided connection Uri
+	 * If undefined then a connection details should be specified
 	 */
 	public ownerUri?: string;
 
 	/**
 	 * Connection details used to create the connection string
+	 * If undefined then a owner Uri should be specified
 	 */
 	public connectionDetails?: ConnectionDetails;
 
