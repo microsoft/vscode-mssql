@@ -28,7 +28,7 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import { AzureController } from '../azure/azureController';
-import { IConnectionInfo } from 'vscode-mssql';
+import { ConnectionDetails, IConnectionInfo } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
 
 /**
@@ -266,7 +266,7 @@ export default class ConnectionManager {
 	 * @param includeApplicationName (optional) if application name should be included in connection string.
 	 * @returns connection string for the connection
 	 */
-	public async getConnectionString(connectionUriOrDetails: string | ConnectionContracts.ConnectionDetails,
+	public async getConnectionString(connectionUriOrDetails: string | ConnectionDetails,
 		includePassword: boolean = false, includeApplicationName: boolean = true): Promise<string> {
 		const listParams = new ConnectionContracts.GetConnectionStringParams();
 		if (typeof connectionUriOrDetails === 'string') {

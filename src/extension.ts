@@ -9,12 +9,11 @@ import * as Constants from './constants/constants';
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
-import { IConnectionInfo, IExtension } from 'vscode-mssql';
+import { ConnectionDetails, IConnectionInfo, IExtension } from 'vscode-mssql';
 import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
-import { ConnectionDetails } from './models/contracts/connection';
 
 let controller: MainController = undefined;
 

@@ -83,7 +83,7 @@ declare module 'vscode-mssql' {
 		 * @param includeApplicationName (optional) if application name should be included in connection string.
 		 * @returns connection string for the connection
 		 */
-		getConnectionString(connectionUriOrDetails: string | { [name: string]: any }, includePassword?: boolean, includeApplicationName?: boolean): Promise<string>;
+		getConnectionString(connectionUriOrDetails: string | ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean): Promise<string>;
 	}
 
 	/**
@@ -632,5 +632,13 @@ declare module 'vscode-mssql' {
 		 * Array of names of Azure functions in the file
 		 */
 		azureFunctions: string[];
+	}
+
+	/**
+	 * Parameters to initialize a connection to a database
+	 */
+	export interface ConnectionDetails {
+
+		options: { [name: string]: any };
 	}
 }

@@ -4,20 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from 'vscode-languageclient';
+import { ConnectionDetails } from 'vscode-mssql';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
 	export const type = new RequestType<ConnectParams, boolean, void, void>('connection/connect');
-}
-
-/**
- * Parameters to initialize a connection to a database
- */
-export class ConnectionDetails {
-
-	public options: { [name: string]: any } = {};
 }
 
 /**
