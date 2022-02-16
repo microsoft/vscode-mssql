@@ -1651,11 +1651,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";timeoutError" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";timeoutAzureFunctionFileError" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Timed out waiting for azure function file creation]]></Val>
+          <Val><![CDATA[Timed out waiting for Azure Function file to be created]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Tempo limite atingido ao aguardar a criação do arquivo de funções do Azure]]></Val>
+            <Val><![CDATA[Tempo limite atingido ao aguardar a criação do arquivo de Funções do Azure]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";timeoutExtensionError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timed out waiting for extension to install]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tempo limite atingido ao aguardar a instalação da extensão]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
