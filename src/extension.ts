@@ -9,7 +9,7 @@ import * as Constants from './constants/constants';
 import * as LocalizedConstants from './constants/localizedConstants';
 import MainController from './controllers/mainController';
 import VscodeWrapper from './controllers/vscodeWrapper';
-import { IConnectionInfo, IExtension } from 'vscode-mssql';
+import { ConnectionDetails, IConnectionInfo, IExtension } from 'vscode-mssql';
 import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
@@ -62,8 +62,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		dacFx: controller.dacFxService,
 		schemaCompare: controller.schemaCompareService,
 		azureFunctions: controller.azureFunctionsService,
-		getConnectionString: (connectionUri: string, includePassword?: boolean, includeApplicationName?: boolean) => {
-			return controller.connectionManager.getConnectionString(connectionUri, includePassword, includeApplicationName);
+		getConnectionString: (connectionUriOrDetails: string | ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean) => {
+			return controller.connectionManager.getConnectionString(connectionUriOrDetails, includePassword, includeApplicationName);
 		}
 	};
 }

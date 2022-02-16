@@ -4,8 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import { NotificationType, RequestType } from 'vscode-languageclient';
-// tslint:disable-next-line:no-unused-variable
-import { ConnectionDetails } from '../connection';
+import { ConnectionDetails } from 'vscode-mssql';
 import { NodeInfo } from './nodeInfo';
 
 // ------------------------------- < Create Session Request > ----------------------------------------------
