@@ -4,20 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from 'vscode-languageclient';
+import { ConnectionDetails } from 'vscode-mssql';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
 	export const type = new RequestType<ConnectParams, boolean, void, void>('connection/connect');
-}
-
-/**
- * Parameters to initialize a connection to a database
- */
-export class ConnectionDetails {
-
-	public options: { [name: string]: any } = {};
 }
 
 /**
@@ -269,8 +262,15 @@ export namespace GetConnectionStringRequest {
 export class GetConnectionStringParams {
 	/**
 	 * Connection key to lookup connection string for the provided connection Uri
+	 * If undefined then a connection details should be specified
 	 */
-	public ownerUri: string;
+	public ownerUri?: string;
+
+	/**
+	 * Connection details used to create the connection string
+	 * If undefined then a owner Uri should be specified
+	 */
+	public connectionDetails?: ConnectionDetails;
 
 	/**
 	 * Indicates whether to include the password in the connection string
