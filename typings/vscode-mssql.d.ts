@@ -7,7 +7,6 @@ declare module 'vscode-mssql' {
 
 	import * as vscode from 'vscode';
 
-
 	/**
 	 * Covers defining what the vscode-mssql extension exports to other extensions
 	 *
