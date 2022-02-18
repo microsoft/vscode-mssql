@@ -97,6 +97,9 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 					if (value !== 'addAccount') {
 						let account: AzureAccount = value;
 						tenantChoices.push(...account?.properties?.tenants.map(t => ({ name: t.displayName, value: t })));
+						if (tenantChoices.length === 1) {
+							profile.tenantId = tenantChoices[0].value.id;
+						}
 					}
 				}
 			},
@@ -105,7 +108,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				name: LocalizedConstants.tenant,
 				message: LocalizedConstants.azureChooseTenant,
 				choices: tenantChoices,
-				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length !== 0,
+				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
 				onAnswered: (value: Tenant) => {
 					profile.tenantId = value.id;
 				}

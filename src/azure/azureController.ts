@@ -100,12 +100,16 @@ export class AzureController {
 
 	private async promptForTenantChoice(account: AzureAccount, profile: ConnectionProfile): Promise<void> {
 		let tenantChoices: INameValueChoice[] = account.properties.tenants?.map(t => ({ name: t.displayName, value: t }));
+		if (tenantChoices.length === 1) {
+			profile.tenantId = tenantChoices[0].value.id;
+			return;
+		}
 		let tenantQuestion: IQuestion = {
 			type: QuestionTypes.expand,
 			name: LocalizedConstants.tenant,
 			message: LocalizedConstants.azureChooseTenant,
 			choices: tenantChoices,
-			shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length !== 0,
+			shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
 			onAnswered: (value: Tenant) => {
 				profile.tenantId = value.id;
 			}
