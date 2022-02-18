@@ -19,6 +19,9 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
+import { Tenant } from '@microsoft/ads-adal-library';
+import { AzureAccount } from '../../lib/ads-adal-library/src';
 
 function getAppDataPath(): string {
 	let platform = process.platform;
@@ -72,11 +75,13 @@ export class AzureController {
 	private storageService: StorageService;
 	private context: vscode.ExtensionContext;
 	private logger: AzureLogger;
+	private prompter: IPrompter;
 	private _vscodeWrapper: VscodeWrapper;
 	private credentialStoreInitialized = false;
 
-	constructor(context: vscode.ExtensionContext, logger?: AzureLogger) {
+	constructor(context: vscode.ExtensionContext, prompter: IPrompter, logger?: AzureLogger) {
 		this.context = context;
+		this.prompter = prompter;
 		if (!this.logger) {
 			this.logger = new AzureLogger();
 		}
@@ -93,6 +98,21 @@ export class AzureController {
 		this.azureMessageDisplayer = new AzureMessageDisplayer();
 	}
 
+	private async promptForTenantChoice(account: AzureAccount, profile: ConnectionProfile): Promise<void> {
+		let tenantChoices: INameValueChoice[] = account.properties.tenants?.map(t => ({ name: t.displayName, value: t }));
+		let tenantQuestion: IQuestion = {
+			type: QuestionTypes.expand,
+			name: LocalizedConstants.tenant,
+			message: LocalizedConstants.azureChooseTenant,
+			choices: tenantChoices,
+			shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length != 0,
+			onAnswered: (value: Tenant) => {
+				profile.tenantId = value.id;
+			}
+		}
+		await this.prompter.promptSingle(tenantQuestion, true);
+	}
+
 	public async getTokens(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
 		let account: IAccount;
 		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
@@ -100,6 +120,9 @@ export class AzureController {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			account = await azureCodeGrant.startLogin();
 			await accountStore.addAccount(account);
+			if (profile.tenantId == undefined) {
+				await this.promptForTenantChoice(account, profile);
+			}
 			const token = await azureCodeGrant.getAccountSecurityToken(
 				account, profile.tenantId, settings
 			);
@@ -115,6 +138,9 @@ export class AzureController {
 			let azureDeviceCode = await this.createDeviceCode();
 			account = await azureDeviceCode.startLogin();
 			await accountStore.addAccount(account);
+			if (profile.tenantId == undefined) {
+				await this.promptForTenantChoice(account, profile);
+			}
 			const token = await azureDeviceCode.getAccountSecurityToken(
 				account, profile.tenantId, settings
 			);

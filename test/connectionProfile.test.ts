@@ -64,6 +64,7 @@ suite('Connection Profile tests', () => {
 	let mockAccountStore: AccountStore;
 	let mockAzureController: AzureController;
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
+	let mockPrompter: TypeMoq.IMock<IPrompter>;
 	let globalstate: TypeMoq.IMock<vscode.Memento>;
 
 	setup(() => {
@@ -71,7 +72,7 @@ suite('Connection Profile tests', () => {
 		globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		mockContext.setup(c => c.workspaceState).returns(() => globalstate.object);
-		mockAzureController = new AzureController(mockContext.object);
+		mockAzureController = new AzureController(mockContext.object, mockPrompter.object);
 		mockAccountStore = new AccountStore(mockContext.object);
 	});
 
