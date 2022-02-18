@@ -12,11 +12,11 @@ import { IConfig } from '../languageservice/interfaces';
 * Config class handles getting values from config.json.
 */
 export default class Config implements IConfig {
-	private static _configJsonContent = undefined;
+	private _configJsonContent = undefined;
 	private _sqlToolsServiceConfigKey: string;
 	private version: number;
 
-	public static get configJsonContent(): any {
+	public get configJsonContent(): any {
 		if (this._configJsonContent === undefined) {
 			this._configJsonContent = this.loadConfig();
 		}
@@ -60,7 +60,7 @@ export default class Config implements IConfig {
 	}
 
 	public getSqlToolsConfigValue(configKey: string): any {
-		let json = Config.configJsonContent;
+		let json = this.configJsonContent;
 		let toolsConfig = json[this._sqlToolsServiceConfigKey];
 		let configValue: string = undefined;
 		if (toolsConfig !== undefined) {
@@ -70,7 +70,7 @@ export default class Config implements IConfig {
 	}
 
 	public getExtensionConfig(key: string, defaultValue?: any): any {
-		let json = Config.configJsonContent;
+		let json = this.configJsonContent;
 		let extensionConfig = json[Constants.extensionConfigSectionName];
 		let configValue = extensionConfig[key];
 		if (!configValue) {
@@ -80,7 +80,7 @@ export default class Config implements IConfig {
 	}
 
 	public getWorkspaceConfig(key: string, defaultValue?: any): any {
-		let json = Config.configJsonContent;
+		let json = this.configJsonContent;
 		let configValue = json[key];
 		if (!configValue) {
 			configValue = defaultValue;
@@ -88,7 +88,7 @@ export default class Config implements IConfig {
 		return configValue;
 	}
 
-	static loadConfig(): any {
+	private loadConfig(): any {
 		let configContent = fs.readFileSync(path.join(__dirname, '../config.json'));
 		return JSON.parse(configContent.toString());
 	}

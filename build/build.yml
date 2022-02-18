@@ -1,10 +1,6 @@
 pool:
   vmImage: "macOS-10.15"
 
-variables:
-  - name: release
-    value: false
-
 steps:
   - task: NodeTool@0
     displayName: "Use Node 14.x"
@@ -23,17 +19,8 @@ steps:
 
   - bash: |
       export BUILDMACHINE=true
-      export VsMsSqlEnv=dev
       node node_modules/gulp/bin/gulp.js build --gulpfile $(Build.SourcesDirectory)/gulpfile.js
-    displayName: "gulp build (dev)"
-    condition: and(succeeded(), eq(variables['release'], false))
-
-  - bash: |
-      export BUILDMACHINE=true
-      export VsMsSqlEnv=production
-      node node_modules/gulp/bin/gulp.js build --gulpfile $(Build.SourcesDirectory)/gulpfile.js
-    displayName: "gulp build (release)"
-    condition: and(succeeded(), eq(variables['release'], true))
+    displayName: "gulp build"
 
   - bash: "gulp lint"
     displayName: "gulp lint"
