@@ -121,6 +121,11 @@ declare module 'vscode-mssql' {
 		accountId: string | undefined;
 
 		/**
+		 * tenantId
+		 */
+		tenantId: string | undefined;
+
+		/**
 		 * The port number to connect to.
 		 */
 		port: number;

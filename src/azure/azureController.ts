@@ -101,7 +101,7 @@ export class AzureController {
 			account = await azureCodeGrant.startLogin();
 			await accountStore.addAccount(account);
 			const token = await azureCodeGrant.getAccountSecurityToken(
-				account, azureCodeGrant.getHomeTenant(account).id, settings
+				account, profile.tenantId, settings
 			);
 			if (!token) {
 				let errorMessage = LocalizedConstants.msgGetTokenFail;
@@ -116,7 +116,7 @@ export class AzureController {
 			account = await azureDeviceCode.startLogin();
 			await accountStore.addAccount(account);
 			const token = await azureDeviceCode.getAccountSecurityToken(
-				account, azureDeviceCode.getHomeTenant(account).id, settings
+				account, profile.tenantId, settings
 			);
 			if (!token) {
 				let errorMessage = LocalizedConstants.msgGetTokenFail;
@@ -136,7 +136,7 @@ export class AzureController {
 			await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
 			throw new Error(LocalizedConstants.msgAccountNotFound);
 		}
-		let azureAccountToken = await this.refreshToken(account, accountStore, settings);
+		let azureAccountToken = await this.refreshToken(account, accountStore, settings, profile.tenantId);
 		if (!azureAccountToken) {
 			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 			return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
@@ -155,7 +155,7 @@ export class AzureController {
 		return profile;
 	}
 
-	public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<Token | undefined> {
+	public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource, tenantId: string = null): Promise<Token | undefined> {
 		try {
 			let token: Token;
 			if (account.properties.azureAuthType === 0) {
@@ -166,7 +166,8 @@ export class AzureController {
 					return undefined;
 				}
 				await accountStore.addAccount(newAccount);
-				token = await azureCodeGrant.getAccountSecurityToken(account, azureCodeGrant.getHomeTenant(account).id, settings);
+				let tid = tenantId ? tenantId : azureCodeGrant.getHomeTenant(account).id;
+				token = await azureCodeGrant.getAccountSecurityToken(account, tid, settings);
 			} else if (account.properties.azureAuthType === 1) {
 				// Auth Device Code
 				let azureDeviceCode = await this.createDeviceCode();
@@ -175,8 +176,9 @@ export class AzureController {
 				if (newAccount.isStale === true) {
 					return undefined;
 				}
+				let tid = tenantId ? tenantId : azureDeviceCode.getHomeTenant(account).id;
 				token = await azureDeviceCode.getAccountSecurityToken(
-					account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource);
+					account, tid, providerSettings.resources.databaseResource);
 			}
 			return token;
 		} catch (ex) {
