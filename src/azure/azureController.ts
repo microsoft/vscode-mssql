@@ -105,11 +105,11 @@ export class AzureController {
 			name: LocalizedConstants.tenant,
 			message: LocalizedConstants.azureChooseTenant,
 			choices: tenantChoices,
-			shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length != 0,
+			shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length !== 0,
 			onAnswered: (value: Tenant) => {
 				profile.tenantId = value.id;
 			}
-		}
+		};
 		await this.prompter.promptSingle(tenantQuestion, true);
 	}
 
@@ -120,7 +120,7 @@ export class AzureController {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			account = await azureCodeGrant.startLogin();
 			await accountStore.addAccount(account);
-			if (profile.tenantId == undefined) {
+			if (profile.tenantId === undefined) {
 				await this.promptForTenantChoice(account, profile);
 			}
 			const token = await azureCodeGrant.getAccountSecurityToken(
@@ -138,7 +138,7 @@ export class AzureController {
 			let azureDeviceCode = await this.createDeviceCode();
 			account = await azureDeviceCode.startLogin();
 			await accountStore.addAccount(account);
-			if (profile.tenantId == undefined) {
+			if (profile.tenantId === undefined) {
 				await this.promptForTenantChoice(account, profile);
 			}
 			const token = await azureDeviceCode.getAccountSecurityToken(
@@ -181,7 +181,7 @@ export class AzureController {
 		return profile;
 	}
 
-	public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource, tenantId: string = null): Promise<Token | undefined> {
+	public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource, tenantId: string = undefined): Promise<Token | undefined> {
 		try {
 			let token: Token;
 			if (account.properties.azureAuthType === 0) {

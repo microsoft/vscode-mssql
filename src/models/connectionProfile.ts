@@ -105,7 +105,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				name: LocalizedConstants.tenant,
 				message: LocalizedConstants.azureChooseTenant,
 				choices: tenantChoices,
-				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length != 0,
+				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length !== 0,
 				onAnswered: (value: Tenant) => {
 					profile.tenantId = value.id;
 				}
