@@ -100,7 +100,7 @@ export class AzureController {
 
 	private async promptForTenantChoice(account: AzureAccount, profile: ConnectionProfile): Promise<void> {
 		let tenantChoices: INameValueChoice[] = account.properties.tenants?.map(t => ({ name: t.displayName, value: t }));
-		if (tenantChoices.length === 1) {
+		if (tenantChoices && tenantChoices.length === 1) {
 			profile.tenantId = tenantChoices[0].value.id;
 			return;
 		}
@@ -124,11 +124,12 @@ export class AzureController {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			account = await azureCodeGrant.startLogin();
 			await accountStore.addAccount(account);
-			if (profile.tenantId === undefined) {
+			if (!profile.tenantId) {
 				await this.promptForTenantChoice(account, profile);
 			}
+			let tid = profile.tenantId ? profile.tenantId : azureCodeGrant.getHomeTenant(account).id;
 			const token = await azureCodeGrant.getAccountSecurityToken(
-				account, profile.tenantId, settings
+				account, tid, settings
 			);
 			if (!token) {
 				let errorMessage = LocalizedConstants.msgGetTokenFail;
@@ -142,11 +143,12 @@ export class AzureController {
 			let azureDeviceCode = await this.createDeviceCode();
 			account = await azureDeviceCode.startLogin();
 			await accountStore.addAccount(account);
-			if (profile.tenantId === undefined) {
+			if (!profile.tenantId) {
 				await this.promptForTenantChoice(account, profile);
 			}
+			let tid = profile.tenantId ? profile.tenantId : azureDeviceCode.getHomeTenant(account).id;
 			const token = await azureDeviceCode.getAccountSecurityToken(
-				account, profile.tenantId, settings
+				account, tid, settings
 			);
 			if (!token) {
 				let errorMessage = LocalizedConstants.msgGetTokenFail;
