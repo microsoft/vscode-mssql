@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from '../constants/localizedConstants';
-import { ConnectionDetails } from './contracts/connection';
 import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { IConnectionInfo } from 'vscode-mssql';
+import { ConnectionDetails, IConnectionInfo } from 'vscode-mssql';
 
 // Concrete implementation of the IConnectionCredentials interface
 export class ConnectionCredentials implements IConnectionInfo {
@@ -52,7 +51,9 @@ export class ConnectionCredentials implements IConnectionInfo {
 	 * Create a connection details contract from connection credentials.
 	 */
 	public static createConnectionDetails(credentials: IConnectionInfo): ConnectionDetails {
-		let details: ConnectionDetails = new ConnectionDetails();
+		let details: ConnectionDetails = {
+			options: {}
+		};
 
 		details.options['connectionString'] = credentials.connectionString;
 		details.options['server'] = credentials.server;
