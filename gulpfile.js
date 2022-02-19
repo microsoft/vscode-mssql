@@ -219,10 +219,7 @@ gulp.task('ext:copy-tests', () => {
 });
 
 gulp.task('ext:copy-config', () => {
-	var env = process.env.VsMsSqlEnv;
-	env = env == undefined ? "dev" : env;
-	return gulp.src(config.paths.project.root + '/src/configurations/' + env + '.config.json')
-		.pipe(rename('config.json'))
+	return gulp.src(config.paths.project.root + '/src/configurations/config.json')
 		.pipe(gulp.dest(config.paths.project.root + '/out/src'));
 });
 
