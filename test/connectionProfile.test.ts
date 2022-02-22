@@ -28,6 +28,7 @@ function createTestCredentials(): IConnectionInfo {
 		password: '12345678',
 		email: 'test-email',
 		accountId: 'test-account-id',
+		tenantId: 'test-tenant-id',
 		port: 1234,
 		authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
 		azureAccountToken: '',
@@ -63,6 +64,7 @@ suite('Connection Profile tests', () => {
 	let mockAccountStore: AccountStore;
 	let mockAzureController: AzureController;
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
+	let mockPrompter: TypeMoq.IMock<IPrompter>;
 	let globalstate: TypeMoq.IMock<vscode.Memento>;
 
 	setup(() => {
@@ -70,7 +72,7 @@ suite('Connection Profile tests', () => {
 		globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		mockContext.setup(c => c.workspaceState).returns(() => globalstate.object);
-		mockAzureController = new AzureController(mockContext.object);
+		mockAzureController = new AzureController(mockContext.object, mockPrompter.object);
 		mockAccountStore = new AccountStore(mockContext.object);
 	});
 
@@ -104,6 +106,7 @@ suite('Connection Profile tests', () => {
 			LocalizedConstants.passwordPrompt,   // Password
 			LocalizedConstants.msgSavePassword,  // Save Password
 			LocalizedConstants.aad,              // Choose AAD Account
+			LocalizedConstants.tenant,           // Choose AAD Tenant
 			LocalizedConstants.profileNamePrompt // Profile Name
 		];
 

@@ -120,7 +120,7 @@ export default class ConnectionManager {
 		}
 
 		if (!this.azureController) {
-			this.azureController = new AzureController(context);
+			this.azureController = new AzureController(context, prompter);
 			this.azureController.init();
 		}
 
@@ -707,7 +707,7 @@ export default class ConnectionManager {
 			if (!connectionCreds.azureAccountToken || connectionCreds.expiresOn - currentTime < maxTolerance) {
 				let account = this.accountStore.getAccount(connectionCreds.accountId);
 				let profile = new ConnectionProfile(connectionCreds);
-				let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource);
+				let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource, profile.tenantId);
 				if (!azureAccountToken) {
 					let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 					let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);

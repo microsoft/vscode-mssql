@@ -439,7 +439,7 @@ export class ObjectExplorerService {
 					let profile = new ConnectionProfile(connectionCredentials);
 					if (!connectionCredentials.azureAccountToken) {
 						let azureAccountToken = await azureController.refreshToken(
-							account, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+							account, this._connectionManager.accountStore, providerSettings.resources.databaseResource, connectionCredentials.tenantId);
 						if (!azureAccountToken) {
 							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 							await this._connectionManager.vscodeWrapper.showErrorMessage(

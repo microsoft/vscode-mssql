@@ -15,6 +15,7 @@ import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
 import { IAccount } from './contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
+import { Tenant, AzureAccount } from '@microsoft/ads-adal-library';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -30,11 +31,13 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 	public expiresOn: number | undefined;
 	public accountStore: AccountStore;
 	public accountId: string;
+	public tenantId: string;
 
 	constructor(connectionCredentials?: ConnectionCredentials) {
 		super();
 		if (connectionCredentials) {
 			this.accountId = connectionCredentials.accountId;
+			this.tenantId = connectionCredentials.tenantId;
 			this.authenticationType = connectionCredentials.authenticationType;
 			this.azureAccountToken = connectionCredentials.azureAccountToken;
 			this.expiresOn = connectionCredentials.expiresOn;
@@ -68,6 +71,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 		let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(accountStore);
 		let accountAnswer: IAccount;
 		azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount' });
+		let tenantChoices: INameValueChoice[] = [];
 
 
 		let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true,
@@ -88,7 +92,26 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				message: LocalizedConstants.azureChooseAccount,
 				choices: azureAccountChoices,
 				shouldPrompt: (answers) => profile.isAzureActiveDirectory(),
-				onAnswered: (value: IAccount) => accountAnswer = value
+				onAnswered: (value) => {
+					accountAnswer = value;
+					if (value !== 'addAccount') {
+						let account: AzureAccount = value;
+						tenantChoices.push(...account?.properties?.tenants.map(t => ({ name: t.displayName, value: t })));
+						if (tenantChoices.length === 1) {
+							profile.tenantId = tenantChoices[0].value.id;
+						}
+					}
+				}
+			},
+			{
+				type: QuestionTypes.expand,
+				name: LocalizedConstants.tenant,
+				message: LocalizedConstants.azureChooseTenant,
+				choices: tenantChoices,
+				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
+				onAnswered: (value: Tenant) => {
+					profile.tenantId = value.id;
+				}
 			},
 			{
 				type: QuestionTypes.input,

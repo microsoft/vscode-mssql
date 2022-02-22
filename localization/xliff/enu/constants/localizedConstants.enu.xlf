@@ -128,6 +128,12 @@
         <trans-unit id="aad">
             <source xml:lang="en">AAD</source>
         </trans-unit>
+        <trans-unit id="azureChooseTenant">
+            <source xml:lang="en">Choose an Azure tenant</source>
+        </trans-unit>
+        <trans-unit id="tenant">
+            <source xml:lang="en">Tenant</source>
+        </trans-unit>
         <trans-unit id="usernamePrompt">
             <source xml:lang="en">User name</source>
         </trans-unit>

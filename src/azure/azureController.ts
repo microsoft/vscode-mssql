@@ -19,6 +19,9 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
+import { Tenant } from '@microsoft/ads-adal-library';
+import { AzureAccount } from '../../lib/ads-adal-library/src';
 
 function getAppDataPath(): string {
 	let platform = process.platform;
@@ -72,11 +75,13 @@ export class AzureController {
 	private storageService: StorageService;
 	private context: vscode.ExtensionContext;
 	private logger: AzureLogger;
+	private prompter: IPrompter;
 	private _vscodeWrapper: VscodeWrapper;
 	private credentialStoreInitialized = false;
 
-	constructor(context: vscode.ExtensionContext, logger?: AzureLogger) {
+	constructor(context: vscode.ExtensionContext, prompter: IPrompter, logger?: AzureLogger) {
 		this.context = context;
+		this.prompter = prompter;
 		if (!this.logger) {
 			this.logger = new AzureLogger();
 		}
@@ -93,6 +98,25 @@ export class AzureController {
 		this.azureMessageDisplayer = new AzureMessageDisplayer();
 	}
 
+	private async promptForTenantChoice(account: AzureAccount, profile: ConnectionProfile): Promise<void> {
+		let tenantChoices: INameValueChoice[] = account.properties.tenants?.map(t => ({ name: t.displayName, value: t }));
+		if (tenantChoices && tenantChoices.length === 1) {
+			profile.tenantId = tenantChoices[0].value.id;
+			return;
+		}
+		let tenantQuestion: IQuestion = {
+			type: QuestionTypes.expand,
+			name: LocalizedConstants.tenant,
+			message: LocalizedConstants.azureChooseTenant,
+			choices: tenantChoices,
+			shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
+			onAnswered: (value: Tenant) => {
+				profile.tenantId = value.id;
+			}
+		};
+		await this.prompter.promptSingle(tenantQuestion, true);
+	}
+
 	public async getTokens(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
 		let account: IAccount;
 		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
@@ -100,8 +124,12 @@ export class AzureController {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			account = await azureCodeGrant.startLogin();
 			await accountStore.addAccount(account);
+			if (!profile.tenantId) {
+				await this.promptForTenantChoice(account, profile);
+			}
+			let tid = profile.tenantId ? profile.tenantId : azureCodeGrant.getHomeTenant(account).id;
 			const token = await azureCodeGrant.getAccountSecurityToken(
-				account, azureCodeGrant.getHomeTenant(account).id, settings
+				account, tid, settings
 			);
 			if (!token) {
 				let errorMessage = LocalizedConstants.msgGetTokenFail;
@@ -115,8 +143,12 @@ export class AzureController {
 			let azureDeviceCode = await this.createDeviceCode();
 			account = await azureDeviceCode.startLogin();
 			await accountStore.addAccount(account);
+			if (!profile.tenantId) {
+				await this.promptForTenantChoice(account, profile);
+			}
+			let tid = profile.tenantId ? profile.tenantId : azureDeviceCode.getHomeTenant(account).id;
 			const token = await azureDeviceCode.getAccountSecurityToken(
-				account, azureDeviceCode.getHomeTenant(account).id, settings
+				account, tid, settings
 			);
 			if (!token) {
 				let errorMessage = LocalizedConstants.msgGetTokenFail;
@@ -136,7 +168,7 @@ export class AzureController {
 			await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
 			throw new Error(LocalizedConstants.msgAccountNotFound);
 		}
-		let azureAccountToken = await this.refreshToken(account, accountStore, settings);
+		let azureAccountToken = await this.refreshToken(account, accountStore, settings, profile.tenantId);
 		if (!azureAccountToken) {
 			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 			return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
@@ -155,7 +187,7 @@ export class AzureController {
 		return profile;
 	}
 
-	public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource): Promise<Token | undefined> {
+	public async refreshToken(account: IAccount, accountStore: AccountStore, settings: AADResource, tenantId: string = undefined): Promise<Token | undefined> {
 		try {
 			let token: Token;
 			if (account.properties.azureAuthType === 0) {
@@ -166,7 +198,8 @@ export class AzureController {
 					return undefined;
 				}
 				await accountStore.addAccount(newAccount);
-				token = await azureCodeGrant.getAccountSecurityToken(account, azureCodeGrant.getHomeTenant(account).id, settings);
+				let tid = tenantId ? tenantId : azureCodeGrant.getHomeTenant(account).id;
+				token = await azureCodeGrant.getAccountSecurityToken(account, tid, settings);
 			} else if (account.properties.azureAuthType === 1) {
 				// Auth Device Code
 				let azureDeviceCode = await this.createDeviceCode();
@@ -175,8 +208,9 @@ export class AzureController {
 				if (newAccount.isStale === true) {
 					return undefined;
 				}
+				let tid = tenantId ? tenantId : azureDeviceCode.getHomeTenant(account).id;
 				token = await azureDeviceCode.getAccountSecurityToken(
-					account, azureDeviceCode.getHomeTenant(account).id, providerSettings.resources.databaseResource);
+					account, tid, providerSettings.resources.databaseResource);
 			}
 			return token;
 		} catch (ex) {

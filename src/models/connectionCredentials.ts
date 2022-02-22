@@ -19,6 +19,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 	public password: string;
 	public email: string | undefined;
 	public accountId: string | undefined;
+	public tenantId: string | undefined;
 	public port: number;
 	public authenticationType: string;
 	public azureAccountToken: string | undefined;
