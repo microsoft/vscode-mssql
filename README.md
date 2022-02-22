@@ -29,7 +29,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 * Adds object explorer table integration for SQL bindings with Azure Functions
 * Updated SqlParser to fix some intellisense issues
 * Fix decimal datatype handling
-* Fixed execution error caused by missing resource files
+* Fixed BatchParser execution error caused by missing resource files
 
 ## Version 1.12.0
 * Release date: December 15, 2021
