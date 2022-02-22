@@ -28,7 +28,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 ## What's new in 1.13.0
 * Adds object explorer table integration for SQL bindings with Azure Functions
 * Updated SqlParser to fix some intellisense issues
-* Fix decimal datatype handling
+* Fix decimal datatype handling https://github.com/microsoft/azuredatastudio/issues/275
 * Fixed BatchParser execution error caused by missing resource files https://github.com/microsoft/vscode-mssql/issues/17221
 
 ## Version 1.12.0
