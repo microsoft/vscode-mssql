@@ -77,7 +77,14 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 				// start the create azure function project flow
 				await azureFunctionApi.createFunction({});
 			}
-			return;
+			if (await azureFunctionUtils.getHostFiles()) {
+				// once project is created then start sql binding flow
+				projectFile = await azureFunctionUtils.getAzureFunctionProject();
+			} else {
+				// if user cancels prompt show warning
+				vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened);
+				return;
+			}
 		}
 
 		// because of an AF extension API issue, we have to get the newly created file by adding
