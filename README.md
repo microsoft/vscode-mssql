@@ -21,6 +21,16 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
+## Version 1.13.0
+* Release date: February 24, 2022
+* Release status: GA
+
+## What's new in 1.13.0
+* Adds object explorer table integration for SQL bindings with Azure Functions
+* Updated SqlParser to fix some intellisense issues
+* Fix decimal datatype handling
+* Fixed execution error caused by missing resource files
+
 ## Version 1.12.0
 * Release date: December 15, 2021
 * Release status: GA
