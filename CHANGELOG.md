@@ -1,7 +1,7 @@
 # Change Log
 
 ## Version 1.13.0
-* Release date: December 15, 2021
+* Release date: February 24, 2022
 * Release status: GA
 
 ## What's new in 1.13.0
