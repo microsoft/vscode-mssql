@@ -68,6 +68,9 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			return;
 		}
 		let projectFile = await azureFunctionUtils.getAzureFunctionProject();
+		let newHostProjectFile: azureFunctionUtils.IFileFunctionObject;
+		let hostFile: string;
+
 		if (!projectFile) {
 			let projectCreate = await vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened,
 				LocalizedConstants.createProject, LocalizedConstants.learnMore);
@@ -75,16 +78,23 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(constants.sqlBindingsDoc));
 				return;
 			} else if (projectCreate === LocalizedConstants.createProject) {
-				// start the create azure function project flow
-				await azureFunctionApi.createFunction({});
-			}
-			if (await azureFunctionUtils.getHostFiles()) {
-				// once project is created then start sql binding flow
-				projectFile = await azureFunctionUtils.getAzureFunctionProject();
-			} else {
-				// if user cancels prompt show warning
-				vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened);
-				return;
+				try {
+					// start the create azure function project flow
+					// create a watcher to see if the host file is created after the flow is complete
+					newHostProjectFile = await azureFunctionUtils.waitForNewHostFile();
+					const timeoutForHostFile = timeoutPromise(LocalizedConstants.azureFunctionsProjectMustBeOpened);
+					await azureFunctionApi.createFunction({});
+					hostFile = await Promise.race([newHostProjectFile.filePromise, timeoutForHostFile]);
+					if (hostFile) {
+						// start the add sql binding flow
+						projectFile = await azureFunctionUtils.getAzureFunctionProject();
+					}
+				} catch (error) {
+					vscode.window.showErrorMessage(error.message);
+					return;
+				} finally {
+					newHostProjectFile.watcherDisposable.dispose();
+				}
 			}
 		}
 
@@ -116,8 +126,8 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			});
 
 			// check for the new function file to be created and dispose of the file system watcher
-			const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
-			functionFile = await Promise.race([newFunctionFileObject.filePromise, timeout]);
+			const timeoutForFunctionFile = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
+			functionFile = await Promise.race([newFunctionFileObject.filePromise, timeoutForFunctionFile]);
 		} finally {
 			newFunctionFileObject.watcherDisposable.dispose();
 		}
