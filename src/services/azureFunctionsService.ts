@@ -12,6 +12,7 @@ import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
 import { generateQuotedFullName, timeoutPromise, getUniqueFileName } from '../utils/utils';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import * as utils from '../models/utils';
 
 export const hostFileName: string = 'host.json';
 
@@ -83,14 +84,14 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 					// create a watcher to see if the host file is created after the flow is complete
 					newHostProjectFile = await azureFunctionUtils.waitForNewHostFile();
 					await azureFunctionApi.createFunction({});
-					const timeoutForHostFile = timeoutPromise(LocalizedConstants.azureFunctionsProjectMustBeOpened);
+					const timeoutForHostFile = timeoutPromise(LocalizedConstants.timeoutProjectError);
 					hostFile = await Promise.race([newHostProjectFile.filePromise, timeoutForHostFile]);
 					if (hostFile) {
 						// start the add sql binding flow
 						projectFile = await azureFunctionUtils.getAzureFunctionProject();
 					}
 				} catch (error) {
-					vscode.window.showErrorMessage(LocalizedConstants.errorNewAzureFunction + error.message ?? error);
+					vscode.window.showErrorMessage(utils.formatString(LocalizedConstants.errorNewAzureFunction, error.message) ?? error);
 					return;
 				} finally {
 					newHostProjectFile.watcherDisposable.dispose();
