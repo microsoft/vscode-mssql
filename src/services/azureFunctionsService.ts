@@ -82,15 +82,15 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 					// start the create azure function project flow
 					// create a watcher to see if the host file is created after the flow is complete
 					newHostProjectFile = await azureFunctionUtils.waitForNewHostFile();
-					const timeoutForHostFile = timeoutPromise(LocalizedConstants.azureFunctionsProjectMustBeOpened);
 					await azureFunctionApi.createFunction({});
+					const timeoutForHostFile = timeoutPromise(LocalizedConstants.azureFunctionsProjectMustBeOpened);
 					hostFile = await Promise.race([newHostProjectFile.filePromise, timeoutForHostFile]);
 					if (hostFile) {
 						// start the add sql binding flow
 						projectFile = await azureFunctionUtils.getAzureFunctionProject();
 					}
 				} catch (error) {
-					vscode.window.showErrorMessage(error.message);
+					vscode.window.showErrorMessage(LocalizedConstants.errorNewAzureFunction + error.message ?? error);
 					return;
 				} finally {
 					newHostProjectFile.watcherDisposable.dispose();

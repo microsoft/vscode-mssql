@@ -572,6 +572,9 @@
          <trans-unit id="nameMustNotBeEmpty">
             <source xml:lang="en">Name must not be empty</source>
         </trans-unit>
+        <trans-unit id="errorNewAzureFunction">
+            <source xml:lang="en">Error creating new Azure Function: </source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
