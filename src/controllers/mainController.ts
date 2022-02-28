@@ -650,7 +650,7 @@ export default class MainController implements vscode.Disposable {
 	public async connect(uri: string, connectionInfo: IConnectionInfo, connectionPromise: Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
 		if (this.canRunCommand() && uri && connectionInfo) {
 			let connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
-			if(!connectedSuccessfully) {
+			if (!connectedSuccessfully) {
 				const connectionProfile = new ConnectionProfile(connectionInfo);
 				connectedSuccessfully = await this._connectionMgr.connectionUI.addFirewallRule(uri, connectionProfile);
 			}

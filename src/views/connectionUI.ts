@@ -18,7 +18,6 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
 import { AccountStore } from '../azure/accountStore';
-//import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
 
