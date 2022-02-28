@@ -36,6 +36,7 @@ import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
 import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionProfile } from '../models/connectionProfile';
 
 /**
  * The main controller class that initializes the extension
@@ -648,7 +649,11 @@ export default class MainController implements vscode.Disposable {
 	 */
 	public async connect(uri: string, connectionInfo: IConnectionInfo, connectionPromise: Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
 		if (this.canRunCommand() && uri && connectionInfo) {
-			const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
+			let connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
+			if(!connectedSuccessfully) {
+				const connectionProfile = new ConnectionProfile(connectionInfo);
+				connectedSuccessfully = await this._connectionMgr.connectionUI.addFirewallRule(uri, connectionProfile);
+			}
 			if (connectedSuccessfully) {
 				if (saveConnection) {
 					await this.createObjectExplorerSession(connectionInfo);
