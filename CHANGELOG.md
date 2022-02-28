@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 1.13.0
+* Release date: February 24, 2022
+* Release status: GA
+
+## What's new in 1.13.0
+* Adds context menu item for object explorer table nodes to create an Azure Function with SQL binding for that table
+* Updated SqlParser to fix some intellisense issues
+* Fixed decimal datatype handling https://github.com/microsoft/azuredatastudio/issues/275
+* Fixed BatchParser execution error caused by missing resource files https://github.com/microsoft/vscode-mssql/issues/17221
+
 ## Version 1.12.0
 * Release date: December 15, 2021
 * Release status: GA
