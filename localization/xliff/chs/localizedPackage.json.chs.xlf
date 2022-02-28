@@ -1,48 +1,136 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="zh-CN">
+  <file datatype="xml" original="package" source-language="en" target-language="zh-Hans">
     <body>
-      <trans-unit id="extension.runQuery">
+      <trans-unit id="mssql.runQuery">
         <source xml:lang="en">Execute Query</source>
         <target state="translated">执行查询</target>
       </trans-unit>
-      <trans-unit id="extension.runCurrentStatement">
+      <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
         <target state="translated">执行当前语句</target>
       </trans-unit>
-      <trans-unit id="extension.cancelQuery">
+      <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">取消查询</target>
       </trans-unit>
-      <trans-unit id="extension.connect">
+      <trans-unit id="mssql.addObjectExplorer">
+        <source xml:lang="en">Add Connection</source>
+        <target state="translated">添加连接</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptSelect">
+        <source xml:lang="en">Select Top 1000</source>
+        <target state="translated">选择前 1000 项</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptCreate">
+        <source xml:lang="en">Script as Create</source>
+        <target state="translated">撰写为 Create 的脚本</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptDelete">
+        <source xml:lang="en">Script as Drop</source>
+        <target state="translated">撰写为 Drop 的脚本</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptExecute">
+        <source xml:lang="en">Script as Execute</source>
+        <target state="translated">撰写为 Execute 的脚本</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptAlter">
+        <source xml:lang="en">Script as Alter</source>
+        <target state="translated">撰写为 Alter 的脚本</target>
+      </trans-unit>
+      <trans-unit id="mssql.openQueryHistory">
+        <source xml:lang="en">Open Query</source>
+        <target state="translated">打开查询</target>
+      </trans-unit>
+      <trans-unit id="mssql.runQueryHistory">
+        <source xml:lang="en">Run Query</source>
+        <target state="translated">运行查询</target>
+      </trans-unit>
+      <trans-unit id="mssql.deleteQueryHistory">
+        <source xml:lang="en">Delete</source>
+        <target state="translated">删除</target>
+      </trans-unit>
+      <trans-unit id="mssql.clearAllQueryHistory">
+        <source xml:lang="en">Clear All Query History</source>
+        <target state="translated">清除所有查询历史记录</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryCapture">
+        <source xml:lang="en">Enable Query History Capture</source>
+        <target state="translated">启用查询历史记录捕获</target>
+      </trans-unit>
+      <trans-unit id="mssql.startQueryHistoryCapture">
+        <source xml:lang="en">Start Query History Capture</source>
+        <target state="translated">开始查询历史记录捕获</target>
+      </trans-unit>
+      <trans-unit id="mssql.pauseQueryHistoryCapture">
+        <source xml:lang="en">Pause Query History Capture</source>
+        <target state="translated">暂停查询历史记录捕获</target>
+      </trans-unit>
+      <trans-unit id="mssql.commandPaletteQueryHistory">
+        <source xml:lang="en">Open Query History in Command Palette</source>
+        <target state="translated">在命令面板中打开查询历史记录</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeObjectExplorerNode">
+        <source xml:lang="en">Remove</source>
+        <target state="translated">删除</target>
+      </trans-unit>
+      <trans-unit id="mssql.refreshObjectExplorerNode">
+        <source xml:lang="en">Refresh</source>
+        <target state="translated">刷新</target>
+      </trans-unit>
+      <trans-unit id="extension.connections">
+        <source xml:lang="en">Connections</source>
+        <target state="translated">连接</target>
+      </trans-unit>
+      <trans-unit id="extension.queryHistory">
+        <source xml:lang="en">Query History</source>
+        <target state="translated">查询历史记录</target>
+      </trans-unit>
+      <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">连接</target>
       </trans-unit>
-      <trans-unit id="extension.disconnect">
+      <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">断开连接</target>
       </trans-unit>
-      <trans-unit id="extension.manageProfiles">
+      <trans-unit id="mssql.manageProfiles">
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">管理连接配置文件</target>
       </trans-unit>
-      <trans-unit id="extension.chooseDatabase">
+      <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">使用数据库</target>
       </trans-unit>
-      <trans-unit id="extension.chooseLanguageFlavor">
+      <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">为此文件选择 SQL 句柄</target>
       </trans-unit>
-      <trans-unit id="extension.showGettingStarted">
+      <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">入门指南</target>
       </trans-unit>
-      <trans-unit id="extension.newQuery">
+      <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">新建查询</target>
       </trans-unit>
-      <trans-unit id="extension.rebuildIntelliSenseCache">
+      <trans-unit id="mssql.objectExplorerNewQuery">
+        <source xml:lang="en">New Query</source>
+        <target state="translated">新建查询</target>
+      </trans-unit>
+      <trans-unit id="mssql.toggleSqlCmd">
+        <source xml:lang="en">Toggle SQLCMD Mode</source>
+        <target state="translated">切换 SQLCMD 模式</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyObjectName">
+        <source xml:lang="en">Copy Object Name</source>
+        <target state="translated">复制对象名称</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeAadAccount">
+        <source xml:lang="en">Remove Azure Account</source>
+        <target state="translated">删除 Azure 帐户</target>
+      </trans-unit>
+      <trans-unit id="mssql.rebuildIntelliSenseCache">
         <source xml:lang="en">Refresh IntelliSense Cache</source>
         <target state="translated">刷新 IntelliSense 缓存</target>
       </trans-unit>
@@ -59,8 +147,8 @@
         <target state="translated">“用户设置”中定义的连接配置文件显示在命令面板的“MS SQL: 连接”命令下。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.server">
-        <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
-        <target state="translated">[必需] 请指定要连接到的服务器名称。对于 Azure SQL 数据库，请使用 "hostname\\instance" 或 "&lt;server&gt;.database.windows.net"。</target>
+        <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
+        <target state="translated">[必需] 请指定要连接到的服务器名称。对于 Azure SQL 数据库，请使用“主机名实例”或 “&lt;server&gt;.database.windows.net”。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.database">
         <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source>
@@ -278,6 +366,10 @@
         <source xml:lang="en">Should IntelliSense quick info be enabled</source>
         <target state="translated">是否启用 IntelliSense 快速信息提示</target>
       </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryFeature">
+        <source xml:lang="en">Should Query History feature be enabled</source>
+        <target state="translated">应启用查询历史记录功能</target>
+      </trans-unit>
       <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
         <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
         <target state="translated">是否小写显式 IntelliSense 建议</target>
@@ -285,6 +377,142 @@
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">切换选项卡时是否应保存查询结果选择项和滚动位置(可能影响性能)</target>
+      </trans-unit>
+      <trans-unit id="mssql.queryHistoryLimit">
+        <source xml:lang="en">Number of query history entries to show in the Query History view</source>
+        <target state="translated">要在查询历史记录视图中显示的查询历史记录条目数</target>
+      </trans-unit>
+      <trans-unit id="mssql.createAzureFunction">
+        <source xml:lang="en">Create Azure Function with SQL binding</source>
+        <target state="translated">使用 SQL 绑定创建 Azure 函数</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxXmlCharsToStore">
+        <source xml:lang="en">Number of XML characters to store after running a query</source>
+        <target state="translated">运行查询后要存储的 XML 字符数</target>
+      </trans-unit>
+      <trans-unit id="mssql.tracingLevel">
+        <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
+        <target state="translated">[可选] 后端服务的日志级别。Azure Data Studio 在每次启动时都会生成文件名；如果文件已存在，日志条目将追加到该文件。有关旧日志文件的清理，请参阅 logRetentionMinutes 和 logFilesRemovalLimit 设置。默认 tracingLevel 记录的内容很少。更改详细级别可能提升日志的记录和磁盘空间要求。“错误”包含“严重”，“警告”包含“错误”，“信息”包含“警告”，“详细级别”包含“信息”</target>
+      </trans-unit>
+      <trans-unit id="mssql.logRetentionMinutes">
+        <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
+        <target state="translated">将后端服务的日志文件保留的时长(分钟数)。默认为 1 周。</target>
+      </trans-unit>
+      <trans-unit id="mssql.logFilesRemovalLimit">
+        <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
+        <target state="translated">启动时要删除的已超过 mssql.logRetentionMinutes 的旧文件的最大数量。将在下次启动 Azure Data Studio 时清理由于此限制而未清理的文件。</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.setRowCount">
+        <source xml:lang="en">Maximum number of rows to return before the server stops processing your query.</source>
+        <target state="translated">在服务器停止处理查询之前要返回的最大行数。</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.textSize">
+        <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
+        <target state="translated">从 SELECT 语句返回的 text 和 ntext 数据的大小上限</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.executionTimeout">
+        <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
+        <target state="translated">如果执行超时为 0，则表示无限等待(不会超时)</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noCount">
+        <source xml:lang="en">Enable SET NOCOUNT option</source>
+        <target state="translated">启用 SET NOCOUNT 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noExec">
+        <source xml:lang="en">Enable SET NOEXEC option</source>
+        <target state="translated">启用 SET NOEXEC 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.parseOnly">
+        <source xml:lang="en">Enable SET PARSEONLY option</source>
+        <target state="translated">启用 SET PARSEONLY 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.arithAbort">
+        <source xml:lang="en">Enable SET ARITHABORT option</source>
+        <target state="translated">启用 SET ARITHABORT 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsTime">
+        <source xml:lang="en">Enable SET STATISTICS TIME option</source>
+        <target state="translated">启用 SET STATISTICS TIME 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsIO">
+        <source xml:lang="en">Enable SET STATISTICS IO option</source>
+        <target state="translated">启用 SET STATISTICS IO 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.xactAbortOn">
+        <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
+        <target state="translated">启用 SET XACT_ABORT ON 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.transactionIsolationLevel">
+        <source xml:lang="en">Enable SET TRANSACTION ISOLATION LEVEL option</source>
+        <target state="translated">启用 SET TRANSACTION ISOLATION LEVEL 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.deadlockPriority">
+        <source xml:lang="en">Enable SET DEADLOCK_PRIORITY option</source>
+        <target state="translated">启用 SET DEADLOCK_PRIORITY 选项</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.lockTimeout">
+        <source xml:lang="en">Enable SET LOCK TIMEOUT option (in milliseconds)</source>
+        <target state="translated">启用 SET LOCK TIMEOUT 选项(毫秒)</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.queryGovernorCostLimit">
+        <source xml:lang="en">Enable SET QUERY_GOVERNOR_COST_LIMIT</source>
+        <target state="translated">启用 SET QUERY_GOVERNOR_COST_LIMIT</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiDefaults">
+        <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
+        <target state="translated">启用 SET ANSI_DEFAULTS</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.quotedIdentifier">
+        <source xml:lang="en">Enable SET QUOTED_IDENTIFIER</source>
+        <target state="translated">启用 SET QUOTED_IDENTIFIER</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNullDefaultOn">
+        <source xml:lang="en">Enable SET ANSI_NULL_DFLT_ON</source>
+        <target state="translated">启用 SET ANSI_NULL_DFLT_ON</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.implicitTransactions">
+        <source xml:lang="en">Enable SET IMPLICIT_TRANSACTIONS</source>
+        <target state="translated">启用 SET IMPLICIT_TRANSACTIONS</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.cursorCloseOnCommit">
+        <source xml:lang="en">Enable SET CURSOR_CLOSE_ON_COMMIT</source>
+        <target state="translated">启用 SET CURSOR_CLOSE_ON_COMMIT</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiPadding">
+        <source xml:lang="en">Enable SET ANSI_PADDING</source>
+        <target state="translated">启用 SET ANSI_PADDING</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiWarnings">
+        <source xml:lang="en">Enable SET ANSI_WARNINGS</source>
+        <target state="translated">启用 SET ANSI_WARNINGS</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNulls">
+        <source xml:lang="en">Enable SET ANSI_NULLS</source>
+        <target state="translated">启用 SET ANSI_NULLS</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.alwaysEncryptedParameterization">
+        <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
+        <target state="translated">启用 Always Encrypted 参数化</target>
+      </trans-unit>
+      <trans-unit id="mssql.ignorePlatformWarning">
+        <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
+        <target state="translated">[可选] 不显示不受支持的平台警告</target>
+      </trans-unit>
+      <trans-unit id="mssql.Configuration">
+        <source xml:lang="en">MSSQL configuration</source>
+        <target state="translated">MSSQL 配置</target>
+      </trans-unit>
+      <trans-unit id="mssql.chooseAuthMethod">
+        <source xml:lang="en">Chooses which Authentication method to use</source>
+        <target state="translated">选择要使用的身份验证方法</target>
+      </trans-unit>
+      <trans-unit id="mssql.authCodeGrant.description">
+        <source xml:lang="en">Prompts users to sign in using their browser.</source>
+        <target state="translated">提示用户使用其浏览器登录。</target>
+      </trans-unit>
+      <trans-unit id="mssql.deviceCode.description">
+        <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
+        <target state="translated">允许用户登录到输入受限设备。</target>
       </trans-unit>
     </body>
   </file>
