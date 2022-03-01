@@ -79,9 +79,10 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(constants.sqlBindingsDoc));
 				return;
 			} else if (projectCreate === LocalizedConstants.createProject) {
+				// start the create azure function project flow
 				try {
-					// start the create azure function project flow
-					// create a watcher to see if the host file is created after the flow is complete
+					// because of an AF extension API issue, we have to get the newly created file by adding a watcher
+					// issue: https://github.com/microsoft/vscode-azurefunctions/issues/3052
 					newHostProjectFile = await azureFunctionUtils.waitForNewHostFile();
 					await azureFunctionApi.createFunction({});
 					const timeoutForHostFile = timeoutPromise(LocalizedConstants.timeoutProjectError);
@@ -99,8 +100,8 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			}
 		}
 
-		// because of an AF extension API issue, we have to get the newly created file by adding
-		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
+		// because of an AF extension API issue, we have to get the newly created file by adding a watcher
+		// issue: https://github.com/microsoft/vscode-azurefunctions/issues/2908
 		const newFunctionFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
 		let functionFile: string;
 		let functionName: string;
