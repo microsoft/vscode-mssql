@@ -248,6 +248,23 @@ export function waitForNewFunctionFile(projectFile: string): IFileFunctionObject
 }
 
 /**
+ * Retrieves the new host project file once it has created and the watcher disposable
+ * @returns the host file path once created and the watcher disposable
+ */
+export function waitForNewHostFile(): IFileFunctionObject {
+	const watcher = vscode.workspace.createFileSystemWatcher('**/host.json', false, true, true);
+	const filePromise = new Promise<string>((resolve, _) => {
+		watcher.onDidCreate((e) => {
+			resolve(e.fsPath);
+		});
+	});
+	return {
+		filePromise,
+		watcherDisposable: watcher
+	};
+}
+
+/**
  * Adds the required nuget package to the project
  * @param selectedProjectFile is the users selected project file path
  */

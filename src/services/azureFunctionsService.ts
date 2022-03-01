@@ -12,6 +12,7 @@ import * as azureFunctionUtils from '../azureFunction/azureFunctionUtils';
 import * as constants from '../constants/constants';
 import { generateQuotedFullName, timeoutPromise, getUniqueFileName } from '../utils/utils';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import * as utils from '../models/utils';
 
 export const hostFileName: string = 'host.json';
 
@@ -68,20 +69,39 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			return;
 		}
 		let projectFile = await azureFunctionUtils.getAzureFunctionProject();
+		let newHostProjectFile: azureFunctionUtils.IFileFunctionObject;
+		let hostFile: string;
+
 		if (!projectFile) {
 			let projectCreate = await vscode.window.showErrorMessage(LocalizedConstants.azureFunctionsProjectMustBeOpened,
 				LocalizedConstants.createProject, LocalizedConstants.learnMore);
 			if (projectCreate === LocalizedConstants.learnMore) {
 				vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(constants.sqlBindingsDoc));
+				return;
 			} else if (projectCreate === LocalizedConstants.createProject) {
 				// start the create azure function project flow
-				await azureFunctionApi.createFunction({});
+				try {
+					// because of an AF extension API issue, we have to get the newly created file by adding a watcher
+					// issue: https://github.com/microsoft/vscode-azurefunctions/issues/3052
+					newHostProjectFile = await azureFunctionUtils.waitForNewHostFile();
+					await azureFunctionApi.createFunction({});
+					const timeoutForHostFile = timeoutPromise(LocalizedConstants.timeoutProjectError);
+					hostFile = await Promise.race([newHostProjectFile.filePromise, timeoutForHostFile]);
+					if (hostFile) {
+						// start the add sql binding flow
+						projectFile = await azureFunctionUtils.getAzureFunctionProject();
+					}
+				} catch (error) {
+					vscode.window.showErrorMessage(utils.formatString(LocalizedConstants.errorNewAzureFunction, error.message ?? error));
+					return;
+				} finally {
+					newHostProjectFile.watcherDisposable.dispose();
+				}
 			}
-			return;
 		}
 
-		// because of an AF extension API issue, we have to get the newly created file by adding
-		// a watcher: https://github.com/microsoft/vscode-azurefunctions/issues/2908
+		// because of an AF extension API issue, we have to get the newly created file by adding a watcher
+		// issue: https://github.com/microsoft/vscode-azurefunctions/issues/2908
 		const newFunctionFileObject = azureFunctionUtils.waitForNewFunctionFile(projectFile);
 		let functionFile: string;
 		let functionName: string;
@@ -108,8 +128,8 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 			});
 
 			// check for the new function file to be created and dispose of the file system watcher
-			const timeout = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
-			functionFile = await Promise.race([newFunctionFileObject.filePromise, timeout]);
+			const timeoutForFunctionFile = timeoutPromise(LocalizedConstants.timeoutAzureFunctionFileError);
+			functionFile = await Promise.race([newFunctionFileObject.filePromise, timeoutForFunctionFile]);
 		} finally {
 			newFunctionFileObject.watcherDisposable.dispose();
 		}
