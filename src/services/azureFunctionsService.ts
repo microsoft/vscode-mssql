@@ -91,7 +91,7 @@ export class AzureFunctionsService implements mssql.IAzureFunctionsService {
 						projectFile = await azureFunctionUtils.getAzureFunctionProject();
 					}
 				} catch (error) {
-					vscode.window.showErrorMessage(utils.formatString(LocalizedConstants.errorNewAzureFunction, error.message) ?? error);
+					vscode.window.showErrorMessage(utils.formatString(LocalizedConstants.errorNewAzureFunction, error.message ?? error));
 					return;
 				} finally {
 					newHostProjectFile.watcherDisposable.dispose();
