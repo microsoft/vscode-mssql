@@ -172,11 +172,11 @@
       </trans-unit>
       <trans-unit id="azureChooseTenant">
         <source xml:lang="en">Choose an Azure tenant</source>
-        <target state="new">Choose an Azure tenant</target>
+        <target state="translated">Scegliere un tenant di Azure</target>
       </trans-unit>
       <trans-unit id="tenant">
         <source xml:lang="en">Tenant</source>
-        <target state="new">Tenant</target>
+        <target state="translated">Tenant</target>
       </trans-unit>
       <trans-unit id="usernamePrompt">
         <source xml:lang="en">User name</source>
