@@ -447,7 +447,7 @@ export default class MainController implements vscode.Disposable {
 			// set the database containing the selected table so it can be used
 			// for the initial catalog property of the connection string
 			let newNode: TreeNodeInfo = node;
-			while (true) {
+			while (newNode) {
 				if (newNode.nodeType === 'Database') {
 					connectionInfo.database = newNode.metadata.name;
 					break;
