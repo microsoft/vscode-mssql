@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ja-JP">
+  <file datatype="xml" original="src/constants/localizedConstants" source-language="en" target-language="ja">
     <body>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
@@ -126,6 +126,10 @@
         <source xml:lang="en">Authentication Type</source>
         <target state="translated">認証の種類</target>
       </trans-unit>
+      <trans-unit id="authTypeName">
+        <source xml:lang="en">authenticationType</source>
+        <target state="translated">authenticationType</target>
+      </trans-unit>
       <trans-unit id="authTypeIntegrated">
         <source xml:lang="en">Integrated</source>
         <target state="translated">統合</target>
@@ -133,6 +137,46 @@
       <trans-unit id="authTypeSql">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL ログイン</target>
+      </trans-unit>
+      <trans-unit id="authTypeAzureActiveDirectory">
+        <source xml:lang="en">Azure Active Directory - Universal w/ MFA Support</source>
+        <target state="translated">Azure Active Directory - ユニバーサルと MFA サポート</target>
+      </trans-unit>
+      <trans-unit id="azureAuthTypeCodeGrant">
+        <source xml:lang="en">Azure Code Grant</source>
+        <target state="translated">Azure コードの付与</target>
+      </trans-unit>
+      <trans-unit id="azureAuthTypeDeviceCode">
+        <source xml:lang="en">Azure Device Code</source>
+        <target state="translated">Azure デバイス コード</target>
+      </trans-unit>
+      <trans-unit id="msgCopyAndOpenWebpage">
+        <source xml:lang="en">Copy code and open webpage</source>
+        <target state="translated">コードをコピーして Web ページを開く</target>
+      </trans-unit>
+      <trans-unit id="azureChooseAccount">
+        <source xml:lang="en">Choose an Azure Active Directory Account</source>
+        <target state="translated">Azure Active Directory アカウントを選択してください</target>
+      </trans-unit>
+      <trans-unit id="azureAddAccount">
+        <source xml:lang="en">Add an Account...</source>
+        <target state="translated">アカウントの追加...</target>
+      </trans-unit>
+      <trans-unit id="cannotConnect">
+        <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
+        <target state="translated">トークンの有効期限が切れているため、接続できません。再認証して、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="aad">
+        <source xml:lang="en">AAD</source>
+        <target state="translated">AAD</target>
+      </trans-unit>
+      <trans-unit id="azureChooseTenant">
+        <source xml:lang="en">Choose an Azure tenant</source>
+        <target state="translated">Azure テナントの選択</target>
+      </trans-unit>
+      <trans-unit id="tenant">
+        <source xml:lang="en">Tenant</source>
+        <target state="translated">テナント</target>
       </trans-unit>
       <trans-unit id="usernamePrompt">
         <source xml:lang="en">User name</source>
@@ -161,22 +205,6 @@
       <trans-unit id="profileNamePlaceholder">
         <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
         <target state="translated">[省略可能] この接続プロファイルの表示名を入力してください。</target>
-      </trans-unit>
-      <trans-unit id="filepathPrompt">
-        <source xml:lang="en">File path</source>
-        <target state="translated">ファイル パス</target>
-      </trans-unit>
-      <trans-unit id="filepathMessage">
-        <source xml:lang="en">File name</source>
-        <target state="translated">ファイル名</target>
-      </trans-unit>
-      <trans-unit id="overwritePrompt">
-        <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
-        <target state="translated">この名前のファイルは既に存在します。既存のファイルを置き換えますか?</target>
-      </trans-unit>
-      <trans-unit id="overwritePlaceholder">
-        <source xml:lang="en">A file with this name already exists</source>
-        <target state="translated">この名前のファイルが既に存在します</target>
       </trans-unit>
       <trans-unit id="msgCannotOpenContent">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -302,17 +330,21 @@
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">エラー: 指定した接続情報を使用して接続できません。プロファイルの作成を再試行しますか?</target>
       </trans-unit>
+      <trans-unit id="refreshTokenLabel">
+        <source xml:lang="en">Refresh Credentials</source>
+        <target state="translated">資格情報の更新</target>
+      </trans-unit>
+      <trans-unit id="msgGetTokenFail">
+        <source xml:lang="en">Failed to fetch user tokens.</source>
+        <target state="translated">ユーザー トークンを取り込めませんでした。</target>
+      </trans-unit>
       <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         <target state="translated">エラー: ログインに失敗しました。別の資格情報を使用して再試行しますか?</target>
       </trans-unit>
-      <trans-unit id="msgPromptRetryFirewallRuleExtNotInstalled">
-        <source xml:lang="en">Your client IP address does not have access to the server. Download and install the Azure Account extension to sign in to an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">ご使用のクライアント IP アドレスには、サーバーへのアクセス権がありません。Azure Account 拡張機能をダウンロードおよびインストールして Azure アカウントにサインインし、アクセスを可能にするための新しいファイアウォール規則を作成してください。</target>
-      </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
-        <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">ご使用のクライアント IP アドレスには、サーバーへのアクセス権がありません。Azure アカウントにサインインし、アクセスを可能にするための新しいファイアウォール規則を作成してください。</target>
+        <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
+        <target state="translated">ご使用のクライアント IP アドレスには、サーバーへのアクセス権がありません。Azure アカウントを追加し、アクセスを可能にするための新しいファイアウォール規則を作成してください。</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
         <source xml:lang="en">Account signed In. Create new firewall rule? </source>
@@ -322,17 +354,21 @@
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
         <target state="translated">ファイアウォール規則が正常に追加されました。プロファイルの作成を再試行しますか? </target>
       </trans-unit>
-      <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
-        <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
-        <target state="translated">Azure Account 拡張機能がライセンス認証されました。Azure アカウントにサインインしますか? </target>
+      <trans-unit id="msgAccountRefreshFailed">
+        <source xml:lang="en">Credential Error: Account credentials have expired.  Please re-authenticate.</source>
+        <target state="translated">資格情報エラー: アカウントの資格情報の有効期限が切れています。再認証してください。</target>
       </trans-unit>
-      <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
-        <source xml:lang="en">Azure Account extension activated and signed in.</source>
-        <target state="translated">Azure Account 拡張機能がライセンス認証され、サインインしました。</target>
+      <trans-unit id="msgUnableToExpand">
+        <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
+        <target state="translated">展開できません。詳細については、ログをご確認ください。</target>
       </trans-unit>
       <trans-unit id="msgPromptFirewallRuleCreated">
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">ファイアウォール規則が正常に作成されました。</target>
+      </trans-unit>
+      <trans-unit id="msgAccountNotFound">
+        <source xml:lang="en">Account not found</source>
+        <target state="translated">アカウントが見つかりませんでした</target>
       </trans-unit>
       <trans-unit id="msgChooseQueryHistory">
         <source xml:lang="en">Choose Query History</source>
@@ -362,14 +398,6 @@
         <source xml:lang="en">Retry</source>
         <target state="translated">再試行</target>
       </trans-unit>
-      <trans-unit id="signInLabel">
-        <source xml:lang="en">Sign In</source>
-        <target state="translated">サインイン</target>
-      </trans-unit>
-      <trans-unit id="downloadAndInstallLabel">
-        <source xml:lang="en">Download and Install</source>
-        <target state="translated">ダウンロードとインストール</target>
-      </trans-unit>
       <trans-unit id="createFirewallRuleLabel">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">ファイアウォール規則を作成する</target>
@@ -377,6 +405,46 @@
       <trans-unit id="msgConnecting">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         <target state="translated">ドキュメント "{1}" でサーバー "{0}" に接続中です。</target>
+      </trans-unit>
+      <trans-unit id="msgConnectionNotFound">
+        <source xml:lang="en">Connection not found for uri "{0}".</source>
+        <target state="translated">URI "{0}" の接続が見つかりません。</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnect">
+        <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
+        <target state="translated">URI {0} の保留中の再接続 Promise が見つかりましたが、待機中です。</target>
+      </trans-unit>
+      <trans-unit id="msgPendingReconnectSuccess">
+        <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
+        <target state="translated">URI {0} に対する、前回の保留中の再接続に成功しました。</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnectFailed">
+        <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
+        <target state="translated">URI {0} の保留中の再接続 Promise が見つかりましたが、失敗しました。</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnectError">
+        <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
+        <target state="translated">URI {0} の前回の保留中の再接続 Promise は、エラー {1} で拒否されました。必要に応じて再接続が試行されます。</target>
+      </trans-unit>
+      <trans-unit id="msgAcessTokenExpired">
+        <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
+        <target state="translated">URI {1} の接続 {0} のアクセス トークンの有効期限が切れました</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenError">
+        <source xml:lang="en">Error when refreshing token</source>
+        <target state="translated">トークンの更新中にエラーが発生しました</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshConnection">
+        <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
+        <target state="translated">URI {1} の接続 ${0} を更新できませんでした。接続の結果が無効です。</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenSuccess">
+        <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
+        <target state="translated">URI {1} の接続 {0} のトークンが正常に更新されました。{2}</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenNotNeeded">
+        <source xml:lang="en">No need to refresh Azure acccount token for connection {0} with uri {1}</source>
+        <target state="translated">URI {1} の接続 {0} の Azure アカウント トークンを更新する必要はありません</target>
       </trans-unit>
       <trans-unit id="msgConnectedServerInfo">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -397,14 +465,6 @@
       <trans-unit id="msgDisconnected">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <target state="translated">ドキュメント "{0}" で切断されました</target>
-      </trans-unit>
-      <trans-unit id="msgErrorReadingConfigFile">
-        <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-        <target state="translated">エラー: [{0}] から接続プロファイルを読み込むことができません。ファイルが正しいフォーマットになっているか確認してください。</target>
-      </trans-unit>
-      <trans-unit id="titleResultsPane">
-        <source xml:lang="en">Results: {0}</source>
-        <target state="translated">結果: {0}</target>
       </trans-unit>
       <trans-unit id="macOpenSslErrorMessage">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -538,10 +598,6 @@
         <source xml:lang="en">None</source>
         <target state="translated">なし</target>
       </trans-unit>
-      <trans-unit id="chooseSqlLang">
-        <source xml:lang="en">Choose SQL Language</source>
-        <target state="translated">SQL 言語の選択</target>
-      </trans-unit>
       <trans-unit id="flavorChooseLanguage">
         <source xml:lang="en">Choose SQL Language</source>
         <target state="translated">SQL 言語の選択</target>
@@ -553,14 +609,6 @@
       <trans-unit id="flavorDescriptionNone">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         <target state="translated">現在のドキュメントで T-SQL インテリセンスと構文エラー チェックを無効にする</target>
-      </trans-unit>
-      <trans-unit id="queryOutputDocumentTitle">
-        <source xml:lang="en">Query Output Document</source>
-        <target state="translated">クエリ出力ドキュメント</target>
-      </trans-unit>
-      <trans-unit id="queryOutputHostTitle">
-        <source xml:lang="en">Query Output Document Host</source>
-        <target state="translated">クエリ出力ドキュメント ホスト</target>
       </trans-unit>
       <trans-unit id="msgAddConnection">
         <source xml:lang="en">Add Connection</source>
@@ -593,6 +641,134 @@
       <trans-unit id="azureSignInToAzureCloudDescription">
         <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         <target state="translated">いずれかのソブリン クラウドで、Azure サブスクリプションにサインインします。</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsExtensionNotInstalled">
+        <source xml:lang="en">Azure Functions extension must be installed in order to use this feature.</source>
+        <target state="translated">この機能を使用するには、Azure Functions 拡張機能をインストールする必要があります。</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsProjectMustBeOpened">
+        <source xml:lang="en">A C# Azure Functions project must be present in order to create a new Azure Function for this table.</source>
+        <target state="translated">このテーブルに新しい Azure 関数を作成するには、C# Azure Functions プロジェクトが存在する必要があります。</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithName">
+        <source xml:lang="en">{0}: {1}</source>
+        <target state="translated">{0}: {1}</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithMessage">
+        <source xml:lang="en">{1}. {2}</source>
+        <target state="translated">{1}。{2}</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithNameAndMessage">
+        <source xml:lang="en">{0}: {1}. {2}</source>
+        <target state="translated">{0}: {1}。{2}</target>
+      </trans-unit>
+      <trans-unit id="failed">
+        <source xml:lang="en">Failed</source>
+        <target state="translated">失敗</target>
+      </trans-unit>
+      <trans-unit id="succeeded">
+        <source xml:lang="en">Succeeded</source>
+        <target state="translated">成功</target>
+      </trans-unit>
+      <trans-unit id="succeededWithWarning">
+        <source xml:lang="en">Succeeded with warning</source>
+        <target state="translated">警告付きで成功</target>
+      </trans-unit>
+      <trans-unit id="canceled">
+        <source xml:lang="en">Canceled</source>
+        <target state="translated">取り消し済み</target>
+      </trans-unit>
+      <trans-unit id="inProgress">
+        <source xml:lang="en">In progress</source>
+        <target state="translated">進行中</target>
+      </trans-unit>
+      <trans-unit id="canceling">
+        <source xml:lang="en">Canceling</source>
+        <target state="translated">取り消しています</target>
+      </trans-unit>
+      <trans-unit id="notStarted">
+        <source xml:lang="en">Not started</source>
+        <target state="translated">未開始</target>
+      </trans-unit>
+      <trans-unit id="nodeErrorMessage">
+        <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+        <target state="translated">親ノードは TreeNodeInfo ではありませんでした。</target>
+      </trans-unit>
+      <trans-unit id="deleteCredentialError">
+        <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
+        <target state="translated">ID: {0} の資格情報を削除できませんでした。 {1}</target>
+      </trans-unit>
+      <trans-unit id="msgClearedRecentConnectionsWithErrors">
+        <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+        <target state="translated">最近の接続の一覧はクリアされましたが、関連付けられている資格情報の削除中にエラーが発生しました。MSSQL 出力チャネルのエラーを表示します。</target>
+      </trans-unit>
+      <trans-unit id="failedToParse">
+        <source xml:lang="en">Failed to parse "{0}": {1}.</source>
+        <target state="translated">"{0}" を解析できませんでした: {1}。</target>
+      </trans-unit>
+      <trans-unit id="settingAlreadyExists">
+        <source xml:lang="en">Local app setting '{0}' already exists. Overwrite?</source>
+        <target state="translated">ローカル アプリケーション設定 '{0}' は既に存在します。上書きしますか?</target>
+      </trans-unit>
+      <trans-unit id="yesString">
+        <source xml:lang="en">Yes</source>
+        <target state="translated">はい</target>
+      </trans-unit>
+      <trans-unit id="functionNameTitle">
+        <source xml:lang="en">Function Name</source>
+        <target state="translated">関数名</target>
+      </trans-unit>
+      <trans-unit id="selectProject">
+        <source xml:lang="en">Select the Azure Function project for the SQL Binding</source>
+        <target state="translated">SQL バインドのAzure Functions プロジェクトを選択します</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsExtensionNotFound">
+        <source xml:lang="en">The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?</source>
+        <target state="translated">SQL バインドを含む新しい Azure 関数を作成するには、Azure Functions 拡張機能が必要ですが、インストールされていません。今すぐインストールしますか?</target>
+      </trans-unit>
+      <trans-unit id="install">
+        <source xml:lang="en">Install</source>
+        <target state="translated">インストール</target>
+      </trans-unit>
+      <trans-unit id="learnMore">
+        <source xml:lang="en">Learn more</source>
+        <target state="translated">詳細を表示</target>
+      </trans-unit>
+      <trans-unit id="doNotInstall">
+        <source xml:lang="en">Do not install</source>
+        <target state="translated">インストールしない</target>
+      </trans-unit>
+      <trans-unit id="input">
+        <source xml:lang="en">Input</source>
+        <target state="translated">入力</target>
+      </trans-unit>
+      <trans-unit id="output">
+        <source xml:lang="en">Output</source>
+        <target state="translated">出力</target>
+      </trans-unit>
+      <trans-unit id="selectBindingType">
+        <source xml:lang="en">Select type of binding</source>
+        <target state="translated">バインドするタイプを選択します</target>
+      </trans-unit>
+      <trans-unit id="createProject">
+        <source xml:lang="en">Create Azure Function Project</source>
+        <target state="translated">Azure 関数プロジェクトの作成</target>
+      </trans-unit>
+      <trans-unit id="selectAzureFunctionProjFolder">
+        <source xml:lang="en">Select folder for the Azure Function project</source>
+        <target state="translated">Azure Function プロジェクトのフォルダーを選択する</target>
+      </trans-unit>
+      <trans-unit id="timeoutExtensionError">
+        <source xml:lang="en">Timed out waiting for extension to install</source>
+        <target state="translated">拡張機能のインストールの待機中にタイムアウトしました</target>
+      </trans-unit>
+      <trans-unit id="timeoutAzureFunctionFileError">
+        <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
+        <target state="translated">Azure 関数ファイルの作成の待機中にタイムアウトしました</target>
+      </trans-unit>
+      <trans-unit id="nameMustNotBeEmpty">
+        <source xml:lang="en">Name must not be empty</source>
+        <target state="translated">名前を空にすることはできません</target>
       </trans-unit>
     </body>
   </file>

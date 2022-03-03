@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ko-KR">
+  <file datatype="xml" original="src/constants/localizedConstants" source-language="en" target-language="ko">
     <body>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
@@ -126,6 +126,10 @@
         <source xml:lang="en">Authentication Type</source>
         <target state="translated">인증 유형</target>
       </trans-unit>
+      <trans-unit id="authTypeName">
+        <source xml:lang="en">authenticationType</source>
+        <target state="translated">authenticationType</target>
+      </trans-unit>
       <trans-unit id="authTypeIntegrated">
         <source xml:lang="en">Integrated</source>
         <target state="translated">통합</target>
@@ -133,6 +137,46 @@
       <trans-unit id="authTypeSql">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL 로그인</target>
+      </trans-unit>
+      <trans-unit id="authTypeAzureActiveDirectory">
+        <source xml:lang="en">Azure Active Directory - Universal w/ MFA Support</source>
+        <target state="translated">Azure Active Directory - MFA가 지원되는 유니버설</target>
+      </trans-unit>
+      <trans-unit id="azureAuthTypeCodeGrant">
+        <source xml:lang="en">Azure Code Grant</source>
+        <target state="translated">Azure 코드 부여</target>
+      </trans-unit>
+      <trans-unit id="azureAuthTypeDeviceCode">
+        <source xml:lang="en">Azure Device Code</source>
+        <target state="translated">Azure 디바이스 코드</target>
+      </trans-unit>
+      <trans-unit id="msgCopyAndOpenWebpage">
+        <source xml:lang="en">Copy code and open webpage</source>
+        <target state="translated">코드 복사 및 웹 페이지 열기</target>
+      </trans-unit>
+      <trans-unit id="azureChooseAccount">
+        <source xml:lang="en">Choose an Azure Active Directory Account</source>
+        <target state="translated">Azure Active Directory 계정 선택</target>
+      </trans-unit>
+      <trans-unit id="azureAddAccount">
+        <source xml:lang="en">Add an Account...</source>
+        <target state="translated">계정 추가...</target>
+      </trans-unit>
+      <trans-unit id="cannotConnect">
+        <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
+        <target state="translated">만료된 토큰으로 인해 연결할 수 없습니다. 다시 인증하고 다시 시도하세요.</target>
+      </trans-unit>
+      <trans-unit id="aad">
+        <source xml:lang="en">AAD</source>
+        <target state="translated">AAD</target>
+      </trans-unit>
+      <trans-unit id="azureChooseTenant">
+        <source xml:lang="en">Choose an Azure tenant</source>
+        <target state="translated">Azure 테넌트 선택</target>
+      </trans-unit>
+      <trans-unit id="tenant">
+        <source xml:lang="en">Tenant</source>
+        <target state="translated">테넌트</target>
       </trans-unit>
       <trans-unit id="usernamePrompt">
         <source xml:lang="en">User name</source>
@@ -161,22 +205,6 @@
       <trans-unit id="profileNamePlaceholder">
         <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
         <target state="translated">[옵션] 이 연결 프로필의 표시 이름 입력</target>
-      </trans-unit>
-      <trans-unit id="filepathPrompt">
-        <source xml:lang="en">File path</source>
-        <target state="translated">파일 경로</target>
-      </trans-unit>
-      <trans-unit id="filepathMessage">
-        <source xml:lang="en">File name</source>
-        <target state="translated">파일 이름</target>
-      </trans-unit>
-      <trans-unit id="overwritePrompt">
-        <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
-        <target state="translated">같은 이름의 파일이 이미 있습니다. 기존 파일을 바꾸시겠습니까?</target>
-      </trans-unit>
-      <trans-unit id="overwritePlaceholder">
-        <source xml:lang="en">A file with this name already exists</source>
-        <target state="translated">같은 이름의 파일이 이미 있습니다.</target>
       </trans-unit>
       <trans-unit id="msgCannotOpenContent">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -302,17 +330,21 @@
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">오류: 제공된 연결 정보로 연결할 수 없습니다. 프로필을 다시 만드시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="refreshTokenLabel">
+        <source xml:lang="en">Refresh Credentials</source>
+        <target state="translated">자격 증명 새로 고침</target>
+      </trans-unit>
+      <trans-unit id="msgGetTokenFail">
+        <source xml:lang="en">Failed to fetch user tokens.</source>
+        <target state="translated">사용자 토큰을 가져오지 못했습니다.</target>
+      </trans-unit>
       <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         <target state="translated">오류: 로그인하지 못했습니다. 다른 자격 증명을 사용하여 다시 시도하시겠습니까?</target>
       </trans-unit>
-      <trans-unit id="msgPromptRetryFirewallRuleExtNotInstalled">
-        <source xml:lang="en">Your client IP address does not have access to the server. Download and install the Azure Account extension to sign in to an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">클라이언트 IP 주소에서 서버에 액세스할 수 없습니다. Azure Account 확장을 다운로드한 후 설치하여 Azure 계정에 로그인하고 액세스를 허용하는 새 방화벽 규칙을 만드세요.</target>
-      </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
-        <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">클라이언트 IP 주소에서 서버에 액세스할 수 없습니다. Azure 계정에 로그인하고 액세스를 허용하는 새 방화벽 규칙을 만드세요.</target>
+        <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
+        <target state="translated">클라이언트 IP 주소에서 서버에 액세스할 수 없습니다. Azure 계정을 추가하고 액세스를 허용하는 새 방화벽 규칙을 만드세요.</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
         <source xml:lang="en">Account signed In. Create new firewall rule? </source>
@@ -322,17 +354,21 @@
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
         <target state="translated">방화벽 규칙을 추가했습니다. 프로필을 다시 만드시겠습니까? </target>
       </trans-unit>
-      <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
-        <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
-        <target state="translated">Azure Account 확장을 활성화했습니다. Azure 계정에 로그인하시겠습니까? </target>
+      <trans-unit id="msgAccountRefreshFailed">
+        <source xml:lang="en">Credential Error: Account credentials have expired.  Please re-authenticate.</source>
+        <target state="translated">자격 증명 오류: 계정 자격 증명이 만료되었습니다. 다시 인증하세요.</target>
       </trans-unit>
-      <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
-        <source xml:lang="en">Azure Account extension activated and signed in.</source>
-        <target state="translated">Azure Account 확장을 활성화하고 로그인했습니다.</target>
+      <trans-unit id="msgUnableToExpand">
+        <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
+        <target state="translated">확장할 수 없습니다. 자세한 내용은 로그를 확인하세요.</target>
       </trans-unit>
       <trans-unit id="msgPromptFirewallRuleCreated">
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">방화벽 규칙을 만들었습니다.</target>
+      </trans-unit>
+      <trans-unit id="msgAccountNotFound">
+        <source xml:lang="en">Account not found</source>
+        <target state="translated">계정을 찾을 수 없음</target>
       </trans-unit>
       <trans-unit id="msgChooseQueryHistory">
         <source xml:lang="en">Choose Query History</source>
@@ -362,14 +398,6 @@
         <source xml:lang="en">Retry</source>
         <target state="translated">다시 시도</target>
       </trans-unit>
-      <trans-unit id="signInLabel">
-        <source xml:lang="en">Sign In</source>
-        <target state="translated">로그인</target>
-      </trans-unit>
-      <trans-unit id="downloadAndInstallLabel">
-        <source xml:lang="en">Download and Install</source>
-        <target state="translated">다운로드 및 설치</target>
-      </trans-unit>
       <trans-unit id="createFirewallRuleLabel">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">방화벽 규칙 만들기</target>
@@ -377,6 +405,46 @@
       <trans-unit id="msgConnecting">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         <target state="translated">문서 "{1}"에서 서버 "{0}"에 연결하는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="msgConnectionNotFound">
+        <source xml:lang="en">Connection not found for uri "{0}".</source>
+        <target state="translated">"{0}" URI에 대한 연결을 찾지 못했습니다.</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnect">
+        <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
+        <target state="translated">{0} URI의 보류 중인 다시 연결 프라미스를 찾았으며, 현재 대기 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="msgPendingReconnectSuccess">
+        <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
+        <target state="translated">이전에 보류 중이었던 {0} URI 연결에 성공했습니다.</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnectFailed">
+        <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
+        <target state="translated">{0} URI의 보류 중인 다시 연결 프라미스를 찾았으며, 실패했습니다.</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnectError">
+        <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
+        <target state="translated">{0} URI의 이전에 보류 중이었던 다시 연결 프라미스가 {1} 오류가 발생하여 거부되었습니다. 필요한 경우 다시 연결을 시도합니다.</target>
+      </trans-unit>
+      <trans-unit id="msgAcessTokenExpired">
+        <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
+        <target state="translated">{1} URI와의 {0} 연결에 대한 액세스 토큰이 만료되었습니다.</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenError">
+        <source xml:lang="en">Error when refreshing token</source>
+        <target state="translated">토큰을 새로 고치는 동안 오류 발생</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshConnection">
+        <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
+        <target state="translated">{1} URI와의 ${0} 연결을 새로 고치지 못했습니다. 잘못된 연결이 발생했습니다.</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenSuccess">
+        <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
+        <target state="translated">{1} URI와의 {0} 연결 토큰을 새로 고쳤습니다. {2}</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenNotNeeded">
+        <source xml:lang="en">No need to refresh Azure acccount token for connection {0} with uri {1}</source>
+        <target state="translated">{1} URI와의 {0} 연결에 대한 Azure 계정 토큰을 새로 고치지 않아도 됩니다.</target>
       </trans-unit>
       <trans-unit id="msgConnectedServerInfo">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -397,14 +465,6 @@
       <trans-unit id="msgDisconnected">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <target state="translated">문서 "{0}"에서 연결을 끊음</target>
-      </trans-unit>
-      <trans-unit id="msgErrorReadingConfigFile">
-        <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-        <target state="translated">오류: [{0}]에서 연결 프로필을 로드할 수 없습니다. 파일 형식이 올바른지 확인하세요.</target>
-      </trans-unit>
-      <trans-unit id="titleResultsPane">
-        <source xml:lang="en">Results: {0}</source>
-        <target state="translated">결과: {0}</target>
       </trans-unit>
       <trans-unit id="macOpenSslErrorMessage">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -538,10 +598,6 @@
         <source xml:lang="en">None</source>
         <target state="translated">없음</target>
       </trans-unit>
-      <trans-unit id="chooseSqlLang">
-        <source xml:lang="en">Choose SQL Language</source>
-        <target state="translated">SQL 언어 선택</target>
-      </trans-unit>
       <trans-unit id="flavorChooseLanguage">
         <source xml:lang="en">Choose SQL Language</source>
         <target state="translated">SQL 언어 선택</target>
@@ -553,14 +609,6 @@
       <trans-unit id="flavorDescriptionNone">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         <target state="translated">현재 문서에서 IntelliSense 및 구문 오류 검사 사용 안 함</target>
-      </trans-unit>
-      <trans-unit id="queryOutputDocumentTitle">
-        <source xml:lang="en">Query Output Document</source>
-        <target state="translated">쿼리 출력 문서</target>
-      </trans-unit>
-      <trans-unit id="queryOutputHostTitle">
-        <source xml:lang="en">Query Output Document Host</source>
-        <target state="translated">쿼리 출력 문서 호스트</target>
       </trans-unit>
       <trans-unit id="msgAddConnection">
         <source xml:lang="en">Add Connection</source>
@@ -593,6 +641,134 @@
       <trans-unit id="azureSignInToAzureCloudDescription">
         <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         <target state="translated">소버린 클라우드 중 하나에서 Azure 구독에 로그인합니다.</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsExtensionNotInstalled">
+        <source xml:lang="en">Azure Functions extension must be installed in order to use this feature.</source>
+        <target state="translated">이 기능을 사용하려면 Azure Functions 확장을 설치해야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsProjectMustBeOpened">
+        <source xml:lang="en">A C# Azure Functions project must be present in order to create a new Azure Function for this table.</source>
+        <target state="translated">이 테이블에 새 Azure 함수를 만들려면 C# Azure Functions 프로젝트가 있어야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithName">
+        <source xml:lang="en">{0}: {1}</source>
+        <target state="translated">{0}: {1}</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithMessage">
+        <source xml:lang="en">{1}. {2}</source>
+        <target state="translated">{1}. {2}</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithNameAndMessage">
+        <source xml:lang="en">{0}: {1}. {2}</source>
+        <target state="translated">{0}: {1}. {2}</target>
+      </trans-unit>
+      <trans-unit id="failed">
+        <source xml:lang="en">Failed</source>
+        <target state="translated">실패함</target>
+      </trans-unit>
+      <trans-unit id="succeeded">
+        <source xml:lang="en">Succeeded</source>
+        <target state="translated">성공함</target>
+      </trans-unit>
+      <trans-unit id="succeededWithWarning">
+        <source xml:lang="en">Succeeded with warning</source>
+        <target state="translated">성공(경고 발생)</target>
+      </trans-unit>
+      <trans-unit id="canceled">
+        <source xml:lang="en">Canceled</source>
+        <target state="translated">취소됨</target>
+      </trans-unit>
+      <trans-unit id="inProgress">
+        <source xml:lang="en">In progress</source>
+        <target state="translated">진행 중</target>
+      </trans-unit>
+      <trans-unit id="canceling">
+        <source xml:lang="en">Canceling</source>
+        <target state="translated">취소 중</target>
+      </trans-unit>
+      <trans-unit id="notStarted">
+        <source xml:lang="en">Not started</source>
+        <target state="translated">시작되지 않음</target>
+      </trans-unit>
+      <trans-unit id="nodeErrorMessage">
+        <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+        <target state="translated">부모 노드가 TreeNodeInfo가 아닙니다.</target>
+      </trans-unit>
+      <trans-unit id="deleteCredentialError">
+        <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
+        <target state="translated">ID가 {0}인 자격 증명을 삭제하지 못했습니다. {1}</target>
+      </trans-unit>
+      <trans-unit id="msgClearedRecentConnectionsWithErrors">
+        <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+        <target state="translated">최근 연결 목록이 지워졌지만 연결된 일부 자격 증명을 삭제하는 동안 오류가 발생했습니다. MSSQL 출력 채널에서 오류를 확인하세요.</target>
+      </trans-unit>
+      <trans-unit id="failedToParse">
+        <source xml:lang="en">Failed to parse "{0}": {1}.</source>
+        <target state="translated">{0}을(를) 구문 분석하지 못했습니다. {1}.</target>
+      </trans-unit>
+      <trans-unit id="settingAlreadyExists">
+        <source xml:lang="en">Local app setting '{0}' already exists. Overwrite?</source>
+        <target state="translated">로컬 앱 설정 '{0}'이(가) 이미 존재합니다. 덮어쓰시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="yesString">
+        <source xml:lang="en">Yes</source>
+        <target state="translated">예</target>
+      </trans-unit>
+      <trans-unit id="functionNameTitle">
+        <source xml:lang="en">Function Name</source>
+        <target state="translated">함수 이름</target>
+      </trans-unit>
+      <trans-unit id="selectProject">
+        <source xml:lang="en">Select the Azure Function project for the SQL Binding</source>
+        <target state="translated">SQL 바인딩에 대한 Azure 함수 프로젝트 선택</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsExtensionNotFound">
+        <source xml:lang="en">The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?</source>
+        <target state="translated">SQL 바인딩을 사용하여 새 Azure 함수를 만드는 데 Azure Functions 확장이 필요하나 현재 설치되어 있지 않습니다. 지금 설치할까요?</target>
+      </trans-unit>
+      <trans-unit id="install">
+        <source xml:lang="en">Install</source>
+        <target state="translated">설치</target>
+      </trans-unit>
+      <trans-unit id="learnMore">
+        <source xml:lang="en">Learn more</source>
+        <target state="translated">자세한 정보</target>
+      </trans-unit>
+      <trans-unit id="doNotInstall">
+        <source xml:lang="en">Do not install</source>
+        <target state="translated">설치 안 함</target>
+      </trans-unit>
+      <trans-unit id="input">
+        <source xml:lang="en">Input</source>
+        <target state="translated">입력</target>
+      </trans-unit>
+      <trans-unit id="output">
+        <source xml:lang="en">Output</source>
+        <target state="translated">출력</target>
+      </trans-unit>
+      <trans-unit id="selectBindingType">
+        <source xml:lang="en">Select type of binding</source>
+        <target state="translated">바인딩 유형 선택</target>
+      </trans-unit>
+      <trans-unit id="createProject">
+        <source xml:lang="en">Create Azure Function Project</source>
+        <target state="translated">Azure 함수 프로젝트 만들기</target>
+      </trans-unit>
+      <trans-unit id="selectAzureFunctionProjFolder">
+        <source xml:lang="en">Select folder for the Azure Function project</source>
+        <target state="translated">Azure 함수 프로젝트에 대한 폴더 선택</target>
+      </trans-unit>
+      <trans-unit id="timeoutExtensionError">
+        <source xml:lang="en">Timed out waiting for extension to install</source>
+        <target state="translated">확장이 설치되길 기다리는 동안 시간이 초과되었습니다.</target>
+      </trans-unit>
+      <trans-unit id="timeoutAzureFunctionFileError">
+        <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
+        <target state="translated">Azure 함수 파일이 만들지길 기다리는 동안 시간이 초과되었습니다.</target>
+      </trans-unit>
+      <trans-unit id="nameMustNotBeEmpty">
+        <source xml:lang="en">Name must not be empty</source>
+        <target state="translated">이름은 비워 둘 수 없습니다.</target>
       </trans-unit>
     </body>
   </file>

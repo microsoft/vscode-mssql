@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ru-RU">
+  <file datatype="xml" original="src/constants/localizedConstants" source-language="en" target-language="ru">
     <body>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
@@ -126,6 +126,10 @@
         <source xml:lang="en">Authentication Type</source>
         <target state="translated">Тип проверки подлинности</target>
       </trans-unit>
+      <trans-unit id="authTypeName">
+        <source xml:lang="en">authenticationType</source>
+        <target state="translated">authenticationType</target>
+      </trans-unit>
       <trans-unit id="authTypeIntegrated">
         <source xml:lang="en">Integrated</source>
         <target state="translated">Интегрированный</target>
@@ -133,6 +137,46 @@
       <trans-unit id="authTypeSql">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">Имя для входа SQL</target>
+      </trans-unit>
+      <trans-unit id="authTypeAzureActiveDirectory">
+        <source xml:lang="en">Azure Active Directory - Universal w/ MFA Support</source>
+        <target state="translated">Azure Active Directory — универсальная поддержка с многофакторной проверкой подлинности</target>
+      </trans-unit>
+      <trans-unit id="azureAuthTypeCodeGrant">
+        <source xml:lang="en">Azure Code Grant</source>
+        <target state="translated">Предоставление кода Azure</target>
+      </trans-unit>
+      <trans-unit id="azureAuthTypeDeviceCode">
+        <source xml:lang="en">Azure Device Code</source>
+        <target state="translated">Код устройства Azure</target>
+      </trans-unit>
+      <trans-unit id="msgCopyAndOpenWebpage">
+        <source xml:lang="en">Copy code and open webpage</source>
+        <target state="translated">Копировать код и открыть веб-страницу</target>
+      </trans-unit>
+      <trans-unit id="azureChooseAccount">
+        <source xml:lang="en">Choose an Azure Active Directory Account</source>
+        <target state="translated">Выберите учетную запись Azure Active Directory</target>
+      </trans-unit>
+      <trans-unit id="azureAddAccount">
+        <source xml:lang="en">Add an Account...</source>
+        <target state="translated">Добавить учетную запись…</target>
+      </trans-unit>
+      <trans-unit id="cannotConnect">
+        <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
+        <target state="translated">Не удается подключиться из-за просроченных токенов. Выполните проверку подлинности снова и повторите попытку.</target>
+      </trans-unit>
+      <trans-unit id="aad">
+        <source xml:lang="en">AAD</source>
+        <target state="translated">AAD</target>
+      </trans-unit>
+      <trans-unit id="azureChooseTenant">
+        <source xml:lang="en">Choose an Azure tenant</source>
+        <target state="translated">Выберите клиент Azure</target>
+      </trans-unit>
+      <trans-unit id="tenant">
+        <source xml:lang="en">Tenant</source>
+        <target state="translated">Клиент</target>
       </trans-unit>
       <trans-unit id="usernamePrompt">
         <source xml:lang="en">User name</source>
@@ -161,22 +205,6 @@
       <trans-unit id="profileNamePlaceholder">
         <source xml:lang="en">[Optional] Enter a display name for this connection profile</source>
         <target state="translated">[Необязательно] Укажите отображаемое имя для этого профиля подключения</target>
-      </trans-unit>
-      <trans-unit id="filepathPrompt">
-        <source xml:lang="en">File path</source>
-        <target state="translated">Путь к файлу</target>
-      </trans-unit>
-      <trans-unit id="filepathMessage">
-        <source xml:lang="en">File name</source>
-        <target state="translated">Имя файла</target>
-      </trans-unit>
-      <trans-unit id="overwritePrompt">
-        <source xml:lang="en">A file with this name already exists. Do you want to replace the existing file?</source>
-        <target state="translated">Файл с таким именем уже существует. Вы хотите заменить существующий файл?</target>
-      </trans-unit>
-      <trans-unit id="overwritePlaceholder">
-        <source xml:lang="en">A file with this name already exists</source>
-        <target state="translated">Файл с таким именем уже существует</target>
       </trans-unit>
       <trans-unit id="msgCannotOpenContent">
         <source xml:lang="en">Error occurred opening content in editor.</source>
@@ -302,17 +330,21 @@
         <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
         <target state="translated">Ошибка: не удается подключиться с использованием предоставленных сведений о подключении. Повторить создание профиля?</target>
       </trans-unit>
+      <trans-unit id="refreshTokenLabel">
+        <source xml:lang="en">Refresh Credentials</source>
+        <target state="translated">Обновить учетные данные</target>
+      </trans-unit>
+      <trans-unit id="msgGetTokenFail">
+        <source xml:lang="en">Failed to fetch user tokens.</source>
+        <target state="translated">Не удалось получить токены пользователя.</target>
+      </trans-unit>
       <trans-unit id="msgPromptRetryConnectionDifferentCredentials">
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         <target state="translated">Ошибка: не удалось войти в систему. Вы хотите повторить попытку с другими учетными данными?</target>
       </trans-unit>
-      <trans-unit id="msgPromptRetryFirewallRuleExtNotInstalled">
-        <source xml:lang="en">Your client IP address does not have access to the server. Download and install the Azure Account extension to sign in to an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">У вашего IP-адреса клиента нет доступа к этому серверу. Скачайте и установите расширение учетной записи Azure, чтобы войти в учетную запись Azure, а затем создайте новое правило брандмауэра, чтобы предоставить доступ.</target>
-      </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
-        <source xml:lang="en">Your client IP address does not have access to the server. Sign in to an Azure account and create a new firewall rule to enable access.</source>
-        <target state="translated">У вашего IP-адреса клиента нет доступа к этому серверу. Войдите в учетную запись Azure, а затем создайте новое правило брандмауэра, чтобы предоставить доступ.</target>
+        <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
+        <target state="translated">У IP-адреса вашего клиента нет доступа к этому серверу. Добавьте учетную запись Azure, а затем создайте новое правило брандмауэра, чтобы предоставить доступ.</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleSignedIn">
         <source xml:lang="en">Account signed In. Create new firewall rule? </source>
@@ -322,17 +354,21 @@
         <source xml:lang="en">Firewall rule successfully added. Retry profile creation? </source>
         <target state="translated">Правило брандмауэра добавлено. Вы хотите повторить попытку создания профиля? </target>
       </trans-unit>
-      <trans-unit id="msgPromptAzureExtensionActivatedNotSignedIn">
-        <source xml:lang="en">Azure Account extension activated. Sign in to an Azure account? </source>
-        <target state="translated">Расширение учетной записи Azure активировано. Вы хотите войти в учетную запись Azure? </target>
+      <trans-unit id="msgAccountRefreshFailed">
+        <source xml:lang="en">Credential Error: Account credentials have expired.  Please re-authenticate.</source>
+        <target state="translated">Ошибка учетных данных: истек срок действия учетных данных в учетной записи. Пройдите проверку подлинности еще раз.</target>
       </trans-unit>
-      <trans-unit id="msgPromptAzureExtensionActivatedSignedIn">
-        <source xml:lang="en">Azure Account extension activated and signed in.</source>
-        <target state="translated">Расширение учетной записи Azure активировано и выполнен вход.</target>
+      <trans-unit id="msgUnableToExpand">
+        <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
+        <target state="translated">Не удалось выполнить развертывание. Дополнительные сведения см. в журналах.</target>
       </trans-unit>
       <trans-unit id="msgPromptFirewallRuleCreated">
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">Правило брандмауэра создано.</target>
+      </trans-unit>
+      <trans-unit id="msgAccountNotFound">
+        <source xml:lang="en">Account not found</source>
+        <target state="translated">Учетная запись не найдена.</target>
       </trans-unit>
       <trans-unit id="msgChooseQueryHistory">
         <source xml:lang="en">Choose Query History</source>
@@ -362,14 +398,6 @@
         <source xml:lang="en">Retry</source>
         <target state="translated">Повторить попытку</target>
       </trans-unit>
-      <trans-unit id="signInLabel">
-        <source xml:lang="en">Sign In</source>
-        <target state="translated">Вход</target>
-      </trans-unit>
-      <trans-unit id="downloadAndInstallLabel">
-        <source xml:lang="en">Download and Install</source>
-        <target state="translated">Скачивание и установка</target>
-      </trans-unit>
       <trans-unit id="createFirewallRuleLabel">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">Создать правило брандмауэра</target>
@@ -377,6 +405,46 @@
       <trans-unit id="msgConnecting">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         <target state="translated">Подключение к серверу «{0}» в документе «{1}».</target>
+      </trans-unit>
+      <trans-unit id="msgConnectionNotFound">
+        <source xml:lang="en">Connection not found for uri "{0}".</source>
+        <target state="translated">Подключение не найдено для URI "{0}".</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnect">
+        <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
+        <target state="translated">Найдено ожидающее обещание повторного подключения для URI {0}, ожидание.</target>
+      </trans-unit>
+      <trans-unit id="msgPendingReconnectSuccess">
+        <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
+        <target state="translated">Предыдущее ожидающее повторное подключение для URI {0} выполнено.</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnectFailed">
+        <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
+        <target state="translated">Найдено ожидающее обещание повторного подключения для URI {0}, сбой.</target>
+      </trans-unit>
+      <trans-unit id="msgFoundPendingReconnectError">
+        <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
+        <target state="translated">Предыдущее ожидающее обещание повторного подключения для URI {0} отклонено с ошибкой {1}. При необходимости будет предпринята попытка повторного подключения.</target>
+      </trans-unit>
+      <trans-unit id="msgAcessTokenExpired">
+        <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
+        <target state="translated">Истек срок действия маркера доступа для подключения {0} с URI {1}</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenError">
+        <source xml:lang="en">Error when refreshing token</source>
+        <target state="translated">Ошибка при обновлении маркера</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshConnection">
+        <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
+        <target state="translated">Не удалось обновить подключение ${0} с URI {1}. Недопустимый результат подключения.</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenSuccess">
+        <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
+        <target state="translated">Обновлен маркер для подключения {0} с URI {1}, {2}</target>
+      </trans-unit>
+      <trans-unit id="msgRefreshTokenNotNeeded">
+        <source xml:lang="en">No need to refresh Azure acccount token for connection {0} with uri {1}</source>
+        <target state="translated">Нет необходимости обновлять маркер учетной записи Azure для подключения {0} с URI {1}</target>
       </trans-unit>
       <trans-unit id="msgConnectedServerInfo">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -397,14 +465,6 @@
       <trans-unit id="msgDisconnected">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <target state="translated">Завершено соединение для документа «{0}»</target>
-      </trans-unit>
-      <trans-unit id="msgErrorReadingConfigFile">
-        <source xml:lang="en">Error: Unable to load connection profiles from [{0}]. Check if the file is formatted correctly.</source>
-        <target state="translated">Ошибка: не удалось загрузить список профилей из [{0}]. Проверьте корректность формата файла.</target>
-      </trans-unit>
-      <trans-unit id="titleResultsPane">
-        <source xml:lang="en">Results: {0}</source>
-        <target state="translated">Результаты: {0}</target>
       </trans-unit>
       <trans-unit id="macOpenSslErrorMessage">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -538,10 +598,6 @@
         <source xml:lang="en">None</source>
         <target state="translated">Нет</target>
       </trans-unit>
-      <trans-unit id="chooseSqlLang">
-        <source xml:lang="en">Choose SQL Language</source>
-        <target state="translated">Выберите язык SQL</target>
-      </trans-unit>
       <trans-unit id="flavorChooseLanguage">
         <source xml:lang="en">Choose SQL Language</source>
         <target state="translated">Выберите язык SQL</target>
@@ -553,14 +609,6 @@
       <trans-unit id="flavorDescriptionNone">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         <target state="translated">Отключить IntelliSense и проверку синтаксиса на ошибки в текущем документе</target>
-      </trans-unit>
-      <trans-unit id="queryOutputDocumentTitle">
-        <source xml:lang="en">Query Output Document</source>
-        <target state="translated">Документ вывода результатов запроса</target>
-      </trans-unit>
-      <trans-unit id="queryOutputHostTitle">
-        <source xml:lang="en">Query Output Document Host</source>
-        <target state="translated">Узел документа вывода результатов запроса</target>
       </trans-unit>
       <trans-unit id="msgAddConnection">
         <source xml:lang="en">Add Connection</source>
@@ -593,6 +641,134 @@
       <trans-unit id="azureSignInToAzureCloudDescription">
         <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         <target state="translated">Войти в подписку Azure в одном из национальных облаков.</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsExtensionNotInstalled">
+        <source xml:lang="en">Azure Functions extension must be installed in order to use this feature.</source>
+        <target state="translated">Для использования этого компонента необходимо установить расширение \"Функции Azure\".</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsProjectMustBeOpened">
+        <source xml:lang="en">A C# Azure Functions project must be present in order to create a new Azure Function for this table.</source>
+        <target state="translated">Для создания новой Функции Azure для этой таблицы должен присутствовать проект C# Функций Azure.</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithName">
+        <source xml:lang="en">{0}: {1}</source>
+        <target state="translated">{0}: {1}</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithMessage">
+        <source xml:lang="en">{1}. {2}</source>
+        <target state="translated">{1}. {2}</target>
+      </trans-unit>
+      <trans-unit id="taskStatusWithNameAndMessage">
+        <source xml:lang="en">{0}: {1}. {2}</source>
+        <target state="translated">{0}: {1}. {2}</target>
+      </trans-unit>
+      <trans-unit id="failed">
+        <source xml:lang="en">Failed</source>
+        <target state="translated">Сбой</target>
+      </trans-unit>
+      <trans-unit id="succeeded">
+        <source xml:lang="en">Succeeded</source>
+        <target state="translated">Успешно</target>
+      </trans-unit>
+      <trans-unit id="succeededWithWarning">
+        <source xml:lang="en">Succeeded with warning</source>
+        <target state="translated">Завершено с предупреждением</target>
+      </trans-unit>
+      <trans-unit id="canceled">
+        <source xml:lang="en">Canceled</source>
+        <target state="translated">Отменено</target>
+      </trans-unit>
+      <trans-unit id="inProgress">
+        <source xml:lang="en">In progress</source>
+        <target state="translated">Выполняется</target>
+      </trans-unit>
+      <trans-unit id="canceling">
+        <source xml:lang="en">Canceling</source>
+        <target state="translated">Выполняется отмена</target>
+      </trans-unit>
+      <trans-unit id="notStarted">
+        <source xml:lang="en">Not started</source>
+        <target state="translated">Не запущено</target>
+      </trans-unit>
+      <trans-unit id="nodeErrorMessage">
+        <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+        <target state="translated">TreeNodeInfo не является родительским узлом.</target>
+      </trans-unit>
+      <trans-unit id="deleteCredentialError">
+        <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
+        <target state="translated">Не удалось удалить учетные данные с идентификатором: {0}. {1}</target>
+      </trans-unit>
+      <trans-unit id="msgClearedRecentConnectionsWithErrors">
+        <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
+        <target state="translated">Список последних подключений был очищен, но при удалении некоторых связанных учетных данных возникли ошибки. Просмотрите ошибки в выходном канале MSSQL.</target>
+      </trans-unit>
+      <trans-unit id="failedToParse">
+        <source xml:lang="en">Failed to parse "{0}": {1}.</source>
+        <target state="translated">Не удалось проанализировать "{0}": {1}.</target>
+      </trans-unit>
+      <trans-unit id="settingAlreadyExists">
+        <source xml:lang="en">Local app setting '{0}' already exists. Overwrite?</source>
+        <target state="translated">Параметр локального приложения \"{0}\" уже существует. Перезаписать его?</target>
+      </trans-unit>
+      <trans-unit id="yesString">
+        <source xml:lang="en">Yes</source>
+        <target state="translated">Да</target>
+      </trans-unit>
+      <trans-unit id="functionNameTitle">
+        <source xml:lang="en">Function Name</source>
+        <target state="translated">Имя функции</target>
+      </trans-unit>
+      <trans-unit id="selectProject">
+        <source xml:lang="en">Select the Azure Function project for the SQL Binding</source>
+        <target state="translated">Выберите проект Функций Azure для привязки SQL</target>
+      </trans-unit>
+      <trans-unit id="azureFunctionsExtensionNotFound">
+        <source xml:lang="en">The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?</source>
+        <target state="translated">Для создания новой функции Azure с привязкой SQL требуется расширение \"Функции Azure\", но оно не установлено. Установить сейчас?</target>
+      </trans-unit>
+      <trans-unit id="install">
+        <source xml:lang="en">Install</source>
+        <target state="translated">Установить</target>
+      </trans-unit>
+      <trans-unit id="learnMore">
+        <source xml:lang="en">Learn more</source>
+        <target state="translated">Дополнительные сведения</target>
+      </trans-unit>
+      <trans-unit id="doNotInstall">
+        <source xml:lang="en">Do not install</source>
+        <target state="translated">Не устанавливать</target>
+      </trans-unit>
+      <trans-unit id="input">
+        <source xml:lang="en">Input</source>
+        <target state="translated">Входные данные</target>
+      </trans-unit>
+      <trans-unit id="output">
+        <source xml:lang="en">Output</source>
+        <target state="translated">Вывод</target>
+      </trans-unit>
+      <trans-unit id="selectBindingType">
+        <source xml:lang="en">Select type of binding</source>
+        <target state="translated">Выберите тип привязки</target>
+      </trans-unit>
+      <trans-unit id="createProject">
+        <source xml:lang="en">Create Azure Function Project</source>
+        <target state="translated">Создание проекта Функции Azure</target>
+      </trans-unit>
+      <trans-unit id="selectAzureFunctionProjFolder">
+        <source xml:lang="en">Select folder for the Azure Function project</source>
+        <target state="translated">Выбор папки для проекта Функции Azure</target>
+      </trans-unit>
+      <trans-unit id="timeoutExtensionError">
+        <source xml:lang="en">Timed out waiting for extension to install</source>
+        <target state="translated">Истекло время ожидания установки расширения</target>
+      </trans-unit>
+      <trans-unit id="timeoutAzureFunctionFileError">
+        <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
+        <target state="translated">Истекло время ожидания создания файла функции Azure</target>
+      </trans-unit>
+      <trans-unit id="nameMustNotBeEmpty">
+        <source xml:lang="en">Name must not be empty</source>
+        <target state="translated">Поле имени не может быть пустым.</target>
       </trans-unit>
     </body>
   </file>
