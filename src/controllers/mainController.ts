@@ -37,6 +37,8 @@ import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
+import { AzureController } from '../azure/azureController';
+import { AzureAccountService } from '../services/accountServie';
 
 /**
  * The main controller class that initializes the extension
@@ -62,6 +64,7 @@ export default class MainController implements vscode.Disposable {
 	public sqlTasksService: SqlTasksService;
 	public dacFxService: DacFxService;
 	public schemaCompareService: SchemaCompareService;
+	public accountService: AzureAccountService;
 	public azureFunctionsService: AzureFunctionsService;
 
 	/**
@@ -152,10 +155,13 @@ export default class MainController implements vscode.Disposable {
 
 			this.initializeQueryHistory();
 
+			const azureController = new AzureController(this._context, this._prompter);
+			azureController.init();
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 			this.azureFunctionsService = new AzureFunctionsService(SqlToolsServerClient.instance);
+			this.accountService = new AzureAccountService(azureController, this._context);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -226,7 +232,6 @@ export default class MainController implements vscode.Disposable {
 
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
-
 
 		this.showReleaseNotesPrompt();
 

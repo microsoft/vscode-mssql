@@ -44,6 +44,8 @@ declare module 'vscode-mssql' {
 		 */
 		readonly azureFunctions: IAzureFunctionsService;
 
+		readonly accountService: IAccountService;
+
 		/**
 		 * Prompts the user to select an existing connection or create a new one, and then returns the result
 		 * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
@@ -282,6 +284,106 @@ declare module 'vscode-mssql' {
 		generateDeployPlan(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<GenerateDeployPlanResult>;
 		getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
+	}
+
+	/**
+ * Represents a key that identifies an account.
+ */
+export interface IAccountKey {
+	/**
+	 * Identifier for the account, unique to the provider
+	 */
+	id: string;
+	/**
+	 * Identifier of the provider
+	 */
+	providerId: string;
+	/**
+	 * Version of the account
+	 */
+	accountVersion?: any;
+}
+
+
+export enum AccountType {
+	Microsoft = 'microsoft',
+	WorkSchool = 'work_school'
+}
+
+/**
+ * Represents display information for an account.
+ */
+ export interface IAccountDisplayInfo {
+	/**
+	 * account provider (eg, Work/School vs Microsoft Account)
+	 */
+	accountType: AccountType;
+	/**
+	 * User id that identifies the account, such as "user@contoso.com".
+	 */
+	userId: string;
+	/**
+	 * A display name that identifies the account, such as "User Name".
+	 */
+	displayName: string;
+	/**
+	 * email for AAD
+	 */
+	email?: string;
+	/**
+	 * name of account
+	 */
+	name: string;
+}
+	export interface IAccount {
+		/**
+		 * The key that identifies the account
+		 */
+		key: IAccountKey;
+		/**
+		 * Display information for the account
+		 */
+		displayInfo: IAccountDisplayInfo;
+		/**
+		 * Custom properties stored with the account
+		 */
+		properties: any;
+		/**
+		 * Indicates if the account needs refreshing
+		 */
+		isStale: boolean;
+		/**
+		 * Indicates if the account is signed in
+		 */
+		isSignedIn?: boolean;
+	}
+
+	export interface TokenKey {
+		/**
+		 * Account Key - uniquely identifies an account
+		 */
+		key: string;
+	}
+	export interface AccessToken extends TokenKey {
+		/**
+		 * Access Token
+		 */
+		token: string;
+		/**
+		 * Access token expiry timestamp
+		 */
+		expiresOn?: number;
+	}
+	export interface Token extends AccessToken {
+		/**
+		 * TokenType
+		 */
+		tokenType: string;
+	}
+
+	export interface IAccountService {
+		getAccount(): Promise<IAccount>;
+		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Thenable<Token>;
 	}
 
 	export interface IAzureFunctionsService {

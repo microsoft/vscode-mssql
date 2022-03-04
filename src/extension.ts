@@ -64,7 +64,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		azureFunctions: controller.azureFunctionsService,
 		getConnectionString: (connectionUriOrDetails: string | ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean) => {
 			return controller.connectionManager.getConnectionString(connectionUriOrDetails, includePassword, includeApplicationName);
-		}
+		},
+		accountService: controller.accountService
 	};
 }
 
