@@ -514,6 +514,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";errorNewAzureFunction" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error creating new Azure Function: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[새 Azure 함수를 만드는 동안 오류가 발생했습니다. {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";executeQueryLabel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Executing query...]]></Val>
@@ -1683,6 +1692,15 @@
           <Val><![CDATA[Timed out waiting for extension to install]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[확장이 설치되길 기다리는 동안 시간이 초과되었습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";timeoutProjectError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timed out waiting for project to be created]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프로젝트 생성을 기다리는 동안 시간이 초과되었습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

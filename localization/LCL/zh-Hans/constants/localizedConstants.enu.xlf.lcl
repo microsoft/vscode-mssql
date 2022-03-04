@@ -514,6 +514,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";errorNewAzureFunction" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error creating new Azure Function: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[创建新的 Azure 函数时出错: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";executeQueryLabel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Executing query...]]></Val>
@@ -1683,6 +1692,15 @@
           <Val><![CDATA[Timed out waiting for extension to install]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[等待安装扩展时超时]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";timeoutProjectError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Timed out waiting for project to be created]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[等待项目创建超时]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
