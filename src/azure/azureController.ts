@@ -22,7 +22,6 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import { Tenant } from '@microsoft/ads-adal-library';
 import { AzureAccount } from '../../lib/ads-adal-library/src';
-//import { AzureSqlClient } from './azureSqlClient';
 
 function getAppDataPath(): string {
 	let platform = process.platform;
@@ -125,8 +124,7 @@ export class AzureController {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			account = await azureCodeGrant.startLogin();
 			await accountStore.addAccount(account);
-		}
-		else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
+		} else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
 			let azureDeviceCode = await this.createDeviceCode();
 			account = await azureDeviceCode.startLogin();
 			await accountStore.addAccount(account);
@@ -151,15 +149,7 @@ export class AzureController {
 				account, tenantId, settings
 			);
 		}
-		console.log(`token!!!!!!!!!!!!!!! ${token.token}`);
 		return token;
-
-
-		//const token2 = await AzureSqlClient.getToken(tenantId);
-		//console.log(`token@@@@@@@@@@@@@@@ ${token2.token}`);
-
-		//return token2;
-
 	}
 
 	public async getTokens(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
