@@ -13,7 +13,7 @@ import { promises as fs } from 'fs';
 import { CredentialStore } from '../credentialstore/credentialstore';
 import { StorageService } from './storageService';
 import * as utils from '../models/utils';
-import { IAccount } from '../models/contracts/azure/accountInterfaces';
+import { IAccount } from 'vscode-mssql';
 import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from '@microsoft/ads-adal-library';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
@@ -167,9 +167,6 @@ export class AzureController {
 			let errorMessage = LocalizedConstants.msgGetTokenFail;
 			this._vscodeWrapper.showErrorMessage(errorMessage);
 		}
-
-		console.log(`token: ${token}`);
-
 		profile.azureAccountToken = token.token;
 		profile.expiresOn = token.expiresOn;
 		profile.email = account.displayInfo.email;

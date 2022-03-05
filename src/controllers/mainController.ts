@@ -36,9 +36,7 @@ import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import { ConnectionProfile } from '../models/connectionProfile';
-import { AzureController } from '../azure/azureController';
-import { AzureAccountService } from '../services/accountServie';
+import { AzureAccountService } from '../services/azureAccountServie';
 
 /**
  * The main controller class that initializes the extension
@@ -64,7 +62,7 @@ export default class MainController implements vscode.Disposable {
 	public sqlTasksService: SqlTasksService;
 	public dacFxService: DacFxService;
 	public schemaCompareService: SchemaCompareService;
-	public accountService: AzureAccountService;
+	public azureAccountService: AzureAccountService;
 	public azureFunctionsService: AzureFunctionsService;
 
 	/**
@@ -155,13 +153,11 @@ export default class MainController implements vscode.Disposable {
 
 			this.initializeQueryHistory();
 
-			const azureController = new AzureController(this._context, this._prompter);
-			azureController.init();
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 			this.azureFunctionsService = new AzureFunctionsService(SqlToolsServerClient.instance);
-			this.accountService = new AzureAccountService(azureController, this._context);
+			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._context);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -654,11 +650,7 @@ export default class MainController implements vscode.Disposable {
 	 */
 	public async connect(uri: string, connectionInfo: IConnectionInfo, connectionPromise: Deferred<boolean>, saveConnection?: boolean): Promise<boolean> {
 		if (this.canRunCommand() && uri && connectionInfo) {
-			let connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
-			if (!connectedSuccessfully) {
-				const connectionProfile = new ConnectionProfile(connectionInfo);
-				connectedSuccessfully = await this._connectionMgr.connectionUI.addFirewallRule(uri, connectionProfile);
-			}
+			const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, connectionPromise);
 			if (connectedSuccessfully) {
 				if (saveConnection) {
 					await this.createObjectExplorerSession(connectionInfo);

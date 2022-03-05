@@ -5,12 +5,11 @@
 
 import * as mssql from 'vscode-mssql';
 import * as vscode from 'vscode';
-import { IAccount, Token } from 'vscode-mssql';
 import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 
-export class AzureAccountService implements mssql.IAccountService {
+export class AzureAccountService implements mssql.IAzureAccountService {
 
 	private _accountStore: AccountStore;
 	constructor(
@@ -19,12 +18,10 @@ export class AzureAccountService implements mssql.IAccountService {
 		this._accountStore = new AccountStore(this._context);
 	}
 
-	public async getAccount(): Promise<IAccount> {
+	public async getAccount(): Promise<mssql.IAccount> {
 		return await this._azureController.getAccount(this._accountStore);
 	}
-	public async getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Promise<Token> {
+	public async getAccountSecurityToken(account: mssql.IAccount, tenantId: string | undefined): Promise<mssql.Token> {
 		return await this._azureController.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
 	}
-
-
 }

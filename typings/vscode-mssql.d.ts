@@ -44,7 +44,10 @@ declare module 'vscode-mssql' {
 		 */
 		readonly azureFunctions: IAzureFunctionsService;
 
-		readonly accountService: IAccountService;
+		/**
+		 * Service for accessing Azure Account functionality
+		 */
+		readonly azureAccountService: IAzureAccountService;
 
 		/**
 		 * Prompts the user to select an existing connection or create a new one, and then returns the result
@@ -62,6 +65,14 @@ declare module 'vscode-mssql' {
 		 * @returns The URI associated with this connection
 		 */
 		connect(connectionInfo: IConnectionInfo, saveConnection?: boolean): Promise<string>;
+
+		/**
+		 * Prompts the user to add firewall rule if connection failed with firerule error.
+		 * @param connectionUri The URI of the connection to list the databases for.
+		 * @param connectionInfo The connection info
+		 * @returns True if firewall rulle added
+		 */
+		promptForFirewallRule(connectionUri: string, connectionInfo: IConnectionInfo): Promise<boolean>;
 
 		/**
 		 * Lists the databases for a given connection. Must be given an already-opened connection to succeed.
@@ -289,52 +300,53 @@ declare module 'vscode-mssql' {
 	/**
  * Represents a key that identifies an account.
  */
-export interface IAccountKey {
-	/**
-	 * Identifier for the account, unique to the provider
-	 */
-	id: string;
-	/**
-	 * Identifier of the provider
-	 */
-	providerId: string;
-	/**
-	 * Version of the account
-	 */
-	accountVersion?: any;
-}
+	export interface IAccountKey {
+		/**
+		 * Identifier for the account, unique to the provider
+		 */
+		id: string;
+		/**
+		 * Identifier of the provider
+		 */
+		providerId: string;
+		/**
+		 * Version of the account
+		 */
+		accountVersion?: any;
+	}
 
 
-export enum AccountType {
-	Microsoft = 'microsoft',
-	WorkSchool = 'work_school'
-}
+	export enum AccountType {
+		Microsoft = 'microsoft',
+		WorkSchool = 'work_school'
+	}
 
-/**
- * Represents display information for an account.
- */
- export interface IAccountDisplayInfo {
 	/**
-	 * account provider (eg, Work/School vs Microsoft Account)
+	 * Represents display information for an account.
 	 */
-	accountType: AccountType;
-	/**
-	 * User id that identifies the account, such as "user@contoso.com".
-	 */
-	userId: string;
-	/**
-	 * A display name that identifies the account, such as "User Name".
-	 */
-	displayName: string;
-	/**
-	 * email for AAD
-	 */
-	email?: string;
-	/**
-	 * name of account
-	 */
-	name: string;
-}
+	export interface IAccountDisplayInfo {
+		/**
+		 * account provider (eg, Work/School vs Microsoft Account)
+		 */
+		accountType: AccountType;
+		/**
+		 * User id that identifies the account, such as "user@contoso.com".
+		 */
+		userId: string;
+		/**
+		 * A display name that identifies the account, such as "User Name".
+		 */
+		displayName: string;
+		/**
+		 * email for AAD
+		 */
+		email?: string;
+		/**
+		 * name of account
+		 */
+		name: string;
+	}
+
 	export interface IAccount {
 		/**
 		 * The key that identifies the account
@@ -381,7 +393,7 @@ export enum AccountType {
 		tokenType: string;
 	}
 
-	export interface IAccountService {
+	export interface IAzureAccountService {
 		getAccount(): Promise<IAccount>;
 		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Thenable<Token>;
 	}

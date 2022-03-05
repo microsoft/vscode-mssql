@@ -15,7 +15,7 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
 import { Tenant, Token } from '@microsoft/ads-adal-library';
-import { IAccount } from '../src/models/contracts/azure/accountInterfaces';
+import { IAccount } from 'vscode-mssql';
 
 
 suite('Firewall Service Tests', () => {

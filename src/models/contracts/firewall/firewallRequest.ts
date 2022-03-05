@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestType } from 'vscode-languageclient';
-import { IAccount } from '../azure/accountInterfaces';
+import { IAccount } from 'vscode-mssql';
 
 // ------------------------------- < Resource Events > ------------------------------------
 export namespace CreateFirewallRuleRequest {

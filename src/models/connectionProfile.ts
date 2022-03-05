@@ -13,7 +13,7 @@ import { ConnectionStore } from './connectionStore';
 import { AzureAuthType } from '@microsoft/ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
-import { IAccount } from './contracts/azure/accountInterfaces';
+import { IAccount } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
 import { Tenant, AzureAccount } from '@microsoft/ads-adal-library';
 

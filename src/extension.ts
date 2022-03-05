@@ -14,6 +14,7 @@ import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
+import { ConnectionProfile } from './models/connectionProfile';
 
 let controller: MainController = undefined;
 
@@ -65,7 +66,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		getConnectionString: (connectionUriOrDetails: string | ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean) => {
 			return controller.connectionManager.getConnectionString(connectionUriOrDetails, includePassword, includeApplicationName);
 		},
-		accountService: controller.accountService
+		promptForFirewallRule: async (connectionUri: string, connectionInfo: IConnectionInfo) => {
+			const connectionProfile = new ConnectionProfile(connectionInfo);
+			return await this._connectionMgr.connectionUI.addFirewallRule(connectionUri, connectionProfile);
+		},
+		azureAccountService: controller.azureAccountService
 	};
 }
 
