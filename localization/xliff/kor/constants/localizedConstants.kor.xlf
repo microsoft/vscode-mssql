@@ -766,9 +766,17 @@
         <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
         <target state="translated">Azure 함수 파일이 만들지길 기다리는 동안 시간이 초과되었습니다.</target>
       </trans-unit>
+      <trans-unit id="timeoutProjectError">
+        <source xml:lang="en">Timed out waiting for project to be created</source>
+        <target state="translated">프로젝트 생성을 기다리는 동안 시간이 초과되었습니다.</target>
+      </trans-unit>
       <trans-unit id="nameMustNotBeEmpty">
         <source xml:lang="en">Name must not be empty</source>
         <target state="translated">이름은 비워 둘 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="errorNewAzureFunction">
+        <source xml:lang="en">Error creating new Azure Function: {0}</source>
+        <target state="translated">새 Azure 함수를 만드는 동안 오류가 발생했습니다. {0}</target>
       </trans-unit>
     </body>
   </file>
