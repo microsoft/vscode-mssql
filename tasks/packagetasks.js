@@ -57,8 +57,8 @@ gulp.task('package:offline', () => {
 	var packageName = name + '-' + version;
 
 	var packages = [];
-	packages.push({ rid: 'win7-x64', runtime: Runtime.Windows_7_64 });
-	packages.push({ rid: 'win7-x86', runtime: Runtime.Windows_7_86 });
+	packages.push({ rid: 'win-x64', runtime: Runtime.Windows_64 });
+	packages.push({ rid: 'win-x86', runtime: Runtime.Windows_86 });
 	packages.push({ rid: 'osx.10.11-x64', runtime: Runtime.OSX_10_11_64 });
 	packages.push({ rid: 'centos.7-x64', runtime: Runtime.CentOS_7 });
 	packages.push({ rid: 'debian.8-x64', runtime: Runtime.Debian_8 });

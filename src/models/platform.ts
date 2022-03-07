@@ -12,26 +12,24 @@ import * as plist from 'plist';
 const unknown = 'unknown';
 
 export enum Runtime {
-	UnknownRuntime = <any>'Unknown',
-	UnknownVersion = <any>'Unknown',
-	Windows_7_86 = <any>'Windows_7_86',
-	Windows_7_64 = <any>'Windows_7_64',
-	OSX_10_11_64 = <any>'OSX_10_11_64',
-	CentOS_7 = <any>'CentOS_7',
-	Debian_8 = <any>'Debian_8',
-	Fedora_23 = <any>'Fedora_23',
-	OpenSUSE_13_2 = <any>'OpenSUSE_13_2',
-	SLES_12_2 = <any>'SLES_12_2',
-	RHEL_7 = <any>'RHEL_7',
-	Ubuntu_14 = <any>'Ubuntu_14',
-	Ubuntu_16 = <any>'Ubuntu_16'
+	UnknownRuntime = 'Unknown',
+	Windows_86 = 'Windows_86',
+	Windows_64 = 'Windows_64',
+	OSX_10_11_64 = 'OSX_10_11_64',
+	CentOS_7 = 'CentOS_7',
+	Debian_8 = 'Debian_8',
+	Fedora_23 = 'Fedora_23',
+	OpenSUSE_13_2 = 'OpenSUSE_13_2',
+	SLES_12_2 = 'SLES_12_2',
+	RHEL_7 = 'RHEL_7',
+	Ubuntu_14 = 'Ubuntu_14',
+	Ubuntu_16 = 'Ubuntu_16'
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
 	switch (runtime) {
-		case Runtime.Windows_7_64:
-			return 'Windows';
-		case Runtime.Windows_7_86:
+		case Runtime.Windows_64:
+		case Runtime.Windows_86:
 			return 'Windows';
 		case Runtime.OSX_10_11_64:
 			return 'OSX';
@@ -157,7 +155,7 @@ export class PlatformInformation {
 	}
 
 	public get isValidRuntime(): boolean {
-		return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime && this.runtimeId !== Runtime.UnknownVersion;
+		return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime;
 	}
 
 	public getRuntimeDisplayName(): string {
@@ -282,8 +280,8 @@ export class PlatformInformation {
 		switch (platform) {
 			case 'win32':
 				switch (architecture) {
-					case 'x86': return Runtime.Windows_7_86;
-					case 'x86_64': return Runtime.Windows_7_64;
+					case 'x86': return Runtime.Windows_86;
+					case 'x86_64': return Runtime.Windows_64;
 					default:
 				}
 
@@ -318,7 +316,7 @@ export class PlatformInformation {
 						}
 					}
 
-					if (runtimeId !== Runtime.UnknownRuntime && runtimeId !== Runtime.UnknownVersion) {
+					if (runtimeId !== Runtime.UnknownRuntime) {
 						return runtimeId;
 					}
 				}
