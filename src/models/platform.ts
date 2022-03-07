@@ -13,7 +13,6 @@ const unknown = 'unknown';
 
 export enum Runtime {
 	UnknownRuntime = 'Unknown',
-	UnknownVersion = 'Unknown',
 	Windows_86 = 'Windows_86',
 	Windows_64 = 'Windows_64',
 	OSX_10_11_64 = 'OSX_10_11_64',
@@ -157,7 +156,7 @@ export class PlatformInformation {
 	}
 
 	public get isValidRuntime(): boolean {
-		return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime && this.runtimeId !== Runtime.UnknownVersion;
+		return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime;
 	}
 
 	public getRuntimeDisplayName(): string {
@@ -318,7 +317,7 @@ export class PlatformInformation {
 						}
 					}
 
-					if (runtimeId !== Runtime.UnknownRuntime && runtimeId !== Runtime.UnknownVersion) {
+					if (runtimeId !== Runtime.UnknownRuntime) {
 						return runtimeId;
 					}
 				}
