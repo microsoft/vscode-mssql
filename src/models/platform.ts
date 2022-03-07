@@ -29,7 +29,6 @@ export enum Runtime {
 export function getRuntimeDisplayName(runtime: Runtime): string {
 	switch (runtime) {
 		case Runtime.Windows_64:
-			return 'Windows';
 		case Runtime.Windows_86:
 			return 'Windows';
 		case Runtime.OSX_10_11_64:
