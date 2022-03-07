@@ -766,9 +766,17 @@
         <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
         <target state="translated">Timeout beim Warten auf die Erstellung der Azure-Funktionsdatei</target>
       </trans-unit>
+      <trans-unit id="timeoutProjectError">
+        <source xml:lang="en">Timed out waiting for project to be created</source>
+        <target state="translated">Timeout beim Warten auf die Erstellung des Projekts</target>
+      </trans-unit>
       <trans-unit id="nameMustNotBeEmpty">
         <source xml:lang="en">Name must not be empty</source>
         <target state="translated">Der Name darf nicht leer sein.</target>
+      </trans-unit>
+      <trans-unit id="errorNewAzureFunction">
+        <source xml:lang="en">Error creating new Azure Function: {0}</source>
+        <target state="translated">Fehler beim Erstellen einer neuen Azure-Funktion: {0}</target>
       </trans-unit>
     </body>
   </file>

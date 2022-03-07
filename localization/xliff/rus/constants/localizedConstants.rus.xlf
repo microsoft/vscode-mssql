@@ -766,9 +766,17 @@
         <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
         <target state="translated">Истекло время ожидания создания файла функции Azure</target>
       </trans-unit>
+      <trans-unit id="timeoutProjectError">
+        <source xml:lang="en">Timed out waiting for project to be created</source>
+        <target state="translated">Истекло время ожидания создания проекта</target>
+      </trans-unit>
       <trans-unit id="nameMustNotBeEmpty">
         <source xml:lang="en">Name must not be empty</source>
         <target state="translated">Поле имени не может быть пустым.</target>
+      </trans-unit>
+      <trans-unit id="errorNewAzureFunction">
+        <source xml:lang="en">Error creating new Azure Function: {0}</source>
+        <target state="translated">Ошибка при создании новой функции Azure: {0}</target>
       </trans-unit>
     </body>
   </file>
