@@ -18,6 +18,13 @@ import { ConnectionProfile } from './models/connectionProfile';
 
 let controller: MainController = undefined;
 
+class FirewallRuleError extends Error {
+
+	constructor(public connectionUri: string, errorMessage: string) {
+		super(errorMessage);
+	}
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
 	let vscodeWrapper = new VscodeWrapper();
 	controller = new MainController(context, undefined, vscodeWrapper);
@@ -45,7 +52,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 			// First wait for initial connection request to succeed
 			const requestSucceeded = await controller.connect(uri, connectionInfo, connectionPromise, saveConnection);
 			if (!requestSucceeded) {
-				throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
+				if (controller.connectionManager.failedUriToFirewallIpMap.has(uri)) {
+					throw new FirewallRuleError(uri, `Connection request for ${JSON.stringify(connectionInfo)} failed because of invalid firewall rule settings`);
+				} else {
+					throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
+				}
 			}
 			// Next wait for the actual connection to be made
 			const connectionSucceeded = await connectionPromise;
@@ -68,7 +79,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		},
 		promptForFirewallRule: async (connectionUri: string, connectionInfo: IConnectionInfo) => {
 			const connectionProfile = new ConnectionProfile(connectionInfo);
-			return await this._connectionMgr.connectionUI.addFirewallRule(connectionUri, connectionProfile);
+			return await controller.connectionManager.connectionUI.addFirewallRule(connectionUri, connectionProfile);
 		},
 		azureAccountService: controller.azureAccountService
 	};

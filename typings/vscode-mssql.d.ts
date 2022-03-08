@@ -298,8 +298,25 @@ declare module 'vscode-mssql' {
 	}
 
 	/**
- * Represents a key that identifies an account.
- */
+	 * Represents a tenant information for an account.
+	 */
+	export interface Tenant {
+		id: string;
+		displayName: string;
+		userId?: string;
+		tenantCategory?: string;
+	}
+
+	/**
+	 * Error that connect method throws if connection fails because of a fire wall rule error.
+	 */
+	export interface IFireWallRuleError extends Error {
+		connectionUri: string;
+	}
+
+	/**
+	 * Represents a key that identifies an account.
+	 */
 	export interface IAccountKey {
 		/**
 		 * Identifier for the account, unique to the provider
