@@ -483,15 +483,14 @@ export class ConnectionUI {
 	}
 
 	public async addFirewallRule(uri: string, profile: IConnectionProfile): Promise<boolean> {
-		const self = this;
-		if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
+		if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
 			// Firewall rule error
 			const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
 			let success = await this.handleFirewallError(uri, profile, clientIp);
 			if (success) {
 				// Retry creating the profile if firewall rule
 				// was successful
-				self.connectionManager.failedUriToFirewallIpMap.delete(uri);
+				this.connectionManager.failedUriToFirewallIpMap.delete(uri);
 				return true;
 			}
 		}
@@ -514,7 +513,7 @@ export class ConnectionUI {
 			let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
 				LocalizedConstants.azureAddAccount);
 			if (selection === LocalizedConstants.azureAddAccount) {
-				profile = await this.connectionManager.azureController.getTokens(profile, this._accountStore,
+				profile = await this.connectionManager.azureController.populateAccountProperties(profile, this._accountStore,
 					providerSettings.resources.azureManagementResource);
 			}
 			let account = this._accountStore.getAccount(profile.accountId);

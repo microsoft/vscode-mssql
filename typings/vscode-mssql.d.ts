@@ -68,7 +68,7 @@ declare module 'vscode-mssql' {
 
 		/**
 		 * Prompts the user to add firewall rule if connection failed with firerule error.
-		 * @param connectionUri The URI of the connection to list the databases for.
+		 * @param connectionUri The URI of the connection to add firewall rule to.
 		 * @param connectionInfo The connection info
 		 * @returns True if firewall rulle added
 		 */
@@ -412,7 +412,7 @@ declare module 'vscode-mssql' {
 
 	export interface IAzureAccountService {
 		getAccount(): Promise<IAccount>;
-		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Thenable<Token>;
+		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Promise<Token>;
 	}
 
 	export interface IAzureFunctionsService {

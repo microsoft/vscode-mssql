@@ -152,7 +152,10 @@ export class AzureController {
 		return token;
 	}
 
-	public async getTokens(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
+	/**
+	 * Gets the token for given account and updates the connection profile with token infromation needed for AAD authetnication
+	 */
+	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
 		let account = await this.getAccount(accountStore);
 
 		if (!profile.tenantId) {
@@ -186,7 +189,7 @@ export class AzureController {
 			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 			return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
 				if (result === LocalizedConstants.refreshTokenLabel) {
-					let refreshedProfile = await this.getTokens(profile, accountStore, settings);
+					let refreshedProfile = await this.populateAccountProperties(profile, accountStore, settings);
 					return refreshedProfile;
 				} else {
 					return undefined;

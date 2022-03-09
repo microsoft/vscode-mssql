@@ -712,7 +712,7 @@ export default class ConnectionManager {
 					let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 					let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
 					if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-						await this.azureController.getTokens(
+						await this.azureController.populateAccountProperties(
 							profile, this.accountStore, providerSettings.resources.databaseResource);
 
 					} else {
