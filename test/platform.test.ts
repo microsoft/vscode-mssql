@@ -57,13 +57,13 @@ suite('Platform Tests', () => {
 	test('Compute correct RID for Windows 64-bit', () => {
 		const platformInfo = new PlatformInformation('win32', 'x86_64');
 
-		expect(platformInfo.runtimeId).to.equal(Runtime.Windows_7_64.toString());
+		expect(platformInfo.runtimeId).to.equal(Runtime.Windows_64.toString());
 	});
 
 	test('Compute correct RID for Windows 86-bit', () => {
 		const platformInfo = new PlatformInformation('win32', 'x86');
 
-		expect(platformInfo.runtimeId).to.equal(Runtime.Windows_7_86.toString());
+		expect(platformInfo.runtimeId).to.equal(Runtime.Windows_86.toString());
 	});
 
 	test('Compute no RID for Windows with bad architecture', () => {

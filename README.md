@@ -1,6 +1,5 @@
 [![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=main)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=main)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/microsoft/vscode-mssql.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/microsoft/vscode-mssql/context:javascript)
-[![Coverage Status](https://coveralls.io/repos/github/microsoft/vscode-mssql/badge.svg?branch=main&service=github)](https://coveralls.io/github/microsoft/vscode-mssql?branch=main)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 

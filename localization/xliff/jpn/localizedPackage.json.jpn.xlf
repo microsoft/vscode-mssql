@@ -1,48 +1,136 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ja-JP">
+  <file datatype="xml" original="package" source-language="en" target-language="ja">
     <body>
-      <trans-unit id="extension.runQuery">
+      <trans-unit id="mssql.runQuery">
         <source xml:lang="en">Execute Query</source>
         <target state="translated">クエリの実行</target>
       </trans-unit>
-      <trans-unit id="extension.runCurrentStatement">
+      <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
         <target state="translated">現在のステートメントを実行</target>
       </trans-unit>
-      <trans-unit id="extension.cancelQuery">
+      <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">クエリのキャンセル</target>
       </trans-unit>
-      <trans-unit id="extension.connect">
+      <trans-unit id="mssql.addObjectExplorer">
+        <source xml:lang="en">Add Connection</source>
+        <target state="translated">接続の追加</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptSelect">
+        <source xml:lang="en">Select Top 1000</source>
+        <target state="translated">上位 1000 を選択する</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptCreate">
+        <source xml:lang="en">Script as Create</source>
+        <target state="translated">作成としてのスクリプト</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptDelete">
+        <source xml:lang="en">Script as Drop</source>
+        <target state="translated">ドロップとしてのスクリプト</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptExecute">
+        <source xml:lang="en">Script as Execute</source>
+        <target state="translated">実行としてのスクリプト</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptAlter">
+        <source xml:lang="en">Script as Alter</source>
+        <target state="translated">変更としてのスクリプト</target>
+      </trans-unit>
+      <trans-unit id="mssql.openQueryHistory">
+        <source xml:lang="en">Open Query</source>
+        <target state="translated">クエリを開く</target>
+      </trans-unit>
+      <trans-unit id="mssql.runQueryHistory">
+        <source xml:lang="en">Run Query</source>
+        <target state="translated">クエリの実行</target>
+      </trans-unit>
+      <trans-unit id="mssql.deleteQueryHistory">
+        <source xml:lang="en">Delete</source>
+        <target state="translated">削除</target>
+      </trans-unit>
+      <trans-unit id="mssql.clearAllQueryHistory">
+        <source xml:lang="en">Clear All Query History</source>
+        <target state="translated">すべての Query History をクリア</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryCapture">
+        <source xml:lang="en">Enable Query History Capture</source>
+        <target state="translated">Query History キャプチャを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.startQueryHistoryCapture">
+        <source xml:lang="en">Start Query History Capture</source>
+        <target state="translated">Query History キャプチャの開始</target>
+      </trans-unit>
+      <trans-unit id="mssql.pauseQueryHistoryCapture">
+        <source xml:lang="en">Pause Query History Capture</source>
+        <target state="translated">Query History キャプチャの一時停止</target>
+      </trans-unit>
+      <trans-unit id="mssql.commandPaletteQueryHistory">
+        <source xml:lang="en">Open Query History in Command Palette</source>
+        <target state="translated">コマンド パレットで Query History を開く</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeObjectExplorerNode">
+        <source xml:lang="en">Remove</source>
+        <target state="translated">削除</target>
+      </trans-unit>
+      <trans-unit id="mssql.refreshObjectExplorerNode">
+        <source xml:lang="en">Refresh</source>
+        <target state="translated">最新の情報に更新</target>
+      </trans-unit>
+      <trans-unit id="extension.connections">
+        <source xml:lang="en">Connections</source>
+        <target state="translated">接続</target>
+      </trans-unit>
+      <trans-unit id="extension.queryHistory">
+        <source xml:lang="en">Query History</source>
+        <target state="translated">Query History</target>
+      </trans-unit>
+      <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">接続</target>
       </trans-unit>
-      <trans-unit id="extension.disconnect">
+      <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">切断</target>
       </trans-unit>
-      <trans-unit id="extension.manageProfiles">
+      <trans-unit id="mssql.manageProfiles">
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">接続プロファイルの管理</target>
       </trans-unit>
-      <trans-unit id="extension.chooseDatabase">
+      <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">データベースの使用</target>
       </trans-unit>
-      <trans-unit id="extension.chooseLanguageFlavor">
+      <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">このファイルに使用する SQL ハンドラーの選択</target>
       </trans-unit>
-      <trans-unit id="extension.showGettingStarted">
+      <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">はじめに</target>
       </trans-unit>
-      <trans-unit id="extension.newQuery">
+      <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">新しいクエリ</target>
       </trans-unit>
-      <trans-unit id="extension.rebuildIntelliSenseCache">
+      <trans-unit id="mssql.objectExplorerNewQuery">
+        <source xml:lang="en">New Query</source>
+        <target state="translated">新しいクエリ</target>
+      </trans-unit>
+      <trans-unit id="mssql.toggleSqlCmd">
+        <source xml:lang="en">Toggle SQLCMD Mode</source>
+        <target state="translated">SQLCMD モードの切り替え</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyObjectName">
+        <source xml:lang="en">Copy Object Name</source>
+        <target state="translated">オブジェクト名のコピー</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeAadAccount">
+        <source xml:lang="en">Remove Azure Account</source>
+        <target state="translated">Azure アカウントの削除</target>
+      </trans-unit>
+      <trans-unit id="mssql.rebuildIntelliSenseCache">
         <source xml:lang="en">Refresh IntelliSense Cache</source>
         <target state="translated">IntelliSense キャッシュの更新</target>
       </trans-unit>
@@ -59,8 +147,8 @@
         <target state="translated">[ユーザー設定] で定義されている接続プロファイルが、コマンド パレット内の 'MS SQL: Connect' コマンドの下に表示されます。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.server">
-        <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
-        <target state="translated">[必須] 接続するサーバー名を指定します。'hostname\\instance' または '&lt;server&gt;.database.windows.net' (Azure SQL Database の場合) の形式を使用してください。</target>
+        <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
+        <target state="translated">[必須] 接続するサーバー名を指定します。'hostname instance' または '&lt;server&gt;.database.windows.net' (Azure SQL Database の場合) の形式を使用してください。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.database">
         <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source>
@@ -278,6 +366,10 @@
         <source xml:lang="en">Should IntelliSense quick info be enabled</source>
         <target state="translated">IntelliSense クイック ヒントを有効にするかどうか</target>
       </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryFeature">
+        <source xml:lang="en">Should Query History feature be enabled</source>
+        <target state="translated">Query History 機能の有効化が必要</target>
+      </trans-unit>
       <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
         <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
         <target state="translated">IntelliSense 提案を小文字にするかどうか</target>
@@ -285,6 +377,142 @@
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">タブを切り替えるときにクエリ結果セクションとスクロール位置を保存するかどうか (パフォーマンスに影響する可能性があります)</target>
+      </trans-unit>
+      <trans-unit id="mssql.queryHistoryLimit">
+        <source xml:lang="en">Number of query history entries to show in the Query History view</source>
+        <target state="translated">Query History ビューに表示するクエリ履歴エントリ数</target>
+      </trans-unit>
+      <trans-unit id="mssql.createAzureFunction">
+        <source xml:lang="en">Create Azure Function with SQL binding</source>
+        <target state="translated">SQL バインドを使用して Azure 関数を作成する</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxXmlCharsToStore">
+        <source xml:lang="en">Number of XML characters to store after running a query</source>
+        <target state="translated">クエリの実行後に格納する XML 文字の数</target>
+      </trans-unit>
+      <trans-unit id="mssql.tracingLevel">
+        <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
+        <target state="translated">[省略可能] バックエンド サービスのログ レベル。Azure Data Studio は開始のたびにファイル名を生成し、そのファイルが既に存在する場合にはログ エントリが対象ファイルに追加されます。古いログ ファイルのクリーンアップについては、logRetentionMinutes と logFilesRemovalLimit の設定を参照してください。既定の tracingLevel では、ログに記録される数は多くありません。詳細レベルを変更すると、詳細なログが記録され、ログのためのディスク容量が必要になる場合があります。エラーには重大が含まれ、警告にはエラーが含まれ、情報には警告が含まれ、詳細には情報が含まれます</target>
+      </trans-unit>
+      <trans-unit id="mssql.logRetentionMinutes">
+        <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
+        <target state="translated">バックエンド サービスのログ ファイルを保持する分単位の時間。既定値は 1 週間です。</target>
+      </trans-unit>
+      <trans-unit id="mssql.logFilesRemovalLimit">
+        <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
+        <target state="translated">mssql.logRetentionMinutes の有効期限が切れた、起動時に削除する古いファイルの最大数。この制限のためにクリーンアップされないファイルは、Azure Data Studio の次回の起動時にクリーンアップされます。</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.setRowCount">
+        <source xml:lang="en">Maximum number of rows to return before the server stops processing your query.</source>
+        <target state="translated">サーバーがクエリの処理を停止する前に返す行の最大数。</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.textSize">
+        <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
+        <target state="translated">SELECT ステートメントから返されるテキストおよび ntext データの最大サイズ</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.executionTimeout">
+        <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
+        <target state="translated">実行タイムアウトが 0 の場合は、無制限の待機 (タイムアウトなし) を示します</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noCount">
+        <source xml:lang="en">Enable SET NOCOUNT option</source>
+        <target state="translated">SET NOCOUNT オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noExec">
+        <source xml:lang="en">Enable SET NOEXEC option</source>
+        <target state="translated">SET NOEXEC オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.parseOnly">
+        <source xml:lang="en">Enable SET PARSEONLY option</source>
+        <target state="translated">SET PARSEONLY オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.arithAbort">
+        <source xml:lang="en">Enable SET ARITHABORT option</source>
+        <target state="translated">SET ARITHABORT オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsTime">
+        <source xml:lang="en">Enable SET STATISTICS TIME option</source>
+        <target state="translated">SET STATISTICS TIME オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsIO">
+        <source xml:lang="en">Enable SET STATISTICS IO option</source>
+        <target state="translated">SET STATISTICS IO オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.xactAbortOn">
+        <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
+        <target state="translated">SET XACT_ABORT ON オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.transactionIsolationLevel">
+        <source xml:lang="en">Enable SET TRANSACTION ISOLATION LEVEL option</source>
+        <target state="translated">SET TRANSACTION ISOLATION LEVEL オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.deadlockPriority">
+        <source xml:lang="en">Enable SET DEADLOCK_PRIORITY option</source>
+        <target state="translated">SET DEADLOCK_PRIORITY オプションを有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.lockTimeout">
+        <source xml:lang="en">Enable SET LOCK TIMEOUT option (in milliseconds)</source>
+        <target state="translated">SET LOCK TIMEOUT オプションを有効にする (ミリ秒単位)</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.queryGovernorCostLimit">
+        <source xml:lang="en">Enable SET QUERY_GOVERNOR_COST_LIMIT</source>
+        <target state="translated">SET QUERY_GOVERNOR_COST_LIMIT を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiDefaults">
+        <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
+        <target state="translated">SET ANSI_DEFAULTS を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.quotedIdentifier">
+        <source xml:lang="en">Enable SET QUOTED_IDENTIFIER</source>
+        <target state="translated">SET QUOTED_IDENTIFIER を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNullDefaultOn">
+        <source xml:lang="en">Enable SET ANSI_NULL_DFLT_ON</source>
+        <target state="translated">SET ANSI_NULL_DFLT_ON を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.implicitTransactions">
+        <source xml:lang="en">Enable SET IMPLICIT_TRANSACTIONS</source>
+        <target state="translated">SET IMPLICIT_TRANSACTIONS を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.cursorCloseOnCommit">
+        <source xml:lang="en">Enable SET CURSOR_CLOSE_ON_COMMIT</source>
+        <target state="translated">SET CURSOR_CLOSE_ON_COMMIT を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiPadding">
+        <source xml:lang="en">Enable SET ANSI_PADDING</source>
+        <target state="translated">SET ANSI_PADDING を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiWarnings">
+        <source xml:lang="en">Enable SET ANSI_WARNINGS</source>
+        <target state="translated">SET ANSI_WARNINGS を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNulls">
+        <source xml:lang="en">Enable SET ANSI_NULLS</source>
+        <target state="translated">SET ANSI_NULLS を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.alwaysEncryptedParameterization">
+        <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
+        <target state="translated">Always Encrypted のパラメーター化を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.ignorePlatformWarning">
+        <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
+        <target state="translated">[省略可能] サポートされていないプラットフォームの警告を表示しない</target>
+      </trans-unit>
+      <trans-unit id="mssql.Configuration">
+        <source xml:lang="en">MSSQL configuration</source>
+        <target state="translated">MSSQL 構成</target>
+      </trans-unit>
+      <trans-unit id="mssql.chooseAuthMethod">
+        <source xml:lang="en">Chooses which Authentication method to use</source>
+        <target state="translated">使用する認証方法を選択する</target>
+      </trans-unit>
+      <trans-unit id="mssql.authCodeGrant.description">
+        <source xml:lang="en">Prompts users to sign in using their browser.</source>
+        <target state="translated">ブラウザーを使用してサインインするようユーザーに求めます。</target>
+      </trans-unit>
+      <trans-unit id="mssql.deviceCode.description">
+        <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
+        <target state="translated">ユーザーが入力制約付きのデバイスにサインインできるようになります。</target>
       </trans-unit>
     </body>
   </file>

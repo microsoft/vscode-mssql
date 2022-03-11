@@ -82,6 +82,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 			return controller.connectionManager.connectionUI.addFirewallRule(connectionUri, connectionProfile);
 		},
 		azureAccountService: controller.azureAccountService
+		createConnectionDetails: (connectionInfo: IConnectionInfo) => {
+			return controller.connectionManager.createConnectionDetails(connectionInfo);
+		}
 	};
 }
 

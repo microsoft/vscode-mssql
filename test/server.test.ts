@@ -42,7 +42,7 @@ suite('Server tests', () => {
 	test('findServerPath should return error given a folder with no installed service', () => {
 		let fixture: IFixture = {
 			executableFileName: '',
-			runtime: Runtime.Windows_7_64,
+			runtime: Runtime.Windows_64,
 			installDir: __dirname,
 			executablesFromConfig: ['exeFile1', 'exeFile2']
 		};
@@ -58,7 +58,7 @@ suite('Server tests', () => {
 	test('findServerPath should return the file path given a file that exists', () => {
 		let fixture: IFixture = {
 			executableFileName: __filename,
-			runtime: Runtime.Windows_7_64,
+			runtime: Runtime.Windows_64,
 			installDir: __dirname,
 			executablesFromConfig: undefined
 		};
@@ -73,7 +73,7 @@ suite('Server tests', () => {
 	test('findServerPath should not return the given file path if does not exist', () => {
 		let fixture: IFixture = {
 			executableFileName: __filename,
-			runtime: Runtime.Windows_7_64,
+			runtime: Runtime.Windows_64,
 			installDir: __dirname,
 			executablesFromConfig: ['exeFile1', 'exeFile2']
 		};
@@ -88,7 +88,7 @@ suite('Server tests', () => {
 	test('findServerPath should return a valid file path given a folder with installed service', () => {
 		let fixture: IFixture = {
 			executableFileName: __filename,
-			runtime: Runtime.Windows_7_64,
+			runtime: Runtime.Windows_64,
 			installDir: __dirname,
 			executablesFromConfig: ['exeFile1', __filename]
 		};
@@ -103,7 +103,7 @@ suite('Server tests', () => {
 	test('getOrDownloadServer should download the service if not exist and return the valid service file path', () => {
 		let fixture: IFixture = {
 			executableFileName: __filename,
-			runtime: Runtime.Windows_7_64,
+			runtime: Runtime.Windows_64,
 			installDir: __dirname,
 			executablesFromConfig: ['exeFile1']
 		};
@@ -119,7 +119,7 @@ suite('Server tests', () => {
 	test('getOrDownloadServer should not download the service if already exist', () => {
 		let fixture: IFixture = {
 			executableFileName: __filename,
-			runtime: Runtime.Windows_7_64,
+			runtime: Runtime.Windows_64,
 			installDir: __dirname,
 			executablesFromConfig: [__filename.replace(__dirname, '')]
 		};

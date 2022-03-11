@@ -1,48 +1,136 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" original="extension.i18ntest.JSON" source-language="en" target-language="ko-KR">
+  <file datatype="xml" original="package" source-language="en" target-language="ko">
     <body>
-      <trans-unit id="extension.runQuery">
+      <trans-unit id="mssql.runQuery">
         <source xml:lang="en">Execute Query</source>
         <target state="translated">쿼리 실행</target>
       </trans-unit>
-      <trans-unit id="extension.runCurrentStatement">
+      <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
         <target state="translated">현재 문 실행</target>
       </trans-unit>
-      <trans-unit id="extension.cancelQuery">
+      <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">쿼리 취소</target>
       </trans-unit>
-      <trans-unit id="extension.connect">
+      <trans-unit id="mssql.addObjectExplorer">
+        <source xml:lang="en">Add Connection</source>
+        <target state="translated">연결 추가</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptSelect">
+        <source xml:lang="en">Select Top 1000</source>
+        <target state="translated">상위 1,000개 선택</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptCreate">
+        <source xml:lang="en">Script as Create</source>
+        <target state="translated">Create로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptDelete">
+        <source xml:lang="en">Script as Drop</source>
+        <target state="translated">Drop으로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptExecute">
+        <source xml:lang="en">Script as Execute</source>
+        <target state="translated">Execute로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.scriptAlter">
+        <source xml:lang="en">Script as Alter</source>
+        <target state="translated">Alter로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.openQueryHistory">
+        <source xml:lang="en">Open Query</source>
+        <target state="translated">쿼리 열기</target>
+      </trans-unit>
+      <trans-unit id="mssql.runQueryHistory">
+        <source xml:lang="en">Run Query</source>
+        <target state="translated">쿼리 실행</target>
+      </trans-unit>
+      <trans-unit id="mssql.deleteQueryHistory">
+        <source xml:lang="en">Delete</source>
+        <target state="translated">삭제</target>
+      </trans-unit>
+      <trans-unit id="mssql.clearAllQueryHistory">
+        <source xml:lang="en">Clear All Query History</source>
+        <target state="translated">모든 쿼리 기록 지우기</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryCapture">
+        <source xml:lang="en">Enable Query History Capture</source>
+        <target state="translated">쿼리 기록 캡처 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.startQueryHistoryCapture">
+        <source xml:lang="en">Start Query History Capture</source>
+        <target state="translated">쿼리 기록 캡처 시작</target>
+      </trans-unit>
+      <trans-unit id="mssql.pauseQueryHistoryCapture">
+        <source xml:lang="en">Pause Query History Capture</source>
+        <target state="translated">쿼리 기록 캡처 일시 중지</target>
+      </trans-unit>
+      <trans-unit id="mssql.commandPaletteQueryHistory">
+        <source xml:lang="en">Open Query History in Command Palette</source>
+        <target state="translated">명령 팔레트에서 쿼리 기록 열기</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeObjectExplorerNode">
+        <source xml:lang="en">Remove</source>
+        <target state="translated">제거</target>
+      </trans-unit>
+      <trans-unit id="mssql.refreshObjectExplorerNode">
+        <source xml:lang="en">Refresh</source>
+        <target state="translated">새로 고침</target>
+      </trans-unit>
+      <trans-unit id="extension.connections">
+        <source xml:lang="en">Connections</source>
+        <target state="translated">연결</target>
+      </trans-unit>
+      <trans-unit id="extension.queryHistory">
+        <source xml:lang="en">Query History</source>
+        <target state="translated">쿼리 기록</target>
+      </trans-unit>
+      <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">연결</target>
       </trans-unit>
-      <trans-unit id="extension.disconnect">
+      <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">연결 끊기</target>
       </trans-unit>
-      <trans-unit id="extension.manageProfiles">
+      <trans-unit id="mssql.manageProfiles">
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">연결 프로필 관리</target>
       </trans-unit>
-      <trans-unit id="extension.chooseDatabase">
+      <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">데이터베이스 사용</target>
       </trans-unit>
-      <trans-unit id="extension.chooseLanguageFlavor">
+      <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">이 파일에 대한 SQL 처리기 선택</target>
       </trans-unit>
-      <trans-unit id="extension.showGettingStarted">
+      <trans-unit id="mssql.showGettingStarted">
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">시작 가이드</target>
       </trans-unit>
-      <trans-unit id="extension.newQuery">
+      <trans-unit id="mssql.newQuery">
         <source xml:lang="en">New Query</source>
         <target state="translated">새 쿼리</target>
       </trans-unit>
-      <trans-unit id="extension.rebuildIntelliSenseCache">
+      <trans-unit id="mssql.objectExplorerNewQuery">
+        <source xml:lang="en">New Query</source>
+        <target state="translated">새 쿼리</target>
+      </trans-unit>
+      <trans-unit id="mssql.toggleSqlCmd">
+        <source xml:lang="en">Toggle SQLCMD Mode</source>
+        <target state="translated">SQLCMD 모드 토글</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyObjectName">
+        <source xml:lang="en">Copy Object Name</source>
+        <target state="translated">개체 이름 복사</target>
+      </trans-unit>
+      <trans-unit id="mssql.removeAadAccount">
+        <source xml:lang="en">Remove Azure Account</source>
+        <target state="translated">Azure 계정 제거</target>
+      </trans-unit>
+      <trans-unit id="mssql.rebuildIntelliSenseCache">
         <source xml:lang="en">Refresh IntelliSense Cache</source>
         <target state="translated">IntelliSense 캐시 새로 고침</target>
       </trans-unit>
@@ -59,8 +147,8 @@
         <target state="translated">'사용자 설정'에 정의된 연결 프로필은 명령 팔레트의 'MS SQL: Connect' 명령에서 확인할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.server">
-        <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname\\instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
-        <target state="translated">[필수] 연결할 서버 이름을 지정합니다. Azure SQL Database에는 'hostname\\instance' 또는 '&lt;server&gt;.database.windows.net'을 사용합니다.</target>
+        <source xml:lang="en"><![CDATA[[Required] Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.]]></source>
+        <target state="translated">[필수] 연결할 서버 이름을 지정합니다. Azure SQL Database에는 'hostname instance' 또는 '&lt;server&gt;.database.windows.net'을 사용합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.database">
         <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.</source>
@@ -278,6 +366,10 @@
         <source xml:lang="en">Should IntelliSense quick info be enabled</source>
         <target state="translated">IntelliSense 빠른 정보 사용 여부</target>
       </trans-unit>
+      <trans-unit id="mssql.enableQueryHistoryFeature">
+        <source xml:lang="en">Should Query History feature be enabled</source>
+        <target state="translated">쿼리 기록 기능을 사용해야 할지 여부</target>
+      </trans-unit>
       <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
         <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
         <target state="translated">IntelliSense 제안을 소문자로 표시할지 여부</target>
@@ -285,6 +377,142 @@
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">탭 전환 시, 선택한 쿼리 결과와 스크롤 위치를 저장할지 여부(성능에 영향을 미칠 수 있음)</target>
+      </trans-unit>
+      <trans-unit id="mssql.queryHistoryLimit">
+        <source xml:lang="en">Number of query history entries to show in the Query History view</source>
+        <target state="translated">쿼리 기록 보기에 표시할 쿼리 기록 항목 수</target>
+      </trans-unit>
+      <trans-unit id="mssql.createAzureFunction">
+        <source xml:lang="en">Create Azure Function with SQL binding</source>
+        <target state="translated">SQL 입력 바인딩으로 Azure 함수 만들기</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxXmlCharsToStore">
+        <source xml:lang="en">Number of XML characters to store after running a query</source>
+        <target state="translated">쿼리를 실행한 후 저장할 XML 문자 수</target>
+      </trans-unit>
+      <trans-unit id="mssql.tracingLevel">
+        <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
+        <target state="translated">[옵션] 백 엔드 서비스의 로그 수준입니다. Azure Data Studio는 시작할 때마다 파일 이름을 생성하며 파일이 이미 있으면 로그 항목이 해당 파일에 추가됩니다. 이전 로그 파일을 정리하려면 logRetentionMinutes 및 logFilesRemovalLimit 설정을 참조하세요. 기본 tracingLevel에서는 많은 양의 로그가 기록되지 않습니다. 세부 정보 표시를 변경하면 로깅이 광범위해지고 로그의 디스크 공간 요구 사항이 커질 수 있습니다. 오류이면 중요가 포함되고 경고이면 오류가 포함되고 정보이면 경고가 포함되고 세부 정보 표시이면 정보가 포함됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.logRetentionMinutes">
+        <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
+        <target state="translated">백 엔드 서비스의 로그 파일을 유지하는 시간(분)입니다. 기본값은 1주일입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.logFilesRemovalLimit">
+        <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
+        <target state="translated">시작 시 제거하려고 하며 mssql.logRetentionMinutes가 만료된 이전 파일의 최대 수입니다. 이 제한으로 인해 정리되지 않은 파일은 다음에 Azure Data Studio를 시작할 때 정리됩니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.setRowCount">
+        <source xml:lang="en">Maximum number of rows to return before the server stops processing your query.</source>
+        <target state="translated">서버가 쿼리 처리를 중지하기 전에 반환할 최대 행 수입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.textSize">
+        <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
+        <target state="translated">SELECT 문에서 반환되는 text 및 ntext 데이터의 최대 크기</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.executionTimeout">
+        <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
+        <target state="translated">실행 시간 제한이 0이면 무제한 대기(시간 제한 없음)를 나타냅니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noCount">
+        <source xml:lang="en">Enable SET NOCOUNT option</source>
+        <target state="translated">SET NOCOUNT 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.noExec">
+        <source xml:lang="en">Enable SET NOEXEC option</source>
+        <target state="translated">SET NOEXEC 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.parseOnly">
+        <source xml:lang="en">Enable SET PARSEONLY option</source>
+        <target state="translated">SET PARSEONLY 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.arithAbort">
+        <source xml:lang="en">Enable SET ARITHABORT option</source>
+        <target state="translated">SET ARITHABORT 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsTime">
+        <source xml:lang="en">Enable SET STATISTICS TIME option</source>
+        <target state="translated">SET STATISTICS TIME 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.statisticsIO">
+        <source xml:lang="en">Enable SET STATISTICS IO option</source>
+        <target state="translated">SET STATISTICS IO 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.xactAbortOn">
+        <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
+        <target state="translated">SET XACT_ABORT ON 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.transactionIsolationLevel">
+        <source xml:lang="en">Enable SET TRANSACTION ISOLATION LEVEL option</source>
+        <target state="translated">SET TRANSACTION ISOLATION LEVEL 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.deadlockPriority">
+        <source xml:lang="en">Enable SET DEADLOCK_PRIORITY option</source>
+        <target state="translated">SET DEADLOCK_PRIORITY 옵션 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.lockTimeout">
+        <source xml:lang="en">Enable SET LOCK TIMEOUT option (in milliseconds)</source>
+        <target state="translated">SET LOCK TIMEOUT 옵션 사용(밀리초)</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.queryGovernorCostLimit">
+        <source xml:lang="en">Enable SET QUERY_GOVERNOR_COST_LIMIT</source>
+        <target state="translated">SET QUERY_GOVERNOR_COST_LIMIT 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiDefaults">
+        <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
+        <target state="translated">SET ANSI_DEFAULTS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.quotedIdentifier">
+        <source xml:lang="en">Enable SET QUOTED_IDENTIFIER</source>
+        <target state="translated">SET QUOTED_IDENTIFIER 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNullDefaultOn">
+        <source xml:lang="en">Enable SET ANSI_NULL_DFLT_ON</source>
+        <target state="translated">SET ANSI_NULL_DFLT_ON 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.implicitTransactions">
+        <source xml:lang="en">Enable SET IMPLICIT_TRANSACTIONS</source>
+        <target state="translated">SET IMPLICIT_TRANSACTIONS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.cursorCloseOnCommit">
+        <source xml:lang="en">Enable SET CURSOR_CLOSE_ON_COMMIT</source>
+        <target state="translated">SET CURSOR_CLOSE_ON_COMMIT 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiPadding">
+        <source xml:lang="en">Enable SET ANSI_PADDING</source>
+        <target state="translated">SET ANSI_PADDING 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiWarnings">
+        <source xml:lang="en">Enable SET ANSI_WARNINGS</source>
+        <target state="translated">SET ANSI_WARNINGS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.ansiNulls">
+        <source xml:lang="en">Enable SET ANSI_NULLS</source>
+        <target state="translated">SET ANSI_NULLS 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.alwaysEncryptedParameterization">
+        <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
+        <target state="translated">Always Encrypted에 매개 변수화 사용</target>
+      </trans-unit>
+      <trans-unit id="mssql.ignorePlatformWarning">
+        <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
+        <target state="translated">[옵션] 지원되지 않는 플랫폼 경고 표시 안 함</target>
+      </trans-unit>
+      <trans-unit id="mssql.Configuration">
+        <source xml:lang="en">MSSQL configuration</source>
+        <target state="translated">MSSQL 구성</target>
+      </trans-unit>
+      <trans-unit id="mssql.chooseAuthMethod">
+        <source xml:lang="en">Chooses which Authentication method to use</source>
+        <target state="translated">사용할 인증 방법을 선택합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.authCodeGrant.description">
+        <source xml:lang="en">Prompts users to sign in using their browser.</source>
+        <target state="translated">사용자에게 브라우저를 사용하여 로그인하라는 메시지를 표시합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.deviceCode.description">
+        <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
+        <target state="translated">사용자가 입력이 제한된 디바이스에 로그인할 수 있도록 허용합니다.</target>
       </trans-unit>
     </body>
   </file>
