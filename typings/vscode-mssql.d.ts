@@ -411,7 +411,19 @@ declare module 'vscode-mssql' {
 	}
 
 	export interface IAzureAccountService {
+		/**
+		 * Prompts user to login to Azure and returns the account
+		 */
 		getAccount(): Promise<IAccount>;
+
+		/**
+		 * Returns current Azure accounts
+		 */
+		getAccounts(): Promise<IAccount[]>;
+
+		/**
+		 * Returns an access token for given user and tenant
+		 */
 		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Promise<Token>;
 	}
 

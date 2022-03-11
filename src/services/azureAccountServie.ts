@@ -21,6 +21,9 @@ export class AzureAccountService implements mssql.IAzureAccountService {
 	public async getAccount(): Promise<mssql.IAccount> {
 		return await this._azureController.getAccount(this._accountStore);
 	}
+	public async getAccounts(): Promise<mssql.IAccount[]> {
+		return await this._accountStore.getAccounts();
+	}
 	public async getAccountSecurityToken(account: mssql.IAccount, tenantId: string | undefined): Promise<mssql.Token> {
 		return await this._azureController.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
 	}
