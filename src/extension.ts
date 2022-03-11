@@ -77,9 +77,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		getConnectionString: (connectionUriOrDetails: string | ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean) => {
 			return controller.connectionManager.getConnectionString(connectionUriOrDetails, includePassword, includeApplicationName);
 		},
-		promptForFirewallRule: async (connectionUri: string, connectionInfo: IConnectionInfo) => {
+		promptForFirewallRule: (connectionUri: string, connectionInfo: IConnectionInfo) => {
 			const connectionProfile = new ConnectionProfile(connectionInfo);
-			return await controller.connectionManager.connectionUI.addFirewallRule(connectionUri, connectionProfile);
+			return controller.connectionManager.connectionUI.addFirewallRule(connectionUri, connectionProfile);
 		},
 		azureAccountService: controller.azureAccountService
 	};
