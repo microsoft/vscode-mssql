@@ -280,6 +280,16 @@ export default class ConnectionManager {
 	}
 
 	/**
+	 * Set connection details for the provided connection info
+	 * Able to use this for getConnectionString requests to STS that require ConnectionDetails type
+	 * @param connectionInfo connection info of the connection
+	 * @returns connection details credentials for the connection
+	 */
+	public createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails {
+		return ConnectionCredentials.createConnectionDetails(connectionInfo);
+	}
+
+	/**
 	 * Exposed for testing purposes.
 	 */
 	public getConnectionInfo(fileUri: string): ConnectionInfo {
