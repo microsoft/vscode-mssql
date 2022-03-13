@@ -132,7 +132,7 @@ The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy
 This extension is [licensed under the MIT License]. Please see the [third-party notices] file for additional copyright notices and license terms applicable to portions of the software.
 
 [the mssql extension tutorial]:https://aka.ms/mssql-getting-started
-[the SQL Developer tutorial]: http://aka.ms/sqldev
+[the SQL Developer tutorial]: https://aka.ms/sqldev
 [Visual Studio Code]: https://code.visualstudio.com/#alt-downloads
 [DotNet Core instructions]:https://www.microsoft.com/net/core
 [manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
