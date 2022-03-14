@@ -171,3 +171,6 @@ export const defaultBindingResult = 'return new OkObjectResult(responseMessage);
 export const sqlBindingResult = `return new OkObjectResult(result);`;
 export const azureFunctionLocalSettingsFileName = 'local.settings.json';
 export const sqlExtensionPackageName = 'Microsoft.Azure.WebJobs.Extensions.Sql';
+export const input = 'Input';
+export const output = 'Output';
+export const selectBindingType = 'Select type of binding';

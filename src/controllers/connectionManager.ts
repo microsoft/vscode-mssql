@@ -28,7 +28,7 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
 import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import { AzureController } from '../azure/azureController';
-import { ConnectionDetails, IConnectionInfo } from 'vscode-mssql';
+import { BindingType, ConnectionDetails, IConnectionInfo } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
 
 /**
@@ -927,5 +927,26 @@ export default class ConnectionManager {
 				this.azureController.removeToken(answers.account);
 			}
 		});
+	}
+
+	public async promptForBindingType(): Promise<BindingType | undefined> {
+		const inputOutputItems: (vscode.QuickPickItem & { type: BindingType })[] = [
+			{
+				label: Constants.input,
+				type: BindingType.input
+			},
+			{
+				label: Constants.output,
+				type: BindingType.output
+			}
+		];
+
+		const selectedBinding = (await vscode.window.showQuickPick(inputOutputItems, {
+			canPickMany: false,
+			title: Constants.selectBindingType,
+			ignoreFocusOut: true
+		}));
+
+		return selectedBinding ? selectedBinding.type : undefined;
 	}
 }
