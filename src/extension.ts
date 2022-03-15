@@ -14,6 +14,7 @@ import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
+import { RequestType } from 'vscode-languageclient';
 
 let controller: MainController = undefined;
 
@@ -67,6 +68,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		},
 		createConnectionDetails: (connectionInfo: IConnectionInfo) => {
 			return controller.connectionManager.createConnectionDetails(connectionInfo);
+		},
+		sendRequest: async <P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P) => {
+			return await controller.connectionManager.sendRequest(requestType, params);
 		}
 	};
 }

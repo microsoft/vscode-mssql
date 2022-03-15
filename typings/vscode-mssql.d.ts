@@ -6,6 +6,7 @@
 declare module 'vscode-mssql' {
 
 	import * as vscode from 'vscode';
+	import { RequestType } from 'vscode-languageclient';
 
 	/**
 	 * Covers defining what the vscode-mssql extension exports to other extensions
@@ -86,12 +87,20 @@ declare module 'vscode-mssql' {
 		getConnectionString(connectionUriOrDetails: string | ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean): Promise<string>;
 
 		/**
-	 	 * Set connection details for the provided connection info
-	 	 * Able to use this for getConnectionString requests to STS that require ConnectionDetails type
-	 	 * @param connectionInfo connection info of the connection
-	 	 * @returns connection details credentials for the connection
-	 	 */
+		 * Set connection details for the provided connection info
+		 * Able to use this for getConnectionString requests to STS that require ConnectionDetails type
+		 * @param connectionInfo connection info of the connection
+		 * @returns connection details credentials for the connection
+		 */
 		createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails;
+
+		/**
+		 * Send a request to the SQL Tools Server client
+		 * @param requestType The type of the request
+		 * @param params The params to pass with the request
+		 * @returns A promise object for when the request receives a response
+		 */
+		sendRequest<P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P): Promise<R>;
 	}
 
 	/**
