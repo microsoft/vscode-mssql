@@ -36,7 +36,7 @@ import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureFunctionsService } from '../services/azureFunctionsService';
 import { ConnectionCredentials } from '../models/connectionCredentials';
-import { AzureAccountService } from '../services/azureAccountServie';
+import { AzureAccountService } from '../services/azureAccountService';
 
 /**
  * The main controller class that initializes the extension

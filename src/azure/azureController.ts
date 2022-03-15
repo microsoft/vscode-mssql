@@ -117,7 +117,7 @@ export class AzureController {
 		await this.prompter.promptSingle(tenantQuestion, true);
 	}
 
-	public async getAccount(accountStore: AccountStore): Promise<IAccount> {
+	public async addAccount(accountStore: AccountStore): Promise<IAccount> {
 		let account: IAccount;
 		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
 		if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
@@ -134,7 +134,7 @@ export class AzureController {
 	}
 
 	public async getAccountSecurityToken(account: IAccount, tenantId: string | undefined, settings: AADResource): Promise<Token> {
-		let token;
+		let token: Token;
 		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
 		if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
 			let azureCodeGrant = await this.createAuthCodeGrant();
@@ -153,10 +153,10 @@ export class AzureController {
 	}
 
 	/**
-	 * Gets the token for given account and updates the connection profile with token infromation needed for AAD authetnication
+	 * Gets the token for given account and updates the connection profile with token information needed for AAD authentication
 	 */
 	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
-		let account = await this.getAccount(accountStore);
+		let account = await this.addAccount(accountStore);
 
 		if (!profile.tenantId) {
 			await this.promptForTenantChoice(account, profile);
@@ -169,11 +169,12 @@ export class AzureController {
 		if (!token) {
 			let errorMessage = LocalizedConstants.msgGetTokenFail;
 			this._vscodeWrapper.showErrorMessage(errorMessage);
+		} else {
+			profile.azureAccountToken = token.token;
+			profile.expiresOn = token.expiresOn;
+			profile.email = account.displayInfo.email;
+			profile.accountId = account.key.id;
 		}
-		profile.azureAccountToken = token.token;
-		profile.expiresOn = token.expiresOn;
-		profile.email = account.displayInfo.email;
-		profile.accountId = account.key.id;
 
 		return profile;
 	}

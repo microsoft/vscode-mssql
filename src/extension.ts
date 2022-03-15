@@ -15,15 +15,9 @@ import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
 import { ConnectionProfile } from './models/connectionProfile';
+import { FirewallRuleError } from './languageservice/interfaces';
 
 let controller: MainController = undefined;
-
-class FirewallRuleError extends Error {
-
-	constructor(public connectionUri: string, errorMessage: string) {
-		super(errorMessage);
-	}
-}
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
 	let vscodeWrapper = new VscodeWrapper();
