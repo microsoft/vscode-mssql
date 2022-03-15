@@ -3,7 +3,6 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-
 declare module 'vscode-mssql' {
 
 	import * as vscode from 'vscode';
@@ -97,7 +96,7 @@ declare module 'vscode-mssql' {
 
 		/**
 		 * Send a request to the SQL Tools Server client
-		 * @param requestType The of the request to make
+		 * @param requestType The type of the request
 		 * @param params The params to pass with the request
 		 * @returns A promise object for when the request receives a response
 		 */
