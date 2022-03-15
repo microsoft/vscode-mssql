@@ -34,8 +34,6 @@ import { DacFxService } from '../services/dacFxService';
 import { IConnectionInfo } from 'vscode-mssql';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
-import { AzureFunctionsService } from '../services/azureFunctionsService';
-import { ConnectionCredentials } from '../models/connectionCredentials';
 
 /**
  * The main controller class that initializes the extension
@@ -61,7 +59,6 @@ export default class MainController implements vscode.Disposable {
 	public sqlTasksService: SqlTasksService;
 	public dacFxService: DacFxService;
 	public schemaCompareService: SchemaCompareService;
-	public azureFunctionsService: AzureFunctionsService;
 
 	/**
 	 * The main controller constructor
@@ -154,7 +151,6 @@ export default class MainController implements vscode.Disposable {
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
-			this.azureFunctionsService = new AzureFunctionsService(SqlToolsServerClient.instance);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -440,25 +436,6 @@ export default class MainController implements vscode.Disposable {
 					}
 				}
 			}));
-
-		// Generate Azure Function command
-		this._context.subscriptions.push(vscode.commands.registerCommand(Constants.cmdCreateAzureFunction, async (node: TreeNodeInfo) => {
-			let connectionInfo = node.connectionInfo;
-			// set the database containing the selected table so it can be used
-			// for the initial catalog property of the connection string
-			let newNode: TreeNodeInfo = node;
-			while (newNode) {
-				if (newNode.nodeType === 'Database') {
-					connectionInfo.database = newNode.metadata.name;
-					break;
-				} else {
-					newNode = newNode.parentNode;
-				}
-			}
-			const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionInfo);
-			const connectionString = await this._connectionMgr.getConnectionString(connectionDetails, false, false);
-			await this.azureFunctionsService.createAzureFunction(connectionString, node.metadata.schema, node.metadata.name);
-		}));
 	}
 
 	/**
