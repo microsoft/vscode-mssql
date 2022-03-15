@@ -70,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 			return controller.connectionManager.createConnectionDetails(connectionInfo);
 		},
 		sendRequest: async <P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P) => {
-			return controller.connectionManager.sendRequest(requestType, params);
+			return await controller.connectionManager.sendRequest(requestType, params);
 		}
 	};
 }
