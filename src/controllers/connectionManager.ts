@@ -16,7 +16,7 @@ import StatusView from '../views/statusView';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import VscodeWrapper from './vscodeWrapper';
-import { NotificationHandler } from 'vscode-languageclient';
+import { NotificationHandler, RequestType } from 'vscode-languageclient';
 import { Runtime, PlatformInformation } from '../models/platform';
 import { Deferred } from '../protocol';
 import { AccountService } from '../azure/accountService';
@@ -287,6 +287,16 @@ export default class ConnectionManager {
 	 */
 	public createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails {
 		return ConnectionCredentials.createConnectionDetails(connectionInfo);
+	}
+
+	/**
+	 * Send a request to the SQL Tools Server client
+	 * @param requestType The type of the request
+	 * @param params The params to pass with the request
+	 * @returns A promise object for when the request receives a response
+	 */
+	public async sendRequest<P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P): Promise<R> {
+		return await this.client.sendRequest(requestType, params);
 	}
 
 	/**
