@@ -97,7 +97,7 @@ declare module 'vscode-mssql' {
 
 		/**
 		 * Send a request to the SQL Tools Server client
-		 * @param type The of the request to make
+		 * @param requestType The of the request to make
 		 * @param params The params to pass with the request
 		 * @returns A thenable object for when the request receives a response
 		 */
