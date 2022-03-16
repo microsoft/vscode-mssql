@@ -11,7 +11,6 @@ import * as findRemoveSync from 'find-remove';
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
-import { ExtensionContext } from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as fs from 'fs';
 import { AzureAuthType } from '@microsoft/ads-adal-library';
@@ -36,18 +35,6 @@ export interface IPackageInfo {
 }
 
 // FUNCTIONS //////////////////////////////////////////////////////////////////////////////////////
-
-// Get information from the extension's package.json file
-export function getPackageInfo(context: ExtensionContext): IPackageInfo {
-	let extensionPackage = require(context.asAbsolutePath('./package.json'));
-	if (extensionPackage) {
-		return {
-			name: extensionPackage.name,
-			version: extensionPackage.version,
-			aiKey: extensionPackage.aiKey
-		};
-	}
-}
 
 // Generate a new GUID
 export function generateGuid(): string {
