@@ -13,7 +13,7 @@ import { promises as fs } from 'fs';
 import { CredentialStore } from '../credentialstore/credentialstore';
 import { StorageService } from './storageService';
 import * as utils from '../models/utils';
-import { IAccount } from '../models/contracts/azure/accountInterfaces';
+import { IAccount } from 'vscode-mssql';
 import { AADResource, AzureAuthType, AzureCodeGrant, AzureDeviceCode, Token } from '@microsoft/ads-adal-library';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { AccountStore } from './accountStore';
@@ -117,48 +117,65 @@ export class AzureController {
 		await this.prompter.promptSingle(tenantQuestion, true);
 	}
 
-	public async getTokens(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
+	public async addAccount(accountStore: AccountStore): Promise<IAccount> {
 		let account: IAccount;
 		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
 		if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			account = await azureCodeGrant.startLogin();
 			await accountStore.addAccount(account);
-			if (!profile.tenantId) {
-				await this.promptForTenantChoice(account, profile);
-			}
-			let tid = profile.tenantId ? profile.tenantId : azureCodeGrant.getHomeTenant(account).id;
-			const token = await azureCodeGrant.getAccountSecurityToken(
-				account, tid, settings
-			);
-			if (!token) {
-				let errorMessage = LocalizedConstants.msgGetTokenFail;
-				this._vscodeWrapper.showErrorMessage(errorMessage);
-			}
-			profile.azureAccountToken = token.token;
-			profile.expiresOn = token.expiresOn;
-			profile.email = account.displayInfo.email;
-			profile.accountId = account.key.id;
 		} else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
 			let azureDeviceCode = await this.createDeviceCode();
 			account = await azureDeviceCode.startLogin();
 			await accountStore.addAccount(account);
-			if (!profile.tenantId) {
-				await this.promptForTenantChoice(account, profile);
-			}
-			let tid = profile.tenantId ? profile.tenantId : azureDeviceCode.getHomeTenant(account).id;
-			const token = await azureDeviceCode.getAccountSecurityToken(
-				account, tid, settings
+		}
+
+		return account;
+	}
+
+	public async getAccountSecurityToken(account: IAccount, tenantId: string | undefined, settings: AADResource): Promise<Token> {
+		let token: Token;
+		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
+		if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
+			let azureCodeGrant = await this.createAuthCodeGrant();
+			tenantId = tenantId ? tenantId : azureCodeGrant.getHomeTenant(account).id;
+			token = await azureCodeGrant.getAccountSecurityToken(
+				account, tenantId, settings
 			);
-			if (!token) {
-				let errorMessage = LocalizedConstants.msgGetTokenFail;
-				this._vscodeWrapper.showErrorMessage(errorMessage);
-			}
+		} else if (config === utils.azureAuthTypeToString(AzureAuthType.DeviceCode)) {
+			let azureDeviceCode = await this.createDeviceCode();
+			tenantId = tenantId ? tenantId : azureDeviceCode.getHomeTenant(account).id;
+			token = await azureDeviceCode.getAccountSecurityToken(
+				account, tenantId, settings
+			);
+		}
+		return token;
+	}
+
+	/**
+	 * Gets the token for given account and updates the connection profile with token information needed for AAD authentication
+	 */
+	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: AADResource): Promise<ConnectionProfile> {
+		let account = await this.addAccount(accountStore);
+
+		if (!profile.tenantId) {
+			await this.promptForTenantChoice(account, profile);
+		}
+
+		const token = await this.getAccountSecurityToken(
+			account, profile.tenantId, settings
+		);
+
+		if (!token) {
+			let errorMessage = LocalizedConstants.msgGetTokenFail;
+			this._vscodeWrapper.showErrorMessage(errorMessage);
+		} else {
 			profile.azureAccountToken = token.token;
 			profile.expiresOn = token.expiresOn;
 			profile.email = account.displayInfo.email;
 			profile.accountId = account.key.id;
 		}
+
 		return profile;
 	}
 
@@ -173,13 +190,14 @@ export class AzureController {
 			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 			return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
 				if (result === LocalizedConstants.refreshTokenLabel) {
-					let refreshedProfile = await this.getTokens(profile, accountStore, settings);
+					let refreshedProfile = await this.populateAccountProperties(profile, accountStore, settings);
 					return refreshedProfile;
 				} else {
 					return undefined;
 				}
 			});
 		}
+
 		profile.azureAccountToken = azureAccountToken.token;
 		profile.expiresOn = azureAccountToken.expiresOn;
 		profile.email = account.displayInfo.email;
@@ -198,8 +216,10 @@ export class AzureController {
 					return undefined;
 				}
 				await accountStore.addAccount(newAccount);
-				let tid = tenantId ? tenantId : azureCodeGrant.getHomeTenant(account).id;
-				token = await azureCodeGrant.getAccountSecurityToken(account, tid, settings);
+
+				token = await this.getAccountSecurityToken(
+					account, tenantId, settings
+				);
 			} else if (account.properties.azureAuthType === 1) {
 				// Auth Device Code
 				let azureDeviceCode = await this.createDeviceCode();
@@ -208,9 +228,9 @@ export class AzureController {
 				if (newAccount.isStale === true) {
 					return undefined;
 				}
-				let tid = tenantId ? tenantId : azureDeviceCode.getHomeTenant(account).id;
-				token = await azureDeviceCode.getAccountSecurityToken(
-					account, tid, providerSettings.resources.databaseResource);
+				token = await this.getAccountSecurityToken(
+					account, tenantId, settings
+				);
 			}
 			return token;
 		} catch (ex) {

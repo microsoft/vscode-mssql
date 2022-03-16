@@ -41,6 +41,11 @@ declare module 'vscode-mssql' {
 		readonly schemaCompare: ISchemaCompareService;
 
 		/**
+		 * Service for accessing Azure Account functionality
+		 */
+		readonly azureAccountService: IAzureAccountService;
+
+		/**
 		 * Prompts the user to select an existing connection or create a new one, and then returns the result
 		 * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
 		 */
@@ -56,6 +61,14 @@ declare module 'vscode-mssql' {
 		 * @returns The URI associated with this connection
 		 */
 		connect(connectionInfo: IConnectionInfo, saveConnection?: boolean): Promise<string>;
+
+		/**
+		 * Prompts the user to add firewall rule if connection failed with a firewall error.
+		 * @param connectionUri The URI of the connection to add firewall rule to.
+		 * @param connectionInfo The connection info
+		 * @returns True if firewall rule added
+		 */
+		promptForFirewallRule(connectionUri: string, connectionInfo: IConnectionInfo): Promise<boolean>;
 
 		/**
 		 * Lists the databases for a given connection. Must be given an already-opened connection to succeed.
@@ -294,6 +307,136 @@ declare module 'vscode-mssql' {
 		generateDeployPlan(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<GenerateDeployPlanResult>;
 		getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
+	}
+
+	/**
+	 * Represents a tenant information for an account.
+	 */
+	export interface Tenant {
+		id: string;
+		displayName: string;
+		userId?: string;
+		tenantCategory?: string;
+	}
+
+	/**
+	 * Error that connect method throws if connection fails because of a fire wall rule error.
+	 */
+	export interface IFireWallRuleError extends Error {
+		connectionUri: string;
+	}
+
+	/**
+	 * Represents a key that identifies an account.
+	 */
+	export interface IAccountKey {
+		/**
+		 * Identifier for the account, unique to the provider
+		 */
+		id: string;
+		/**
+		 * Identifier of the provider
+		 */
+		providerId: string;
+		/**
+		 * Version of the account
+		 */
+		accountVersion?: any;
+	}
+
+
+	export enum AccountType {
+		Microsoft = 'microsoft',
+		WorkSchool = 'work_school'
+	}
+
+	/**
+	 * Represents display information for an account.
+	 */
+	export interface IAccountDisplayInfo {
+		/**
+		 * account provider (eg, Work/School vs Microsoft Account)
+		 */
+		accountType: AccountType;
+		/**
+		 * User id that identifies the account, such as "user@contoso.com".
+		 */
+		userId: string;
+		/**
+		 * A display name that identifies the account, such as "User Name".
+		 */
+		displayName: string;
+		/**
+		 * email for AAD
+		 */
+		email?: string;
+		/**
+		 * name of account
+		 */
+		name: string;
+	}
+
+	export interface IAccount {
+		/**
+		 * The key that identifies the account
+		 */
+		key: IAccountKey;
+		/**
+		 * Display information for the account
+		 */
+		displayInfo: IAccountDisplayInfo;
+		/**
+		 * Custom properties stored with the account
+		 */
+		properties: any;
+		/**
+		 * Indicates if the account needs refreshing
+		 */
+		isStale: boolean;
+		/**
+		 * Indicates if the account is signed in
+		 */
+		isSignedIn?: boolean;
+	}
+
+	export interface TokenKey {
+		/**
+		 * Account Key - uniquely identifies an account
+		 */
+		key: string;
+	}
+	export interface AccessToken extends TokenKey {
+		/**
+		 * Access Token
+		 */
+		token: string;
+		/**
+		 * Access token expiry timestamp
+		 */
+		expiresOn?: number;
+	}
+	export interface Token extends AccessToken {
+		/**
+		 * TokenType
+		 */
+		tokenType: string;
+	}
+
+	export interface IAzureAccountService {
+		/**
+		 * Prompts user to login to Azure and returns the account
+		 */
+		addAccount(): Promise<IAccount>;
+
+		/**
+		 * Returns current Azure accounts
+		 */
+		getAccounts(): Promise<IAccount[]>;
+
+		/**
+		 * Returns an access token for given user and tenant
+		 */
+		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Promise<Token>;
 	}
 
 	export const enum TaskExecutionMode {

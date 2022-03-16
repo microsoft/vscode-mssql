@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IAccount } from '../models/contracts/azure/accountInterfaces';
+import { IAccount } from 'vscode-mssql';
 import * as Constants from '../constants/constants';
 
 export class AccountStore {

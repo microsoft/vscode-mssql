@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { IAccount, IAccountKey } from '../models/contracts/azure/accountInterfaces';
+import { IAccount, IAccountKey } from 'vscode-mssql';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
 import * as Constants from '../constants/constants';

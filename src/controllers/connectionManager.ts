@@ -26,7 +26,7 @@ import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
-import { IAccount } from '../models/contracts/azure/accountInterfaces';
+import { IAccount } from 'vscode-mssql';
 import { AzureController } from '../azure/azureController';
 import { ConnectionDetails, IConnectionInfo } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
@@ -732,7 +732,7 @@ export default class ConnectionManager {
 					let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 					let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
 					if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-						await this.azureController.getTokens(
+						await this.azureController.populateAccountProperties(
 							profile, this.accountStore, providerSettings.resources.databaseResource);
 
 					} else {

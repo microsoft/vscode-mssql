@@ -14,6 +14,8 @@ import { Deferred } from './protocol';
 import * as utils from './models/utils';
 import { ObjectExplorerUtils } from './objectExplorer/objectExplorerUtils';
 import SqlToolsServerClient from './languageservice/serviceclient';
+import { ConnectionProfile } from './models/connectionProfile';
+import { FirewallRuleError } from './languageservice/interfaces';
 import { RequestType } from 'vscode-languageclient';
 
 let controller: MainController = undefined;
@@ -45,7 +47,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 			// First wait for initial connection request to succeed
 			const requestSucceeded = await controller.connect(uri, connectionInfo, connectionPromise, saveConnection);
 			if (!requestSucceeded) {
-				throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
+				if (controller.connectionManager.failedUriToFirewallIpMap.has(uri)) {
+					throw new FirewallRuleError(uri, `Connection request for ${JSON.stringify(connectionInfo)} failed because of invalid firewall rule settings`);
+				} else {
+					throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
+				}
 			}
 			// Next wait for the actual connection to be made
 			const connectionSucceeded = await connectionPromise;
@@ -65,6 +71,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		getConnectionString: (connectionUriOrDetails: string | ConnectionDetails, includePassword?: boolean, includeApplicationName?: boolean) => {
 			return controller.connectionManager.getConnectionString(connectionUriOrDetails, includePassword, includeApplicationName);
 		},
+		promptForFirewallRule: (connectionUri: string, connectionInfo: IConnectionInfo) => {
+			const connectionProfile = new ConnectionProfile(connectionInfo);
+			return controller.connectionManager.connectionUI.addFirewallRule(connectionUri, connectionProfile);
+		},
+		azureAccountService: controller.azureAccountService,
 		createConnectionDetails: (connectionInfo: IConnectionInfo) => {
 			return controller.connectionManager.createConnectionDetails(connectionInfo);
 		},

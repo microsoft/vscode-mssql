@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import * as tmp from 'tmp';
 import { ILogger } from '../models/interfaces';
+import * as vscodeMssql from 'vscode-mssql';
 
 export interface IStatusView {
 	installingService(): void;
@@ -31,6 +32,12 @@ export interface IPackage {
 	isZipFile: boolean;
 }
 
+export class FirewallRuleError extends Error implements vscodeMssql.IFireWallRuleError {
+
+	constructor(public connectionUri: string, errorMessage: string) {
+		super(errorMessage);
+	}
+}
 export class PackageError extends Error {
 	// Do not put PII (personally identifiable information) in the 'message' field as it will be logged to telemetry
 	constructor(public message: string,

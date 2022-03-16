@@ -18,7 +18,6 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
 import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
 import { AccountStore } from '../azure/accountStore';
-import { IAccount } from '../models/contracts/azure/accountInterfaces';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
 
@@ -470,13 +469,8 @@ export class ConnectionUI {
 			} else {
 				// Check whether the error was for firewall rule or not
 				if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
-					// Firewall rule error
-					const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
-					let success = await this.handleFirewallError(uri, profile, clientIp);
+					let success = await this.addFirewallRule(uri, profile);
 					if (success) {
-						// Retry creating the profile if firewall rule
-						// was successful
-						self.connectionManager.failedUriToFirewallIpMap.delete(uri);
 						return self.validateAndSaveProfile(profile);
 					}
 					return undefined;
@@ -486,6 +480,21 @@ export class ConnectionUI {
 				}
 			}
 		});
+	}
+
+	public async addFirewallRule(uri: string, profile: IConnectionProfile): Promise<boolean> {
+		if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
+			// Firewall rule error
+			const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
+			let success = await this.handleFirewallError(uri, profile, clientIp);
+			if (success) {
+				// Retry creating the profile if firewall rule
+				// was successful
+				this.connectionManager.failedUriToFirewallIpMap.delete(uri);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -504,14 +513,14 @@ export class ConnectionUI {
 			let selection = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
 				LocalizedConstants.azureAddAccount);
 			if (selection === LocalizedConstants.azureAddAccount) {
-				profile = await this.connectionManager.azureController.getTokens(profile, this._accountStore,
+				profile = await this.connectionManager.azureController.populateAccountProperties(profile, this._accountStore,
 					providerSettings.resources.azureManagementResource);
 			}
 			let account = this._accountStore.getAccount(profile.accountId);
 			this.connectionManager.accountService.setAccount(account);
 
 		}
-		let success = await this.createFirewallRule(profile, profile.server, ipAddress);
+		let success = await this.createFirewallRule(profile.server, ipAddress);
 		return success;
 	}
 
@@ -592,7 +601,7 @@ export class ConnectionUI {
 		});
 	}
 
-	private async createFirewallRule(profile: IConnectionProfile, serverName: string, ipAddress: string, account?: IAccount): Promise<boolean> {
+	private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
 		return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
 			LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
 				if (result === LocalizedConstants.createFirewallRuleLabel) {
