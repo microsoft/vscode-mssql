@@ -431,7 +431,7 @@ declare module 'vscode-mssql' {
 		/**
 		 * Prompts user to login to Azure and returns the account
 		 */
-		getAccount(): Promise<IAccount>;
+		addAccount(): Promise<IAccount>;
 
 		/**
 		 * Returns current Azure accounts
