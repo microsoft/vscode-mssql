@@ -745,7 +745,7 @@ export default class MainController implements vscode.Disposable {
 				await self.onNewConnection();
 			}
 			// check if current connection is still valid / active - if not, refresh azure account token
-			await this._connectionMgr.refreshAzureAccountToken(uri);
+			await self._connectionMgr.refreshAzureAccountToken(uri);
 
 			let title = path.basename(editor.document.fileName);
 			let querySelection: ISelectionData;
