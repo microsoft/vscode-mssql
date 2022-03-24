@@ -10,7 +10,7 @@
         {
             "label": "build",
             "type": "gulp",
-            "task": "--no-color",
+            "task": "build",
             "problemMatcher": [
                 "$lessCompile",
                 "$tsc",

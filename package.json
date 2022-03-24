@@ -62,6 +62,11 @@
     "ms-mssql.data-workspace-vscode",
     "ms-mssql.sql-database-projects-vscode"
   ],
+  "scripts": {
+    "build": "gulp build",
+    "compile": "gulp ext:compile",
+    "watch": "gulp watch"
+  },
   "devDependencies": {
     "@angular/common": "~2.1.2",
     "@angular/compiler": "~2.1.2",

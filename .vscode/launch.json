@@ -30,7 +30,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": ["${workspaceRoot}/out/src/**/*.js"],
-            "preLaunchTask": "cover:disable"
+            "preLaunchTask": "build"
         },
         {
             "name": "Launch Tests",
