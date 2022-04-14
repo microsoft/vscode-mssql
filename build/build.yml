@@ -25,8 +25,11 @@ steps:
   - bash: "gulp lint"
     displayName: "gulp lint"
 
-  - bash: "gulp test"
-    displayName: "gulp test"
+  - bash: "gulp test:cover"
+    displayName: "gulp test:cover"
+
+  - bash: "gulp cover:combine-json"
+    displayName: "gulp cover:combine-json"
 
   - bash: "gulp cover"
     displayName: "gulp cover"
