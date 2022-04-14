@@ -92,7 +92,7 @@ function createTestConnectionManager(
 		statusView = TypeMoq.Mock.ofType(StatusView).object;
 	}
 	if (!connectionStore) {
-		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, TestExtensionContext.object);
 		// disable saving recently used by default
 		connectionStoreMock.setup(x => x.addRecentlyUsed(TypeMoq.It.isAny())).returns(() => {
 			return Promise.resolve();
@@ -490,7 +490,8 @@ suite('Per File Connection Tests', () => {
 		let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
 		vscodeWrapperMock.setup(x => x.isEditingSqlFile).returns(() => true);
 		vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'file://my/test/file.sql');
-		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager,
+			TypeMoq.MockBehavior.Loose, TestExtensionContext.object);
 		connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
 		connectionManagerMock.setup(x => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
 		connectionManagerMock.setup(x => x.onNewConnection()).returns(() => Promise.resolve(undefined));
@@ -632,7 +633,7 @@ suite('Per File Connection Tests', () => {
 
 		// And we store any DBs saved to recent connections
 		let savedConnection: IConnectionInfo = undefined;
-		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, TestExtensionContext.object);
 		connectionStoreMock.setup(x => x.addRecentlyUsed(TypeMoq.It.isAny())).returns(conn => {
 			savedConnection = conn;
 			return Promise.resolve();

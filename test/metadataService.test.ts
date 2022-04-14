@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import { MetadataService } from '../src/metadata/metadataService';
 import ConnectionManager from '../src/controllers/connectionManager';
@@ -17,7 +18,8 @@ suite('Metadata Service Tests', () => {
 	let client: TypeMoq.IMock<SqlToolsServiceClient>;
 
 	setup(() => {
-		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
+		let mockContext: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, mockContext.object);
 		connectionManager.setup(c => c.client).returns(() => client.object);
 		client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
 		const mockMetadata: MetadataQueryResult = {

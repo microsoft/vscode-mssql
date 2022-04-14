@@ -65,13 +65,14 @@ suite('Connection Profile tests', () => {
 	let mockAzureController: AzureController;
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 	let mockPrompter: TypeMoq.IMock<IPrompter>;
-	let globalstate: TypeMoq.IMock<vscode.Memento>;
+	let globalstate: TypeMoq.IMock<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>;
 
 	setup(() => {
 
-		globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
+		globalstate = TypeMoq.Mock.ofType<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>();
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-		mockContext.setup(c => c.workspaceState).returns(() => globalstate.object);
+		mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
+		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
 		mockAzureController = new AzureController(mockContext.object, mockPrompter.object);
 		mockAccountStore = new AccountStore(mockContext.object);
 	});
@@ -221,10 +222,11 @@ suite('Connection Profile tests', () => {
 	});
 
 	test('Profile is connected to and validated prior to saving', done => {
-		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
 		connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
 
-		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, contextMock.object);
 		connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
@@ -247,7 +249,7 @@ suite('Connection Profile tests', () => {
 		let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
 		vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
 
-		let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined,
+		let connectionUI = new ConnectionUI(connectionManagerMock.object, contextMock.object,
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile
@@ -265,11 +267,12 @@ suite('Connection Profile tests', () => {
 	});
 
 	test('Profile is not saved when connection validation fails', done => {
-		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager);
+		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
 		connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
 		connectionManagerMock.setup(x => x.failedUriToFirewallIpMap).returns(() => new Map());
 
-		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore);
+		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, contextMock.object);
 		connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
@@ -293,7 +296,7 @@ suite('Connection Profile tests', () => {
 		vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
 		vscodeWrapperMock.setup(x => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
-		let connectionUI = new ConnectionUI(connectionManagerMock.object, undefined,
+		let connectionUI = new ConnectionUI(connectionManagerMock.object, contextMock.object,
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile

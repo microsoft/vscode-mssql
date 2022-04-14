@@ -26,7 +26,8 @@ suite('Object Explorer Provider Tests', () => {
 	let objectExplorerProvider: ObjectExplorerProvider;
 
 	setup(() => {
-		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
+		let mockContext: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, mockContext.object);
 		connectionManager.setup(c => c.client).returns(() => client.object);
 		client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
 		client.setup(c => c.onNotification(TypeMoq.It.isAny(), TypeMoq.It.isAny()));

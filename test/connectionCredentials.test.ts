@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as TypeMoq from 'typemoq';
-
+import * as vscode from 'vscode';
 import * as utils from '../src/models/utils';
 import * as Constants from '../src/constants/constants';
 import * as LocalizedConstants from '../src/constants/localizedConstants';
@@ -26,6 +26,7 @@ suite('ConnectionCredentials Tests', () => {
 	let prompter: TypeMoq.IMock<IPrompter>;
 	let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 	let connectionStore: TypeMoq.IMock<ConnectionStore>;
+	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 
 	setup(() => {
 		defaultProfile = Object.assign(new ConnectionProfile(), {
@@ -39,7 +40,8 @@ suite('ConnectionCredentials Tests', () => {
 
 		prompter = TypeMoq.Mock.ofType(TestPrompter);
 		vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
-		connectionStore = TypeMoq.Mock.ofType(ConnectionStore);
+		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, mockContext.object);
 
 		// setup default behavior for vscodeWrapper
 		// setup configuration to return maxRecent for the #MRU items

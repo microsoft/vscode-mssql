@@ -29,7 +29,7 @@ suite('Connection UI tests', () => {
 	let connectionManager: TypeMoq.IMock<ConnectionManager>;
 	let mockAccountStore: AccountStore;
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-	let globalstate: TypeMoq.IMock<vscode.Memento>;
+	let globalstate: TypeMoq.IMock<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>;
 
 	setup(() => {
 		vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
@@ -41,14 +41,15 @@ suite('Connection UI tests', () => {
 		vscodeWrapper.setup(v => v.showErrorMessage(TypeMoq.It.isAny()));
 		vscodeWrapper.setup(v => v.executeCommand(TypeMoq.It.isAnyString()));
 		prompter = TypeMoq.Mock.ofType<IPrompter>();
-		connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose);
-		connectionStore.setup(c => c.getPickListItems()).returns(() => TypeMoq.It.isAny());
-		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
-		globalstate = TypeMoq.Mock.ofType<vscode.Memento>();
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-		mockContext.setup(c => c.workspaceState).returns(() => globalstate.object);
+		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
+		connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, mockContext.object);
+		connectionStore.setup(c => c.getPickListItems()).returns(() => TypeMoq.It.isAny());
+		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, mockContext.object);
+		globalstate = TypeMoq.Mock.ofType<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>();
+
 		mockAccountStore = new AccountStore(mockContext.object);
-		connectionUI = new ConnectionUI(connectionManager.object, undefined,
+		connectionUI = new ConnectionUI(connectionManager.object, mockContext.object,
 			connectionStore.object, mockAccountStore, prompter.object, vscodeWrapper.object);
 	});
 

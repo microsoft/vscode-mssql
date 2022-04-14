@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import * as Contracts from '../src/models/contracts';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
@@ -13,13 +14,15 @@ suite('Credential Store Tests', () => {
 
 	let client: TypeMoq.IMock<SqlToolsServiceClient>;
 	let credentialStore: ICredentialStore;
+	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 
 	setup(() => {
 		client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
+		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		client.setup(c => c.sendRequest(Contracts.SaveCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
 		client.setup(c => c.sendRequest(Contracts.ReadCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 		client.setup(c => c.sendRequest(Contracts.DeleteCredentialRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-		credentialStore = new CredentialStore(undefined, client.object);
+		credentialStore = new CredentialStore(mockContext.object, client.object);
 	});
 
 	test('Read credential should send a ReadCredentialRequest', () => {
