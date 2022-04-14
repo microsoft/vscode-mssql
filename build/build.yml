@@ -25,6 +25,12 @@ steps:
   - bash: "gulp lint"
     displayName: "gulp lint"
 
+  - bash: "gulp test"
+    displayName: "gulp test"
+
+  - bash: "gulp cover"
+    displayName: "gulp cover"
+
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
     displayName: Install vsce
     inputs:

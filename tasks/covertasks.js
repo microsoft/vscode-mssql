@@ -53,4 +53,4 @@ gulp.task('cover:combine-html', () => {
 });
 
 // for running on the jenkins build system
-gulp.task('cover:jenkins', gulp.series('cover:clean', 'cover:enableconfig', 'test', 'cover:combine-json'));
+gulp.task('cover', gulp.series('cover:clean', 'cover:enableconfig', 'test', 'cover:combine-json'));
