@@ -31,9 +31,6 @@ steps:
   - bash: "gulp cover:combine-json"
     displayName: "gulp cover:combine-json"
 
-  - bash: "gulp cover"
-    displayName: "gulp cover"
-
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
     displayName: Install vsce
     inputs:
