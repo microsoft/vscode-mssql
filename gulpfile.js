@@ -260,7 +260,7 @@ gulp.task('ext:test', async (done) => {
 		console.error(`exec error: ${error}`);
 	}
 	done();
-	process.exit(1);
+	process.exit(0);
 });
 
 gulp.task('test', gulp.series('ext:test'));
