@@ -60,7 +60,8 @@
   ],
   "extensionPack": [
     "ms-mssql.data-workspace-vscode",
-    "ms-mssql.sql-database-projects-vscode"
+    "ms-mssql.sql-database-projects-vscode",
+    "ms-mssql.sql-bindings-vscode"
   ],
   "scripts": {
     "build": "gulp build",
