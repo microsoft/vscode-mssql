@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.14.0
+* Release date: April 20, 2022
+* Release status: GA
+
+### What's new in 1.14.0
+* All SQL bindings functionality released in 1.13 moved to SQL bindings extension in extension pack
+* Fixed connection string generated for SQL bindings on connection to `<default>` database. https://github.com/microsoft/vscode-mssql/issues/17267
+* Fixed error with heirarchyID data type in results pane. https://github.com/microsoft/sqltoolsservice/pull/1450
+
 ## Version 1.13.0
 * Release date: February 24, 2022
 * Release status: GA
