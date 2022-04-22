@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.14.1
+* Release date: April 22, 2022
+* Release status: GA
+
+### What's new in 1.14.1
+* Fix regression in Object Explorer that causes timeouts expanding the Tables folder. https://github.com/microsoft/azuredatastudio/issues/19166
+
 ## Version 1.14.0
 * Release date: April 20, 2022
 * Release status: GA
