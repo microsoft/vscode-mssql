@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the Source EULA. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { AzureStringLookup } from '../azure/azureStringLookup';
@@ -22,6 +27,10 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import { Tenant } from '@microsoft/ads-adal-library';
 import { AzureAccount } from '../../lib/ads-adal-library/src';
+import { Subscription, SubscriptionClient } from '@azure/arm-subscriptions';
+import { TokenCredentialWrapper } from './TokenCredentialWrapper';
+import * as mssql from 'vscode-mssql';
+import * as azureUtils from './utils';
 
 function getAppDataPath(): string {
 	let platform = process.platform;
@@ -78,6 +87,7 @@ export class AzureController {
 	private prompter: IPrompter;
 	private _vscodeWrapper: VscodeWrapper;
 	private credentialStoreInitialized = false;
+	private _subscriptionClient: SubscriptionClient | undefined;
 
 	constructor(context: vscode.ExtensionContext, prompter: IPrompter, logger?: AzureLogger) {
 		this.context = context;
@@ -239,6 +249,35 @@ export class AzureController {
 		}
 	}
 
+	/**
+	 * Returns Azure subscriptions with tenant and token for each given account
+	 */
+	public async getAccountSessions(account: IAccount): Promise<mssql.IAzureAccountSession[]> {
+		try {
+			let subscriptions: mssql.IAzureAccountSession[] = [];
+			const tenants = <Tenant[]>account.properties.tenants;
+			for (const tenantId of tenants.map(t => t.id)) {
+				const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
+				const subClient = this.getSubscriptionClient(token);
+				const newSubPages = await subClient.subscriptions.list();
+				const array = await azureUtils.getAllValues<Subscription, mssql.IAzureAccountSession>(newSubPages, (nextSub) => {
+					return {
+						subscription: nextSub,
+						tenantId: tenantId,
+						account: account,
+						token: token
+					};
+				});
+				subscriptions = subscriptions.concat(array);
+			}
+
+			return subscriptions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
+		} catch (error) {
+
+			return [];
+		}
+	}
+
 	private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
 		let azureLogger = new AzureLogger();
 		await this.initializeCredentialStore();
@@ -279,4 +318,15 @@ export class AzureController {
 		}
 	}
 
+	public set SubscriptionClient(v: SubscriptionClient) {
+		this._subscriptionClient = v;
+	}
+
+	private getSubscriptionClient(token: Token): SubscriptionClient {
+		if (this._subscriptionClient) {
+			return this._subscriptionClient;
+		}
+
+		return new SubscriptionClient(new TokenCredentialWrapper(token));
+	}
 }
