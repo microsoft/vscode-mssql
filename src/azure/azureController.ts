@@ -252,10 +252,10 @@ export class AzureController {
 	}
 
 	/**
-	 * Returns Azure subscriptions with tenant and token for each given account
+	 * Returns Azure sessions with subscriptions, tenant and token for each given account
 	 */
 	public async getAccountSessions(account: IAccount): Promise<mssql.IAzureAccountSession[]> {
-		let subscriptions: mssql.IAzureAccountSession[] = [];
+		let sessions: mssql.IAzureAccountSession[] = [];
 		const tenants = <Tenant[]>account.properties.tenants;
 		for (const tenantId of tenants.map(t => t.id)) {
 			const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
@@ -269,10 +269,10 @@ export class AzureController {
 					token: token
 				};
 			});
-			subscriptions = subscriptions.concat(array);
+			sessions = sessions.concat(array);
 		}
 
-		return subscriptions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
+		return sessions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
 	}
 
 	private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
@@ -323,12 +323,20 @@ export class AzureController {
 	public async checkAndRefreshToken(
 		session: mssql.IAzureAccountSession,
 		accountStore: AccountStore): Promise<void> {
-		const currentTime = new Date().getTime() / 1000;
-		const maxTolerance = 2 * 60; // two minutes
-		if (session.account && (!session.token || session.token.expiresOn - currentTime < maxTolerance)) {
+		if (session.account && this.isTokenInValid(session.token?.token, session.token.expiresOn)) {
 			const token = await this.refreshToken(session.account, accountStore,
 				providerSettings.resources.azureManagementResource);
 			session.token = token;
 		}
+	}
+
+	public isTokenInValid(token: string, expiresOn?: number): boolean {
+		return (!token || this.isTokenExpired(expiresOn));
+	}
+
+	public isTokenExpired(expiresOn?: number): boolean {
+		const currentTime = new Date().getTime() / 1000;
+		const maxTolerance = 2 * 60; // two minutes
+		return (expiresOn - currentTime < maxTolerance);
 	}
 }

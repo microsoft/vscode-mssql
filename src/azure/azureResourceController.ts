@@ -19,6 +19,8 @@ export class AzureResourceController {
 
 	/**
 	 * Returns Azure locations for given session
+	 * @param session Azure session
+	 * @returns List of locations
 	 */
 	public async getLocations(session: mssql.IAzureAccountSession): Promise<Location[]> {
 		const subClient = this._subscriptionClientFactory(session.token);
@@ -33,6 +35,11 @@ export class AzureResourceController {
 
 	/**
 	 * Creates or updates a Azure SQL server for given subscription, resource group and location
+	 * @param subscriptionId subscription Id
+	 * @param resourceGroupName resource group name
+	 * @param serverName SQL server name
+	 * @param parameters parameters for the SQL server
+	 * @returns name of the SQL server
 	 */
 	public async createOrUpdateServer(
 		subscriptionId: string,
@@ -54,6 +61,8 @@ export class AzureResourceController {
 
 	/**
 	 * Returns Azure resource groups for given subscription
+	 * @param session Azure session
+	 * @returns List of resource groups
 	 */
 	public async getResourceGroups(session: mssql.IAzureAccountSession): Promise<ResourceGroup[]> {
 		if (session.subscription?.subscriptionId) {

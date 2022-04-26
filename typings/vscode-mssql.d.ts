@@ -463,16 +463,25 @@ declare module 'vscode-mssql' {
 
 		/**
 		 * Returns Azure resource groups for given subscription
+		 * @param session Azure session
+		 * @returns List of resource groups
 		 */
 		getResourceGroups(session: IAzureAccountSession): Promise<ResourceGroup[]>;
 
 		/**
 		 * Creates or updates a Azure SQL server for given subscription, resource group and location
+		 * @param session Azure session
+		 * @param resourceGroupName resource group name
+		 * @param serverName SQL server name
+		 * @param parameters parameters for the SQL server
+		 * @returns name of the SQL server
 		 */
 		createOrUpdateServer(session: IAzureAccountSession, resourceGroupName: string, serverName: string, parameters: Server): Promise<string | undefined>;
 
 		/**
-		 * Returns Azure locations for given subscription
+		 * Returns Azure locations for given session
+		 * @param session Azure session
+		 * @returns List of locations
 		 */
 		getLocations(session: IAzureAccountSession): Promise<Location[]>;
 	}
