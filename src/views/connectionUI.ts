@@ -90,7 +90,7 @@ export class ConnectionUI {
 		const selection = await this.promptItemChoice({
 			placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
 			matchOnDescription: true,
-			ignoreFocusOut
+			ignoreFocusOut: ignoreFocusOut
 		}, picklist);
 		if (selection) {
 			return this.handleSelectedConnection(selection);
@@ -136,7 +136,7 @@ export class ConnectionUI {
 			matchOptions: options,
 			choices: choices
 		};
-		return this._prompter.promptSingle(question);
+		return this._prompter.promptSingle(question, question.matchOptions.ignoreFocusOut);
 	}
 
 	/**
