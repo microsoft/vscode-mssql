@@ -136,7 +136,7 @@ export class ConnectionUI {
 			matchOptions: options,
 			choices: choices
 		};
-		return this._prompter.promptSingle(question);
+		return this._prompter.promptSingle(question, question.matchOptions.ignoreFocusOut);
 	}
 
 	/**
