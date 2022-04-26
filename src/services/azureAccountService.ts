@@ -28,7 +28,7 @@ export class AzureAccountService implements mssql.IAzureAccountService {
 	}
 
 	/**
-	 * Returns Azure subscriptions with tenant and token for each given account
+	 * Returns Azure sessions with subscription, tenant and token for each given account
 	 */
 	public async getAccountSessions(account: mssql.IAccount): Promise<mssql.IAzureAccountSession[]> {
 		return await this._azureController.getAccountSessions(account);
