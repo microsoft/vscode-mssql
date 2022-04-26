@@ -90,7 +90,7 @@ export class ConnectionUI {
 		const selection = await this.promptItemChoice({
 			placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
 			matchOnDescription: true,
-			ignoreFocusOut
+			ignoreFocusOut: ignoreFocusOut
 		}, picklist);
 		if (selection) {
 			return this.handleSelectedConnection(selection);
