@@ -4,18 +4,15 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as mssql from 'vscode-mssql';
-import * as vscode from 'vscode';
 import { AccountStore } from '../azure/accountStore';
 import { AzureController } from '../azure/azureController';
 import providerSettings from '../azure/providerSettings';
 
 export class AzureAccountService implements mssql.IAzureAccountService {
 
-	private _accountStore: AccountStore;
 	constructor(
 		private _azureController: AzureController,
-		private _context: vscode.ExtensionContext) {
-		this._accountStore = new AccountStore(this._context);
+		private _accountStore: AccountStore) {
 	}
 
 	public async addAccount(): Promise<mssql.IAccount> {

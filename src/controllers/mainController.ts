@@ -157,8 +157,8 @@ export default class MainController implements vscode.Disposable {
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 			const azureResourceController = new AzureResourceController();
-			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._context);
-			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._context);
+			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this.connectionManager.accountStore);
+			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this.connectionManager.accountStore);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));

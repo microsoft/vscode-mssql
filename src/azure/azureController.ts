@@ -27,8 +27,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import { Tenant } from '@microsoft/ads-adal-library';
 import { AzureAccount } from '../../lib/ads-adal-library/src';
-import { Subscription, SubscriptionClient } from '@azure/arm-subscriptions';
-import { TokenCredentialWrapper } from './credentialWrapper';
+import { Subscription } from '@azure/arm-subscriptions';
 import * as mssql from 'vscode-mssql';
 import * as azureUtils from './utils';
 
@@ -87,9 +86,12 @@ export class AzureController {
 	private prompter: IPrompter;
 	private _vscodeWrapper: VscodeWrapper;
 	private credentialStoreInitialized = false;
-	private _subscriptionClient: SubscriptionClient | undefined;
 
-	constructor(context: vscode.ExtensionContext, prompter: IPrompter, logger?: AzureLogger) {
+	constructor(
+		context: vscode.ExtensionContext,
+		prompter: IPrompter,
+		logger?: AzureLogger,
+		private _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		this.context = context;
 		this.prompter = prompter;
 		if (!this.logger) {
@@ -253,29 +255,24 @@ export class AzureController {
 	 * Returns Azure subscriptions with tenant and token for each given account
 	 */
 	public async getAccountSessions(account: IAccount): Promise<mssql.IAzureAccountSession[]> {
-		try {
-			let subscriptions: mssql.IAzureAccountSession[] = [];
-			const tenants = <Tenant[]>account.properties.tenants;
-			for (const tenantId of tenants.map(t => t.id)) {
-				const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
-				const subClient = this.getSubscriptionClient(token);
-				const newSubPages = await subClient.subscriptions.list();
-				const array = await azureUtils.getAllValues<Subscription, mssql.IAzureAccountSession>(newSubPages, (nextSub) => {
-					return {
-						subscription: nextSub,
-						tenantId: tenantId,
-						account: account,
-						token: token
-					};
-				});
-				subscriptions = subscriptions.concat(array);
-			}
-
-			return subscriptions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
-		} catch (error) {
-
-			return [];
+		let subscriptions: mssql.IAzureAccountSession[] = [];
+		const tenants = <Tenant[]>account.properties.tenants;
+		for (const tenantId of tenants.map(t => t.id)) {
+			const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
+			const subClient = this._subscriptionClientFactory(token);
+			const newSubPages = await subClient.subscriptions.list();
+			const array = await azureUtils.getAllValues<Subscription, mssql.IAzureAccountSession>(newSubPages, (nextSub) => {
+				return {
+					subscription: nextSub,
+					tenantId: tenantId,
+					account: account,
+					token: token
+				};
+			});
+			subscriptions = subscriptions.concat(array);
 		}
+
+		return subscriptions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
 	}
 
 	private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
@@ -318,15 +315,20 @@ export class AzureController {
 		}
 	}
 
-	public set SubscriptionClient(v: SubscriptionClient) {
-		this._subscriptionClient = v;
-	}
 
-	private getSubscriptionClient(token: Token): SubscriptionClient {
-		if (this._subscriptionClient) {
-			return this._subscriptionClient;
+	/**
+	 * Verifies if the token still valid, refreshes the token for given account
+	 * @param session
+	 */
+	public async checkAndRefreshToken(
+		session: mssql.IAzureAccountSession,
+		accountStore: AccountStore): Promise<void> {
+		const currentTime = new Date().getTime() / 1000;
+		const maxTolerance = 2 * 60; // two minutes
+		if (session.account && (!session.token || session.token.expiresOn - currentTime < maxTolerance)) {
+			const token = await this.refreshToken(session.account, accountStore,
+				providerSettings.resources.azureManagementResource);
+			session.token = token;
 		}
-
-		return new SubscriptionClient(new TokenCredentialWrapper(token));
 	}
 }

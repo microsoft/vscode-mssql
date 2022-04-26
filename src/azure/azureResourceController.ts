@@ -3,41 +3,32 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SubscriptionClient, Location } from '@azure/arm-subscriptions';
-import { ResourceManagementClient, ResourceGroup } from '@azure/arm-resources';
-import { SqlManagementClient, Server } from '@azure/arm-sql';
+import { Location } from '@azure/arm-subscriptions';
+import { ResourceGroup } from '@azure/arm-resources';
+import { Server } from '@azure/arm-sql';
 import * as mssql from 'vscode-mssql';
 import * as azureUtils from './utils';
-import { TokenCredentialWrapper } from './credentialWrapper';
 
 export class AzureResourceController {
-	private _subscriptionClient: SubscriptionClient | undefined;
-	private _resourceManagementClient: ResourceManagementClient | undefined;
-	private _sqlManagementClient: SqlManagementClient | undefined;
 
-	public set SubscriptionClient(v: SubscriptionClient) {
-		this._subscriptionClient = v;
-	}
-
-	public set ResourceManagementClient(v: ResourceManagementClient) {
-		this._resourceManagementClient = v;
-	}
-
-	public set SqlManagementClient(v: SqlManagementClient) {
-		this._sqlManagementClient = v;
+	constructor(
+		private _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory,
+		private _resourceManagementClientFactory: azureUtils.ResourceManagementClientFactory = azureUtils.defaultResourceManagementClientFactory,
+		private _sqlManagementClientFactory: azureUtils.SqlManagementClientFactory = azureUtils.defaultSqlManagementClientFactory) {
 	}
 
 	/**
-	 * Returns Azure locations for given subscription
+	 * Returns Azure locations for given session
 	 */
 	public async getLocations(session: mssql.IAzureAccountSession): Promise<Location[]> {
-		const subClient = this.getSubscriptionClient(session.token);
-		if (!session?.subscription?.subscriptionId) {
-			return [];
+		const subClient = this._subscriptionClientFactory(session.token);
+		if (session.subscription?.subscriptionId) {
+			const locationsPages = await subClient.subscriptions.listLocations(session.subscription.subscriptionId);
+			let locations = await azureUtils.getAllValues(locationsPages, (v) => v);
+			return locations.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+		} else {
+			throw new Error('Invalid session');
 		}
-		const locationsPages = await subClient.subscriptions.listLocations(session.subscription.subscriptionId);
-		let locations = await azureUtils.getAllValues(locationsPages, (v) => v);
-		return locations.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 	}
 
 	/**
@@ -50,7 +41,7 @@ export class AzureResourceController {
 		parameters: Server,
 		token: mssql.Token): Promise<string | undefined> {
 		if (subscriptionId && resourceGroupName) {
-			const sqlClient: SqlManagementClient = this.getSqlManagementClient(token, subscriptionId);
+			const sqlClient = this._sqlManagementClientFactory(token, subscriptionId);
 			if (sqlClient) {
 				const result = await sqlClient.servers.beginCreateOrUpdateAndWait(resourceGroupName,
 					serverName, parameters);
@@ -65,36 +56,13 @@ export class AzureResourceController {
 	 * Returns Azure resource groups for given subscription
 	 */
 	public async getResourceGroups(session: mssql.IAzureAccountSession): Promise<ResourceGroup[]> {
-		if (session?.subscription?.subscriptionId) {
-			const resourceGroupClient = this.getResourceManagementClient(session.token, session.subscription.subscriptionId);
+		if (session.subscription?.subscriptionId) {
+			const resourceGroupClient = this._resourceManagementClientFactory(session.token, session.subscription.subscriptionId);
 			const newGroupsPages = await resourceGroupClient.resourceGroups.list();
 			let groups = await azureUtils.getAllValues(newGroupsPages, (v) => v);
 			return groups.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+		} else {
+			throw new Error('Invalid session');
 		}
-		return [];
-	}
-
-	private getSubscriptionClient(token: mssql.Token): SubscriptionClient {
-		if (this._subscriptionClient) {
-			return this._subscriptionClient;
-		}
-
-		return new SubscriptionClient(new TokenCredentialWrapper(token));
-	}
-
-	private getResourceManagementClient(token: mssql.Token, subscriptionId: string): ResourceManagementClient {
-		if (this._resourceManagementClient) {
-			return this._resourceManagementClient;
-		}
-
-		return new ResourceManagementClient(new TokenCredentialWrapper(token), subscriptionId);
-	}
-
-	private getSqlManagementClient(token: mssql.Token, subscriptionId: string): SqlManagementClient {
-		if (this._sqlManagementClient) {
-			return this._sqlManagementClient;
-		}
-
-		return new SqlManagementClient(new TokenCredentialWrapper(token), subscriptionId);
 	}
 }

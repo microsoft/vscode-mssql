@@ -85,7 +85,7 @@ export function createContext(): ITestContext {
 describe('Azure SQL client', function (): void {
 	it('Should return subscriptions successfully', async function (): Promise<void> {
 		const testContext = createContext();
-		const azureSqlClient = new AzureController(undefined, undefined);
+		const azureSqlClient = new AzureController(undefined, undefined, undefined, () => testContext.subscriptionClient.object);
 
 		let index = 0;
 		let maxLength = testContext.subscriptions.length;
@@ -107,14 +107,13 @@ describe('Azure SQL client', function (): void {
 		};
 		testContext.subscriptionClient.setup(x => x.subscriptions).returns(() => subscriptions);
 
-		azureSqlClient.SubscriptionClient = testContext.subscriptionClient.object;
 		const result = await azureSqlClient.getAccountSessions(testContext.accounts[0]);
 		assert.deepStrictEqual(result[0].subscription.id, testContext.subscriptions[0].id);
 	});
 
 	it('Should return locations successfully', async function (): Promise<void> {
 		const testContext = createContext();
-		const azureSqlClient = new AzureResourceController();
+		const azureSqlClient = new AzureResourceController(() => testContext.subscriptionClient.object);
 
 		let index = 0;
 		let maxLength = testContext.locations.length;
@@ -136,14 +135,13 @@ describe('Azure SQL client', function (): void {
 		};
 		testContext.subscriptionClient.setup(x => x.subscriptions).returns(() => subscriptions);
 
-		azureSqlClient.SubscriptionClient = testContext.subscriptionClient.object;
 		const result = await azureSqlClient.getLocations(testContext.session);
 		assert.deepStrictEqual(result.length, testContext.locations.length);
 	});
 
 	it('Should return resource groups successfully', async function (): Promise<void> {
 		const testContext = createContext();
-		const azureSqlClient = new AzureResourceController();
+		const azureSqlClient = new AzureResourceController(undefined, () => groupClient.object);
 
 		let index = 0;
 		let maxLength = testContext.groups.length;
@@ -173,7 +171,6 @@ describe('Azure SQL client', function (): void {
 			new TokenCredentialWrapper(testContext.session.token), testContext.subscriptions[0].subscriptionId);
 		groupClient.setup(x => x.resourceGroups).returns(() => resourceGroups);
 
-		azureSqlClient.ResourceManagementClient = groupClient.object;
 		const result = await azureSqlClient.getResourceGroups(testContext.session);
 		assert.deepStrictEqual(result.length, testContext.groups.length);
 		assert.deepStrictEqual(result[0].location, testContext.groups[0].location);
