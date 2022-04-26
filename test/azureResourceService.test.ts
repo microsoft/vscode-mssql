@@ -12,7 +12,6 @@ import { ResourceGroup, ResourceGroups, ResourceManagementClient } from '@azure/
 import { AzureResourceController } from '../src/azure/azureResourceController';
 import { AzureAccountService } from '../src/services/azureAccountService';
 import { TokenCredentialWrapper } from '../src/azure/credentialWrapper';
-import { AzureController } from '../src/azure/azureController';
 
 export interface ITestContext {
 	azureAccountService: TypeMoq.IMock<AzureAccountService>;
@@ -74,7 +73,7 @@ export function createContext(): ITestContext {
 		groups: groups,
 		locations: locations,
 		subscriptions: subscriptions,
-		subscriptionClient: TypeMoq.Mock.ofType(SubscriptionClient, undefined, undefined, new TokenCredentialWrapper(session0.token)),
+		subscriptionClient: TypeMoq.Mock.ofType(SubscriptionClient, undefined, new TokenCredentialWrapper(session0.token)),
 		session: session0,
 		accounts: accounts,
 		azureAccountService: azureAccountService
@@ -82,36 +81,9 @@ export function createContext(): ITestContext {
 }
 
 
-describe('Azure SQL client', function (): void {
-	it('Should return subscriptions successfully', async function (): Promise<void> {
-		const testContext = createContext();
-		const azureSqlClient = new AzureController(undefined, undefined, undefined, () => testContext.subscriptionClient.object);
+suite('Azure SQL client', function (): void {
 
-		let index = 0;
-		let maxLength = testContext.subscriptions.length;
-		const subPages: PagedAsyncIterableIterator<Subscription> = {
-			next: () => {
-				if (index < maxLength) {
-					return Promise.resolve({ done: false, value: testContext.subscriptions[index++] });
-				} else {
-					return Promise.resolve({ done: true, value: undefined });
-				}
-			},
-			byPage: () => undefined!,
-			[Symbol.asyncIterator]: undefined!
-		};
-		const subscriptions: Subscriptions = {
-			listLocations: undefined!,
-			list: () => subPages,
-			get: () => undefined!
-		};
-		testContext.subscriptionClient.setup(x => x.subscriptions).returns(() => subscriptions);
-
-		const result = await azureSqlClient.getAccountSessions(testContext.accounts[0]);
-		assert.deepStrictEqual(result[0].subscription.id, testContext.subscriptions[0].id);
-	});
-
-	it('Should return locations successfully', async function (): Promise<void> {
+	test('Should return locations successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const azureSqlClient = new AzureResourceController(() => testContext.subscriptionClient.object);
 
@@ -139,7 +111,7 @@ describe('Azure SQL client', function (): void {
 		assert.deepStrictEqual(result.length, testContext.locations.length);
 	});
 
-	it('Should return resource groups successfully', async function (): Promise<void> {
+	test('Should return resource groups successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const azureSqlClient = new AzureResourceController(undefined, () => groupClient.object);
 
@@ -167,7 +139,7 @@ describe('Azure SQL client', function (): void {
 			createOrUpdate: undefined!,
 			update: undefined!
 		};
-		const groupClient = TypeMoq.Mock.ofType(ResourceManagementClient, undefined, undefined,
+		const groupClient = TypeMoq.Mock.ofType(ResourceManagementClient, undefined,
 			new TokenCredentialWrapper(testContext.session.token), testContext.subscriptions[0].subscriptionId);
 		groupClient.setup(x => x.resourceGroups).returns(() => resourceGroups);
 
