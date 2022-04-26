@@ -11,10 +11,10 @@ import { PagedAsyncIterableIterator } from '@azure/core-paging';
 import { ResourceGroup, ResourceGroups, ResourceManagementClient } from '@azure/arm-resources';
 import { AzureResourceController } from '../src/azure/azureResourceController';
 import { AzureAccountService } from '../src/services/azureAccountService';
-import { TokenCredentialWrapper } from '../src/azure/TokenCredentialWrapper';
+import { TokenCredentialWrapper } from '../src/azure/credentialWrapper';
 import { AzureController } from '../src/azure/azureController';
 
-export interface TestContext {
+export interface ITestContext {
 	azureAccountService: TypeMoq.IMock<AzureAccountService>;
 	accounts: IAccount[];
 	session: IAzureAccountSession;
@@ -24,7 +24,7 @@ export interface TestContext {
 	groups: ResourceGroup[];
 }
 
-export function createContext(): TestContext {
+export function createContext(): ITestContext {
 	const accounts = [{
 		key: undefined!,
 		displayInfo: undefined!,
@@ -47,7 +47,7 @@ export function createContext(): TestContext {
 		token: {
 			key: '',
 			token: '',
-			tokenType: '',
+			tokenType: ''
 		}
 	};
 	const session1: IAzureAccountSession = {
@@ -57,7 +57,7 @@ export function createContext(): TestContext {
 		token: {
 			key: '',
 			token: '',
-			tokenType: '',
+			tokenType: ''
 		}
 	};
 	const azureAccountService = TypeMoq.Mock.ofType(AzureAccountService, undefined, undefined);
@@ -68,7 +68,7 @@ export function createContext(): TestContext {
 		token: '',
 		tokenType: ''
 	}));
-	azureAccountService.setup(x => x.getAccountSessions(TypeMoq.It.isAny())).returns(() => Promise.resolve([session0, session1]))
+	azureAccountService.setup(x => x.getAccountSessions(TypeMoq.It.isAny())).returns(() => Promise.resolve([session0, session1]));
 
 	return {
 		groups: groups,
@@ -77,7 +77,7 @@ export function createContext(): TestContext {
 		subscriptionClient: TypeMoq.Mock.ofType(SubscriptionClient, undefined, undefined, new TokenCredentialWrapper(session0.token)),
 		session: session0,
 		accounts: accounts,
-		azureAccountService: azureAccountService,
+		azureAccountService: azureAccountService
 	};
 }
 
@@ -169,7 +169,8 @@ describe('Azure SQL client', function (): void {
 			createOrUpdate: undefined!,
 			update: undefined!
 		};
-		const groupClient = TypeMoq.Mock.ofType(ResourceManagementClient, undefined, undefined, new TokenCredentialWrapper(testContext.session.token), testContext.subscriptions[0].subscriptionId);
+		const groupClient = TypeMoq.Mock.ofType(ResourceManagementClient, undefined, undefined,
+			new TokenCredentialWrapper(testContext.session.token), testContext.subscriptions[0].subscriptionId);
 		groupClient.setup(x => x.resourceGroups).returns(() => resourceGroups);
 
 		azureSqlClient.ResourceManagementClient = groupClient.object;

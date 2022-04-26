@@ -26,10 +26,10 @@ export class AzureResourceService implements mssql.IAzureResourceService {
 	/**
 	 * Returns Azure locations for given subscription
 	 */
-	 public async getLocations(session: mssql.IAzureAccountSession): Promise<Location[]> {
+	public async getLocations(session: mssql.IAzureAccountSession): Promise<Location[]> {
 		await this.checkAndRefreshToken(session);
 		return await this._azureResourceController.getLocations(session);
-	 }
+	}
 
 	/**
 	 * Returns Azure resource groups for given subscription
@@ -42,21 +42,27 @@ export class AzureResourceService implements mssql.IAzureResourceService {
 	/**
 	 * Creates or updates a Azure SQL server for given subscription, resource group and location
 	 */
-	 public async createOrUpdateServer(session: mssql.IAzureAccountSession, resourceGroupName: string, serverName: string, parameters: Server): Promise<string | undefined> {
+	public async createOrUpdateServer(
+		session: mssql.IAzureAccountSession,
+		resourceGroupName: string,
+		serverName: string,
+		parameters: Server): Promise<string | undefined> {
 		await this.checkAndRefreshToken(session);
-		return await this._azureResourceController.createOrUpdateServer(session.subscription.subscriptionId, resourceGroupName, serverName, parameters, session.token);
+		return await this._azureResourceController.createOrUpdateServer(session.subscription.subscriptionId,
+			resourceGroupName, serverName, parameters, session.token);
 	}
 
 	/**
 	 * Verifies if the token still valid, refreshes the token for given account
 	 * @param session
 	 */
-	private async checkAndRefreshToken(session: mssql.IAzureAccountSession) {
+	private async checkAndRefreshToken(session: mssql.IAzureAccountSession): Promise<void> {
 		const currentTime = new Date().getTime() / 1000;
 		const maxTolerance = 2 * 60; // two minutes
-		 if (session.account && (!session.token || session.token.expiresOn - currentTime < maxTolerance)) {
-			 const token = await this._azureController.refreshToken(session.account, this._accountStore, providerSettings.resources.azureManagementResource)
-			 session.token = token;
-		 }
-	 }
+		if (session.account && (!session.token || session.token.expiresOn - currentTime < maxTolerance)) {
+			const token = await this._azureController.refreshToken(session.account, this._accountStore,
+				providerSettings.resources.azureManagementResource);
+			session.token = token;
+		}
+	}
 }

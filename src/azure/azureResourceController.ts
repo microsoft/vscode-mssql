@@ -8,7 +8,7 @@ import { ResourceManagementClient, ResourceGroup } from '@azure/arm-resources';
 import { SqlManagementClient, Server } from '@azure/arm-sql';
 import * as mssql from 'vscode-mssql';
 import * as azureUtils from './utils';
-import { TokenCredentialWrapper } from "./TokenCredentialWrapper";
+import { TokenCredentialWrapper } from './credentialWrapper';
 
 export class AzureResourceController {
 	private _subscriptionClient: SubscriptionClient | undefined;
@@ -43,7 +43,12 @@ export class AzureResourceController {
 	/**
 	 * Creates or updates a Azure SQL server for given subscription, resource group and location
 	 */
-	public async createOrUpdateServer(subscriptionId: string, resourceGroupName: string, serverName: string, parameters: Server, token: mssql.Token): Promise<string | undefined> {
+	public async createOrUpdateServer(
+		subscriptionId: string,
+		resourceGroupName: string,
+		serverName: string,
+		parameters: Server,
+		token: mssql.Token): Promise<string | undefined> {
 		if (subscriptionId && resourceGroupName) {
 			const sqlClient: SqlManagementClient = this.getSqlManagementClient(token, subscriptionId);
 			if (sqlClient) {
@@ -92,5 +97,4 @@ export class AzureResourceController {
 
 		return new SqlManagementClient(new TokenCredentialWrapper(token), subscriptionId);
 	}
-
 }

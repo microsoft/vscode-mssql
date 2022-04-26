@@ -8,7 +8,8 @@ import * as mssql from 'vscode-mssql';
 
 /**
  * TokenCredential wrapper to only return the given token.
- * Azure clients usually get a type of credential with a getToken function. Since in mssql extension we get the token differently, we need this wrapper class to just return
+ * Azure clients usually get a type of credential with a getToken function.
+ * Since in mssql extension we get the token differently, we need this wrapper class to just return
  * that token value
  */
 export class TokenCredentialWrapper implements coreAuth.TokenCredential {

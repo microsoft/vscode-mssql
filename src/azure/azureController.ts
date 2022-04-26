@@ -28,7 +28,7 @@ import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompt
 import { Tenant } from '@microsoft/ads-adal-library';
 import { AzureAccount } from '../../lib/ads-adal-library/src';
 import { Subscription, SubscriptionClient } from '@azure/arm-subscriptions';
-import { TokenCredentialWrapper } from './TokenCredentialWrapper';
+import { TokenCredentialWrapper } from './credentialWrapper';
 import * as mssql from 'vscode-mssql';
 import * as azureUtils from './utils';
 
