@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the Source EULA. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { AzureStringLookup } from '../azure/azureStringLookup';
@@ -22,6 +27,9 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import { Tenant } from '@microsoft/ads-adal-library';
 import { AzureAccount } from '../../lib/ads-adal-library/src';
+import { Subscription } from '@azure/arm-subscriptions';
+import * as mssql from 'vscode-mssql';
+import * as azureUtils from './utils';
 
 function getAppDataPath(): string {
 	let platform = process.platform;
@@ -79,7 +87,11 @@ export class AzureController {
 	private _vscodeWrapper: VscodeWrapper;
 	private credentialStoreInitialized = false;
 
-	constructor(context: vscode.ExtensionContext, prompter: IPrompter, logger?: AzureLogger) {
+	constructor(
+		context: vscode.ExtensionContext,
+		prompter: IPrompter,
+		logger?: AzureLogger,
+		private _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		this.context = context;
 		this.prompter = prompter;
 		if (!this.logger) {
@@ -239,6 +251,30 @@ export class AzureController {
 		}
 	}
 
+	/**
+	 * Returns Azure sessions with subscriptions, tenant and token for each given account
+	 */
+	public async getAccountSessions(account: IAccount): Promise<mssql.IAzureAccountSession[]> {
+		let sessions: mssql.IAzureAccountSession[] = [];
+		const tenants = <Tenant[]>account.properties.tenants;
+		for (const tenantId of tenants.map(t => t.id)) {
+			const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
+			const subClient = this._subscriptionClientFactory(token);
+			const newSubPages = await subClient.subscriptions.list();
+			const array = await azureUtils.getAllValues<Subscription, mssql.IAzureAccountSession>(newSubPages, (nextSub) => {
+				return {
+					subscription: nextSub,
+					tenantId: tenantId,
+					account: account,
+					token: token
+				};
+			});
+			sessions = sessions.concat(array);
+		}
+
+		return sessions.sort((a, b) => (a.subscription.displayName || '').localeCompare(b.subscription.displayName || ''));
+	}
+
 	private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
 		let azureLogger = new AzureLogger();
 		await this.initializeCredentialStore();
@@ -279,4 +315,40 @@ export class AzureController {
 		}
 	}
 
+
+	/**
+	 * Verifies if the token still valid, refreshes the token for given account
+	 * @param session
+	 */
+	public async checkAndRefreshToken(
+		session: mssql.IAzureAccountSession,
+		accountStore: AccountStore): Promise<void> {
+		if (session.account && AzureController.isTokenInValid(session.token?.token, session.token.expiresOn)) {
+			const token = await this.refreshToken(session.account, accountStore,
+				providerSettings.resources.azureManagementResource);
+			session.token = token;
+		}
+	}
+
+	/**
+	 * Returns true if token is invalid or expired
+	 * @param token Token
+	 * @param token expiry
+	 */
+	public static isTokenInValid(token: string, expiresOn?: number): boolean {
+		return (!token || this.isTokenExpired(expiresOn));
+	}
+
+	/**
+	 * Returns true if token is expired
+	 * @param token expiry
+	 */
+	public static isTokenExpired(expiresOn?: number): boolean {
+		if (!expiresOn) {
+			return true;
+		}
+		const currentTime = new Date().getTime() / 1000;
+		const maxTolerance = 2 * 60; // two minutes
+		return (expiresOn - currentTime < maxTolerance);
+	}
 }

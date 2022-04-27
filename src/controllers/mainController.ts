@@ -35,6 +35,8 @@ import { IConnectionInfo } from 'vscode-mssql';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import { AzureAccountService } from '../services/azureAccountService';
+import { AzureResourceService } from '../services/azureResourceService';
+import { AzureResourceController } from '../azure/azureResourceController';
 
 /**
  * The main controller class that initializes the extension
@@ -61,6 +63,7 @@ export default class MainController implements vscode.Disposable {
 	public dacFxService: DacFxService;
 	public schemaCompareService: SchemaCompareService;
 	public azureAccountService: AzureAccountService;
+	public azureResourceService: AzureResourceService;
 
 	/**
 	 * The main controller constructor
@@ -153,7 +156,9 @@ export default class MainController implements vscode.Disposable {
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
-			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._context);
+			const azureResourceController = new AzureResourceController();
+			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this.connectionManager.accountStore);
+			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this.connectionManager.accountStore);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
