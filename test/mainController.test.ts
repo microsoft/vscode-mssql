@@ -58,7 +58,8 @@ suite('MainController Tests', () => {
 		mainController = await Extension.getController();
 
 		// Setting up a mocked connectionManager
-		connectionManager = TypeMoq.Mock.ofType(ConnectionManager);
+		let mockContext: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, mockContext.object);
 		mainController.connectionManager = connectionManager.object;
 
 		untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);

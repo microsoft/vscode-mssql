@@ -371,6 +371,7 @@ export default class ConnectionManager {
 				Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, connection.credentials);
 				if (result.connectionSummary && result.connectionSummary.databaseName) {
 					newCredentials.database = result.connectionSummary.databaseName;
+					mruConnection.database = result.connectionSummary.databaseName;
 				}
 				self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
 				const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);

@@ -25,6 +25,18 @@ steps:
   - bash: "gulp lint"
     displayName: "gulp lint"
 
+  - bash: "gulp test:cover"
+    displayName: "gulp test:cover"
+
+  - bash: "gulp cover:combine-json"
+    displayName: "gulp cover:combine-json"
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: 'Cobertura'
+      summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml
+      additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/coverage/coverage.json
+
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
     displayName: Install vsce
     inputs:

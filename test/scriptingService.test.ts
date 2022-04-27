@@ -12,6 +12,7 @@ import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
 import { ServerInfo } from '../src/models/contracts/connection';
 import { assert } from 'chai';
 import { MetadataType, ObjectMetadata } from 'vscode-mssql';
+import { TestExtensionContext } from './stubs';
 
 suite('Scripting Service Tests', () => {
 
@@ -20,7 +21,7 @@ suite('Scripting Service Tests', () => {
 	let client: TypeMoq.IMock<SqlToolsServiceClient>;
 
 	setup(() => {
-		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose);
+		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, TestExtensionContext.object);
 		connectionManager.setup(c => c.client).returns(() => client.object);
 		client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
 		const mockScriptResult: IScriptingResult = {

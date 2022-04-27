@@ -38,64 +38,52 @@ suite('ServiceDownloadProvider Tests', () => {
 		testLogger = TypeMoq.Mock.ofType(Logger);
 	});
 
-	test('getInstallDirectory should return the exact value from config if the path is absolute', (done) => {
-		return new Promise((resolve, reject) => {
-			let expectedPathFromConfig = __dirname;
-			let expectedVersionFromConfig = '0.0.4';
-			let expected = expectedPathFromConfig;
-			config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
-			config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-			let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
-				testHttpClient.object, testDecompressProvider.object);
-			let actual = downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-			assert.equal(expected, actual);
-			done();
-		});
+	test('getInstallDirectory should return the exact value from config if the path is absolute', async () => {
+		let expectedPathFromConfig = __dirname;
+		let expectedVersionFromConfig = '0.0.4';
+		let expected = expectedPathFromConfig;
+		config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
+		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
+			testHttpClient.object, testDecompressProvider.object);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		assert.equal(expected, actual);
 	});
 
-	test('getInstallDirectory should add the version to the path given the path with the version template key', (done) => {
-		return new Promise((resolve, reject) => {
-			let expectedPathFromConfig = __dirname + '/{#version#}';
-			let expectedVersionFromConfig = '0.0.4';
-			let expected = __dirname + '/0.0.4';
-			config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
-			config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-			let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
-				testHttpClient.object, testDecompressProvider.object);
-			let actual = downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-			assert.equal(expected, actual);
-			done();
-		});
+	test('getInstallDirectory should add the version to the path given the path with the version template key', async () => {
+		let expectedPathFromConfig = __dirname + '/{#version#}';
+		let expectedVersionFromConfig = '0.0.4';
+		let expected = __dirname + '/0.0.4';
+		config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
+		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
+			testHttpClient.object, testDecompressProvider.object);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		assert.equal(expected, actual);
 	});
 
-	test('getInstallDirectory should add the platform to the path given the path with the platform template key', (done) => {
-		return new Promise((resolve, reject) => {
-			let expectedPathFromConfig = __dirname + '/{#version#}/{#platform#}';
-			let expectedVersionFromConfig = '0.0.4';
-			let expected = __dirname + '/0.0.4/OSX';
-			config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
-			config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-			let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
-				testHttpClient.object, testDecompressProvider.object);
-			let actual = downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-			assert.equal(expected, actual);
-			done();
-		});
+	test('getInstallDirectory should add the platform to the path given the path with the platform template key', async () => {
+		let expectedPathFromConfig = __dirname + '/{#version#}/{#platform#}';
+		let expectedVersionFromConfig = '0.0.4';
+		let expected = __dirname + '/0.0.4/OSX';
+		config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
+		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
+			testHttpClient.object, testDecompressProvider.object);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		assert.equal(expected, actual);
 	});
 
-	test('getInstallDirectory should add the platform to the path given the path with the platform template key', (done) => {
-		return new Promise((resolve, reject) => {
-			let expectedPathFromConfig = '../service/{#version#}/{#platform#}';
-			let expectedVersionFromConfig = '0.0.4';
-			let expected = path.join(__dirname, '../../service/0.0.4/OSX');
-			config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
-			config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-			let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
-				testHttpClient.object, testDecompressProvider.object);
-			let actual = downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-			assert.equal(expected, actual);
-			done();
-		});
+	test('getInstallDirectory should add the platform to the path given the path with the platform template key', async () => {
+		let expectedPathFromConfig = '../service/{#version#}/{#platform#}';
+		let expectedVersionFromConfig = '0.0.4';
+		let expected = path.join(__dirname, '../../service/0.0.4/OSX');
+		config.setup(x => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
+		config.setup(x => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
+		let downloadProvider = new ServiceDownloadProvider(config.object, undefined, testStatusView.object,
+			testHttpClient.object, testDecompressProvider.object);
+		let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+		assert.equal(expected, actual);
 	});
 
 
