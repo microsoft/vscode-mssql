@@ -722,7 +722,7 @@ export default class ConnectionManager {
 		const self = this;
 		// Check if the azure account token is present before sending connect request
 		if (connectionCreds.authenticationType === Constants.azureMfa) {
-			if (this.azureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
+			if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
 				let account = this.accountStore.getAccount(connectionCreds.accountId);
 				let profile = new ConnectionProfile(connectionCreds);
 				let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource, profile.tenantId);
@@ -893,7 +893,7 @@ export default class ConnectionManager {
 
 		const expiry = profile.credentials.expiresOn;
 		if (typeof expiry === 'number' && !Number.isNaN(expiry)) {
-			if (this.azureController.isTokenExpired(expiry)) {
+			if (AzureController.isTokenExpired(expiry)) {
 				this.vscodeWrapper.logToOutputChannel(Utils.formatString(LocalizedConstants.msgAcessTokenExpired, profile.connectionId, uri));
 				try {
 					let connectionResult = await this.connect(uri, profile.credentials);

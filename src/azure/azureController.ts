@@ -323,18 +323,30 @@ export class AzureController {
 	public async checkAndRefreshToken(
 		session: mssql.IAzureAccountSession,
 		accountStore: AccountStore): Promise<void> {
-		if (session.account && this.isTokenInValid(session.token?.token, session.token.expiresOn)) {
+		if (session.account && AzureController.isTokenInValid(session.token?.token, session.token.expiresOn)) {
 			const token = await this.refreshToken(session.account, accountStore,
 				providerSettings.resources.azureManagementResource);
 			session.token = token;
 		}
 	}
 
-	public isTokenInValid(token: string, expiresOn?: number): boolean {
+	/**
+	 * Returns true if token is invalid or expired
+	 * @param token Token
+	 * @param token expiry
+	 */
+	public static isTokenInValid(token: string, expiresOn?: number): boolean {
 		return (!token || this.isTokenExpired(expiresOn));
 	}
 
-	public isTokenExpired(expiresOn?: number): boolean {
+	/**
+	 * Returns true if token is expired
+	 * @param token expiry
+	 */
+	public static isTokenExpired(expiresOn?: number): boolean {
+		if (!expiresOn) {
+			return true;
+		}
 		const currentTime = new Date().getTime() / 1000;
 		const maxTolerance = 2 * 60; // two minutes
 		return (expiresOn - currentTime < maxTolerance);
