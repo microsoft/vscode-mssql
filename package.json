@@ -123,6 +123,9 @@
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
+    "@azure/arm-resources": "^5.0.0",
+    "@azure/arm-subscriptions": "^5.0.0",
+    "@azure/arm-sql":"^9.0.0",
     "@microsoft/ads-adal-library": "1.0.13",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
