@@ -191,12 +191,12 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@microsoft/ads-adal-library@1.0.13":
-  version "1.0.13"
-  resolved "https://registry.yarnpkg.com/@microsoft/ads-adal-library/-/ads-adal-library-1.0.13.tgz#6f10883ad1fb52a00633ef8885fb09af563230fb"
-  integrity sha512-UQtHHrCoo3ENVwrNR0uWeUxO8hw18Ob2D/VJ971LfUP0oqDihAU1/O2GkRQjEazQLK7YmVgIOHxGMglqp5oxZw==
+"@microsoft/ads-adal-library@1.0.15":
+  version "1.0.15"
+  resolved "https://registry.yarnpkg.com/@microsoft/ads-adal-library/-/ads-adal-library-1.0.15.tgz#c510cf99a85e400ce946eb3d5664c935481abf3b"
+  integrity sha512-mXMjhTEz0DIsQQLTfxY1odnxm4dCgHRIlTD3Pls6wV47Q2xcsukLvk6H1BcsqL5FsqdXD7Wz9K/UFXn81tARdA==
   dependencies:
-    axios "^0.21.1"
+    axios "^0.27.2"
     qs "^6.9.4"
 
 "@opentelemetry/api@^1.0.1":
@@ -640,12 +640,13 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
 
-axios@^0.21.1:
-  version "0.21.4"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz#c67b90dc0568e5c1cf2b0b858c43ba28e2eda575"
-  integrity sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==
+axios@^0.27.2:
+  version "0.27.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.27.2.tgz#207658cc8621606e586c85db4b41a750e756d972"
+  integrity sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==
   dependencies:
-    follow-redirects "^1.14.0"
+    follow-redirects "^1.14.9"
+    form-data "^4.0.0"
 
 azure-devops-node-api@^11.0.1:
   version "11.0.1"
@@ -2235,10 +2236,10 @@ fmerge@1.2.0:
   resolved "https://registry.yarnpkg.com/fmerge/-/fmerge-1.2.0.tgz#36e99d2ae255e3ee1af666b4df780553671cf692"
   integrity sha1-NumdKuJV4+4a9ma033gFU2cc9pI=
 
-follow-redirects@^1.14.0:
-  version "1.14.8"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.8.tgz#016996fb9a11a100566398b1c6839337d7bfa8fc"
-  integrity sha512-1x0S9UVJHsQprFcEC/qnNzBLcIxsjAV905f/UkQxbclCsoTWlacCNOpQa/anodLl2uaEKFhfWOvM2Qg77+15zA==
+follow-redirects@^1.14.9:
+  version "1.15.0"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.0.tgz#06441868281c86d0dda4ad8bdaead2d02dca89d4"
+  integrity sha512-aExlJShTV4qOUOL7yF1U5tvLCB0xQuudbf6toyYA0E/acBNw71mvjFTnLaRp50aQaYocMR0a/RMMBIHeZnGyjQ==
 
 for-in@^1.0.1, for-in@^1.0.2:
   version "1.0.2"
