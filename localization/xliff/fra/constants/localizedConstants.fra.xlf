@@ -642,14 +642,6 @@
         <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         <target state="translated">Connectez-vous à votre abonnement Azure dans l'un des clouds souverains.</target>
       </trans-unit>
-      <trans-unit id="azureFunctionsExtensionNotInstalled">
-        <source xml:lang="en">Azure Functions extension must be installed in order to use this feature.</source>
-        <target state="translated">Azure Functions extension doit être installée pour pouvoir utiliser cette fonctionnalité.</target>
-      </trans-unit>
-      <trans-unit id="azureFunctionsProjectMustBeOpened">
-        <source xml:lang="en">A C# Azure Functions project must be present in order to create a new Azure Function for this table.</source>
-        <target state="translated">Un projet Azure Functions C# doit être présent pour pouvoir créer une fonction Azure pour cette table.</target>
-      </trans-unit>
       <trans-unit id="taskStatusWithName">
         <source xml:lang="en">{0}: {1}</source>
         <target state="translated">{0} : {1}</target>
@@ -701,82 +693,6 @@
       <trans-unit id="msgClearedRecentConnectionsWithErrors">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">La liste des connexions récentes a été effacée, mais des erreurs se sont produites lors de la suppression de certaines informations d’identification associées. Affichez les erreurs dans le canal de sortie MSSQL.</target>
-      </trans-unit>
-      <trans-unit id="failedToParse">
-        <source xml:lang="en">Failed to parse "{0}": {1}.</source>
-        <target state="translated">Échec de l'analyse de "{0}" : {1}.</target>
-      </trans-unit>
-      <trans-unit id="settingAlreadyExists">
-        <source xml:lang="en">Local app setting '{0}' already exists. Overwrite?</source>
-        <target state="translated">Le paramètre d’application local « {0} » existe déjà. Voulez-vous le remplacer?</target>
-      </trans-unit>
-      <trans-unit id="yesString">
-        <source xml:lang="en">Yes</source>
-        <target state="translated">Oui</target>
-      </trans-unit>
-      <trans-unit id="functionNameTitle">
-        <source xml:lang="en">Function Name</source>
-        <target state="translated">Nom de la fonction</target>
-      </trans-unit>
-      <trans-unit id="selectProject">
-        <source xml:lang="en">Select the Azure Function project for the SQL Binding</source>
-        <target state="translated">Sélectionner le projet de fonction Azure pour la liaison SQL</target>
-      </trans-unit>
-      <trans-unit id="azureFunctionsExtensionNotFound">
-        <source xml:lang="en">The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?</source>
-        <target state="translated">L’extension Azure Functions est nécessaire pour créer une fonction Azure avec liaison SQL, mais elle n’est pas installée. Voulez-vous l’installer maintenant ?</target>
-      </trans-unit>
-      <trans-unit id="install">
-        <source xml:lang="en">Install</source>
-        <target state="translated">Installer</target>
-      </trans-unit>
-      <trans-unit id="learnMore">
-        <source xml:lang="en">Learn more</source>
-        <target state="translated">En savoir plus</target>
-      </trans-unit>
-      <trans-unit id="doNotInstall">
-        <source xml:lang="en">Do not install</source>
-        <target state="translated">Ne pas installer</target>
-      </trans-unit>
-      <trans-unit id="input">
-        <source xml:lang="en">Input</source>
-        <target state="translated">Entrée</target>
-      </trans-unit>
-      <trans-unit id="output">
-        <source xml:lang="en">Output</source>
-        <target state="translated">Sortie</target>
-      </trans-unit>
-      <trans-unit id="selectBindingType">
-        <source xml:lang="en">Select type of binding</source>
-        <target state="translated">Sélectionner le type de liaison</target>
-      </trans-unit>
-      <trans-unit id="createProject">
-        <source xml:lang="en">Create Azure Function Project</source>
-        <target state="translated">Créer un projet Azure Function</target>
-      </trans-unit>
-      <trans-unit id="selectAzureFunctionProjFolder">
-        <source xml:lang="en">Select folder for the Azure Function project</source>
-        <target state="translated">Sélectionner un dossier pour le projet de fonction Azure</target>
-      </trans-unit>
-      <trans-unit id="timeoutExtensionError">
-        <source xml:lang="en">Timed out waiting for extension to install</source>
-        <target state="translated">Expiration du délai d’attente pour l’installation de l’extension</target>
-      </trans-unit>
-      <trans-unit id="timeoutAzureFunctionFileError">
-        <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
-        <target state="translated">Expiration du délai d’attente pour la création du fichier Azure Function</target>
-      </trans-unit>
-      <trans-unit id="timeoutProjectError">
-        <source xml:lang="en">Timed out waiting for project to be created</source>
-        <target state="translated">Expiration du délai d’attente de la création du projet</target>
-      </trans-unit>
-      <trans-unit id="nameMustNotBeEmpty">
-        <source xml:lang="en">Name must not be empty</source>
-        <target state="translated">Le nom ne doit pas être vide</target>
-      </trans-unit>
-      <trans-unit id="errorNewAzureFunction">
-        <source xml:lang="en">Error creating new Azure Function: {0}</source>
-        <target state="translated">Erreur lors de la création d’une fonction Azure : {0}</target>
       </trans-unit>
     </body>
   </file>
