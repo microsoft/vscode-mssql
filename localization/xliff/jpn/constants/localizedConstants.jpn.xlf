@@ -642,14 +642,6 @@
         <source xml:lang="en">Sign in to your Azure subscription in one of the sovereign clouds.</source>
         <target state="translated">いずれかのソブリン クラウドで、Azure サブスクリプションにサインインします。</target>
       </trans-unit>
-      <trans-unit id="azureFunctionsExtensionNotInstalled">
-        <source xml:lang="en">Azure Functions extension must be installed in order to use this feature.</source>
-        <target state="translated">この機能を使用するには、Azure Functions 拡張機能をインストールする必要があります。</target>
-      </trans-unit>
-      <trans-unit id="azureFunctionsProjectMustBeOpened">
-        <source xml:lang="en">A C# Azure Functions project must be present in order to create a new Azure Function for this table.</source>
-        <target state="translated">このテーブルに新しい Azure 関数を作成するには、C# Azure Functions プロジェクトが存在する必要があります。</target>
-      </trans-unit>
       <trans-unit id="taskStatusWithName">
         <source xml:lang="en">{0}: {1}</source>
         <target state="translated">{0}: {1}</target>
@@ -701,82 +693,6 @@
       <trans-unit id="msgClearedRecentConnectionsWithErrors">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">最近の接続の一覧はクリアされましたが、関連付けられている資格情報の削除中にエラーが発生しました。MSSQL 出力チャネルのエラーを表示します。</target>
-      </trans-unit>
-      <trans-unit id="failedToParse">
-        <source xml:lang="en">Failed to parse "{0}": {1}.</source>
-        <target state="translated">"{0}" を解析できませんでした: {1}。</target>
-      </trans-unit>
-      <trans-unit id="settingAlreadyExists">
-        <source xml:lang="en">Local app setting '{0}' already exists. Overwrite?</source>
-        <target state="translated">ローカル アプリケーション設定 '{0}' は既に存在します。上書きしますか?</target>
-      </trans-unit>
-      <trans-unit id="yesString">
-        <source xml:lang="en">Yes</source>
-        <target state="translated">はい</target>
-      </trans-unit>
-      <trans-unit id="functionNameTitle">
-        <source xml:lang="en">Function Name</source>
-        <target state="translated">関数名</target>
-      </trans-unit>
-      <trans-unit id="selectProject">
-        <source xml:lang="en">Select the Azure Function project for the SQL Binding</source>
-        <target state="translated">SQL バインドのAzure Functions プロジェクトを選択します</target>
-      </trans-unit>
-      <trans-unit id="azureFunctionsExtensionNotFound">
-        <source xml:lang="en">The Azure Functions extension is required to create a new Azure Function with SQL binding but is not installed, install it now?</source>
-        <target state="translated">SQL バインドを含む新しい Azure 関数を作成するには、Azure Functions 拡張機能が必要ですが、インストールされていません。今すぐインストールしますか?</target>
-      </trans-unit>
-      <trans-unit id="install">
-        <source xml:lang="en">Install</source>
-        <target state="translated">インストール</target>
-      </trans-unit>
-      <trans-unit id="learnMore">
-        <source xml:lang="en">Learn more</source>
-        <target state="translated">詳細を表示</target>
-      </trans-unit>
-      <trans-unit id="doNotInstall">
-        <source xml:lang="en">Do not install</source>
-        <target state="translated">インストールしない</target>
-      </trans-unit>
-      <trans-unit id="input">
-        <source xml:lang="en">Input</source>
-        <target state="translated">入力</target>
-      </trans-unit>
-      <trans-unit id="output">
-        <source xml:lang="en">Output</source>
-        <target state="translated">出力</target>
-      </trans-unit>
-      <trans-unit id="selectBindingType">
-        <source xml:lang="en">Select type of binding</source>
-        <target state="translated">バインドするタイプを選択します</target>
-      </trans-unit>
-      <trans-unit id="createProject">
-        <source xml:lang="en">Create Azure Function Project</source>
-        <target state="translated">Azure 関数プロジェクトの作成</target>
-      </trans-unit>
-      <trans-unit id="selectAzureFunctionProjFolder">
-        <source xml:lang="en">Select folder for the Azure Function project</source>
-        <target state="translated">Azure Function プロジェクトのフォルダーを選択する</target>
-      </trans-unit>
-      <trans-unit id="timeoutExtensionError">
-        <source xml:lang="en">Timed out waiting for extension to install</source>
-        <target state="translated">拡張機能のインストールの待機中にタイムアウトしました</target>
-      </trans-unit>
-      <trans-unit id="timeoutAzureFunctionFileError">
-        <source xml:lang="en">Timed out waiting for Azure Function file to be created</source>
-        <target state="translated">Azure 関数ファイルの作成の待機中にタイムアウトしました</target>
-      </trans-unit>
-      <trans-unit id="timeoutProjectError">
-        <source xml:lang="en">Timed out waiting for project to be created</source>
-        <target state="translated">プロジェクトの作成の待機中にタイムアウトしました</target>
-      </trans-unit>
-      <trans-unit id="nameMustNotBeEmpty">
-        <source xml:lang="en">Name must not be empty</source>
-        <target state="translated">名前を空にすることはできません</target>
-      </trans-unit>
-      <trans-unit id="errorNewAzureFunction">
-        <source xml:lang="en">Error creating new Azure Function: {0}</source>
-        <target state="translated">新しい Azure 関数の作成中のエラー: {0}</target>
       </trans-unit>
     </body>
   </file>
