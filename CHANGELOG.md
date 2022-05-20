@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.14.2
+* Release date: May 20, 2022
+* Release status: GA
+
+### What's new in 1.14.2
+* Adds ability to create new SQL Docker instances when publishing a SQL database project
+
 ## Version 1.14.1
 * Release date: April 22, 2022
 * Release status: GA
