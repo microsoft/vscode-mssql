@@ -5,7 +5,7 @@
 * Release status: GA
 
 ### What's new in 1.14.2
-* Adds ability to create new SQL Docker instances when publishing a SQL database project
+* Adds extension APIs for managing Azure resources
 
 ## Version 1.14.1
 * Release date: April 22, 2022
