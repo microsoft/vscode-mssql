@@ -489,18 +489,27 @@ declare module 'vscode-mssql' {
 		executeAndScript = 2
 	}
 
+	/**
+	 * Represents boolean value type deployment option.
+	 */
 	export interface DacDeployOptionPropertyBoolean {
 		value: boolean;
 		description: string;
 		displayName: string;
 	}
 
+	/**
+	 * Represents object type valued deployment option.
+	 */
 	export interface DacDeployOptionPropertyObject {
 		value: SchemaObjectType[];
 		description: string;
 		displayName: string;
 	}
 
+	/**
+	 * DacFx deployment options with value, description and display names
+	 */
 	export interface DeploymentOptions {
 		ignoreTableOptions: DacDeployOptionPropertyBoolean;
 		ignoreSemicolonBetweenStatements: DacDeployOptionPropertyBoolean;
