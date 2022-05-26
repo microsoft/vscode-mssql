@@ -56,7 +56,7 @@ export default class ServerProvider {
 
 		const serverPath = await this.getServerPath(runtime);
 		if (serverPath === undefined) {
-			return this.downloadServerFiles(runtime)
+			return this.downloadServerFiles(runtime);
 		} else {
 			return serverPath;
 		}
