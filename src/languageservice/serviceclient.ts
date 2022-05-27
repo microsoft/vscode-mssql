@@ -290,7 +290,9 @@ export default class SqlToolsServiceClient {
 							break;
 						}
 					}
-					console.warn(`Could not find valid SQL Tools Service EXE from ${JSON.stringify(exeFiles)} at ${stsRootPath}, falling back to config`);
+					if (!overridePath) {
+						console.warn(`Could not find valid SQL Tools Service EXE from ${JSON.stringify(exeFiles)} at ${stsRootPath}, falling back to config`);
+					}
 				}
 			} catch (err) {
 				console.warn('Unexpected error getting override path for SQL Tools Service client ', err);
