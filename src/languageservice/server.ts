@@ -9,7 +9,6 @@ import ServiceDownloadProvider from './serviceDownloadProvider';
 import { IConfig, IStatusView } from './interfaces';
 import * as fs from 'fs/promises';
 
-
 /*
 * Service Provider class finds the SQL tools service executable file or downloads it if doesn't exist.
 */
@@ -51,37 +50,28 @@ export default class ServerProvider {
 	/**
 	 * Download the SQL tools service if doesn't exist and returns the file path.
 	 */
-	public getOrDownloadServer(runtime: Runtime): Promise<string> {
+	public async getOrDownloadServer(runtime: Runtime): Promise<string> {
 		// Attempt to find launch file path first from options, and then from the default install location.
 		// If SQL tools service can't be found, download it.
 
-		return new Promise<string>((resolve, reject) => {
-			return this.getServerPath(runtime).then(result => {
-				if (result === undefined) {
-					return this.downloadServerFiles(runtime).then(downloadResult => {
-						resolve(downloadResult);
-					});
-				} else {
-					return resolve(result);
-				}
-			}).catch(err => {
-				return reject(err);
-			});
-		}).catch(err => {
-			throw err;
-		});
+		const serverPath = await this.getServerPath(runtime);
+		if (serverPath === undefined) {
+			return this.downloadServerFiles(runtime);
+		} else {
+			return serverPath;
+		}
 	}
 
 	/**
-	 * Returns the path of the installed service
+	 * Returns the path of the installed service if it exists, or undefined if not
 	 */
-	public async getServerPath(runtime: Runtime): Promise<string> {
+	public async getServerPath(runtime: Runtime): Promise<string | undefined> {
 		const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
 		return this.findServerPath(installDirectory);
 	}
 
 	/**
-	 * Downloads the service and returns the path of the installed service
+	 * Downloads the service and returns the path of the installed service if it exists
 	 */
 	public async downloadServerFiles(runtime: Runtime): Promise<string> {
 		const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);

@@ -25,6 +25,10 @@ import { ServerInitializationResult, ServerStatusView } from './serverStatus';
 import StatusView from '../views/statusView';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
+import { exists } from '../utils/utils';
+import { env } from 'process';
+
+const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
 
 let _channel: vscode.OutputChannel = undefined;
 
@@ -198,12 +202,12 @@ export default class SqlToolsServiceClient {
 						}
 						let installedServerPath = await this._server.downloadServerFiles(platformInfo.runtimeId);
 						this._sqlToolsServicePath = path.dirname(installedServerPath);
-						this.initializeLanguageClient(installedServerPath, context, platformInfo.isWindows);
+						await this.initializeLanguageClient(installedServerPath, context, platformInfo.isWindows);
 						await this._client.onReady();
 						resolve(new ServerInitializationResult(true, true, installedServerPath));
 					} else {
 						this._sqlToolsServicePath = path.dirname(serverPath);
-						this.initializeLanguageClient(serverPath, context, platformInfo.isWindows);
+						await this.initializeLanguageClient(serverPath, context, platformInfo.isWindows);
 						await this._client.onReady();
 						resolve(new ServerInitializationResult(false, true, serverPath));
 					}
@@ -264,17 +268,53 @@ export default class SqlToolsServiceClient {
 		});
 	}
 
-	private initializeLanguageClient(serverPath: string, context: vscode.ExtensionContext, isWindows: boolean): void {
+	private async initializeLanguageClient(serverPath: string, context: vscode.ExtensionContext, isWindows: boolean): Promise<void> {
 		if (serverPath === undefined) {
 			Utils.logDebug(Constants.invalidServiceFilePath);
 			throw new Error(Constants.invalidServiceFilePath);
 		} else {
-			let self = this;
-			self.initializeLanguageConfiguration();
-			let serverOptions: ServerOptions = this.createServerOptions(serverPath);
+			let overridePath: string | undefined = undefined;
+			this.initializeLanguageConfiguration();
+			// This env var is used to override the base install location of STS - primarily to be used for debugging scenarios.
+			try {
+				const exeFiles = this._config.getSqlToolsExecutableFiles();
+				const stsRootPath = env[STS_OVERRIDE_ENV_VAR];
+				if (stsRootPath) {
+					for (const exeFile of exeFiles) {
+						const serverFullPath = path.join(stsRootPath, exeFile);
+						if (await exists(serverFullPath)) {
+							const overrideMessage = `Using ${exeFile} from ${stsRootPath}`;
+							void vscode.window.showInformationMessage(overrideMessage);
+							console.log(overrideMessage);
+							overridePath = serverFullPath;
+							break;
+						}
+					}
+					if (!overridePath) {
+						console.warn(`Could not find valid SQL Tools Service EXE from ${JSON.stringify(exeFiles)} at ${stsRootPath}, falling back to config`);
+					}
+				}
+			} catch (err) {
+				console.warn('Unexpected error getting override path for SQL Tools Service client ', err);
+				// Fall back to config if something unexpected happens here
+			}
+			// Use the override path if we have one, otherwise just use the original serverPath passed in
+			let serverOptions: ServerOptions = this.createServiceLayerServerOptions(overridePath || serverPath);
 			this.client = this.createLanguageClient(serverOptions);
 			let executablePath = isWindows ? Constants.windowsResourceClientPath : Constants.unixResourceClientPath;
 			let resourcePath = path.join(path.dirname(serverPath), executablePath);
+			// See if the override path exists and has the resource client as well, and if so use that instead
+			if (overridePath) {
+				const overrideDir = path.dirname(overridePath);
+				const resourceOverridePath = path.join(overrideDir, executablePath);
+				const resourceClientOverrideExists = await exists(resourceOverridePath);
+				if (resourceClientOverrideExists) {
+					const overrideMessage = `Using ${resourceOverridePath} from ${overrideDir}`;
+					void vscode.window.showInformationMessage(overrideMessage);
+					console.log(overrideMessage);
+					resourcePath = resourceOverridePath;
+				}
+			}
 			this._resourceClient = this.createResourceClient(resourcePath);
 
 			if (context !== undefined) {
@@ -336,7 +376,7 @@ export default class SqlToolsServiceClient {
 		};
 	}
 
-	private createServerOptions(servicePath): ServerOptions {
+	private createServiceLayerServerOptions(servicePath: string): ServerOptions {
 		let serverArgs = [];
 		let serverCommand: string = servicePath;
 		if (servicePath.endsWith('.dll')) {
