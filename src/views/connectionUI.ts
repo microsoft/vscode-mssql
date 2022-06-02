@@ -20,6 +20,7 @@ import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRe
 import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
+import { CancelError } from '../utils/utils';
 
 /**
  * The different tasks for managing connection profiles.
@@ -84,19 +85,32 @@ export class ConnectionUI {
 	 * @param ignoreFocusOut Whether to ignoreFocusOut on the quickpick prompt
 	 * @returns The connection picked or created.
 	 */
-	public async promptForConnection(ignoreFocusOut = false): Promise<IConnectionInfo | undefined> {
+	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
 		let picklist = this._connectionStore.getPickListItems();
 		// We have recent connections - show them in a picklist
-		const selection = await this.promptItemChoice({
-			placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
-			matchOnDescription: true,
-			ignoreFocusOut: ignoreFocusOut
-		}, picklist);
-		if (selection) {
-			return this.handleSelectedConnection(selection);
-		} else {
+		const connectionProfileQuickPick = await vscode.window.createQuickPick<IConnectionCredentialsQuickPickItem>();
+		connectionProfileQuickPick.items = picklist;
+		connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
+		connectionProfileQuickPick.matchOnDescription = true;
+		connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
+		connectionProfileQuickPick.canSelectMany = false;
+		connectionProfileQuickPick.busy = false;
+		connectionProfileQuickPick.show();
+		connectionProfileQuickPick.onDidChangeSelection(selection => {
+			if (selection[0]) {
+				// add progress notification and hide quickpick after user chooses an item from the quickpick
+				connectionProfileQuickPick.busy = true;
+				connectionProfileQuickPick.hide();
+				return this.handleSelectedConnection(selection[0]);
+			} else {
+				return undefined;
+			}
+		});
+		connectionProfileQuickPick.onDidHide(() => {
+			connectionProfileQuickPick.dispose();
 			return undefined;
-		}
+		});
+		return undefined;
 	}
 
 	public promptLanguageFlavor(): Promise<string> {
@@ -553,7 +567,10 @@ export class ConnectionUI {
 				return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
 					this.connectionManager.azureController, this._accountStore, profile);
 			} else {
-				return undefined;
+				// user cancelled the prompt - throw error so that we know user cancelled
+				return new Promise((_, reject) => {
+					reject(new CancelError('User cancelled retry connection warning'));
+				});
 			}
 		});
 	}
