@@ -562,17 +562,16 @@ export class ConnectionUI {
 	public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
 		// Ask if the user would like to fix the profile
 		let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
-		return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
-			if (result === LocalizedConstants.retryLabel) {
-				return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
-					this.connectionManager.azureController, this._accountStore, profile);
-			} else {
-				// user cancelled the prompt - throw error so that we know user cancelled
-				return new Promise((_, reject) => {
-					reject(new CancelError('User cancelled retry connection warning'));
-				});
-			}
-		});
+		let result = await this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel);
+		if (result === LocalizedConstants.retryLabel) {
+			return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+				this.connectionManager.azureController, this._accountStore, profile);
+		} else {
+			// user cancelled the prompt - throw error so that we know user cancelled
+			return new Promise((_, reject) => {
+				reject(new CancelError('User cancelled retry connection warning'));
+			});
+		}
 	}
 
 	private async promptForIpAddress(startIpAddress: string): Promise<IFirewallIpAddressRange> {
