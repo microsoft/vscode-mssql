@@ -336,16 +336,15 @@ export class ConnectionUI {
 	}
 
 	private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
-		const self = this;
 		return new Promise<IConnectionInfo>((resolve, reject) => {
 			if (selection !== undefined) {
 				let connectFunc: Promise<IConnectionInfo>;
 				if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
 					// call the workflow to create a new connection
-					connectFunc = self.createAndSaveProfile();
+					connectFunc = this.createAndSaveProfile();
 				} else {
 					// user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-					connectFunc = self.fillOrPromptForMissingInfo(selection);
+					connectFunc = this.fillOrPromptForMissingInfo(selection);
 				}
 
 				connectFunc.then((resolvedConnectionCreds) => {
@@ -353,7 +352,9 @@ export class ConnectionUI {
 						resolve(undefined);
 					}
 					resolve(resolvedConnectionCreds);
-				}, err => reject(err));
+				}, err =>
+					// we will send back a cancelled error in order to re-prompt the promptForConnection
+					reject(err));
 			} else {
 				resolve(undefined);
 			}
