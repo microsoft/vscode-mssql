@@ -80,37 +80,37 @@ export class ConnectionUI {
 
 
 	/**
-	 * Helper to let user choose a connection from a picklist, or to create a new connection.
-	 * Return the ConnectionInfo for the user's choice
+	 * Prompt user to choose a connection profile from stored connections , or to create a new connection.
 	 * @param ignoreFocusOut Whether to ignoreFocusOut on the quickpick prompt
-	 * @returns The connection picked or created.
+	 * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
 	 */
 	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
-		let picklist = this._connectionStore.getPickListItems();
-		// We have recent connections - show them in a picklist
-		const connectionProfileQuickPick = await vscode.window.createQuickPick<IConnectionCredentialsQuickPickItem>();
-		connectionProfileQuickPick.items = picklist;
-		connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
-		connectionProfileQuickPick.matchOnDescription = true;
-		connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
-		connectionProfileQuickPick.canSelectMany = false;
-		connectionProfileQuickPick.busy = false;
-		connectionProfileQuickPick.show();
-		connectionProfileQuickPick.onDidChangeSelection(selection => {
-			if (selection[0]) {
-				// add progress notification and hide quickpick after user chooses an item from the quickpick
-				connectionProfileQuickPick.busy = true;
-				connectionProfileQuickPick.hide();
-				return this.handleSelectedConnection(selection[0]);
-			} else {
-				return undefined;
-			}
+		return await new Promise<IConnectionInfo | undefined>((resolve, reject) => {
+			let connectionProfileList = this._connectionStore.getPickListItems();
+			// We have recent connections - show them in a prompt for connection profiles
+			const connectionProfileQuickPick = vscode.window.createQuickPick<IConnectionCredentialsQuickPickItem>();
+			connectionProfileQuickPick.items = connectionProfileList;
+			connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
+			connectionProfileQuickPick.matchOnDescription = true;
+			connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
+			connectionProfileQuickPick.canSelectMany = false;
+			connectionProfileQuickPick.busy = false;
+			connectionProfileQuickPick.show();
+			connectionProfileQuickPick.onDidChangeSelection(selection => {
+				if (selection[0]) {
+					// add progress notification and hide quickpick after user chooses an item from the quickpick
+					connectionProfileQuickPick.busy = true;
+					connectionProfileQuickPick.hide();
+					resolve(this.handleSelectedConnection(selection[0]));
+				} else {
+					resolve(undefined);
+				}
+			});
+			connectionProfileQuickPick.onDidHide(() => {
+				connectionProfileQuickPick.dispose();
+				resolve(undefined);
+			});
 		});
-		connectionProfileQuickPick.onDidHide(() => {
-			connectionProfileQuickPick.dispose();
-			return undefined;
-		});
-		return undefined;
 	}
 
 	public promptLanguageFlavor(): Promise<string> {
@@ -568,9 +568,7 @@ export class ConnectionUI {
 				this.connectionManager.azureController, this._accountStore, profile);
 		} else {
 			// user cancelled the prompt - throw error so that we know user cancelled
-			return new Promise((_, reject) => {
-				reject(new CancelError('User cancelled retry connection warning'));
-			});
+			throw new CancelError();
 		}
 	}
 

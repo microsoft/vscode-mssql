@@ -127,9 +127,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 			});
 
 		return prompter.prompt(questions, true).then(async answers => {
-			if(!answers){
-				return undefined;
-			} else if (answers?.authenticationType === 'AzureMFA') {
+			if (answers.authenticationType === 'AzureMFA') {
 				if (answers.AAD === 'addAccount') {
 					profile = await azureController.populateAccountProperties(profile, accountStore, providerSettings.resources.databaseResource);
 				} else {

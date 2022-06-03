@@ -720,7 +720,6 @@ export default class ConnectionManager {
 
 	// create a new connection with the connectionCreds provided
 	public async connect(fileUri: string, connectionCreds: IConnectionInfo, promise?: Deferred<boolean>): Promise<boolean> {
-		const self = this;
 		return await vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
 			title: LocalizedConstants.connectProgressNoticationTitle,
@@ -762,12 +761,12 @@ export default class ConnectionManager {
 				this._connections[fileUri] = connectionInfo;
 
 				// Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
-				if (self.statusView) {
-					self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-					self.statusView.connecting(fileUri, connectionCreds);
-					self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+				if (this.statusView) {
+					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+					this.statusView.connecting(fileUri, connectionCreds);
+					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
 				}
-				self.vscodeWrapper.logToOutputChannel(
+				this.vscodeWrapper.logToOutputChannel(
 					Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
 				);
 
@@ -789,7 +788,7 @@ export default class ConnectionManager {
 				// send connection request message to service host
 				this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
 				try {
-					const result = await self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
+					const result = await this.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
 					if (!result) {
 						// Failed to process connect request
 						resolve(false);
@@ -798,8 +797,7 @@ export default class ConnectionManager {
 					reject(error);
 				}
 			});
-			let connectionResult = await connectionPromise;
-			return connectionResult;
+			return await connectionPromise;
 		});
 	}
 
