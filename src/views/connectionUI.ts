@@ -85,7 +85,7 @@ export class ConnectionUI {
 	 * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
 	 */
 	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
-		return await new Promise<IConnectionInfo | undefined>((resolve, reject) => {
+		return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
 			let connectionProfileList = this._connectionStore.getPickListItems();
 			// We have recent connections - show them in a prompt for connection profiles
 			const connectionProfileQuickPick = vscode.window.createQuickPick<IConnectionCredentialsQuickPickItem>();
