@@ -739,7 +739,7 @@ export default class ConnectionManager {
 								profile, this.accountStore, providerSettings.resources.databaseResource);
 
 						} else {
-							throw new Error(`${LocalizedConstants.cannotConnect}`);
+							throw new Error(LocalizedConstants.cannotConnect);
 						}
 					} else {
 						connectionCreds.azureAccountToken = azureAccountToken.token;
@@ -797,7 +797,7 @@ export default class ConnectionManager {
 					reject(error);
 				}
 			});
-			return await connectionPromise;
+			return connectionPromise;
 		});
 	}
 
