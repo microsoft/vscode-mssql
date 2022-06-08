@@ -20,6 +20,7 @@ import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRe
 import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
+import { CancelError } from '../utils/utils';
 
 /**
  * The different tasks for managing connection profiles.
@@ -79,24 +80,37 @@ export class ConnectionUI {
 
 
 	/**
-	 * Helper to let user choose a connection from a picklist, or to create a new connection.
-	 * Return the ConnectionInfo for the user's choice
+	 * Prompt user to choose a connection profile from stored connections , or to create a new connection.
 	 * @param ignoreFocusOut Whether to ignoreFocusOut on the quickpick prompt
-	 * @returns The connection picked or created.
+	 * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
 	 */
-	public async promptForConnection(ignoreFocusOut = false): Promise<IConnectionInfo | undefined> {
-		let picklist = this._connectionStore.getPickListItems();
-		// We have recent connections - show them in a picklist
-		const selection = await this.promptItemChoice({
-			placeHolder: LocalizedConstants.recentConnectionsPlaceholder,
-			matchOnDescription: true,
-			ignoreFocusOut: ignoreFocusOut
-		}, picklist);
-		if (selection) {
-			return this.handleSelectedConnection(selection);
-		} else {
-			return undefined;
-		}
+	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
+		return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
+			let connectionProfileList = this._connectionStore.getPickListItems();
+			// We have recent connections - show them in a prompt for connection profiles
+			const connectionProfileQuickPick = vscode.window.createQuickPick<IConnectionCredentialsQuickPickItem>();
+			connectionProfileQuickPick.items = connectionProfileList;
+			connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
+			connectionProfileQuickPick.matchOnDescription = true;
+			connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
+			connectionProfileQuickPick.canSelectMany = false;
+			connectionProfileQuickPick.busy = false;
+			connectionProfileQuickPick.show();
+			connectionProfileQuickPick.onDidChangeSelection(selection => {
+				if (selection[0]) {
+					// add progress notification and hide quickpick after user chooses an item from the quickpick
+					connectionProfileQuickPick.busy = true;
+					connectionProfileQuickPick.hide();
+					resolve(this.handleSelectedConnection(selection[0]));
+				} else {
+					resolve(undefined);
+				}
+			});
+			connectionProfileQuickPick.onDidHide(() => {
+				connectionProfileQuickPick.dispose();
+				resolve(undefined);
+			});
+		});
 	}
 
 	public promptLanguageFlavor(): Promise<string> {
@@ -322,16 +336,15 @@ export class ConnectionUI {
 	}
 
 	private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
-		const self = this;
 		return new Promise<IConnectionInfo>((resolve, reject) => {
 			if (selection !== undefined) {
 				let connectFunc: Promise<IConnectionInfo>;
 				if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
 					// call the workflow to create a new connection
-					connectFunc = self.createAndSaveProfile();
+					connectFunc = this.createAndSaveProfile();
 				} else {
 					// user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-					connectFunc = self.fillOrPromptForMissingInfo(selection);
+					connectFunc = this.fillOrPromptForMissingInfo(selection);
 				}
 
 				connectFunc.then((resolvedConnectionCreds) => {
@@ -339,7 +352,9 @@ export class ConnectionUI {
 						resolve(undefined);
 					}
 					resolve(resolvedConnectionCreds);
-				}, err => reject(err));
+				}, err =>
+					// we will send back a cancelled error in order to re-prompt the promptForConnection
+					reject(err));
 			} else {
 				resolve(undefined);
 			}
@@ -548,14 +563,14 @@ export class ConnectionUI {
 	public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
 		// Ask if the user would like to fix the profile
 		let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
-		return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel).then(result => {
-			if (result === LocalizedConstants.retryLabel) {
-				return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
-					this.connectionManager.azureController, this._accountStore, profile);
-			} else {
-				return undefined;
-			}
-		});
+		let result = await this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel);
+		if (result === LocalizedConstants.retryLabel) {
+			return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+				this.connectionManager.azureController, this._accountStore, profile);
+		} else {
+			// user cancelled the prompt - throw error so that we know user cancelled
+			throw new CancelError();
+		}
 	}
 
 	private async promptForIpAddress(startIpAddress: string): Promise<IFirewallIpAddressRange> {

@@ -720,80 +720,85 @@ export default class ConnectionManager {
 
 	// create a new connection with the connectionCreds provided
 	public async connect(fileUri: string, connectionCreds: IConnectionInfo, promise?: Deferred<boolean>): Promise<boolean> {
-		const self = this;
-		// Check if the azure account token is present before sending connect request
-		if (connectionCreds.authenticationType === Constants.azureMfa) {
-			if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
-				let account = this.accountStore.getAccount(connectionCreds.accountId);
-				let profile = new ConnectionProfile(connectionCreds);
-				let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource, profile.tenantId);
-				if (!azureAccountToken) {
-					let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-					let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
-					if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-						await this.azureController.populateAccountProperties(
-							profile, this.accountStore, providerSettings.resources.databaseResource);
+		return await vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: LocalizedConstants.connectProgressNoticationTitle,
+			cancellable: false
+		}, async (_progress, _token) => {
+			// Check if the azure account token is present before sending connect request
+			if (connectionCreds.authenticationType === Constants.azureMfa) {
+				if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
+					let account = this.accountStore.getAccount(connectionCreds.accountId);
+					let profile = new ConnectionProfile(connectionCreds);
+					let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource, profile.tenantId);
+					if (!azureAccountToken) {
+						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
+						if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+							await this.azureController.populateAccountProperties(
+								profile, this.accountStore, providerSettings.resources.databaseResource);
 
+						} else {
+							throw new Error(LocalizedConstants.cannotConnect);
+						}
 					} else {
-						throw new Error(`${LocalizedConstants.cannotConnect}`);
+						connectionCreds.azureAccountToken = azureAccountToken.token;
+						connectionCreds.expiresOn = azureAccountToken.expiresOn;
 					}
-				} else {
-					connectionCreds.azureAccountToken = azureAccountToken.token;
-					connectionCreds.expiresOn = azureAccountToken.expiresOn;
 				}
 			}
-		}
-		let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
-			if (connectionCreds.connectionString?.includes(ConnectionStore.CRED_PREFIX)
-				&& connectionCreds.connectionString?.includes('isConnectionString:true')) {
-				let connectionString = await this.connectionStore.lookupPassword(connectionCreds, true);
-				connectionCreds.connectionString = connectionString;
-			}
+			let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
 
-			let connectionInfo: ConnectionInfo = new ConnectionInfo();
-			connectionInfo.credentials = connectionCreds;
-			connectionInfo.connecting = true;
-			this._connections[fileUri] = connectionInfo;
+				if (connectionCreds.connectionString?.includes(ConnectionStore.CRED_PREFIX)
+					&& connectionCreds.connectionString?.includes('isConnectionString:true')) {
+					let connectionString = await this.connectionStore.lookupPassword(connectionCreds, true);
+					connectionCreds.connectionString = connectionString;
+				}
 
-			// Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
-			if (self.statusView) {
-				self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-				self.statusView.connecting(fileUri, connectionCreds);
-				self.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-			}
-			self.vscodeWrapper.logToOutputChannel(
-				Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
-			);
+				let connectionInfo: ConnectionInfo = new ConnectionInfo();
+				connectionInfo.credentials = connectionCreds;
+				connectionInfo.connecting = true;
+				this._connections[fileUri] = connectionInfo;
 
-			// Setup the handler for the connection complete notification to call
-			connectionInfo.connectHandler = ((connectResult, error) => {
-				if (error) {
+				// Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
+				if (this.statusView) {
+					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+					this.statusView.connecting(fileUri, connectionCreds);
+					this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+				}
+				this.vscodeWrapper.logToOutputChannel(
+					Utils.formatString(LocalizedConstants.msgConnecting, connectionCreds.server, fileUri)
+				);
+
+				// Setup the handler for the connection complete notification to call
+				connectionInfo.connectHandler = ((connectResult, error) => {
+					if (error) {
+						reject(error);
+					} else {
+						resolve(connectResult);
+					}
+				});
+
+				// package connection details for request message
+				const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
+				let connectParams = new ConnectionContracts.ConnectParams();
+				connectParams.ownerUri = fileUri;
+				connectParams.connection = connectionDetails;
+
+				// send connection request message to service host
+				this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
+				try {
+					const result = await this.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
+					if (!result) {
+						// Failed to process connect request
+						resolve(false);
+					}
+				} catch (error) {
 					reject(error);
-				} else {
-					resolve(connectResult);
 				}
 			});
-
-			// package connection details for request message
-			const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCreds);
-			let connectParams = new ConnectionContracts.ConnectParams();
-			connectParams.ownerUri = fileUri;
-			connectParams.connection = connectionDetails;
-
-			// send connection request message to service host
-			this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
-			try {
-				const result = await self.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
-				if (!result) {
-					// Failed to process connect request
-					resolve(false);
-				}
-			} catch (error) {
-				reject(error);
-			}
+			return connectionPromise;
 		});
-		let connectionResult = await connectionPromise;
-		return connectionResult;
 	}
 
 	public async onCancelConnect(): Promise<void> {
