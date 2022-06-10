@@ -694,6 +694,10 @@
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">Список последних подключений был очищен, но при удалении некоторых связанных учетных данных возникли ошибки. Просмотрите ошибки в выходном канале MSSQL.</target>
       </trans-unit>
+      <trans-unit id="connectProgressNoticationTitle">
+        <source xml:lang="en">Testing connection profile...</source>
+        <target state="translated">Проверка профиля подключения…</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
