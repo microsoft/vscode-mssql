@@ -15,6 +15,7 @@ var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 var vscodeTest = require('vscode-test');
 var packageJson = require('./package.json');
+const coreLanguages = ['chs', 'cht', 'jpn', 'kor', 'deu', 'fra', 'esn', 'rus', 'ita'];
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -53,6 +54,7 @@ gulp.task('ext:copy-queryHistory-assets', (done) => {
 
 // Compile source
 gulp.task('ext:compile-src', (done) => {
+	let languages
 	return gulp.src([
 		config.paths.project.root + '/src/**/*.ts',
 		config.paths.project.root + '/src/**/*.js',
@@ -67,7 +69,7 @@ gulp.task('ext:compile-src', (done) => {
 			}
 		})
 		.pipe(nls.rewriteLocalizeCalls())
-		.pipe(nls.createAdditionalLanguageFiles(nls.coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
+		.pipe(nls.createAdditionalLanguageFiles(coreLanguages, config.paths.project.root + '/localization/i18n', undefined, false))
 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
 		.pipe(gulp.dest('out/src/'));
 });
