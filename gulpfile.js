@@ -15,7 +15,17 @@ var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 var vscodeTest = require('vscode-test');
 var packageJson = require('./package.json');
-const coreLanguages = ['chs', 'cht', 'jpn', 'kor', 'deu', 'fra', 'esn', 'rus', 'ita'];
+const coreLanguages = [
+	{ id: 'zh-tw', folderName: 'cht', translationId: 'zh-hant' },
+	{ id: 'zh-cn', folderName: 'chs', translationId: 'zh-hans' },
+	{ id: 'ja', folderName: 'jpn' },
+	{ id: 'ko', folderName: 'kor' },
+	{ id: 'de', folderName: 'deu' },
+	{ id: 'fr', folderName: 'fra' },
+	{ id: 'es', folderName: 'esn' },
+	{ id: 'ru', folderName: 'rus' },
+	{ id: 'it', folderName: 'ita' }
+].concat([]);
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
