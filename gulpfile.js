@@ -265,8 +265,6 @@ gulp.task('ext:test', async (done) => {
 
 gulp.task('test', gulp.series('ext:test'));
 
-require('./tasks/covertasks');
-
 gulp.task('clean', function (done) {
 	return del('out', done);
 });
