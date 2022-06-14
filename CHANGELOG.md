@@ -1,5 +1,13 @@
 # Change Log
 
+## Version 1.15.0
+* Release date: June 15, 2022
+* Release status: GA
+
+### What's new in 1.15.0
+* Add support for dependent extensions
+* Fixed bugs under June Milestone
+
 ## Version 1.14.2
 * Release date: May 20, 2022
 * Release status: GA
