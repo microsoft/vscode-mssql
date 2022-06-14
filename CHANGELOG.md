@@ -6,7 +6,7 @@
 
 ### What's new in 1.15.0
 * Add support for dependent extensions
-* [Fixed issues] https://github.com/microsoft/vscode-mssql/milestone/22
+* [Fixed issues](https://github.com/microsoft/vscode-mssql/milestone/22)
 
 ## Version 1.14.2
 * Release date: May 20, 2022
