@@ -696,7 +696,7 @@
       </trans-unit>
       <trans-unit id="connectProgressNoticationTitle">
         <source xml:lang="en">Testing connection profile...</source>
-        <target state="new">Testing connection profile...</target>
+        <target state="translated">Verbindungsprofil wird getestet...</target>
       </trans-unit>
     </body>
   </file>
