@@ -14,26 +14,27 @@ Both of these require a few common initial steps. Note that these steps are all 
 ### Common Initial Steps
 
 1. Navigate to `src/Microsoft.SqlTools.ServiceLayer`
-2. Run `dotnet publish` from the command line (or use the publish target in Visual Studio)
+2. Run `dotnet build` from the command line (or use the build target in Visual Studio)
 
-This should build and publish the project to a folder similar to `$(Root)/src/Microsoft.SqlTools.ServiceLayer/bin/Debug/$(NetCoreVersion)/publish`
+This should build the project to a folder similar to `$(Root)/src/Microsoft.SqlTools.ServiceLayer/bin/Debug/$(NetCoreVersion)/build`
 
 #### Using MSSQL_SQLTOOLSSERVICE environment variable
 
-1. In a terminal window set the `MSSQL_SQLTOOLSSERVICE` to the full path of the publish folder from the steps above. e.g. using powershell it would look similar to this.
+1. In a terminal window set the `MSSQL_SQLTOOLSSERVICE` to the full path of the build folder from the steps above. e.g. using powershell it would look similar to this.
 
-`$ENV:MSSQL_SQLTOOLSSERVICE="C:\src\sqltoolsservice\src\Microsoft.SqlTools.ServiceLayer\bin\Debug\net6.0\publish"`
+`$ENV:MSSQL_SQLTOOLSSERVICE="C:\src\sqltoolsservice\src\Microsoft.SqlTools.ServiceLayer\bin\Debug\net6.0\build"`
+
 2. From the same terminal window launch VS Code. You can also open up the VSCode-MSSQL folder in VS Code and then use the debug launch targets there to launch the extension as normal if you're also debugging VSCode-MSSQL.
 
 3. VSCode-MSSQL should pop up a notification indicating that it's using a custom path for STS. If this doesn't appear check you have the environment variable spelled correctly and then check the console logs to see if there were issues finding the expected EXEs
 
-* Note that in order to publish again (for example if you have a further change you want to test out) you will need to close any running instances of ADS before publishing - otherwise the files will be locked and unable to be updated.
+* Note that in order to build again (for example if you have a further change you want to test out) you will need to close any running instances of ADS before building - otherwise the files will be locked and unable to be updated.
 
 #### Manually replacing binaries
 
 1. Close down any running instances of VS Code
 
-2. Copy over the files from `src/Microsoft.SqlTools.ServiceLayer/bin/Debug/$(NetCoreVersion)/publish` to `$(VSCodeExtPath)/extensions/ms-mssql.mssql-#.##.#\sqltoolsservice\#.#.#-release.###\$(Platform)` and overwrite any existing files. The VSCodeExtPath will either be the source enlistment path or the path to the extensions directory of the installed version of VS Code, e.g. `%USERPROFILE/.vscode`
+2. Copy over the files from `src/Microsoft.SqlTools.ServiceLayer/bin/Debug/$(NetCoreVersion)/build` to `$(VSCodeExtPath)/extensions/ms-mssql.mssql-#.##.#\sqltoolsservice\#.#.#-release.###\$(Platform)` and overwrite any existing files. The VSCodeExtPath will either be the source enlistment path or the path to the extensions directory of the installed version of VS Code, e.g. `%USERPROFILE/.vscode`
 3. Launch VS Code
 4. Open the STS project in VS Code or Visual Studio and :
    * VS Code - Click the debug button and press `.NET Core Attach`. Search for `MicrosoftSqlToolsServiceLayer` using the filter menu and attach to the process
