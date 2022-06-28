@@ -247,20 +247,12 @@ gulp.task('ext:test', async (done) => {
 	let vscodeVersion = packageJson.engines.vscode.slice(1);
 	let extensionTestsPath = `${workspace}/out/test`;
 	let vscodePath = await vscodeTest.downloadAndUnzipVSCode(vscodeVersion);
-	try {
-		await vscodeTest.runTests({
-			vscodeExecutablePath: vscodePath,
-			extensionDevelopmentPath: workspace,
-			extensionTestsPath: extensionTestsPath,
-			launchArgs: args
-		});
-	} catch (error) {
-		console.log(`stdout: ${process.stdout}`);
-		console.log(`stderr: ${process.stderr}`);
-		console.error(`exec error: ${error}`);
-	}
-	done();
-	process.exit(0);
+	await vscodeTest.runTests({
+		vscodeExecutablePath: vscodePath,
+		extensionDevelopmentPath: workspace,
+		extensionTestsPath: extensionTestsPath,
+		launchArgs: args
+	});
 });
 
 gulp.task('test', gulp.series('ext:test'));

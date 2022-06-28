@@ -104,22 +104,6 @@ steps:
     inputs:
       targets: "ext:install-service"
 
-  - task: gulp@0
-    displayName: "gulp cover:jenkins"
-    inputs:
-      targets: "cover:jenkins"
-      publishJUnitResults: true
-      testResultsFiles: "$(Build.SourcesDirectory)/test-reports/*.xml"
-    enabled: false
-    continueOnError: true
-
-  - task: PublishCodeCoverageResults@1
-    displayName: "Publish code coverage from $(Build.SourcesDirectory)/coverage/cobertura-coverage.xml"
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: "$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml"
-    enabled: false
-
   - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
     displayName: "Component Detection"
     inputs:
