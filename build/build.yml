@@ -28,6 +28,12 @@ steps:
   - bash: "gulp test:cover"
     displayName: "gulp test:cover"
 
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-reports/test-results-ext.xml'
+    condition: succeededOrFailed()
+
   - bash: "gulp cover:combine-json"
     displayName: "gulp cover:combine-json"
 
