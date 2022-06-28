@@ -28,6 +28,12 @@ steps:
   - bash: "gulp test:cover"
     displayName: "gulp test:cover"
 
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-reports/test-results-ext.xml'
+    condition: succeededOrFailed()
+
   - bash: "gulp cover:combine-json"
     displayName: "gulp cover:combine-json"
 
@@ -103,22 +109,6 @@ steps:
     displayName: "gulp ext:install-service"
     inputs:
       targets: "ext:install-service"
-
-  - task: gulp@0
-    displayName: "gulp cover:jenkins"
-    inputs:
-      targets: "cover:jenkins"
-      publishJUnitResults: true
-      testResultsFiles: "$(Build.SourcesDirectory)/test-reports/*.xml"
-    enabled: false
-    continueOnError: true
-
-  - task: PublishCodeCoverageResults@1
-    displayName: "Publish code coverage from $(Build.SourcesDirectory)/coverage/cobertura-coverage.xml"
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: "$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml"
-    enabled: false
 
   - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
     displayName: "Component Detection"

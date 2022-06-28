@@ -237,30 +237,22 @@ gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package
 
 gulp.task('ext:build', gulp.series('ext:localization', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view')); // removed lint before copy
 
-gulp.task('ext:test', async (done) => {
+gulp.task('ext:test', async () => {
 	let workspace = process.env['WORKSPACE'];
 	if (!workspace) {
 		workspace = process.cwd();
 	}
-	process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/ext_xunit.xml';
+	process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/test-results-ext.xml';
 	var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
 	let vscodeVersion = packageJson.engines.vscode.slice(1);
 	let extensionTestsPath = `${workspace}/out/test`;
 	let vscodePath = await vscodeTest.downloadAndUnzipVSCode(vscodeVersion);
-	try {
-		await vscodeTest.runTests({
-			vscodeExecutablePath: vscodePath,
-			extensionDevelopmentPath: workspace,
-			extensionTestsPath: extensionTestsPath,
-			launchArgs: args
-		});
-	} catch (error) {
-		console.log(`stdout: ${process.stdout}`);
-		console.log(`stderr: ${process.stderr}`);
-		console.error(`exec error: ${error}`);
-	}
-	done();
-	process.exit(0);
+	await vscodeTest.runTests({
+		vscodeExecutablePath: vscodePath,
+		extensionDevelopmentPath: workspace,
+		extensionTestsPath: extensionTestsPath,
+		launchArgs: args
+	});
 });
 
 gulp.task('test', gulp.series('ext:test'));
