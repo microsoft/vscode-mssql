@@ -102,9 +102,9 @@ suite('Connection UI tests', () => {
 
 	test('promptLanguageFlavor should prompt for a language flavor', () => {
 		let mockProvider = { providerId: 'test' };
-		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(mockProvider));
+		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(mockProvider));
 		return connectionUI.promptLanguageFlavor().then(() => {
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 	});
 
