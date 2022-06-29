@@ -71,7 +71,7 @@ suite('Connection UI tests', () => {
 		prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
 		return connectionUI.promptForConnection().then(() => {
 			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 	});
 
@@ -88,7 +88,7 @@ suite('Connection UI tests', () => {
 		prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
 		return connectionUI.promptForConnection().then(() => {
 			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 	});
 
@@ -96,7 +96,7 @@ suite('Connection UI tests', () => {
 		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 		return connectionUI.promptForConnection().then(() => {
 			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 	});
 
