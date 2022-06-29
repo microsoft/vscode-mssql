@@ -60,7 +60,7 @@ suite('Connection UI tests', () => {
 		outputChannel.verify(c => c.show(true), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent and new connection', () => {
+	test.skip('showConnections with recent and new connection', () => {
 		let item: IConnectionCredentialsQuickPickItem = {
 			connectionCreds: undefined,
 			quickPickItemType: CredentialsQuickPickItemType.NewConnection,
@@ -75,7 +75,7 @@ suite('Connection UI tests', () => {
 		});
 	});
 
-	test('showConnections with recent and edit connection', () => {
+	test.skip('showConnections with recent and edit connection', () => {
 		let testCreds = new ConnectionCredentials();
 		testCreds.connectionString = 'test';
 		let item: IConnectionCredentialsQuickPickItem = {
@@ -92,7 +92,7 @@ suite('Connection UI tests', () => {
 		});
 	});
 
-	test('showConnections with recent but no selection', () => {
+	test.skip('showConnections with recent but no selection', () => {
 		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 		return connectionUI.promptForConnection().then(() => {
 			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
