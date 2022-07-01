@@ -105,7 +105,7 @@
     "gulp-uglify": "^2.0.0",
     "istanbul": "^0.4.5",
     "pm-mocha-jenkins-reporter": "^0.2.6",
-    "remap-istanbul": "^0.6.4",
+    "remap-istanbul": "^0.13.0",
     "rxjs": "5.0.0-beta.12",
     "slickgrid": "github:kburtram/SlickGrid#2.3.23-2",
     "systemjs": "0.19.40",
@@ -149,6 +149,9 @@
     "vscode-languageclient": "5.2.1",
     "vscode-nls": "^2.0.2",
     "zone.js": "^0.6.26"
+  },
+  "resolutions": {
+    "minimatch": "^3.0.2"
   },
   "capabilities": {
     "untrustedWorkspaces": {
