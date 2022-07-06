@@ -46,7 +46,7 @@ steps:
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
     displayName: Install vsce
     inputs:
-      arguments: "global add vsce@2.3.0"
+      arguments: "global add vsce@2.9.2"
 
   - task: gulp@0
     displayName: "gulp package:offline"
