@@ -25,7 +25,7 @@ testRunner.configure(
 	// Mocha Options
 	{
 		ui: 'tdd', 		        // the TDD UI is being used in extension.test.ts (suite, test, etc.)
-		reporter: 'pm-mocha-jenkins-reporter',
+		reporter: 'mocha-jenkins-reporter',
 		reporterOptions: {
 			junit_report_name: 'Extension Tests',
 			junit_report_path: __dirname + '../../test-reports/extension_tests.xml',
