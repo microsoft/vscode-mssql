@@ -44,7 +44,7 @@ suite('Connection UI tests', () => {
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
 		connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, mockContext.object);
-		connectionStore.setup(c => c.getPickListItems()).returns(() => TypeMoq.It.isAny());
+		connectionStore.setup(c => c.getPickListItems()).returns(() => [TypeMoq.It.isAny()]);
 		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, mockContext.object);
 		globalstate = TypeMoq.Mock.ofType<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>();
 
@@ -60,22 +60,25 @@ suite('Connection UI tests', () => {
 		outputChannel.verify(c => c.show(true), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent and new connection', () => {
+	test('showConnections with recent and new connection', async () => {
 		let item: IConnectionCredentialsQuickPickItem = {
 			connectionCreds: undefined,
 			quickPickItemType: CredentialsQuickPickItemType.NewConnection,
 			label: undefined
 		};
-		let mockConnection = { connectionString: 'test' };
-		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(item));
-		prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
-		return connectionUI.promptForConnection().then(() => {
-			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-		});
+
+		let quickPickMock = TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
+		quickPickMock.setup(q => q.items).returns(() => [item]);
+		quickPickMock.setup(q => q.show());
+		quickPickMock.setup(q => q.onDidChangeSelection(TypeMoq.It.isAny())).returns(await Promise.resolve(item as any));
+		quickPickMock.setup(q => q.onDidHide(TypeMoq.It.isAny())).returns(await Promise.resolve(undefined));
+
+		await connectionUI.promptForConnection();
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
+		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent and edit connection', () => {
+	test('showConnections with recent and edit connection', async () => {
 		let testCreds = new ConnectionCredentials();
 		testCreds.connectionString = 'test';
 		let item: IConnectionCredentialsQuickPickItem = {
@@ -83,21 +86,28 @@ suite('Connection UI tests', () => {
 			quickPickItemType: CredentialsQuickPickItemType.Mru,
 			label: undefined
 		};
-		let mockConnection = { connectionString: 'test' };
-		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(item));
-		prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
-		return connectionUI.promptForConnection().then(() => {
-			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-		});
+
+		let quickPickMock = TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
+		quickPickMock.setup(q => q.items).returns(() => [item]);
+		quickPickMock.setup(q => q.show());
+		quickPickMock.setup(q => q.onDidChangeSelection(TypeMoq.It.isAny())).returns(await Promise.resolve(undefined));
+		quickPickMock.setup(q => q.onDidHide(TypeMoq.It.isAny())).returns(await Promise.resolve(undefined));
+
+		await connectionUI.promptForConnection();
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
+		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent but no selection', () => {
-		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-		return connectionUI.promptForConnection().then(() => {
-			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-		});
+	test('showConnections with recent but no selection', async () => {
+		let quickPickMock = TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
+		quickPickMock.setup(q => q.items).returns(() => undefined);
+		quickPickMock.setup(q => q.show());
+		quickPickMock.setup(q => q.onDidChangeSelection(TypeMoq.It.isAny())).returns(await Promise.resolve(undefined));
+		quickPickMock.setup(q => q.onDidHide(TypeMoq.It.isAny())).returns(await Promise.resolve(undefined));
+
+		await connectionUI.promptForConnection();
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
+		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
 	test('promptLanguageFlavor should prompt for a language flavor', () => {
