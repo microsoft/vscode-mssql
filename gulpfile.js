@@ -265,8 +265,15 @@ gulp.task('clean', function (done) {
 
 gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
-gulp.task('watch', function () {
-	return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
+gulp.task('watch-src', function () {
+	return gulp.watch('./src/**/*.ts', gulp.series('ext:compile-src'))
 });
+
+gulp.task('watch-tests', function () {
+	return gulp.watch('./test/**/*.ts', gulp.series('ext:compile-tests'))
+});
+
+// Do a full build first so we have the latest compiled files before we start watching for more changes
+gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests')));
 
 gulp.task('lint', gulp.series('ext:lint'));
