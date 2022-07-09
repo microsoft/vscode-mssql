@@ -31,6 +31,12 @@ suite('Connection UI tests', () => {
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 	let globalstate: TypeMoq.IMock<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>;
 
+	const item: IConnectionCredentialsQuickPickItem = {
+		connectionCreds: new ConnectionCredentials(),
+		quickPickItemType: CredentialsQuickPickItemType.Mru,
+		label: undefined
+	};
+
 	setup(() => {
 		vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 		outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
@@ -61,11 +67,6 @@ suite('Connection UI tests', () => {
 	});
 
 	test('showConnections with recent and new connection', async () => {
-		let item: IConnectionCredentialsQuickPickItem = {
-			connectionCreds: undefined,
-			quickPickItemType: CredentialsQuickPickItemType.NewConnection,
-			label: undefined
-		};
 
 		let quickPickMock = TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
 		quickPickMock.setup(q => q.items).returns(() => [item]);
@@ -79,13 +80,7 @@ suite('Connection UI tests', () => {
 	});
 
 	test('showConnections with recent and edit connection', async () => {
-		let testCreds = new ConnectionCredentials();
-		testCreds.connectionString = 'test';
-		let item: IConnectionCredentialsQuickPickItem = {
-			connectionCreds: testCreds,
-			quickPickItemType: CredentialsQuickPickItemType.Mru,
-			label: undefined
-		};
+		item.connectionCreds.connectionString = 'test';
 
 		let quickPickMock = TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
 		quickPickMock.setup(q => q.items).returns(() => [item]);
@@ -100,10 +95,10 @@ suite('Connection UI tests', () => {
 
 	test('showConnections with recent but no selection', async () => {
 		let quickPickMock = TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
-		quickPickMock.setup(q => q.items).returns(() => undefined);
-		quickPickMock.setup(q => q.show());
-		quickPickMock.setup(q => q.onDidChangeSelection(TypeMoq.It.isAny())).returns(await Promise.resolve(undefined));
-		quickPickMock.setup(q => q.onDidHide(TypeMoq.It.isAny())).returns(await Promise.resolve(undefined));
+		quickPickMock.setup(q => q.items).returns(() => [item]);
+
+		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
+
 
 		await connectionUI.promptForConnection();
 		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());

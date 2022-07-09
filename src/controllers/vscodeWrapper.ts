@@ -259,6 +259,10 @@ export default class VscodeWrapper {
 		return vscode.window.showQuickPick<T>(items, options);
 	}
 
+	public createQuickPick<T extends vscode.QuickPickItem>(): vscode.QuickPick<T> {
+		return vscode.window.createQuickPick<T>();
+	}
+
 	/**
 	 * Shows a file save dialog to the user which allows to select a file for saving-purposes.
 	 *
