@@ -300,16 +300,15 @@ suite('Connection Profile tests', () => {
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile
-		connectionUI.createAndSaveProfile().then(profile => {
+		connectionUI.createAndSaveProfile()
+		// CancelError will be thrown (expected)
+		.catch(() => {
 			// connection is attempted
-			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
 			// profile is not saved
-			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
-
+			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
 			done();
-		}).catch(err => {
-			done(err);
 		});
 	});
 
