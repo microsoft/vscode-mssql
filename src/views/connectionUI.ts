@@ -88,7 +88,7 @@ export class ConnectionUI {
 		return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
 			let connectionProfileList = this._connectionStore.getPickListItems();
 			// We have recent connections - show them in a prompt for connection profiles
-			const connectionProfileQuickPick = vscode.window.createQuickPick<IConnectionCredentialsQuickPickItem>();
+			const connectionProfileQuickPick = this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
 			connectionProfileQuickPick.items = connectionProfileList;
 			connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
 			connectionProfileQuickPick.matchOnDescription = true;
