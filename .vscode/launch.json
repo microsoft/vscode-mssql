@@ -5,8 +5,9 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Gulp ext test",
+			"name": "Debug test",
 			"program": "${workspaceFolder}/node_modules/gulp/bin/gulp.js",
+			"preLaunchTask": "build",
 			"args": [
 				"ext:test"
 			]
