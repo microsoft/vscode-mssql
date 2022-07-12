@@ -72,10 +72,11 @@ suite('Connection UI tests', () => {
 		quickPickMock.object.items = [item];
 		quickPickMock.setup(q => q.show());
 		quickPickMock.setup(q => q.onDidChangeSelection((e) => [item] = e));
+		quickPickMock.object.onDidChangeSelection((e) => [item] = e);
 		quickPickMock.setup(q => q.onDidHide(() => false));
 		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
 
-		await connectionUI.promptForConnection();
+		connectionUI.promptForConnection();
 		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
@@ -94,10 +95,11 @@ suite('Connection UI tests', () => {
 		quickPickMock.object.items = [item];
 		quickPickMock.setup(q => q.show());
 		quickPickMock.setup(q => q.onDidChangeSelection((e) => [item] = e));
+		quickPickMock.object.onDidChangeSelection((e) => [item] = e);
 		quickPickMock.setup(q => q.onDidHide(() => false));
 		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
 
-		await connectionUI.promptForConnection();
+		connectionUI.promptForConnection();
 		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
@@ -115,11 +117,12 @@ suite('Connection UI tests', () => {
 		quickPickMock.object.items = [item];
 		quickPickMock.setup(q => q.show());
 		quickPickMock.setup(q => q.onDidChangeSelection((e) => [] = e));
+		quickPickMock.object.onDidChangeSelection(undefined);
 		quickPickMock.setup(q => q.onDidHide(() => false));
 		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
 
 
-		await connectionUI.promptForConnection();
+		connectionUI.promptForConnection();
 		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
