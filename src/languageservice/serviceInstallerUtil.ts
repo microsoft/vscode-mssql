@@ -39,9 +39,13 @@ export class StubLogger implements ILogger {
 		this._log(message);
 	}
 
-	increaseIndent(): void { }
+	increaseIndent(): void {
+		// no-op
+	}
 
-	decreaseIndent(): void { }
+	decreaseIndent(): void {
+		// no-op
+	}
 
 	append(message?: string): void {
 		this._log(message);

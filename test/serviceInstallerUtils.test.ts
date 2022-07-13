@@ -7,16 +7,16 @@ import { assert } from 'chai';
 import { StubStatusView, StubLogger, getServiceInstallDirectoryRoot, installService } from '../src/languageservice/serviceInstallerUtil';
 import * as sinon from 'sinon';
 
-suite('Stub Status View tests', function () {
+suite('Stub Status View tests', function (): void {
 	let stubStatusView: StubStatusView;
 	let logStub: sinon.SinonSpy;
 
-	this.beforeAll(function () {
+	this.beforeAll(function (): void {
 		logStub = sinon.stub();
 		stubStatusView = new StubStatusView(logStub);
 	});
 
-	this.afterAll(function () {
+	this.afterAll(function (): void {
 		sinon.restore();
 	});
 
@@ -41,17 +41,17 @@ suite('Stub Status View tests', function () {
 	});
 });
 
-suite('Stub Logger tests', function () {
+suite('Stub Logger tests', function (): void {
 
 	let stubLogger: StubLogger;
 	let logStub: sinon.SinonSpy;
 
-	this.beforeEach(function () {
+	this.beforeEach(function (): void {
 		logStub = sinon.stub();
 		stubLogger = new StubLogger(logStub);
 	});
 
-	this.afterEach(function () {
+	this.afterEach(function (): void {
 		sinon.restore();
 	});
 
