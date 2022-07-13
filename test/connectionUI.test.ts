@@ -30,6 +30,7 @@ suite('Connection UI tests', () => {
 	let mockAccountStore: AccountStore;
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 	let globalstate: TypeMoq.IMock<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>;
+	let quickPickMock: TypeMoq.IMock<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>;
 
 	setup(() => {
 		vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
@@ -37,14 +38,17 @@ suite('Connection UI tests', () => {
 		outputChannel.setup(c => c.clear());
 		outputChannel.setup(c => c.append(TypeMoq.It.isAny()));
 		outputChannel.setup(c => c.show(TypeMoq.It.isAny()));
+		quickPickMock = TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
+		quickPickMock.setup(q => q.items);
+		quickPickMock.setup(q => q.show());
 		vscodeWrapper.setup(v => v.createOutputChannel(TypeMoq.It.isAny())).returns(() => outputChannel.object);
 		vscodeWrapper.setup(v => v.showErrorMessage(TypeMoq.It.isAny()));
 		vscodeWrapper.setup(v => v.executeCommand(TypeMoq.It.isAnyString()));
+		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
 		prompter = TypeMoq.Mock.ofType<IPrompter>();
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
 		connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, mockContext.object);
-		connectionStore.setup(c => c.getPickListItems()).returns(() => TypeMoq.It.isAny());
 		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, mockContext.object);
 		globalstate = TypeMoq.Mock.ofType<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>();
 
@@ -60,22 +64,29 @@ suite('Connection UI tests', () => {
 		outputChannel.verify(c => c.show(true), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent and new connection', () => {
+	test('showConnections with recent and new connection', async () => {
 		let item: IConnectionCredentialsQuickPickItem = {
 			connectionCreds: undefined,
 			quickPickItemType: CredentialsQuickPickItemType.NewConnection,
 			label: undefined
 		};
 		let mockConnection = { connectionString: 'test' };
-		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(item));
+		// setup stubbed event for us to trigger later
+		const onDidChangeSelectionEventEmitter = new vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>();
+		quickPickMock.setup(q => q.onDidChangeSelection).returns(() => onDidChangeSelectionEventEmitter.event);
+		// createProfile prompter stub
 		prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
-		return connectionUI.promptForConnection().then(() => {
-			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-		});
+
+		const promptPromise = connectionUI.promptForConnection();
+		// Trigger onDidChangeSelection event to simulate user selecting new connection option
+		onDidChangeSelectionEventEmitter.fire([item]);
+		await promptPromise;
+
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
+		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent and edit connection', () => {
+	test('showConnections with recent and edit connection', async () => {
 		let testCreds = new ConnectionCredentials();
 		testCreds.connectionString = 'test';
 		let item: IConnectionCredentialsQuickPickItem = {
@@ -83,21 +94,30 @@ suite('Connection UI tests', () => {
 			quickPickItemType: CredentialsQuickPickItemType.Mru,
 			label: undefined
 		};
-		let mockConnection = { connectionString: 'test' };
-		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(item));
-		prompter.setup(p => p.prompt(TypeMoq.It.isAny(), true)).returns(() => Promise.resolve(mockConnection));
-		return connectionUI.promptForConnection().then(() => {
-			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-		});
+		// setup stubbed event for us to trigger later
+		const onDidChangeSelectionEventEmitter = new vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>();
+		quickPickMock.setup(q => q.onDidChangeSelection).returns(() => onDidChangeSelectionEventEmitter.event);
+
+		const promptPromise = connectionUI.promptForConnection();
+		// Trigger onDidChangeSelection event to simulate user selecting edit connection option
+		onDidChangeSelectionEventEmitter.fire([item]);
+		await promptPromise;
+
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
+		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent but no selection', () => {
-		prompter.setup(p => p.promptSingle(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
-		return connectionUI.promptForConnection().then(() => {
-			connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
-			prompter.verify(p => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-		});
+	test('showConnections with recent but no selection', async () => {
+		// setup stubbed event for us to trigger later
+		const onDidHideEventEmitter = new vscode.EventEmitter<void>();
+		quickPickMock.setup(q => q.onDidHide).returns(() => onDidHideEventEmitter.event);
+		const promptForConnectionPromise = connectionUI.promptForConnection();
+		// Trigger onDidHide event to simulate user exiting the dialog without choosing anything
+		onDidHideEventEmitter.fire();
+		await promptForConnectionPromise;
+
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
+		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
 	test('promptLanguageFlavor should prompt for a language flavor', () => {
