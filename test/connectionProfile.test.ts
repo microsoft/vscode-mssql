@@ -294,7 +294,7 @@ suite('Connection Profile tests', () => {
 
 		let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
 		vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
-		// user cancels out of error message
+		// user cancels out of retry prompt
 		vscodeWrapperMock.setup(x => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let connectionUI = new ConnectionUI(connectionManagerMock.object, contextMock.object,
