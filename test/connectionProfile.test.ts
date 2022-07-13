@@ -294,22 +294,22 @@ suite('Connection Profile tests', () => {
 
 		let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
 		vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => 'test.sql');
+		// user cancels out of retry prompt
 		vscodeWrapperMock.setup(x => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let connectionUI = new ConnectionUI(connectionManagerMock.object, contextMock.object,
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile
-		connectionUI.createAndSaveProfile().then(profile => {
+		connectionUI.createAndSaveProfile()
+		// CancelError will be thrown (expected)
+		.catch(() => {
 			// connection is attempted
-			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
 			// profile is not saved
-			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
-
+			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
 			done();
-		}).catch(err => {
-			done(err);
 		});
 	});
 

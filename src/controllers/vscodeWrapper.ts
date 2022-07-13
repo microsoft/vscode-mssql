@@ -248,6 +248,10 @@ export default class VscodeWrapper {
 		return vscode.window.showQuickPick(items, options);
 	}
 
+	public createQuickPick<T extends vscode.QuickPickItem>(): vscode.QuickPick<T> {
+		return vscode.window.createQuickPick<T>();
+	}
+
 	/**
 	 * Shows a selection list.
 	 *
