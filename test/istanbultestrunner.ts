@@ -24,13 +24,12 @@ let mocha = new Mocha({
 	useColors: true
 });
 
-let testOptions = undefined;
+let testCoverOpts = undefined;
 
-function configure(mochaOpts, testOpts): void {
+export function configure(mochaOpts: Mocha.MochaOptions, testCoverOpts: ITestCoverOptions): void {
 	mocha = new Mocha(mochaOpts);
-	testOptions = testOpts;
+	testCoverOpts = testCoverOpts;
 }
-exports.configure = configure;
 
 function mkDirIfExists(dir: string): void {
 	if (!fs.existsSync(dir)) {
@@ -168,7 +167,7 @@ class CoverageRunner {
 }
 
 function readCoverOptions(testsRoot: string): ITestRunnerOptions {
-	let coverConfigPath = paths.join(testsRoot, testOptions.coverConfig);
+	let coverConfigPath = paths.join(testsRoot, testCoverOpts.coverConfig);
 	let coverConfig: ITestRunnerOptions = undefined;
 	if (fs.existsSync(coverConfigPath)) {
 		let configContent = fs.readFileSync(coverConfigPath);
@@ -177,7 +176,7 @@ function readCoverOptions(testsRoot: string): ITestRunnerOptions {
 	return coverConfig;
 }
 
-function run(testsRoot, clb): any {
+export function run(testsRoot, clb): any {
 	// Enable source map support
 	// tslint:disable-next-line:no-require-imports
 	require('source-map-support').install();
@@ -218,7 +217,14 @@ function run(testsRoot, clb): any {
 		});
 	});
 }
-exports.run = run;
+
+export interface ITestCoverOptions {
+    /**
+     * Relative path to the coverage config file with configuration
+     * options for the test runner options.
+     */
+    coverConfig: string;
+}
 
 interface ITestRunnerOptions {
 	enabled?: boolean;
