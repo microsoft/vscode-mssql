@@ -13,46 +13,51 @@ import { IStatusView } from './interfaces';
 import { ILogger } from '../models/interfaces';
 
 export class StubStatusView implements IStatusView {
+
+	constructor(private _log: (msg: string) => void) { }
+
 	installingService(): void {
-		console.log('...');
+		this._log('...');
 	}
 	serviceInstalled(): void {
-		console.log('Service installed');
+		this._log('Service installed');
 	}
 	serviceInstallationFailed(): void {
-		console.log('Service installation failed');
+		this._log('Service installation failed');
 	}
 	updateServiceDownloadingProgress(downloadPercentage: number): void {
 		if (downloadPercentage === 100) {
-			process.stdout.write('100%');
+			this._log('100%');
 		}
 	}
 }
 
 export class StubLogger implements ILogger {
+	constructor(private _log: (msg: string) => void) { }
+
 	logDebug(message: string): void {
-		console.log(message);
+		this._log(message);
 	}
 
 	increaseIndent(): void {
-		console.log('increaseIndent');
+		// no-op
 	}
 
 	decreaseIndent(): void {
-		console.log('decreaseIndent');
+		// no-op
 	}
 
 	append(message?: string): void {
-		process.stdout.write(message);
+		this._log(message);
 	}
 	appendLine(message?: string): void {
-		console.log(message);
+		this._log(message);
 	}
 }
 
 const config = new Config();
-const logger = new StubLogger();
-const statusView = new StubStatusView();
+const logger = new StubLogger(console.log);
+const statusView = new StubStatusView(console.log);
 const httpClient = new HttpClient();
 const decompressProvider = new DecompressProvider();
 let downloadProvider = new ServiceDownloadProvider(config, logger, statusView, httpClient, decompressProvider);
