@@ -14,7 +14,6 @@ var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 var vscodeTest = require('vscode-test');
-var packageJson = require('./package.json');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
