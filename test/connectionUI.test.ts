@@ -62,7 +62,7 @@ suite('Connection UI tests', () => {
 		outputChannel.verify(c => c.show(true), TypeMoq.Times.once());
 	});
 
-	test('showConnections with recent and new connection', () => {
+	test('showConnections with recent and new connection', async () => {
 		let item: IConnectionCredentialsQuickPickItem = {
 			connectionCreds: undefined,
 			quickPickItemType: CredentialsQuickPickItemType.NewConnection,
@@ -77,7 +77,8 @@ suite('Connection UI tests', () => {
 		quickPickMock.setup(q => q.onDidHide(() => false));
 		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
 
-		connectionUI.promptForConnection();
+		const promptPromise = connectionUI.promptForConnection();
+		await promptPromise;
 		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 		quickPickMock.object.dispose();
@@ -119,20 +120,17 @@ suite('Connection UI tests', () => {
 		quickPickMock.setup(q => q.show());
 		quickPickMock.object.items = [item];
 
-		// setup events for the quickPick items (onDidChangeSelection and onDidHide)
-		const onDidChangeSelectionEventEmitter = new vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>();
-		quickPickMock.setup(q => q.onDidChangeSelection(TypeMoq.It.isAny())).returns(onDidChangeSelectionEventEmitter.event);
+		// setup stubbed event for us to trigger later
 		const onDidHideEventEmitter = new vscode.EventEmitter<void>();
-		quickPickMock.object.onDidHide = onDidHideEventEmitter.event;
+		quickPickMock.setup(q => q.onDidHide).returns(() => onDidHideEventEmitter.event);
 		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
-		// need to register the quickpick in order for the onDidHideEvent callback to be called
 		const promptForConnectionPromise = connectionUI.promptForConnection();
+		// Trigger onDidHide event to simulate user exiting the dialog without choosing anything
 		onDidHideEventEmitter.fire();
 		await promptForConnectionPromise;
 
 		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
-		quickPickMock.object.dispose();
 	});
 
 	test('promptLanguageFlavor should prompt for a language flavor', () => {
