@@ -70,7 +70,6 @@ suite('Connection UI tests', () => {
 			quickPickItemType: CredentialsQuickPickItemType.NewConnection,
 			label: undefined
 		};
-		quickPickMock.object.items = [item];
 		let mockConnection = { connectionString: 'test' };
 		// setup stubbed event for us to trigger later
 		const onDidChangeSelectionEventEmitter = new vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>();
@@ -95,7 +94,6 @@ suite('Connection UI tests', () => {
 			quickPickItemType: CredentialsQuickPickItemType.Mru,
 			label: undefined
 		};
-		quickPickMock.object.items = [item];
 		// setup stubbed event for us to trigger later
 		const onDidChangeSelectionEventEmitter = new vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>();
 		quickPickMock.setup(q => q.onDidChangeSelection).returns(() => onDidChangeSelectionEventEmitter.event);
