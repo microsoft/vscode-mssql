@@ -244,9 +244,8 @@ gulp.task('ext:test', async () => {
 	}
 	process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/test-results-ext.xml';
 	var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
-	let vscodeVersion = packageJson.engines.vscode.slice(1);
 	let extensionTestsPath = `${workspace}/out/test`;
-	let vscodePath = await vscodeTest.downloadAndUnzipVSCode(vscodeVersion);
+	let vscodePath = await vscodeTest.downloadAndUnzipVSCode();
 	await vscodeTest.runTests({
 		vscodeExecutablePath: vscodePath,
 		extensionDevelopmentPath: workspace,
