@@ -24,11 +24,11 @@ let mocha = new Mocha({
 	useColors: true
 });
 
-let testCoverOpts: ITestCoverOptions | undefined = undefined;
+let testCoverOptions: ITestCoverOptions | undefined = undefined;
 
 export function configure(mochaOpts: Mocha.MochaOptions, testCoverOpts: ITestCoverOptions): void {
 	mocha = new Mocha(mochaOpts);
-	testCoverOpts = testCoverOpts;
+	testCoverOptions = testCoverOpts;
 }
 
 function mkDirIfExists(dir: string): void {
@@ -167,11 +167,11 @@ class CoverageRunner {
 }
 
 function readCoverOptions(testsRoot: string): ITestRunnerOptions {
-	if (!testCoverOpts) {
+	if (!testCoverOptions) {
 		console.warn('No coverage options passed in, skipping code coverage');
 		return undefined;
 	}
-	let coverConfigPath = paths.join(testsRoot, testCoverOpts.coverConfig);
+	let coverConfigPath = paths.join(testsRoot, testCoverOptions.coverConfig);
 	let coverConfig: ITestRunnerOptions | undefined = undefined;
 	if (fs.existsSync(coverConfigPath)) {
 		let configContent = fs.readFileSync(coverConfigPath);
