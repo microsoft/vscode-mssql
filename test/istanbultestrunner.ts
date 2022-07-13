@@ -24,7 +24,7 @@ let mocha = new Mocha({
 	useColors: true
 });
 
-let testCoverOpts = undefined;
+let testCoverOpts: ITestCoverOptions | undefined = undefined;
 
 export function configure(mochaOpts: Mocha.MochaOptions, testCoverOpts: ITestCoverOptions): void {
 	mocha = new Mocha(mochaOpts);
@@ -167,8 +167,12 @@ class CoverageRunner {
 }
 
 function readCoverOptions(testsRoot: string): ITestRunnerOptions {
+	if (!testCoverOpts) {
+		console.warn('No coverage options passed in, skipping code coverage');
+		return undefined;
+	}
 	let coverConfigPath = paths.join(testsRoot, testCoverOpts.coverConfig);
-	let coverConfig: ITestRunnerOptions = undefined;
+	let coverConfig: ITestRunnerOptions | undefined = undefined;
 	if (fs.existsSync(coverConfigPath)) {
 		let configContent = fs.readFileSync(coverConfigPath);
 		coverConfig = JSON.parse(configContent.toString());
@@ -176,14 +180,14 @@ function readCoverOptions(testsRoot: string): ITestRunnerOptions {
 	return coverConfig;
 }
 
-export function run(testsRoot, clb): any {
+export function run(testsRoot: string, clb: (error: any, failures?: number) => void): any {
 	// Enable source map support
 	// tslint:disable-next-line:no-require-imports
 	require('source-map-support').install();
 
 	// Read configuration for the coverage file
-	let coverOptions: ITestRunnerOptions = readCoverOptions(testsRoot);
-	if (coverOptions && coverOptions.enabled) {
+	let coverOptions: ITestRunnerOptions | undefined = readCoverOptions(testsRoot);
+	if (coverOptions?.enabled) {
 		// Setup coverage pre-test, including post-test hook to report
 		let coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
 		coverageRunner.setupCoverage();
@@ -219,11 +223,11 @@ export function run(testsRoot, clb): any {
 }
 
 export interface ITestCoverOptions {
-    /**
-     * Relative path to the coverage config file with configuration
-     * options for the test runner options.
-     */
-    coverConfig: string;
+	/**
+	 * Relative path to the coverage config file with configuration
+	 * options for the test runner options.
+	 */
+	coverConfig: string;
 }
 
 interface ITestRunnerOptions {
