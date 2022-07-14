@@ -1,4 +1,4 @@
-var dom = require('xmldom').DOMParser
+var dom = require('@xmldom/xmldom').DOMParser
 var gulp = require('gulp')
 var config = require('./config')
 var through = require('through2')
