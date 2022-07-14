@@ -24,13 +24,12 @@ let mocha = new Mocha({
 	useColors: true
 });
 
-let testOptions = undefined;
+let testCoverOptions: ITestCoverOptions | undefined = undefined;
 
-function configure(mochaOpts, testOpts): void {
+export function configure(mochaOpts: Mocha.MochaOptions, testCoverOpts: ITestCoverOptions): void {
 	mocha = new Mocha(mochaOpts);
-	testOptions = testOpts;
+	testCoverOptions = testCoverOpts;
 }
-exports.configure = configure;
 
 function mkDirIfExists(dir: string): void {
 	if (!fs.existsSync(dir)) {
@@ -168,8 +167,12 @@ class CoverageRunner {
 }
 
 function readCoverOptions(testsRoot: string): ITestRunnerOptions {
-	let coverConfigPath = paths.join(testsRoot, testOptions.coverConfig);
-	let coverConfig: ITestRunnerOptions = undefined;
+	if (!testCoverOptions) {
+		console.warn('No coverage options passed in, skipping code coverage');
+		return undefined;
+	}
+	let coverConfigPath = paths.join(testsRoot, testCoverOptions.coverConfig);
+	let coverConfig: ITestRunnerOptions | undefined = undefined;
 	if (fs.existsSync(coverConfigPath)) {
 		let configContent = fs.readFileSync(coverConfigPath);
 		coverConfig = JSON.parse(configContent.toString());
@@ -177,14 +180,14 @@ function readCoverOptions(testsRoot: string): ITestRunnerOptions {
 	return coverConfig;
 }
 
-function run(testsRoot, clb): any {
+export function run(testsRoot: string, clb: (error: any, failures?: number) => void): any {
 	// Enable source map support
 	// tslint:disable-next-line:no-require-imports
 	require('source-map-support').install();
 
 	// Read configuration for the coverage file
-	let coverOptions: ITestRunnerOptions = readCoverOptions(testsRoot);
-	if (coverOptions && coverOptions.enabled) {
+	let coverOptions: ITestRunnerOptions | undefined = readCoverOptions(testsRoot);
+	if (coverOptions?.enabled) {
 		// Setup coverage pre-test, including post-test hook to report
 		let coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
 		coverageRunner.setupCoverage();
@@ -218,7 +221,14 @@ function run(testsRoot, clb): any {
 		});
 	});
 }
-exports.run = run;
+
+export interface ITestCoverOptions {
+	/**
+	 * Relative path to the coverage config file with configuration
+	 * options for the test runner options.
+	 */
+	coverConfig: string;
+}
 
 interface ITestRunnerOptions {
 	enabled?: boolean;

@@ -14,7 +14,6 @@ var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
 var vscodeTest = require('vscode-test');
-var packageJson = require('./package.json');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -244,9 +243,8 @@ gulp.task('ext:test', async () => {
 	}
 	process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/test-results-ext.xml';
 	var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
-	let vscodeVersion = packageJson.engines.vscode.slice(1);
 	let extensionTestsPath = `${workspace}/out/test`;
-	let vscodePath = await vscodeTest.downloadAndUnzipVSCode(vscodeVersion);
+	let vscodePath = await vscodeTest.downloadAndUnzipVSCode();
 	await vscodeTest.runTests({
 		vscodeExecutablePath: vscodePath,
 		extensionDevelopmentPath: workspace,
@@ -265,8 +263,15 @@ gulp.task('clean', function (done) {
 
 gulp.task('build', gulp.series('clean', 'ext:build', 'ext:install-service'));
 
-gulp.task('watch', function () {
-	return gulp.watch(config.paths.project.root + '/src/**/*', gulp.series('build'))
+gulp.task('watch-src', function () {
+	return gulp.watch('./src/**/*.ts', gulp.series('ext:compile-src'))
 });
+
+gulp.task('watch-tests', function () {
+	return gulp.watch('./test/**/*.ts', gulp.series('ext:compile-tests'))
+});
+
+// Do a full build first so we have the latest compiled files before we start watching for more changes
+gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests')));
 
 gulp.task('lint', gulp.series('ext:lint'));
