@@ -118,7 +118,6 @@
     "typemoq": "^1.7.0",
     "typescript": "^3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
-    "vsce": "^1.58.0",
     "vscode-nls-dev": "2.0.1",
     "vscode-test": "^1.0.0",
     "@xmldom/xmldom": "^0.8.2",
