@@ -126,7 +126,7 @@ export abstract class AzureAuth {
 			const remainingTime = expiry - currentTime;
 			const maxTolerance = 2 * 60; // two minutes
 
-			if (remainingTime < maxTolerance) {
+			if ((remainingTime < maxTolerance) && (remainingTime > 0)) {
 				const result = await this.refreshToken(tenant, azureResource, cachedTokens.refreshToken);
 				if (!result) {
 					return undefined;
@@ -135,14 +135,17 @@ export abstract class AzureAuth {
 				expiresOn = Number(result.expiresOn);
 			}
 			// Let's just return here.
-			if (accessToken) {
-				return {
-					...accessToken,
-					expiresOn: expiresOn,
-					tokenType: 'Bearer'
-				};
+			if (accessToken.expiresOn) {
+				let newRemainingTime = accessToken.expiresOn - currentTime;
+                if (newRemainingTime > 0) {
+                	return {
+						...accessToken,
+						expiresOn: expiresOn,
+						tokenType: 'Bearer'
+					};
+				}
 			}
-		}
+			}
 
 		// User didn't have any cached tokens, or the cached tokens weren't useful.
 		// For most users we can use the refresh token from the general microsoft resource to an access token of basically any type of resource we want.
