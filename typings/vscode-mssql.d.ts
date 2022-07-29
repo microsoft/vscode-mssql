@@ -312,6 +312,14 @@ declare module 'vscode-mssql' {
 		generateDeployPlan(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<GenerateDeployPlanResult>;
 		getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
+
+		/**
+		 * Generate sql model from sql script files
+		 * @param projectUri URI of the project file this model is for
+		 * @param modelTargetVersion Target version of SQL Server
+		 * @param filePaths SQL script files of the project
+		 */
+		generateTSqlModel(projectUri: string, modelTargetVersion: string, filePaths: string[]): Thenable<boolean>;
 	}
 
 	/**
@@ -671,6 +679,12 @@ declare module 'vscode-mssql' {
 	export interface ValidateStreamingJobParams {
 		packageFilePath: string;
 		createStreamingJobTsql: string;
+	}
+
+	export interface GenerateTSqlModelParams {
+		projectUri: string;
+		modelTargetVersion: string;
+		filePaths: string[];
 	}
 
 	export interface SchemaCompareGetOptionsParams { }

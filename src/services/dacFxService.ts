@@ -131,6 +131,18 @@ export class DacFxService implements mssql.IDacFxService {
 		return this._client.sendRequest(dacFxContracts.GenerateDeployPlanRequest.type, params);
 	}
 
+	public generateTSqlModel(
+		projectUri: string,
+		modelTargetVersion: string,
+		filePaths: string[]): Thenable<boolean> {
+		const params: mssql.GenerateTSqlModelParams = {
+			projectUri: projectUri,
+			modelTargetVersion: modelTargetVersion,
+			filePaths: filePaths,
+		};
+		return this._client.sendRequest(dacFxContracts.GenerateTSqlModelRequest.type, params);
+	}
+
 	public getOptionsFromProfile(profilePath: string): Thenable<mssql.DacFxOptionsResult> {
 		const params: mssql.GetOptionsFromProfileParams = { profilePath: profilePath };
 		return this._client.sendRequest(dacFxContracts.GetOptionsFromProfileRequest.type, params);

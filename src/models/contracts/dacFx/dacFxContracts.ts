@@ -30,6 +30,10 @@ export namespace GenerateDeployPlanRequest {
 	export const type = new RequestType<mssql.GenerateDeployPlanParams, mssql.GenerateDeployPlanResult, void, void>('dacfx/generateDeployPlan');
 }
 
+export namespace GenerateTSqlModelRequest {
+	export const type = new RequestType<mssql.GenerateTSqlModelParams, boolean, void, void>('dacfx/generateTSqlModel');
+}
+
 export namespace GetOptionsFromProfileRequest {
 	export const type = new RequestType<mssql.GetOptionsFromProfileParams, mssql.DacFxOptionsResult, void, void>('dacfx/getOptionsFromProfile');
 }
