@@ -745,6 +745,13 @@ export default class MainController implements vscode.Disposable {
 			let editor = self._vscodeWrapper.activeTextEditor;
 			let uri = self._vscodeWrapper.activeTextEditorUri;
 
+			// Do not execute when there are multiple selections in the editor until it can be properly handled.
+			// Otherwise only the first selection will be executed and cause unexpected issues.
+			if (editor.selections?.length > 1) {
+				self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgMultipleSelectionModeNotSupported);
+				return;
+			}
+
 			// create new connection
 			if (!self.connectionManager.isConnected(uri)) {
 				await self.onNewConnection();

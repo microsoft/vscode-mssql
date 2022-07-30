@@ -524,6 +524,9 @@
          <trans-unit id="connectProgressNoticationTitle">
             <source xml:lang="en">Testing connection profile...</source>
         </trans-unit>
+        <trans-unit id="msgMultipleSelectionModeNotSupported">
+            <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
