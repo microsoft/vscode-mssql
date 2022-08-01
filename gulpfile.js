@@ -13,7 +13,7 @@ var uglifyjs = require('uglify-js');
 var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
-var vscodeTest = require('vscode-test');
+var vscodeTest = require('@vscode/test-electron');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
@@ -244,7 +244,7 @@ gulp.task('ext:test', async () => {
 	process.env.JUNIT_REPORT_PATH = workspace + '/test-reports/test-results-ext.xml';
 	var args = ['--verbose', '--disable-gpu', '--disable-telemetry', '--disable-updates', '-n'];
 	let extensionTestsPath = `${workspace}/out/test`;
-	let vscodePath = await vscodeTest.download();
+	let vscodePath = await vscodeTest.downloadAndUnzipVSCode();
 	await vscodeTest.runTests({
 		vscodeExecutablePath: vscodePath,
 		extensionDevelopmentPath: workspace,
