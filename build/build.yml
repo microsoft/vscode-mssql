@@ -1,5 +1,5 @@
 pool:
-  vmImage: "macOS-10.15"
+  vmImage: "macos-latest"
 
 steps:
   - task: NodeTool@0
@@ -99,11 +99,6 @@ steps:
 
   - task: PublishBuildArtifacts@1
     displayName: "Publish Artifact: drop"
-
-  - script: |
-      brew update
-      brew install --cask visual-studio-code
-    displayName: "Install VS Code for testing"
 
   - task: gulp@0
     displayName: "gulp ext:install-service"
