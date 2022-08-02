@@ -13,7 +13,7 @@ var uglifyjs = require('uglify-js');
 var nls = require('vscode-nls-dev');
 var argv = require('yargs').argv;
 var min = (argv.min === undefined) ? false : true;
-var vscodeTest = require('vscode-test');
+var vscodeTest = require('@vscode/test-electron');
 
 require('./tasks/packagetasks');
 require('./tasks/localizationtasks');
