@@ -698,6 +698,10 @@
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">연결 프로필을 테스트하는 중...</target>
       </trans-unit>
+      <trans-unit id="msgMultipleSelectionModeNotSupported">
+        <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
+        <target state="translated">편집기가 다중 선택 모드에 있는 경우 쿼리 실행이 지원되지 않습니다.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

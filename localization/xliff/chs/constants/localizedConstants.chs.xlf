@@ -698,6 +698,10 @@
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">正在测试连接配置文件...</target>
       </trans-unit>
+      <trans-unit id="msgMultipleSelectionModeNotSupported">
+        <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
+        <target state="translated">当编辑器处于多重选择模式时，不支持运行查询。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
