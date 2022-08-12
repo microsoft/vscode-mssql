@@ -1,0 +1,4 @@
+--require ts-node/register/transpile-only
+--require source-map-support/register
+--recursive
+**/**.js
