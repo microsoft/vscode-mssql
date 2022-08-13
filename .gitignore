@@ -14,6 +14,7 @@ tools
 examples
 sqltoolsservice
 coverage
+coverage-remapped
 test-reports
 .vscode-test
 localization/i18n/
