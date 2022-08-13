@@ -38,7 +38,6 @@ gulp.task('cover:disable', () => {
 });
 
 gulp.task('cover:combine-json', () => {
-	// return gulp.src(['./coverage/coverage-final.json'])
 	return gulp.src(['./coverage/coverage.json'])
 		.pipe(istanbulReport({
 			reporterOpts: {
