@@ -2,6 +2,7 @@ var gulp = require('gulp');
 var del = require('del');
 var jeditor = require("gulp-json-editor");
 var istanbulReport = require('gulp-istanbul-report');
+var remapIstanbul = require('remap-istanbul/lib/gulpRemapIstanbul');
 
 gulp.task('cover:clean', function (done) {
 	return del('coverage', done);
@@ -14,6 +15,15 @@ gulp.task('cover:enableconfig', () => {
 			return json; // must return JSON object.
 		}))
 		.pipe(gulp.dest("./out", { 'overwrite': true }));
+});
+
+gulp.task('remap-istanbul', () => {
+	return gulp.src('./coverage/coverage.json')
+		.pipe(remapIstanbul({
+			reports: {
+				'json': './coverage/coverage.json',
+			}
+		}));
 });
 
 gulp.task('cover:enable', gulp.series('cover:clean', 'cover:enableconfig'));
@@ -53,4 +63,4 @@ gulp.task('cover:combine-html', () => {
 });
 
 // for running on the ADO build system
-gulp.task('test:cover', gulp.series('cover:clean', 'cover:enableconfig', 'test'));
+gulp.task('test:cover', gulp.series('cover:clean', 'cover:enableconfig', 'test', 'remap-istanbul'));
