@@ -30,7 +30,13 @@ gulp.task('cover:disable', () => {
 
 gulp.task('remap-coverage', function () {
 	return gulp.src('./coverage/coverage.json')
-		.pipe(remapIstanbul())
+		// .pipe(remapIstanbul()) TODO prevoius way remapIstanbul function was configured. Uncommented approach below creates an HTML page to confirm easily
+		.pipe(remapIstanbul({
+			reports: {
+				'json': 'coverage.json',
+				'html': 'html-report'
+			}
+		}))
 		.pipe(gulp.dest('coverage-remapped'));
 });
 
@@ -60,4 +66,4 @@ gulp.task('cover:combine-html', () => {
 });
 
 // for running on the ADO build system
-gulp.task('test:cover', gulp.series('cover:clean', 'cover:enableconfig', 'test'));
+gulp.task('test:cover', gulp.series('cover:clean', 'cover:enableconfig', 'test', 'remap-coverage')); // TODO: Remove 'remap-coverage' from this series.
