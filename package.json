@@ -106,7 +106,7 @@
     "gulp-uglify": "^2.0.0",
     "istanbul": "^0.4.5",
     "pm-mocha-jenkins-reporter": "^0.2.6",
-    "remap-istanbul": "^0.6.4",
+    "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
     "slickgrid": "github:kburtram/SlickGrid#2.3.23-2",

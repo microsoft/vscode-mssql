@@ -30,13 +30,7 @@ gulp.task('cover:disable', () => {
 
 gulp.task('remap-coverage', function () {
 	return gulp.src('./coverage/coverage.json')
-		// .pipe(remapIstanbul()) TODO prevoius way remapIstanbul function was configured. Uncommented approach below creates an HTML page to confirm easily
-		.pipe(remapIstanbul({
-			reports: {
-				'json': 'coverage.json',
-				'html': 'html-report'
-			}
-		}))
+		.pipe(remapIstanbul())
 		.pipe(gulp.dest('coverage-remapped'));
 });
 
