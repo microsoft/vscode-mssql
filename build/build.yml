@@ -34,6 +34,9 @@ steps:
       testResultsFiles: 'test-reports/test-results-ext.xml'
     condition: succeededOrFailed()
 
+  - bash: "gulp remap-coverage"
+    displayName: "gulp remap-coverage"
+
   - bash: "gulp cover:combine-json"
     displayName: "gulp cover:combine-json"
 
@@ -41,7 +44,7 @@ steps:
     inputs:
       codeCoverageTool: 'Cobertura'
       summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml
-      additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/coverage/coverage.json
+      additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/coverage-remapped/coverage.json
 
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
     displayName: Install vsce
