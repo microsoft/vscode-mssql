@@ -60,4 +60,4 @@ gulp.task('cover:combine-html', () => {
 });
 
 // for running on the ADO build system
-gulp.task('test:cover', gulp.series('cover:clean', 'cover:enableconfig', 'test', 'remap-coverage')); // TODO: Remove 'remap-coverage' from this series.
+gulp.task('test:cover', gulp.series('cover:clean', 'cover:enableconfig', 'test'));
