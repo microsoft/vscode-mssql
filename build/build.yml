@@ -1,3 +1,7 @@
+trigger:
+  - main
+  - release/*
+
 pool:
   vmImage: "macos-latest"
 
