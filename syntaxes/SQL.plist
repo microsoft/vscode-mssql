@@ -668,32 +668,11 @@
 			<key>patterns</key>
 			<array>
 				<dict>
-					<key>captures</key>
-					<dict>
-						<key>2</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.string.begin.sql</string>
-						</dict>
-						<key>3</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.string.end.sql</string>
-						</dict>
-					</dict>
-					<key>comment</key>
-					<string>this is faster than the next begin/end rule since sub-pattern will match till end-of-line and SQL files tend to have very long lines.</string>
-					<key>match</key>
-					<string>(N)?(')[^']*(')</string>
-					<key>name</key>
-					<string>string.quoted.single.sql</string>
-				</dict>
-				<dict>
 					<key>begin</key>
-					<string>'</string>
+					<string>N?(')</string>
 					<key>beginCaptures</key>
 					<dict>
-						<key>0</key>
+						<key>1</key>
 						<dict>
 							<key>name</key>
 							<string>punctuation.definition.string.begin.sql</string>
@@ -718,27 +697,6 @@
 							<string>#string_escape</string>
 						</dict>
 					</array>
-				</dict>
-				<dict>
-					<key>captures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.string.begin.sql</string>
-						</dict>
-						<key>2</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.string.end.sql</string>
-						</dict>
-					</dict>
-					<key>comment</key>
-					<string>this is faster than the next begin/end rule since sub-pattern will match till end-of-line and SQL files tend to have very long lines.</string>
-					<key>match</key>
-					<string>(`)[^`\\]*(`)</string>
-					<key>name</key>
-					<string>string.quoted.other.backtick.sql</string>
 				</dict>
 				<dict>
 					<key>begin</key>
@@ -772,27 +730,6 @@
 					</array>
 				</dict>
 				<dict>
-					<key>captures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.string.begin.sql</string>
-						</dict>
-						<key>2</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.string.end.sql</string>
-						</dict>
-					</dict>
-					<key>comment</key>
-					<string>this is faster than the next begin/end rule since sub-pattern will match till end-of-line and SQL files tend to have very long lines.</string>
-					<key>match</key>
-					<string>(")[^"#]*(")</string>
-					<key>name</key>
-					<string>string.quoted.double.sql</string>
-				</dict>
-				<dict>
 					<key>begin</key>
 					<string>"</string>
 					<key>beginCaptures</key>
@@ -817,6 +754,10 @@
 					<string>string.quoted.double.sql</string>
 					<key>patterns</key>
 					<array>
+						<dict>
+							<key>include</key>
+							<string>#string_escape</string>
+						</dict>
 						<dict>
 							<key>include</key>
 							<string>#string_interpolation</string>
