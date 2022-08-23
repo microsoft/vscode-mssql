@@ -5,7 +5,7 @@
 * Release status: GA
 
 ### What's new in 1.16.0
-* Added support for creating Azure Functions with SQL Bindings from Views in the object explorer
+* Added support for creating Azure Functions with SQL Bindings from Views in the Object Explorer
 * Fixed issues with Integrated authentication in Unix environments https://github.com/microsoft/vscode-mssql/issues/17333
 
 ## Version 1.15.0
