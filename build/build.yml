@@ -1,3 +1,8 @@
+trigger:
+  batch: 'true'
+  branches:
+    include:
+      - release/*
 pool:
   vmImage: "macos-latest"
 
