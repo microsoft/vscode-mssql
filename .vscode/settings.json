@@ -15,5 +15,10 @@
         "**/out/*" : true
     },
 
-    "lcov.path": ["coverage/lcov.info"]
+	"lcov.path": [
+		"coverage/lcov.info"
+	],
+	"yaml.schemas": {
+		"https://raw.githubusercontent.com/microsoft/azure-pipelines-vscode/master/service-schema.json": "build/**/*.yml"
+	},
 }
