@@ -9,9 +9,8 @@ import SqlToolsServiceClient from '../src/languageservice/serviceclient';
 import { ScriptingService } from '../src/scripting/scriptingService';
 import { ScriptingRequest, IScriptingObject, IScriptingResult, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
-import { ServerInfo } from '../src/models/contracts/connection';
 import { assert } from 'chai';
-import { MetadataType, ObjectMetadata } from 'vscode-mssql';
+import { MetadataType, ObjectMetadata, ServerInfo } from 'vscode-mssql';
 import { TestExtensionContext } from './stubs';
 
 suite('Scripting Service Tests', () => {
@@ -31,10 +30,18 @@ suite('Scripting Service Tests', () => {
 		client.setup(c => c.sendRequest(ScriptingRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(mockScriptResult));
 		connectionManager.object.client = client.object;
 		connectionManager.setup(c => c.getServerInfo(TypeMoq.It.isAny())).returns(() => {
-			let serverInfo = new ServerInfo();
-			serverInfo.engineEditionId = 2;
-			serverInfo.serverMajorVersion = 1;
-			serverInfo.isCloud = true;
+			const serverInfo: ServerInfo = {
+				engineEditionId: 2,
+				serverMajorVersion: 1,
+				isCloud: true,
+				serverMinorVersion: 0,
+				serverReleaseVersion: 0,
+				serverVersion: '',
+				serverLevel: '',
+				serverEdition: '',
+				azureVersion: 0,
+				osVersion: ''
+			};
 			return serverInfo;
 		});
 

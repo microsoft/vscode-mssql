@@ -114,6 +114,68 @@ declare module 'vscode-mssql' {
 		 * @returns A promise object for when the request receives a response
 		 */
 		sendRequest<P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P): Promise<R>;
+
+		/**
+		 * Get the server info for a connection
+		 * @param connectionInfo connection info of the connection
+		 * @returns server information
+	 	*/
+		getServerInfo(connectionInfo: IConnectionInfo): ServerInfo
+	}
+
+	/**
+	 * Information about a SQL Server instance.
+	 */
+	export interface ServerInfo {
+		/**
+		 * The major version of the SQL Server instance.
+		 */
+		serverMajorVersion: number;
+
+		/**
+		 * The minor version of the SQL Server instance.
+		 */
+		serverMinorVersion: number;
+
+		/**
+		 * The build of the SQL Server instance.
+		 */
+		serverReleaseVersion: number;
+
+		/**
+		 * The ID of the engine edition of the SQL Server instance.
+		 */
+		engineEditionId: number;
+
+		/**
+		 * String containing the full server version text.
+		 */
+		serverVersion: string;
+
+		/**
+		 * String describing the product level of the server.
+		 */
+		serverLevel: string;
+
+		/**
+		 * The edition of the SQL Server instance.
+		 */
+		serverEdition: string;
+
+		/**
+		 * Whether the SQL Server instance is running in the cloud (Azure) or not.
+		 */
+		isCloud: boolean;
+
+		/**
+		 * The version of Azure that the SQL Server instance is running on, if applicable.
+		 */
+		azureVersion: number;
+
+		/**
+		 * The Operating System version string of the machine running the SQL Server instance.
+		 */
+		osVersion: string;
 	}
 
 	/**

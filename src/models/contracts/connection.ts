@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from 'vscode-languageclient';
-import { ConnectionDetails } from 'vscode-mssql';
+import { ConnectionDetails, ServerInfo } from 'vscode-mssql';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
@@ -37,61 +37,6 @@ export class ConnectParams {
  */
 export namespace ConnectionCompleteNotification {
 	export const type = new NotificationType<ConnectionCompleteParams, void>('connection/complete');
-}
-
-/**
- * Information about a SQL Server instance.
- */
-export class ServerInfo {
-	/**
-	 * The major version of the SQL Server instance.
-	 */
-	public serverMajorVersion: number;
-
-	/**
-	 * The minor version of the SQL Server instance.
-	 */
-	public serverMinorVersion: number;
-
-	/**
-	 * The build of the SQL Server instance.
-	 */
-	public serverReleaseVersion: number;
-
-	/**
-	 * The ID of the engine edition of the SQL Server instance.
-	 */
-	public engineEditionId: number;
-
-	/**
-	 * String containing the full server version text.
-	 */
-	public serverVersion: string;
-
-	/**
-	 * String describing the product level of the server.
-	 */
-	public serverLevel: string;
-
-	/**
-	 * The edition of the SQL Server instance.
-	 */
-	public serverEdition: string;
-
-	/**
-	 * Whether the SQL Server instance is running in the cloud (Azure) or not.
-	 */
-	public isCloud: boolean;
-
-	/**
-	 * The version of Azure that the SQL Server instance is running on, if applicable.
-	 */
-	public azureVersion: number;
-
-	/**
-	 * The Operating System version string of the machine running the SQL Server instance.
-	 */
-	public osVersion: string;
 }
 
 /**

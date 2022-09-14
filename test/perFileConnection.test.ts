@@ -24,7 +24,7 @@ import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { ConnectionUI } from '../src/views/connectionUI';
 import * as Constants from '../src/constants/constants';
-import { IConnectionInfo } from 'vscode-mssql';
+import { IConnectionInfo, ServerInfo } from 'vscode-mssql';
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {
 	let result = new ConnectionContracts.ConnectionCompleteParams();
@@ -571,7 +571,7 @@ suite('Per File Connection Tests', () => {
 		let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
 		let actualDbName = undefined;
 		statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-			.callback((fileUri, creds: IConnectionInfo, server: ConnectionContracts.ServerInfo) => {
+			.callback((fileUri, creds: IConnectionInfo, server: ServerInfo) => {
 				actualDbName = creds.database;
 			});
 
@@ -602,7 +602,19 @@ suite('Per File Connection Tests', () => {
 			databaseName: dbName,
 			userName: connectionCreds.user
 		};
-		myResult.serverInfo = new ConnectionContracts.ServerInfo();
+		const serverInfo: ServerInfo = {
+			engineEditionId: 0,
+			serverMajorVersion: 0,
+			isCloud: false,
+			serverMinorVersion: 0,
+			serverReleaseVersion: 0,
+			serverVersion: '',
+			serverLevel: '',
+			serverEdition: '',
+			azureVersion: 0,
+			osVersion: ''
+		};
+		myResult.serverInfo = serverInfo;
 		return myResult;
 	}
 
