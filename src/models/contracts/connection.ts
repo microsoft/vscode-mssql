@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from 'vscode-languageclient';
-import { ConnectionDetails } from 'vscode-mssql';
+import { ConnectionDetails, IServerInfo } from 'vscode-mssql';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
@@ -42,7 +42,7 @@ export namespace ConnectionCompleteNotification {
 /**
  * Information about a SQL Server instance.
  */
-export class ServerInfo {
+export class ServerInfo implements IServerInfo {
 	/**
 	 * The major version of the SQL Server instance.
 	 */

@@ -82,6 +82,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 		},
 		sendRequest: async <P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P) => {
 			return await controller.connectionManager.sendRequest(requestType, params);
+		},
+		getServerInfo: (connectionInfo: IConnectionInfo) => {
+			return controller.connectionManager.getServerInfo(connectionInfo);
 		}
 	};
 }
