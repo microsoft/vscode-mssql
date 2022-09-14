@@ -602,7 +602,7 @@ suite('Per File Connection Tests', () => {
 			databaseName: dbName,
 			userName: connectionCreds.user
 		};
-		const serverInfo: ServerInfo= {
+		const serverInfo: ServerInfo = {
 			engineEditionId: 0,
 			serverMajorVersion: 0,
 			isCloud: false,

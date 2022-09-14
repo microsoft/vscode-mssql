@@ -30,7 +30,7 @@ suite('Scripting Service Tests', () => {
 		client.setup(c => c.sendRequest(ScriptingRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(mockScriptResult));
 		connectionManager.object.client = client.object;
 		connectionManager.setup(c => c.getServerInfo(TypeMoq.It.isAny())).returns(() => {
-			const serverInfo: ServerInfo= {
+			const serverInfo: ServerInfo = {
 				engineEditionId: 2,
 				serverMajorVersion: 1,
 				isCloud: true,
