@@ -120,13 +120,13 @@ declare module 'vscode-mssql' {
 		 * @param connectionInfo connection info of the connection
 		 * @returns server information
 	 	*/
-		getServerInfo(connectionInfo: IConnectionInfo): IServerInfo
+		getServerInfo(connectionInfo: IConnectionInfo): ServerInfo
 	}
 
 	/**
 	 * Information about a SQL Server instance.
 	 */
-	export interface IServerInfo {
+	export interface ServerInfo {
 		/**
 		 * The major version of the SQL Server instance.
 		 */

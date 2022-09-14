@@ -7,9 +7,8 @@ import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Interfaces from './interfaces';
 import { IConnectionProfile } from '../models/interfaces';
-import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from './utils';
-import { IConnectionInfo } from 'vscode-mssql';
+import { IConnectionInfo, ServerInfo } from 'vscode-mssql';
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -182,7 +181,7 @@ export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: 
  * @param {Interfaces.IConnectionCredentials} connCreds connection
  * @returns {string} tooltip
  */
-export function getTooltip(connCreds: IConnectionInfo, serverInfo?: ConnectionContracts.ServerInfo): string {
+export function getTooltip(connCreds: IConnectionInfo, serverInfo?: ServerInfo): string {
 	let tooltip: string =
 		connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString + '\r\n' :
 			('Server name: ' + connCreds.server + '\r\n' +

@@ -26,9 +26,8 @@ import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
-import { IAccount } from 'vscode-mssql';
 import { AzureController } from '../azure/azureController';
-import { ConnectionDetails, IConnectionInfo } from 'vscode-mssql';
+import { ConnectionDetails, IConnectionInfo, IAccount, ServerInfo } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
 
 /**
@@ -53,7 +52,7 @@ export class ConnectionInfo {
 	/**
 	 * Information about the SQL Server instance.
 	 */
-	public serverInfo: ConnectionContracts.ServerInfo;
+	public serverInfo: ServerInfo;
 
 	/**
 	 * Whether the connection is in the process of connecting.
@@ -80,7 +79,7 @@ export default class ConnectionManager {
 	private _statusView: StatusView;
 	private _connections: { [fileUri: string]: ConnectionInfo };
 	private _connectionCredentialsToServerInfoMap:
-		Map<IConnectionInfo, ConnectionContracts.ServerInfo>;
+		Map<IConnectionInfo, ServerInfo>;
 	private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
 	private _failedUriToFirewallIpMap: Map<string, string>;
 	private _accountService: AccountService;
@@ -97,7 +96,7 @@ export default class ConnectionManager {
 		private _accountStore?: AccountStore) {
 		this._statusView = statusView;
 		this._connections = {};
-		this._connectionCredentialsToServerInfoMap = new Map<IConnectionInfo, ConnectionContracts.ServerInfo>();
+		this._connectionCredentialsToServerInfoMap = new Map<IConnectionInfo, ServerInfo>();
 		this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
 
 		if (!this.client) {
@@ -659,7 +658,7 @@ export default class ConnectionManager {
 	 * Get the server info for a connection
 	 * @param connectionCreds
 	 */
-	public getServerInfo(connectionCredentials: IConnectionInfo): ConnectionContracts.ServerInfo {
+	public getServerInfo(connectionCredentials: IConnectionInfo): ServerInfo {
 		if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
 			return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
 		}
