@@ -118,6 +118,7 @@ declare module 'vscode-mssql' {
 		/**
 		 * Get the server info for a connection
 		 * @param connectionInfo connection info of the connection
+		 * @returns server information
 	 	*/
 		getServerInfo(connectionInfo: IConnectionInfo): IServerInfo
 	}
