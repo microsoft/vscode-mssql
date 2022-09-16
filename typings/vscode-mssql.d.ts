@@ -180,6 +180,7 @@ declare module 'vscode-mssql' {
 
 	/**
 	 * The possible values of the server engine edition
+	 * EngineEdition under https://docs.microsoft.com/sql/t-sql/functions/serverproperty-transact-sql is associated with these values
 	 */
 	export const enum DatabaseEngineEdition {
 		Unknown = 0,
