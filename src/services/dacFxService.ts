@@ -66,7 +66,8 @@ export class DacFxService implements mssql.IDacFxService {
 		applicationVersion: string,
 		ownerUri: string,
 		extractTarget: mssql.ExtractTarget,
-		taskExecutionMode: mssql.TaskExecutionMode): Thenable<mssql.DacFxResult> {
+		taskExecutionMode: mssql.TaskExecutionMode,
+		includePermissions?: boolean): Thenable<mssql.DacFxResult> {
 		const params: mssql.ExtractParams = {
 			databaseName: databaseName,
 			packageFilePath: targetFilePath,
@@ -74,7 +75,8 @@ export class DacFxService implements mssql.IDacFxService {
 			applicationVersion: applicationVersion,
 			ownerUri: ownerUri,
 			extractTarget: extractTarget,
-			taskExecutionMode: taskExecutionMode
+			taskExecutionMode: taskExecutionMode,
+			includePermissions: includePermissions
 		};
 		return this._client.sendRequest(dacFxContracts.ExtractRequest.type, params);
 	}
