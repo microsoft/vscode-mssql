@@ -119,7 +119,7 @@ declare module 'vscode-mssql' {
 		 * Get the server info for a connection
 		 * @param connectionInfo connection info of the connection
 		 * @returns server information
-		  */
+		 */
 		getServerInfo(connectionInfo: IConnectionInfo): ServerInfo
 	}
 
@@ -176,6 +176,36 @@ declare module 'vscode-mssql' {
 		 * The Operating System version string of the machine running the SQL Server instance.
 		 */
 		osVersion: string;
+	}
+
+	/**
+	 * Well-known Authentication types.
+	 */
+	export const enum AuthenticationType {
+		/**
+		 * Username and password
+		 */
+		SqlLogin = 'SqlLogin',
+		/**
+		 * Windows Authentication
+		 */
+		Integrated = 'Integrated',
+		/**
+		 * Azure Active Directory - Universal with MFA support
+		 */
+		AzureMFA = 'AzureMFA',
+		/**
+		 * Azure Active Directory - Password
+		 */
+		AzureMFAAndUser = 'AzureMFAAndUser',
+		/**
+		 * Datacenter Security Token Service Authentication
+		 */
+		DSTSAuth = 'dstsAuth',
+		/**
+		 * No authentication required
+		 */
+		None = 'None'
 	}
 
 	/**
