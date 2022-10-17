@@ -120,7 +120,7 @@
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
     "@vscode/test-electron": "^2.1.5",
-    "@xmldom/xmldom": "^0.8.2",
+    "@xmldom/xmldom": "^0.8.3",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
