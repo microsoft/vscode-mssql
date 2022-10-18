@@ -333,6 +333,12 @@
 		</dict>
 		<dict>
 			<key>match</key>
+			<string>(?i)\b(bit_count|get_bit|left_shift|right_shift|set_bit)\b</string>
+			<key>name</key>
+			<string>support.function.bitmanipulation.sql</string>
+		</dict>
+		<dict>
+			<key>match</key>
 			<string>(?i)\b(cast|convert|parse|try_cast|try_convert|try_parse)\b</string>
 			<key>name</key>
 			<string>support.function.conversion.sql</string>
