@@ -321,7 +321,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(aggregate|approx_count_distinct|avg|checksum_agg|count|count_big|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b</string>
+			<string>(?i)\b(approx_count_distinct|approx_percentile_cont|approx_percentile_disc|avg|checksum_agg|count|count_big|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b</string>
 			<key>name</key>
 			<string>support.function.aggregate.sql</string>
 		</dict>
