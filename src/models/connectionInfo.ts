@@ -40,8 +40,8 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 	}
 
 	// default value for encrypt
-	if (!connCreds.encrypt) {
-		connCreds.encrypt = false;
+	if (connCreds.encrypt === "") {
+		connCreds.encrypt = "Mandatory";
 	}
 
 	// default value for appName
@@ -50,10 +50,10 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 	}
 
 	if (isAzureDatabase(connCreds.server)) {
-		// always encrypt connection if connecting to Azure SQL
-		connCreds.encrypt = true;
+		// always encrypt connection when connecting to Azure SQL
+		connCreds.encrypt = "Mandatory";
 
-		// Ensure minumum connection timeout if connecting to Azure SQL
+		// Ensure minumum connection timeout when connecting to Azure SQL
 		if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
 			connCreds.connectTimeout = Constants.azureSqlDbConnectionTimeout;
 		}

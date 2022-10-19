@@ -39,6 +39,11 @@ export enum AuthenticationTypes {
 	AzureMFA = 3
 }
 
+export enum EncryptOptions {
+	Optional = 1,
+	Mandatory = 2
+}
+
 export const contentTypes = [
 	Constants.outputContentTypeRoot,
 	Constants.outputContentTypeMessages,

@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as findRemoveSync from 'find-remove';
 import * as vscode from 'vscode';
 import * as Constants from '../constants/constants';
-import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes, EncryptOptions } from './interfaces';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as fs from 'fs';
 import { AzureAuthType } from '@microsoft/ads-adal-library';
@@ -157,6 +157,10 @@ export function isNotEmpty(str: any): boolean {
 
 export function authTypeToString(value: AuthenticationTypes): string {
 	return AuthenticationTypes[value];
+}
+
+export function encryptToString(value: EncryptOptions): string {
+	return EncryptOptions[value];
 }
 
 export function azureAuthTypeToString(value: AzureAuthType): string {

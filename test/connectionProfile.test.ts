@@ -33,8 +33,9 @@ function createTestCredentials(): IConnectionInfo {
 		authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
 		azureAccountToken: '',
 		expiresOn: 0,
-		encrypt: false,
+		encrypt: 'Optional',
 		trustServerCertificate: false,
+		hostNameInCertificate: '',
 		persistSecurityInfo: false,
 		connectTimeout: 15,
 		connectRetryCount: 0,
@@ -216,6 +217,7 @@ suite('Connection Profile tests', () => {
 		assert.notStrictEqual(typeof details.options['replication'], 'undefined');
 		assert.notStrictEqual(typeof details.options['server'], 'undefined');
 		assert.notStrictEqual(typeof details.options['trustServerCertificate'], 'undefined');
+		assert.notStrictEqual(typeof details.options['hostNameInCertificate'], 'undefined');
 		assert.notStrictEqual(typeof details.options['typeSystemVersion'], 'undefined');
 		assert.notStrictEqual(typeof details.options['user'], 'undefined');
 		assert.notStrictEqual(typeof details.options['workstationId'], 'undefined');

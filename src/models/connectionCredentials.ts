@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from '../constants/localizedConstants';
-import { IConnectionProfile, AuthenticationTypes } from './interfaces';
+import { IConnectionProfile, AuthenticationTypes, EncryptOptions } from './interfaces';
 import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
@@ -24,8 +24,9 @@ export class ConnectionCredentials implements IConnectionInfo {
 	public authenticationType: string;
 	public azureAccountToken: string | undefined;
 	public expiresOn: number | undefined;
-	public encrypt: boolean;
+	public encrypt: string;
 	public trustServerCertificate: boolean | undefined;
+	public hostNameInCertificate: string | undefined;
 	public persistSecurityInfo: boolean | undefined;
 	public connectTimeout: number | undefined;
 	public connectRetryCount: number | undefined;
@@ -70,6 +71,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 		details.options['azureAccountToken'] = credentials.azureAccountToken;
 		details.options['encrypt'] = credentials.encrypt;
 		details.options['trustServerCertificate'] = credentials.trustServerCertificate;
+		details.options['hostNameInCertificate'] = credentials.hostNameInCertificate;
 		details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
 		details.options['connectTimeout'] = credentials.connectTimeout;
 		details.options['connectRetryCount'] = credentials.connectRetryCount;
@@ -170,6 +172,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 		defaultProfileValues?: IConnectionInfo): Promise<IQuestion[]> {
 
 		let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
+		let encryptChoices: INameValueChoice[] = ConnectionCredentials.getEncryptChoices();
 
 		let connectionStringSet: () => boolean = () => Boolean(credentials.connectionString);
 
@@ -249,7 +252,18 @@ export class ConnectionCredentials implements IConnectionInfo {
 					}
 				},
 				default: defaultProfileValues ? await connectionStore.lookupPassword(defaultProfileValues) : undefined
-			}
+			},
+			// Encrypt may be optionally set.
+			{
+				type: QuestionTypes.expand,
+				name: LocalizedConstants.encryptName,
+				message: LocalizedConstants.encryptPrompt,
+				choices: encryptChoices,
+				shouldPrompt: (answers) => !connectionStringSet() && utils.isEmpty(credentials.encrypt) && authenticationChoices.length > 1,
+				onAnswered: (value) => {
+					credentials.encrypt = value;
+				}
+			},
 		];
 		return questions;
 	}
@@ -312,6 +326,15 @@ export class ConnectionCredentials implements IConnectionInfo {
 			{ name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) },
 			{ name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) },
 			{ name: LocalizedConstants.authTypeAzureActiveDirectory, value: utils.authTypeToString(AuthenticationTypes.AzureMFA) }
+		];
+
+		return choices;
+	}
+
+	public static getEncryptChoices(): INameValueChoice[] {
+		let choices: INameValueChoice[] = [
+			{ name: LocalizedConstants.encryptOptional, value: utils.encryptToString(EncryptOptions.Optional) },
+			{ name: LocalizedConstants.encryptMandatory, value: utils.encryptToString(EncryptOptions.Mandatory) }
 		];
 
 		return choices;

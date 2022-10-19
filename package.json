@@ -635,14 +635,19 @@
                 "description": "%mssql.connection.port%"
               },
               "encrypt": {
-                "type": "boolean",
-                "default": false,
+                "type": "string",
+                "default": "Mandatory",
                 "description": "%mssql.connection.encrypt%"
               },
               "trustServerCertificate": {
                 "type": "boolean",
                 "default": false,
                 "description": "%mssql.connection.trustServerCertificate%"
+              },
+              "hostNameInCertificate": {
+                "type": "string",
+                "default": "",
+                "description": "%mssql.connection.hostNameInCertificate"
               },
               "persistSecurityInfo": {
                 "type": "boolean",

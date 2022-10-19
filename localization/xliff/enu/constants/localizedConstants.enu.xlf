@@ -113,6 +113,18 @@
         <trans-unit id="azureAuthTypeDeviceCode">
             <source xml:lang="en">Azure Device Code</source>
         </trans-unit>
+        <trans-unit id="encryptPrompt">
+            <source xml:lang="en">Encrypt</source>
+        </trans-unit>
+        <trans-unit id="encryptName">
+            <source xml:lang="en">encrypt</source>
+        </trans-unit>
+        <trans-unit id="encryptOptional">
+            <source xml:lang="en">Optional</source>
+        </trans-unit>
+        <trans-unit id="encryptMandatory">
+            <source xml:lang="en">Mandatory (Recommended)</source>
+        </trans-unit>
         <trans-unit id="msgCopyAndOpenWebpage">
             <source xml:lang="en">Copy code and open webpage</source>
         </trans-unit>
