@@ -321,123 +321,243 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(aggregate|approx_count_distinct|avg|checksum_agg|count|count_big|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b</string>
-			<key>name</key>
-			<string>support.function.aggregate.sql</string>
+			<string>(?i)\b(aggregate|approx_count_distinct|avg|checksum_agg|count|count_big|grouping|grouping_id|max|min|sum|stdev|stdevp|var|varp)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.aggregate.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(cume_dist|first_value|lag|last_value|lead|percent_rank|percentile_cont|percentile_disc)\b</string>
-			<key>name</key>
-			<string>support.function.analytic.sql</string>
+			<string>(?i)\b(cume_dist|first_value|lag|last_value|lead|percent_rank|percentile_cont|percentile_disc)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.analytic.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(cast|convert|parse|try_cast|try_convert|try_parse)\b</string>
-			<key>name</key>
-			<string>support.function.conversion.sql</string>
+			<string>(?i)\b(cast|convert|parse|try_cast|try_convert|try_parse)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.conversion.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(collationproperty|tertiary_weights)\b</string>
-			<key>name</key>
-			<string>support.function.collation.sql</string>
+			<string>(?i)\b(collationproperty|tertiary_weights)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.collation.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(asymkey_id|asymkeyproperty|certproperty|cert_id|crypt_gen_random|decryptbyasymkey|decryptbycert|decryptbykey|decryptbykeyautoasymkey|decryptbykeyautocert|decryptbypassphrase|encryptbyasymkey|encryptbycert|encryptbykey|encryptbypassphrase|hashbytes|is_objectsigned|key_guid|key_id|key_name|signbyasymkey|signbycert|symkeyproperty|verifysignedbycert|verifysignedbyasymkey)\b</string>
-			<key>name</key>
-			<string>support.function.cryptographic.sql</string>
+			<string>(?i)\b(asymkey_id|asymkeyproperty|certproperty|cert_id|crypt_gen_random|decryptbyasymkey|decryptbycert|decryptbykey|decryptbykeyautoasymkey|decryptbykeyautocert|decryptbypassphrase|encryptbyasymkey|encryptbycert|encryptbykey|encryptbypassphrase|hashbytes|is_objectsigned|key_guid|key_id|key_name|signbyasymkey|signbycert|symkeyproperty|verifysignedbycert|verifysignedbyasymkey)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.cryptographic.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(cursor_status)\b</string>
-			<key>name</key>
-			<string>support.function.cursor.sql</string>
+			<string>(?i)\b(cursor_status)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.cursor.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_time(stamp)?|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|dateadd|eomonth|switchoffset|todatetimeoffset|isdate|date_bucket)\b</string>
-			<key>name</key>
-			<string>support.function.datetime.sql</string>
+			<string>(?i)\b(sysdatetime|sysdatetimeoffset|sysutcdatetime|current_time(stamp)?|getdate|getutcdate|datename|datepart|day|month|year|datefromparts|datetime2fromparts|datetimefromparts|datetimeoffsetfromparts|smalldatetimefromparts|timefromparts|datediff|dateadd|eomonth|switchoffset|todatetimeoffset|isdate|date_bucket)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.datetime.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(datalength|ident_current|ident_incr|ident_seed|identity|sql_variant_property)\b</string>
-			<key>name</key>
-			<string>support.function.datatype.sql</string>
+			<string>(?i)\b(datalength|ident_current|ident_incr|ident_seed|identity|sql_variant_property)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.datatype.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(coalesce|nullif)\b</string>
-			<key>name</key>
-			<string>support.function.expression.sql</string>
+			<string>(?i)\b(coalesce|nullif)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.expression.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?&lt;!@)@@(?i)\b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b</string>
-			<key>name</key>
-			<string>support.function.globalvar.sql</string>
+			<string>(?&lt;!@)@@(?i)\b(cursor_rows|connections|cpu_busy|datefirst|dbts|error|fetch_status|identity|idle|io_busy|langid|language|lock_timeout|max_connections|max_precision|nestlevel|options|packet_errors|pack_received|pack_sent|procid|remserver|rowcount|servername|servicename|spid|textsize|timeticks|total_errors|total_read|total_write|trancount|version)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.globalvar.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(json|isjson|json_object|json_array|json_value|json_query|json_modify|json_path_exists)\b</string>
-			<key>name</key>
-			<string>support.function.json.sql</string>
+			<string>(?i)\b(json|isjson|json_object|json_array|json_value|json_query|json_modify|json_path_exists)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.json.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(choose|iif|greatest|least)\b</string>
-			<key>name</key>
-			<string>support.function.logical.sql</string>
+			<string>(?i)\b(choose|iif|greatest|least)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.logical.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(abs|acos|asin|atan|atn2|ceiling|cos|cot|degrees|exp|floor|log|log10|pi|power|radians|rand|round|sign|sin|sqrt|square|tan)\b</string>
-			<key>name</key>
-			<string>support.function.mathematical.sql</string>
+			<string>(?i)\b(abs|acos|asin|atan|atn2|ceiling|cos|cot|degrees|exp|floor|log|log10|pi|power|radians|rand|round|sign|sin|sqrt|square|tan)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.mathematical.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(app_name|applock_mode|applock_test|assemblyproperty|col_length|col_name|columnproperty|database_principal_id|databasepropertyex|db_id|db_name|file_id|file_idex|file_name|filegroup_id|filegroup_name|filegroupproperty|fileproperty|fulltextcatalogproperty|fulltextserviceproperty|index_col|indexkey_property|indexproperty|object_definition|object_id|object_name|object_schema_name|objectproperty|objectpropertyex|original_db_name|parsename|schema_id|schema_name|scope_identity|serverproperty|stats_date|type_id|type_name|typeproperty)\b</string>
-			<key>name</key>
-			<string>support.function.metadata.sql</string>
+			<string>(?i)\b(app_name|applock_mode|applock_test|assemblyproperty|col_length|col_name|columnproperty|database_principal_id|databasepropertyex|db_id|db_name|file_id|file_idex|file_name|filegroup_id|filegroup_name|filegroupproperty|fileproperty|fulltextcatalogproperty|fulltextserviceproperty|index_col|indexkey_property|indexproperty|object_definition|object_id|object_name|object_schema_name|objectproperty|objectpropertyex|original_db_name|parsename|schema_id|schema_name|scope_identity|serverproperty|stats_date|type_id|type_name|typeproperty)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.metadata.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(rank|dense_rank|ntile|row_number)\b</string>
-			<key>name</key>
-			<string>support.function.ranking.sql</string>
+			<string>(?i)\b(rank|dense_rank|ntile|row_number)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.ranking.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(generate_series|opendatasource|openjson|openrowset|openquery|openxml|predict|string_split)\b</string>
-			<key>name</key>
-			<string>support.function.rowset.sql</string>
+			<string>(?i)\b(generate_series|opendatasource|openjson|openrowset|openquery|openxml|predict|string_split)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.rowset.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(certencoded|certprivatekey|current_user|database_principal_id|has_perms_by_name|is_member|is_rolemember|is_srvrolemember|original_login|permissions|pwdcompare|pwdencrypt|schema_id|schema_name|session_user|suser_id|suser_sid|suser_sname|system_user|suser_name|user_id|user_name)\b</string>
-			<key>name</key>
-			<string>support.function.security.sql</string>
+			<string>(?i)\b(certencoded|certprivatekey|current_user|database_principal_id|has_perms_by_name|is_member|is_rolemember|is_srvrolemember|original_login|permissions|pwdcompare|pwdencrypt|schema_id|schema_name|session_user|suser_id|suser_sid|suser_sname|system_user|suser_name|user_id|user_name)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.security.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(ascii|char|charindex|concat|difference|format|left|len|lower|ltrim|nchar|nodes|patindex|quotename|replace|replicate|reverse|right|rtrim|soundex|space|str|string_agg|string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b</string>
-			<key>name</key>
-			<string>support.function.string.sql</string>
+			<string>(?i)\b(ascii|char|charindex|concat|difference|format|left|len|lower|ltrim|nchar|nodes|patindex|quotename|replace|replicate|reverse|right|rtrim|soundex|space|str|string_agg|string_escape|string_split|stuff|substring|translate|trim|unicode|upper)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.string.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(binary_checksum|checksum|compress|connectionproperty|context_info|current_request_id|current_transaction_id|decompress|error_line|error_message|error_number|error_procedure|error_severity|error_state|formatmessage|get_filestream_transaction_context|getansinull|host_id|host_name|isnull|isnumeric|min_active_rowversion|newid|newsequentialid|rowcount_big|session_context|session_id|xact_state)\b</string>
-			<key>name</key>
-			<string>support.function.system.sql</string>
+			<string>(?i)\b(binary_checksum|checksum|compress|connectionproperty|context_info|current_request_id|current_transaction_id|decompress|error_line|error_message|error_number|error_procedure|error_severity|error_state|formatmessage|get_filestream_transaction_context|getansinull|host_id|host_name|isnull|isnumeric|min_active_rowversion|newid|newsequentialid|rowcount_big|session_context|session_id|xact_state)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.system.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i)\b(patindex|textptr|textvalid)\b</string>
-			<key>name</key>
-			<string>support.function.textimage.sql</string>
+			<string>(?i)\b(patindex|textptr|textvalid)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.textimage.sql</string>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>captures</key>
