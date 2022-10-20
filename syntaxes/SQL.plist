@@ -351,18 +351,6 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>support.function.bitmanipulation.sql</string>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>match</key>
-			<string>(?i)\b(cast|convert|parse|try_cast|try_convert|try_parse)\b\s*\(</string>
-			<key>captures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
 					<string>support.function.conversion.sql</string>
 				</dict>
 			</dict>
