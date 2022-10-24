@@ -25,5 +25,8 @@
   "dependencies": {
     "axios": "^0.27.2",
     "qs": "^6.9.4"
+  },
+  "resolutions": {
+    "eslint/minimatch": "^3.0.5"
   }
 }
