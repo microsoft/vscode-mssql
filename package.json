@@ -87,6 +87,8 @@
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
     "@types/vscode": "1.57.0",
+    "@vscode/test-electron": "^2.1.5",
+    "@xmldom/xmldom": "0.8.4",
     "angular-in-memory-web-api": "0.1.13",
     "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.2.2-patch1",
     "assert": "^1.4.1",
@@ -119,8 +121,6 @@
     "typescript": "^3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
     "vscode-nls-dev": "2.0.1",
-    "@vscode/test-electron": "^2.1.5",
-    "@xmldom/xmldom": "^0.8.3",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
