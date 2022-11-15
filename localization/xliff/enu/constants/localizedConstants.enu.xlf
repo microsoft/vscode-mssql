@@ -431,6 +431,9 @@
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query...</source>
         </trans-unit>
+        <trans-unit id="QueryExecutedLabel">
+            <source xml:lang="en">Query executed</source>
+        </trans-unit>
         <trans-unit id="messagePaneLabel">
             <source xml:lang="en">Messages</source>
         </trans-unit>
