@@ -105,6 +105,10 @@ const template = `
                 <col span="1" class="wide">
             </colgroup>
             <tbody>
+                <tr>
+                    <th>{{Constants.messagesTableTimeStampColumn}}</th>
+                    <th>{{Constants.messagesTableMessageColumn}}</th>
+                </tr>
                 <template ngFor let-message [ngForOf]="messages">
                     <tr class='messageRow'>
                         <td><span *ngIf="!Utils.isNumber(message.batchId)">[{{message.time}}]</span></td>

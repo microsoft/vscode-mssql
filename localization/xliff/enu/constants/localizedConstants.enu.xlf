@@ -437,6 +437,12 @@
         <trans-unit id="messagePaneLabel">
             <source xml:lang="en">Messages</source>
         </trans-unit>
+        <trans-unit id="messagesTableTimeStampColumn">
+            <source xml:lang="en">Timestamp</source>
+        </trans-unit>
+        <trans-unit id="messagesTableMessageColumn">
+            <source xml:lang="en">Message</source>
+        </trans-unit>
         <trans-unit id="lineSelectorFormatted">
             <source xml:lang="en">Line {0}</source>
         </trans-unit>
