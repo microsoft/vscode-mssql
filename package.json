@@ -90,7 +90,7 @@
     "@vscode/test-electron": "^2.1.5",
     "@xmldom/xmldom": "0.8.4",
     "angular-in-memory-web-api": "0.1.13",
-    "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.2.2-patch1",
+    "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.6",
     "assert": "^1.4.1",
     "chai": "^3.5.0",
     "coveralls": "^3.0.2",
@@ -111,7 +111,7 @@
     "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
     "sinon": "^14.0.0",
-    "slickgrid": "github:kburtram/SlickGrid#2.3.23-2",
+    "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.39",
     "systemjs": "0.19.40",
     "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
@@ -783,7 +783,8 @@
             "event.selectAll": "ctrl+A",
             "event.saveAsJSON": "",
             "event.saveAsCSV": "",
-            "event.saveAsExcel": ""
+            "event.saveAsExcel": "",
+            "event.changeColumnWidth": "ctrl+alt+S"
           },
           "scope": "resource"
         },

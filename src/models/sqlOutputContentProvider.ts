@@ -151,21 +151,32 @@ export class SqlOutputContentProvider {
 
 	private async createWebviewController(uri: string, title: string, queryRunner: QueryRunner): Promise<void> {
 		const proxy: IServerProxy = {
-			getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) =>
-				this.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows),
-			copyResults: (batchId: number, resultsId: number, selection: ISlickRange[], includeHeaders?: boolean) =>
-				this.copyRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
+			getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) => this.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows),
+			copyResults: (batchId: number, resultsId: number, selection: ISlickRange[], includeHeaders?: boolean) => this.copyRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
 			getConfig: () => this.configRequestHandler(uri),
 			getLocalizedTexts: () => Promise.resolve(LocalizedConstants),
-			openLink: (content: string, columnName: string, linkType: string) =>
-				this.openLinkRequestHandler(content, columnName, linkType),
-			saveResults: (batchId: number, resultId: number, format: string, selection: ISlickRange[]) =>
-				this.saveResultsRequestHandler(uri, batchId, resultId, format, selection),
+			openLink: (content: string, columnName: string, linkType: string) => this.openLinkRequestHandler(content, columnName, linkType),
+			saveResults: (batchId: number, resultId: number, format: string, selection: ISlickRange[]) => this.saveResultsRequestHandler(uri, batchId, resultId, format, selection),
 			setEditorSelection: (selection: ISelectionData) => this.editorSelectionRequestHandler(uri, selection),
 			showError: (message: string) => this.showErrorRequestHandler(message),
 			showWarning: (message: string) => this.showWarningRequestHandler(message),
 			sendReadyEvent: async () => await this.sendReadyEvent(uri),
-			dispose: () => this._panels.delete(uri)
+			dispose: () => this._panels.delete(uri),
+			getNewColumnWidth: async (current: number): Promise<number | undefined> => {
+				const val = await vscode.window.showInputBox({
+					prompt: LocalizedConstants.newColumnWidthPrompt,
+					value: current.toString(),
+					validateInput: async (value: string) => {
+						if (!Number(value)) {
+							return LocalizedConstants.columnWidthInvalidNumberError;
+						} else if (parseInt(value) <= 0) {
+							return LocalizedConstants.columnWidthMustBePositiveError;
+						}
+						return undefined;
+					}
+				});
+				return val === undefined ? undefined : parseInt(val);
+			}
 		};
 		const controller = new WebviewPanelController(this._vscodeWrapper, uri, title, proxy, this.context.extensionPath, this._statusView);
 		this._panels.set(uri, controller);
