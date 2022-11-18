@@ -536,6 +536,15 @@
         <trans-unit id="msgMultipleSelectionModeNotSupported">
             <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         </trans-unit>
+        <trans-unit id="newColumnWidthPrompt">
+            <source xml:lang="en">Enter new column width</source>
+        </trans-unit>
+        <trans-unit id="columnWidthInvalidNumberError">
+            <source xml:lang="en">Invalid column width</source>
+        </trans-unit>
+        <trans-unit id="columnWidthMustBePositiveError">
+            <source xml:lang="en">Width cannot be 0 or negative</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

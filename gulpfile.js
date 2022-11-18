@@ -179,13 +179,12 @@ gulp.task('ext:copy-dependencies', (done) => {
 	]).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
 
 	gulp.src([
-		config.paths.project.root + '/node_modules/angular2-slickgrid/components/css/SlickGrid.css',
+		config.paths.project.root + '/node_modules/angular2-slickgrid/out/css/SlickGrid.css',
 		config.paths.project.root + '/node_modules/slickgrid/slick.grid.css'
 	]).pipe(gulp.dest('out/src/views/htmlcontent/src/css'));
 
 	gulp.src([
-		config.paths.project.root + '/node_modules/angular2-slickgrid/index.js',
-		config.paths.project.root + '/node_modules/angular2-slickgrid/components/**/*.js'
+		config.paths.project.root + '/node_modules/angular2-slickgrid/out/**/*.js'
 	], { base: config.paths.project.root + '/node_modules/angular2-slickgrid' }).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/angular2-slickgrid'));
 
 	return gulp.src([config.paths.project.root + '/node_modules/@angular/**/*'])

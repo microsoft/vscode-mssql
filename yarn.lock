@@ -388,9 +388,9 @@ angular-in-memory-web-api@0.1.13:
   resolved "https://registry.yarnpkg.com/angular-in-memory-web-api/-/angular-in-memory-web-api-0.1.13.tgz#24a8abafe8ec647f98ee3269be0832d307ab240f"
   integrity sha1-JKirr+jsZH+Y7jJpvggy0werJA8=
 
-"angular2-slickgrid@github:microsoft/angular2-slickgrid#1.2.2-patch1":
-  version "1.2.2-patch1"
-  resolved "https://codeload.github.com/microsoft/angular2-slickgrid/tar.gz/4027f16251c26d9ac53ecd69a6bd9f823963e075"
+"angular2-slickgrid@github:microsoft/angular2-slickgrid#1.4.6":
+  version "1.4.6"
+  resolved "https://codeload.github.com/microsoft/angular2-slickgrid/tar.gz/09579fdc90b1ec469578ec1040d1515585ce2a11"
 
 ansi-colors@4.1.1:
   version "4.1.1"
@@ -3209,14 +3209,7 @@ jake@^10.8.5:
     filelist "^1.0.1"
     minimatch "^3.0.4"
 
-jquery-ui@>=1.8.0:
-  version "1.13.2"
-  resolved "https://registry.yarnpkg.com/jquery-ui/-/jquery-ui-1.13.2.tgz#de03580ae6604773602f8d786ad1abfb75232034"
-  integrity sha512-wBZPnqWs5GaYJmo1Jj0k/mrSkzdQzKDwhXNtHKcBdAcKVxMM3KNYFq+iJ2i1rwiG53Z8M4mTn3Qxrm17uH1D4Q==
-  dependencies:
-    jquery ">=1.8.0 <4.0.0"
-
-jquery@>=1.8.0, "jquery@>=1.8.0 <4.0.0", jquery@^3.4.1:
+jquery@^3.4.1:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.6.0.tgz#c72a09f15c1bdce142f49dbf1170bdf8adac2470"
   integrity sha512-JVzAR/AjBvVt2BmYhxRCSYysDsPcssdmTFnzyLEts9qNwmjmu4JTAMYubEfwVOSwpQ1I1sKKFcxhZCI2buerfw==
@@ -4874,12 +4867,9 @@ slash@^1.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
   integrity sha1-xB8vbDn8FtHNF61LXYlhFK5HDVU=
 
-"slickgrid@github:kburtram/SlickGrid#2.3.23-2":
-  version "2.3.23"
-  resolved "https://codeload.github.com/kburtram/SlickGrid/tar.gz/bdf93b113385502f9402170261390dc9065f2715"
-  dependencies:
-    jquery ">=1.8.0"
-    jquery-ui ">=1.8.0"
+"slickgrid@github:Microsoft/SlickGrid.ADS#2.3.39":
+  version "2.3.39"
+  resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/4ead9291ec4aab107767940ab0a6eac1455e0627"
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
