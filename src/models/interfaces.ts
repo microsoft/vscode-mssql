@@ -306,8 +306,8 @@ export interface IColumnDefinition {
 	type: FieldType;
 	width?: number;
 	cssClass?: string;
-	focusable?: boolean,
-	selectable?: boolean,
+	focusable?: boolean;
+	selectable?: boolean;
 	asyncPostRender?: (cellRef: string, row: number, dataContext: JSON, colDef: any) => void;
 	formatter?: (row: number, cell: any, value: any, columnDef: any, dataContext: any) => string;
 }
