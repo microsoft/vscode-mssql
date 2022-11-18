@@ -67,6 +67,7 @@ const template = `
                         showHeader="true"
                         [resized]="dataSet.resized"
                         (mousedown)="navigateToGrid(i)"
+                        (focusin)="setActiveGrid(i)"
                         [selectionModel]="selectionModel"
                         [plugins]="slickgridPlugins"
                         class="boxCol content vertBox slickgrid">
@@ -941,6 +942,27 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	 * @returns A boolean representing if the navigation was successful
 	 */
 	navigateToGrid(targetIndex: number): boolean {
+		const result = this.setActiveGrid(targetIndex);
+		if (!result) { return false; }
+
+		// scrolling logic
+		let resultsWindow = $('#results');
+		let scrollTop = resultsWindow.scrollTop();
+		let scrollBottom = scrollTop + resultsWindow.height();
+		let gridHeight = $(this._el.nativeElement).find('slick-grid').height();
+		if (scrollBottom < gridHeight * (targetIndex + 1)) {
+			scrollTop += (gridHeight * (targetIndex + 1)) - scrollBottom;
+			resultsWindow.scrollTop(scrollTop);
+		}
+		if (scrollTop > gridHeight * targetIndex) {
+			scrollTop = (gridHeight * targetIndex);
+			resultsWindow.scrollTop(scrollTop);
+		}
+
+		return true;
+	}
+
+	setActiveGrid(targetIndex: number): boolean {
 		// check if the target index is valid
 		if (targetIndex >= this.renderedDataSets.length || targetIndex < 0) {
 			return false;
@@ -958,21 +980,6 @@ export class AppComponent implements OnInit, AfterViewChecked {
 		this.slickgrids.toArray()[this.activeGrid].selection = false;
 		this.slickgrids.toArray()[targetIndex].setActive();
 		this.activeGrid = targetIndex;
-
-		// scrolling logic
-		let resultsWindow = $('#results');
-		let scrollTop = resultsWindow.scrollTop();
-		let scrollBottom = scrollTop + resultsWindow.height();
-		let gridHeight = $(this._el.nativeElement).find('slick-grid').height();
-		if (scrollBottom < gridHeight * (targetIndex + 1)) {
-			scrollTop += (gridHeight * (targetIndex + 1)) - scrollBottom;
-			resultsWindow.scrollTop(scrollTop);
-		}
-		if (scrollTop > gridHeight * targetIndex) {
-			scrollTop = (gridHeight * targetIndex);
-			resultsWindow.scrollTop(scrollTop);
-		}
-
 		return true;
 	}
 

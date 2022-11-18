@@ -254,28 +254,30 @@ declare let Slick;
 			}
 
 			let columnIndex = _grid.getColumnIndex(args.column.id);
-			// do nothing if the row number column header is clicked.
+			const newActiveRow = _grid.getViewport()?.top ?? 0;
+			const newActiveColumn = columnIndex === 0 ? 1 : columnIndex;
+			// select all cells if row number header is clicked
 			if (columnIndex === 0) {
-				return true;
-			}
-			if (e.ctrlKey || e.metaKey) {
-				_ranges.push(new Slick.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex));
-			} else if (e.shiftKey && _ranges.length) {
-				let last = _ranges.pop().fromCell;
-				let from = Math.min(columnIndex, last);
-				let to = Math.max(columnIndex, last);
-				_ranges = [];
-				for (let i = from; i <= to; i++) {
-					if (i !== last) {
-						_ranges.push(new Slick.Range(0, i, _grid.getDataLength() - 1, i));
-					}
-				}
-				_ranges.push(new Slick.Range(0, last, _grid.getDataLength() - 1, last));
+				_ranges = [new Slick.Range(0, 1, _grid.getDataLength() - 1, _grid.getColumns().length - 1)];
 			} else {
-				_ranges = [new Slick.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex)];
+				if (e.ctrlKey || e.metaKey) {
+					_ranges.push(new Slick.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex));
+				} else if (e.shiftKey && _ranges.length) {
+					let last = _ranges.pop().fromCell;
+					let from = Math.min(columnIndex, last);
+					let to = Math.max(columnIndex, last);
+					_ranges = [];
+					for (let i = from; i <= to; i++) {
+						if (i !== last) {
+							_ranges.push(new Slick.Range(0, i, _grid.getDataLength() - 1, i));
+						}
+					}
+					_ranges.push(new Slick.Range(0, last, _grid.getDataLength() - 1, last));
+				} else {
+					_ranges = [new Slick.Range(0, columnIndex, _grid.getDataLength() - 1, columnIndex)];
+				}
 			}
-
-			_grid.resetActiveCell();
+			_grid.setActiveCell(newActiveRow, newActiveColumn);
 			setSelectedRanges(_ranges);
 			e.stopImmediatePropagation();
 			return true;
@@ -287,6 +289,11 @@ declare let Slick;
 				return false;
 			}
 
+			if (cell.cell === 0) {
+				e.stopImmediatePropagation();
+				_grid.setActiveCell(cell.row, 1);
+			}
+
 			if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
 				if (cell.cell !== 0) {
 					_ranges = [new Slick.Range(cell.row, cell.cell, cell.row, cell.cell)];
@@ -294,16 +301,14 @@ declare let Slick;
 					_grid.setActiveCell(cell.row, cell.cell);
 					return true;
 				} else {
-					_ranges = [new Slick.Range(cell.row, 0, cell.row, _grid.getColumns().length - 1)];
+					_ranges = [new Slick.Range(cell.row, 1, cell.row, _grid.getColumns().length - 1)];
 					setSelectedRanges(_ranges);
-					_grid.setActiveCell(cell.row, 1);
 					return true;
 				}
 			} else if (_grid.getOptions().multiSelect) {
 				if (e.ctrlKey || e.metaKey) {
 					if (cell.cell === 0) {
-						_ranges.push(new Slick.Range(cell.row, 0, cell.row, _grid.getColumns().length - 1));
-						_grid.setActiveCell(cell.row, 1);
+						_ranges.push(new Slick.Range(cell.row, 1, cell.row, _grid.getColumns().length - 1));
 					} else {
 						_ranges.push(new Slick.Range(cell.row, cell.cell, cell.row, cell.cell));
 						_grid.setActiveCell(cell.row, cell.cell);
@@ -313,7 +318,7 @@ declare let Slick;
 					if (cell.cell === 0) {
 						let fromRow = Math.min(cell.row, last.fromRow);
 						let toRow = Math.max(cell.row, last.fromRow);
-						_ranges = [new Slick.Range(fromRow, 0, toRow, _grid.getColumns().length - 1)];
+						_ranges = [new Slick.Range(fromRow, 1, toRow, _grid.getColumns().length - 1)];
 					} else {
 						let fromRow = Math.min(cell.row, last.fromRow);
 						let fromCell = Math.min(cell.cell, last.fromCell);
@@ -369,7 +374,7 @@ declare let Slick;
 					let lastCell = _grid.getColumns().length - 1;
 					let firstRow = Math.min(cell.row, activeCell.row);
 					let lastRow = Math.max(cell.row, activeCell.row);
-					_ranges.push(new Slick.Range(firstRow, 0, lastRow, lastCell));
+					_ranges.push(new Slick.Range(firstRow, 1, lastRow, lastCell));
 				} else {
 					let firstRow = Math.min(cell.row, activeCell.row);
 					let lastRow = Math.max(cell.row, activeCell.row);
