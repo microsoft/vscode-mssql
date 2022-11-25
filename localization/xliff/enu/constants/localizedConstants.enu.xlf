@@ -443,8 +443,17 @@
         <trans-unit id="executeQueryLabel">
             <source xml:lang="en">Executing query...</source>
         </trans-unit>
+        <trans-unit id="QueryExecutedLabel">
+            <source xml:lang="en">Query executed</source>
+        </trans-unit>
         <trans-unit id="messagePaneLabel">
             <source xml:lang="en">Messages</source>
+        </trans-unit>
+        <trans-unit id="messagesTableTimeStampColumn">
+            <source xml:lang="en">Timestamp</source>
+        </trans-unit>
+        <trans-unit id="messagesTableMessageColumn">
+            <source xml:lang="en">Message</source>
         </trans-unit>
         <trans-unit id="lineSelectorFormatted">
             <source xml:lang="en">Line {0}</source>
@@ -538,6 +547,15 @@
         </trans-unit>
         <trans-unit id="msgMultipleSelectionModeNotSupported">
             <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
+        </trans-unit>
+        <trans-unit id="newColumnWidthPrompt">
+            <source xml:lang="en">Enter new column width</source>
+        </trans-unit>
+        <trans-unit id="columnWidthInvalidNumberError">
+            <source xml:lang="en">Invalid column width</source>
+        </trans-unit>
+        <trans-unit id="columnWidthMustBePositiveError">
+            <source xml:lang="en">Width cannot be 0 or negative</source>
         </trans-unit>
     </body>
   </file>

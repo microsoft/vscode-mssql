@@ -83,6 +83,10 @@ table {
   color: var(--color-content);
 }
 
+#messageTable th {
+  text-align: left;
+}
+
 #messageTable tbody tr:last-child > td {
   padding-bottom: 1em;
 }

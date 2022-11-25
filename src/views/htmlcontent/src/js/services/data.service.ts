@@ -163,4 +163,8 @@ export class DataService implements OnDestroy {
 			});
 		}
 	}
+
+	getNewColumnWidth(currentWidth: number): Promise<number | undefined> {
+		return this._proxy.getNewColumnWidth(currentWidth);
+	}
 }

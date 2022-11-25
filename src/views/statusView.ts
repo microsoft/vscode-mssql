@@ -77,6 +77,7 @@ export default class StatusView implements vscode.Disposable {
 		bar.statusLanguageFlavor = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
 		bar.statusConnection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 		bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+		bar.statusQuery.accessibilityInformation = { role: 'alert', label: '' };
 		bar.statusLanguageService = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 		bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
 		bar.rowCount = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80);
@@ -182,14 +183,18 @@ export default class StatusView implements vscode.Disposable {
 	public executingQuery(fileUri: string): void {
 		let bar = this.getStatusBar(fileUri);
 		bar.statusQuery.command = undefined;
-		bar.statusQuery.tooltip = LocalizedConstants.executeQueryLabel;
+		bar.statusQuery.text = LocalizedConstants.executeQueryLabel;
 		this.showStatusBarItem(fileUri, bar.statusQuery);
 		this.showProgress(fileUri, LocalizedConstants.executeQueryLabel, bar.statusQuery);
 	}
 
 	public executedQuery(fileUri: string): void {
 		let bar = this.getStatusBar(fileUri);
-		bar.statusQuery.hide();
+		bar.statusQuery.text = LocalizedConstants.QueryExecutedLabel;
+		// hide the status bar item with a delay so that the change can be announced by screen reader.
+		setTimeout(() => {
+			bar.statusQuery.hide();
+		}, 200);
 	}
 
 	public cancelingQuery(fileUri: string): void {
@@ -197,7 +202,7 @@ export default class StatusView implements vscode.Disposable {
 		bar.statusQuery.hide();
 
 		bar.statusQuery.command = undefined;
-		bar.statusQuery.tooltip = LocalizedConstants.cancelingQueryLabel;
+		bar.statusQuery.text = LocalizedConstants.cancelingQueryLabel;
 		this.showStatusBarItem(fileUri, bar.statusQuery);
 		this.showProgress(fileUri, LocalizedConstants.cancelingQueryLabel, bar.statusQuery);
 	}
@@ -337,6 +342,11 @@ export default class StatusView implements vscode.Disposable {
 	}
 
 	private showProgress(fileUri: string, statusText: string, statusBarItem: vscode.StatusBarItem): void {
+		// Do not use the text based in progress indicator when screen reader is on, it is not user friendly to announce the changes every 200 ms.
+		const screenReaderOptimized = vscode.workspace.getConfiguration('editor').get('accessibilitySupport');
+		if (screenReaderOptimized === 'on') {
+			return;
+		}
 		const self = this;
 		let index = 0;
 		let progressTicks = ['|', '/', '-', '\\'];

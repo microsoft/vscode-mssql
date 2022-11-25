@@ -21,6 +21,7 @@ export interface IServerProxy extends Disposable {
 	showError(message: string): void;
 	getLocalizedTexts(): Promise<{ [key: string]: any }>;
 	sendReadyEvent(uri: string): Promise<boolean>;
+	getNewColumnWidth(current: number): Promise<number | undefined>;
 }
 
 export interface IMessageProtocol {
