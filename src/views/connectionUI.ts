@@ -471,13 +471,13 @@ export class ConnectionUI {
 	/**
 	 * Validate a connection profile by connecting to it, and save it if we are successful.
 	 */
-	public validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+	public async validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
 		const self = this;
 		let uri = self.vscodeWrapper.activeTextEditorUri;
 		if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
 			uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
 		}
-		return self.connectionManager.connect(uri, profile).then(async (result) => {
+		return await self.connectionManager.connect(uri, profile).then(async (result) => {
 			if (result) {
 				// Success! save it
 				return self.saveProfile(profile);
@@ -486,12 +486,12 @@ export class ConnectionUI {
 				if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
 					let success = await this.addFirewallRule(uri, profile);
 					if (success) {
-						return self.validateAndSaveProfile(profile);
+						return await self.validateAndSaveProfile(profile);
 					}
 					return undefined;
 				} else {
 					// Normal connection error! Let the user try again, prefilling values that they already entered
-					return self.promptToRetryAndSaveProfile(profile);
+					return await self.promptToRetryAndSaveProfile(profile);
 				}
 			}
 		});
@@ -542,8 +542,8 @@ export class ConnectionUI {
 	/**
 	 * Save a connection profile using the connection store
 	 */
-	private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
-		return this._connectionStore.saveProfile(profile);
+	private async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+		return await this._connectionStore.saveProfile(profile);
 	}
 
 	private promptForCreateProfile(): Promise<IConnectionProfile> {
@@ -554,7 +554,7 @@ export class ConnectionUI {
 	private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
 		const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
 		if (updatedProfile) {
-			return this.validateAndSaveProfile(updatedProfile);
+			return await this.validateAndSaveProfile(updatedProfile);
 		} else {
 			return undefined;
 		}
@@ -565,7 +565,7 @@ export class ConnectionUI {
 		let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
 		let result = await this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel);
 		if (result === LocalizedConstants.retryLabel) {
-			return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+			return await ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
 				this.connectionManager.azureController, this._accountStore, profile);
 		} else {
 			// user cancelled the prompt - throw error so that we know user cancelled
@@ -674,15 +674,15 @@ export class ConnectionUI {
 	}
 
 	// Prompts the user to pick a profile for removal, then removes from the global saved state
-	public removeProfile(): Promise<boolean> {
+	public async removeProfile(): Promise<boolean> {
 		let self = this;
 
 		// Flow: Select profile to remove, confirm removal, remove, notify
 		let profiles = self._connectionStore.getProfilePickListItems(false);
 		return self.selectProfileForRemoval(profiles)
-			.then(profile => {
+			.then(async profile => {
 				if (profile) {
-					return self._connectionStore.removeProfile(profile);
+					return await self._connectionStore.removeProfile(profile);
 				}
 				return false;
 			}).then(result => {

@@ -24,7 +24,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 	public authenticationType: string;
 	public azureAccountToken: string | undefined;
 	public expiresOn: number | undefined;
-	public encrypt: string;
+	public encrypt: string | boolean;
 	public trustServerCertificate: boolean | undefined;
 	public hostNameInCertificate: string | undefined;
 	public persistSecurityInfo: boolean | undefined;
@@ -134,7 +134,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 			}
 		});
 
-		return prompter.prompt(questions).then(answers => {
+		return prompter.prompt(questions).then(async answers => {
 			if (answers) {
 				if (isProfile) {
 					let profile: IConnectionProfile = <IConnectionProfile>credentials;
@@ -144,15 +144,15 @@ export class ConnectionCredentials implements IConnectionInfo {
 					// then transfer the password to the credential store
 					if (profile.savePassword && (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)) {
 						// Remove profile, then save profile without plain text password
-						connectionStore.removeProfile(profile).then(() => {
-							connectionStore.saveProfile(profile);
+						await connectionStore.removeProfile(profile).then(async () => {
+							await connectionStore.saveProfile(profile);
 						});
 						// Or, if the user answered any additional questions for the profile, be sure to save it
 					} else if (profile.authenticationType !== unprocessedCredentials.authenticationType ||
 						profile.savePassword !== (<IConnectionProfile>unprocessedCredentials).savePassword ||
 						profile.password !== unprocessedCredentials.password) {
-						connectionStore.removeProfile(profile).then(() => {
-							connectionStore.saveProfile(profile);
+						await connectionStore.removeProfile(profile).then(async () => {
+							await connectionStore.saveProfile(profile);
 						});
 					}
 				}
@@ -257,12 +257,16 @@ export class ConnectionCredentials implements IConnectionInfo {
 			{
 				type: QuestionTypes.expand,
 				name: LocalizedConstants.encryptName,
-				message: LocalizedConstants.encryptPrompt,
+				message: LocalizedConstants.encryptPrompt + ': ' + LocalizedConstants.encryptMandatoryRecommended,
 				choices: encryptChoices,
-				shouldPrompt: (answers) => !connectionStringSet() && utils.isEmpty(credentials.encrypt) && authenticationChoices.length > 1,
+				shouldPrompt: (answers) =>
+					!connectionStringSet()
+					&& utils.isEmpty(credentials.encrypt)
+					&& authenticationChoices.length > 1,
 				onAnswered: (value) => {
 					credentials.encrypt = value;
-				}
+				},
+				default: EncryptOptions.Mandatory
 			},
 		];
 		return questions;
@@ -333,8 +337,8 @@ export class ConnectionCredentials implements IConnectionInfo {
 
 	public static getEncryptChoices(): INameValueChoice[] {
 		let choices: INameValueChoice[] = [
-			{ name: LocalizedConstants.encryptOptional, value: utils.encryptToString(EncryptOptions.Optional) },
-			{ name: LocalizedConstants.encryptMandatory, value: utils.encryptToString(EncryptOptions.Mandatory) }
+			{ name: LocalizedConstants.encryptMandatory, value: utils.encryptToString(EncryptOptions.Mandatory) },
+			{ name: LocalizedConstants.encryptOptional, value: utils.encryptToString(EncryptOptions.Optional) }
 		];
 
 		return choices;

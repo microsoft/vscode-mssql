@@ -36,7 +36,7 @@ export class ConnectionConfig implements IConnectionConfig {
 	/**
 	 * Add a new connection to the connection config.
 	 */
-	public addConnection(profile: IConnectionProfile): Promise<void> {
+	public async addConnection(profile: IConnectionProfile): Promise<void> {
 
 		let profiles = this.getProfilesFromSettings();
 
@@ -44,7 +44,7 @@ export class ConnectionConfig implements IConnectionConfig {
 		profiles = profiles.filter(value => !Utils.isSameProfile(value, profile));
 		profiles.push(profile);
 
-		return this.writeProfilesToSettings(profiles);
+		return await this.writeProfilesToSettings(profiles);
 	}
 
 	/**
@@ -87,7 +87,7 @@ export class ConnectionConfig implements IConnectionConfig {
 	/**
 	 * Remove an existing connection from the connection config.
 	 */
-	public removeConnection(profile: IConnectionProfile): Promise<boolean> {
+	public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
 
 		let profiles = this.getProfilesFromSettings();
 
@@ -145,7 +145,7 @@ export class ConnectionConfig implements IConnectionConfig {
 	 * Replace existing profiles in the user settings with a new set of profiles.
 	 * @param profiles the set of profiles to insert into the settings file.
 	 */
-	private writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
+	private async writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
 		// Save the file
 		const self = this;
 		return new Promise<void>((resolve, reject) => {

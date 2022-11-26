@@ -164,7 +164,7 @@ suite('Connection UI tests', () => {
 			quickPickItemType: undefined,
 			label: 'test'
 		}]);
-		connectionStore.setup(c => c.removeProfile(TypeMoq.It.isAny()));
+		connectionStore.setup(async c => await c.removeProfile(TypeMoq.It.isAny()));
 		let mockItem = {
 			'ConfirmRemoval': true,
 			'ChooseProfile': {
@@ -175,13 +175,13 @@ suite('Connection UI tests', () => {
 		return connectionUI.removeProfile().then(() => {
 			connectionStore.verify(c => c.getProfilePickListItems(false), TypeMoq.Times.once());
 			prompter.verify(p => p.prompt(TypeMoq.It.isAny()), TypeMoq.Times.once());
-			connectionStore.verify(c => c.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionStore.verify(async c => await c.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
 		});
 	});
 
-	test('removeProfile should show error if there are no profiles to remove', () => {
+	test('removeProfile should show error if there are no profiles to remove', async () => {
 		connectionStore.setup(c => c.getProfilePickListItems(TypeMoq.It.isAny())).returns(() => undefined);
-		return connectionUI.removeProfile().then(() => {
+		return await connectionUI.removeProfile().then(() => {
 			connectionStore.verify(c => c.getProfilePickListItems(false), TypeMoq.Times.once());
 			prompter.verify(p => p.prompt(TypeMoq.It.isAny()), TypeMoq.Times.never());
 			vscodeWrapper.verify(v => v.showErrorMessage(TypeMoq.It.isAny()), TypeMoq.Times.once());

@@ -202,9 +202,9 @@ export class ConnectionStore {
 	 * @param {forceWritePlaintextPassword} whether the plaintext password should be written to the settings file
 	 * @returns {Promise<IConnectionProfile>} a Promise that returns the original profile, for help in chaining calls
 	 */
-	public saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
+	public async saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
 		const self = this;
-		return new Promise<IConnectionProfile>((resolve, reject) => {
+		return new Promise<IConnectionProfile>(async (resolve, reject) => {
 			// Add the profile to the saved list, taking care to clear out the password field if necessary
 			let savedProfile: IConnectionProfile;
 			if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
@@ -217,11 +217,10 @@ export class ConnectionStore {
 				}
 			}
 
-
-			self._connectionConfig.addConnection(savedProfile)
-				.then(() => {
+			await self._connectionConfig.addConnection(savedProfile)
+				.then(async () => {
 					// Only save if we successfully added the profile
-					return self.saveProfilePasswordIfNeeded(profile);
+					return await self.saveProfilePasswordIfNeeded(profile);
 					// And resolve / reject at the end of the process
 				}, err => {
 					reject(err);
@@ -277,10 +276,10 @@ export class ConnectionStore {
 			}
 
 			self._context.globalState.update(Constants.configRecentConnections, configValues)
-				.then(() => {
+				.then(async () => {
 					// Only save if we successfully added the profile and if savePassword
 					if ((<IConnectionProfile>conn).savePassword) {
-						self.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
+						await self.doSaveCredential(conn, CredentialsQuickPickItemType.Mru);
 					}
 					// And resolve / reject at the end of the process
 					resolve(undefined);
@@ -341,28 +340,28 @@ export class ConnectionStore {
 		});
 	}
 
-	public saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
+	public async saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean> {
 		if (!profile.savePassword) {
 			return Promise.resolve(true);
 		}
-		return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile);
+		return await this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile);
 	}
 
-	public saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean> {
+	public async saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean> {
 		if (!profile.connectionString) {
 			return Promise.resolve(true);
 		}
-		return this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile, true);
+		return await this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile, true);
 	}
 
-	private doSaveCredential(conn: IConnectionInfo, type: CredentialsQuickPickItemType, isConnectionString: boolean = false): Promise<boolean> {
+	private async doSaveCredential(conn: IConnectionInfo, type: CredentialsQuickPickItemType, isConnectionString: boolean = false): Promise<boolean> {
 		let self = this;
 		let password = isConnectionString ? conn.connectionString : conn.password;
-		return new Promise<boolean>((resolve, reject) => {
+		return new Promise<boolean>(async (resolve, reject) => {
 			if (Utils.isNotEmpty(password)) {
 				let credType: string = type === CredentialsQuickPickItemType.Mru ? ConnectionStore.CRED_MRU_USER : ConnectionStore.CRED_PROFILE_USER;
 				let credentialId = ConnectionStore.formatCredentialId(conn.server, conn.database, conn.user, credType, isConnectionString);
-				self._credentialStore.saveCredential(credentialId, password)
+				await self._credentialStore.saveCredential(credentialId, password)
 					.then((result) => {
 						resolve(result);
 					}).catch(err => {
@@ -383,10 +382,10 @@ export class ConnectionStore {
 	 * @param {Boolean} keepCredentialStore optional value to keep the credential store after a profile removal
 	 * @returns {Promise<boolean>} true if successful
 	 */
-	public removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
+	public async removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
 		const self = this;
-		return new Promise<boolean>((resolve, reject) => {
-			self._connectionConfig.removeConnection(profile).then(profileFound => {
+		return new Promise<boolean>(async (resolve, reject) => {
+			await self._connectionConfig.removeConnection(profile).then(profileFound => {
 				resolve(profileFound);
 			}).catch(err => {
 				reject(err);
@@ -433,7 +432,6 @@ export class ConnectionStore {
 		return result;
 	}
 
-
 	/**
 	 * Removes password from a saved profile and credential store
 	 */
@@ -474,6 +472,14 @@ export class ConnectionStore {
 				}
 			}
 			return true;
+		});
+
+		// Update encrypt property value for each profile
+		profilesInConfiguration.forEach(async profile => {
+			let update = ConnInfo.updateEncrypt(profile);
+			if(update.status) {
+				await this.saveProfile(update.connection as IConnectionProfile);
+			}
 		});
 
 		// Ensure that MRU items which are actually profiles are labeled as such

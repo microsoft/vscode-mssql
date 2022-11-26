@@ -5,13 +5,13 @@
 import * as vscode from 'vscode';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
-import { CreateSessionCompleteNotification, SessionCreatedParameters, CreateSessionRequest } from '../models/contracts/objectExplorer/createSessionRequest';
+import { CreateSessionCompleteNotification, SessionCreatedParameters, CreateSessionRequest, CreateSessionResponse } from '../models/contracts/objectExplorer/createSessionRequest';
 import { NotificationHandler } from 'vscode-languageclient';
 import { ExpandRequest, ExpandParams, ExpandCompleteNotification, ExpandResponse } from '../models/contracts/objectExplorer/expandNodeRequest';
 import { ObjectExplorerProvider } from './objectExplorerProvider';
 import { TreeItemCollapsibleState } from 'vscode';
 import { RefreshRequest, RefreshParams } from '../models/contracts/objectExplorer/refreshSessionRequest';
-import { CloseSessionRequest, CloseSessionParams } from '../models/contracts/objectExplorer/closeSessionRequest';
+import { CloseSessionRequest, CloseSessionParams, CloseSessionResponse } from '../models/contracts/objectExplorer/closeSessionRequest';
 import { TreeNodeInfo } from './treeNodeInfo';
 import { AuthenticationTypes, IConnectionProfile } from '../models/interfaces';
 import * as LocalizedConstants from '../constants/localizedConstants';
@@ -122,10 +122,41 @@ export class ObjectExplorerService {
 					self._currentNode.connectionInfo.password = '';
 				}
 				let error = LocalizedConstants.connectErrorLabel;
+				let errorNumber: number;
+				if(result.errorNumber) {
+					errorNumber = result.errorNumber;
+				}
 				if (result.errorMessage) {
 					error += ` : ${result.errorMessage}`;
 				}
-				self._connectionManager.vscodeWrapper.showErrorMessage(error);
+				if(errorNumber === Constants.errorSSLCertificateValidationFailed) {
+					let instructionText = `${error} \n${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
+					self._connectionManager.vscodeWrapper.showWarningMessageAdvanced(instructionText,
+						{ modal: false },
+						[
+							LocalizedConstants.enableTrustServerCertificate,
+							LocalizedConstants.cancel
+						])
+					.then(async (selection) => {
+						if (selection && selection === LocalizedConstants.enableTrustServerCertificate) {
+							let profile = <IConnectionProfile>self._currentNode.connectionInfo;
+							profile.encrypt = 'Mandatory';
+							profile.trustServerCertificate = true;
+							self.updateNode(self._currentNode);
+							let fileUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+							if(await self._connectionManager.connectionStore.saveProfile(profile)) {
+								const result = await self._connectionManager.connect(fileUri, profile);
+								if(await self._connectionManager.handleConnectionResult(result, fileUri, profile)){
+									self.refreshNode(self._currentNode);
+								}
+							} else {
+								self._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
+							}
+						}else{
+							self._connectionManager.vscodeWrapper.showErrorMessage(error);
+						}
+					});
+				}
 				const promise = self._sessionIdToPromiseMap.get(result.sessionId);
 
 				// handle session failure because of firewall issue
@@ -192,7 +223,7 @@ export class ObjectExplorerService {
 		};
 		this._expandParamsToPromiseMap.set(expandParams, promise);
 		this._expandParamsToTreeNodeInfoMap.set(expandParams, node);
-		const response = await this._connectionManager.client.sendRequest(ExpandRequest.type, expandParams);
+		const response: boolean = await this._connectionManager.client.sendRequest(ExpandRequest.type, expandParams);
 		if (response) {
 			return response;
 		} else {
@@ -460,7 +491,7 @@ export class ObjectExplorerService {
 				}
 			}
 			const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionCredentials);
-			const response = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
+			const response: CreateSessionResponse = await this._connectionManager.client.sendRequest(CreateSessionRequest.type, connectionDetails);
 			if (response) {
 				this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
 				this._sessionIdToPromiseMap.set(response.sessionId, promise);
@@ -576,7 +607,7 @@ export class ObjectExplorerService {
 			const closeSessionParams: CloseSessionParams = {
 				sessionId: node.sessionId
 			};
-			const response = await this._connectionManager.client.sendRequest(CloseSessionRequest.type,
+			const response: CloseSessionResponse = await this._connectionManager.client.sendRequest(CloseSessionRequest.type,
 				closeSessionParams);
 			if (response && response.success) {
 				this._sessionIdToConnectionCredentialsMap.delete(response.sessionId);

@@ -40,8 +40,10 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 	}
 
 	// default value for encrypt
-	if (connCreds.encrypt === "") {
+	if (connCreds.encrypt === "" || connCreds.encrypt === true) {
 		connCreds.encrypt = "Mandatory";
+	} else if (connCreds.encrypt === false) {
+		connCreds.encrypt = "Optional";
 	}
 
 	// default value for appName
@@ -59,6 +61,18 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 		}
 	}
 	return connCreds;
+}
+
+export function updateEncrypt(connection: IConnectionInfo): { connection: IConnectionInfo, status: boolean }{
+	let updatePerformed = true;
+	if (connection.encrypt === true) {
+		connection.encrypt = 'Mandatory';
+	} else if (connection.encrypt === false) {
+		connection.encrypt = 'Optional';
+	} else{
+		updatePerformed = false;
+	}
+	return { connection: connection, status: updatePerformed };
 }
 
 // return true if server name ends with '.database.windows.net'

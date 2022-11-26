@@ -226,10 +226,10 @@ suite('Connection Profile tests', () => {
 	test('Profile is connected to and validated prior to saving', done => {
 		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
+		connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
 
 		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+		connectionStoreMock.setup(async x => await x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
 		prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -257,10 +257,10 @@ suite('Connection Profile tests', () => {
 		// create a new connection profile
 		connectionUI.createAndSaveProfile().then(profile => {
 			// connection is attempted
-			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionManagerMock.verify(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
 			// profile is saved
-			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionStoreMock.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
 
 			done();
 		}).catch(err => {
@@ -271,11 +271,11 @@ suite('Connection Profile tests', () => {
 	test('Profile is not saved when connection validation fails', done => {
 		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
+		connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
 		connectionManagerMock.setup(x => x.failedUriToFirewallIpMap).returns(() => new Map());
 
 		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+		connectionStoreMock.setup(async x => await x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
 		prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -307,10 +307,10 @@ suite('Connection Profile tests', () => {
 		// CancelError will be thrown (expected)
 		.catch(() => {
 			// connection is attempted
-			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionManagerMock.verify(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
 			// profile is not saved
-			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
+			connectionStoreMock.verify(async x => await x.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
 			done();
 		});
 	});

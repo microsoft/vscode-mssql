@@ -65,8 +65,8 @@ suite('ConnectionCredentials Tests', () => {
 
 
 		// Mocking functions
-		connectionStore.setup(x => x.removeProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(true)));
-		connectionStore.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(profile1)));
+		connectionStore.setup(async x => await x.removeProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(true)));
+		connectionStore.setup(async x => await x.saveProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(profile1)));
 		prompter.setup(x => x.prompt(TypeMoq.It.isAny())).returns((questions: IQuestion[]) => Promise.resolve(answers));
 
 		// Function Call to test
@@ -96,8 +96,8 @@ suite('ConnectionCredentials Tests', () => {
 			let answers = {};
 
 			// Mocking functions
-			connectionStore.setup(x => x.removeProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(true)));
-			connectionStore.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(profile1)));
+			connectionStore.setup(async x => await x.removeProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(true)));
+			connectionStore.setup(async x => await x.saveProfile(TypeMoq.It.isAny())).returns((profile1: IConnectionProfile) => (Promise.resolve(profile1)));
 			prompter.setup(x => x.prompt(TypeMoq.It.isAny())).callback(questions => {
 				passwordQuestion = questions.filter(question => question.name === LocalizedConstants.passwordPrompt);
 				answers[LocalizedConstants.passwordPrompt] = emptyPassword ? '' : 'newPassword';
@@ -117,8 +117,8 @@ suite('ConnectionCredentials Tests', () => {
 					// Checking to see password question was prompted
 					assert.ok(passwordQuestion);
 					assert.equal(success.password, answers[LocalizedConstants.passwordPrompt]);
-					connectionStore.verify(x => x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
-					connectionStore.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+					connectionStore.verify(async x => await x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+					connectionStore.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
 					done();
 				}).catch(err => done(new Error(err)));
 		};
@@ -135,8 +135,8 @@ suite('ConnectionCredentials Tests', () => {
 
 		connectProfile(profile, emptyPassword).then(success => {
 			assert.ok(success);
-			connectionStore.verify(x => x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
-			connectionStore.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionStore.verify(async x => await x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+			connectionStore.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
 			done();
 		}).catch(err => done(new Error(err)));
 	});
@@ -152,8 +152,8 @@ suite('ConnectionCredentials Tests', () => {
 		let emptyPassword = true;
 		connectProfile(profile, emptyPassword).then(success => {
 			assert.ok(success);
-			connectionStore.verify(x => x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
-			connectionStore.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
+			connectionStore.verify(async x => await x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
+			connectionStore.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
 			done();
 		}).catch(err => done(new Error(err)));
 	});
@@ -169,8 +169,8 @@ suite('ConnectionCredentials Tests', () => {
 		let emptyPassword = false;
 		connectProfile(profile, emptyPassword).then(success => {
 			assert.ok(success);
-			connectionStore.verify(x => x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
-			connectionStore.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
+			connectionStore.verify(async x => await x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
+			connectionStore.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
 			done();
 		}).catch(err => done(new Error(err)));
 	});
@@ -186,8 +186,8 @@ suite('ConnectionCredentials Tests', () => {
 		let emptyPassword = true;
 		connectProfile(profile, emptyPassword).then(success => {
 			assert.ok(success);
-			connectionStore.verify(x => x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
-			connectionStore.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
+			connectionStore.verify(async x => await x.removeProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
+			connectionStore.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.never());
 			done();
 		}).catch(err => done(new Error(err)));
 	});

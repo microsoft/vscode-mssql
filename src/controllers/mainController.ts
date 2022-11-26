@@ -308,9 +308,8 @@ export default class MainController implements vscode.Disposable {
 
 		// Sets the correct current node on any node selection
 		this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
-			const selections: TreeNodeInfo[] = e.selection;
-			if (selections && selections.length > 0) {
-				self._objectExplorerProvider.currentNode = selections[0];
+			if (e.selection && e.selection.length > 0) {
+				self._objectExplorerProvider.currentNode = e.selection[0];
 			}
 		}));
 
