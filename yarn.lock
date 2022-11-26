@@ -316,9 +316,9 @@
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
 "@vscode/test-electron@^2.1.5":
-  version "2.1.5"
-  resolved "https://registry.yarnpkg.com/@vscode/test-electron/-/test-electron-2.1.5.tgz#ac98f8f445ea4590753f5fa0c7f6e4298f08c3b7"
-  integrity sha512-O/ioqFpV+RvKbRykX2ItYPnbcZ4Hk5V0rY4uhQjQTLhGL9WZUvS7exzuYQCCI+ilSqJpctvxq2llTfGXf9UnnA==
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@vscode/test-electron/-/test-electron-2.2.0.tgz#b90c76b8f076f9cf2d885f14b3c5fc3f586b9419"
+  integrity sha512-xk2xrOTMG75/hxO8OVVZ+GErv9gmdZwOD8rEHV3ty3n1Joav2yFcfrmqD6Ukref27U13LEL8gVvSHzauGAK5nQ==
   dependencies:
     http-proxy-agent "^4.0.1"
     https-proxy-agent "^5.0.0"
@@ -2413,7 +2413,7 @@ glob@7.1.7, glob@^7.0.3, glob@^7.0.5, glob@^7.1.1, glob@^7.1.3:
 glob@^6.0.4:
   version "6.0.4"
   resolved "https://registry.yarnpkg.com/glob/-/glob-6.0.4.tgz#0f08860f6a155127b2fadd4f9ce24b1aab6e4d22"
-  integrity sha1-DwiGD2oVUSey+t1PnOJLGqtuTSI=
+  integrity sha512-MKZeRNyYZAVVVG1oZeLaWie1uweH40m9AZwIwxyPbTSX4hHrVYSzLg0Ro5Z5R7XKkIX+Cc6oD1rqeDJnwsB8/A==
   dependencies:
     inflight "^1.0.4"
     inherits "2"
@@ -5836,7 +5836,7 @@ vscode-languageserver-types@3.14.0:
 vscode-nls-dev@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/vscode-nls-dev/-/vscode-nls-dev-2.0.1.tgz#df42222ac418c416f9f3ab3f13f12ab0c02a229d"
-  integrity sha1-30IiKsQYxBb586s/E/EqsMAqIp0=
+  integrity sha512-nkHA//QiJtvcpIC0ztEfYOdA42opPtz0syoTYSV0VozHqSYKLkBkWmJbQIxo5cWG8ZsGuFs40oVxzJaeLgHl4w==
   dependencies:
     clone "^1.0.2"
     event-stream "^3.3.2"
@@ -5850,7 +5850,7 @@ vscode-nls-dev@2.0.1:
 vscode-nls@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-2.0.2.tgz#808522380844b8ad153499af5c3b03921aea02da"
-  integrity sha1-gIUiOAhEuK0VNJmvXDsDkhrqAto=
+  integrity sha512-xK4p7Wksahb1imTwJZeA7+OSobDlRkWYWBuz9eR6LyJRLLG4LBxvLvZF8GO1ZY1tUWHITjZn2BtA8nRufKdHSg==
 
 when@^3.7.5:
   version "3.7.8"
@@ -6014,7 +6014,7 @@ yargs@16.2.0:
 yargs@^3.32.0:
   version "3.32.0"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-3.32.0.tgz#03088e9ebf9e756b69751611d2a5ef591482c995"
-  integrity sha1-AwiOnr+edWtpdRYR0qXvWRSCyZU=
+  integrity sha512-ONJZiimStfZzhKamYvR/xvmgW3uEkAUFSP91y2caTEPhzF6uP2JfPiVZcq66b/YR0C3uitxSV7+T1x8p5bkmMg==
   dependencies:
     camelcase "^2.0.1"
     cliui "^3.0.3"
