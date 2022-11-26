@@ -477,7 +477,7 @@ export class ConnectionStore {
 		// Update encrypt property value for each profile
 		profilesInConfiguration.forEach(async profile => {
 			let update = ConnInfo.updateEncrypt(profile);
-			if(update.status) {
+			if (update.status) {
 				await this.saveProfile(update.connection as IConnectionProfile);
 			}
 		});

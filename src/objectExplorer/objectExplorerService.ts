@@ -123,13 +123,13 @@ export class ObjectExplorerService {
 				}
 				let error = LocalizedConstants.connectErrorLabel;
 				let errorNumber: number;
-				if(result.errorNumber) {
+				if (result.errorNumber) {
 					errorNumber = result.errorNumber;
 				}
 				if (result.errorMessage) {
 					error += ` : ${result.errorMessage}`;
 				}
-				if(errorNumber === Constants.errorSSLCertificateValidationFailed) {
+				if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
 					let instructionText = `${error} \n${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
 					self._connectionManager.vscodeWrapper.showWarningMessageAdvanced(instructionText,
 						{ modal: false },
@@ -144,15 +144,15 @@ export class ObjectExplorerService {
 							profile.trustServerCertificate = true;
 							self.updateNode(self._currentNode);
 							let fileUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-							if(await self._connectionManager.connectionStore.saveProfile(profile)) {
-								const result = await self._connectionManager.connect(fileUri, profile);
-								if(await self._connectionManager.handleConnectionResult(result, fileUri, profile)){
+							if (await self._connectionManager.connectionStore.saveProfile(profile)) {
+								const res = await self._connectionManager.connect(fileUri, profile);
+								if (await self._connectionManager.handleConnectionResult(res, fileUri, profile)) {
 									self.refreshNode(self._currentNode);
 								}
 							} else {
 								self._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
 							}
-						}else{
+						} else {
 							self._connectionManager.vscodeWrapper.showErrorMessage(error);
 						}
 					});

@@ -267,7 +267,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 					credentials.encrypt = value;
 				},
 				default: EncryptOptions.Mandatory
-			},
+			}
 		];
 		return questions;
 	}
