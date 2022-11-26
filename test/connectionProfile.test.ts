@@ -103,9 +103,10 @@ suite('Connection Profile tests', () => {
 		let questionNames: string[] = [
 			LocalizedConstants.serverPrompt,     // Server
 			LocalizedConstants.databasePrompt,   // DB Name
-			LocalizedConstants.authTypeName,   // Authentication Type
+			LocalizedConstants.authTypeName,     // Authentication Type
 			LocalizedConstants.usernamePrompt,   // UserName
 			LocalizedConstants.passwordPrompt,   // Password
+			LocalizedConstants.encryptName,      // Encrypt
 			LocalizedConstants.msgSavePassword,  // Save Password
 			LocalizedConstants.aad,              // Choose AAD Account
 			LocalizedConstants.tenant,           // Choose AAD Tenant
