@@ -1,19 +1,23 @@
 .github
 .vscode
 build
+coverage
+coverage-remapped
 lib
 localization
 out/test
+packages
 samples
 src
 tasks
 test
 typings
-packages
+test-reports
 
 .gitignore
 .mention-bot
 coverconfig.json
+extensionlaunched.dat
 gulpfile.js
 tsconfig.json
 tslint*.json
