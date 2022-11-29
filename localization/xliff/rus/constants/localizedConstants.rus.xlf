@@ -574,9 +574,21 @@
         <source xml:lang="en">Executing query...</source>
         <target state="translated">Выполнение запроса…</target>
       </trans-unit>
+      <trans-unit id="QueryExecutedLabel">
+        <source xml:lang="en">Query executed</source>
+        <target state="translated">Запрос выполнен</target>
+      </trans-unit>
       <trans-unit id="messagePaneLabel">
         <source xml:lang="en">Messages</source>
         <target state="translated">Сообщения</target>
+      </trans-unit>
+      <trans-unit id="messagesTableTimeStampColumn">
+        <source xml:lang="en">Timestamp</source>
+        <target state="translated">Метка времени</target>
+      </trans-unit>
+      <trans-unit id="messagesTableMessageColumn">
+        <source xml:lang="en">Message</source>
+        <target state="translated">Сообщение</target>
       </trans-unit>
       <trans-unit id="lineSelectorFormatted">
         <source xml:lang="en">Line {0}</source>
@@ -701,6 +713,18 @@
       <trans-unit id="msgMultipleSelectionModeNotSupported">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">Выполнение запроса не поддерживается, если редактор находится в режиме выбора нескольких элементов.</target>
+      </trans-unit>
+      <trans-unit id="newColumnWidthPrompt">
+        <source xml:lang="en">Enter new column width</source>
+        <target state="translated">Введите новую ширину столбца</target>
+      </trans-unit>
+      <trans-unit id="columnWidthInvalidNumberError">
+        <source xml:lang="en">Invalid column width</source>
+        <target state="translated">Недопустимая ширина столбца</target>
+      </trans-unit>
+      <trans-unit id="columnWidthMustBePositiveError">
+        <source xml:lang="en">Width cannot be 0 or negative</source>
+        <target state="translated">Ширина не может быть отрицательной или равной 0</target>
       </trans-unit>
     </body>
   </file>

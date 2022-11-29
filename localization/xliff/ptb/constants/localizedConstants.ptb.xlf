@@ -574,9 +574,21 @@
         <source xml:lang="en">Executing query...</source>
         <target state="translated">Executando consulta...</target>
       </trans-unit>
+      <trans-unit id="QueryExecutedLabel">
+        <source xml:lang="en">Query executed</source>
+        <target state="translated">Consulta executada</target>
+      </trans-unit>
       <trans-unit id="messagePaneLabel">
         <source xml:lang="en">Messages</source>
         <target state="translated">Mensagens</target>
+      </trans-unit>
+      <trans-unit id="messagesTableTimeStampColumn">
+        <source xml:lang="en">Timestamp</source>
+        <target state="translated">Carimbo de data/hora</target>
+      </trans-unit>
+      <trans-unit id="messagesTableMessageColumn">
+        <source xml:lang="en">Message</source>
+        <target state="translated">Mensagem</target>
       </trans-unit>
       <trans-unit id="lineSelectorFormatted">
         <source xml:lang="en">Line {0}</source>
@@ -701,6 +713,18 @@
       <trans-unit id="msgMultipleSelectionModeNotSupported">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">A execução da consulta não é suportada quando o editor está no modo de seleção múltipla.</target>
+      </trans-unit>
+      <trans-unit id="newColumnWidthPrompt">
+        <source xml:lang="en">Enter new column width</source>
+        <target state="translated">Insira a nova largura da coluna</target>
+      </trans-unit>
+      <trans-unit id="columnWidthInvalidNumberError">
+        <source xml:lang="en">Invalid column width</source>
+        <target state="translated">Largura de coluna inválida</target>
+      </trans-unit>
+      <trans-unit id="columnWidthMustBePositiveError">
+        <source xml:lang="en">Width cannot be 0 or negative</source>
+        <target state="translated">A largura não pode ser 0 ou negativa</target>
       </trans-unit>
     </body>
   </file>

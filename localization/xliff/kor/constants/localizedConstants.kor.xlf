@@ -574,8 +574,20 @@
         <source xml:lang="en">Executing query...</source>
         <target state="translated">쿼리를 실행하는 중...</target>
       </trans-unit>
+      <trans-unit id="QueryExecutedLabel">
+        <source xml:lang="en">Query executed</source>
+        <target state="translated">쿼리 실행됨</target>
+      </trans-unit>
       <trans-unit id="messagePaneLabel">
         <source xml:lang="en">Messages</source>
+        <target state="translated">메시지</target>
+      </trans-unit>
+      <trans-unit id="messagesTableTimeStampColumn">
+        <source xml:lang="en">Timestamp</source>
+        <target state="translated">타임스탬프</target>
+      </trans-unit>
+      <trans-unit id="messagesTableMessageColumn">
+        <source xml:lang="en">Message</source>
         <target state="translated">메시지</target>
       </trans-unit>
       <trans-unit id="lineSelectorFormatted">
@@ -701,6 +713,18 @@
       <trans-unit id="msgMultipleSelectionModeNotSupported">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">편집기가 다중 선택 모드에 있는 경우 쿼리 실행이 지원되지 않습니다.</target>
+      </trans-unit>
+      <trans-unit id="newColumnWidthPrompt">
+        <source xml:lang="en">Enter new column width</source>
+        <target state="translated">새 열 너비 입력</target>
+      </trans-unit>
+      <trans-unit id="columnWidthInvalidNumberError">
+        <source xml:lang="en">Invalid column width</source>
+        <target state="translated">잘못된 열 너비</target>
+      </trans-unit>
+      <trans-unit id="columnWidthMustBePositiveError">
+        <source xml:lang="en">Width cannot be 0 or negative</source>
+        <target state="translated">너비는 0 또는 음수일 수 없음</target>
       </trans-unit>
     </body>
   </file>

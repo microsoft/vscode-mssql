@@ -574,8 +574,20 @@
         <source xml:lang="en">Executing query...</source>
         <target state="translated">正在執行查詢...</target>
       </trans-unit>
+      <trans-unit id="QueryExecutedLabel">
+        <source xml:lang="en">Query executed</source>
+        <target state="translated">查詢已執行</target>
+      </trans-unit>
       <trans-unit id="messagePaneLabel">
         <source xml:lang="en">Messages</source>
+        <target state="translated">訊息</target>
+      </trans-unit>
+      <trans-unit id="messagesTableTimeStampColumn">
+        <source xml:lang="en">Timestamp</source>
+        <target state="translated">時間戳記</target>
+      </trans-unit>
+      <trans-unit id="messagesTableMessageColumn">
+        <source xml:lang="en">Message</source>
         <target state="translated">訊息</target>
       </trans-unit>
       <trans-unit id="lineSelectorFormatted">
@@ -701,6 +713,18 @@
       <trans-unit id="msgMultipleSelectionModeNotSupported">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">當編輯器處於多重選取模式時，不支援執行查詢。</target>
+      </trans-unit>
+      <trans-unit id="newColumnWidthPrompt">
+        <source xml:lang="en">Enter new column width</source>
+        <target state="translated">輸入新的欄寬</target>
+      </trans-unit>
+      <trans-unit id="columnWidthInvalidNumberError">
+        <source xml:lang="en">Invalid column width</source>
+        <target state="translated">資料行寬度無效</target>
+      </trans-unit>
+      <trans-unit id="columnWidthMustBePositiveError">
+        <source xml:lang="en">Width cannot be 0 or negative</source>
+        <target state="translated">寬度不能是 0 或負數</target>
       </trans-unit>
     </body>
   </file>
