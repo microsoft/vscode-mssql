@@ -89,7 +89,7 @@ gulp.task('ext:localization:xliff-to-json', function () {
 					dict[key] = dict[key]['source'];
 				}
 			});
-			file.contents = new Buffer(convertDictionaryToJson(dict));
+			file.contents = Buffer.from(convertDictionaryToJson(dict));
 
 			// modify file extensions to follow proper convention
 			file.basename = file.basename.substr(0, file.basename.indexOf('.')) + '.i18n.json';
@@ -132,7 +132,7 @@ gulp.task('ext:localization:xliff-to-ts', function () {
 
 			// Join with new lines in between
 			let fullFileContents = contents.join('\r\n') + '\r\n';
-			file.contents = new Buffer(fullFileContents);
+			file.contents = Buffer.from(fullFileContents);
 
 			// Name our file
 			file.basename = 'localizedConstants.ts';
@@ -193,7 +193,7 @@ function dictionaryMapping(file, packageAllKeys = undefined) {
 
 	// Join with new lines in between
 	let fullFileContents = contents.join('\r\n') + '\r\n';
-	file.contents = new Buffer(fullFileContents);
+	file.contents = Buffer.from(fullFileContents);
 
 	let indexToStart = 'localizedPackage.json.'.length + 1;
 	let languageIndex = file.basename.indexOf('.', indexToStart);
