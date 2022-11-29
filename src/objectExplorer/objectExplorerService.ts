@@ -130,7 +130,7 @@ export class ObjectExplorerService {
 					error += ` : ${result.errorMessage}`;
 				}
 				if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-					let instructionText = `${error} \n${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
+					let instructionText = `${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
 					self._connectionManager.vscodeWrapper.showWarningMessageAdvanced(instructionText,
 						{ modal: false },
 						[
@@ -152,10 +152,9 @@ export class ObjectExplorerService {
 							} else {
 								self._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
 							}
-						} else {
-							self._connectionManager.vscodeWrapper.showErrorMessage(error);
 						}
 					});
+					self._connectionManager.vscodeWrapper.showErrorMessage(error);
 				}
 				const promise = self._sessionIdToPromiseMap.get(result.sessionId);
 
