@@ -191,13 +191,13 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@microsoft/ads-adal-library@1.0.15":
-  version "1.0.15"
-  resolved "https://registry.yarnpkg.com/@microsoft/ads-adal-library/-/ads-adal-library-1.0.15.tgz#c510cf99a85e400ce946eb3d5664c935481abf3b"
-  integrity sha512-mXMjhTEz0DIsQQLTfxY1odnxm4dCgHRIlTD3Pls6wV47Q2xcsukLvk6H1BcsqL5FsqdXD7Wz9K/UFXn81tARdA==
+"@microsoft/ads-adal-library@1.0.16":
+  version "1.0.16"
+  resolved "https://registry.yarnpkg.com/@microsoft/ads-adal-library/-/ads-adal-library-1.0.16.tgz#50c88bb7c2aacab15582a8b11a109f77f97ea263"
+  integrity sha512-51Z7JjTAKaTpjQnPygpq63aSRX0emzoeZfY2TWQaN9LIGJ8RTFTjlhcvGXK3YNt/QbUYY79SekLacUsvtjrzEQ==
   dependencies:
     axios "^0.27.2"
-    qs "^6.9.4"
+    qs "^6.9.7"
 
 "@opentelemetry/api@^1.0.1":
   version "1.0.4"
@@ -4407,17 +4407,17 @@ q@^1.1.2:
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
   integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
 
-qs@^6.9.4:
-  version "6.10.1"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.10.1.tgz#4931482fa8d647a5aab799c5271d2133b981fb6a"
-  integrity sha512-M528Hph6wsSVOBiYUnGf+K/7w0hNshs/duGsNXPUCLH5XAqjEtiPGwNONLV0tBH8NoGb0mvD5JubnUTrujKDTg==
+qs@^6.9.7:
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.0.tgz#fd0d963446f7a65e1367e01abd85429453f0c37a"
+  integrity sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==
   dependencies:
     side-channel "^1.0.4"
 
 qs@~6.5.2:
-  version "6.5.2"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz#cb3ae806e8740444584ef154ce8ee98d403f3e36"
-  integrity sha512-N5ZAX4/LxJmF+7wN74pUD6qAh9/wnvdQcjq9TZjevvXzSUo7bfmw91saqMjzGS2xq91/odN2dW/WOl7qQHNDGA==
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.3.tgz#3aeeffc91967ef6e35c0e488ef46fb296ab76aad"
+  integrity sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==
 
 randombytes@^2.1.0:
   version "2.1.0"
