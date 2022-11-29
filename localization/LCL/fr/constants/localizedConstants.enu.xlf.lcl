@@ -58,6 +58,9 @@
       <Item ItemId=";QueryExecutedLabel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Query executed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Requête exécutée]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
