@@ -131,6 +131,9 @@
         <trans-unit id="enableTrustServerCertificate">
             <source xml:lang="en">Enable Trust Server Certificate</source>
         </trans-unit>
+        <trans-unit id="readMore">
+            <source xml:lang="en">Read more</source>
+        </trans-unit>
         <trans-unit id="cancel">
             <source xml:lang="en">Cancel</source>
         </trans-unit>

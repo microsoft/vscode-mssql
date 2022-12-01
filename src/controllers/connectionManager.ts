@@ -74,6 +74,10 @@ export class ConnectionInfo {
 	}
 }
 
+export interface ReconnectAction {
+	(profile: IConnectionInfo): Promise<void>;
+}
+
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
 	private _statusView: StatusView;
@@ -422,7 +426,15 @@ export default class ConnectionManager {
 			// Check if the error is an expired password
 			if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
 				// TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
+				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired,
+					result.errorNumber, result.errorMessage));
+				connection.errorNumber = result.errorNumber;
+				connection.errorMessage = result.errorMessage;
+			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) {
+				this.showInstructionTextAsWarning(connection.credentials, async updatedConnection => {
+					vscode.commands.executeCommand(Constants.cmdConnectObjectExplorerProfile, updatedConnection);
+				});
+				return;
 			} else if (result.errorNumber !== Constants.errorLoginFailed) {
 				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
 				// check whether it's a firewall rule error
@@ -430,9 +442,12 @@ export default class ConnectionManager {
 				if (firewallResult.result && firewallResult.ipAddress) {
 					this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
 				}
+				connection.errorNumber = result.errorNumber;
+				connection.errorMessage = result.errorMessage;
+			} else {
+				connection.errorNumber = result.errorNumber;
+				connection.errorMessage = result.errorMessage;
 			}
-			connection.errorNumber = result.errorNumber;
-			connection.errorMessage = result.errorMessage;
 		} else {
 			const platformInfo = await PlatformInformation.getCurrent();
 			if (!platformInfo.isWindows && result.errorMessage && result.errorMessage.includes('Kerberos')) {
@@ -460,6 +475,27 @@ export default class ConnectionManager {
 				connection.credentials.server,
 				result.errorMessage ? result.errorMessage : result.messages)
 		);
+	}
+
+	public async showInstructionTextAsWarning(profile: IConnectionInfo, reconnectAction: ReconnectAction): Promise<void> {
+		const instructionText = `${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
+		await this.vscodeWrapper.showWarningMessageAdvanced(instructionText,
+			{ modal: false },
+			[
+				LocalizedConstants.enableTrustServerCertificate,
+				LocalizedConstants.readMore,
+				LocalizedConstants.cancel
+			])
+			.then(async (selection) => {
+				if (selection && selection === LocalizedConstants.enableTrustServerCertificate) {
+					profile.encrypt = 'Mandatory';
+					profile.trustServerCertificate = true;
+					await reconnectAction(profile);
+				} else if (selection && selection === LocalizedConstants.readMore) {
+					this.vscodeWrapper.openExternal(Constants.encryptionReadMoreLink);
+					this.showInstructionTextAsWarning(profile, reconnectAction);
+				}
+			});
 	}
 
 	private async tryAddMruConnection(connection: ConnectionInfo, newConnection: IConnectionInfo): Promise<void> {

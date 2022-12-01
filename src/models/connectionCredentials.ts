@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from '../constants/localizedConstants';
-import { IConnectionProfile, AuthenticationTypes, EncryptOptions } from './interfaces';
+import { IConnectionProfile, AuthenticationTypes } from './interfaces';
 import { ConnectionStore } from './connectionStore';
 import * as utils from './utils';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
@@ -172,7 +172,6 @@ export class ConnectionCredentials implements IConnectionInfo {
 		defaultProfileValues?: IConnectionInfo): Promise<IQuestion[]> {
 
 		let authenticationChoices: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
-		let encryptChoices: INameValueChoice[] = ConnectionCredentials.getEncryptChoices();
 
 		let connectionStringSet: () => boolean = () => Boolean(credentials.connectionString);
 
@@ -252,21 +251,6 @@ export class ConnectionCredentials implements IConnectionInfo {
 					}
 				},
 				default: defaultProfileValues ? await connectionStore.lookupPassword(defaultProfileValues) : undefined
-			},
-			// Encrypt may be optionally set.
-			{
-				type: QuestionTypes.expand,
-				name: LocalizedConstants.encryptName,
-				message: LocalizedConstants.encryptPrompt + ': ' + LocalizedConstants.encryptMandatoryRecommended,
-				choices: encryptChoices,
-				shouldPrompt: (answers) =>
-					!connectionStringSet()
-					&& utils.isEmpty(credentials.encrypt)
-					&& authenticationChoices.length > 1,
-				onAnswered: (value) => {
-					credentials.encrypt = value;
-				},
-				default: EncryptOptions.Mandatory
 			}
 		];
 		return questions;
@@ -330,15 +314,6 @@ export class ConnectionCredentials implements IConnectionInfo {
 			{ name: LocalizedConstants.authTypeSql, value: utils.authTypeToString(AuthenticationTypes.SqlLogin) },
 			{ name: LocalizedConstants.authTypeIntegrated, value: utils.authTypeToString(AuthenticationTypes.Integrated) },
 			{ name: LocalizedConstants.authTypeAzureActiveDirectory, value: utils.authTypeToString(AuthenticationTypes.AzureMFA) }
-		];
-
-		return choices;
-	}
-
-	public static getEncryptChoices(): INameValueChoice[] {
-		let choices: INameValueChoice[] = [
-			{ name: LocalizedConstants.encryptMandatory, value: utils.encryptToString(EncryptOptions.Mandatory) },
-			{ name: LocalizedConstants.encryptOptional, value: utils.encryptToString(EncryptOptions.Optional) }
 		];
 
 		return choices;

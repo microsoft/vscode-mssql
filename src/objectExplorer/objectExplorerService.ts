@@ -118,7 +118,7 @@ export class ObjectExplorerService {
 				return promise.resolve(node);
 			} else {
 				// create session failure
-				if (self._currentNode.connectionInfo?.password) {
+				if (self._currentNode?.connectionInfo?.password) {
 					self._currentNode.connectionInfo.password = '';
 				}
 				let error = LocalizedConstants.connectErrorLabel;
@@ -129,32 +129,24 @@ export class ObjectExplorerService {
 				if (result.errorMessage) {
 					error += ` : ${result.errorMessage}`;
 				}
+
+				self._connectionManager.vscodeWrapper.showErrorMessage(error);
+
 				if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-					let instructionText = `${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
-					self._connectionManager.vscodeWrapper.showWarningMessageAdvanced(instructionText,
-						{ modal: false },
-						[
-							LocalizedConstants.enableTrustServerCertificate,
-							LocalizedConstants.cancel
-						])
-					.then(async (selection) => {
-						if (selection && selection === LocalizedConstants.enableTrustServerCertificate) {
-							let profile = <IConnectionProfile>self._currentNode.connectionInfo;
-							profile.encrypt = 'Mandatory';
-							profile.trustServerCertificate = true;
+					self._connectionManager.showInstructionTextAsWarning(self._currentNode.connectionInfo,
+						async updatedProfile => {
+							self.currentNode.connectionInfo = updatedProfile;
 							self.updateNode(self._currentNode);
 							let fileUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-							if (await self._connectionManager.connectionStore.saveProfile(profile)) {
-								const res = await self._connectionManager.connect(fileUri, profile);
-								if (await self._connectionManager.handleConnectionResult(res, fileUri, profile)) {
+							if (await self._connectionManager.connectionStore.saveProfile(updatedProfile as IConnectionProfile)) {
+								const res = await self._connectionManager.connect(fileUri, updatedProfile);
+								if (await self._connectionManager.handleConnectionResult(res, fileUri, updatedProfile)) {
 									self.refreshNode(self._currentNode);
 								}
 							} else {
 								self._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
 							}
-						}
-					});
-					self._connectionManager.vscodeWrapper.showErrorMessage(error);
+						});
 				}
 				const promise = self._sessionIdToPromiseMap.get(result.sessionId);
 

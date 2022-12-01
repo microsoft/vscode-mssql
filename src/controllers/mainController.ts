@@ -151,6 +151,15 @@ export default class MainController implements vscode.Disposable {
 
 			this.initializeObjectExplorer();
 
+			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
+			this._event.on(Constants.cmdConnectObjectExplorerProfile, async (profile: IConnectionProfile) => {
+				await this.createObjectExplorerSession(profile).then((result) => {
+					if(result === true){
+						this._connectionMgr.connectionUI.saveProfile(profile);
+					}
+				});
+			});
+
 			this.initializeQueryHistory();
 
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
@@ -282,15 +291,17 @@ export default class MainController implements vscode.Disposable {
 	/**
 	 * Creates a new Object Explorer session
 	 */
-	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<void> {
+	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
 		let createSessionPromise = new Deferred<TreeNodeInfo>();
 		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
 		if (sessionId) {
 			const newNode = await createSessionPromise;
 			if (newNode) {
 				this._objectExplorerProvider.refresh(undefined);
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**

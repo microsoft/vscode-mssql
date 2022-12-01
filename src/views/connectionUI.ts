@@ -542,7 +542,7 @@ export class ConnectionUI {
 	/**
 	 * Save a connection profile using the connection store
 	 */
-	private async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+	public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
 		return await this._connectionStore.saveProfile(profile);
 	}
 
