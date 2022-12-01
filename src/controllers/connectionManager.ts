@@ -74,7 +74,7 @@ export class ConnectionInfo {
 	}
 }
 
-export interface ReconnectAction {
+export interface IReconnectAction {
 	(profile: IConnectionInfo): Promise<void>;
 }
 
@@ -477,7 +477,7 @@ export default class ConnectionManager {
 		);
 	}
 
-	public async showInstructionTextAsWarning(profile: IConnectionInfo, reconnectAction: ReconnectAction): Promise<void> {
+	public async showInstructionTextAsWarning(profile: IConnectionInfo, reconnectAction: IReconnectAction): Promise<void> {
 		const instructionText = `${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
 		await this.vscodeWrapper.showWarningMessageAdvanced(instructionText,
 			{ modal: false },
