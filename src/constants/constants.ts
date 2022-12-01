@@ -97,6 +97,7 @@ export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wik
 export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 export const encryptionReadMoreLink = 'https://learn.microsoft.com/sql/database-engine/configure-windows/enable-encrypted-connections-to-the-database-engine';
 export const changelogLink = 'https://aka.ms/vscode-mssql-changes';
+export const encryptionBlogLink = 'https://aka.ms/vscodemssql-connection';
 export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedauth';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
 export const azureAccountExtensionId = 'ms-vscode.azure-account';

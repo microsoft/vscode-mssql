@@ -153,9 +153,9 @@ export default class MainController implements vscode.Disposable {
 
 			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
 			this._event.on(Constants.cmdConnectObjectExplorerProfile, async (profile: IConnectionProfile) => {
-				await this.createObjectExplorerSession(profile).then((result) => {
+				await this.createObjectExplorerSession(profile).then(async (result) => {
 					if(result === true){
-						this._connectionMgr.connectionUI.saveProfile(profile);
+						await this._connectionMgr.connectionUI.saveProfile(profile);
 					}
 				});
 			});
@@ -239,7 +239,7 @@ export default class MainController implements vscode.Disposable {
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
 
-		this.showReleaseNotesPrompt();
+		this.showFirstLaunchPrompts();
 
 		// Handle case where SQL file is the 1st opened document
 		const activeTextEditor = this._vscodeWrapper.activeTextEditor;
@@ -880,16 +880,31 @@ export default class MainController implements vscode.Disposable {
 	/**
 	 * Prompt the user to view release notes if this is new extension install
 	 */
-	private async showReleaseNotesPrompt(): Promise<void> {
+	private async showFirstLaunchPrompts(): Promise<void> {
 		let self = this;
 		if (!this.doesExtensionLaunchedFileExist()) {
-			// ask the user to view a scenario document
-			let confirmText = 'View Now';
-			const choice = await this._vscodeWrapper.showInformationMessage(
-				'View mssql for Visual Studio Code release notes?', confirmText);
-			if (choice === confirmText) {
-				await self.launchReleaseNotesPage();
-			}
+			// ask the user to view release notes document
+			let confirmText = LocalizedConstants.viewMore;
+			let promiseReleaseNotes = this._vscodeWrapper.showInformationMessage(
+				LocalizedConstants.releaseNotesPromptDescription, confirmText)
+				.then(async (result) => {
+					if (result === confirmText) {
+						await self.launchReleaseNotesPage();
+					}
+				});
+
+
+			// ask the user to view encryption changes document
+			let confirmTextEncrypt = LocalizedConstants.moreInformation;
+			let promiseEncryption = this._vscodeWrapper.showInformationMessage(
+				LocalizedConstants.encryptionChangePromptDescription, confirmTextEncrypt)
+				.then(async (result) => {
+					if (result === confirmTextEncrypt) {
+						await self.launchEncryptionBlogPage();
+					}
+				});
+
+			await Promise.resolve([promiseReleaseNotes, promiseEncryption]);
 		}
 	}
 
@@ -898,6 +913,13 @@ export default class MainController implements vscode.Disposable {
 	 */
 	private async launchReleaseNotesPage(): Promise<void> {
 		await vscode.env.openExternal(vscode.Uri.parse(Constants.changelogLink));
+	}
+
+	/**
+	 * Shows the release notes page in the preview browser
+	 */
+	private async launchEncryptionBlogPage(): Promise<void> {
+		await vscode.env.openExternal(vscode.Uri.parse(Constants.encryptionBlogLink));
 	}
 
 	/**

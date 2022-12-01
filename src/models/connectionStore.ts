@@ -457,6 +457,14 @@ export class ConnectionStore {
 		// Connections defined in workspace scope are unioned with the Connections defined in user scope
 		let profilesInConfiguration = this._connectionConfig.getConnections(true);
 
+		// Update encrypt property value for each profile
+		profilesInConfiguration.forEach(async profile => {
+			let update = ConnInfo.updateEncrypt(profile);
+			if (update.status) {
+				await this.saveProfile(update.connection as IConnectionProfile);
+			}
+		});
+
 		// Remove any duplicates that are in both recent connections and the user settings
 		let profilesInRecentConnectionsList: number[] = [];
 		profilesInConfiguration = profilesInConfiguration.filter(profile => {
@@ -472,14 +480,6 @@ export class ConnectionStore {
 				}
 			}
 			return true;
-		});
-
-		// Update encrypt property value for each profile
-		profilesInConfiguration.forEach(async profile => {
-			let update = ConnInfo.updateEncrypt(profile);
-			if (update.status) {
-				await this.saveProfile(update.connection as IConnectionProfile);
-			}
 		});
 
 		// Ensure that MRU items which are actually profiles are labeled as such
