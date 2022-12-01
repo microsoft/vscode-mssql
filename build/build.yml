@@ -66,12 +66,12 @@ steps:
     inputs:
       targets: "package:online"
 
-# - task: UseDotNet@2
-  #   displayName: 'Install .NET Core sdk for signing'
-  #   inputs:
-  #     packageType: sdk
-  #     version: 5.0.x
-  #     installationPath: $(Agent.ToolsDirectory)/dotnet
+- task: UseDotNet@2
+    displayName: 'Install .NET Core sdk for signing'
+    inputs:
+      packageType: sdk
+      version: 5.0.x
+      installationPath: $(Agent.ToolsDirectory)/dotnet
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     inputs:
