@@ -492,7 +492,7 @@ export default class ConnectionManager {
 					profile.trustServerCertificate = true;
 					await reconnectAction(profile);
 				} else if (selection && selection === LocalizedConstants.readMore) {
-					this.vscodeWrapper.openExternal(Constants.encryptionReadMoreLink);
+					this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
 					this.showInstructionTextAsWarning(profile, reconnectAction);
 				}
 			});

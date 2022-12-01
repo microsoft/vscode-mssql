@@ -95,7 +95,6 @@ export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
-export const encryptionReadMoreLink = 'https://learn.microsoft.com/sql/database-engine/configure-windows/enable-encrypted-connections-to-the-database-engine';
 export const changelogLink = 'https://aka.ms/vscode-mssql-changes';
 export const encryptionBlogLink = 'https://aka.ms/vscodemssql-connection';
 export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedauth';
