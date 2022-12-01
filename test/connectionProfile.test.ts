@@ -106,7 +106,6 @@ suite('Connection Profile tests', () => {
 			LocalizedConstants.authTypeName,     // Authentication Type
 			LocalizedConstants.usernamePrompt,   // UserName
 			LocalizedConstants.passwordPrompt,   // Password
-			LocalizedConstants.encryptName,      // Encrypt
 			LocalizedConstants.msgSavePassword,  // Save Password
 			LocalizedConstants.aad,              // Choose AAD Account
 			LocalizedConstants.tenant,           // Choose AAD Tenant
