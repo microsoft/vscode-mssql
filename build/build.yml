@@ -66,6 +66,7 @@ steps:
     inputs:
       targets: "package:online"
 
+# test
 - task: UseDotNet@2
     displayName: 'Install .NET Core sdk for signing'
     inputs:
