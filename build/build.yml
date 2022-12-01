@@ -141,7 +141,7 @@ steps:
           }
         ]
       SessionTimeout: 120
-    displayName: 'Signing Extensions and Langpacks'
+    displayName: 'Signing VSIX'
     condition: and(succeeded(), eq(variables['signed'], true))
 
   - task: PublishBuildArtifacts@1
