@@ -51,31 +51,33 @@ steps:
       summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml
       additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/coverage-remapped/coverage.json
 
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: Install vsce
+    inputs:
+      arguments: "global add vsce@2.9.2"
+
+  - task: gulp@0
+    displayName: "gulp package:offline"
+    inputs:
+      targets: "package:offline"
+
+  - task: gulp@0
+    displayName: "gulp package:online"
+    inputs:
+      targets: "package:online"
+
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core sdk for signing'
+    inputs:
+      packageType: sdk
+      version: 2.1.x
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-    displayName: 'Sign out code'
     inputs:
       ConnectedServiceName: 'Code Signing'
-      FolderPath: '$(agent.builddirectory)'
-      Pattern: |
-        *.exe
-        *.node
-        !**/node_modules/**/*
-        resources/app/node_modules.asar.unpacked/*.dll
-        d3dcompiler_47.dll
-        vulkan-1.dll
-        libGLESv2.dll
-        ffmpeg.dll
-        libEGL.dll
-        Microsoft.SqlTools.Hosting.dll
-        Microsoft.SqlTools.ResourceProvider.Core.dll
-        Microsoft.SqlTools.ResourceProvider.DefaultImpl.dll
-        MicrosoftSqlToolsCredentials.dll
-        MicrosoftSqlToolsServiceLayer.dll
-        Newtonsoft.Json.dll,SqlSerializationService.dll
-        SqlToolsResourceProviderService.dll
-        Microsoft.SqlServer.*.dll
-        Microsoft.Data.Tools.Sql.BatchParser.dll
-      useMinimatch: true
+      FolderPath: '$(Build.SourcesDirectory)'
+      Pattern: '*.vsix'
       signConfigType: inlineSignParams
       inlineOperation: |
         [
@@ -118,43 +120,7 @@ steps:
                 ],
             "toolName": "signtool.exe",
             "toolVersion": "6.2.9304.0"
-          }
-        ]
-      SessionTimeout: 600
-      MaxConcurrency: 5
-      MaxRetryAttempts: 20
-    condition: and(succeeded(), eq(variables['signed'], true))
-
-  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-    displayName: Install vsce
-    inputs:
-      arguments: "global add vsce@2.9.2"
-
-  - task: gulp@0
-    displayName: "gulp package:offline"
-    inputs:
-      targets: "package:offline"
-
-  - task: gulp@0
-    displayName: "gulp package:online"
-    inputs:
-      targets: "package:online"
-
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core sdk for signing'
-    inputs:
-      packageType: sdk
-      version: 2.1.x
-      installationPath: $(Agent.ToolsDirectory)/dotnet
-
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-    inputs:
-      ConnectedServiceName: 'Code Signing'
-      FolderPath: '$(Build.SourcesDirectory)'
-      Pattern: '*.vsix'
-      signConfigType: inlineSignParams
-      inlineOperation: |
-        [
+          },
           {
             "keyCode": "CP-233016",
             "operationSetCode": "OpcSign",
@@ -175,7 +141,9 @@ steps:
             "toolVersion": "1.0"
           }
         ]
-      SessionTimeout: 120
+      SessionTimeout: 600
+      MaxConcurrency: 5
+      MaxRetryAttempts: 20
     displayName: 'Signing VSIX'
     condition: and(succeeded(), eq(variables['signed'], true))
 
