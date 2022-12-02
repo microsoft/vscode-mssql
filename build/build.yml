@@ -99,7 +99,7 @@ steps:
               },
               {
                 "parameterName": "FileDigest",
-                "parameterValue": "/fd sha256"
+                "parameterValue": "/fd \"SHA256\""
               },
               {
                 "parameterName": "TimeStamp",
@@ -118,25 +118,6 @@ steps:
                 "parameterValue": "/all"
               }
             ],
-            "toolName": "sign",
-            "toolVersion": "1.0"
-          },
-          {
-            "keyCode": "CP-233016",
-            "operationSetCode": "OpcSign",
-            "parameters": [
-              {
-                "parameterName": "FileDigest",
-                "parameterValue": "/fd \"SHA256\""
-              }
-            ],
-            "toolName": "sign",
-            "toolVersion": "1.0"
-          },
-          {
-            "keyCode": "CP-233016",
-            "operationSetCode": "OpcVerify",
-            "parameters": [],
             "toolName": "sign",
             "toolVersion": "1.0"
           }
