@@ -82,44 +82,44 @@ steps:
       inlineOperation: |
         [
           {
-            "keyCode": "CP-230012",
+            "keyCode": "CP-233016",
             "operationSetCode": "SigntoolSign",
             "parameters": [
-            {
-              "parameterName": "OpusName",
-              "parameterValue": "vscode-mssql"
-            },
-            {
-              "parameterName": "OpusInfo",
-              "parameterValue": "https://github.com/microsoft/vscode-mssql"
-            },
-            {
-              "parameterName": "PageHash",
-              "parameterValue": "/NPH"
-            },
-            {
-              "parameterName": "FileDigest",
-              "parameterValue": "/fd sha256"
-            },
-            {
-              "parameterName": "TimeStamp",
-              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            }
+              {
+                "parameterName": "OpusName",
+                "parameterValue": "vscode-mssql"
+              },
+              {
+                "parameterName": "OpusInfo",
+                "parameterValue": "https://github.com/microsoft/vscode-mssql"
+              },
+              {
+                "parameterName": "PageHash",
+                "parameterValue": "/NPH"
+              },
+              {
+                "parameterName": "FileDigest",
+                "parameterValue": "/fd sha256"
+              },
+              {
+                "parameterName": "TimeStamp",
+                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+              }
             ],
-            "toolName": "signtool.exe",
-            "toolVersion": "6.2.9304.0"
+            "toolName": "sign",
+            "toolVersion": "1.0"
           },
           {
-            "keyCode": "CP-230012",
+            "keyCode": "CP-233016",
             "operationSetCode": "SigntoolVerify",
             "parameters": [
-            {
-              "parameterName": "VerifyAll",
-              "parameterValue": "/all"
-            }
-                ],
-            "toolName": "signtool.exe",
-            "toolVersion": "6.2.9304.0"
+              {
+                "parameterName": "VerifyAll",
+                "parameterValue": "/all"
+              }
+            ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
           },
           {
             "keyCode": "CP-233016",
