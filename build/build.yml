@@ -51,6 +51,80 @@ steps:
       summaryFileLocation: $(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml
       additionalCodeCoverageFiles: $(System.DefaultWorkingDirectory)/coverage-remapped/coverage.json
 
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'Sign out code'
+    inputs:
+      ConnectedServiceName: 'Code Signing'
+      FolderPath: '$(agent.builddirectory)'
+      Pattern: |
+        *.exe
+        *.node
+        !**/node_modules/**/*
+        resources/app/node_modules.asar.unpacked/*.dll
+        d3dcompiler_47.dll
+        vulkan-1.dll
+        libGLESv2.dll
+        ffmpeg.dll
+        libEGL.dll
+        Microsoft.SqlTools.Hosting.dll
+        Microsoft.SqlTools.ResourceProvider.Core.dll
+        Microsoft.SqlTools.ResourceProvider.DefaultImpl.dll
+        MicrosoftSqlToolsCredentials.dll
+        MicrosoftSqlToolsServiceLayer.dll
+        Newtonsoft.Json.dll,SqlSerializationService.dll
+        SqlToolsResourceProviderService.dll
+        Microsoft.SqlServer.*.dll
+        Microsoft.Data.Tools.Sql.BatchParser.dll
+      useMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolSign",
+            "parameters": [
+            {
+              "parameterName": "OpusName",
+              "parameterValue": "vscode-mssql"
+            },
+            {
+              "parameterName": "OpusInfo",
+              "parameterValue": "https://github.com/microsoft/vscode-mssql"
+            },
+            {
+              "parameterName": "PageHash",
+              "parameterValue": "/NPH"
+            },
+            {
+              "parameterName": "FileDigest",
+              "parameterValue": "/fd sha256"
+            },
+            {
+              "parameterName": "TimeStamp",
+              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+            ],
+            "toolName": "signtool.exe",
+            "toolVersion": "6.2.9304.0"
+          },
+          {
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolVerify",
+            "parameters": [
+            {
+              "parameterName": "VerifyAll",
+              "parameterValue": "/all"
+            }
+                ],
+            "toolName": "signtool.exe",
+            "toolVersion": "6.2.9304.0"
+          }
+        ]
+      SessionTimeout: 600
+      MaxConcurrency: 5
+      MaxRetryAttempts: 20
+    condition: and(succeeded(), eq(variables['signed'], true))
+
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
     displayName: Install vsce
     inputs:
