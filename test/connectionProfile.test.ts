@@ -223,7 +223,7 @@ suite('Connection Profile tests', () => {
 		assert.notStrictEqual(typeof details.options['workstationId'], 'undefined');
 	});
 
-	test('Profile is connected to and validated prior to saving', done => {
+	test('Profile is connected to and validated prior to saving', async done => {
 		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
 		connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
@@ -255,7 +255,7 @@ suite('Connection Profile tests', () => {
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile
-		connectionUI.createAndSaveProfile().then(profile => {
+		await connectionUI.createAndSaveProfile().then(profile => {
 			// connection is attempted
 			connectionManagerMock.verify(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
@@ -268,7 +268,7 @@ suite('Connection Profile tests', () => {
 		});
 	});
 
-	test('Profile is not saved when connection validation fails', done => {
+	test('Profile is not saved when connection validation fails', async done => {
 		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
 		connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
@@ -303,7 +303,7 @@ suite('Connection Profile tests', () => {
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile
-		connectionUI.createAndSaveProfile()
+		await connectionUI.createAndSaveProfile()
 		// CancelError will be thrown (expected)
 		.catch(() => {
 			// connection is attempted

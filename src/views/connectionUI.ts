@@ -85,32 +85,32 @@ export class ConnectionUI {
 	 * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
 	 */
 	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
-		return await new Promise<IConnectionInfo | undefined>(async (resolve, _) => {
-			let connectionProfileList = await this._connectionStore.getPickListItems();
-			// We have recent connections - show them in a prompt for connection profiles
-			const connectionProfileQuickPick = this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
-			connectionProfileQuickPick.items = connectionProfileList;
-			connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
-			connectionProfileQuickPick.matchOnDescription = true;
-			connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
-			connectionProfileQuickPick.canSelectMany = false;
-			connectionProfileQuickPick.busy = false;
-			connectionProfileQuickPick.show();
-			connectionProfileQuickPick.onDidChangeSelection(selection => {
-				if (selection[0]) {
-					// add progress notification and hide quickpick after user chooses an item from the quickpick
-					connectionProfileQuickPick.busy = true;
-					connectionProfileQuickPick.hide();
-					resolve(this.handleSelectedConnection(selection[0]));
-				} else {
-					resolve(undefined);
-				}
-			});
-			connectionProfileQuickPick.onDidHide(() => {
-				connectionProfileQuickPick.dispose();
-				resolve(undefined);
-			});
+		let connectionInfo: IConnectionInfo;
+		let connectionProfileList = await this._connectionStore.getPickListItems();
+		// We have recent connections - show them in a prompt for connection profiles
+		const connectionProfileQuickPick = this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
+		connectionProfileQuickPick.items = connectionProfileList;
+		connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
+		connectionProfileQuickPick.matchOnDescription = true;
+		connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
+		connectionProfileQuickPick.canSelectMany = false;
+		connectionProfileQuickPick.busy = false;
+		connectionProfileQuickPick.show();
+		connectionProfileQuickPick.onDidChangeSelection(async selection => {
+			if (selection[0]) {
+				// add progress notification and hide quickpick after user chooses an item from the quickpick
+				connectionProfileQuickPick.busy = true;
+				connectionProfileQuickPick.hide();
+				connectionInfo = await this.handleSelectedConnection(selection[0]);
+			} else {
+				return undefined;
+			}
 		});
+		connectionProfileQuickPick.onDidHide(() => {
+			connectionProfileQuickPick.dispose();
+			return undefined;
+		});
+		return connectionInfo;
 	}
 
 	public promptLanguageFlavor(): Promise<string> {
@@ -335,8 +335,8 @@ export class ConnectionUI {
 		});
 	}
 
-	private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
-		return new Promise<IConnectionInfo>((resolve, reject) => {
+	private async handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
+		return new Promise<IConnectionInfo>(async (resolve, reject) => {
 			if (selection !== undefined) {
 				let connectFunc: Promise<IConnectionInfo>;
 				if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
@@ -347,7 +347,7 @@ export class ConnectionUI {
 					connectFunc = this.fillOrPromptForMissingInfo(selection);
 				}
 
-				connectFunc.then((resolvedConnectionCreds) => {
+				await connectFunc.then((resolvedConnectionCreds) => {
 					if (!resolvedConnectionCreds) {
 						resolve(undefined);
 					}
@@ -442,17 +442,17 @@ export class ConnectionUI {
 	 * @param validate whether the profile should be connected to and validated before saving
 	 * @returns undefined if profile creation failed
 	 */
-	public createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
+	public async createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
 		let self = this;
-		return self.promptForCreateProfile()
-			.then(profile => {
+		return await self.promptForCreateProfile()
+			.then(async profile => {
 				if (profile) {
 					if (validate) {
 						// Validate the profile before saving
-						return self.validateAndSaveProfile(profile);
+						return await self.validateAndSaveProfile(profile);
 					} else {
 						// Save the profile without validation
-						return self.saveProfile(profile);
+						return await self.saveProfile(profile);
 					}
 				}
 				return undefined;
@@ -546,8 +546,8 @@ export class ConnectionUI {
 		return await this._connectionStore.saveProfile(profile);
 	}
 
-	private promptForCreateProfile(): Promise<IConnectionProfile> {
-		return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+	private async promptForCreateProfile(): Promise<IConnectionProfile> {
+		return await ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
 			this.connectionManager.azureController, this._accountStore);
 	}
 

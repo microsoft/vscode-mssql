@@ -137,29 +137,27 @@ export class ConnectionStore {
 		return this.loadProfiles(getWorkspaceProfiles);
 	}
 
-	public addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
+	public async addSavedPassword(credentialsItem: IConnectionCredentialsQuickPickItem): Promise<IConnectionCredentialsQuickPickItem> {
 		let self = this;
-		return new Promise<IConnectionCredentialsQuickPickItem>((resolve, reject) => {
-			if (typeof (credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
-				credentialsItem.connectionCreds['savePassword'] === false) {
-				// Don't try to lookup a saved password if savePassword is set to false for the credential
-				resolve(credentialsItem);
-				// Note that 'emptyPasswordInput' property is only present for connection profiles
-			} else if (self.shouldLookupSavedPassword(<IConnectionProfile>credentialsItem.connectionCreds)) {
-				let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
-				self._credentialStore.readCredential(credentialId)
-					.then(savedCred => {
-						if (savedCred) {
-							credentialsItem.connectionCreds.password = savedCred.password;
-						}
-						resolve(credentialsItem);
-					})
-					.catch(err => reject(err));
-			} else {
-				// Already have a password, no need to look up
-				resolve(credentialsItem);
+		if (typeof (credentialsItem.connectionCreds['savePassword']) === 'undefined' ||
+			credentialsItem.connectionCreds['savePassword'] === false) {
+			// Don't try to lookup a saved password if savePassword is set to false for the credential
+			return credentialsItem;
+			// Note that 'emptyPasswordInput' property is only present for connection profiles
+		} else if (self.shouldLookupSavedPassword(<IConnectionProfile>credentialsItem.connectionCreds)) {
+			let credentialId = ConnectionStore.formatCredentialIdForCred(credentialsItem.connectionCreds, credentialsItem.quickPickItemType);
+			const savedCred = await self._credentialStore.readCredential(credentialId);
+			if (savedCred) {
+				credentialsItem.connectionCreds.password = savedCred.password;
+				return credentialsItem;
 			}
-		});
+			else {
+				Promise.reject(new Error('No saved password found'));
+			}
+		} else {
+			// Already have a password, no need to look up
+			return credentialsItem;
+		}
 	}
 
 	/**
