@@ -77,7 +77,7 @@ export class ObjectExplorerService {
 				let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
 				// if no node label, check if it has a name in saved profiles
 				// in case this call came from new query
-				let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+				let savedConnections = await this._connectionManager.connectionStore.loadAllConnections();
 				let nodeConnection = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
 				for (let connection of savedConnections) {
 					if (Utils.isSameConnection(connection.connectionCreds, nodeConnection)) {
@@ -278,8 +278,8 @@ export class ObjectExplorerService {
 	/**
 	 * Get nodes from saved connections
 	 */
-	private getSavedConnections(): void {
-		let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+	private async getSavedConnections(): Promise<void> {
+		let savedConnections = await this._connectionManager.connectionStore.loadAllConnections();
 		savedConnections.forEach((conn) => {
 			let nodeLabel = conn.label === conn.connectionCreds.server ?
 				this.createNodeLabel(conn.connectionCreds) : conn.label;
@@ -390,7 +390,7 @@ export class ObjectExplorerService {
 		} else {
 			// retrieve saved connections first when opening object explorer
 			// for the first time
-			let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+			let savedConnections = await this._connectionManager.connectionStore.loadAllConnections();
 			// if there are no saved connections
 			// show the add connection node
 			if (savedConnections.length === 0) {
@@ -401,7 +401,7 @@ export class ObjectExplorerService {
 			if (!this._objectExplorerProvider.objectExplorerExists) {
 				// if there are actually saved connections
 				this._rootTreeNodeArray = [];
-				this.getSavedConnections();
+				await this.getSavedConnections();
 				this._objectExplorerProvider.objectExplorerExists = true;
 				return this.sortByServerName(this._rootTreeNodeArray);
 			} else {

@@ -6,7 +6,7 @@
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Interfaces from './interfaces';
-import { IConnectionProfile } from '../models/interfaces';
+import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
 import * as Utils from './utils';
 import { IConnectionInfo, ServerInfo } from 'vscode-mssql';
 
@@ -41,9 +41,9 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 
 	// default value for encrypt
 	if (connCreds.encrypt === '' || connCreds.encrypt === true) {
-		connCreds.encrypt = 'Mandatory';
+		connCreds.encrypt = EncryptOptions.Mandatory;
 	} else if (connCreds.encrypt === false) {
-		connCreds.encrypt = 'Optional';
+		connCreds.encrypt = EncryptOptions.Optional;
 	}
 
 	// default value for appName
@@ -53,7 +53,7 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 
 	if (isAzureDatabase(connCreds.server)) {
 		// always encrypt connection when connecting to Azure SQL
-		connCreds.encrypt = 'Mandatory';
+		connCreds.encrypt = EncryptOptions.Mandatory;
 
 		// Ensure minumum connection timeout when connecting to Azure SQL
 		if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
@@ -66,9 +66,9 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 export function updateEncrypt(connection: IConnectionInfo): { connection: IConnectionInfo, status: boolean } {
 	let updatePerformed = true;
 	if (connection.encrypt === true) {
-		connection.encrypt = 'Mandatory';
+		connection.encrypt = EncryptOptions.Mandatory;
 	} else if (connection.encrypt === false) {
-		connection.encrypt = 'Optional';
+		connection.encrypt = EncryptOptions.Optional;
 	} else {
 		updatePerformed = false;
 	}

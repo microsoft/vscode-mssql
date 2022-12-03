@@ -85,8 +85,8 @@ export class ConnectionUI {
 	 * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
 	 */
 	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
-		return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
-			let connectionProfileList = this._connectionStore.getPickListItems();
+		return await new Promise<IConnectionInfo | undefined>(async (resolve, _) => {
+			let connectionProfileList = await this._connectionStore.getPickListItems();
 			// We have recent connections - show them in a prompt for connection profiles
 			const connectionProfileQuickPick = this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
 			connectionProfileQuickPick.items = connectionProfileList;
@@ -679,19 +679,14 @@ export class ConnectionUI {
 
 		// Flow: Select profile to remove, confirm removal, remove, notify
 		let profiles = self._connectionStore.getProfilePickListItems(false);
-		return self.selectProfileForRemoval(profiles)
-			.then(async profile => {
-				if (profile) {
-					return await self._connectionStore.removeProfile(profile);
-				}
-				return false;
-			}).then(result => {
-				if (result) {
-					// TODO again consider moving information prompts to the prompt package
-					this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
-				}
-				return result;
-			});
+		let profile = await self.selectProfileForRemoval(profiles);
+		let profileRemoved = profile ? await self._connectionStore.removeProfile(profile) : false;
+
+		if (profileRemoved) {
+			// TODO again consider moving information prompts to the prompt package
+			this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+		}
+		return profileRemoved;
 	}
 
 	private selectProfileForRemoval(profiles: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionProfile> {

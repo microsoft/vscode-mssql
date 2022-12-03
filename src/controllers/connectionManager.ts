@@ -21,7 +21,7 @@ import { Runtime, PlatformInformation } from '../models/platform';
 import { Deferred } from '../protocol';
 import { AccountService } from '../azure/accountService';
 import { FirewallService } from '../firewall/firewallService';
-import { IConnectionProfile } from '../models/interfaces';
+import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
 import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
@@ -479,23 +479,21 @@ export default class ConnectionManager {
 
 	public async showInstructionTextAsWarning(profile: IConnectionInfo, reconnectAction: IReconnectAction): Promise<void> {
 		const instructionText = `${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
-		await this.vscodeWrapper.showWarningMessageAdvanced(instructionText,
+		const selection = await this.vscodeWrapper.showWarningMessageAdvanced(instructionText,
 			{ modal: false },
 			[
 				LocalizedConstants.enableTrustServerCertificate,
 				LocalizedConstants.readMore,
 				LocalizedConstants.cancel
-			])
-			.then(async (selection) => {
-				if (selection && selection === LocalizedConstants.enableTrustServerCertificate) {
-					profile.encrypt = 'Mandatory';
-					profile.trustServerCertificate = true;
-					await reconnectAction(profile);
-				} else if (selection && selection === LocalizedConstants.readMore) {
-					this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
-					this.showInstructionTextAsWarning(profile, reconnectAction);
-				}
-			});
+			]);
+		if (selection === LocalizedConstants.enableTrustServerCertificate) {
+			profile.encrypt = EncryptOptions.Mandatory;
+			profile.trustServerCertificate = true;
+			await reconnectAction(profile);
+		} else if (selection === LocalizedConstants.readMore) {
+			this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
+			this.showInstructionTextAsWarning(profile, reconnectAction);
+		}
 	}
 
 	private async tryAddMruConnection(connection: ConnectionInfo, newConnection: IConnectionInfo): Promise<void> {

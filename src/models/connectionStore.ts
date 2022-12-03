@@ -117,8 +117,8 @@ export class ConnectionStore {
 	 *
 	 * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
 	 */
-	public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
-		let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
+	public async getPickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
+		let pickListItems: IConnectionCredentialsQuickPickItem[] = await this.loadAllConnections(true);
 		pickListItems.push(<IConnectionCredentialsQuickPickItem>{
 			label: `$(add) ${LocalizedConstants.CreateProfileFromConnectionsListLabel}`,
 			connectionCreds: undefined,
@@ -204,35 +204,27 @@ export class ConnectionStore {
 	 */
 	public async saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
 		const self = this;
-		return new Promise<IConnectionProfile>(async (resolve, reject) => {
-			// Add the profile to the saved list, taking care to clear out the password field if necessary
-			let savedProfile: IConnectionProfile;
-			if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
-				savedProfile = Object.assign({}, profile, { azureAccountToken: '' });
+		// Add the profile to the saved list, taking care to clear out the password field if necessary
+		let savedProfile: IConnectionProfile;
+		if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
+			savedProfile = Object.assign({}, profile, { azureAccountToken: '' });
+		} else {
+			if (forceWritePlaintextPassword) {
+				savedProfile = Object.assign({}, profile);
 			} else {
-				if (forceWritePlaintextPassword) {
-					savedProfile = Object.assign({}, profile);
-				} else {
-					savedProfile = Object.assign({}, profile, { password: '' });
-				}
+				savedProfile = Object.assign({}, profile, { password: '' });
 			}
+		}
 
-			await self._connectionConfig.addConnection(savedProfile)
-				.then(async () => {
-					// Only save if we successfully added the profile
-					return await self.saveProfilePasswordIfNeeded(profile);
-					// And resolve / reject at the end of the process
-				}, err => {
-					reject(err);
-				}).then(resolved => {
-					// Add necessary default properties before returning
-					// this is needed to support immediate connections
-					ConnInfo.fixupConnectionCredentials(profile);
-					resolve(profile);
-				}, err => {
-					reject(err);
-				});
+		await self._connectionConfig.addConnection(savedProfile)
+		.catch(err => {
+			return Promise.reject(err);
+		}).then(async () => {
+			// Only save if we successfully added the profile
+			await self.saveProfilePasswordIfNeeded(profile);
+			ConnInfo.fixupConnectionCredentials(profile);
 		});
+		return profile;
 	}
 
 	/**
@@ -443,7 +435,7 @@ export class ConnectionStore {
 	}
 
 	// Load connections from user preferences
-	public loadAllConnections(addRecentConnections: boolean = false): IConnectionCredentialsQuickPickItem[] {
+	public async loadAllConnections(addRecentConnections: boolean = false): Promise<IConnectionCredentialsQuickPickItem[]> {
 		let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
 
 		// Read recently used items from a memento
@@ -457,13 +449,13 @@ export class ConnectionStore {
 		// Connections defined in workspace scope are unioned with the Connections defined in user scope
 		let profilesInConfiguration = this._connectionConfig.getConnections(true);
 
-		// Update encrypt property value for each profile
-		profilesInConfiguration.forEach(async profile => {
+		// Update encrypt property value for each profile synchronously
+		for(const profile of profilesInConfiguration) {
 			let update = ConnInfo.updateEncrypt(profile);
 			if (update.status) {
 				await this.saveProfile(update.connection as IConnectionProfile);
 			}
-		});
+		}
 
 		// Remove any duplicates that are in both recent connections and the user settings
 		let profilesInRecentConnectionsList: number[] = [];

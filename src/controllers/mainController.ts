@@ -153,11 +153,10 @@ export default class MainController implements vscode.Disposable {
 
 			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
 			this._event.on(Constants.cmdConnectObjectExplorerProfile, async (profile: IConnectionProfile) => {
-				await this.createObjectExplorerSession(profile).then(async (result) => {
-					if (result === true) {
-						await this._connectionMgr.connectionUI.saveProfile(profile);
-					}
-				});
+				const result = await this.createObjectExplorerSession(profile);
+				if (result === true) {
+					await this._connectionMgr.connectionUI.saveProfile(profile);
+				}
 			});
 
 			this.initializeQueryHistory();
@@ -239,6 +238,8 @@ export default class MainController implements vscode.Disposable {
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
 
+		// Shows notifications on new extension installtion
+		// This call is intentionally not awaited o avoid blocking extension activation
 		this.showFirstLaunchPrompts();
 
 		// Handle case where SQL file is the 1st opened document
@@ -290,6 +291,8 @@ export default class MainController implements vscode.Disposable {
 
 	/**
 	 * Creates a new Object Explorer session
+	 * @param connectionCredentials Connection credentials to use for the session
+	 * @returns True if the session was created successfully, false otherwise
 	 */
 	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
 		let createSessionPromise = new Deferred<TreeNodeInfo>();
@@ -878,7 +881,7 @@ export default class MainController implements vscode.Disposable {
 	}
 
 	/**
-	 * Prompt the user to view release notes if this is new extension install
+	 * Prompts the user to view release notes and blog post for changes made to the encryption connection property, if this is a new extension install
 	 */
 	private async showFirstLaunchPrompts(): Promise<void> {
 		let self = this;
@@ -904,7 +907,7 @@ export default class MainController implements vscode.Disposable {
 					}
 				});
 
-			await Promise.resolve([promiseReleaseNotes, promiseEncryption]);
+			await Promise.all([promiseReleaseNotes, promiseEncryption]);
 		}
 	}
 
