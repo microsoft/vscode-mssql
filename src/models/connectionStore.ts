@@ -217,13 +217,13 @@ export class ConnectionStore {
 		}
 
 		await self._connectionConfig.addConnection(savedProfile)
-		.catch(err => {
-			return Promise.reject(err);
-		}).then(async () => {
-			// Only save if we successfully added the profile
-			await self.saveProfilePasswordIfNeeded(profile);
-			ConnInfo.fixupConnectionCredentials(profile);
-		});
+			.catch(err => {
+				return Promise.reject(err);
+			}).then(async () => {
+				// Only save if we successfully added the profile
+				await self.saveProfilePasswordIfNeeded(profile);
+				ConnInfo.fixupConnectionCredentials(profile);
+			});
 		return profile;
 	}
 
@@ -450,7 +450,7 @@ export class ConnectionStore {
 		let profilesInConfiguration = this._connectionConfig.getConnections(true);
 
 		// Update encrypt property value for each profile synchronously
-		for(const profile of profilesInConfiguration) {
+		for (const profile of profilesInConfiguration) {
 			let update = ConnInfo.updateEncrypt(profile);
 			if (update.status) {
 				await this.saveProfile(update.connection as IConnectionProfile);
