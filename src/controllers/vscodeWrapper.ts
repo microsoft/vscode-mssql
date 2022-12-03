@@ -299,7 +299,7 @@ export default class VscodeWrapper {
 	 * Formats and shows a vscode warning message with items
 	 */
 	public showWarningMessageAdvanced(msg: string, messageOptions: vscode.MessageOptions, items: any[]): Thenable<string> {
-		return vscode.window.showWarningMessage(msg, messageOptions, ...items);
+		return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg, messageOptions, ...items);
 	}
 
 	/**
