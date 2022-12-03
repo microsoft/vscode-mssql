@@ -478,8 +478,8 @@ export default class ConnectionManager {
 	}
 
 	public async showInstructionTextAsWarning(profile: IConnectionInfo, reconnectAction: IReconnectAction): Promise<void> {
-		const instructionText = `${LocalizedConstants.msgPromptSSLCertificateValidationFailed}`;
-		const selection = await this.vscodeWrapper.showWarningMessageAdvanced(instructionText,
+		const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
+			LocalizedConstants.msgPromptSSLCertificateValidationFailed,
 			{ modal: false },
 			[
 				LocalizedConstants.enableTrustServerCertificate,

@@ -200,7 +200,6 @@ export class ConnectionStore {
 	 * @returns {Promise<IConnectionProfile>} a Promise that returns the original profile, for help in chaining calls
 	 */
 	public async saveProfile(profile: IConnectionProfile, forceWritePlaintextPassword?: boolean): Promise<IConnectionProfile> {
-		const self = this;
 		// Add the profile to the saved list, taking care to clear out the password field if necessary
 		let savedProfile: IConnectionProfile;
 		if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
@@ -213,14 +212,11 @@ export class ConnectionStore {
 			}
 		}
 
-		await self._connectionConfig.addConnection(savedProfile)
-			.catch(err => {
-				return Promise.reject(err);
-			}).then(async () => {
-				// Only save if we successfully added the profile
-				await self.saveProfilePasswordIfNeeded(profile);
-				ConnInfo.fixupConnectionCredentials(profile);
-			});
+		await this._connectionConfig.addConnection(savedProfile);
+
+		if (await this.saveProfilePasswordIfNeeded(profile)) {
+			ConnInfo.fixupConnectionCredentials(profile);
+		}
 		return profile;
 	}
 
@@ -372,33 +368,21 @@ export class ConnectionStore {
 	 * @returns {Promise<boolean>} true if successful
 	 */
 	public async removeProfile(profile: IConnectionProfile, keepCredentialStore: boolean = false): Promise<boolean> {
-		const self = this;
-		return new Promise<boolean>(async (resolve, reject) => {
-			await self._connectionConfig.removeConnection(profile).then(profileFound => {
-				resolve(profileFound);
-			}).catch(err => {
-				reject(err);
-			});
-		}).then(profileFound => {
+		let profileFound = await this._connectionConfig.removeConnection(profile);
+		if (profileFound) {
 			// Remove the profile from the recently used list if necessary
-			return new Promise<boolean>((resolve, reject) => {
-				self.removeRecentlyUsed(profile, keepCredentialStore).then(() => {
-					resolve(profileFound);
-				}).catch(err => {
-					reject(err);
-				});
-			});
-		}).then(profileFound => {
+			await this.removeRecentlyUsed(profile, keepCredentialStore);
+
 			// Now remove password from credential store. Currently do not care about status unless an error occurred
 			if (profile.savePassword === true && !keepCredentialStore) {
 				let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
-				self._credentialStore.deleteCredential(credentialId).then(undefined, rejected => {
+				this._credentialStore.deleteCredential(credentialId).then(undefined, rejected => {
 					throw new Error(rejected);
 				});
 			}
 
 			return profileFound;
-		});
+		}
 	}
 
 	private createQuickPickItem(item: IConnectionInfo, itemType: CredentialsQuickPickItemType): IConnectionCredentialsQuickPickItem {
@@ -417,8 +401,7 @@ export class ConnectionStore {
 	 */
 	public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
 		let credentialId = ConnectionStore.formatCredentialId(profile.server, profile.database, profile.user, ConnectionStore.CRED_PROFILE_USER);
-		let result = await this._credentialStore.deleteCredential(credentialId);
-		return result;
+		return await this._credentialStore.deleteCredential(credentialId);
 	}
 
 	/**
@@ -446,11 +429,13 @@ export class ConnectionStore {
 		// Connections defined in workspace scope are unioned with the Connections defined in user scope
 		let profilesInConfiguration = this._connectionConfig.getConnections(true);
 
-		// Update encrypt property value for each profile synchronously
+		// Update encrypt property value for each profile synchronously.
+		// Asynchronously updating the encrypt property value for each profile can cause
+		// inconsistent behavior in Object explorer and multiple entries of same connection profile could be seen
 		for (const profile of profilesInConfiguration) {
-			let update = ConnInfo.updateEncrypt(profile);
-			if (update.status) {
-				await this.saveProfile(update.connection as IConnectionProfile);
+			let result = ConnInfo.updateEncrypt(profile);
+			if (result.updateStatus) {
+				await this.saveProfile(result.connection as IConnectionProfile);
 			}
 		}
 

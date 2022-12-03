@@ -63,7 +63,7 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 	return connCreds;
 }
 
-export function updateEncrypt(connection: IConnectionInfo): { connection: IConnectionInfo, status: boolean } {
+export function updateEncrypt(connection: IConnectionInfo): { connection: IConnectionInfo, updateStatus: boolean } {
 	let updatePerformed = true;
 	if (connection.encrypt === true) {
 		connection.encrypt = EncryptOptions.Mandatory;
@@ -72,7 +72,7 @@ export function updateEncrypt(connection: IConnectionInfo): { connection: IConne
 	} else {
 		updatePerformed = false;
 	}
-	return { connection: connection, status: updatePerformed };
+	return { connection: connection, updateStatus: updatePerformed };
 }
 
 // return true if server name ends with '.database.windows.net'

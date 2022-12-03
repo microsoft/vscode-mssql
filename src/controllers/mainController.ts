@@ -239,7 +239,7 @@ export default class MainController implements vscode.Disposable {
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
 
 		// Shows notifications on new extension installtion
-		// This call is intentionally not awaited o avoid blocking extension activation
+		// This call is intentionally not awaited to avoid blocking extension activation
 		this.showFirstLaunchPrompts();
 
 		// Handle case where SQL file is the 1st opened document
@@ -322,7 +322,7 @@ export default class MainController implements vscode.Disposable {
 
 		// Sets the correct current node on any node selection
 		this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
-			if (e.selection && e.selection.length > 0) {
+			if (e.selection?.length > 0) {
 				self._objectExplorerProvider.currentNode = e.selection[0];
 			}
 		}));

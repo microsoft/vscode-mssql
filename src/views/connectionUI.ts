@@ -85,32 +85,34 @@ export class ConnectionUI {
 	 * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
 	 */
 	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
-		let connectionInfo: IConnectionInfo;
-		let connectionProfileList = await this._connectionStore.getPickListItems();
-		// We have recent connections - show them in a prompt for connection profiles
-		const connectionProfileQuickPick = this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
-		connectionProfileQuickPick.items = connectionProfileList;
-		connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
-		connectionProfileQuickPick.matchOnDescription = true;
-		connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
-		connectionProfileQuickPick.canSelectMany = false;
-		connectionProfileQuickPick.busy = false;
-		connectionProfileQuickPick.show();
-		connectionProfileQuickPick.onDidChangeSelection(async selection => {
-			if (selection[0]) {
-				// add progress notification and hide quickpick after user chooses an item from the quickpick
-				connectionProfileQuickPick.busy = true;
-				connectionProfileQuickPick.hide();
-				connectionInfo = await this.handleSelectedConnection(selection[0]);
-			} else {
-				return undefined;
-			}
+		// Let this design use Promise and resolve/reject pattern instead of async/await
+		// because resolve/reject is done in in callback events.
+		return await new Promise<IConnectionInfo | undefined>(async (resolve, _) => {
+			let connectionProfileList = await this._connectionStore.getPickListItems();
+			// We have recent connections - show them in a prompt for connection profiles
+			const connectionProfileQuickPick = this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
+			connectionProfileQuickPick.items = connectionProfileList;
+			connectionProfileQuickPick.placeholder = LocalizedConstants.recentConnectionsPlaceholder;
+			connectionProfileQuickPick.matchOnDescription = true;
+			connectionProfileQuickPick.ignoreFocusOut = ignoreFocusOut;
+			connectionProfileQuickPick.canSelectMany = false;
+			connectionProfileQuickPick.busy = false;
+			connectionProfileQuickPick.show();
+			connectionProfileQuickPick.onDidChangeSelection(selection => {
+				if (selection[0]) {
+					// add progress notification and hide quickpick after user chooses an item from the quickpick
+					connectionProfileQuickPick.busy = true;
+					connectionProfileQuickPick.hide();
+					resolve(this.handleSelectedConnection(selection[0]));
+				} else {
+					resolve(undefined);
+				}
+			});
+			connectionProfileQuickPick.onDidHide(() => {
+				connectionProfileQuickPick.dispose();
+				resolve(undefined);
+			});
 		});
-		connectionProfileQuickPick.onDidHide(() => {
-			connectionProfileQuickPick.dispose();
-			return undefined;
-		});
-		return connectionInfo;
 	}
 
 	public promptLanguageFlavor(): Promise<string> {
@@ -347,7 +349,7 @@ export class ConnectionUI {
 					connectFunc = this.fillOrPromptForMissingInfo(selection);
 				}
 
-				await connectFunc.then((resolvedConnectionCreds) => {
+				connectFunc.then((resolvedConnectionCreds) => {
 					if (!resolvedConnectionCreds) {
 						resolve(undefined);
 					}
