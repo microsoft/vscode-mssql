@@ -150,8 +150,7 @@ export class ConnectionStore {
 			if (savedCred) {
 				credentialsItem.connectionCreds.password = savedCred.password;
 				return credentialsItem;
-			}
-			else {
+			} else {
 				Promise.reject(new Error('No saved password found'));
 			}
 		} else {
