@@ -24,6 +24,7 @@ import { ObjectExplorerUtils } from './objectExplorerUtils';
 import * as Utils from '../models/utils';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
+import * as ConnInfo from '../models/connectionInfo';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
 
@@ -77,7 +78,7 @@ export class ObjectExplorerService {
 				let nodeLabel = this._nodePathToNodeLabelMap.get(result.rootNode.nodePath);
 				// if no node label, check if it has a name in saved profiles
 				// in case this call came from new query
-				let savedConnections = await this._connectionManager.connectionStore.loadAllConnections();
+				let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
 				let nodeConnection = this._sessionIdToConnectionCredentialsMap.get(result.sessionId);
 				for (let connection of savedConnections) {
 					if (Utils.isSameConnection(connection.connectionCreds, nodeConnection)) {
@@ -279,8 +280,15 @@ export class ObjectExplorerService {
 	 * Get nodes from saved connections
 	 */
 	private async getSavedConnections(): Promise<void> {
-		let savedConnections = await this._connectionManager.connectionStore.loadAllConnections();
-		savedConnections.forEach((conn) => {
+		let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
+		// Update encrypt property value for each profile synchronously.
+		// Asynchronously updating the encrypt property value for each profile can cause
+		// inconsistent behavior in Object explorer and multiple entries of same connection profile could be seen
+		for (const conn of savedConnections) {
+			let result = ConnInfo.updateEncrypt(conn.connectionCreds);
+			if (result.updateStatus) {
+				await this._connectionManager.connectionStore.saveProfile(result.connection as IConnectionProfile);
+			}
 			let nodeLabel = conn.label === conn.connectionCreds.server ?
 				this.createNodeLabel(conn.connectionCreds) : conn.label;
 			this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
@@ -290,7 +298,7 @@ export class ObjectExplorerService {
 				undefined, undefined, Constants.disconnectedServerLabel,
 				undefined, conn.connectionCreds, undefined);
 			this._rootTreeNodeArray.push(node);
-		});
+		}
 	}
 
 	/**
@@ -390,7 +398,7 @@ export class ObjectExplorerService {
 		} else {
 			// retrieve saved connections first when opening object explorer
 			// for the first time
-			let savedConnections = await this._connectionManager.connectionStore.loadAllConnections();
+			let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
 			// if there are no saved connections
 			// show the add connection node
 			if (savedConnections.length === 0) {

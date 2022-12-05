@@ -117,8 +117,8 @@ export class ConnectionStore {
 	 *
 	 * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
 	 */
-	public async getPickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
-		let pickListItems: IConnectionCredentialsQuickPickItem[] = await this.loadAllConnections(true);
+	public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
+		let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
 		pickListItems.push(<IConnectionCredentialsQuickPickItem>{
 			label: `$(add) ${LocalizedConstants.CreateProfileFromConnectionsListLabel}`,
 			connectionCreds: undefined,
@@ -415,7 +415,7 @@ export class ConnectionStore {
 	}
 
 	// Load connections from user preferences
-	public async loadAllConnections(addRecentConnections: boolean = false): Promise<IConnectionCredentialsQuickPickItem[]> {
+	public loadAllConnections(addRecentConnections: boolean = false): IConnectionCredentialsQuickPickItem[] {
 		let quickPickItems: IConnectionCredentialsQuickPickItem[] = [];
 
 		// Read recently used items from a memento
@@ -428,16 +428,6 @@ export class ConnectionStore {
 		// Per this https://code.visualstudio.com/Docs/customization/userandworkspace
 		// Connections defined in workspace scope are unioned with the Connections defined in user scope
 		let profilesInConfiguration = this._connectionConfig.getConnections(true);
-
-		// Update encrypt property value for each profile synchronously.
-		// Asynchronously updating the encrypt property value for each profile can cause
-		// inconsistent behavior in Object explorer and multiple entries of same connection profile could be seen
-		for (const profile of profilesInConfiguration) {
-			let result = ConnInfo.updateEncrypt(profile);
-			if (result.updateStatus) {
-				await this.saveProfile(result.connection as IConnectionProfile);
-			}
-		}
 
 		// Remove any duplicates that are in both recent connections and the user settings
 		let profilesInRecentConnectionsList: number[] = [];

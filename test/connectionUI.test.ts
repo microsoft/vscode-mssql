@@ -82,7 +82,7 @@ suite('Connection UI tests', () => {
 		onDidChangeSelectionEventEmitter.fire([item]);
 		await promptPromise;
 
-		connectionStore.verify(async c => await c.getPickListItems(), TypeMoq.Times.once());
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
@@ -103,7 +103,7 @@ suite('Connection UI tests', () => {
 		onDidChangeSelectionEventEmitter.fire([item]);
 		await promptPromise;
 
-		connectionStore.verify(async c => await c.getPickListItems(), TypeMoq.Times.once());
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 
@@ -116,7 +116,7 @@ suite('Connection UI tests', () => {
 		onDidHideEventEmitter.fire();
 		await promptForConnectionPromise;
 
-		connectionStore.verify(async c => await c.getPickListItems(), TypeMoq.Times.once());
+		connectionStore.verify(c => c.getPickListItems(), TypeMoq.Times.once());
 		quickPickMock.verify(q => q.show(), TypeMoq.Times.once());
 	});
 

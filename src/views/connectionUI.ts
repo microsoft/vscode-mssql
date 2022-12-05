@@ -87,8 +87,8 @@ export class ConnectionUI {
 	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
 		// Let this design use Promise and resolve/reject pattern instead of async/await
 		// because resolve/reject is done in in callback events.
-		return await new Promise<IConnectionInfo | undefined>(async (resolve, _) => {
-			let connectionProfileList = await this._connectionStore.getPickListItems();
+		return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
+			let connectionProfileList = this._connectionStore.getPickListItems();
 			// We have recent connections - show them in a prompt for connection profiles
 			const connectionProfileQuickPick = this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
 			connectionProfileQuickPick.items = connectionProfileList;
