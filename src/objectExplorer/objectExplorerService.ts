@@ -24,7 +24,6 @@ import { ObjectExplorerUtils } from './objectExplorerUtils';
 import * as Utils from '../models/utils';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
-import * as ConnInfo from '../models/connectionInfo';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
 
@@ -279,16 +278,9 @@ export class ObjectExplorerService {
 	/**
 	 * Get nodes from saved connections
 	 */
-	private async getSavedConnections(): Promise<void> {
+	private getSavedConnections(): void {
 		let savedConnections = this._connectionManager.connectionStore.loadAllConnections();
-		// Update encrypt property value for each profile synchronously.
-		// Asynchronously updating the encrypt property value for each profile can cause
-		// inconsistent behavior in Object explorer and multiple entries of same connection profile could be seen
 		for (const conn of savedConnections) {
-			let result = ConnInfo.updateEncrypt(conn.connectionCreds);
-			if (result.updateStatus) {
-				await this._connectionManager.connectionStore.saveProfile(result.connection as IConnectionProfile);
-			}
 			let nodeLabel = conn.label === conn.connectionCreds.server ?
 				this.createNodeLabel(conn.connectionCreds) : conn.label;
 			this._nodePathToNodeLabelMap.set(conn.connectionCreds.server, nodeLabel);
@@ -409,7 +401,7 @@ export class ObjectExplorerService {
 			if (!this._objectExplorerProvider.objectExplorerExists) {
 				// if there are actually saved connections
 				this._rootTreeNodeArray = [];
-				await this.getSavedConnections();
+				this.getSavedConnections();
 				this._objectExplorerProvider.objectExplorerExists = true;
 				return this.sortByServerName(this._rootTreeNodeArray);
 			} else {

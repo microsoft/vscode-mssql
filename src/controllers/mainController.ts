@@ -12,6 +12,7 @@ import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { RebuildIntelliSenseNotification, CompletionExtensionParams, CompletionExtLoadRequest } from '../models/contracts/languageService';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
+import * as ConnInfo from '../models/connectionInfo';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
@@ -271,6 +272,11 @@ export default class MainController implements vscode.Disposable {
 					await this.connectionManager.connectionStore.saveProfilePasswordIfNeeded(conn);
 					conn.password = '';
 					profileChanged = true;
+				}
+				// Fixup 'Encrypt' property if needed
+				let result = ConnInfo.updateEncrypt(conn);
+				if (result.updateStatus) {
+					await this.connectionManager.connectionStore.saveProfile(result.connection as IConnectionProfile);
 				}
 			}
 			if (profileChanged) {
@@ -1149,7 +1155,6 @@ export default class MainController implements vscode.Disposable {
 			// remove them from object explorer
 			await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
 			needsRefresh = staleConnections.length > 0;
-
 
 			// if a connection(s) was/were manually added
 			let newConnections = userConnections.filter((userConn) => {
