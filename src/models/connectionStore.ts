@@ -151,7 +151,7 @@ export class ConnectionStore {
 				credentialsItem.connectionCreds.password = savedCred.password;
 				return credentialsItem;
 			} else {
-				Promise.reject(new Error('No saved password found'));
+				throw new Error('No saved password found');
 			}
 		} else {
 			// Already have a password, no need to look up

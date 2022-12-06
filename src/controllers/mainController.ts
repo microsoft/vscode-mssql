@@ -239,7 +239,7 @@ export default class MainController implements vscode.Disposable {
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
 
-		// Shows notifications on new extension installtion
+		// Shows first time notifications on extension installation or update
 		// This call is intentionally not awaited to avoid blocking extension activation
 		this.showFirstLaunchPrompts();
 
