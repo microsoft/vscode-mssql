@@ -337,7 +337,7 @@ export class ConnectionUI {
 		});
 	}
 
-	private async handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
+	private handleSelectedConnection(selection: IConnectionCredentialsQuickPickItem): Promise<IConnectionInfo> {
 		return new Promise<IConnectionInfo>((resolve, reject) => {
 			if (selection !== undefined) {
 				let connectFunc: Promise<IConnectionInfo>;
