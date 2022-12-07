@@ -83,27 +83,11 @@ steps:
         [
           {
             "keyCode": "CP-233016",
-            "operationSetCode": "SigntoolSign",
+            "operationSetCode": "OpcSign",
             "parameters": [
-              {
-                "parameterName": "OpusName",
-                "parameterValue": "vscode-mssql"
-              },
-              {
-                "parameterName": "OpusInfo",
-                "parameterValue": "https://github.com/microsoft/vscode-mssql"
-              },
-              {
-                "parameterName": "PageHash",
-                "parameterValue": "/NPH"
-              },
               {
                 "parameterName": "FileDigest",
                 "parameterValue": "/fd \"SHA256\""
-              },
-              {
-                "parameterName": "TimeStamp",
-                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
               }
             ],
             "toolName": "sign",
@@ -111,20 +95,13 @@ steps:
           },
           {
             "keyCode": "CP-233016",
-            "operationSetCode": "SigntoolVerify",
-            "parameters": [
-              {
-                "parameterName": "VerifyAll",
-                "parameterValue": "/all"
-              }
-            ],
+            "operationSetCode": "OpcVerify",
+            "parameters": [],
             "toolName": "sign",
             "toolVersion": "1.0"
           }
         ]
-      SessionTimeout: 600
-      MaxConcurrency: 5
-      MaxRetryAttempts: 20
+      SessionTimeout: 120
     displayName: 'Signing VSIX'
     condition: and(succeeded(), eq(variables['signed'], true))
 
