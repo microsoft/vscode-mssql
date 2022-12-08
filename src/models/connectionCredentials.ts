@@ -151,9 +151,9 @@ export class ConnectionCredentials implements IConnectionInfo {
 					} else if (profile.authenticationType !== unprocessedCredentials.authenticationType ||
 						profile.savePassword !== (<IConnectionProfile>unprocessedCredentials).savePassword ||
 						profile.password !== unprocessedCredentials.password) {
-						await connectionStore.removeProfile(profile).then(async () => {
+						if (await connectionStore.removeProfile(profile)) {
 							await connectionStore.saveProfile(profile);
-						});
+						};
 					}
 				}
 				return credentials;

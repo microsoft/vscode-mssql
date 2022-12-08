@@ -445,29 +445,19 @@ export class ConnectionUI {
 	 * @returns undefined if profile creation failed
 	 */
 	public async createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
-		let self = this;
-		return await self.promptForCreateProfile()
-			.then(async profile => {
-				if (profile) {
-					if (validate) {
-						// Validate the profile before saving
-						return await self.validateAndSaveProfile(profile);
-					} else {
-						// Save the profile without validation
-						return await self.saveProfile(profile);
-					}
+		let profile = await this.promptForCreateProfile();
+		if (profile) {
+			let savedProfile = validate ?
+				await this.validateAndSaveProfile(profile) : await this.saveProfile(profile);
+			if (savedProfile) {
+				if (validate) {
+					this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreatedAndConnected);
+				} else {
+					this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
 				}
-				return undefined;
-			}).then(savedProfile => {
-				if (savedProfile) {
-					if (validate) {
-						self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreatedAndConnected);
-					} else {
-						self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
-					}
-				}
-				return savedProfile;
-			});
+			}
+			return savedProfile;
+		}
 	}
 
 	/**
@@ -482,7 +472,7 @@ export class ConnectionUI {
 		return await self.connectionManager.connect(uri, profile).then(async (result) => {
 			if (result) {
 				// Success! save it
-				return self.saveProfile(profile);
+				return await self.saveProfile(profile);
 			} else {
 				// Check whether the error was for firewall rule or not
 				if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
@@ -562,9 +552,9 @@ export class ConnectionUI {
 		}
 	}
 
-	public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
+	public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false, error: string | undefined = undefined): Promise<IConnectionProfile> {
 		// Ask if the user would like to fix the profile
-		let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
+		let errorMessage = error ? error : (isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile);
 		let result = await this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel);
 		if (result === LocalizedConstants.retryLabel) {
 			return await ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,

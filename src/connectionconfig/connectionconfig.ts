@@ -103,13 +103,8 @@ export class ConnectionConfig implements IConnectionConfig {
 			}
 		});
 
-		return new Promise<boolean>((resolve, reject) => {
-			this.writeProfilesToSettings(profiles).then(() => {
-				resolve(found);
-			}).catch(err => {
-				reject(err);
-			});
-		});
+		await this.writeProfilesToSettings(profiles);
+		return found;
 	}
 
 	/**
@@ -147,13 +142,6 @@ export class ConnectionConfig implements IConnectionConfig {
 	 */
 	private async writeProfilesToSettings(profiles: IConnectionProfile[]): Promise<void> {
 		// Save the file
-		const self = this;
-		return new Promise<void>((resolve, reject) => {
-			self._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, profiles).then(() => {
-				resolve();
-			}, err => {
-				reject(err);
-			});
-		});
+		await this._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, profiles);
 	}
 }

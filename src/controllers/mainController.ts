@@ -154,10 +154,13 @@ export default class MainController implements vscode.Disposable {
 
 			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
 			this._event.on(Constants.cmdConnectObjectExplorerProfile, async (profile: IConnectionProfile) => {
-				const result = await this.createObjectExplorerSession(profile);
-				if (result === true) {
+				try {
 					await this._connectionMgr.connectionUI.saveProfile(profile);
+				} catch (error) {
+					await this._vscodeWrapper.showErrorMessage(error);
+					return;
 				}
+				await this.createObjectExplorerSession(profile);
 			});
 
 			this.initializeQueryHistory();
