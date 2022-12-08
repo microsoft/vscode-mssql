@@ -153,7 +153,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 						profile.password !== unprocessedCredentials.password) {
 						if (await connectionStore.removeProfile(profile)) {
 							await connectionStore.saveProfile(profile);
-						};
+						}
 					}
 				}
 				return credentials;
