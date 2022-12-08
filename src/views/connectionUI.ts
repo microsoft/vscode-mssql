@@ -552,7 +552,7 @@ export class ConnectionUI {
 		}
 	}
 
-	public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false, error: string | undefined = undefined): Promise<IConnectionProfile> {
+	public async promptForRetryCreateProfile(profile: IConnectionProfile, isFirewallError: boolean = false, error: string = undefined): Promise<IConnectionProfile> {
 		// Ask if the user would like to fix the profile
 		let errorMessage = error ? error : (isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile);
 		let result = await this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel);
