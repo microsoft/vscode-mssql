@@ -21,7 +21,7 @@ import { Runtime, PlatformInformation } from '../models/platform';
 import { Deferred } from '../protocol';
 import { AccountService } from '../azure/accountService';
 import { FirewallService } from '../firewall/firewallService';
-import { IConnectionProfile } from '../models/interfaces';
+import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
 import { ConnectionSummary } from '../models/contracts/connection';
 import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
@@ -72,6 +72,10 @@ export class ConnectionInfo {
 	public get loginFailed(): boolean {
 		return this.errorNumber && this.errorNumber === Constants.errorLoginFailed;
 	}
+}
+
+export interface IReconnectAction {
+	(profile: IConnectionInfo): Promise<void>;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -360,7 +364,7 @@ export default class ConnectionManager {
 				mruConnection = Utils.deepClone(connection.credentials);
 				// Convert to credentials if it's a connection string based connection
 				if (connection.credentials.connectionString) {
-					connection.credentials = this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
+					connection.credentials = await this.populateCredentialsFromConnectionString(connection.credentials, result.connectionSummary);
 				}
 				this._connectionCredentialsToServerInfoMap.set(connection.credentials, result.serverInfo);
 
@@ -422,7 +426,15 @@ export default class ConnectionManager {
 			// Check if the error is an expired password
 			if (result.errorNumber === Constants.errorPasswordExpired || result.errorNumber === Constants.errorPasswordNeedsReset) {
 				// TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired, result.errorNumber, result.errorMessage));
+				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionErrorPasswordExpired,
+					result.errorNumber, result.errorMessage));
+				connection.errorNumber = result.errorNumber;
+				connection.errorMessage = result.errorMessage;
+			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) {
+				this.showInstructionTextAsWarning(connection.credentials, async updatedConnection => {
+					vscode.commands.executeCommand(Constants.cmdConnectObjectExplorerProfile, updatedConnection);
+				});
+				return;
 			} else if (result.errorNumber !== Constants.errorLoginFailed) {
 				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
 				// check whether it's a firewall rule error
@@ -430,9 +442,12 @@ export default class ConnectionManager {
 				if (firewallResult.result && firewallResult.ipAddress) {
 					this._failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
 				}
+				connection.errorNumber = result.errorNumber;
+				connection.errorMessage = result.errorMessage;
+			} else {
+				connection.errorNumber = result.errorNumber;
+				connection.errorMessage = result.errorMessage;
 			}
-			connection.errorNumber = result.errorNumber;
-			connection.errorMessage = result.errorMessage;
 		} else {
 			const platformInfo = await PlatformInformation.getCurrent();
 			if (!platformInfo.isWindows && result.errorMessage && result.errorMessage.includes('Kerberos')) {
@@ -462,6 +477,25 @@ export default class ConnectionManager {
 		);
 	}
 
+	public async showInstructionTextAsWarning(profile: IConnectionInfo, reconnectAction: IReconnectAction): Promise<void> {
+		const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
+			LocalizedConstants.msgPromptSSLCertificateValidationFailed,
+			{ modal: false },
+			[
+				LocalizedConstants.enableTrustServerCertificate,
+				LocalizedConstants.readMore,
+				LocalizedConstants.cancel
+			]);
+		if (selection === LocalizedConstants.enableTrustServerCertificate) {
+			profile.encrypt = EncryptOptions.Mandatory;
+			profile.trustServerCertificate = true;
+			await reconnectAction(profile);
+		} else if (selection === LocalizedConstants.readMore) {
+			this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
+			this.showInstructionTextAsWarning(profile, reconnectAction);
+		}
+	}
+
 	private async tryAddMruConnection(connection: ConnectionInfo, newConnection: IConnectionInfo): Promise<void> {
 		if (newConnection) {
 			let connectionToSave: IConnectionInfo = Object.assign({}, newConnection);
@@ -479,7 +513,7 @@ export default class ConnectionManager {
 	/**
 	 * Populates a credential object based on the credential connection string
 	 */
-	private populateCredentialsFromConnectionString(credentials: IConnectionInfo, connectionSummary: ConnectionSummary): IConnectionInfo {
+	private async populateCredentialsFromConnectionString(credentials: IConnectionInfo, connectionSummary: ConnectionSummary): Promise<IConnectionInfo> {
 		// populate credential details
 		credentials.database = connectionSummary.databaseName;
 		credentials.user = connectionSummary.userName;
@@ -489,7 +523,7 @@ export default class ConnectionManager {
 		let isPasswordBased: boolean = ConnectionCredentials.isPasswordBasedConnectionString(credentials.connectionString);
 		if (isPasswordBased) {
 			// save the connection string here
-			this._connectionStore.saveProfileWithConnectionString(credentials as IConnectionProfile);
+			await this._connectionStore.saveProfileWithConnectionString(credentials as IConnectionProfile);
 			// replace the conn string from the profile
 			credentials.connectionString = ConnectionStore.formatCredentialId(credentials.server,
 				credentials.database, credentials.user, ConnectionStore.CRED_PROFILE_USER, true);
@@ -526,7 +560,7 @@ export default class ConnectionManager {
 		// Get list of databases on current server
 		let listParams = new ConnectionContracts.ListDatabasesParams();
 		listParams.ownerUri = fileUri;
-		const result = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
+		const result: ConnectionContracts.ListDatabasesResult = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
 		// Then let the user select a new database to connect to
 		const newDatabaseCredentials = await this.connectionUI.showDatabasesOnCurrentServer(this._connections[fileUri].credentials, result.databaseNames);
 		if (newDatabaseCredentials) {
@@ -556,7 +590,7 @@ export default class ConnectionManager {
 		await this.refreshAzureAccountToken(connectionUri);
 		const listParams = new ConnectionContracts.ListDatabasesParams();
 		listParams.ownerUri = connectionUri;
-		const result = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
+		const result: ConnectionContracts.ListDatabasesResult = await this.client.sendRequest(ConnectionContracts.ListDatabasesRequest.type, listParams);
 		return result.databaseNames;
 	}
 
@@ -616,7 +650,7 @@ export default class ConnectionManager {
 			let disconnectParams = new ConnectionContracts.DisconnectParams();
 			disconnectParams.ownerUri = fileUri;
 
-			const result = await this.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams);
+			const result: ConnectionContracts.DisconnectResult = await this.client.sendRequest(ConnectionContracts.DisconnectRequest.type, disconnectParams);
 			if (this.statusView) {
 				this.statusView.notConnected(fileUri);
 			}
@@ -671,12 +705,12 @@ export default class ConnectionManager {
 	 * @param fileUri file Uri
 	 * @param connectionCreds Connection Profile
 	 */
-	private async handleConnectionResult(result: boolean, fileUri: string, connectionCreds: IConnectionInfo): Promise<boolean> {
+	public async handleConnectionResult(result: boolean, fileUri: string, connectionCreds: IConnectionInfo): Promise<boolean> {
 		let connection = this._connections[fileUri];
 		if (!result && connection && connection.loginFailed) {
 			const newConnection = await this.connectionUI.createProfileWithDifferentCredentials(connectionCreds);
 			if (newConnection) {
-				const newResult = this.connect(fileUri, newConnection);
+				const newResult = await this.connect(fileUri, newConnection);
 				connection = this._connections[fileUri];
 				if (!newResult && connection && connection.loginFailed) {
 					Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, connection.errorNumber, connection.errorMessage));
@@ -940,3 +974,4 @@ export default class ConnectionManager {
 		});
 	}
 }
+

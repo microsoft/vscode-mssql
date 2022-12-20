@@ -52,6 +52,11 @@ export class SessionCreatedParameters {
 	public rootNode: NodeInfo;
 
 	/**
+	 * Error number returned from the engine, if any.
+	 */
+	public errorNumber: number | undefined;
+
+	/**
 	 * Error message returned from the engine for an object explorer session
 	 * failure reason, if any
 	 */

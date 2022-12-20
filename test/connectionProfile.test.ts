@@ -33,8 +33,9 @@ function createTestCredentials(): IConnectionInfo {
 		authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
 		azureAccountToken: '',
 		expiresOn: 0,
-		encrypt: false,
+		encrypt: 'Optional',
 		trustServerCertificate: false,
+		hostNameInCertificate: '',
 		persistSecurityInfo: false,
 		connectTimeout: 15,
 		connectRetryCount: 0,
@@ -102,7 +103,7 @@ suite('Connection Profile tests', () => {
 		let questionNames: string[] = [
 			LocalizedConstants.serverPrompt,     // Server
 			LocalizedConstants.databasePrompt,   // DB Name
-			LocalizedConstants.authTypeName,   // Authentication Type
+			LocalizedConstants.authTypeName,     // Authentication Type
 			LocalizedConstants.usernamePrompt,   // UserName
 			LocalizedConstants.passwordPrompt,   // Password
 			LocalizedConstants.msgSavePassword,  // Save Password
@@ -216,18 +217,19 @@ suite('Connection Profile tests', () => {
 		assert.notStrictEqual(typeof details.options['replication'], 'undefined');
 		assert.notStrictEqual(typeof details.options['server'], 'undefined');
 		assert.notStrictEqual(typeof details.options['trustServerCertificate'], 'undefined');
+		assert.notStrictEqual(typeof details.options['hostNameInCertificate'], 'undefined');
 		assert.notStrictEqual(typeof details.options['typeSystemVersion'], 'undefined');
 		assert.notStrictEqual(typeof details.options['user'], 'undefined');
 		assert.notStrictEqual(typeof details.options['workstationId'], 'undefined');
 	});
 
-	test('Profile is connected to and validated prior to saving', done => {
+	test('Profile is connected to and validated prior to saving', async () => {
 		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
+		connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
 
 		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+		connectionStoreMock.setup(async x => await x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
 		prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -253,27 +255,23 @@ suite('Connection Profile tests', () => {
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile
-		connectionUI.createAndSaveProfile().then(profile => {
-			// connection is attempted
-			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+		await connectionUI.createAndSaveProfile();
 
-			// profile is saved
-			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+		// connection is attempted
+		connectionManagerMock.verify(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
-			done();
-		}).catch(err => {
-			done(err);
-		});
+		// profile is saved
+		connectionStoreMock.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
 	});
 
-	test('Profile is not saved when connection validation fails', done => {
+	test('Profile is not saved when connection validation fails', async () => {
 		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionManagerMock.setup(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
+		connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
 		connectionManagerMock.setup(x => x.failedUriToFirewallIpMap).returns(() => new Map());
 
 		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, contextMock.object);
-		connectionStoreMock.setup(x => x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
+		connectionStoreMock.setup(async x => await x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
 
 		let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
 		prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
@@ -301,19 +299,18 @@ suite('Connection Profile tests', () => {
 			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
 
 		// create a new connection profile
-		connectionUI.createAndSaveProfile()
-		// CancelError will be thrown (expected)
-		.catch(() => {
-			// connection is attempted
-			connectionManagerMock.verify(x => x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
+		await connectionUI.createAndSaveProfile()
+			// CancelError will be thrown (expected)
+			.catch(() => {
+				// connection is attempted
+				connectionManagerMock.verify(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.once());
 
-			// profile is not saved
-			connectionStoreMock.verify(x => x.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
-			done();
-		});
+				// profile is not saved
+				connectionStoreMock.verify(async x => await x.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.never());
+			});
 	});
 
-	test('Profile can be created from a connection string', done => {
+	test('Profile can be created from a connection string', async () => {
 		let answers = {};
 		answers[LocalizedConstants.serverPrompt] = 'Server=my-server';
 
@@ -330,10 +327,8 @@ suite('Connection Profile tests', () => {
 		});
 
 		// Verify that a profile was created
-		ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAzureController, mockAccountStore).then(profile => {
-			assert.equal(Boolean(profile), true);
-			done();
-		});
+		let profile = await ConnectionProfile.createProfile(prompter.object, undefined, undefined, mockAzureController, mockAccountStore);
+		assert.equal(Boolean(profile), true);
 	});
 });
 

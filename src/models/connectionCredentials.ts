@@ -24,8 +24,9 @@ export class ConnectionCredentials implements IConnectionInfo {
 	public authenticationType: string;
 	public azureAccountToken: string | undefined;
 	public expiresOn: number | undefined;
-	public encrypt: boolean;
+	public encrypt: string | boolean;
 	public trustServerCertificate: boolean | undefined;
+	public hostNameInCertificate: string | undefined;
 	public persistSecurityInfo: boolean | undefined;
 	public connectTimeout: number | undefined;
 	public connectRetryCount: number | undefined;
@@ -70,6 +71,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 		details.options['azureAccountToken'] = credentials.azureAccountToken;
 		details.options['encrypt'] = credentials.encrypt;
 		details.options['trustServerCertificate'] = credentials.trustServerCertificate;
+		details.options['hostNameInCertificate'] = credentials.hostNameInCertificate;
 		details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
 		details.options['connectTimeout'] = credentials.connectTimeout;
 		details.options['connectRetryCount'] = credentials.connectRetryCount;
@@ -132,7 +134,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 			}
 		});
 
-		return prompter.prompt(questions).then(answers => {
+		return prompter.prompt(questions).then(async answers => {
 			if (answers) {
 				if (isProfile) {
 					let profile: IConnectionProfile = <IConnectionProfile>credentials;
@@ -142,16 +144,16 @@ export class ConnectionCredentials implements IConnectionInfo {
 					// then transfer the password to the credential store
 					if (profile.savePassword && (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)) {
 						// Remove profile, then save profile without plain text password
-						connectionStore.removeProfile(profile).then(() => {
-							connectionStore.saveProfile(profile);
+						await connectionStore.removeProfile(profile).then(async () => {
+							await connectionStore.saveProfile(profile);
 						});
 						// Or, if the user answered any additional questions for the profile, be sure to save it
 					} else if (profile.authenticationType !== unprocessedCredentials.authenticationType ||
 						profile.savePassword !== (<IConnectionProfile>unprocessedCredentials).savePassword ||
 						profile.password !== unprocessedCredentials.password) {
-						connectionStore.removeProfile(profile).then(() => {
-							connectionStore.saveProfile(profile);
-						});
+						if (await connectionStore.removeProfile(profile)) {
+							await connectionStore.saveProfile(profile);
+						}
 					}
 				}
 				return credentials;

@@ -285,15 +285,20 @@ declare module 'vscode-mssql' {
 		expiresOn: number | undefined;
 
 		/**
-		 * Gets or sets a Boolean value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if
-		 * the server has a certificate installed.
+		 * Gets or sets a string value that indicates whether SQL Server uses SSL encryption for all data sent between the client and server if
+		 * the server has a certificate installed. Accepted values are: Optional, Mandatory (default)
 		 */
-		encrypt: boolean;
+		encrypt: string | boolean;
 
 		/**
 		 * Gets or sets a value that indicates whether the channel will be encrypted while bypassing walking the certificate chain to validate trust.
 		 */
 		trustServerCertificate: boolean | undefined;
+
+		/**
+		 * Gets or sets a string value that provides the host name specified in the certificate chain to be used for trust validation.
+		 */
+		hostNameInCertificate: string | undefined;
 
 		/**
 		 * Gets or sets a Boolean value that indicates if security-sensitive information, such as the password, is not returned as part of the connection

@@ -296,6 +296,20 @@ export default class VscodeWrapper {
 	}
 
 	/**
+	 * Formats and shows a vscode warning message with items
+	 */
+	public showWarningMessageAdvanced(msg: string, messageOptions: vscode.MessageOptions, items: any[]): Thenable<string> {
+		return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg, messageOptions, ...items);
+	}
+
+	/**
+	 * Formats and shows a vscode warning message
+	 */
+	public openExternal(link: string): Thenable<boolean> {
+		return vscode.env.openExternal(vscode.Uri.parse(link));
+	}
+
+	/**
 	 * Returns a array of the text editors currently visible in the window
 	 */
 	public get visibleEditors(): vscode.TextEditor[] {

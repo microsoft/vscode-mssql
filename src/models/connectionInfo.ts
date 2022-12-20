@@ -6,7 +6,7 @@
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Interfaces from './interfaces';
-import { IConnectionProfile } from '../models/interfaces';
+import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
 import * as Utils from './utils';
 import { IConnectionInfo, ServerInfo } from 'vscode-mssql';
 
@@ -40,8 +40,10 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 	}
 
 	// default value for encrypt
-	if (!connCreds.encrypt) {
-		connCreds.encrypt = false;
+	if (connCreds.encrypt === '' || connCreds.encrypt === true) {
+		connCreds.encrypt = EncryptOptions.Mandatory;
+	} else if (connCreds.encrypt === false) {
+		connCreds.encrypt = EncryptOptions.Optional;
 	}
 
 	// default value for appName
@@ -50,15 +52,28 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 	}
 
 	if (isAzureDatabase(connCreds.server)) {
-		// always encrypt connection if connecting to Azure SQL
-		connCreds.encrypt = true;
+		// always encrypt connection when connecting to Azure SQL
+		connCreds.encrypt = EncryptOptions.Mandatory;
 
-		// Ensure minumum connection timeout if connecting to Azure SQL
+		// Ensure minumum connection timeout when connecting to Azure SQL
 		if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
 			connCreds.connectTimeout = Constants.azureSqlDbConnectionTimeout;
 		}
 	}
 	return connCreds;
+}
+
+export function updateEncrypt(connection: IConnectionInfo): { connection: IConnectionInfo, updateStatus: boolean } {
+	let updatePerformed = true;
+	let resultConnection = Object.assign({}, connection);
+	if (connection.encrypt === true) {
+		resultConnection.encrypt = EncryptOptions.Mandatory;
+	} else if (connection.encrypt === false) {
+		resultConnection.encrypt = EncryptOptions.Optional;
+	} else {
+		updatePerformed = false;
+	}
+	return { connection: resultConnection, updateStatus: updatePerformed };
 }
 
 // return true if server name ends with '.database.windows.net'

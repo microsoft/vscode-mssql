@@ -85,6 +85,8 @@ export class ConnectionUI {
 	 * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
 	 */
 	public async promptForConnection(ignoreFocusOut: boolean = false): Promise<IConnectionInfo | undefined> {
+		// Let this design use Promise and resolve/reject pattern instead of async/await
+		// because resolve/reject is done in in callback events.
 		return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
 			let connectionProfileList = this._connectionStore.getPickListItems();
 			// We have recent connections - show them in a prompt for connection profiles
@@ -442,56 +444,46 @@ export class ConnectionUI {
 	 * @param validate whether the profile should be connected to and validated before saving
 	 * @returns undefined if profile creation failed
 	 */
-	public createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
-		let self = this;
-		return self.promptForCreateProfile()
-			.then(profile => {
-				if (profile) {
-					if (validate) {
-						// Validate the profile before saving
-						return self.validateAndSaveProfile(profile);
-					} else {
-						// Save the profile without validation
-						return self.saveProfile(profile);
-					}
+	public async createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
+		let profile = await this.promptForCreateProfile();
+		if (profile) {
+			let savedProfile = validate ?
+				await this.validateAndSaveProfile(profile) : await this.saveProfile(profile);
+			if (savedProfile) {
+				if (validate) {
+					this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreatedAndConnected);
+				} else {
+					this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
 				}
-				return undefined;
-			}).then(savedProfile => {
-				if (savedProfile) {
-					if (validate) {
-						self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreatedAndConnected);
-					} else {
-						self.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
-					}
-				}
-				return savedProfile;
-			});
+			}
+			return savedProfile;
+		}
 	}
 
 	/**
 	 * Validate a connection profile by connecting to it, and save it if we are successful.
 	 */
-	public validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+	public async validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
 		const self = this;
 		let uri = self.vscodeWrapper.activeTextEditorUri;
 		if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
 			uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
 		}
-		return self.connectionManager.connect(uri, profile).then(async (result) => {
+		return await self.connectionManager.connect(uri, profile).then(async (result) => {
 			if (result) {
 				// Success! save it
-				return self.saveProfile(profile);
+				return await self.saveProfile(profile);
 			} else {
 				// Check whether the error was for firewall rule or not
 				if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
 					let success = await this.addFirewallRule(uri, profile);
 					if (success) {
-						return self.validateAndSaveProfile(profile);
+						return await self.validateAndSaveProfile(profile);
 					}
 					return undefined;
 				} else {
 					// Normal connection error! Let the user try again, prefilling values that they already entered
-					return self.promptToRetryAndSaveProfile(profile);
+					return await self.promptToRetryAndSaveProfile(profile);
 				}
 			}
 		});
@@ -542,19 +534,19 @@ export class ConnectionUI {
 	/**
 	 * Save a connection profile using the connection store
 	 */
-	private saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
-		return this._connectionStore.saveProfile(profile);
+	public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+		return await this._connectionStore.saveProfile(profile);
 	}
 
-	private promptForCreateProfile(): Promise<IConnectionProfile> {
-		return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+	private async promptForCreateProfile(): Promise<IConnectionProfile> {
+		return await ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
 			this.connectionManager.azureController, this._accountStore);
 	}
 
 	private async promptToRetryAndSaveProfile(profile: IConnectionProfile, isFirewallError: boolean = false): Promise<IConnectionProfile> {
 		const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
 		if (updatedProfile) {
-			return this.validateAndSaveProfile(updatedProfile);
+			return await this.validateAndSaveProfile(updatedProfile);
 		} else {
 			return undefined;
 		}
@@ -565,7 +557,7 @@ export class ConnectionUI {
 		let errorMessage = isFirewallError ? LocalizedConstants.msgPromptRetryFirewallRuleAdded : LocalizedConstants.msgPromptRetryCreateProfile;
 		let result = await this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.retryLabel);
 		if (result === LocalizedConstants.retryLabel) {
-			return ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
+			return await ConnectionProfile.createProfile(this._prompter, this._connectionStore, this._context,
 				this.connectionManager.azureController, this._accountStore, profile);
 		} else {
 			// user cancelled the prompt - throw error so that we know user cancelled
@@ -674,24 +666,19 @@ export class ConnectionUI {
 	}
 
 	// Prompts the user to pick a profile for removal, then removes from the global saved state
-	public removeProfile(): Promise<boolean> {
+	public async removeProfile(): Promise<boolean> {
 		let self = this;
 
 		// Flow: Select profile to remove, confirm removal, remove, notify
 		let profiles = self._connectionStore.getProfilePickListItems(false);
-		return self.selectProfileForRemoval(profiles)
-			.then(profile => {
-				if (profile) {
-					return self._connectionStore.removeProfile(profile);
-				}
-				return false;
-			}).then(result => {
-				if (result) {
-					// TODO again consider moving information prompts to the prompt package
-					this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
-				}
-				return result;
-			});
+		let profile = await self.selectProfileForRemoval(profiles);
+		let profileRemoved = profile ? await self._connectionStore.removeProfile(profile) : false;
+
+		if (profileRemoved) {
+			// TODO again consider moving information prompts to the prompt package
+			this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+		}
+		return profileRemoved;
 	}
 
 	private selectProfileForRemoval(profiles: IConnectionCredentialsQuickPickItem[]): Promise<IConnectionProfile> {

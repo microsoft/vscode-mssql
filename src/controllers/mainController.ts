@@ -12,6 +12,7 @@ import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
 import { RebuildIntelliSenseNotification, CompletionExtensionParams, CompletionExtLoadRequest } from '../models/contracts/languageService';
 import StatusView from '../views/statusView';
 import ConnectionManager from './connectionManager';
+import * as ConnInfo from '../models/connectionInfo';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { IPrompter } from '../prompts/question';
 import CodeAdapter from '../prompts/adapter';
@@ -151,6 +152,17 @@ export default class MainController implements vscode.Disposable {
 
 			this.initializeObjectExplorer();
 
+			this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
+			this._event.on(Constants.cmdConnectObjectExplorerProfile, (profile: IConnectionProfile) => {
+				this._connectionMgr.connectionUI.saveProfile(profile)
+					.then(async () => {
+						await this.createObjectExplorerSession(profile);
+					})
+					.catch(err => {
+						this._vscodeWrapper.showErrorMessage(err);
+					});
+			});
+
 			this.initializeQueryHistory();
 
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
@@ -230,7 +242,9 @@ export default class MainController implements vscode.Disposable {
 		// Init connection manager and connection MRU
 		this._connectionMgr = new ConnectionManager(this._context, this._statusview, this._prompter);
 
-		this.showReleaseNotesPrompt();
+		// Shows first time notifications on extension installation or update
+		// This call is intentionally not awaited to avoid blocking extension activation
+		this.showFirstLaunchPrompts();
 
 		// Handle case where SQL file is the 1st opened document
 		const activeTextEditor = this._vscodeWrapper.activeTextEditor;
@@ -262,6 +276,11 @@ export default class MainController implements vscode.Disposable {
 					conn.password = '';
 					profileChanged = true;
 				}
+				// Fixup 'Encrypt' property if needed
+				let result = ConnInfo.updateEncrypt(conn);
+				if (result.updateStatus) {
+					await this.connectionManager.connectionStore.saveProfile(result.connection as IConnectionProfile);
+				}
 			}
 			if (profileChanged) {
 				await this._vscodeWrapper.setConfiguration(Constants.extensionName, Constants.connectionsArrayName, connectionProfiles, target);
@@ -281,16 +300,20 @@ export default class MainController implements vscode.Disposable {
 
 	/**
 	 * Creates a new Object Explorer session
+	 * @param connectionCredentials Connection credentials to use for the session
+	 * @returns True if the session was created successfully, false otherwise
 	 */
-	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<void> {
+	private async createObjectExplorerSession(connectionCredentials?: IConnectionInfo): Promise<boolean> {
 		let createSessionPromise = new Deferred<TreeNodeInfo>();
 		const sessionId = await this._objectExplorerProvider.createSession(createSessionPromise, connectionCredentials, this._context);
 		if (sessionId) {
 			const newNode = await createSessionPromise;
 			if (newNode) {
 				this._objectExplorerProvider.refresh(undefined);
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -308,9 +331,8 @@ export default class MainController implements vscode.Disposable {
 
 		// Sets the correct current node on any node selection
 		this._context.subscriptions.push(treeView.onDidChangeSelection((e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
-			const selections: TreeNodeInfo[] = e.selection;
-			if (selections && selections.length > 0) {
-				self._objectExplorerProvider.currentNode = selections[0];
+			if (e.selection?.length > 0) {
+				self._objectExplorerProvider.currentNode = e.selection[0];
 			}
 		}));
 
@@ -868,18 +890,33 @@ export default class MainController implements vscode.Disposable {
 	}
 
 	/**
-	 * Prompt the user to view release notes if this is new extension install
+	 * Prompts the user to view release notes and blog post for changes made to the encryption connection property, if this is a new extension install
 	 */
-	private async showReleaseNotesPrompt(): Promise<void> {
+	private async showFirstLaunchPrompts(): Promise<void> {
 		let self = this;
 		if (!this.doesExtensionLaunchedFileExist()) {
-			// ask the user to view a scenario document
-			let confirmText = 'View Now';
-			const choice = await this._vscodeWrapper.showInformationMessage(
-				'View mssql for Visual Studio Code release notes?', confirmText);
-			if (choice === confirmText) {
-				await self.launchReleaseNotesPage();
-			}
+			// ask the user to view release notes document
+			let confirmText = LocalizedConstants.viewMore;
+			let promiseReleaseNotes = this._vscodeWrapper.showInformationMessage(
+				LocalizedConstants.releaseNotesPromptDescription, confirmText)
+				.then(async (result) => {
+					if (result === confirmText) {
+						await self.launchReleaseNotesPage();
+					}
+				});
+
+
+			// ask the user to view encryption changes document
+			let confirmTextEncrypt = LocalizedConstants.moreInformation;
+			let promiseEncryption = this._vscodeWrapper.showInformationMessage(
+				LocalizedConstants.encryptionChangePromptDescription, confirmTextEncrypt)
+				.then(async (result) => {
+					if (result === confirmTextEncrypt) {
+						await self.launchEncryptionBlogPage();
+					}
+				});
+
+			await Promise.all([promiseReleaseNotes, promiseEncryption]);
 		}
 	}
 
@@ -888,6 +925,13 @@ export default class MainController implements vscode.Disposable {
 	 */
 	private async launchReleaseNotesPage(): Promise<void> {
 		await vscode.env.openExternal(vscode.Uri.parse(Constants.changelogLink));
+	}
+
+	/**
+	 * Shows the release notes page in the preview browser
+	 */
+	private async launchEncryptionBlogPage(): Promise<void> {
+		await vscode.env.openExternal(vscode.Uri.parse(Constants.encryptionBlogLink));
 	}
 
 	/**
@@ -1114,7 +1158,6 @@ export default class MainController implements vscode.Disposable {
 			// remove them from object explorer
 			await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
 			needsRefresh = staleConnections.length > 0;
-
 
 			// if a connection(s) was/were manually added
 			let newConnections = userConnections.filter((userConn) => {
