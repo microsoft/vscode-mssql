@@ -235,6 +235,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";cancel" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cancel]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Отмена]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";canceled" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Canceled]]></Val>
@@ -496,6 +505,69 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";enableTrustServerCertificate" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable Trust Server Certificate]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Включить сертификат доверенного сервера]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";encryptMandatory" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Mandatory (True)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Обязательно (True)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";encryptMandatoryRecommended" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Mandatory (Recommended)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Обязательно (Рекомендуется)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";encryptName" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[encrypt]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[шифровать]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";encryptOptional" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Optional (False)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Необязательно (Ложь)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";encryptPrompt" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Encrypt]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Шифровать]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";encryptionChangePromptDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[расширение mssql для VS Code теперь имеет шифрование, включенное по умолчанию для всех подключений к SQL Server. Это может привести к тому, что ваши существующие соединения перестанут работать, если не будут изменены определенные свойства соединения, связанные с шифрованием. Мы рекомендуем вам перейти по ссылке ниже для получения дополнительной информации.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End IP]]></Val>
@@ -685,6 +757,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";moreInformation" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[More information]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Дополнительная информация]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";msgAccountNotFound" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Account not found]]></Val>
@@ -696,10 +777,13 @@
       </Item>
       <Item ItemId=";msgAccountRefreshFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Credential Error: Account credentials have expired.  Please re-authenticate.]]></Val>
+          <Val><![CDATA[Credential Error: Account credentials have expired. Please re-authenticate.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ошибка учетных данных: истек срок действия учетных данных в учетной записи. Пройдите проверку подлинности еще раз.]]></Val>
+            <Val><![CDATA[Ошибка учетных данных: срок действия учетных данных истек. Повторите аутентификацию.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Credential Error: Account credentials have expired.  Please re-authenticate.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1126,6 +1210,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";msgPromptProfileUpdateFailed" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Не удалось обновить профиль подключения. Измените сведения о подключении вручную в settings.json и повторите попытку.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";msgPromptRetryConnectionDifferentCredentials" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error: Login failed. Retry using different credentials?]]></Val>
@@ -1170,6 +1263,15 @@
           <Val><![CDATA[Account signed In. Create new firewall rule? ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Выполнен вход в учетную запись. Создать новое правило брандмауэра? ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgPromptSSLCertificateValidationFailed" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Для этого подключения было включено шифрование, проверьте конфигурацию SSL и сертификата для целевого SQL Server или установите для параметра «Сертификат доверенного сервера» значение «true» в файле настроек. Примечание. Самозаверяющий сертификат обеспечивает лишь ограниченную защиту и не рекомендуется для производственных сред. Вы хотите включить «Сертификат доверенного сервера» для этого подключения и повторить попытку?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1408,6 +1510,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";readMore" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Read more]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Подробнее]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";recentConnectionsPlaceholder" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a connection profile from the list below]]></Val>
@@ -1422,6 +1533,15 @@
           <Val><![CDATA[Refresh Credentials]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Обновить учетные данные]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";releaseNotesPromptDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View mssql for Visual Studio Code release notes?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Посмотреть примечания к выпуску mssql для Visual Studio Code?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1638,6 +1758,15 @@
           <Val><![CDATA[User name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Имя пользователя]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";viewMore" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View more]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Просмотреть больше]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

@@ -228,10 +228,13 @@
       </Item>
       <Item ItemId=";mssql.connection.encrypt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.]]></Val>
+          <Val><![CDATA[[Optional]5D; When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[選用]5D; 設定為 'true' 時，如果伺服器已安裝憑證，SQL Server 會對客戶端與伺服器之間傳輸的資料使用 SSL 加密。將 Azure SQL Database 連線設定為 'true'。]]></Val>
+            <Val><![CDATA[[選用]5D; 設定為 'Mandatory' 時，如果伺服器已安裝憑證，SQL Server 會對客戶端與伺服器之間傳輸的資料使用 SSL 加密。將 Azure SQL Database 連線設定為 'Mandatory'。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -240,6 +243,15 @@
           <Val><![CDATA[[Optional]5D; Specify the name or network address of the instance of SQL Server that acts as a failover partner.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[選用]5D; 指定作為容錯轉移夥伴的 SQL Server 執行個體名稱或網路位址。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.connection.hostNameInCertificate" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[[Optional]5D; When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[選用]5D; 指定 (和 encrypt=Mandatory 和 trustServerCertificate=false) 時，SQL Server 使用提供的主機名稱來驗證與伺服器憑證的信任。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
