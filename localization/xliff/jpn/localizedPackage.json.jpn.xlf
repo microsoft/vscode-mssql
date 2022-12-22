@@ -171,12 +171,16 @@
         <target state="translated">[省略可能] 接続するポート番号を指定します。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
-        <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source>
-        <target state="translated">[省略可能] 'true' を設定した場合、サーバーに証明書がインストールされていれば、SQL Server はクライアントとサーバー間のデータ送信に SSL 暗号化を使用します。Azure SQL Database 接続には 'true' を設定してください。</target>
+        <source xml:lang="en">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</source>
+        <target state="new">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
         <target state="translated">[省略可能] 'true' を設定した場合、通信レイヤーが SSL で暗号化されていれば、SQL Server の SSL 証明書は自動的に信頼されます。Azure SQL Database 接続には 'false' を設定してください。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.hostNameInCertificate">
+        <source xml:lang="en">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
+        <target state="new">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.persistSecurityInfo">
         <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>

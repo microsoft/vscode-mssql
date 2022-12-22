@@ -171,12 +171,16 @@
         <target state="translated">[Необязательно] Укажите номер порта для подключения.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
-        <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source>
-        <target state="translated">[Необязательно] Когда установлено значение «TRUE», сервер SQL Server использует шифрование SSL для данных, передаваемых между клиентом и сервером, если сервер имеет установленный сертификат. Установите значение «TRUE», для соединения с базой данных SQL Azure.</target>
+        <source xml:lang="en">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</source>
+        <target state="translated">[Необязательно] Если установлено значение «Обязательно», SQL Server использует шифрование SSL для данных, пересылаемых между клиентом и сервером, если на сервере установлен сертификат. Установите «Обязательно» для подключения к базе данных SQL Azure.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
         <target state="translated">[Необязательно] Если этот параметр имеет значение «TRUE», SSL-сертификат сервера SQL Server будет автоматически считаться доверенным, если слой связи зашифрован с использованием SSL. Установите значение «false», чтобы использовать подключение к Базе данных SQL Azure.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.hostNameInCertificate">
+        <source xml:lang="en">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
+        <target state="translated">[Необязательно] Если указано (и encrypt=Mandatory, и trustServerCertificate=false), SQL Server использует предоставленное имя хоста для проверки доверия с сертификатом сервера.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.persistSecurityInfo">
         <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>
