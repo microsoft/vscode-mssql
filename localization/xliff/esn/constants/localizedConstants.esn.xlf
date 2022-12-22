@@ -2,6 +2,22 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="src/constants/localizedConstants" source-language="en" target-language="es">
     <body>
+      <trans-unit id="viewMore">
+        <source xml:lang="en">View more</source>
+        <target state="translated">Ver más</target>
+      </trans-unit>
+      <trans-unit id="releaseNotesPromptDescription">
+        <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
+        <target state="new">View mssql for Visual Studio Code release notes?</target>
+      </trans-unit>
+      <trans-unit id="encryptionChangePromptDescription">
+        <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
+        <target state="new">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</target>
+      </trans-unit>
+      <trans-unit id="moreInformation">
+        <source xml:lang="en">More information</source>
+        <target state="translated">Más información</target>
+      </trans-unit>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
         <target state="translated">Se inició la ejecución de la consulta para el documento "{0}".</target>
@@ -149,6 +165,38 @@
       <trans-unit id="azureAuthTypeDeviceCode">
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Código de dispositivo de Azure</target>
+      </trans-unit>
+      <trans-unit id="encryptPrompt">
+        <source xml:lang="en">Encrypt</source>
+        <target state="translated">Cifrar</target>
+      </trans-unit>
+      <trans-unit id="encryptName">
+        <source xml:lang="en">encrypt</source>
+        <target state="new">encrypt</target>
+      </trans-unit>
+      <trans-unit id="encryptOptional">
+        <source xml:lang="en">Optional (False)</source>
+        <target state="new">Optional (False)</target>
+      </trans-unit>
+      <trans-unit id="encryptMandatory">
+        <source xml:lang="en">Mandatory (True)</source>
+        <target state="new">Mandatory (True)</target>
+      </trans-unit>
+      <trans-unit id="encryptMandatoryRecommended">
+        <source xml:lang="en">Mandatory (Recommended)</source>
+        <target state="new">Mandatory (Recommended)</target>
+      </trans-unit>
+      <trans-unit id="enableTrustServerCertificate">
+        <source xml:lang="en">Enable Trust Server Certificate</source>
+        <target state="new">Enable Trust Server Certificate</target>
+      </trans-unit>
+      <trans-unit id="readMore">
+        <source xml:lang="en">Read more</source>
+        <target state="translated">Leer más</target>
+      </trans-unit>
+      <trans-unit id="cancel">
+        <source xml:lang="en">Cancel</source>
+        <target state="translated">Cancelar</target>
       </trans-unit>
       <trans-unit id="msgCopyAndOpenWebpage">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -342,6 +390,10 @@
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         <target state="translated">Error: No se pudo iniciar sesión. ¿Quiere reintentar con otras credenciales?</target>
       </trans-unit>
+      <trans-unit id="msgPromptSSLCertificateValidationFailed">
+        <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
+        <target state="new">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+      </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
         <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
         <target state="translated">La dirección IP del cliente no tiene acceso al servidor. Agregue una cuenta de Azure y cree una regla de firewall para habilitar el acceso.</target>
@@ -355,8 +407,12 @@
         <target state="translated">La regla de firewall se ha agregado correctamente. ¿Quiere reintentar la creación del perfil? </target>
       </trans-unit>
       <trans-unit id="msgAccountRefreshFailed">
-        <source xml:lang="en">Credential Error: Account credentials have expired.  Please re-authenticate.</source>
-        <target state="translated">Error de credencial: las credenciales de la cuenta han expirado. Vuelva a autenticarse.</target>
+        <source xml:lang="en">Credential Error: Account credentials have expired. Please re-authenticate.</source>
+        <target state="new">Credential Error: Account credentials have expired. Please re-authenticate.</target>
+      </trans-unit>
+      <trans-unit id="msgPromptProfileUpdateFailed">
+        <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
+        <target state="new">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</target>
       </trans-unit>
       <trans-unit id="msgUnableToExpand">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>

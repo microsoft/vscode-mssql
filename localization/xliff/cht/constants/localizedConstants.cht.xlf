@@ -2,6 +2,22 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" original="src/constants/localizedConstants" source-language="en" target-language="zh-Hant">
     <body>
+      <trans-unit id="viewMore">
+        <source xml:lang="en">View more</source>
+        <target state="translated">檢視更多內容</target>
+      </trans-unit>
+      <trans-unit id="releaseNotesPromptDescription">
+        <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
+        <target state="translated">要檢視 Visual Studio Code 的 MSSQL 版本資訊嗎?</target>
+      </trans-unit>
+      <trans-unit id="encryptionChangePromptDescription">
+        <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
+        <target state="translated">VS Code 的 MSSQL 延伸模組現在會針對所有 SQL Server 連線預設啟用加密。除非您變更特定加密相關連線屬性，否則這可能會導致現有的連線無法再使用。建議您造訪下列連結以了解更多資訊。</target>
+      </trans-unit>
+      <trans-unit id="moreInformation">
+        <source xml:lang="en">More information</source>
+        <target state="translated">詳細資訊</target>
+      </trans-unit>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
         <target state="translated">已開始查詢文件 "{0}"</target>
@@ -149,6 +165,38 @@
       <trans-unit id="azureAuthTypeDeviceCode">
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Azure 裝置代碼</target>
+      </trans-unit>
+      <trans-unit id="encryptPrompt">
+        <source xml:lang="en">Encrypt</source>
+        <target state="translated">加密</target>
+      </trans-unit>
+      <trans-unit id="encryptName">
+        <source xml:lang="en">encrypt</source>
+        <target state="translated">加密</target>
+      </trans-unit>
+      <trans-unit id="encryptOptional">
+        <source xml:lang="en">Optional (False)</source>
+        <target state="translated">選用 (False)</target>
+      </trans-unit>
+      <trans-unit id="encryptMandatory">
+        <source xml:lang="en">Mandatory (True)</source>
+        <target state="translated">必要 (True)</target>
+      </trans-unit>
+      <trans-unit id="encryptMandatoryRecommended">
+        <source xml:lang="en">Mandatory (Recommended)</source>
+        <target state="translated">必要 (建議)</target>
+      </trans-unit>
+      <trans-unit id="enableTrustServerCertificate">
+        <source xml:lang="en">Enable Trust Server Certificate</source>
+        <target state="translated">啟用信任伺服器憑證</target>
+      </trans-unit>
+      <trans-unit id="readMore">
+        <source xml:lang="en">Read more</source>
+        <target state="translated">深入了解</target>
+      </trans-unit>
+      <trans-unit id="cancel">
+        <source xml:lang="en">Cancel</source>
+        <target state="translated">取消</target>
       </trans-unit>
       <trans-unit id="msgCopyAndOpenWebpage">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -342,6 +390,10 @@
         <source xml:lang="en">Error: Login failed. Retry using different credentials?</source>
         <target state="translated">錯誤: 登入失敗。要使用其他認證重試嗎?</target>
       </trans-unit>
+      <trans-unit id="msgPromptSSLCertificateValidationFailed">
+        <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
+        <target state="translated">已在此連線上啟用加密、檢閱目標 SQL Server 的 SSL 與憑證設定，或在設定檔案中將 [信任伺服器憑證] 設定為 'true'。注意: 自我簽署憑證只提供有限的保護，且不是實際執行環境的建議做法。您要在此連線上啟用 [信任伺服器憑證] 並重試嗎?</target>
+      </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
         <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
         <target state="translated">您的用戶端 IP 位址無權存取伺服器。請新增 Azure 帳戶並建立新的防火牆規則以便存取。</target>
@@ -355,8 +407,12 @@
         <target state="translated">已成功新增防火牆規則。要重試建立設定檔嗎?</target>
       </trans-unit>
       <trans-unit id="msgAccountRefreshFailed">
-        <source xml:lang="en">Credential Error: Account credentials have expired.  Please re-authenticate.</source>
+        <source xml:lang="en">Credential Error: Account credentials have expired. Please re-authenticate.</source>
         <target state="translated">認證錯誤: 帳戶憑證已過期。請重新驗證。</target>
+      </trans-unit>
+      <trans-unit id="msgPromptProfileUpdateFailed">
+        <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
+        <target state="translated">無法更新連線設定檔。請在 settings.json 中手動修改連線詳細資料，然後再試一次。</target>
       </trans-unit>
       <trans-unit id="msgUnableToExpand">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>

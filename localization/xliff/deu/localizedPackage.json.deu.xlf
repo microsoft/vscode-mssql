@@ -171,12 +171,16 @@
         <target state="translated">[Optional] Gibt den Port an, mit dem Sie eine Verbindung herstellen möchten.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
-        <source xml:lang="en">[Optional] When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.</source>
-        <target state="translated">[Optional] Bei Festlegung auf TRUE verwendet SQL Server die SSL-Verschlüsselung für alle zwischen dem Client und Server gesendeten Daten, sofern auf dem Server ein Zertifikat installiert ist. Legen Sie für eine Azure SQL-Datenbank-Verbindung den Wert TRUE fest.</target>
+        <source xml:lang="en">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</source>
+        <target state="new">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
         <target state="translated">[Optional] Bei Festlegung auf TRUE wird das SQL Server-SSL-Zertifikat automatisch als vertrauenswürdig eingestuft, sofern die Kommunikation mit SSL verschlüsselt ist. Legen Sie für eine Azure SQL-Datenbank-Verbindung den Wert FALSE fest.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.hostNameInCertificate">
+        <source xml:lang="en">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
+        <target state="new">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.persistSecurityInfo">
         <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>
