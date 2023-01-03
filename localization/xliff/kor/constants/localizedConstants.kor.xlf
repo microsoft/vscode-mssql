@@ -8,11 +8,11 @@
       </trans-unit>
       <trans-unit id="releaseNotesPromptDescription">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
-        <target state="new">View mssql for Visual Studio Code release notes?</target>
+        <target state="translated">Visual Studio Code용 mssql 릴리스 정보를 보시겠습니까?</target>
       </trans-unit>
       <trans-unit id="encryptionChangePromptDescription">
         <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
-        <target state="new">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</target>
+        <target state="translated">이제 VS Code용 mssql 확장에서 모든 SQL Server 연결에 대해 기본적으로 암호화를 사용합니다. 이로 인해 특정 암호화 관련 연결 속성이 변경되지 않는 한 기존 연결이 더 이상 작동하지 않을 수 있습니다. 아래 링크에서 자세한 내용을 검토하는 것이 좋습니다.</target>
       </trans-unit>
       <trans-unit id="moreInformation">
         <source xml:lang="en">More information</source>
@@ -172,23 +172,23 @@
       </trans-unit>
       <trans-unit id="encryptName">
         <source xml:lang="en">encrypt</source>
-        <target state="new">encrypt</target>
+        <target state="translated">암호화</target>
       </trans-unit>
       <trans-unit id="encryptOptional">
         <source xml:lang="en">Optional (False)</source>
-        <target state="new">Optional (False)</target>
+        <target state="translated">선택 사항(False)</target>
       </trans-unit>
       <trans-unit id="encryptMandatory">
         <source xml:lang="en">Mandatory (True)</source>
-        <target state="new">Mandatory (True)</target>
+        <target state="translated">필수(True)</target>
       </trans-unit>
       <trans-unit id="encryptMandatoryRecommended">
         <source xml:lang="en">Mandatory (Recommended)</source>
-        <target state="new">Mandatory (Recommended)</target>
+        <target state="translated">필수(권장)</target>
       </trans-unit>
       <trans-unit id="enableTrustServerCertificate">
         <source xml:lang="en">Enable Trust Server Certificate</source>
-        <target state="new">Enable Trust Server Certificate</target>
+        <target state="translated">서버 인증서 신뢰 활성화</target>
       </trans-unit>
       <trans-unit id="readMore">
         <source xml:lang="en">Read more</source>
@@ -392,7 +392,7 @@
       </trans-unit>
       <trans-unit id="msgPromptSSLCertificateValidationFailed">
         <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="new">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+        <target state="translated">이 연결에서 암호화가 사용 설정되었습니다. 대상 SQL Server의 SSL 및 인증서 구성을 검토하거나 설정 파일에서 '서버 인증서 신뢰'를 'true'로 설정하세요. 참고: 자체 서명된 인증서는 제한된 보호만 제공하며 프로덕션 환경에서는 권장되지 않습니다. 이 연결에서 '서버 인증서 신뢰'를 활성화하고 다시 시도하시겠습니까?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
         <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
@@ -408,11 +408,11 @@
       </trans-unit>
       <trans-unit id="msgAccountRefreshFailed">
         <source xml:lang="en">Credential Error: Account credentials have expired. Please re-authenticate.</source>
-        <target state="new">Credential Error: Account credentials have expired. Please re-authenticate.</target>
+        <target state="translated">자격 증명 오류: 계정 자격 증명이 만료되었습니다. 다시 인증하세요.</target>
       </trans-unit>
       <trans-unit id="msgPromptProfileUpdateFailed">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
-        <target state="new">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</target>
+        <target state="translated">연결 프로필을 업데이트할 수 없습니다. settings.json에서 연결 세부 정보를 수동으로 수정하고 다시 시도하세요.</target>
       </trans-unit>
       <trans-unit id="msgUnableToExpand">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>

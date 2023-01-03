@@ -8,11 +8,11 @@
       </trans-unit>
       <trans-unit id="releaseNotesPromptDescription">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
-        <target state="new">View mssql for Visual Studio Code release notes?</target>
+        <target state="translated">MSSQL für Visual Studio Code-Versionshinweise anzeigen?</target>
       </trans-unit>
       <trans-unit id="encryptionChangePromptDescription">
         <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
-        <target state="new">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</target>
+        <target state="translated">Für die MSSQL-Verbindung für VS Code ist jetzt die Verschlüsselung für alle SQL Server-Verbindungen standardmäßig aktiviert. Dies kann dazu führen, dass Ihre vorhandenen Verbindungen nicht mehr funktionieren, es sei denn, bestimmte Verbindungseigenschaften im Zusammenhang mit der Verschlüsselung werden geändert. Wir empfehlen Ihnen, den folgenden Link für weitere Informationen zu besuchen.</target>
       </trans-unit>
       <trans-unit id="moreInformation">
         <source xml:lang="en">More information</source>
@@ -172,23 +172,23 @@
       </trans-unit>
       <trans-unit id="encryptName">
         <source xml:lang="en">encrypt</source>
-        <target state="new">encrypt</target>
+        <target state="translated">Verschlüsseln</target>
       </trans-unit>
       <trans-unit id="encryptOptional">
         <source xml:lang="en">Optional (False)</source>
-        <target state="new">Optional (False)</target>
+        <target state="translated">Optional (FALSCH)</target>
       </trans-unit>
       <trans-unit id="encryptMandatory">
         <source xml:lang="en">Mandatory (True)</source>
-        <target state="new">Mandatory (True)</target>
+        <target state="translated">Obligatorisch (WAHR)</target>
       </trans-unit>
       <trans-unit id="encryptMandatoryRecommended">
         <source xml:lang="en">Mandatory (Recommended)</source>
-        <target state="new">Mandatory (Recommended)</target>
+        <target state="translated">Obligatorisch (Empfohlen)</target>
       </trans-unit>
       <trans-unit id="enableTrustServerCertificate">
         <source xml:lang="en">Enable Trust Server Certificate</source>
-        <target state="new">Enable Trust Server Certificate</target>
+        <target state="translated">„Serverzertifikat vertrauen“ aktivieren</target>
       </trans-unit>
       <trans-unit id="readMore">
         <source xml:lang="en">Read more</source>
@@ -392,7 +392,7 @@
       </trans-unit>
       <trans-unit id="msgPromptSSLCertificateValidationFailed">
         <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="new">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+        <target state="translated">Die Verschlüsselung wurde für diese Verbindung aktiviert, überprüfen Sie Ihre SSL- und Zertifikatskonfiguration für den Ziel-SQL Server, oder legen Sie „Serverzertifikat vertrauen“ in der Einstellungsdatei auf „WAHR“ fest. Hinweis: Ein selbstsigniertes Zertifikat bietet nur eingeschränkten Schutz und ist keine empfohlene Praxis für Produktionsumgebungen. Möchten Sie „Serverzertifikat vertrauen“ für diese Verbindung aktivieren und es erneut versuchen?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
         <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
@@ -408,11 +408,11 @@
       </trans-unit>
       <trans-unit id="msgAccountRefreshFailed">
         <source xml:lang="en">Credential Error: Account credentials have expired. Please re-authenticate.</source>
-        <target state="new">Credential Error: Account credentials have expired. Please re-authenticate.</target>
+        <target state="translated">Anmeldeinformationsfehler: Die Anmeldeinformationen für das Konto sind abgelaufen. Bitte authentifizieren Sie erneut.</target>
       </trans-unit>
       <trans-unit id="msgPromptProfileUpdateFailed">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
-        <target state="new">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</target>
+        <target state="translated">Das Verbindungsprofil konnte nicht aktualisiert werden. Bitte ändern Sie die Verbindungsdetails manuell in „settings.json“, und versuchen Sie es noch mal.</target>
       </trans-unit>
       <trans-unit id="msgUnableToExpand">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
