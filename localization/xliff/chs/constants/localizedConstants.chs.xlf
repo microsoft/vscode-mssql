@@ -8,11 +8,11 @@
       </trans-unit>
       <trans-unit id="releaseNotesPromptDescription">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
-        <target state="new">View mssql for Visual Studio Code release notes?</target>
+        <target state="translated">是否查看 mssql 以获取 Visual Studio Code 发行说明?</target>
       </trans-unit>
       <trans-unit id="encryptionChangePromptDescription">
         <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
-        <target state="new">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</target>
+        <target state="translated">现在，VS Code 的 mssql 扩展已默认为所有 SQL Server 连接启用加密。除非已更改某些与加密相关的连接属性，否则这可能会导致现有连接不再工作。建议访问下面的链接以了解详细信息。</target>
       </trans-unit>
       <trans-unit id="moreInformation">
         <source xml:lang="en">More information</source>
@@ -172,23 +172,23 @@
       </trans-unit>
       <trans-unit id="encryptName">
         <source xml:lang="en">encrypt</source>
-        <target state="new">encrypt</target>
+        <target state="translated">加密</target>
       </trans-unit>
       <trans-unit id="encryptOptional">
         <source xml:lang="en">Optional (False)</source>
-        <target state="new">Optional (False)</target>
+        <target state="translated">可选(False)</target>
       </trans-unit>
       <trans-unit id="encryptMandatory">
         <source xml:lang="en">Mandatory (True)</source>
-        <target state="new">Mandatory (True)</target>
+        <target state="translated">必需(True)</target>
       </trans-unit>
       <trans-unit id="encryptMandatoryRecommended">
         <source xml:lang="en">Mandatory (Recommended)</source>
-        <target state="new">Mandatory (Recommended)</target>
+        <target state="translated">必需(推荐)</target>
       </trans-unit>
       <trans-unit id="enableTrustServerCertificate">
         <source xml:lang="en">Enable Trust Server Certificate</source>
-        <target state="new">Enable Trust Server Certificate</target>
+        <target state="translated">启用信任服务器证书</target>
       </trans-unit>
       <trans-unit id="readMore">
         <source xml:lang="en">Read more</source>
@@ -392,7 +392,7 @@
       </trans-unit>
       <trans-unit id="msgPromptSSLCertificateValidationFailed">
         <source xml:lang="en">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
-        <target state="new">Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</target>
+        <target state="translated">已在此连接上启用加密、查看目标 SQL Server 的 SSL 和证书配置，或在设置文件中将“信任服务器证书”设置为 “true”。注意: 自签名证书仅提供有限的保护，不建议用于生产环境。是否要在此连接上启用“信任服务器证书”并重试?</target>
       </trans-unit>
       <trans-unit id="msgPromptRetryFirewallRuleNotSignedIn">
         <source xml:lang="en">Your client IP address does not have access to the server. Add an Azure account and create a new firewall rule to enable access.</source>
@@ -408,11 +408,11 @@
       </trans-unit>
       <trans-unit id="msgAccountRefreshFailed">
         <source xml:lang="en">Credential Error: Account credentials have expired. Please re-authenticate.</source>
-        <target state="new">Credential Error: Account credentials have expired. Please re-authenticate.</target>
+        <target state="translated">凭据错误: 帐户凭据已到期。请重新进行身份验证。</target>
       </trans-unit>
       <trans-unit id="msgPromptProfileUpdateFailed">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
-        <target state="new">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</target>
+        <target state="translated">无法更新连接配置文件。请在 settings.json 中手动修改连接详细信息，然后重试。</target>
       </trans-unit>
       <trans-unit id="msgUnableToExpand">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>

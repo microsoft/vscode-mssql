@@ -172,7 +172,7 @@
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
         <source xml:lang="en">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</source>
-        <target state="new">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</target>
+        <target state="translated">[Facoltativo] Se è impostato su 'Obbligatorio', SQL Server usa la crittografia SSL per i dati scambiati tra il client e il server, se nel server è installato un certificato. Impostare su 'Obbligatorio' per le connessioni al database SQL di Azure.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
@@ -180,7 +180,7 @@
       </trans-unit>
       <trans-unit id="mssql.connection.hostNameInCertificate">
         <source xml:lang="en">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
-        <target state="new">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</target>
+        <target state="translated">[Facoltativo] Se specificato (e encrypt=Mandatory e trustServerCertificate=false), SQL Server utilizza il nome host specificato per convalidare l'attendibilità con il certificato del server.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.persistSecurityInfo">
         <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>
