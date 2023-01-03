@@ -228,10 +228,13 @@
       </Item>
       <Item ItemId=";mssql.connection.encrypt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.]]></Val>
+          <Val><![CDATA[[Optional]5D; When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Opcional]5D; Quando definido como 'true', o SQL Server usará a criptografia SSL para dados enviados entre o cliente e o servidor se o servidor tiver um certificado instalado. Defina 'true' para conexão de Banco de Dados SQL do Azure.]]></Val>
+            <Val><![CDATA[[Opcional]5D; Quando definido como 'Mandatory', o SQL Server usará a criptografia SSL para dados enviados entre o cliente e o servidor se o servidor tiver um certificado instalado. Defina 'Mandatory' para a conexão de Banco de Dados SQL do Azure.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -240,6 +243,15 @@
           <Val><![CDATA[[Optional]5D; Specify the name or network address of the instance of SQL Server that acts as a failover partner.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[Opcional]5D; Especifique o endereço de rede ou o nome da instância do SQL Server que atua como um parceiro de failover.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.connection.hostNameInCertificate" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[[Optional]5D; When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Opcional]5D; Quando especificado (e encrypt=Mandatory e trustServerCertificate=false), o SQL Server usa o nome do host fornecido para validar a confiança com o certificado do servidor.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

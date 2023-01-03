@@ -508,30 +508,45 @@
       <Item ItemId=";enableTrustServerCertificate" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable Trust Server Certificate]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abilitare Certificato del server attendibile]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";encryptMandatory" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mandatory (True)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Obbligatorio (True)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";encryptMandatoryRecommended" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mandatory (Recommended)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Obbligatorio (scelta consigliata)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";encryptName" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[encrypt]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[crittografa]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";encryptOptional" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Optional (False)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Facoltativo (False)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -547,6 +562,9 @@
       <Item ItemId=";encryptionChangePromptDescription" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[L'estensione mssql per VS Code ora ha la crittografia abilitata per impostazione predefinita per tutte le connessioni SQL Server. In questo modo le connessioni esistenti potrebbero non funzionare più a meno che non vengano modificate determinate proprietà di connessione correlate alla crittografia. Per altre informazioni, è consigliabile visitare il collegamento seguente.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -743,7 +761,7 @@
         <Str Cat="Text">
           <Val><![CDATA[More information]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Più informazioni]]></Val>
+            <Val><![CDATA[Altre informazioni]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -760,7 +778,7 @@
       <Item ItemId=";msgAccountRefreshFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Credential Error: Account credentials have expired. Please re-authenticate.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Errore di credenziali: le credenziali dell'account sono scadute. Eseguire di nuovo l'autenticazione.]]></Val>
           </Tgt>
           <Prev Cat="Text">
@@ -1195,6 +1213,9 @@
       <Item ItemId=";msgPromptProfileUpdateFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impossibile aggiornare il profilo di connessione. Modificare manualmente i dettagli della connessione in settings.json e riprovare.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1249,6 +1270,9 @@
       <Item ItemId=";msgPromptSSLCertificateValidationFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Encryption was enabled on this connection, review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La crittografia è stata abilitata in questa connessione, rivedere la configurazione SSL e del certificato per SQL Server di destinazione o impostare 'Certificato del server attendibile' su 'true' nel file delle impostazioni. Nota: un certificato autofirmato offre solo una protezione limitata e non è una procedura consigliata per gli ambienti di produzione. Abilitare 'Certificato del server attendibile' in questa connessione e riprovare?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1516,6 +1540,9 @@
       <Item ItemId=";releaseNotesPromptDescription" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[View mssql for Visual Studio Code release notes?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visualizzare le note sulla versione di mssql per Visual Studio Code?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
