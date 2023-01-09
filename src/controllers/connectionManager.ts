@@ -86,6 +86,7 @@ export default class ConnectionManager {
 		Map<IConnectionInfo, ServerInfo>;
 	private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
 	private _failedUriToFirewallIpMap: Map<string, string>;
+	private _failedUriToSSLMap: Map<string, string>;
 	private _accountService: AccountService;
 	private _firewallService: FirewallService;
 	public azureController: AzureController;
@@ -131,6 +132,7 @@ export default class ConnectionManager {
 		this._accountService = new AccountService(this.client, this._accountStore, this.azureController);
 		this._firewallService = new FirewallService(this._accountService);
 		this._failedUriToFirewallIpMap = new Map<string, string>();
+		this._failedUriToSSLMap = new Map<string, string>();
 
 		if (this.client !== undefined) {
 			this.client.onNotification(ConnectionContracts.ConnectionChangedNotification.type, this.handleConnectionChangedNotification());
@@ -225,6 +227,10 @@ export default class ConnectionManager {
 
 	public get failedUriToFirewallIpMap(): Map<string, string> {
 		return this._failedUriToFirewallIpMap;
+	}
+
+	public get failedUriToSSLMap(): Map<string, string> {
+		return this._failedUriToSSLMap;
 	}
 
 	public get accountService(): AccountService {
@@ -431,10 +437,9 @@ export default class ConnectionManager {
 				connection.errorNumber = result.errorNumber;
 				connection.errorMessage = result.errorMessage;
 			} else if (result.errorNumber === Constants.errorSSLCertificateValidationFailed) {
-				this.showInstructionTextAsWarning(connection.credentials, async updatedConnection => {
-					vscode.commands.executeCommand(Constants.cmdConnectObjectExplorerProfile, updatedConnection);
-				});
-				return;
+				this._failedUriToSSLMap.set(fileUri, result.errorMessage);
+				connection.errorNumber = result.errorNumber;
+				connection.errorMessage = result.errorMessage;
 			} else if (result.errorNumber !== Constants.errorLoginFailed) {
 				Utils.showErrorMsg(Utils.formatString(LocalizedConstants.msgConnectionError, result.errorNumber, result.errorMessage));
 				// check whether it's a firewall rule error
@@ -492,8 +497,18 @@ export default class ConnectionManager {
 			await reconnectAction(profile);
 		} else if (selection === LocalizedConstants.readMore) {
 			this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
-			this.showInstructionTextAsWarning(profile, reconnectAction);
+			await this.showInstructionTextAsWarning(profile, reconnectAction);
 		}
+	}
+
+	public async handleSSLError(uri: string, profile: IConnectionProfile): Promise<IConnectionInfo | undefined> {
+		let updatedConn: IConnectionInfo | undefined;
+		await this.showInstructionTextAsWarning(profile, async updatedConnection => {
+			vscode.commands.executeCommand(Constants.cmdConnectObjectExplorerProfile, updatedConnection);
+			updatedConn = updatedConnection;
+		});
+		this.failedUriToSSLMap.delete(uri);
+		return updatedConn;
 	}
 
 	private async tryAddMruConnection(connection: ConnectionInfo, newConnection: IConnectionInfo): Promise<void> {

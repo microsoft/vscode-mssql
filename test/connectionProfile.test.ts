@@ -264,6 +264,81 @@ suite('Connection Profile tests', () => {
 		connectionStoreMock.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
 	});
 
+	test('Updated Profile is returned when SSL error occurs', async () => {
+		let uri = 'myserver_mydb_undefined';
+		let server = 'myserver';
+		let database = 'mydb';
+		let encrypt = 'Mandatory';
+		let authType = AuthenticationTypes[AuthenticationTypes.Integrated];
+
+		let updatedProfile = new ConnectionProfile();
+		updatedProfile.server = server;
+		updatedProfile.database = database;
+		updatedProfile.authenticationType = authType;
+		updatedProfile.trustServerCertificate = true;
+		updatedProfile.encrypt = encrypt;
+
+		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);
+		connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
+		connectionManagerMock.setup(x => x.failedUriToFirewallIpMap).returns(() => new Map());
+
+		let sslUriMockMap = new Map<string, string>();
+		sslUriMockMap.set(uri, 'An error occurred while connecting to the server');
+		connectionManagerMock.setup(x => x.failedUriToSSLMap).returns(() => sslUriMockMap);
+		connectionManagerMock.setup(x => x.handleSSLError(uri, TypeMoq.It.isAny())).returns(() =>
+			new Promise<ConnectionProfile>((resolve, reject) => {
+				let obj = connectionManagerMock.object;
+				obj.failedUriToSSLMap.delete(uri);
+				// mock the connection to succeed
+				connectionManagerMock.setup(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(true));
+				return resolve(updatedProfile);
+			}));
+
+		let connectionStoreMock = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, contextMock.object);
+		connectionStoreMock.setup(async x => await x.saveProfile(TypeMoq.It.isAny())).returns(() => Promise.resolve(updatedProfile));
+
+		let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+		prompter.setup(x => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+			.returns(questions => {
+				let answers: { [key: string]: string } = {};
+				answers[LocalizedConstants.serverPrompt] = server;
+				answers[LocalizedConstants.databasePrompt] = database;
+				answers[LocalizedConstants.authTypeName] = authType;
+				answers[LocalizedConstants.profileNamePrompt] = '';
+				for (let key in answers) {
+					if (answers.hasOwnProperty(key)) {
+						questions.map(q => { if (q.name === key) { q.onAnswered(answers[key]); } });
+					}
+				}
+				return Promise.resolve(answers);
+			});
+
+		let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
+		vscodeWrapperMock.setup(x => x.activeTextEditorUri).returns(() => uri);
+
+		let connectionUI = new ConnectionUI(connectionManagerMock.object, contextMock.object,
+			connectionStoreMock.object, mockAccountStore, prompter.object, vscodeWrapperMock.object);
+
+		// create a new connection profile
+		let connProfile = await connectionUI.createAndSaveProfile();
+
+		// connection is attempted twice
+		connectionManagerMock.verify(async x => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.exactly(2));
+
+		// profile is saved
+		connectionStoreMock.verify(async x => await x.saveProfile(TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+		// ssl error is handled
+		connectionManagerMock.verify(async x => await x.handleSSLError(uri, TypeMoq.It.isAny()), TypeMoq.Times.once());
+
+		assert.ok(connProfile, 'Connection profile should be returned.');
+		assert.strictEqual(connProfile.server, server);
+		assert.strictEqual(connProfile.database, database);
+		assert.strictEqual(connProfile.trustServerCertificate, true);
+		assert.strictEqual(connProfile.encrypt, encrypt);
+	});
+
 	test('Profile is not saved when connection validation fails', async () => {
 		let contextMock: TypeMoq.IMock<vscode.ExtensionContext> = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, contextMock.object);

@@ -464,26 +464,32 @@ export class ConnectionUI {
 	 * Validate a connection profile by connecting to it, and save it if we are successful.
 	 */
 	public async validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
-		const self = this;
-		let uri = self.vscodeWrapper.activeTextEditorUri;
-		if (!uri || !self.vscodeWrapper.isEditingSqlFile) {
+		let uri = this.vscodeWrapper.activeTextEditorUri;
+		if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
 			uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
 		}
-		return await self.connectionManager.connect(uri, profile).then(async (result) => {
+		return await this.connectionManager.connect(uri, profile).then(async (result) => {
 			if (result) {
 				// Success! save it
-				return await self.saveProfile(profile);
+				return await this.saveProfile(profile);
 			} else {
 				// Check whether the error was for firewall rule or not
-				if (self.connectionManager.failedUriToFirewallIpMap.has(uri)) {
+				if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
 					let success = await this.addFirewallRule(uri, profile);
 					if (success) {
-						return await self.validateAndSaveProfile(profile);
+						return await this.validateAndSaveProfile(profile);
+					}
+					return undefined;
+				} else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
+					// SSL error
+					let updatedConn = await this.connectionManager.handleSSLError(uri, profile);
+					if (updatedConn) {
+						return await this.validateAndSaveProfile(updatedConn as IConnectionProfile);
 					}
 					return undefined;
 				} else {
 					// Normal connection error! Let the user try again, prefilling values that they already entered
-					return await self.promptToRetryAndSaveProfile(profile);
+					return await this.promptToRetryAndSaveProfile(profile);
 				}
 			}
 		});
