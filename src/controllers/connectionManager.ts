@@ -497,13 +497,13 @@ export default class ConnectionManager {
 			await reconnectAction(profile);
 		} else if (selection === LocalizedConstants.readMore) {
 			this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
-			this.showInstructionTextAsWarning(profile, reconnectAction);
+			await this.showInstructionTextAsWarning(profile, reconnectAction);
 		}
 	}
 
-	public async handleSSLError(uri: string, profile: IConnectionProfile): Promise<IConnectionInfo> {
+	public async handleSSLError(uri: string, profile: IConnectionProfile): Promise<IConnectionInfo | undefined> {
 		let updatedConn: IConnectionInfo | undefined;
-		this.showInstructionTextAsWarning(profile, async updatedConnection => {
+		await this.showInstructionTextAsWarning(profile, async updatedConnection => {
 			vscode.commands.executeCommand(Constants.cmdConnectObjectExplorerProfile, updatedConnection);
 			updatedConn = updatedConnection;
 		});
