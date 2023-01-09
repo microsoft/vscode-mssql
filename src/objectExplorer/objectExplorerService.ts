@@ -145,7 +145,7 @@ export class ObjectExplorerService {
 								self._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
 							}
 						});
-				} else{
+				} else {
 					self._connectionManager.vscodeWrapper.showErrorMessage(error);
 				}
 				const promise = self._sessionIdToPromiseMap.get(result.sessionId);

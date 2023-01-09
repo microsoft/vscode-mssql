@@ -480,7 +480,7 @@ export class ConnectionUI {
 						return await this.validateAndSaveProfile(profile);
 					}
 					return undefined;
-				} else if(this.connectionManager.failedUriToSSLMap.has(uri)) {
+				} else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
 					// SSL error
 					let updatedConn = await this.connectionManager.handleSSLError(uri, profile);
 					if (updatedConn) {

@@ -265,7 +265,7 @@ suite('Connection Profile tests', () => {
 	});
 
 	test('Updated Profile is returned when SSL error occurs', async () => {
-		let uri = 'myserver_mydb_undefined';;
+		let uri = 'myserver_mydb_undefined';
 		let server = 'myserver';
 		let database = 'mydb';
 		let encrypt = 'Mandatory';
