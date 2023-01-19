@@ -597,13 +597,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	private tryCombineSelectionsForResults(selections: ISlickRange[]): ISlickRange[] {
 		// need to take row number column in to consideration.
 		return this.tryCombineSelections(selections).map(range => {
-			// let fromCell = range.fromCell - 1;
-			// if (fromCell > 0) {
-			// 	fromCell = 0;
-			// }
-
 			return {
-				//fromCell: range.fromCell > 0 ? range.fromCell - 1 : 0,
 				fromCell: range.fromCell - 1,
 				fromRow: range.fromRow,
 				toCell: range.toCell - 1,
