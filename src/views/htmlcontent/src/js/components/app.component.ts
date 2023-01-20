@@ -211,7 +211,13 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			this.magnify(this.activeGrid);
 		},
 		'event.selectAll': () => {
-			this.slickgrids.toArray()[this.activeGrid].selection = true;
+			// note that "grid.selection = true" will select the row number column
+			// and be incompatible with the selection merging code in this component
+			let grid = this.slickgrids.toArray()[this.activeGrid];
+			grid.selection = [
+				new Slick.Range(0, 1,
+					grid._grid.getDataLength() - 1,
+					grid._grid.getColumns().length - 1)];
 		},
 		'event.saveAsCSV': () => {
 			this.sendSaveRequest('csv');
