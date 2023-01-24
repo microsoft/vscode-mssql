@@ -9,7 +9,7 @@
 	- Moving to Microsoft.Data.SqlClient 5.0.1 dependency with STS Update
 	- By default, saved connection profiles will connect with encryption and only accept trusted server certificates. This is a breaking change for some connections and some saved connection profiles may require updates to connect.
 	- See https://aka.ms/vscodemssql-connection for more information. 
-* Introduced HostNameInCertificate Connection Property.
+* Introduced [HostNameInCertificate](https://learn.microsoft.com/dotnet/api/microsoft.data.sqlclient.sqlconnectionstringbuilder.hostnameincertificate#microsoft-data-sqlclient-sqlconnectionstringbuilder-hostnameincertificate) Connection Property.
 * Exposed getServerInfo API to allow Target Platform to be set automatically when creating SQL Projects from database 
 	- https://github.com/microsoft/azuredatastudio/issues/20363 
 	- https://github.com/microsoft/azuredatastudio/issues/20576
