@@ -18,7 +18,7 @@
 	- Fixed Screen Reader to announce messages table in a clearer manner - https://github.com/microsoft/vscode-mssql/issues/17450
 	- Fixed issue where Results Table was not minimizable with keyboard - https://github.com/microsoft/vscode-mssql/issues/17452
 
-### Grammer Fixes & Updates
+### SQL Grammer Fixes & Updates
 * Fix function syntax highlighting including non-function keywords https://github.com/microsoft/vscode-mssql/pull/17462
 * Match "other" keywords last - https://github.com/microsoft/vscode-mssql/pull/17464
 * Syntax Update (Mostly from SQL 2022) - https://github.com/microsoft/vscode-mssql/pull/17465
