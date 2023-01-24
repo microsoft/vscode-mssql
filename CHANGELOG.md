@@ -5,9 +5,9 @@
 * Release status: GA
 
 ### What's new in 1.17.0
-* BREAKING CHANGE - Encryption is now Enabled by Default - https://github.com/microsoft/vscode-mssql/pull/17484
+* BREAKING CHANGE - Connection Encryption is now Enabled by Default - https://github.com/microsoft/vscode-mssql/pull/17484
 	- Moving to Microsoft.Data.SqlClient 5.0.1 dependency with STS Update
-	- Connections should now be more sercure but some saved connections may be broken
+	- By default, saved connection profiles will connect with encryption and only accept trusted server certificates. This is a breaking change for some connections and some saved connection profiles may require updates to connect.
 	- See https://aka.ms/vscodemssql-connection for more information. 
 * Introduced HostNameInCertificate Connection Property.
 * Exposed getServerInfo API to allow Target Platform to be set automatically when creating SQL Projects from database 
@@ -18,12 +18,12 @@
 	- Fixed Screen Reader to announce messages table in a clearer manner - https://github.com/microsoft/vscode-mssql/issues/17450
 	- Fixed issue where Results Table was not minimizable with keyboard - https://github.com/microsoft/vscode-mssql/issues/17452
 
-### SQL Grammer Fixes & Updates
+### SQL Grammar Fixes & Updates
 * Fix function syntax highlighting including non-function keywords https://github.com/microsoft/vscode-mssql/pull/17462
 * Match "other" keywords last - https://github.com/microsoft/vscode-mssql/pull/17464
 * Syntax Update (Mostly from SQL 2022) - https://github.com/microsoft/vscode-mssql/pull/17465
 * Add SELECT ALL and FULL/NATURAL JOIN syntax to grammar - https://github.com/microsoft/vscode-mssql/pull/17508
-	- Special thank you to https://github.com/hanohrs for their suggestion which led to https://github.com/microsoft/vscode-mssql/pull/17508!
+	- Special thank you to https://github.com/hanohrs for their help with this!
 
 ## Version 1.16.0
 * Release date: August 24, 2022
