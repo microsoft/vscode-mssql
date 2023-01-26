@@ -45,7 +45,9 @@
 "mssql.connection.trustServerCertificate":"[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.",
 "mssql.connection.hostNameInCertificate":"[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.",
 "mssql.connection.persistSecurityInfo":"[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.",
-"mssql.connection.connectTimeout":"[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.",
+"mssql.connection.connectTimeout":"[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.",
+
+"mssql.connection.commandTimeout":"[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.",
 "mssql.connection.connectRetryCount":"[Optional] Specify the number of attempts to restore connection.",
 "mssql.connection.connectRetryInterval":"[Optional] Specify the delay between attempts to restore connection.",
 "mssql.connection.workstationId":"[Optional] Specify the name of the workstation connecting to SQL Server.",

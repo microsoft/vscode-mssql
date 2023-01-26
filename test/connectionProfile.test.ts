@@ -38,6 +38,7 @@ function createTestCredentials(): IConnectionInfo {
 		hostNameInCertificate: '',
 		persistSecurityInfo: false,
 		connectTimeout: 15,
+		commandTimeout: 30,
 		connectRetryCount: 0,
 		connectRetryInterval: 0,
 		applicationName: 'vscode-mssql',
@@ -201,6 +202,7 @@ suite('Connection Profile tests', () => {
 		assert.notStrictEqual(typeof details.options['connectRetryCount'], 'undefined');
 		assert.notStrictEqual(typeof details.options['connectRetryInterval'], 'undefined');
 		assert.notStrictEqual(typeof details.options['connectTimeout'], 'undefined');
+		assert.notStrictEqual(typeof details.options['commandTimeout'], 'undefined');
 		assert.notStrictEqual(typeof details.options['currentLanguage'], 'undefined');
 		assert.notStrictEqual(typeof details.options['database'], 'undefined');
 		assert.notStrictEqual(typeof details.options['encrypt'], 'undefined');

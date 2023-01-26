@@ -659,6 +659,11 @@
                 "default": 15,
                 "description": "%mssql.connection.connectTimeout%"
               },
+              "commandTimeout": {
+                "type": "number",
+                "default": 30,
+                "description": "%mssql.connection.commandTimeout%"
+              },
               "connectRetryCount": {
                 "type": "number",
                 "default": 1,

@@ -312,6 +312,11 @@ declare module 'vscode-mssql' {
 		connectTimeout: number | undefined;
 
 		/**
+		 * Gets or sets the length of time (in seconds) to wait for a command to execute before terminating the attempt and generating an error.
+		 */
+		commandTimeout: number | undefined;
+
+		/**
 		 * The number of reconnections attempted after identifying that there was an idle connection failure.
 		 */
 		connectRetryCount: number | undefined;

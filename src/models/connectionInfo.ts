@@ -39,6 +39,10 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
 		connCreds.connectTimeout = Constants.defaultConnectionTimeout;
 	}
 
+	if (!connCreds.commandTimeout) {
+		connCreds.commandTimeout = Constants.defaultCommandTimeout;
+	}
+
 	// default value for encrypt
 	if (connCreds.encrypt === '' || connCreds.encrypt === true) {
 		connCreds.encrypt = EncryptOptions.Mandatory;
