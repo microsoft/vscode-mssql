@@ -29,6 +29,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 	public hostNameInCertificate: string | undefined;
 	public persistSecurityInfo: boolean | undefined;
 	public connectTimeout: number | undefined;
+	public commandTimeout: number | undefined;
 	public connectRetryCount: number | undefined;
 	public connectRetryInterval: number | undefined;
 	public applicationName: string | undefined;
@@ -74,6 +75,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 		details.options['hostNameInCertificate'] = credentials.hostNameInCertificate;
 		details.options['persistSecurityInfo'] = credentials.persistSecurityInfo;
 		details.options['connectTimeout'] = credentials.connectTimeout;
+		details.options['commandTimeout'] = credentials.commandTimeout;
 		details.options['connectRetryCount'] = credentials.connectRetryCount;
 		details.options['connectRetryInterval'] = credentials.connectRetryInterval;
 		details.options['applicationName'] = credentials.applicationName;

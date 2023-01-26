@@ -60,6 +60,7 @@ function createTestCredentials(): IConnectionInfo {
 		hostNameInCertificate: '',
 		persistSecurityInfo: false,
 		connectTimeout: 15,
+		commandTimeout: 30,
 		connectRetryCount: 0,
 		connectRetryInterval: 0,
 		applicationName: 'vscode-mssql',
