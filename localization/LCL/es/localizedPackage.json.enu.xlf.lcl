@@ -163,6 +163,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.connection.commandTimeout" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Opcional]5D; Especifique el tiempo en segundos que se esperará a que se ejecute un comando antes de finalizar el intento y generar un error. El valor predeterminado es 30 segundos.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.connection.connectRetryCount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the number of attempts to restore connection.]]></Val>
@@ -183,10 +192,13 @@
       </Item>
       <Item ItemId=";mssql.connection.connectTimeout" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.]]></Val>
+          <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Opcional]5D; Especifique la cantidad de tiempo, en segundos, que se debe esperar a que se establezca la conexión con el servidor antes de que expire el tiempo de espera. El valor de tiempo de espera predeterminado para Azure SQL Database es 30.]]></Val>
+            <Val><![CDATA[[Opcional]5D; Especifique el tiempo en segundos que se debe esperar para establecer una conexión con el servidor antes de finalizar el intento de conexión y generar un error. El valor predeterminado es de 15 segundos para las conexiones locales y de 30 segundos para las conexiones de Azure SQL Database.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
