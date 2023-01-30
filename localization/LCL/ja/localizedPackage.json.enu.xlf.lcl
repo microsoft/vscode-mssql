@@ -163,6 +163,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.connection.commandTimeout" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[省略可能]5D; 試行を終了してエラーを生成する前にコマンドの実行を待機するまでの時間を秒単位で指定します。既定値は 30 秒です。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.connection.connectRetryCount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Specify the number of attempts to restore connection.]]></Val>
@@ -183,10 +192,13 @@
       </Item>
       <Item ItemId=";mssql.connection.connectTimeout" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.]]></Val>
+          <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[省略可能]5D; タイムアウトするまでサーバーへの接続を待機する時間の長さを、秒単位で指定します。Azure SQL Database の既定タイムアウト値は 30 です。]]></Val>
+            <Val><![CDATA[[省略可能]5D; 接続試行を終了してエラーを生成するまでのサーバーへの接続を待機する時間を秒単位で指定します。既定値は、オンプレミスでは 15 秒、Azure SQL Database 接続の場合は 30 秒です。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
