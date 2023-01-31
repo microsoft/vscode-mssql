@@ -187,8 +187,12 @@
         <target state="translated">[Facoltativo] Se è impostato su 'false', le informazioni sensibili dal punto di vista della sicurezza, ad esempio la password, non vengono restituite come parte della connessione se la connessione è aperta o in precedenza si è trovata in uno stato aperto.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-        <target state="translated">[Facoltativo] Consente di specificare l'intervallo di tempo in secondi in cui attendere una connessione al server prima del timeout. Il valore di timeout predefinito per il database SQL di Azure è 30 secondi.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target state="translated">[Facoltativo] Specificare la durata in secondi dell'attesa di una connessione al server prima di terminare il tentativo di connessione e generare un errore. Il valore predefinito è 15 secondi per le connessioni in locale e 30 secondi per le connessioni al database SQL di Azure.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="translated">[Facoltativo] Specificare il tempo di attesa in secondi per l'esecuzione di un comando prima di terminare il tentativo e generare un errore. Il valore predefinito è 30 secondi.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>

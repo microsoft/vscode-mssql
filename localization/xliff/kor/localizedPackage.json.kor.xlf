@@ -187,8 +187,12 @@
         <target state="translated">[옵션] 'false'로 설정하면, 연결이 열렸거나 계속 열린 상태를 유지할 경우 암호와 같은 보안에 민감한 정보가 연결 정보의 일부로 반환되지 않습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-        <target state="translated">[옵션] 시간이 초과되기까지 서버 연결을 대기할 시간(초)을 지정합니다. Azure SQL Database의 기본 시간 초과 값은 30초입니다.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target state="translated">[선택 사항] 연결 시도를 종료하고 오류를 생성하기 전에 서버에 대한 연결을 기다리는 시간(초)을 지정합니다. 기본값은 온-프레미스의 경우 15초, Azure SQL Database 연결의 경우 30초입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="translated">[선택 사항] 시도를 종료하고 오류를 생성하기 전에 명령 실행을 기다리는 시간(초)을 지정합니다. 기본값은 30초입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>

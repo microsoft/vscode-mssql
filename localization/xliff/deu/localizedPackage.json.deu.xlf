@@ -187,8 +187,12 @@
         <target state="translated">[Optional] Bei Festlegung auf FALSE werden sicherheitsrelevante Informationen wie z. B. das Kennwort nicht als Teil der Verbindung zurückgegeben, wenn die Verbindung geöffnet ist oder sich bereits in einem geöffneten Zustand befunden hat.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-        <target state="translated">[Optional] Gibt die Zeitspanne in Sekunden an, die auf eine Verbindung mit dem Server gewartet wird, bevor ein Timeout auftritt. Der standardmäßige Timeoutwert für Azure SQL-Datenbank lautet 30.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target state="translated">[Optional] Geben Sie die Zeitspanne in Sekunden an, die auf eine Verbindung mit dem Server gewartet werden soll, bevor der Verbindungsversuch beendet und ein Fehler generiert wird. Der Standardwert beträgt 15 Sekunden für lokale Verbindungen und 30 Sekunden für Azure SQL-Datenbankverbindungen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="translated">[Optional] Geben Sie die Zeitspanne in Sekunden an, die auf die Ausführung eines Befehls gewartet werden soll, bevor der Versuch beendet und ein Fehler generiert wird. Der Standardwert ist 30 Sekunden.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>
