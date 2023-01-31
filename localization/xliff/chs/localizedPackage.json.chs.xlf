@@ -188,11 +188,11 @@
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
         <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
-        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</target>
+        <target state="translated">[可选]指定在终止连接尝试并生成错误之前等待连接到服务器的时间长度(秒)。本地的默认值为 15 秒，Azure SQL 数据库连接的默认值为 30 秒。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.commandTimeout">
         <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
-        <target state="new">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</target>
+        <target state="translated">[可选]指定在终止尝试并生成错误之前等待命令执行的时间长度(秒)。默认值为 30 秒。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>
