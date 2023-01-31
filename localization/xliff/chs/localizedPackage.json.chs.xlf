@@ -187,8 +187,12 @@
         <target state="translated">[可选] 当设置为 "false" 时，如果连接处于打开状态或曾经处于打开状态，则安全敏感信息(如密码等)将不会作为连接的一部分返回。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-        <target state="translated">[可选] 请指定在连接服务器超时前等待的时长(以秒为单位)。Azure SQL 数据库的默认超时值为 30。</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="new">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>

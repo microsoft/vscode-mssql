@@ -187,8 +187,12 @@
         <target state="translated">[Opcional] Quando definidas como false, informações confidenciais, como senha, não serão retornadas como parte da conexão se a conexão estiver aberta ou caso nunca tenha estado em um estado aberto.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-        <target state="translated">[Opcional] Especifique o tempo em segundos para aguardar uma conexão com o servidor antes que o tempo limite seja excedido. O valor de tempo limite padrão para o Banco de Dados SQL do Azure é 30.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target state="new">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="new">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>

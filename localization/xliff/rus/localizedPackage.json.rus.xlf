@@ -187,8 +187,12 @@
         <target state="translated">[Необязательно] Когда установлено значение «FALSE», то секретные данные (например, пароль) не возвращаются в составе подключения, если подключение открыто или когда-либо находилось в открытом состоянии.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-        <target state="translated">[Необязательно] Укажите продолжительность времени в секундах, в течение которого будет выполняться попытка подключения к серверу до завершения времени ожидания. Значение времени ожидания по умолчанию для Базы данных Azure SQL — 30 с.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target state="translated">[Необязательно] Укажите время ожидания подключения к серверу в секундах до завершения попытки подключения и создания ошибки. Значение по умолчанию — 15 секунд для локальных подключений и 30 секунд для баз данных SQL Azure.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="translated">[Необязательно] Укажите длительность (в секундах) ожидания выполнения команды, после чего попытка прекращается и выводится ошибка. Значение по умолчанию — 30 секунд.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>

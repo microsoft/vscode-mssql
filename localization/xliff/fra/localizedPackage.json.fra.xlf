@@ -187,8 +187,12 @@
         <target state="translated">[Facultatif] Quand la valeur est false, les informations relatives à la sécurité, comme le mot de passe, ne sont pas retournées dans le cadre de la connexion si la connexion est ouverte ou a été dans un état ouvert.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectTimeout">
-        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before it times out. The default timeout value for Azure SQL Database is 30.</source>
-        <target state="translated">[Facultatif] Spécifiez le délai d'attente en secondes d'une connexion au serveur avant expiration. La valeur du délai d'attente par défaut pour Azure SQL Database est 30.</target>
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 15 seconds for on-premise and 30 seconds for Azure SQL Database connections.</source>
+        <target state="translated">[Facultatif] Spécifiez la durée en secondes d’attente d’une connexion au serveur avant de mettre fin à la tentative de connexion et de générer une erreur. La valeur par défaut est de 15 secondes pour les connexions locales et de 30 secondes pour les connexions à la base de données Azure SQL.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.commandTimeout">
+        <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+        <target state="translated">[Facultatif] Spécifiez la durée en secondes d’attente de l’exécution d’une commande avant de mettre fin à la tentative et de générer une erreur. La valeur par défaut est de 30 secondes.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.connectRetryCount">
         <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>
