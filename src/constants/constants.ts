@@ -47,6 +47,7 @@ export const cmdObjectExplorerNodeSignIn = 'mssql.objectExplorerNodeSignIn';
 export const cmdConnectObjectExplorerNode = 'mssql.connectObjectExplorerNode';
 export const cmdConnectObjectExplorerProfile = 'mssql.connectObjectExplorerProfile';
 export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExplorer';
+export const cmdObjectExplorerGroupBySchemaFlagName = 'mssql.objectExplorer.groupBySchema';
 export const cmdScriptSelect = 'mssql.scriptSelect';
 export const cmdScriptCreate = 'mssql.scriptCreate';
 export const cmdScriptDelete = 'mssql.scriptDelete';

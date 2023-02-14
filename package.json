@@ -1137,6 +1137,11 @@
           "type": "boolean",
           "description": "%mssql.ignorePlatformWarning%",
           "default": false
+        },
+        "mssql.objectExplorer.groupBySchema": {
+          "type": "boolean",
+          "description": "%mssql.objectExplorer.groupBySchema%",
+          "default": true
         }
       }
     }
