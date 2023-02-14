@@ -129,5 +129,5 @@
 "mssql.chooseAuthMethod":"Chooses which Authentication method to use",
 "mssql.authCodeGrant.description":"Prompts users to sign in using their browser.",
 "mssql.deviceCode.description":"Allows users to sign in to input-constrained devices.",
-"mssql.objectExplorer.groupBySchema": "When enabled, the database objects in Object explorer will be categorized by schema."
+"mssql.objectExplorer.groupBySchema":"When enabled, the database objects in Object explorer will be categorized by schema."
 }
