@@ -1178,6 +1178,19 @@ export default class MainController implements vscode.Disposable {
 
 			await this.sanitizeConnectionProfiles();
 
+			if(e.affectsConfiguration(Constants.cmdObjectExplorerGroupBySchemaFlagName)){
+				this._objectExplorerProvider.rootNodeConnections.forEach(async (conn) => {
+					if(this.connectionManager.isActiveConnection(conn)){
+						const rootNodes = await this._objectExplorerProvider.getChildren();
+						rootNodes.forEach(async (rootNode: TreeNodeInfo) => {
+							if(rootNode.connectionInfo.accountId === conn.accountId){
+								await this._objectExplorerProvider.refreshNode(rootNode);
+							}
+						});
+					}
+				});
+			}
+
 			if (needsRefresh) {
 				this._objectExplorerProvider.refresh(undefined);
 			}
