@@ -163,6 +163,15 @@ export default class MainController implements vscode.Disposable {
 					});
 			});
 
+			this.registerCommand(Constants.cmdObjectExplorerEnableGroupBySchemaCommand);
+			this._event.on(Constants.cmdObjectExplorerEnableGroupBySchemaCommand, () => {
+				vscode.workspace.getConfiguration().update(Constants.cmdObjectExplorerGroupBySchemaFlagName, true, true);
+			});
+			this.registerCommand(Constants.cmdObjectExplorerDisableGroupBySchemaCommand);
+			this._event.on(Constants.cmdObjectExplorerDisableGroupBySchemaCommand, () => {
+				vscode.workspace.getConfiguration().update(Constants.cmdObjectExplorerGroupBySchemaFlagName, false, true);
+			});
+
 			this.initializeQueryHistory();
 
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
