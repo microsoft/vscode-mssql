@@ -2,7 +2,6 @@
 {
 	"version": "0.1.0",
 	"configurations": [
-
 		{
 			"type": "node",
 			"request": "launch",
@@ -38,7 +37,7 @@
 				// Uncomment this to use a specified version of STS, see
 				// https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
 				// for more details
-				"MSSQL_SQLTOOLSSERVICE": "C:\\Users\\aaskhan\\src\\sts3\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net7.0\\win-x64\\publish"
+				// "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
 			}
 		},
 		{
