@@ -1195,7 +1195,7 @@ export default class MainController implements vscode.Disposable {
 						Utils.logDebug(e.toString());
 						Utils.showErrorMsg(e.toString());
 					}
-				})
+				});
 			}
 
 			if (needsRefresh) {
