@@ -20,7 +20,7 @@
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
-        <target state="translated">Seleccionar 1 000 mejores</target>
+        <target state="translated">Seleccionar los primeros 1000</target>
       </trans-unit>
       <trans-unit id="mssql.scriptCreate">
         <source xml:lang="en">Script as Create</source>
