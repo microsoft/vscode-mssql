@@ -1163,7 +1163,7 @@
         "mssql.objectExplorer.groupBySchema": {
           "type": "boolean",
           "description": "%mssql.objectExplorer.groupBySchema%",
-          "default": true
+          "default": false
         }
       }
     }
