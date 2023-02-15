@@ -393,7 +393,7 @@
             <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         </trans-unit>
         <trans-unit id="mssql.objectExplorer.groupBySchema">
-            <source xml:lang="en">When enabled, the database objects in Object explorer will be categorized by schema.</source>
+            <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         </trans-unit>
         <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
             <source xml:lang="en">Enable Group By Schema</source>
