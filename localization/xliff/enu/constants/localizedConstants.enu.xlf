@@ -587,6 +587,9 @@
         <trans-unit id="columnWidthMustBePositiveError">
             <source xml:lang="en">Width cannot be 0 or negative</source>
         </trans-unit>
+        <trans-unit id="objectExplorerNodeRefreshError">
+            <source xml:lang="en">Error occured while refreshing nodes</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>

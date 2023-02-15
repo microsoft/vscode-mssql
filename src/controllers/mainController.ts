@@ -1188,14 +1188,18 @@ export default class MainController implements vscode.Disposable {
 			await this.sanitizeConnectionProfiles();
 
 			if (e.affectsConfiguration(Constants.cmdObjectExplorerGroupBySchemaFlagName)) {
+				let errorFoundWhileRefreshing = false;
 				(await this._objectExplorerProvider.getChildren()).forEach((n: TreeNodeInfo) => {
 					try {
 						this._objectExplorerProvider.refreshNode(n);
 					} catch (e) {
-						Utils.logDebug(e.toString());
-						Utils.showErrorMsg(e.toString());
+						errorFoundWhileRefreshing = true;
+						Utils.logToOutputChannel(e.toString());
 					}
 				});
+				if (errorFoundWhileRefreshing) {
+					Utils.showErrorMsg(LocalizedConstants.objectExplorerNodeRefreshError);
+				}
 			}
 
 			if (needsRefresh) {
