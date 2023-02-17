@@ -590,6 +590,9 @@
         <trans-unit id="objectExplorerNodeRefreshError">
             <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output</source>
         </trans-unit>
+        <trans-unit id="showOutputChannelActionButtonText">
+            <source xml:lang="en">Show MSSQL output</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
