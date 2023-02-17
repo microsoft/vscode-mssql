@@ -34,7 +34,7 @@ export abstract class AzureAuth {
 		this.loginEndpointUrl = providerSettings.loginEndpoint;
 	}
 
-	protected abstract async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse>;
+	protected abstract login(tenant: Tenant, resource: AADResource): Promise<LoginResponse>;
 
 	public async startLogin(): Promise<AzureAccount | undefined> {
 		let loginComplete: Deferred<void> | undefined;
@@ -488,7 +488,7 @@ export abstract class AzureAuth {
 	protected getTokenClaims(accessToken: string): TokenClaims | undefined {
 		try {
 			const split = accessToken.split('.');
-			return JSON.parse(Buffer.from(split[1], 'base64').toString('binary'));
+			return JSON.parse(Buffer.from(split[1], 'base64').toString('utf8'));
 		} catch (ex) {
 			throw new Error('Unable to read token claims: ' + JSON.stringify(ex));
 		}
