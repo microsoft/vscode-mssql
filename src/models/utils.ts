@@ -25,6 +25,8 @@ const configTracingLevel = 'tracingLevel';
 const configLogRetentionMinutes = 'logRetentionMinutes';
 const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
 
+const outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
+
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 
 // Interface for package.json information
@@ -110,7 +112,6 @@ export function getActiveTextEditorUri(): string {
 
 // Helper to log messages to "MSSQL" output channel
 export function logToOutputChannel(msg: any): void {
-	let outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
 	outputChannel.show();
 	if (msg instanceof Array) {
 		msg.forEach(element => {
