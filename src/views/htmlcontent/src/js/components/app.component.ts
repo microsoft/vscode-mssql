@@ -41,7 +41,7 @@ export interface IGridDataSet {
 // tslint:disable:max-line-length
 const template = `
 <div class="fullsize vertBox">
-    <div *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
+    <div #resultsheader *ngIf="dataSets.length > 0" role="button" id="resultspane" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!resultActive"
         (click)="toggleResultsPane()"
         (keydown)="handleResultsKeydown($event)"
@@ -86,7 +86,7 @@ const template = `
     </div>
     <context-menu #contextmenu (clickEvent)="handleContextClick($event)"></context-menu>
     <msg-context-menu #messagescontextmenu (clickEvent)="handleMessagesContextClick($event)"></msg-context-menu>
-    <div id="messagepane" role="button" tabIndex="0" class="boxRow header collapsible"
+    <div #messagesheader id="messagepane" role="button" tabIndex="0" class="boxRow header collapsible"
         [class.collapsed]="!messageActive"
         [attr.aria-label]="Constants.messagePaneLabel"
         [attr.aria-expanded]="messageActive"
@@ -159,6 +159,9 @@ const template = `
 })
 
 export class AppComponent implements OnInit, AfterViewChecked {
+	@ViewChild('resultsheader') resultsGroupHeaderButton: ElementRef;
+	@ViewChild('messagesheader') messagesGroupHeaderButton: ElementRef;
+
 	// CONSTANTS
 	private scrollTimeOutTime = 200;
 	private windowSize = 50;
@@ -177,9 +180,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			this.slickgrids.toArray()[this.activeGrid]['_grid'].setActiveCell(0, 1);
 		},
 		'event.toggleResultPane': () => {
+			this.resultsGroupHeaderButton.nativeElement.focus();
 			this.resultActive = !this.resultActive;
 		},
 		'event.toggleMessagePane': () => {
+			this.messagesGroupHeaderButton.nativeElement.focus();
 			this.toggleMessagesPane();
 		},
 		'event.nextGrid': () => {
