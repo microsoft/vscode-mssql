@@ -401,6 +401,9 @@
         <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
             <source xml:lang="en">Disable Group By Schema</source>
         </trans-unit>
+        <trans-unit id="mssql.objectExplorer.expandTimeout">
+            <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
