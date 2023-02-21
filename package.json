@@ -247,6 +247,18 @@
           "when": "view == queryHistory",
           "title": "%mssql.clearAllQueryHistory%",
           "group": "secondary"
+        },
+        {
+          "command": "mssql.objectExplorer.enableGroupBySchema",
+          "when": "view == objectExplorer && !config.mssql.objectExplorer.groupBySchema",
+          "title": "%mssql.objectExplorer.enableGroupBySchema%",
+          "group": "secondary"
+        },
+        {
+          "command": "mssql.objectExplorer.disableGroupBySchema",
+          "when": "view == objectExplorer && config.mssql.objectExplorer.groupBySchema",
+          "title": "%mssql.objectExplorer.disableGroupBySchema%",
+          "group": "secondary"
         }
       ],
       "view/item/context": [
@@ -438,6 +450,16 @@
         "title": "%mssql.addObjectExplorer%",
         "category": "MS SQL",
         "icon": "$(add)"
+      },
+      {
+        "command": "mssql.objectExplorer.enableGroupBySchema",
+        "title": "%mssql.objectExplorer.enableGroupBySchema%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.objectExplorer.disableGroupBySchema",
+        "title": "%mssql.objectExplorer.disableGroupBySchema%",
+        "category": "MS SQL"
       },
       {
         "command": "mssql.objectExplorerNewQuery",
@@ -1136,6 +1158,11 @@
         "mssql.ignorePlatformWarning": {
           "type": "boolean",
           "description": "%mssql.ignorePlatformWarning%",
+          "default": false
+        },
+        "mssql.objectExplorer.groupBySchema": {
+          "type": "boolean",
+          "description": "%mssql.objectExplorer.groupBySchema%",
           "default": false
         }
       }
