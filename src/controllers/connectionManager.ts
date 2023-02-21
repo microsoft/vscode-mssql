@@ -124,7 +124,7 @@ export default class ConnectionManager {
 		}
 
 		if (!this.azureController) {
-			this.azureController = new AzureController(context, prompter);
+			this.azureController = new AzureController(context, prompter, this.client.logger);
 			this.azureController.init();
 		}
 

@@ -22,6 +22,7 @@ const msInM = 60000;
 const msInS = 1000;
 
 const configTracingLevel = 'tracingLevel';
+const configPiiLogging = 'piiLogging';
 const configLogRetentionMinutes = 'logRetentionMinutes';
 const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
 
@@ -389,6 +390,15 @@ export function getConfigTracingLevel(): string {
 	let config = getConfiguration();
 	if (config) {
 		return config.get(configTracingLevel);
+	} else {
+		return undefined;
+	}
+}
+
+export function getConfigPiiLogging(): boolean {
+	let config = getConfiguration();
+	if (config) {
+		return config.get(configPiiLogging);
 	} else {
 		return undefined;
 	}

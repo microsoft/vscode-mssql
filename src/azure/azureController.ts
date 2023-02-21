@@ -9,7 +9,6 @@ import { AzureStringLookup } from '../azure/azureStringLookup';
 import { AzureUserInteraction } from '../azure/azureUserInteraction';
 import { AzureErrorLookup } from '../azure/azureErrorLookup';
 import { AzureMessageDisplayer } from './azureMessageDisplayer';
-import { AzureLogger } from '../azure/azureLogger';
 import { AzureAuthRequest } from './azureAuthRequest';
 import { SimpleTokenCache } from './cacheService';
 import * as path from 'path';
@@ -30,6 +29,8 @@ import { AzureAccount } from '../../lib/ads-adal-library/src';
 import { Subscription } from '@azure/arm-subscriptions';
 import * as mssql from 'vscode-mssql';
 import * as azureUtils from './utils';
+import { Logger } from '../models/logger';
+import { Logger as AzureLogger } from '@microsoft/ads-adal-library';
 
 function getAppDataPath(): string {
 	let platform = process.platform;
@@ -82,7 +83,7 @@ export class AzureController {
 	private cacheService: SimpleTokenCache;
 	private storageService: StorageService;
 	private context: vscode.ExtensionContext;
-	private logger: AzureLogger;
+	private logger: Logger;
 	private prompter: IPrompter;
 	private _vscodeWrapper: VscodeWrapper;
 	private credentialStoreInitialized = false;
@@ -90,13 +91,10 @@ export class AzureController {
 	constructor(
 		context: vscode.ExtensionContext,
 		prompter: IPrompter,
-		logger?: AzureLogger,
+		logger: AzureLogger,
 		private _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		this.context = context;
 		this.prompter = prompter;
-		if (!this.logger) {
-			this.logger = new AzureLogger();
-		}
 		if (!this._vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
 		}
@@ -276,20 +274,18 @@ export class AzureController {
 	}
 
 	private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
-		let azureLogger = new AzureLogger();
 		await this.initializeCredentialStore();
 		return new AzureCodeGrant(
-			providerSettings, this.storageService, this.cacheService, azureLogger,
+			providerSettings, this.storageService, this.cacheService, this.logger,
 			this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
 			this.azureStringLookup, this.authRequest
 		);
 	}
 
 	private async createDeviceCode(): Promise<AzureDeviceCode> {
-		let azureLogger = new AzureLogger();
 		await this.initializeCredentialStore();
 		return new AzureDeviceCode(
-			providerSettings, this.storageService, this.cacheService, azureLogger,
+			providerSettings, this.storageService, this.cacheService, this.logger,
 			this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
 			this.azureStringLookup, this.authRequest
 		);

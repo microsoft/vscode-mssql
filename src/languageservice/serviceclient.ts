@@ -13,7 +13,7 @@ import * as path from 'path';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
 import { VersionRequest } from '../models/contracts';
-import { Logger } from '../models/logger';
+import { Logger, LogLevel } from '../models/logger';
 import * as Constants from '../constants/constants';
 import ServerProvider from './server';
 import ServiceDownloadProvider from './serviceDownloadProvider';
@@ -138,6 +138,10 @@ export default class SqlToolsServiceClient {
 		return this._client.diagnostics;
 	}
 
+	public get logger(): Logger {
+		return this._logger;
+	}
+
 	constructor(
 		private _config: IConfig,
 		private _server: ServerProvider,
@@ -150,8 +154,10 @@ export default class SqlToolsServiceClient {
 	public static get instance(): SqlToolsServiceClient {
 		if (this._instance === undefined) {
 			let config = new ExtConfig();
+			let logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
+			let pii = Utils.getConfigPiiLogging();
 			_channel = vscode.window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
-			let logger = new Logger(text => _channel.append(text));
+			let logger = new Logger(text => _channel.append(text), logLevel, pii);
 			let serverStatusView = new ServerStatusView();
 			let httpClient = new HttpClient();
 			let decompressProvider = new DecompressProvider();
