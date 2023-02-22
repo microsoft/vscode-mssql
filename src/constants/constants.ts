@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // Collection of Non-localizable Constants
+export const vscodeAppName = 'Code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
@@ -18,6 +19,7 @@ export const connectionsArrayName = 'connections';
 export const disconnectedServerLabel = 'disconnectedServer';
 export const serverLabel = 'Server';
 export const folderLabel = 'Folder';
+export const AzureAccountDirectory = 'Azure Accounts';
 export const cmdRunQuery = 'mssql.runQuery';
 export const cmdRunCurrentStatement = 'mssql.runCurrentStatement';
 export const cmdCancelQuery = 'mssql.cancelQuery';

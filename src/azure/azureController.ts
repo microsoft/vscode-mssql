@@ -294,12 +294,13 @@ export class AzureController {
 	}
 
 	private getDefaultOutputLocation(): string {
-		return path.join(this.getAppDataPath(), 'vscode-mssql');
+		return path.join(this.getAppDataPath(), Constants.vscodeAppName);
 	}
 
+	// Generates storage path for Azure Account cache, e.g C:\users\<>\AppData\Roaming\Code\Azure Accounts\
 	private async findOrMakeStoragePath(): Promise<string | undefined> {
 		let defaultOutputLocation = this.getDefaultOutputLocation();
-		let storagePath = path.join(defaultOutputLocation, 'Azure Accounts');
+		let storagePath = path.join(defaultOutputLocation, Constants.AzureAccountDirectory);
 
 		try {
 			await fs.mkdir(defaultOutputLocation, { recursive: true });
