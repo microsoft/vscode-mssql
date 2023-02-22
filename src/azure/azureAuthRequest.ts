@@ -11,19 +11,19 @@ import * as http from 'http';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as vscode from 'vscode';
-import { AzureLogger } from '../azure/azureLogger';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { Logger } from '../models/logger';
 
 export class AzureAuthRequest implements AuthRequest {
 	simpleWebServer: SimpleWebServer;
 	serverPort: string;
 	nonce: string;
 	context: vscode.ExtensionContext;
-	logger: AzureLogger;
+	logger: Logger;
 	_vscodeWrapper: VscodeWrapper;
 
 
-	constructor(context: vscode.ExtensionContext, logger: AzureLogger) {
+	constructor(context: vscode.ExtensionContext, logger: Logger) {
 		this.simpleWebServer = new SimpleWebServer();
 		this.serverPort = undefined;
 		this.nonce = crypto.randomBytes(16).toString('base64');

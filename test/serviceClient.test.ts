@@ -7,7 +7,7 @@ import * as TypeMoq from 'typemoq';
 import * as assert from 'assert';
 import ServerProvider from '../src/languageservice/server';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
-import { Logger } from '../src/models/logger';
+import { Logger, LogLevel } from '../src/models/logger';
 import { PlatformInformation } from '../src/models/platform';
 import StatusView from './../src/views/statusView';
 import * as LanguageServiceContracts from '../src/models/contracts/languageService';
@@ -25,7 +25,7 @@ suite('Service Client tests', () => {
 
 	let testConfig: TypeMoq.IMock<IConfig>;
 	let testServiceProvider: TypeMoq.IMock<ServerProvider>;
-	let logger = new Logger(text => console.log(text));
+	let logger = new Logger(text => console.log(text), LogLevel.Verbose, false);
 	let testStatusView: TypeMoq.IMock<StatusView>;
 	let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 

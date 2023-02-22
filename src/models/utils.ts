@@ -22,6 +22,7 @@ const msInM = 60000;
 const msInS = 1000;
 
 const configTracingLevel = 'tracingLevel';
+const configPiiLogging = 'piiLogging';
 const configLogRetentionMinutes = 'logRetentionMinutes';
 const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
 
@@ -407,6 +408,15 @@ export function getConfigTracingLevel(): string {
 	}
 }
 
+export function getConfigPiiLogging(): boolean {
+	let config = getConfiguration();
+	if (config) {
+		return config.get(configPiiLogging);
+	} else {
+		return undefined;
+	}
+}
+
 export function getConfigLogFilesRemovalLimit(): number {
 	let config = getConfiguration();
 	if (config) {
@@ -442,6 +452,9 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileNa
 	console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
 	launchArgs.push('--tracing-level');
 	launchArgs.push(getConfigTracingLevel());
+	if (getConfigPiiLogging()) {
+		launchArgs.push('--pii-logging');
+	}
 	return launchArgs;
 }
 

@@ -9,7 +9,6 @@ import { AzureStringLookup } from '../azure/azureStringLookup';
 import { AzureUserInteraction } from '../azure/azureUserInteraction';
 import { AzureErrorLookup } from '../azure/azureErrorLookup';
 import { AzureMessageDisplayer } from './azureMessageDisplayer';
-import { AzureLogger } from '../azure/azureLogger';
 import { AzureAuthRequest } from './azureAuthRequest';
 import { SimpleTokenCache } from './cacheService';
 import * as path from 'path';
@@ -30,47 +29,8 @@ import { AzureAccount } from '../../lib/ads-adal-library/src';
 import { Subscription } from '@azure/arm-subscriptions';
 import * as mssql from 'vscode-mssql';
 import * as azureUtils from './utils';
-
-function getAppDataPath(): string {
-	let platform = process.platform;
-	switch (platform) {
-		case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE'], 'AppData', 'Roaming');
-		case 'darwin': return path.join(os.homedir(), 'Library', 'Application Support');
-		case 'linux': return process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
-		default: throw new Error('Platform not supported');
-	}
-}
-
-function getDefaultLogLocation(): string {
-	return path.join(getAppDataPath(), 'vscode-mssql');
-}
-
-async function findOrMakeStoragePath(): Promise<string | undefined> {
-	let defaultLogLocation = getDefaultLogLocation();
-	let storagePath = path.join(defaultLogLocation, 'AAD');
-
-	try {
-		await fs.mkdir(defaultLogLocation, { recursive: true });
-	} catch (e) {
-		if (e.code !== 'EEXIST') {
-			console.log(`Creating the base directory failed... ${e}`);
-			return undefined;
-		}
-	}
-
-	try {
-		await fs.mkdir(storagePath, { recursive: true });
-	} catch (e) {
-		if (e.code !== 'EEXIST') {
-			console.error(`Initialization of vscode-mssql storage failed: ${e}`);
-			console.error('Azure accounts will not be available');
-			return undefined;
-		}
-	}
-
-	console.log('Initialized vscode-mssql storage.');
-	return storagePath;
-}
+import * as Constants from '../constants/constants';
+import { Logger, LogLevel } from '../models/logger';
 
 export class AzureController {
 
@@ -82,7 +42,7 @@ export class AzureController {
 	private cacheService: SimpleTokenCache;
 	private storageService: StorageService;
 	private context: vscode.ExtensionContext;
-	private logger: AzureLogger;
+	private logger: Logger;
 	private prompter: IPrompter;
 	private _vscodeWrapper: VscodeWrapper;
 	private credentialStoreInitialized = false;
@@ -90,17 +50,23 @@ export class AzureController {
 	constructor(
 		context: vscode.ExtensionContext,
 		prompter: IPrompter,
-		logger?: AzureLogger,
+		logger?: Logger,
 		private _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		this.context = context;
 		this.prompter = prompter;
-		if (!this.logger) {
-			this.logger = new AzureLogger();
+		if (!logger) {
+			let logLevel: LogLevel = LogLevel[utils.getConfigTracingLevel() as keyof typeof LogLevel];
+			let pii = utils.getConfigPiiLogging();
+			let _channel = vscode.window.createOutputChannel(LocalizedConstants.azureLogChannelName);
+			this.logger = new Logger(text => _channel.append(text), logLevel, pii);
+		} else {
+			this.logger = logger;
 		}
 		if (!this._vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
 		}
 	}
+
 	public async init(): Promise<void> {
 		this.authRequest = new AzureAuthRequest(this.context, this.logger);
 		await this.authRequest.startServer();
@@ -131,7 +97,7 @@ export class AzureController {
 
 	public async addAccount(accountStore: AccountStore): Promise<IAccount> {
 		let account: IAccount;
-		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
+		let config = azureUtils.getAzureActiveDirectoryConfig();
 		if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			account = await azureCodeGrant.startLogin();
@@ -142,12 +108,13 @@ export class AzureController {
 			await accountStore.addAccount(account);
 		}
 
+		this.logger.verbose('Account added successfully.');
 		return account;
 	}
 
 	public async getAccountSecurityToken(account: IAccount, tenantId: string | undefined, settings: AADResource): Promise<Token> {
 		let token: Token;
-		let config = vscode.workspace.getConfiguration('mssql').get('azureActiveDirectory');
+		let config = azureUtils.getAzureActiveDirectoryConfig();
 		if (config === utils.azureAuthTypeToString(AzureAuthType.AuthCodeGrant)) {
 			let azureCodeGrant = await this.createAuthCodeGrant();
 			tenantId = tenantId ? tenantId : azureCodeGrant.getHomeTenant(account).id;
@@ -161,6 +128,7 @@ export class AzureController {
 				account, tenantId, settings
 			);
 		}
+		this.logger.verbose('Access token retreived successfully.');
 		return token;
 	}
 
@@ -180,6 +148,7 @@ export class AzureController {
 
 		if (!token) {
 			let errorMessage = LocalizedConstants.msgGetTokenFail;
+			this.logger.error(errorMessage);
 			this._vscodeWrapper.showErrorMessage(errorMessage);
 		} else {
 			profile.azureAccountToken = token.token;
@@ -276,28 +245,27 @@ export class AzureController {
 	}
 
 	private async createAuthCodeGrant(): Promise<AzureCodeGrant> {
-		let azureLogger = new AzureLogger();
 		await this.initializeCredentialStore();
 		return new AzureCodeGrant(
-			providerSettings, this.storageService, this.cacheService, azureLogger,
+			providerSettings, this.storageService, this.cacheService, this.logger,
 			this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
 			this.azureStringLookup, this.authRequest
 		);
 	}
 
 	private async createDeviceCode(): Promise<AzureDeviceCode> {
-		let azureLogger = new AzureLogger();
 		await this.initializeCredentialStore();
 		return new AzureDeviceCode(
-			providerSettings, this.storageService, this.cacheService, azureLogger,
+			providerSettings, this.storageService, this.cacheService, this.logger,
 			this.azureMessageDisplayer, this.azureErrorLookup, this.azureUserInteraction,
 			this.azureStringLookup, this.authRequest
 		);
 	}
 
-	public async removeToken(account): Promise<void> {
+	public async removeToken(account: AzureAccount): Promise<void> {
 		let azureAuth = await this.createAuthCodeGrant();
 		await azureAuth.deleteAccountCache(account.key);
+		this.logger.verbose(`Account deleted from cache successfully: ${account.key.id}`);
 		return;
 	}
 
@@ -306,15 +274,57 @@ export class AzureController {
 	 */
 	private async initializeCredentialStore(): Promise<void> {
 		if (!this.credentialStoreInitialized) {
-			let storagePath = await findOrMakeStoragePath();
+			let storagePath = await this.findOrMakeStoragePath();
 			let credentialStore = new CredentialStore(this.context);
-			this.cacheService = new SimpleTokenCache('aad', storagePath, true, credentialStore);
+			this.cacheService = new SimpleTokenCache(Constants.adalCacheFileName, storagePath, true, credentialStore);
 			await this.cacheService.init();
 			this.storageService = this.cacheService.db;
 			this.credentialStoreInitialized = true;
+			this.logger.verbose(`Credential store initialized.`);
 		}
 	}
 
+	private getAppDataPath(): string {
+		let platform = process.platform;
+		switch (platform) {
+			case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE'], 'AppData', 'Roaming');
+			case 'darwin': return path.join(os.homedir(), 'Library', 'Application Support');
+			case 'linux': return process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
+			default: throw new Error('Platform not supported');
+		}
+	}
+
+	private getDefaultOutputLocation(): string {
+		return path.join(this.getAppDataPath(), Constants.vscodeAppName);
+	}
+
+	// Generates storage path for Azure Account cache, e.g C:\users\<>\AppData\Roaming\Code\Azure Accounts\
+	private async findOrMakeStoragePath(): Promise<string | undefined> {
+		let defaultOutputLocation = this.getDefaultOutputLocation();
+		let storagePath = path.join(defaultOutputLocation, Constants.azureAccountDirectory);
+
+		try {
+			await fs.mkdir(defaultOutputLocation, { recursive: true });
+		} catch (e) {
+			if (e.code !== 'EEXIST') {
+				this.logger.error(`Creating the base directory failed... ${e}`);
+				return undefined;
+			}
+		}
+
+		try {
+			await fs.mkdir(storagePath, { recursive: true });
+		} catch (e) {
+			if (e.code !== 'EEXIST') {
+				this.logger.error(`Initialization of vscode-mssql storage failed: ${e}`);
+				this.logger.error('Azure accounts will not be available');
+				return undefined;
+			}
+		}
+
+		this.logger.log('Initialized vscode-mssql storage.');
+		return storagePath;
+	}
 
 	/**
 	 * Verifies if the token still valid, refreshes the token for given account
@@ -323,10 +333,13 @@ export class AzureController {
 	public async checkAndRefreshToken(
 		session: mssql.IAzureAccountSession,
 		accountStore: AccountStore): Promise<void> {
-		if (session.account && AzureController.isTokenInValid(session.token?.token, session.token.expiresOn)) {
+		if (session?.account && AzureController.isTokenInValid(session.token?.token, session.token.expiresOn)) {
 			const token = await this.refreshToken(session.account, accountStore,
 				providerSettings.resources.azureManagementResource);
 			session.token = token;
+			this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);
+		} else {
+			this.logger.verbose(`Access Token not refreshed for account: ${session?.account?.key.id}`);
 		}
 	}
 

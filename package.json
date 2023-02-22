@@ -1022,6 +1022,11 @@
             "Verbose"
           ]
         },
+        "mssql.piiLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.piiLogging%"
+        },
         "mssql.logRetentionMinutes": {
           "type": "number",
           "default": 10080,

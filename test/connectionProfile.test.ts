@@ -19,6 +19,7 @@ import * as assert from 'assert';
 import { AccountStore } from '../src/azure/accountStore';
 import { IConnectionInfo } from 'vscode-mssql';
 import { AzureController } from '../src/azure/azureController';
+import { Logger } from '../src/models/logger';
 
 function createTestCredentials(): IConnectionInfo {
 	const creds: IConnectionInfo = {
@@ -67,6 +68,7 @@ suite('Connection Profile tests', () => {
 	let mockAzureController: AzureController;
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 	let mockPrompter: TypeMoq.IMock<IPrompter>;
+	let mockLogger: TypeMoq.IMock<Logger>;
 	let globalstate: TypeMoq.IMock<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>;
 
 	setup(() => {
@@ -74,9 +76,10 @@ suite('Connection Profile tests', () => {
 		globalstate = TypeMoq.Mock.ofType<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>();
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
+		mockLogger = TypeMoq.Mock.ofType<Logger>();
 		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
-		mockAzureController = new AzureController(mockContext.object, mockPrompter.object);
-		mockAccountStore = new AccountStore(mockContext.object);
+		mockAzureController = new AzureController(mockContext.object, mockPrompter.object, mockLogger.object);
+		mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
 	});
 
 	test('CreateProfile should ask questions in correct order', async () => {

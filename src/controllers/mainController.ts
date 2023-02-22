@@ -1205,7 +1205,18 @@ export default class MainController implements vscode.Disposable {
 			if (needsRefresh) {
 				this._objectExplorerProvider.refresh(undefined);
 			}
+			if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
+				this.updatePiiLoggingLevel();
+			}
 		}
+	}
+
+	/**
+	 * Updates Pii Logging configuration for Logger.
+	 */
+	private updatePiiLoggingLevel(): void {
+		const piiLogging: boolean = vscode.workspace.getConfiguration(Constants.extensionName).get(Constants.piiLogging, false);
+		SqlToolsServerClient.instance.logger.piiLogging = piiLogging;
 	}
 
 	public removeAadAccount(prompter: IPrompter): void {

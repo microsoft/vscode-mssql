@@ -116,7 +116,7 @@ export default class ConnectionManager {
 		}
 
 		if (!this._accountStore) {
-			this._accountStore = new AccountStore(context);
+			this._accountStore = new AccountStore(context, this.client?.logger);
 		}
 
 		if (!this._connectionUI) {

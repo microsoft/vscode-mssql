@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // Collection of Non-localizable Constants
+export const vscodeAppName = 'Code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
@@ -18,6 +19,7 @@ export const connectionsArrayName = 'connections';
 export const disconnectedServerLabel = 'disconnectedServer';
 export const serverLabel = 'Server';
 export const folderLabel = 'Folder';
+export const azureAccountDirectory = 'Azure Accounts';
 export const cmdRunQuery = 'mssql.runQuery';
 export const cmdRunCurrentStatement = 'mssql.runCurrentStatement';
 export const cmdCancelQuery = 'mssql.cancelQuery';
@@ -63,6 +65,8 @@ export const cmdAzureSignIn = 'azure-account.login';
 export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
 export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
+export const piiLogging = 'piiLogging';
+export const mssqlPiiLogging = 'mssql.piiLogging';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -108,6 +112,7 @@ export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 export const configAzureAccount = 'azureAccount';
+export const adalCacheFileName = 'azureTokenCache_azure_publicCloud';
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';

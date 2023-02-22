@@ -8,7 +8,11 @@ import { SqlManagementClient } from '@azure/arm-sql';
 import { SubscriptionClient } from '@azure/arm-subscriptions';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
 import { Token } from 'vscode-mssql';
+import * as vscode from 'vscode';
+import * as Constants from '../constants/constants';
 import { TokenCredentialWrapper } from './credentialWrapper';
+
+const configAzureAD = 'azureActiveDirectory';
 
 /**
  * Helper method to convert azure results that comes as pages to an array
@@ -39,4 +43,18 @@ export function defaultResourceManagementClientFactory(token: Token, subscriptio
 export type SqlManagementClientFactory = (token: Token, subscriptionId: string) => SqlManagementClient;
 export function defaultSqlManagementClientFactory(token: Token, subscriptionId: string): SqlManagementClient {
 	return new SqlManagementClient(new TokenCredentialWrapper(token), subscriptionId);
+}
+
+
+function getConfiguration(): vscode.WorkspaceConfiguration {
+	return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+}
+
+export function getAzureActiveDirectoryConfig(): string {
+	let config = getConfiguration();
+	if (config) {
+		return config.get(configAzureAD);
+	} else {
+		return undefined;
+	}
 }
