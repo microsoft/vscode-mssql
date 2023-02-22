@@ -439,7 +439,7 @@ export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileNa
 	console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
 	launchArgs.push('--tracing-level');
 	launchArgs.push(getConfigTracingLevel());
-	if(getConfigPiiLogging()){
+	if (getConfigPiiLogging()) {
 		launchArgs.push('--pii-logging');
 	}
 	return launchArgs;

@@ -40,7 +40,7 @@ export class AccountStore {
 	}
 
 	public removeAccount(key: string): void {
-		if(!key){
+		if (!key) {
 			this._logger.error('Azure Account key not received for removal request.');
 		}
 		let configValues = this.getAccounts();

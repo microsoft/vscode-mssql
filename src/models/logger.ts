@@ -61,7 +61,7 @@ export class Logger implements ILogger, AzureLogger {
 	 * @param msg The initial message to log
 	 * @param vals Any other values to add on to the end of the log message
 	 */
-	public pii(msg: any, ...vals: any[]){
+	public pii(msg: any, ...vals: any[]) {
 		if (this.piiLogging) {
 			this.write(LogLevel.Pii, msg, vals);
 		}

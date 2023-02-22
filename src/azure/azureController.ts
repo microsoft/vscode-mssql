@@ -54,13 +54,15 @@ export class AzureController {
 		private _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		this.context = context;
 		this.prompter = prompter;
-		if(!logger){
+		if (!logger) {
 			let logLevel: LogLevel = LogLevel[utils.getConfigTracingLevel() as keyof typeof LogLevel];
 			let pii = utils.getConfigPiiLogging();
 			let _channel = vscode.window.createOutputChannel(LocalizedConstants.azureLogChannelName);
 			this.logger = new Logger(text => _channel.append(text), logLevel, pii);
 		}
-		else this.logger = logger;
+		else {
+			this.logger = logger;
+		}
 		if (!this._vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
 		}
@@ -337,7 +339,7 @@ export class AzureController {
 				providerSettings.resources.azureManagementResource);
 			session.token = token;
 			this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);
-		} else{
+		} else {
 			this.logger.verbose(`Access Token not refreshed for account: ${session?.account?.key.id}`);
 		}
 	}
