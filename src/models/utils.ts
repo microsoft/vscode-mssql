@@ -26,6 +26,8 @@ const configPiiLogging = 'piiLogging';
 const configLogRetentionMinutes = 'logRetentionMinutes';
 const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
 
+const outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
+
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 
 // Interface for package.json information
@@ -111,8 +113,6 @@ export function getActiveTextEditorUri(): string {
 
 // Helper to log messages to "MSSQL" output channel
 export function logToOutputChannel(msg: any): void {
-	let outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
-	outputChannel.show();
 	if (msg instanceof Array) {
 		msg.forEach(element => {
 			outputChannel.appendLine(element.toString());
@@ -120,6 +120,10 @@ export function logToOutputChannel(msg: any): void {
 	} else {
 		outputChannel.appendLine(msg.toString());
 	}
+}
+
+export function openOutputChannel(): void {
+	outputChannel.show();
 }
 
 // Helper to log debug messages
@@ -146,6 +150,15 @@ export function showWarnMsg(msg: string): void {
 // Helper to show an error message
 export function showErrorMsg(msg: string): void {
 	vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg);
+}
+
+// Helper to show an error message with an option to open the output channel
+export function showOutputChannelErrorMsg(msg: string): void {
+	vscode.window.showErrorMessage(msg, LocalizedConstants.showOutputChannelActionButtonText).then((result) => {
+		if (result === LocalizedConstants.showOutputChannelActionButtonText) {
+			openOutputChannel();
+		}
+	});
 }
 
 export function isEmpty(str: any): boolean {

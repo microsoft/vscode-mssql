@@ -470,8 +470,8 @@ export class ObjectExplorerService {
 									if (result === LocalizedConstants.refreshTokenLabel) {
 										let updatedProfile = await azureController.populateAccountProperties(
 											profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
-										profile.azureAccountToken = updatedProfile.azureAccountToken;
-										profile.expiresOn = updatedProfile.expiresOn;
+										connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
+										connectionCredentials.expiresOn = updatedProfile.expiresOn;
 									} else {
 										this._client.logger.error('Credentials not refreshed by user.');
 										return undefined;

@@ -66,7 +66,7 @@ export class ConnectionCredentials implements IConnectionInfo {
 		}
 		details.options['database'] = credentials.database;
 		details.options['databaseDisplayName'] = credentials.database;
-		details.options['user'] = credentials.user;
+		details.options['user'] = credentials.user || credentials.email;
 		details.options['password'] = credentials.password;
 		details.options['authenticationType'] = credentials.authenticationType;
 		details.options['azureAccountToken'] = credentials.azureAccountToken;
