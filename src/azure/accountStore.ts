@@ -66,8 +66,7 @@ export class AccountStore {
 			}
 			configValues.unshift(account);
 			await this._context.globalState.update(Constants.configAzureAccount, configValues);
-		}
-		else {
+		} else {
 			this._logger.error('Empty Azure Account cannot be added to account store.');
 		}
 	}
@@ -75,6 +74,6 @@ export class AccountStore {
 	public async clearAccounts(): Promise<void> {
 		let configValues = [];
 		await this._context.globalState.update(Constants.configAzureAccount, configValues);
-		this._logger.verbose("Cleared all saved Azure accounts");
+		this._logger.verbose('Cleared all saved Azure accounts');
 	}
 }

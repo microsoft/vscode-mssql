@@ -59,8 +59,7 @@ export class AzureController {
 			let pii = utils.getConfigPiiLogging();
 			let _channel = vscode.window.createOutputChannel(LocalizedConstants.azureLogChannelName);
 			this.logger = new Logger(text => _channel.append(text), logLevel, pii);
-		}
-		else {
+		} else {
 			this.logger = logger;
 		}
 		if (!this._vscodeWrapper) {
@@ -109,7 +108,7 @@ export class AzureController {
 			await accountStore.addAccount(account);
 		}
 
-		this.logger.verbose("Account added successfully.");
+		this.logger.verbose('Account added successfully.');
 		return account;
 	}
 
@@ -129,7 +128,7 @@ export class AzureController {
 				account, tenantId, settings
 			);
 		}
-		this.logger.verbose("Access token retreived successfully.");
+		this.logger.verbose('Access token retreived successfully.');
 		return token;
 	}
 
@@ -302,7 +301,7 @@ export class AzureController {
 	// Generates storage path for Azure Account cache, e.g C:\users\<>\AppData\Roaming\Code\Azure Accounts\
 	private async findOrMakeStoragePath(): Promise<string | undefined> {
 		let defaultOutputLocation = this.getDefaultOutputLocation();
-		let storagePath = path.join(defaultOutputLocation, Constants.AzureAccountDirectory);
+		let storagePath = path.join(defaultOutputLocation, Constants.azureAccountDirectory);
 
 		try {
 			await fs.mkdir(defaultOutputLocation, { recursive: true });

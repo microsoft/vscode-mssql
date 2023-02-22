@@ -15,7 +15,7 @@ export enum LogLevel {
 	'Warning',
 	'Information',
 	'Verbose',
-	'All',
+	'All'
 }
 
 /*
@@ -45,7 +45,8 @@ export class Logger implements ILogger, AzureLogger {
 	 * @param stringsToShorten Set of strings to shorten
 	 * @param vals Any other values to add on to the end of the log message
 	 */
-	public piiSantized(msg: any, objsToSanitize: { name: string, objOrArray: any | any[] }[], stringsToShorten: { name: string, value: string }[], ...vals: any[]) {
+	public piiSantized(msg: any, objsToSanitize: { name: string, objOrArray: any | any[] }[],
+		stringsToShorten: { name: string, value: string }[], ...vals: any[]): void {
 		if (this.piiLogging) {
 			msg = [
 				msg,
@@ -61,7 +62,7 @@ export class Logger implements ILogger, AzureLogger {
 	 * @param msg The initial message to log
 	 * @param vals Any other values to add on to the end of the log message
 	 */
-	public pii(msg: any, ...vals: any[]) {
+	public pii(msg: any, ...vals: any[]): void {
 		if (this.piiLogging) {
 			this.write(LogLevel.Pii, msg, vals);
 		}
@@ -79,7 +80,7 @@ export class Logger implements ILogger, AzureLogger {
 		return logLevel <= this._logLevel;
 	}
 
-	private write(logLevel: LogLevel, msg: any, ...vals: any[]) {
+	private write(logLevel: LogLevel, msg: any, ...vals: any[]): void {
 		if (this.shouldLog(logLevel) || logLevel === LogLevel.Pii) {
 			const fullMessage = `[${LogLevel[logLevel]}]: ${msg} - ${vals.map(v => JSON.stringify(v)).join(' - ')}`;
 			this.appendLine(fullMessage);
@@ -90,19 +91,19 @@ export class Logger implements ILogger, AzureLogger {
 		Utils.logDebug(message);
 	}
 
-	public log(msg: any, ...vals: any[]) {
+	public log(msg: any, ...vals: any[]): void {
 		this.write(LogLevel.All, msg, vals);
 	}
 
-	public error(msg: any, ...vals: any[]) {
+	public error(msg: any, ...vals: any[]): void {
 		this.write(LogLevel.Error, msg, vals);
 	}
 
-	public info(msg: any, ...vals: any[]) {
+	public info(msg: any, ...vals: any[]): void {
 		this.write(LogLevel.Information, msg, vals);
 	}
 
-	public verbose(msg: any, ...vals: any[]) {
+	public verbose(msg: any, ...vals: any[]): void {
 		this.write(LogLevel.Verbose, msg, vals);
 	}
 

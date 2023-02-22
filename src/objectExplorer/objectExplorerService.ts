@@ -490,7 +490,7 @@ export class ObjectExplorerService {
 				this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
 				this._sessionIdToPromiseMap.set(response.sessionId, promise);
 				return response.sessionId;
-			} else{
+			} else {
 				this._client.logger.error('No response received for session creation request');
 			}
 		} else {
