@@ -15,6 +15,7 @@ import { ConnectionProfile } from '../src/models/connectionProfile';
 import { ConnectionCredentials } from '../src/models/connectionCredentials';
 import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { AccountStore } from '../src/azure/accountStore';
+import { Logger } from '../src/models/logger';
 
 suite('Connection UI tests', () => {
 
@@ -28,6 +29,7 @@ suite('Connection UI tests', () => {
 	let connectionStore: TypeMoq.IMock<ConnectionStore>;
 	let connectionManager: TypeMoq.IMock<ConnectionManager>;
 	let mockAccountStore: AccountStore;
+	let mockLogger: TypeMoq.IMock<Logger>;
 	let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
 	let globalstate: TypeMoq.IMock<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>;
 	let quickPickMock: TypeMoq.IMock<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>;
@@ -47,12 +49,13 @@ suite('Connection UI tests', () => {
 		vscodeWrapper.setup(v => v.createQuickPick()).returns(() => quickPickMock.object);
 		prompter = TypeMoq.Mock.ofType<IPrompter>();
 		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+		mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
 		connectionStore = TypeMoq.Mock.ofType(ConnectionStore, TypeMoq.MockBehavior.Loose, mockContext.object);
 		connectionManager = TypeMoq.Mock.ofType(ConnectionManager, TypeMoq.MockBehavior.Loose, mockContext.object);
 		globalstate = TypeMoq.Mock.ofType<vscode.Memento & { setKeysForSync(keys: readonly string[]): void; }>();
-
-		mockAccountStore = new AccountStore(mockContext.object);
+		mockLogger = TypeMoq.Mock.ofType<Logger>();
+		mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
 		connectionUI = new ConnectionUI(connectionManager.object, mockContext.object,
 			connectionStore.object, mockAccountStore, prompter.object, vscodeWrapper.object);
 	});

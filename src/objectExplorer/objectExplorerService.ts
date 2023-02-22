@@ -463,14 +463,17 @@ export class ObjectExplorerService {
 						let azureAccountToken = await azureController.refreshToken(
 							account, this._connectionManager.accountStore, providerSettings.resources.databaseResource, connectionCredentials.tenantId);
 						if (!azureAccountToken) {
+							this._client.logger.verbose('Access token could not be refreshed for connection profile.');
 							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 							await this._connectionManager.vscodeWrapper.showErrorMessage(
 								errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
 									if (result === LocalizedConstants.refreshTokenLabel) {
-										await azureController.populateAccountProperties(
+										let updatedProfile = await azureController.populateAccountProperties(
 											profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
-
+										profile.azureAccountToken = updatedProfile.azureAccountToken;
+										profile.expiresOn = updatedProfile.expiresOn;
 									} else {
+										this._client.logger.error('Credentials not refreshed by user.');
 										return undefined;
 									}
 								});
@@ -487,8 +490,11 @@ export class ObjectExplorerService {
 				this._sessionIdToConnectionCredentialsMap.set(response.sessionId, connectionCredentials);
 				this._sessionIdToPromiseMap.set(response.sessionId, promise);
 				return response.sessionId;
+			} else{
+				this._client.logger.error('No response received for session creation request');
 			}
 		} else {
+			this._client.logger.error('Connection could not be made, as credentials not available.');
 			// no connection was made
 			promise.resolve(undefined);
 			return undefined;
