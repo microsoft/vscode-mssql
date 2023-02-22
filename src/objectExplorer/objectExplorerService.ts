@@ -467,9 +467,10 @@ export class ObjectExplorerService {
 							await this._connectionManager.vscodeWrapper.showErrorMessage(
 								errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
 									if (result === LocalizedConstants.refreshTokenLabel) {
-										await azureController.populateAccountProperties(
+										let updatedProfile = await azureController.populateAccountProperties(
 											profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
-
+										connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
+										connectionCredentials.expiresOn = updatedProfile.expiresOn;
 									} else {
 										return undefined;
 									}
