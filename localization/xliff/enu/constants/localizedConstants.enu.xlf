@@ -128,6 +128,36 @@
         <trans-unit id="azureLogChannelName">
             <source xml:lang="en">Azure Logs</source>
         </trans-unit>
+        <trans-unit id="azureConsentDialogOpen">
+            <source xml:lang="en">Open</source>
+        </trans-unit>
+        <trans-unit id="azureConsentDialogCancel">
+            <source xml:lang="en">Cancel</source>
+        </trans-unit>
+        <trans-unit id="azureConsentDialogIgnore">
+            <source xml:lang="en">Ignore Tenant</source>
+        </trans-unit>
+        <trans-unit id="azureConsentDialogBody">
+            <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
+        </trans-unit>
+        <trans-unit id="azureMicrosoftCorpAccount">
+            <source xml:lang="en">Microsoft Corp</source>
+        </trans-unit>
+        <trans-unit id="azureMicrosoftAccount">
+            <source xml:lang="en">Microsoft Account</source>
+        </trans-unit>
+        <trans-unit id="azureNoMicrosoftResource">
+            <source xml:lang="en">Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
+        </trans-unit>
+        <trans-unit id="azureServerCouldNotStart">
+            <source xml:lang="en">Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.</source>
+        </trans-unit>
+        <trans-unit id="azureAuthNonceError">
+            <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
+        </trans-unit>
+        <trans-unit id="azureAuthStateError">
+            <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
+        </trans-unit>
         <trans-unit id="encryptPrompt">
             <source xml:lang="en">Encrypt</source>
         </trans-unit>
@@ -595,6 +625,12 @@
         </trans-unit>
         <trans-unit id="showOutputChannelActionButtonText">
             <source xml:lang="en">Show MSSQL output</source>
+        </trans-unit>
+        <trans-unit id="reloadPrompt">
+            <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
+        </trans-unit>
+        <trans-unit id="reloadChoice">
+            <source xml:lang="en">Reload Visual Studio Code</source>
         </trans-unit>
     </body>
   </file>

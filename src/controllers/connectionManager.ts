@@ -27,8 +27,12 @@ import { AccountStore } from '../azure/accountStore';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { QuestionTypes, IQuestion } from '../prompts/question';
 import { AzureController } from '../azure/azureController';
-import { ConnectionDetails, IConnectionInfo, IAccount, ServerInfo } from 'vscode-mssql';
+import { IAccount, AuthLibrary } from '../models/contracts/azure';
+import { ConnectionDetails, IConnectionInfo, ServerInfo } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
+import { getAzureAuthLibraryConfig } from '../azure/utils';
+import { AdalAzureController } from '../azure/adal/adalAzureController';
+import { MsalAzureController } from '../azure/msal/msalAzureController';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -112,7 +116,7 @@ export default class ConnectionManager {
 		}
 
 		if (!this._connectionStore) {
-			this._connectionStore = new ConnectionStore(context);
+			this._connectionStore = new ConnectionStore(context, this.client?.logger);
 		}
 
 		if (!this._accountStore) {
@@ -124,7 +128,13 @@ export default class ConnectionManager {
 		}
 
 		if (!this.azureController) {
-			this.azureController = new AzureController(context, prompter);
+			const authLibrary = getAzureAuthLibraryConfig();
+			if (authLibrary === AuthLibrary.ADAL) {
+				this.azureController = new AdalAzureController(context, prompter);
+			} else {
+				this.azureController = new MsalAzureController(context, prompter);
+			}
+
 			this.azureController.init();
 		}
 
@@ -778,7 +788,8 @@ export default class ConnectionManager {
 				if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
 					let account = this.accountStore.getAccount(connectionCreds.accountId);
 					let profile = new ConnectionProfile(connectionCreds);
-					let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource, profile.tenantId);
+					let azureAccountToken = await this.azureController.refreshAccessToken(account,
+						this.accountStore, profile.tenantId, providerSettings.resources.databaseResource);
 					if (!azureAccountToken) {
 						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
@@ -984,7 +995,7 @@ export default class ConnectionManager {
 		return prompter.prompt<IAccount>(questions, true).then(async answers => {
 			if (answers.account) {
 				this._accountStore.removeAccount(answers.account.key.id);
-				this.azureController.removeToken(answers.account);
+				this.azureController.removeAccount(answers.account);
 			}
 		});
 	}

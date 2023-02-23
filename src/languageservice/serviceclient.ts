@@ -154,9 +154,10 @@ export default class SqlToolsServiceClient {
 	public static get instance(): SqlToolsServiceClient {
 		if (this._instance === undefined) {
 			let config = new ExtConfig();
+			let vscodeWrapper = new VscodeWrapper();
 			let logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
 			let pii = Utils.getConfigPiiLogging();
-			_channel = vscode.window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
+			_channel = vscodeWrapper.createOutputChannel(Constants.serviceInitializingOutputChannelName);
 			let logger = new Logger(text => _channel.append(text), logLevel, pii);
 			let serverStatusView = new ServerStatusView();
 			let httpClient = new HttpClient();
@@ -164,7 +165,6 @@ export default class SqlToolsServiceClient {
 			let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView, httpClient,
 				decompressProvider);
 			let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
-			let vscodeWrapper = new VscodeWrapper();
 			let statusView = new StatusView(vscodeWrapper);
 			this._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView, vscodeWrapper);
 		}

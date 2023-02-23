@@ -2,11 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 import * as keytarType from 'keytar';
 import { join, parse } from 'path';
 import { StorageService } from './storageService';
 import * as crypto from 'crypto';
-import { ICredentialStore } from '../credentialstore/icredentialstore';
+import { ICredentialStore } from '../../credentialstore/icredentialstore';
 import { CachingProvider } from '@microsoft/ads-adal-library';
 
 function getSystemKeytar(): Keytar | undefined | null {
@@ -85,23 +86,22 @@ export class SimpleTokenCache implements CachingProvider {
 
 		this.db = new StorageService(filePath, fileOpener, fileSaver);
 		await this.db.initialize();
-		const self = this;
 		const fileKeytar: Keytar = {
 			async getPassword(service: string, account: string): Promise<string> {
-				return self.db.get(`${service}${separator}${account}`);
+				return this.db.get(`${service}${separator}${account}`);
 			},
 
 			async setPassword(service: string, account: string, password: string): Promise<void> {
-				await self.db.set(`${service}${separator}${account}`, password);
+				await this.db.set(`${service}${separator}${account}`, password);
 			},
 
 			async deletePassword(service: string, account: string): Promise<boolean> {
-				await self.db.remove(`${service}${separator}${account}`);
+				await this.db.remove(`${service}${separator}${account}`);
 				return true;
 			},
 
 			async getPasswords(service: string): Promise<MultipleAccountsResponse> {
-				const result = self.db.getPrefix(`${service}`);
+				const result = this.db.getPrefix(`${service}`);
 				if (!result) {
 					return [];
 				}

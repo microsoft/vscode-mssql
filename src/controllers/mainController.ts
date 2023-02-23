@@ -70,7 +70,9 @@ export default class MainController implements vscode.Disposable {
 	 * The main controller constructor
 	 * @constructor
 	 */
-	constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager, vscodeWrapper?: VscodeWrapper) {
+	constructor(context: vscode.ExtensionContext,
+		connectionManager?: ConnectionManager,
+		vscodeWrapper?: VscodeWrapper) {
 		this._context = context;
 		if (connectionManager) {
 			this._connectionMgr = connectionManager;
@@ -178,8 +180,8 @@ export default class MainController implements vscode.Disposable {
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 			const azureResourceController = new AzureResourceController();
-			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this.connectionManager.accountStore);
-			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this.connectionManager.accountStore);
+			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
+			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -1194,7 +1196,7 @@ export default class MainController implements vscode.Disposable {
 						this._objectExplorerProvider.refreshNode(n);
 					} catch (e) {
 						errorFoundWhileRefreshing = true;
-						Utils.logToOutputChannel(e.toString());
+						this._connectionMgr.client.logger.error(e);
 					}
 				});
 				if (errorFoundWhileRefreshing) {
@@ -1208,6 +1210,9 @@ export default class MainController implements vscode.Disposable {
 			if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
 				this.updatePiiLoggingLevel();
 			}
+			if (e.affectsConfiguration(Constants.azureAuthLibrary)) {
+				await this.displayReloadMessage();
+			}
 		}
 	}
 
@@ -1217,6 +1222,21 @@ export default class MainController implements vscode.Disposable {
 	private updatePiiLoggingLevel(): void {
 		const piiLogging: boolean = vscode.workspace.getConfiguration(Constants.extensionName).get(Constants.piiLogging, false);
 		SqlToolsServerClient.instance.logger.piiLogging = piiLogging;
+	}
+
+	/**
+	 * Display notification with button to reload
+	 * return true if button clicked
+	 * return false if button not clicked
+	 */
+	private async displayReloadMessage(): Promise<boolean> {
+		const result = await vscode.window.showInformationMessage(LocalizedConstants.reloadPrompt, LocalizedConstants.reloadChoice);
+		if (result === LocalizedConstants.reloadChoice) {
+			await vscode.commands.executeCommand('workbench.action.reloadWindow');
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public removeAadAccount(prompter: IPrompter): void {

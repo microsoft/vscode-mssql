@@ -3,6 +3,7 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+
 declare module 'vscode-mssql' {
 
 	import * as vscode from 'vscode';
@@ -434,6 +435,14 @@ declare module 'vscode-mssql' {
 	}
 
 	/**
+	 * Error that connect method throws if connection fails because of a fire wall rule error.
+	 */
+	export interface IFireWallRuleError extends Error {
+		connectionUri: string;
+	}
+
+	//////////////////// Azure Types ////////////////////
+	/**
 	 * Represents a tenant information for an account.
 	 */
 	export interface Tenant {
@@ -441,13 +450,6 @@ declare module 'vscode-mssql' {
 		displayName: string;
 		userId?: string;
 		tenantCategory?: string;
-	}
-
-	/**
-	 * Error that connect method throws if connection fails because of a fire wall rule error.
-	 */
-	export interface IFireWallRuleError extends Error {
-		connectionUri: string;
 	}
 
 	/**
@@ -468,6 +470,15 @@ declare module 'vscode-mssql' {
 		accountVersion?: any;
 	}
 
+	export enum AuthLibrary {
+		ADAL = 'ADAL',
+		MSAL = 'MSAL'
+	}
+
+	export enum AzureAuthType {
+		AuthCodeGrant = 0,
+		DeviceCode = 1
+	}
 
 	export enum AccountType {
 		Microsoft = 'microsoft',
@@ -512,7 +523,7 @@ declare module 'vscode-mssql' {
 		/**
 		 * Custom properties stored with the account
 		 */
-		properties: any;
+		properties: IAzureAccountProperties;
 		/**
 		 * Indicates if the account needs refreshing
 		 */
@@ -523,11 +534,53 @@ declare module 'vscode-mssql' {
 		isSignedIn?: boolean;
 	}
 
-	export interface IAzureAccountSession {
-		subscription: azure.subscription.Subscription,
-		tenantId: string,
-		account: IAccount,
-		token: Token
+	export interface IAzureAccountProperties {
+		/**
+		 * Auth type of azure used to authenticate this account.
+		 */
+		azureAuthType: AzureAuthType;
+
+		providerSettings: ProviderSettings;
+		/**
+		 * Whether or not the account is a Microsoft account
+		 */
+		isMsAccount: boolean;
+		/**
+		 * Represents the tenant that the user would be signing in to. For work and school accounts, the GUID is the immutable tenant ID of the organization that the user is signing in to.
+		 * For sign-ins to the personal Microsoft account tenant (services like Xbox, Teams for Life, or Outlook), the value is 9188040d-6c67-4c5b-b112-36a304b66dad.
+		 */
+		owningTenant: Tenant;
+		/**
+		 * A list of tenants (aka directories) that the account belongs to
+		 */
+		tenants: Tenant[];
+	}
+
+	export interface ProviderSettings {
+		scopes: string[];
+		displayName: string;
+		id: string;
+		clientId: string;
+		loginEndpoint: string;
+		portalEndpoint: string;
+		redirectUri: string;
+		resources: ProviderResources;
+	}
+
+	export interface ProviderResources {
+		windowsManagementResource: AADResource;
+		azureManagementResource: AADResource;
+		graphResource?: AADResource;
+		databaseResource?: AADResource;
+		ossRdbmsResource?: AADResource;
+		azureKeyVaultResource?: AADResource;
+		azureDevopsResource?: AADResource;
+	}
+
+	export interface AADResource {
+		id: string;
+		resource: string;
+		endpoint: string;
 	}
 
 	export interface TokenKey {
@@ -546,11 +599,51 @@ declare module 'vscode-mssql' {
 		 */
 		expiresOn?: number;
 	}
+
 	export interface Token extends AccessToken {
 		/**
 		 * TokenType
 		 */
 		tokenType: string;
+	}
+
+	export interface RefreshToken extends TokenKey {
+		/**
+		 * Refresh Token
+		 */
+		token: string;
+	}
+
+	export interface TokenClaims {
+		aud: string;
+		iss: string;
+		iat: number;
+		idp: string;
+		nbf: number;
+		exp: number;
+		home_oid?: string;
+		c_hash: string;
+		at_hash: string;
+		aio: string;
+		preferred_username: string;
+		email: string;
+		name: string;
+		nonce: string;
+		oid?: string;
+		roles: string[];
+		rh: string;
+		sub: string;
+		tid: string;
+		unique_name: string;
+		uti: string;
+		ver: string;
+	}
+
+	export interface IAzureAccountSession {
+		subscription: azure.subscription.Subscription,
+		tenantId: string,
+		account: IAccount,
+		token: Token
 	}
 
 	export interface IAzureAccountService {

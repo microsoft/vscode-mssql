@@ -10,12 +10,10 @@ import { ConnectionCredentials } from './connectionCredentials';
 import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
 import * as utils from './utils';
 import { ConnectionStore } from './connectionStore';
-import { AzureAuthType } from '@microsoft/ads-adal-library';
 import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
-import { IAccount } from 'vscode-mssql';
 import providerSettings from '../azure/providerSettings';
-import { Tenant, AzureAccount } from '@microsoft/ads-adal-library';
+import { AzureAuthType, IAccount, ITenant } from './contracts/azure';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -95,7 +93,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				onAnswered: (value) => {
 					accountAnswer = value;
 					if (value !== 'addAccount') {
-						let account: AzureAccount = value;
+						let account: IAccount = value;
 						tenantChoices.push(...account?.properties?.tenants.map(t => ({ name: t.displayName, value: t })));
 						if (tenantChoices.length === 1) {
 							profile.tenantId = tenantChoices[0].value.id;
@@ -109,7 +107,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				message: LocalizedConstants.azureChooseTenant,
 				choices: tenantChoices,
 				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
-				onAnswered: (value: Tenant) => {
+				onAnswered: (value: ITenant) => {
 					profile.tenantId = value.id;
 				}
 			},

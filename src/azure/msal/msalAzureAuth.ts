@@ -1,0 +1,691 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the Source EULA. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import * as qs from 'qs';
+import * as url from 'url';
+import * as vscode from 'vscode';
+import * as Utils from '../../models/utils';
+import * as azureUtils from '../utils';
+import * as Constants from '../constants';
+import * as LocalizedConstants from '../../constants/localizedConstants';
+import { AccountInfo, AuthenticationResult, AzureCloudInstance, InteractionRequiredAuthError, PublicClientApplication, SilentFlowRequest } from '@azure/msal-node';
+import { AzureAuthType, IProviderSettings, ITenant, IAccount, IPromptFailedResult, IAADResource, AccountType } from '../../models/contracts/azure';
+import { Resource } from '@azure/arm-resources';
+import { IDeferred } from '../../models/interfaces';
+import { Logger } from '../../models/logger';
+import { AzureAuthError } from '../azureAuthError';
+import VscodeWrapper from '../../controllers/vscodeWrapper';
+import fetch from 'node-fetch';
+import HttpsProxyAgent = require('https-proxy-agent');
+
+export abstract class MsalAzureAuth {
+	protected readonly loginEndpointUrl: string;
+	public readonly commonTenant: ITenant;
+	public readonly organizationTenant: ITenant;
+	protected readonly redirectUri: string;
+	protected readonly scopes: string[];
+	protected readonly scopesString: string;
+	protected readonly clientId: string;
+	protected readonly resources: Resource[];
+
+	constructor(
+		protected readonly providerSettings: IProviderSettings,
+		protected readonly context: vscode.ExtensionContext,
+		protected clientApplication: PublicClientApplication,
+		protected readonly authType: AzureAuthType,
+		protected readonly vscodeWrapper: VscodeWrapper,
+		protected readonly logger: Logger
+	) {
+		this.loginEndpointUrl = this.providerSettings.loginEndpoint ?? 'https://login.microsoftonline.com';
+		this.commonTenant = {
+			id: 'common',
+			displayName: 'common'
+		};
+		this.organizationTenant = {
+			id: 'organizations',
+			displayName: 'organizations'
+		};
+		// Use localhost for MSAL instead of this.providerSettings.redirectUri (kept as-is for ADAL only);
+		this.redirectUri = 'http://localhost';
+		this.clientId = this.providerSettings.clientId;
+		this.scopes = [...this.providerSettings.scopes];
+		this.scopesString = this.scopes.join(' ');
+	}
+
+	public async startLogin(): Promise<IAccount | IPromptFailedResult> {
+		let loginComplete: IDeferred<void, Error> | undefined = undefined;
+		try {
+			this.logger.verbose('Starting login');
+			if (!this.providerSettings.resources.windowsManagementResource) {
+				throw new Error(Utils.formatString(LocalizedConstants.azureNoMicrosoftResource, this.providerSettings.displayName));
+			}
+			const result = await this.login(this.organizationTenant);
+			loginComplete = result.authComplete;
+			if (!result?.response || !result.response?.account) {
+				this.logger.error(`Authentication failed: ${loginComplete}`);
+				return {
+					canceled: false
+				};
+			}
+			const token: Token = {
+				token: result.response.accessToken,
+				key: result.response.account.homeAccountId,
+				tokenType: result.response.tokenType
+			};
+			const tokenClaims = <TokenClaims>result.response.idTokenClaims;
+			const account = await this.hydrateAccount(token, tokenClaims);
+			loginComplete?.resolve();
+			return account;
+		} catch (ex) {
+			this.logger.error(`Login failed: ${ex}`);
+			if (ex instanceof AzureAuthError) {
+				if (loginComplete) {
+					loginComplete.reject(ex);
+					this.logger.error(ex);
+				} else {
+					void vscode.window.showErrorMessage(ex.message);
+					this.logger.error(ex.originalMessageAndException);
+				}
+			} else {
+				this.logger.error(ex);
+			}
+			return {
+				canceled: false
+			};
+		}
+	}
+
+	public async hydrateAccount(token: Token | AccessToken, tokenClaims: TokenClaims): Promise<IAccount> {
+		const tenants = await this.getTenants(token.token);
+		let account = this.createAccount(tokenClaims, token.key, tenants);
+		return account;
+	}
+
+	protected abstract login(tenant: ITenant): Promise<{ response: AuthenticationResult | undefined, authComplete: IDeferred<void, Error> }>;
+
+	/**
+	 * Gets the access token for the correct account and scope from the token cache, if the correct token doesn't exist in the token cache
+	 * (i.e. expired token, wrong scope, etc.), sends a request for a new token using the refresh token
+	 * @param account
+	 * @param azureResource
+	 * @returns The authentication result, including the access token
+	 */
+	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | undefined> {
+		let accountInfo: AccountInfo | undefined = await this.getAccountFromMsalCache(account.key.id);
+		// Resource endpoint must end with '/' to form a valid scope for MSAL token request.
+		const endpoint = settings.endpoint.endsWith('/') ? settings.endpoint : settings.endpoint + '/';
+
+		if (!account) {
+			this.logger.error('Error: Account not received.');
+			return undefined;
+		}
+
+		if (!tenantId) {
+			tenantId = account.properties.owningTenant.id;
+		}
+
+		let newScope: string[];
+		if (settings.id === this.providerSettings.resources.windowsManagementResource.id) {
+			newScope = [`${endpoint}user_impersonation`];
+		} else {
+			newScope = [`${endpoint}.default`];
+		}
+
+		let authority = this.loginEndpointUrl + tenantId;
+		this.logger.info(`Authority URL set to: ${authority}`);
+
+		// construct request
+		// forceRefresh needs to be set true here in order to fetch the correct token, due to this issue
+		// https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3687
+		const tokenRequest: SilentFlowRequest = {
+			account: accountInfo,
+			authority: authority,
+			scopes: newScope,
+			forceRefresh: true
+		};
+		try {
+			return await this.clientApplication.acquireTokenSilent(tokenRequest);
+		} catch (e) {
+			this.logger.error('Failed to acquireTokenSilent', e);
+			if (e instanceof InteractionRequiredAuthError) {
+				// build refresh token request
+				const tenant: ITenant = {
+					id: tenantId,
+					displayName: ''
+				};
+				return this.handleInteractionRequired(tenant, settings);
+			} else if (e.name === 'ClientAuthError') {
+				this.logger.error(e.message);
+			}
+			this.logger.error('Failed to silently acquire token, not InteractionRequiredAuthError');
+			return undefined;
+		}
+	}
+
+	public async refreshAccessToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IAccount | undefined> {
+		try {
+			const tenant = account.properties.tenants.find(t => t.id === tenantId) ?? account.properties.owningTenant;
+			const tokenResult = await this.getToken(account, tenant.id, this.providerSettings.resources.windowsManagementResource);
+			if (!tokenResult) {
+				account.isStale = true;
+				return account;
+			}
+
+			const tokenClaims = this.getTokenClaims(tokenResult.accessToken);
+			if (!tokenClaims) {
+				account.isStale = true;
+				return account;
+			}
+
+			const token: Token = {
+				key: tokenResult.account.homeAccountId,
+				token: tokenResult.accessToken,
+				tokenType: tokenResult.tokenType,
+				expiresOn: tokenResult.account.idTokenClaims.exp
+			};
+
+			return await this.hydrateAccount(token, tokenClaims);
+		} catch (ex) {
+			account.isStale = true;
+			throw ex;
+		}
+	}
+
+	public async getAccountFromMsalCache(accountId: string): Promise<AccountInfo | undefined> {
+		const cache = this.clientApplication.getTokenCache();
+		if (!cache) {
+			this.logger.error('Error: Could not fetch token cache.');
+			return undefined;
+		}
+
+		let account: AccountInfo | undefined = undefined;
+		// if the accountId is a home ID, it will include a '.' character
+		if (accountId.includes('.')) {
+			account = await cache.getAccountByHomeId(accountId);
+		} else {
+			account = await cache.getAccountByLocalId(accountId);
+		}
+		return account;
+	}
+
+	public async getTenants(token: string): Promise<ITenant[]> {
+		const tenantUri = url.resolve(this.providerSettings.resources.azureManagementResource.endpoint, 'tenants?api-version=2019-11-01');
+		try {
+			this.logger.verbose('Fetching tenants with uri {0}', tenantUri);
+			let tenantList: string[] = [];
+			const tenantResponse = await this.makeGetRequestWithProxy(tenantUri, token);
+			const tenants: ITenant[] = tenantResponse.data.value.map((tenantInfo: TenantResponse) => {
+				if (tenantInfo.displayName) {
+					tenantList.push(tenantInfo.displayName);
+				} else {
+					tenantList.push(tenantInfo.tenantId);
+					this.logger.info('Tenant display name found empty: {0}', tenantInfo.tenantId);
+				}
+				return {
+					id: tenantInfo.tenantId,
+					displayName: tenantInfo.displayName ? tenantInfo.displayName : tenantInfo.tenantId,
+					userId: token,
+					tenantCategory: tenantInfo.tenantCategory
+				} as ITenant;
+			});
+			this.logger.verbose(`Tenants: ${tenantList}`);
+			const homeTenantIndex = tenants.findIndex(tenant => tenant.tenantCategory === Constants.homeCategory);
+			// remove home tenant from list of tenants
+			if (homeTenantIndex >= 0) {
+				const homeTenant = tenants.splice(homeTenantIndex, 1);
+				tenants.unshift(homeTenant[0]);
+			}
+			this.logger.verbose(`Filtered Tenants: ${tenantList}`);
+			return tenants;
+		} catch (ex) {
+			this.logger.error(`Error fetching tenants :${ex}`);
+			throw new Error('Error retrieving tenant information');
+		}
+	}
+
+	//#region interaction handling
+	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource): Promise<AuthenticationResult | undefined> {
+		const shouldOpen = await this.askUserForInteraction(tenant, settings);
+		if (shouldOpen) {
+			const result = await this.login(tenant);
+			result?.authComplete?.resolve();
+			return result?.response;
+		}
+		return undefined;
+	}
+
+	/**
+	 * Asks the user if they would like to do the interaction based authentication as required by OAuth2
+	 * @param tenant
+	 * @param resource
+	 */
+	private async askUserForInteraction(tenant: ITenant, settings: IAADResource): Promise<boolean> {
+		if (!tenant.displayName && !tenant.id) {
+			throw new Error('Tenant did not have display name or id');
+		}
+
+		const getTenantConfigurationSet = (): Set<string> => {
+			const configuration = vscode.workspace.getConfiguration(Constants.azureTenantConfigSection);
+			let values: string[] = configuration.get('filter') ?? [];
+			return new Set<string>(values);
+		};
+
+		// The user wants to ignore this tenant.
+		if (getTenantConfigurationSet().has(tenant.id)) {
+			this.logger.info(`Tenant ${tenant.id} found in the ignore list, authentication will not be attempted.`);
+			return false;
+		}
+
+		const updateTenantConfigurationSet = async (set: Set<string>): Promise<void> => {
+			const configuration = vscode.workspace.getConfiguration('azure.tenant.config');
+			await configuration.update('filter', Array.from(set), vscode.ConfigurationTarget.Global);
+		};
+
+		interface IConsentMessageItem extends vscode.MessageItem {
+			booleanResult: boolean;
+			action?: (tenantId: string) => Promise<void>;
+		}
+
+		const openItem: IConsentMessageItem = {
+			title: LocalizedConstants.azureConsentDialogOpen,
+			booleanResult: true
+		};
+
+		const closeItem: IConsentMessageItem = {
+			title: LocalizedConstants.azureConsentDialogCancel,
+			isCloseAffordance: true,
+			booleanResult: false
+		};
+
+		const dontAskAgainItem: IConsentMessageItem = {
+			title: LocalizedConstants.azureConsentDialogIgnore,
+			booleanResult: false,
+			action: async (tenantId: string) => {
+				let set = getTenantConfigurationSet();
+				set.add(tenantId);
+				await updateTenantConfigurationSet(set);
+			}
+
+		};
+		const messageBody = Utils.formatString(LocalizedConstants.azureConsentDialogBody, tenant.displayName, tenant.id, settings.id);
+		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem, dontAskAgainItem);
+
+		if (result?.action) {
+			await result.action(tenant.id);
+		}
+
+		return result?.booleanResult || false;
+	}
+	//#endregion
+
+	//#region data modeling
+
+	public createAccount(tokenClaims: TokenClaims, key: string, tenants: ITenant[]): IAccount {
+		this.logger.verbose(`Token Claims acccount: ${tokenClaims.name}, TID: ${tokenClaims.tid}`);
+		tenants.forEach((tenant) => {
+			this.logger.verbose(`Tenant ID: ${tenant.id}, Tenant Name: ${tenant.displayName}`);
+		});
+
+		// Determine if this is a microsoft account
+		let accountIssuer = 'unknown';
+
+		if (tokenClaims.iss === 'https://sts.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47/' ||
+			tokenClaims.iss === `${this.loginEndpointUrl}72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0`) {
+			accountIssuer = Constants.AccountIssuer.Corp;
+		}
+		if (tokenClaims?.idp === 'live.com') {
+			accountIssuer = Constants.AccountIssuer.Msft;
+		}
+
+		const name = tokenClaims.name ?? tokenClaims.email ?? tokenClaims.unique_name ?? tokenClaims.preferred_username;
+		const email = tokenClaims.email ?? tokenClaims.unique_name ?? tokenClaims.preferred_username;
+
+		let owningTenant: ITenant = this.commonTenant; // default to common tenant
+
+		// Read more about tid > https://learn.microsoft.com/azure/active-directory/develop/id-tokens
+		if (tokenClaims.tid) {
+			owningTenant = tenants.find(t => t.id === tokenClaims.tid) ?? { 'id': tokenClaims.tid, 'displayName': 'Microsoft Account' };
+		} else {
+			this.logger.info('Could not find tenant information from tokenClaims, falling back to common Tenant.');
+		}
+
+		let displayName = name;
+		if (email) {
+			displayName = `${displayName} - ${email}`;
+		}
+
+		let contextualDisplayName: string;
+		switch (accountIssuer) {
+			case Constants.AccountIssuer.Corp:
+				contextualDisplayName = LocalizedConstants.azureMicrosoftCorpAccount;
+				break;
+			case Constants.AccountIssuer.Msft:
+				contextualDisplayName = LocalizedConstants.azureMicrosoftAccount;
+				break;
+			default:
+				contextualDisplayName = displayName;
+		}
+
+		let accountType = accountIssuer === Constants.AccountIssuer.Msft
+			? AccountType.Microsoft
+			: AccountType.WorkSchool;
+
+		const account: IAccount = {
+			key: {
+				providerId: this.providerSettings.id,
+				id: key,
+				accountVersion: Constants.accountVersion
+			},
+			name: displayName,
+			displayInfo: {
+				accountType: accountType,
+				userId: key,
+				contextualDisplayName: contextualDisplayName,
+				displayName,
+				email,
+				name
+			},
+			properties: {
+				providerSettings: this.providerSettings,
+				isMsAccount: accountIssuer === Constants.AccountIssuer.Msft,
+				owningTenant: owningTenant,
+				tenants,
+				azureAuthType: this.authType
+			},
+			isStale: false
+		} as IAccount;
+
+		return account;
+	}
+
+	//#endregion
+
+	//#region network functions
+	public async makePostRequestWithProxy(url: string,
+		postData: AuthorizationCodePostData | TokenPostData | DeviceCodeStartPostData | DeviceCodeCheckPostData): Promise<any> {
+		const response = await fetch(url, {
+			method: 'POST',
+			agent: new HttpsProxyAgent(azureUtils.getHttpProxyOptions()),
+			body: qs.stringify(postData),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+		})
+		const data = await response.json();
+		this.logger.piiSantized('POST request ', [{ name: 'data', objOrArray: postData }, { name: 'response', objOrArray: data }], [], url,);
+		return data;
+	}
+
+	private async makeGetRequestWithProxy(url: string, token: string): Promise<any> {
+		const response = await fetch(url, {
+			method: 'GET',
+			agent: new HttpsProxyAgent(azureUtils.getHttpProxyOptions()),
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			}
+		})
+		const data = await response.json();
+		this.logger.piiSantized('GET request ', [{ name: 'response', objOrArray: data }], [], url,);
+		return data;
+	}
+	//#endregion
+
+	//#region inconsequential
+	protected getTokenClaims(accessToken: string): TokenClaims {
+		try {
+			const split = accessToken.split('.');
+			return JSON.parse(Buffer.from(split[1], 'base64').toString('utf8'));
+		} catch (ex) {
+			throw new Error('Unable to read token claims: ' + JSON.stringify(ex));
+		}
+	}
+
+	protected toBase64UrlEncoding(base64string: string): string {
+		return base64string.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_'); // Need to use base64url encoding
+	}
+	public async deleteAllCache(): Promise<void> {
+		this.clientApplication.clearCache();
+	}
+
+	public async clearCredentials(account: IAccount): Promise<void> {
+		try {
+			const tokenCache = this.clientApplication.getTokenCache();
+			let accountInfo: AccountInfo | undefined = await this.getAccountFromMsalCache(account.key.id);
+			await tokenCache.removeAccount(accountInfo);
+		} catch (ex) {
+			// We need not prompt user for error if token could not be removed from cache.
+			this.logger.error('Error when removing token from cache: ', ex);
+		}
+	}
+
+	public async autoOAuthCancelled(): Promise<void> { }
+
+	//#endregion
+}
+
+//#region models
+
+export interface AccountKey {
+	/**
+	 * Account Key - uniquely identifies an account
+	 */
+	key: string
+}
+
+export interface AccessToken extends AccountKey {
+	/**
+	 * Access Token
+	 */
+	token: string;
+}
+
+export interface RefreshToken extends AccountKey {
+	/**
+	 * Refresh Token
+	 */
+	token: string;
+}
+
+export interface TenantResponse { // https://docs.microsoft.com/en-us/rest/api/resources/tenants/list
+	id: string
+	tenantId: string
+	displayName?: string
+	tenantCategory?: string
+}
+
+export interface MultiTenantTokenResponse {
+	[tenantId: string]: Token | undefined;
+}
+
+export interface Token extends AccountKey {
+	/**
+	 * Access token
+	 */
+	token: string;
+
+	/**
+	 * Access token expiry timestamp
+	 */
+	expiresOn?: number;
+
+	/**
+	 * TokenType
+	 */
+	tokenType: string;
+}
+
+export interface TokenClaims { // https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens
+	/**
+	 * Identifies the intended recipient of the token. In id_tokens, the audience
+	 * is your app's Application ID, assigned to your app in the Azure portal.
+	 * This value should be validated. The token should be rejected if it fails
+	 * to match your app's Application ID.
+	 */
+	aud: string;
+	/**
+	 * Identifies the issuer, or 'authorization server' that constructs and
+	 * returns the token. It also identifies the Azure AD tenant for which
+	 * the user was authenticated. If the token was issued by the v2.0 endpoint,
+	 * the URI will end in /v2.0. The GUID that indicates that the user is a consumer
+	 * user from a Microsoft account is 9188040d-6c67-4c5b-b112-36a304b66dad.
+	 * Your app should use the GUID portion of the claim to restrict the set of
+	 * tenants that can sign in to the app, if applicable.
+	 */
+	iss: string;
+	/**
+	 * 'Issued At' indicates when the authentication for this token occurred.
+	 */
+	iat: number;
+	/**
+	 * Records the identity provider that authenticated the subject of the token.
+	 * This value is identical to the value of the Issuer claim unless the user
+	 * account not in the same tenant as the issuer - guests, for instance.
+	 * If the claim isn't present, it means that the value of iss can be used instead.
+	 * For personal accounts being used in an organizational context (for instance,
+	 * a personal account invited to an Azure AD tenant), the idp claim may be
+	 * 'live.com' or an STS URI containing the Microsoft account tenant
+	 * 9188040d-6c67-4c5b-b112-36a304b66dad.
+	 */
+	idp: string,
+	/**
+	 * The 'nbf' (not before) claim identifies the time before which the JWT MUST NOT be accepted for processing.
+	 */
+	nbf: number;
+	/**
+	 * The 'exp' (expiration time) claim identifies the expiration time on or
+	 * after which the JWT must not be accepted for processing. It's important
+	 * to note that in certain circumstances, a resource may reject the token
+	 * before this time. For example, if a change in authentication is required
+	 * or a token revocation has been detected.
+	 */
+	exp: number;
+	home_oid?: string;
+	/**
+	 * The code hash is included in ID tokens only when the ID token is issued with an
+	 * OAuth 2.0 authorization code. It can be used to validate the authenticity of an
+	 * authorization code. To understand how to do this validation, see the OpenID
+	 * Connect specification.
+	 */
+	c_hash: string;
+	/**
+	 * The access token hash is included in ID tokens only when the ID token is issued
+	 * from the /authorize endpoint with an OAuth 2.0 access token. It can be used to
+	 * validate the authenticity of an access token. To understand how to do this validation,
+	 * see the OpenID Connect specification. This is not returned on ID tokens from the /token endpoint.
+	 */
+	at_hash: string;
+	/**
+	 * An internal claim used by Azure AD to record data for token reuse. Should be ignored.
+	 */
+	aio: string;
+	/**
+	 * The primary username that represents the user. It could be an email address, phone number,
+	 * or a generic username without a specified format. Its value is mutable and might change
+	 * over time. Since it is mutable, this value must not be used to make authorization decisions.
+	 * It can be used for username hints, however, and in human-readable UI as a username. The profile
+	 * scope is required in order to receive this claim. Present only in v2.0 tokens.
+	 */
+	preferred_username: string;
+	/**
+	 * The email claim is present by default for guest accounts that have an email address.
+	 * Your app can request the email claim for managed users (those from the same tenant as the resource)
+	 * using the email optional claim. On the v2.0 endpoint, your app can also request the email OpenID
+	 * Connect scope - you don't need to request both the optional claim and the scope to get the claim.
+	 */
+	email: string;
+	/**
+	 * The name claim provides a human-readable value that identifies the subject of the token. The value
+	 * isn't guaranteed to be unique, it can be changed, and it's designed to be used only for display purposes.
+	 * The profile scope is required to receive this claim.
+	 */
+	name: string;
+	/**
+	 * The nonce matches the parameter included in the original /authorize request to the IDP. If it does not
+	 * match, your application should reject the token.
+	 */
+	nonce: string;
+	/**
+	 * The immutable identifier for an object in the Microsoft identity system, in this case, a user account.
+	 * This ID uniquely identifies the user across applications - two different applications signing in the
+	 * same user will receive the same value in the oid claim. The Microsoft Graph will return this ID as
+	 * the id property for a given user account. Because the oid allows multiple apps to correlate users,
+	 * the profile scope is required to receive this claim. Note that if a single user exists in multiple
+	 * tenants, the user will contain a different object ID in each tenant - they're considered different
+	 * accounts, even though the user logs into each account with the same credentials. The oid claim is a
+	 * GUID and cannot be reused.
+	 */
+	oid: string;
+	/**
+	 * The set of roles that were assigned to the user who is logging in.
+	 */
+	roles: string[];
+	/**
+	 * An internal claim used by Azure to revalidate tokens. Should be ignored.
+	 */
+	rh: string;
+	/**
+	 * The principal about which the token asserts information, such as the user
+	 * of an app. This value is immutable and cannot be reassigned or reused.
+	 * The subject is a pairwise identifier - it is unique to a particular application ID.
+	 * If a single user signs into two different apps using two different client IDs,
+	 * those apps will receive two different values for the subject claim.
+	 * This may or may not be wanted depending on your architecture and privacy requirements.
+	 */
+	sub: string;
+	/**
+	 * Represents the tenant that the user is signing in to. For work and school accounts,
+	 * the GUID is the immutable tenant ID of the organization that the user is signing in to.
+	 * For sign-ins to the personal Microsoft account tenant (services like Xbox, Teams for Life, or Outlook),
+	 * the value is 9188040d-6c67-4c5b-b112-36a304b66dad.
+	 */
+	tid: string;
+	/**
+	 * Only present in v1.0 tokens. Provides a human readable value that identifies the subject of the token.
+	 * This value is not guaranteed to be unique within a tenant and should be used only for display purposes.
+	 */
+	unique_name: string;
+	/**
+	 * Token identifier claim, equivalent to jti in the JWT specification. Unique, per-token identifier that is case-sensitive.
+	 */
+	uti: string;
+	/**
+	 * Indicates the version of the id_token.
+	 */
+	ver: string;
+}
+
+export type OAuthTokenResponse = { accessToken: AccessToken, refreshToken: RefreshToken | undefined, tokenClaims: TokenClaims, expiresOn: string };
+
+export interface TokenPostData {
+	grant_type: 'refresh_token' | 'authorization_code' | 'urn:ietf:params:oauth:grant-type:device_code';
+	client_id: string;
+	resource: string;
+}
+
+export interface RefreshTokenPostData extends TokenPostData {
+	grant_type: 'refresh_token';
+	refresh_token: string;
+	client_id: string;
+	tenant: string
+}
+
+export interface AuthorizationCodePostData extends TokenPostData {
+	grant_type: 'authorization_code';
+	code: string;
+	code_verifier: string;
+	redirect_uri: string;
+}
+
+export interface DeviceCodeStartPostData extends Omit<TokenPostData, 'grant_type'> {
+
+}
+
+export interface DeviceCodeCheckPostData extends Omit<TokenPostData, 'resource'> {
+	grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+	tenant: string,
+	code: string;
+}
+//#endregion

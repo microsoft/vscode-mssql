@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as LocalizedConstants from '../constants/localizedConstants';
+import * as LocalizedConstants from '../../constants/localizedConstants';
 import { AuthRequest, AzureAuthError } from '@microsoft/ads-adal-library';
-import { SimpleWebServer } from './simpleWebServer';
+import { SimpleWebServer } from '../simpleWebServer';
 import * as crypto from 'crypto';
 import * as http from 'http';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import * as vscode from 'vscode';
-import VscodeWrapper from '../controllers/vscodeWrapper';
-import { Logger } from '../models/logger';
+import VscodeWrapper from '../../controllers/vscodeWrapper';
+import { Logger } from '../../models/logger';
 
 export class AzureAuthRequest implements AuthRequest {
 	simpleWebServer: SimpleWebServer;

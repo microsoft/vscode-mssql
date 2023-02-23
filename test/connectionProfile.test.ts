@@ -20,6 +20,7 @@ import { AccountStore } from '../src/azure/accountStore';
 import { IConnectionInfo } from 'vscode-mssql';
 import { AzureController } from '../src/azure/azureController';
 import { Logger } from '../src/models/logger';
+import { MsalAzureController } from '../src/azure/msal/msalAzureController';
 
 function createTestCredentials(): IConnectionInfo {
 	const creds: IConnectionInfo = {
@@ -78,7 +79,7 @@ suite('Connection Profile tests', () => {
 		mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
 		mockLogger = TypeMoq.Mock.ofType<Logger>();
 		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
-		mockAzureController = new AzureController(mockContext.object, mockPrompter.object, mockLogger.object);
+		mockAzureController = new MsalAzureController(mockContext.object, mockPrompter.object, mockLogger.object);
 		mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
 	});
 

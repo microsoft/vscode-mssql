@@ -460,8 +460,8 @@ export class ObjectExplorerService {
 					let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
 					let profile = new ConnectionProfile(connectionCredentials);
 					if (!connectionCredentials.azureAccountToken) {
-						let azureAccountToken = await azureController.refreshToken(
-							account, this._connectionManager.accountStore, providerSettings.resources.databaseResource, connectionCredentials.tenantId);
+						let azureAccountToken = await azureController.refreshAccessToken(
+							account, this._connectionManager.accountStore, connectionCredentials.tenantId, providerSettings.resources.databaseResource);
 						if (!azureAccountToken) {
 							this._client.logger.verbose('Access token could not be refreshed for connection profile.');
 							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;

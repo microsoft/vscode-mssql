@@ -3,20 +3,19 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { IAccount, IAccountKey } from 'vscode-mssql';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import { IAzureSession } from '../models/interfaces';
 import * as Constants from '../constants/constants';
 import { AzureController } from './azureController';
 import { AccountStore } from './accountStore';
 import providerSettings from '../azure/providerSettings';
-import { Tenant, Token } from '@microsoft/ads-adal-library';
+import { AzureAuthType, IAccount, IAccountKey, ITenant, IToken } from '../models/contracts/azure';
 
 export class AccountService {
 
 	private _account: IAccount = undefined;
 	private _isStale: boolean;
-	protected readonly commonTenant: Tenant = {
+	protected readonly commonTenant: ITenant = {
 		id: 'common',
 		displayName: 'common'
 	};
@@ -58,7 +57,11 @@ export class AccountService {
 				name: undefined
 			},
 			properties: {
-				tenants: [tenant]
+				tenants: [tenant],
+				owningTenant: tenant,
+				azureAuthType: AzureAuthType.AuthCodeGrant,
+				providerSettings: providerSettings,
+				isMsAccount: false
 			},
 			isStale: this._isStale,
 			isSignedIn: false
@@ -75,15 +78,13 @@ export class AccountService {
 		return mapping;
 	}
 
-	public async refreshToken(account): Promise<Token> {
-		return await this._azureController.refreshToken(account, this._accountStore, providerSettings.resources.azureManagementResource);
+	public async refreshToken(account: IAccount): Promise<IToken> {
+		return await this._azureController.refreshAccessToken(account, this._accountStore, undefined, providerSettings.resources.azureManagementResource);
 	}
 
-	public getHomeTenant(account: IAccount): Tenant {
+	public getHomeTenant(account: IAccount): ITenant {
 		// Home is defined by the API
 		// Lets pick the home tenant - and fall back to commonTenant if they don't exist
 		return account.properties.tenants.find(t => t.tenantCategory === 'Home') ?? account.properties.tenants[0] ?? this.commonTenant;
 	}
-
-
 }

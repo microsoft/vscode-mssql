@@ -60,15 +60,11 @@ export abstract class AzureAuth {
 	}
 
 	public getHomeTenant(account: AzureAccount): Tenant {
-		// Home is defined by the API
-		// Lets pick the home tenant - and fall back to commonTenant if they don't exist
-		return account.properties.tenants.find(t => t.tenantCategory === 'Home') ?? account.properties.tenants[0] ?? this.commonTenant;
+		return account.properties.owningTenant ?? this.commonTenant;
 	}
 
 	public async refreshAccess(account: AzureAccount): Promise<AzureAccount> {
-		// Deprecated account - delete it.
 		if (account.key.accountVersion !== AzureAuth.ACCOUNT_VERSION) {
-			account.delete = true;
 			return account;
 		}
 		try {
@@ -420,6 +416,7 @@ export abstract class AzureAuth {
 
 		const name = tokenClaims.name ?? tokenClaims.email ?? tokenClaims.unique_name;
 		const email = tokenClaims.email ?? tokenClaims.unique_name;
+		const owningTenant = tenants.find(t => t.id === tokenClaims.tid) ?? { 'id': tokenClaims.tid, 'displayName': 'Microsoft Account' };
 
 		let displayName = name;
 		if (email) {
@@ -443,6 +440,7 @@ export abstract class AzureAuth {
 				providerSettings: this.providerSettings,
 				isMsAccount: accountType === AccountType.Microsoft,
 				tenants,
+				owningTenant: owningTenant,
 				azureAuthType: this.azureAuthType
 			},
 			isStale: false

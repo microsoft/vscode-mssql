@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IAccount } from 'vscode-mssql';
+import { IAccount } from '../models/contracts/azure';
 import * as Constants from '../constants/constants';
 import { Logger } from '../models/logger';
 
