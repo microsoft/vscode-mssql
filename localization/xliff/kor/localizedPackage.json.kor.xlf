@@ -402,6 +402,10 @@
         <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
         <target state="translated">[옵션] 백 엔드 서비스의 로그 수준입니다. Azure Data Studio는 시작할 때마다 파일 이름을 생성하며 파일이 이미 있으면 로그 항목이 해당 파일에 추가됩니다. 이전 로그 파일을 정리하려면 logRetentionMinutes 및 logFilesRemovalLimit 설정을 참조하세요. 기본 tracingLevel에서는 많은 양의 로그가 기록되지 않습니다. 세부 정보 표시를 변경하면 로깅이 광범위해지고 로그의 디스크 공간 요구 사항이 커질 수 있습니다. 오류이면 중요가 포함되고 경고이면 오류가 포함되고 정보이면 경고가 포함되고 세부 정보 표시이면 정보가 포함됩니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.piiLogging">
+        <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
+        <target state="new">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</target>
+      </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
         <target state="translated">백 엔드 서비스의 로그 파일을 유지하는 시간(분)입니다. 기본값은 1주일입니다.</target>
@@ -536,7 +540,7 @@
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
-        <target state="new">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</target>
+        <target state="translated">개체 탐색기 노드를 확장하기 위한 시간 제한(초)입니다. 기본값은 45초입니다.</target>
       </trans-unit>
     </body>
   </file>

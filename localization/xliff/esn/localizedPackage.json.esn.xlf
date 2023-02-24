@@ -402,6 +402,10 @@
         <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
         <target state="translated">[Opcional] El nivel de registro para servicios back-end. Azure Data Studio genera un nombre de archivo cada vez que se inicia y, si el archivo ya existe, las entradas de registros se anexan a ese archivo. Para la limpieza de archivos de registro antiguos, consulte la configuración de logRetentionMinutes y logFilesRemovalLimit. El valor predeterminado tracingLevel no registra mucho. El cambio de detalle podría dar lugar a amplios requisitos de registro y espacio en disco para los registros. Error incluye Crítico, Advertencia incluye Error, Información incluye Advertencia y Detallado incluye Información.</target>
       </trans-unit>
+      <trans-unit id="mssql.piiLogging">
+        <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
+        <target state="new">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</target>
+      </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
         <target state="translated">Número de minutos para conservar los archivos de registro para los servicios back-end. El valor predeterminado es 1 semana.</target>
