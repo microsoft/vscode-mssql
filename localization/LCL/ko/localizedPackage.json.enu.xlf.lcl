@@ -709,6 +709,9 @@
       <Item ItemId=";mssql.objectExplorer.expandTimeout" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[개체 탐색기 노드를 확장하기 위한 시간 제한(초)입니다. 기본값은 45초입니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

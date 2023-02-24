@@ -709,6 +709,9 @@
       <Item ItemId=";mssql.objectExplorer.expandTimeout" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Délai d’expiration en secondes pour le développement d’un nœud dans l’Explorateur d’objets. La valeur par défaut est 45 secondes.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
