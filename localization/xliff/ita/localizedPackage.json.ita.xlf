@@ -522,6 +522,22 @@
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         <target state="translated">Consente agli utenti di accedere ai dispositivi con vincoli di input.</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.groupBySchema">
+        <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+        <target state="translated">Se questa opzione è abilitata, gli oggetti di database in Esplora oggetti verranno categorizzati in base allo schema.</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
+        <source xml:lang="en">Enable Group By Schema</source>
+        <target state="translated">Abilita raggruppa per schema</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
+        <source xml:lang="en">Disable Group By Schema</source>
+        <target state="translated">Disabilita raggruppa per schema</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.expandTimeout">
+        <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+        <target state="translated">Timeout in secondi per l'espansione di un nodo in Esplora oggetti. Il valore predefinito è 45 secondi.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
