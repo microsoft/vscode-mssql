@@ -522,6 +522,22 @@
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         <target state="translated">ユーザーが入力制約付きのデバイスにサインインできるようになります。</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.groupBySchema">
+        <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+        <target state="translated">有効にすると、オブジェクト エクスプローラー内のデータベース オブジェクトがスキーマ別に分類されます。</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
+        <source xml:lang="en">Enable Group By Schema</source>
+        <target state="translated">スキーマによるグループ化を有効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
+        <source xml:lang="en">Disable Group By Schema</source>
+        <target state="translated">スキーマによるグループ化を無効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.expandTimeout">
+        <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+        <target state="translated">オブジェクト エクスプローラーでノードを展開する場合のタイムアウト (秒)。既定値は 45 秒です。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

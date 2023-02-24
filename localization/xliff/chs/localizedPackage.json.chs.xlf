@@ -522,6 +522,22 @@
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         <target state="translated">允许用户登录到输入受限设备。</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.groupBySchema">
+        <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+        <target state="translated">启用后，对象资源管理器中的数据库对象将按架构进行分类。</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
+        <source xml:lang="en">Enable Group By Schema</source>
+        <target state="translated">按架构启用分组</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
+        <source xml:lang="en">Disable Group By Schema</source>
+        <target state="translated">禁用分组依据架构</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.expandTimeout">
+        <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+        <target state="translated">在对象资源管理器中展开节点的超时(以秒为单位)。默认值为 45 秒。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

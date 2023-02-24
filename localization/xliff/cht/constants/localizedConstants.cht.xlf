@@ -166,6 +166,10 @@
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Azure 裝置代碼</target>
       </trans-unit>
+      <trans-unit id="azureLogChannelName">
+        <source xml:lang="en">Azure Logs</source>
+        <target state="new">Azure Logs</target>
+      </trans-unit>
       <trans-unit id="encryptPrompt">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">加密</target>
@@ -781,6 +785,14 @@
       <trans-unit id="columnWidthMustBePositiveError">
         <source xml:lang="en">Width cannot be 0 or negative</source>
         <target state="translated">寬度不能是 0 或負數</target>
+      </trans-unit>
+      <trans-unit id="objectExplorerNodeRefreshError">
+        <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
+        <target state="translated">重新整理節點時發生錯誤。如需詳細資料，請參閱 MSSQL 輸出通道。</target>
+      </trans-unit>
+      <trans-unit id="showOutputChannelActionButtonText">
+        <source xml:lang="en">Show MSSQL output</source>
+        <target state="translated">顯示 MSSQL 輸出</target>
       </trans-unit>
     </body>
   </file>

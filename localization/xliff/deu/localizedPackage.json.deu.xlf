@@ -522,6 +522,22 @@
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         <target state="translated">Ermöglicht Benutzern die Anmeldung bei Geräten mit Eingabeeinschränkung.</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.groupBySchema">
+        <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+        <target state="translated">Wenn diese Option aktiviert ist, werden die Datenbankobjekte im Objekt-Explorer nach Schema kategorisiert.</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
+        <source xml:lang="en">Enable Group By Schema</source>
+        <target state="translated">Gruppen nach Schema aktivieren</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
+        <source xml:lang="en">Disable Group By Schema</source>
+        <target state="translated">Gruppen nach Schema deaktivieren</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.expandTimeout">
+        <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+        <target state="translated">Das Timeout in Sekunden für das Erweitern eines Knotens in Objekt-Explorer. Der Standardwert ist 45 Sekunden.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

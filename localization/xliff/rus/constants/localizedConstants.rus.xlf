@@ -166,6 +166,10 @@
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Код устройства Azure</target>
       </trans-unit>
+      <trans-unit id="azureLogChannelName">
+        <source xml:lang="en">Azure Logs</source>
+        <target state="new">Azure Logs</target>
+      </trans-unit>
       <trans-unit id="encryptPrompt">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">Шифровать</target>
@@ -781,6 +785,14 @@
       <trans-unit id="columnWidthMustBePositiveError">
         <source xml:lang="en">Width cannot be 0 or negative</source>
         <target state="translated">Ширина не может быть отрицательной или равной 0</target>
+      </trans-unit>
+      <trans-unit id="objectExplorerNodeRefreshError">
+        <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
+        <target state="translated">Произошла ошибка при обновлении узлов. Дополнительные сведения см. в канале вывода MSSQL.</target>
+      </trans-unit>
+      <trans-unit id="showOutputChannelActionButtonText">
+        <source xml:lang="en">Show MSSQL output</source>
+        <target state="translated">Показать выходные данные MSSQL</target>
       </trans-unit>
     </body>
   </file>
