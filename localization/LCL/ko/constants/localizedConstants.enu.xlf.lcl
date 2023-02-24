@@ -181,6 +181,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";azureLogChannelName" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Logs]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";azureSignIn" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure: Sign In]]></Val>
@@ -1474,6 +1480,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";objectExplorerNodeRefreshError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An error occurred refreshing nodes. See the MSSQL output channel for more details.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[노드를 새로 고치는 동안 오류가 발생했습니다. 자세한 내용은 MSSQL 출력 채널을 참조하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";passwordPlaceholder" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Password (SQL Login)]]></Val>
@@ -1641,6 +1656,15 @@
           <Val><![CDATA[Server name or ADO.NET connection string]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[서버 이름 또는 ADO.NET 연결 문자열]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";showOutputChannelActionButtonText" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show MSSQL output]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSSQL 출력 표시]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
