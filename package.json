@@ -123,8 +123,6 @@
     "figures": "^1.4.0",
     "find-remove": "1.2.1",
     "getmac": "1.2.1",
-    "http-proxy-agent": "^2.1.0",
-    "https-proxy-agent": "^2.2.1",
     "jquery": "^3.4.1",
     "lockfile": "1.0.4",
     "msal": "^1.4.17",

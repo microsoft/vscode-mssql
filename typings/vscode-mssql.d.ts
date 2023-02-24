@@ -643,7 +643,7 @@ declare module 'vscode-mssql' {
 		subscription: azure.subscription.Subscription,
 		tenantId: string,
 		account: IAccount,
-		token: Token
+		token: Token | undefined
 	}
 
 	export interface IAzureAccountService {

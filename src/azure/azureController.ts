@@ -3,46 +3,46 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import * as path from 'path';
 import * as os from 'os';
-import * as utils from '../models/utils';
-import * as azureUtils from './utils';
-import * as AzureConstants from './constants';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import * as utils from '../models/utils';
+import * as AzureConstants from './constants';
+import * as azureUtils from './utils';
 
+import { Subscription } from '@azure/arm-subscriptions';
 import { promises as fs } from 'fs';
 import { IAzureAccountSession } from 'vscode-mssql';
-import { AccountStore } from './accountStore';
-import { Subscription } from '@azure/arm-subscriptions';
-import { Logger, LogLevel } from '../models/logger';
-import { ConnectionProfile } from '../models/connectionProfile';
-import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from '../prompts/question';
-import { IAADResource, AuthLibrary, AzureAuthType, IToken, IAccount, ITenant, IProviderSettings } from '../models/contracts/azure';
-
 import providerSettings from '../azure/providerSettings';
 import VscodeWrapper from '../controllers/vscodeWrapper';
+import { ConnectionProfile } from '../models/connectionProfile';
+import { AuthLibrary, AzureAuthType, IAADResource, IAccount, IProviderSettings, ITenant, IToken } from '../models/contracts/azure';
+import { Logger, LogLevel } from '../models/logger';
+import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
+import { AccountStore } from './accountStore';
 
 export abstract class AzureController {
 	protected _providerSettings: IProviderSettings;
 	protected _authLibrary: AuthLibrary;
 	protected _vscodeWrapper: VscodeWrapper;
 	protected _credentialStoreInitialized = false;
+	protected logger: Logger;
 
 	constructor(
 		protected context: vscode.ExtensionContext,
 		protected prompter: IPrompter,
-		protected logger?: Logger,
 		protected _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		if (!this._vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
 		}
-		if (!logger) {
-			let logLevel: LogLevel = LogLevel[utils.getConfigTracingLevel() as keyof typeof LogLevel];
-			let pii = utils.getConfigPiiLogging();
-			let _channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
-			this.logger = new Logger(text => _channel.append(text), logLevel, pii);
-		}
+
+		// Setup Logger
+		let logLevel: LogLevel = LogLevel[utils.getConfigTracingLevel() as keyof typeof LogLevel];
+		let pii = utils.getConfigPiiLogging();
+		let _channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
+		this.logger = new Logger(text => _channel.append(text), logLevel, pii);
+
 		this._providerSettings = providerSettings;
 		vscode.workspace.onDidChangeConfiguration((changeEvent) => {
 			const impactsProvider = changeEvent.affectsConfiguration(AzureConstants.accountsAzureAuthSection);
@@ -54,9 +54,9 @@ export abstract class AzureController {
 
 	public abstract init(): void;
 
-	public abstract login(authType: AzureAuthType): Promise<IAccount>;
+	public abstract login(authType: AzureAuthType): Promise<IAccount | undefined>;
 
-	public abstract getAccountSecurityToken(account: IAccount, tenantId: string | undefined, settings: IAADResource): Promise<IToken>;
+	public abstract getAccountSecurityToken(account: IAccount, tenantId: string | undefined, settings: IAADResource): Promise<IToken | undefined>;
 
 	public abstract refreshAccessToken(account: IAccount, accountStore: AccountStore,
 		tenantId: string | undefined, settings: IAADResource): Promise<IToken | undefined>;
@@ -65,10 +65,10 @@ export abstract class AzureController {
 
 	public abstract handleAuthMapping(): void;
 
-	public async addAccount(accountStore: AccountStore): Promise<IAccount> {
+	public async addAccount(accountStore: AccountStore): Promise<IAccount | undefined> {
 		let config = azureUtils.getAzureActiveDirectoryConfig();
-		let account = await this.login(config);
-		await accountStore.addAccount(account);
+		let account = await this.login(config!);
+		await accountStore.addAccount(account!);
 		this.logger.verbose('Account added successfully.');
 		return account;
 	}
@@ -80,11 +80,11 @@ export abstract class AzureController {
 		let account = await this.addAccount(accountStore);
 
 		if (!profile.tenantId) {
-			await this.promptForTenantChoice(account, profile);
+			await this.promptForTenantChoice(account!, profile);
 		}
 
 		const token = await this.getAccountSecurityToken(
-			account, profile.tenantId, settings
+			account!, profile.tenantId, settings
 		);
 
 		if (!token) {
@@ -94,14 +94,14 @@ export abstract class AzureController {
 		} else {
 			profile.azureAccountToken = token.token;
 			profile.expiresOn = token.expiresOn;
-			profile.email = account.displayInfo.email;
-			profile.accountId = account.key.id;
+			profile.email = account!.displayInfo.email;
+			profile.accountId = account!.key.id;
 		}
 
 		return profile;
 	}
 
-	public async refreshTokenWrapper(profile, accountStore, accountAnswer, settings: IAADResource): Promise<ConnectionProfile> {
+	public async refreshTokenWrapper(profile, accountStore, accountAnswer, settings: IAADResource): Promise<ConnectionProfile | undefined> {
 		let account = accountStore.getAccount(accountAnswer.key.id);
 		if (!account) {
 			await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
@@ -135,7 +135,7 @@ export abstract class AzureController {
 		const tenants = <ITenant[]>account.properties.tenants;
 		for (const tenantId of tenants.map(t => t.id)) {
 			const token = await this.getAccountSecurityToken(account, tenantId, providerSettings.resources.azureManagementResource);
-			const subClient = this._subscriptionClientFactory(token);
+			const subClient = this._subscriptionClientFactory(token!);
 			const newSubPages = await subClient.subscriptions.list();
 			const array = await azureUtils.getAllValues<Subscription, IAzureAccountSession>(newSubPages, (nextSub) => {
 				return {
@@ -158,10 +158,10 @@ export abstract class AzureController {
 	public async checkAndRefreshToken(
 		session: IAzureAccountSession,
 		accountStore: AccountStore): Promise<void> {
-		if (session?.account && AzureController.isTokenInValid(session.token?.token, session.token.expiresOn)) {
+		if (session?.account && AzureController.isTokenInValid(session.token!.token, session.token!.expiresOn)) {
 			const token = await this.refreshAccessToken(session.account, accountStore, undefined,
 				providerSettings.resources.azureManagementResource);
-			session.token = token;
+			session.token = token!;
 			this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);
 		} else {
 			this.logger.verbose(`Access Token not refreshed for account: ${session?.account?.key.id}`);
@@ -240,7 +240,7 @@ export abstract class AzureController {
 	private getAppDataPath(): string {
 		let platform = process.platform;
 		switch (platform) {
-			case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE'], 'AppData', 'Roaming');
+			case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE']!, 'AppData', 'Roaming');
 			case 'darwin': return path.join(os.homedir(), 'Library', 'Application Support');
 			case 'linux': return process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
 			default: throw new Error('Platform not supported');

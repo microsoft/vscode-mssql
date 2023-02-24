@@ -1,21 +1,19 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-
+import { CachingProvider } from '@microsoft/ads-adal-library';
 import * as keytarType from 'keytar';
 import { join, parse } from 'path';
+import { CredentialStore } from '../../credentialstore/credentialstore';
+import { FileEncryptionHelper } from './fileEncryptionHelper';
 import { StorageService } from './storageService';
-import * as crypto from 'crypto';
-import { ICredentialStore } from '../../credentialstore/icredentialstore';
-import { CachingProvider } from '@microsoft/ads-adal-library';
 
-function getSystemKeytar(): Keytar | undefined | null {
+function getSystemKeytar(): Keytar | undefined {
 	try {
-		// tslint:disable-next-line:no-require-imports
 		return require('keytar');
 	} catch (err) {
-		console.log(err);
+		console.warn(err);
 	}
 
 	return undefined;
@@ -23,7 +21,40 @@ function getSystemKeytar(): Keytar | undefined | null {
 
 export type MultipleAccountsResponse = { account: string, password: string }[];
 
+// allow-any-unicode-next-line
 const separator = '§';
+
+async function getFileKeytar(db: StorageService): Promise<Keytar | undefined> {
+	const fileKeytar: Keytar = {
+		async getPassword(service: string, account: string): Promise<string> {
+			return db.get(`${service}${separator}${account}`);
+		},
+
+		async setPassword(service: string, account: string, password: string): Promise<void> {
+			await db.set(`${service}${separator}${account}`, password);
+		},
+
+		async deletePassword(service: string, account: string): Promise<boolean> {
+			await db.remove(`${service}${separator}${account}`);
+			return true;
+		},
+
+		async getPasswords(service: string): Promise<MultipleAccountsResponse> {
+			const result = db.getPrefix(`${service}`);
+			if (!result) {
+				return [];
+			}
+
+			return result.map(({ key, value }) => {
+				return {
+					account: key.split(separator)[1],
+					password: value
+				};
+			});
+		}
+	};
+	return fileKeytar;
+}
 
 
 export type Keytar = {
@@ -35,112 +66,45 @@ export type Keytar = {
 };
 
 export class SimpleTokenCache implements CachingProvider {
-	private keytar: Keytar;
+	private keytar: Keytar | undefined;
 	public db: StorageService;
 
 	constructor(
 		private serviceName: string,
 		private readonly userStoragePath: string,
 		private readonly forceFileStorage: boolean = false,
-		private readonly credentialService: ICredentialStore
-	) {
+		private readonly credentialStore: CredentialStore,
+	) { }
 
-	}
-
-	async getFileKeytar(filePath: string, credentialService: ICredentialStore): Promise<Keytar | undefined> {
-		const fileName = parse(filePath).base;
-		const iv = await credentialService.readCredential(`${fileName}-iv`);
-		const credentialKey = await credentialService.readCredential(`${fileName}-key`);
-		let ivBuffer: Buffer;
-		let keyBuffer: Buffer;
-		if (!iv?.password || !credentialKey?.password) {
-			ivBuffer = crypto.randomBytes(16);
-			keyBuffer = crypto.randomBytes(32);
-			try {
-				await credentialService.saveCredential(`${fileName}-iv`, ivBuffer.toString('hex'));
-				await credentialService.saveCredential(`${fileName}-key`, keyBuffer.toString('hex'));
-			} catch (ex) {
-				console.log(ex);
-			}
-		} else {
-			ivBuffer = Buffer.from(iv.password, 'hex');
-			keyBuffer = Buffer.from(credentialKey.password, 'hex');
-		}
-
-		const fileSaver = async (content: string): Promise<string> => {
-			const cipherIv = crypto.createCipheriv('aes-256-gcm', keyBuffer, ivBuffer);
-			return `${cipherIv.update(content, 'utf8', 'hex')}${cipherIv.final('hex')}%${cipherIv.getAuthTag().toString('hex')}`;
-		};
-
-		const fileOpener = async (content: string): Promise<string> => {
-			const decipherIv = crypto.createDecipheriv('aes-256-gcm', keyBuffer, ivBuffer);
-
-			const split = content.split('%');
-			if (split.length !== 2) {
-				throw new Error('File didn\'t contain the auth tag.');
-			}
-			decipherIv.setAuthTag(Buffer.from(split[1], 'hex'));
-
-			return `${decipherIv.update(split[0], 'hex', 'utf8')}${decipherIv.final('utf8')}`;
-		};
-
-		this.db = new StorageService(filePath, fileOpener, fileSaver);
-		await this.db.initialize();
-		const fileKeytar: Keytar = {
-			async getPassword(service: string, account: string): Promise<string> {
-				return this.db.get(`${service}${separator}${account}`);
-			},
-
-			async setPassword(service: string, account: string, password: string): Promise<void> {
-				await this.db.set(`${service}${separator}${account}`, password);
-			},
-
-			async deletePassword(service: string, account: string): Promise<boolean> {
-				await this.db.remove(`${service}${separator}${account}`);
-				return true;
-			},
-
-			async getPasswords(service: string): Promise<MultipleAccountsResponse> {
-				const result = this.db.getPrefix(`${service}`);
-				if (!result) {
-					return [];
-				}
-
-				return result.map(({ key, value }) => {
-					return {
-						account: key.split(separator)[1],
-						password: value
-					};
-				});
-			}
-		};
-		return fileKeytar;
-	}
+	async clear(): Promise<void> { }
 
 	async init(): Promise<void> {
 		this.serviceName = this.serviceName.replace(/-/g, '_');
-		let keytar: Keytar;
+		let keytar: Keytar | undefined;
 		if (this.forceFileStorage === false) {
 			keytar = getSystemKeytar();
-
 			// Add new method to keytar
 			if (keytar) {
 				keytar.getPasswords = async (service: string): Promise<MultipleAccountsResponse> => {
 					const [serviceName, accountPrefix] = service.split(separator);
 					if (serviceName === undefined || accountPrefix === undefined) {
-						throw new Error('Service did not have seperator: ' + service);
+						throw new Error('Service did not have separator: ' + service);
 					}
-
-					const results = await keytar.findCredentials(serviceName);
+					const results = await keytar!.findCredentials!(serviceName);
 					return results.filter(({ account }) => {
 						return account.startsWith(accountPrefix);
 					});
 				};
 			}
+		} else {
+			let filePath = join(this.userStoragePath, this.serviceName);
+			const fileName = parse(filePath).base;
+			const fileEncryptionHelper: FileEncryptionHelper = new FileEncryptionHelper(this.credentialStore, fileName);
+			this.db = new StorageService(filePath, fileEncryptionHelper.fileOpener, fileEncryptionHelper.fileSaver);
+			await this.db.initialize();
+			keytar = await getFileKeytar(this.db);
 		}
-		if (!keytar) {
-			keytar = await this.getFileKeytar(join(this.userStoragePath, this.serviceName), this.credentialService);
-		}
+
 		this.keytar = keytar;
 	}
 
@@ -154,15 +118,17 @@ export class SimpleTokenCache implements CachingProvider {
 		}
 
 		try {
-			return await this.keytar.setPassword(this.serviceName, id, key);
+			const keytar = this.getKeytar();
+			return await keytar.setPassword(this.serviceName, id, key);
 		} catch (ex) {
-			console.log(`Adding key failed: ${ex}`);
+			console.warn(`Adding key failed: ${ex}`);
 		}
 	}
 
 	async get(id: string): Promise<string | undefined> {
 		try {
-			const result = await this.keytar.getPassword(this.serviceName, id);
+			const keytar = this.getKeytar();
+			const result = await keytar.getPassword(this.serviceName, id);
 
 			if (result === null) {
 				return undefined;
@@ -170,34 +136,35 @@ export class SimpleTokenCache implements CachingProvider {
 
 			return result;
 		} catch (ex) {
-			console.log(`Getting key failed: ${ex}`);
+			console.warn(`Getting key failed: ${ex}`);
 			return undefined;
 		}
 	}
 
-	async remove(key: string): Promise<boolean> {
+	async remove(id: string): Promise<boolean> {
 		try {
-			return await this.keytar.deletePassword(this.serviceName, key);
+			const keytar = this.getKeytar();
+			return await keytar.deletePassword(this.serviceName, id);
 		} catch (ex) {
-			console.log(`Clearing key failed: ${ex}`);
+			console.warn(`Clearing key failed: ${ex}`);
 			return false;
-		}
-	}
-
-	async clear(): Promise<void> {
-		try {
-			this.keytar = getSystemKeytar();
-		} catch (ex) {
-			console.log(`clear keytar failed ${ex}`);
 		}
 	}
 
 	async findCredentials(prefix: string): Promise<{ account: string, password: string }[]> {
 		try {
-			return await this.keytar.getPasswords(`${this.serviceName}${separator}${prefix}`);
+			const keytar = this.getKeytar();
+			return await keytar.getPasswords(`${this.serviceName}${separator}${prefix}`);
 		} catch (ex) {
-			console.log(`Finding credentials failed: ${ex}`);
-			return undefined;
+			console.warn(`Finding credentials failed: ${ex}`);
+			return [];
 		}
+	}
+
+	private getKeytar(): Keytar {
+		if (!this.keytar) {
+			throw new Error('Keytar not initialized');
+		}
+		return this.keytar;
 	}
 }

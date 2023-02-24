@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IPackage, IStatusView, PackageError, IHttpClient } from './interfaces';
-import { ILogger } from '../models/interfaces';
-import { parse as parseUrl, Url } from 'url';
-import * as https from 'https';
-import * as http from 'http';
-import { getProxyAgent, isBoolean } from './proxy';
 import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
+import { parse as parseUrl, Url } from 'url';
+import { ILogger } from '../models/interfaces';
+import { IHttpClient, IPackage, IStatusView, PackageError } from './interfaces';
+import { getProxyAgent, isBoolean } from './proxy';
 
 /*
  * Http client class to handle downloading files using http or https urls
@@ -39,13 +39,13 @@ export default class HttpClient implements IHttpClient {
 			let request = clientRequest(options, response => {
 				if (response.statusCode === 301 || response.statusCode === 302) {
 					// Redirect - download from new location
-					return resolve(this.downloadFile(response.headers.location, pkg, logger, statusView, proxy, strictSSL, authorization));
+					return resolve(this.downloadFile(response.headers.location!, pkg, logger, statusView, proxy, strictSSL, authorization));
 				}
 
 				if (response.statusCode !== 200) {
 					// Download failed - print error message
 					logger.appendLine(`failed (error code '${response.statusCode}')`);
-					return reject(new PackageError(response.statusCode.toString(), pkg));
+					return reject(new PackageError(response.statusCode!.toString(), pkg));
 				}
 
 				// If status code is 200
@@ -117,7 +117,7 @@ export default class HttpClient implements IHttpClient {
 	private handleSuccessfulResponse(pkg: IPackage, response: http.IncomingMessage, logger: ILogger, statusView: IStatusView): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			let progress: IDownloadProgress = {
-				packageSize: parseInt(response.headers['content-length'], 10),
+				packageSize: parseInt(response.headers['content-length']!, 10),
 				dots: 0,
 				downloadedBytes: 0,
 				downloadPercentage: 0
@@ -126,7 +126,7 @@ export default class HttpClient implements IHttpClient {
 			response.on('data', data => {
 				this.handleDataReceivedEvent(progress, data, logger, statusView);
 			});
-			let tmpFile = fs.createWriteStream(undefined, { fd: pkg.tmpFile.fd });
+			let tmpFile = fs.createWriteStream('', { fd: pkg.tmpFile.fd });
 			response.on('end', () => {
 				resolve();
 			});

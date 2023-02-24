@@ -4,35 +4,34 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { ConnectionCredentials } from '../models/connectionCredentials';
-import * as Constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
-import * as ConnectionContracts from '../models/contracts/connection';
-import * as LanguageServiceContracts from '../models/contracts/languageService';
-import * as Utils from '../models/utils';
-import { ConnectionStore } from '../models/connectionStore';
-import { ConnectionUI } from '../views/connectionUI';
-import StatusView from '../views/statusView';
-import SqlToolsServerClient from '../languageservice/serviceclient';
-import { IPrompter } from '../prompts/question';
-import VscodeWrapper from './vscodeWrapper';
 import { NotificationHandler, RequestType } from 'vscode-languageclient';
-import { Runtime, PlatformInformation } from '../models/platform';
-import { Deferred } from '../protocol';
-import { AccountService } from '../azure/accountService';
-import { FirewallService } from '../firewall/firewallService';
-import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
-import { ConnectionSummary } from '../models/contracts/connection';
-import { AccountStore } from '../azure/accountStore';
-import { ConnectionProfile } from '../models/connectionProfile';
-import { QuestionTypes, IQuestion } from '../prompts/question';
-import { AzureController } from '../azure/azureController';
-import { IAccount, AuthLibrary } from '../models/contracts/azure';
 import { ConnectionDetails, IConnectionInfo, ServerInfo } from 'vscode-mssql';
+import { AccountService } from '../azure/accountService';
+import { AccountStore } from '../azure/accountStore';
+import { AdalAzureController } from '../azure/adal/adalAzureController';
+import { AzureController } from '../azure/azureController';
+import { MsalAzureController } from '../azure/msal/msalAzureController';
 import providerSettings from '../azure/providerSettings';
 import { getAzureAuthLibraryConfig } from '../azure/utils';
-import { AdalAzureController } from '../azure/adal/adalAzureController';
-import { MsalAzureController } from '../azure/msal/msalAzureController';
+import * as Constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
+import { FirewallService } from '../firewall/firewallService';
+import SqlToolsServerClient from '../languageservice/serviceclient';
+import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionProfile } from '../models/connectionProfile';
+import { ConnectionStore } from '../models/connectionStore';
+import { AuthLibrary, IAccount } from '../models/contracts/azure';
+import * as ConnectionContracts from '../models/contracts/connection';
+import { ConnectionSummary } from '../models/contracts/connection';
+import * as LanguageServiceContracts from '../models/contracts/languageService';
+import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
+import { PlatformInformation, Runtime } from '../models/platform';
+import * as Utils from '../models/utils';
+import { IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
+import { Deferred } from '../protocol';
+import { ConnectionUI } from '../views/connectionUI';
+import StatusView from '../views/statusView';
+import VscodeWrapper from './vscodeWrapper';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -74,7 +73,7 @@ export class ConnectionInfo {
 	public errorMessage: string;
 
 	public get loginFailed(): boolean {
-		return this.errorNumber && this.errorNumber === Constants.errorLoginFailed;
+		return this.errorNumber !== undefined && this.errorNumber === Constants.errorLoginFailed;
 	}
 }
 
@@ -155,7 +154,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get vscodeWrapper(): VscodeWrapper {
-		return this._vscodeWrapper;
+		return this._vscodeWrapper!;
 	}
 
 	/**
@@ -169,7 +168,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get client(): SqlToolsServerClient {
-		return this._client;
+		return this._client!;
 	}
 
 	/**
@@ -183,7 +182,7 @@ export default class ConnectionManager {
 	 * Get the connection view.
 	 */
 	public get connectionUI(): ConnectionUI {
-		return this._connectionUI;
+		return this._connectionUI!;
 	}
 
 	/**
@@ -204,7 +203,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get connectionStore(): ConnectionStore {
-		return this._connectionStore;
+		return this._connectionStore!;
 	}
 
 	/**
@@ -218,7 +217,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get accountStore(): AccountStore {
-		return this._accountStore;
+		return this._accountStore!;
 	}
 
 	/**

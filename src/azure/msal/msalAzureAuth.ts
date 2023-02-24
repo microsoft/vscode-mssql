@@ -3,22 +3,20 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as qs from 'qs';
+import { Resource } from '@azure/arm-resources';
+import { AccountInfo, AuthenticationResult, InteractionRequiredAuthError, PublicClientApplication, SilentFlowRequest } from '@azure/msal-node';
 import * as url from 'url';
 import * as vscode from 'vscode';
-import * as Utils from '../../models/utils';
-import * as azureUtils from '../utils';
-import * as Constants from '../constants';
 import * as LocalizedConstants from '../../constants/localizedConstants';
-import { AccountInfo, AuthenticationResult, AzureCloudInstance, InteractionRequiredAuthError, PublicClientApplication, SilentFlowRequest } from '@azure/msal-node';
-import { AzureAuthType, IProviderSettings, ITenant, IAccount, IPromptFailedResult, IAADResource, AccountType } from '../../models/contracts/azure';
-import { Resource } from '@azure/arm-resources';
+import VscodeWrapper from '../../controllers/vscodeWrapper';
+import { AccountType, AzureAuthType, IAADResource, IAccount, IPromptFailedResult, IProviderSettings, ITenant } from '../../models/contracts/azure';
 import { IDeferred } from '../../models/interfaces';
 import { Logger } from '../../models/logger';
+import * as Utils from '../../models/utils';
 import { AzureAuthError } from '../azureAuthError';
-import VscodeWrapper from '../../controllers/vscodeWrapper';
-import fetch from 'node-fetch';
-import HttpsProxyAgent = require('https-proxy-agent');
+import * as Constants from '../constants';
+import * as azureUtils from '../utils';
+import { HttpClient } from './httpClient';
 
 export abstract class MsalAzureAuth {
 	protected readonly loginEndpointUrl: string;
@@ -29,6 +27,7 @@ export abstract class MsalAzureAuth {
 	protected readonly scopesString: string;
 	protected readonly clientId: string;
 	protected readonly resources: Resource[];
+	protected readonly httpClient: HttpClient;
 
 	constructor(
 		protected readonly providerSettings: IProviderSettings,
@@ -52,6 +51,7 @@ export abstract class MsalAzureAuth {
 		this.clientId = this.providerSettings.clientId;
 		this.scopes = [...this.providerSettings.scopes];
 		this.scopesString = this.scopes.join(' ');
+		this.httpClient = azureUtils.getProxyEnabledHttpClient();
 	}
 
 	public async startLogin(): Promise<IAccount | IPromptFailedResult> {
@@ -215,8 +215,14 @@ export abstract class MsalAzureAuth {
 		try {
 			this.logger.verbose('Fetching tenants with uri {0}', tenantUri);
 			let tenantList: string[] = [];
-			const tenantResponse = await this.makeGetRequestWithProxy(tenantUri, token);
-			const tenants: ITenant[] = tenantResponse.data.value.map((tenantInfo: TenantResponse) => {
+			const tenantResponse = await this.httpClient.sendGetRequestAsync<any>(tenantUri, {
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
+				}
+			});
+			const data = tenantResponse.body;
+			const tenants: ITenant[] = data.value.map((tenantInfo: TenantResponse) => {
 				if (tenantInfo.displayName) {
 					tenantList.push(tenantInfo.displayName);
 				} else {
@@ -398,38 +404,6 @@ export abstract class MsalAzureAuth {
 		} as IAccount;
 
 		return account;
-	}
-
-	//#endregion
-
-	//#region network functions
-	public async makePostRequestWithProxy(url: string,
-		postData: AuthorizationCodePostData | TokenPostData | DeviceCodeStartPostData | DeviceCodeCheckPostData): Promise<any> {
-		const response = await fetch(url, {
-			method: 'POST',
-			agent: new HttpsProxyAgent(azureUtils.getHttpProxyOptions()),
-			body: qs.stringify(postData),
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			}
-		})
-		const data = await response.json();
-		this.logger.piiSantized('POST request ', [{ name: 'data', objOrArray: postData }, { name: 'response', objOrArray: data }], [], url,);
-		return data;
-	}
-
-	private async makeGetRequestWithProxy(url: string, token: string): Promise<any> {
-		const response = await fetch(url, {
-			method: 'GET',
-			agent: new HttpsProxyAgent(azureUtils.getHttpProxyOptions()),
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${token}`
-			}
-		})
-		const data = await response.json();
-		this.logger.piiSantized('GET request ', [{ name: 'response', objOrArray: data }], [], url,);
-		return data;
 	}
 	//#endregion
 

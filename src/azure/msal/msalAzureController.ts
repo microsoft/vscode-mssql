@@ -3,18 +3,18 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ILoggerCallback, LogLevel as MsalLogLevel } from "@azure/msal-common";
+import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
+import { AzureAuthType, IAADResource, IAccount, IToken } from '../../models/contracts/azure';
 import { AccountStore } from '../accountStore';
 import { AzureController } from '../azureController';
-import { AzureAuthType, IToken, IAccount, IAADResource } from '../../models/contracts/azure';
-import { MsalCachePluginProvider } from './msalCachePlugin';
-import { Configuration, PublicClientApplication } from '@azure/msal-node';
-import { ILoggerCallback, LogLevel as MsalLogLevel } from "@azure/msal-common";
-import { MsalAzureAuth } from './msalAzureAuth';
-import { MsalazureDeviceCode } from './msalAzureDeviceCode';
-import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
 import { getAzureActiveDirectoryConfig } from '../utils';
-import { HttpClientCurrent } from './httpClientCurrent';
+import { HttpClient } from './httpClient';
+import { MsalAzureAuth } from './msalAzureAuth';
+import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
+import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
+import { MsalCachePluginProvider } from './msalCachePlugin';
 
 export class MsalAzureController extends AzureController {
 	private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
@@ -122,7 +122,7 @@ export class MsalAzureController extends AzureController {
 						logLevel: MsalLogLevel.Trace,
 						piiLoggingEnabled: true
 					},
-					networkClient: new HttpClientCurrent()
+					networkClient: new HttpClient()
 				},
 				cache: {
 					cachePlugin: this._cachePluginProvider?.getCachePlugin()
@@ -139,7 +139,7 @@ export class MsalAzureController extends AzureController {
 			this._authMappings.set(AzureAuthType.AuthCodeGrant, new MsalAzureCodeGrant(
 				this._providerSettings, this.context, this.clientApplication, this._vscodeWrapper, this.logger));
 		} else if (configuration === AzureAuthType.DeviceCode) {
-			this._authMappings.set(AzureAuthType.DeviceCode, new MsalazureDeviceCode(
+			this._authMappings.set(AzureAuthType.DeviceCode, new MsalAzureDeviceCode(
 				this._providerSettings, this.context, this.clientApplication, this._vscodeWrapper, this.logger));
 		}
 	}

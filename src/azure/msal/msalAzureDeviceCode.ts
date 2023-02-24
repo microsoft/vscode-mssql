@@ -12,7 +12,7 @@ import { IDeferred } from '../../models/interfaces';
 import { Logger } from '../../models/logger';
 import { MsalAzureAuth } from './msalAzureAuth';
 
-export class MsalazureDeviceCode extends MsalAzureAuth {
+export class MsalAzureDeviceCode extends MsalAzureAuth {
 	constructor(
 		protected readonly providerSettings: IProviderSettings,
 		protected readonly context: vscode.ExtensionContext,

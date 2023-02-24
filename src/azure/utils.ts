@@ -7,18 +7,17 @@ import { ResourceManagementClient } from '@azure/arm-resources';
 import { SqlManagementClient } from '@azure/arm-sql';
 import { SubscriptionClient } from '@azure/arm-subscriptions';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
-import * as vscode from 'vscode';
-import * as Constants from './constants';
 import { parse } from 'url';
-import { TokenCredentialWrapper } from './credentialWrapper';
+import * as vscode from 'vscode';
+import { getProxyAgentOptions } from '../languageservice/proxy';
 import { AuthLibrary, AzureAuthType, IToken } from '../models/contracts/azure';
-import { getProxyAgent, isBoolean } from '../languageservice/proxy';
-import * as HttpsProxyAgent from 'https-proxy-agent';
+import * as Constants from './constants';
+import { TokenCredentialWrapper } from './credentialWrapper';
+import { HttpClient } from './msal/httpClient';
 
 const configAzureAD = 'azureActiveDirectory';
 const configAzureAuthLibrary = 'azureAuthenticationLibrary';
 
-const https = 'https:';
 const configProxy = 'proxy';
 const configProxyStrictSSL = 'proxyStrictSSL';
 const configProxyAuthorization = 'proxyAuthorization';
@@ -29,11 +28,11 @@ const configProxyAuthorization = 'proxyAuthorization';
  * @param convertor a function to convert a value in page to the expected value to add to array
  * @returns array or Azure resources
  */
-export async function getAllValues<T, TResult>(pages: PagedAsyncIterableIterator<T>, convertor: (input: T) => TResult): Promise<TResult[]> {
+export async function getAllValues<T, TResult>(pages: PagedAsyncIterableIterator<T>, convertor: (input: T) => TResult | undefined): Promise<TResult[]> {
 	let values: TResult[] = [];
 	let newValue = await pages.next();
 	while (!newValue.done) {
-		values.push(convertor(newValue.value));
+		values.push(convertor(newValue.value)!);
 		newValue = await pages.next();
 	}
 	return values;
@@ -61,10 +60,10 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
 function getHttpConfiguration(): vscode.WorkspaceConfiguration {
 	return vscode.workspace.getConfiguration(Constants.httpConfigSectionName);
 }
-export function getAzureActiveDirectoryConfig(): AzureAuthType {
+export function getAzureActiveDirectoryConfig(): AzureAuthType | undefined {
 	let config = getConfiguration();
 	if (config) {
-		const val: string = config.get(configAzureAD);
+		const val: string | undefined = config.get(configAzureAD);
 		if (val) {
 			return AzureAuthType[val];
 		}
@@ -76,7 +75,7 @@ export function getAzureActiveDirectoryConfig(): AzureAuthType {
 export function getAzureAuthLibraryConfig(): AuthLibrary {
 	let config = getConfiguration();
 	if (config) {
-		const val: string = config.get(configAzureAuthLibrary);
+		const val: string | undefined = config.get(configAzureAuthLibrary);
 		if (val) {
 			return AuthLibrary[val];
 		}
@@ -84,38 +83,19 @@ export function getAzureAuthLibraryConfig(): AuthLibrary {
 	return AuthLibrary.MSAL; // default to MSAL
 }
 
-export function getHttpProxyOptions(): HttpsProxyAgent.HttpsProxyAgentOptions {
-
+export function getProxyEnabledHttpClient(): HttpClient {
 	const proxy = <string>getHttpConfiguration().get(configProxy);
 	const strictSSL = getHttpConfiguration().get(configProxyStrictSSL, true);
 	const authorization = getHttpConfiguration().get(configProxyAuthorization);
 
 	const url = parse(proxy);
-	const agent = getProxyAgent(url, proxy, strictSSL);
+	const agentOptions = getProxyAgentOptions(url, proxy, strictSSL);
 
-	let options: HttpsProxyAgent.HttpsProxyAgentOptions = {
-		host: url.hostname,
-		path: url.path,
-		port: url.port,
-		agent: agent,
-		secureProxy: strictSSL
-	};
-
-	if (url.protocol === https) {
-		let httpsOptions: HttpsProxyAgent.HttpsProxyAgentOptions = {
-			host: url.hostname,
-			path: url.path,
-			port: url.port,
-			agent: agent,
-			rejectUnauthorized: isBoolean(strictSSL) ? strictSSL : true
-		};
-		options = httpsOptions;
-	}
 	if (authorization) {
-		options.headers = Object.assign(options.headers || {}, {
+		agentOptions!.headers = Object.assign(agentOptions!.headers || {}, {
 			'Proxy-Authorization': authorization
 		});
 	}
 
-	return options;
+	return new HttpClient(proxy, agentOptions);
 }
