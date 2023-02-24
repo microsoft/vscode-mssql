@@ -402,6 +402,10 @@
         <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
         <target state="translated">[Optional] Protokolliergrad für Backend-Dienste. Azure Data Studio generiert bei jedem Start einen Dateinamen, und falls die Datei bereits vorhanden ist, werden die Protokolleinträge an diese Datei angefügt. Zur Bereinigung alter Protokolldateien können die „logRetentionMinutes“- und „logFilesRemovalLimit“-Einstellungen verwendet werden. Bei Verwendung des Standardwerts für „tracingLevel“ werden nur wenige Informationen protokolliert. Eine Änderung der Ausführlichkeit kann zu einem umfangreichen Protokollierungsaufkommen und einem hohen Speicherplatzbedarf für die Protokolle führen. „Error: includes Critical“, „Warning: includes Error“, „Information: includes Warning“ und „Verbose: includes Information“</target>
       </trans-unit>
+      <trans-unit id="mssql.piiLogging">
+        <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
+        <target state="new">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</target>
+      </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
         <target state="translated">Anzahl von Minuten, für die Protokolldateien für Back-End-Dienste aufbewahrt werden sollen. Der Standardwert ist 1 Woche.</target>

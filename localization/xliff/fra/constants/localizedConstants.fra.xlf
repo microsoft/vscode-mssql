@@ -788,11 +788,11 @@
       </trans-unit>
       <trans-unit id="objectExplorerNodeRefreshError">
         <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
-        <target state="new">An error occurred refreshing nodes. See the MSSQL output channel for more details.</target>
+        <target state="translated">Une erreur s’est produite lors de l’actualisation des nœuds. Pour plus d’informations, consultez le canal de sortie MSSQL.</target>
       </trans-unit>
       <trans-unit id="showOutputChannelActionButtonText">
         <source xml:lang="en">Show MSSQL output</source>
-        <target state="new">Show MSSQL output</target>
+        <target state="translated">Afficher la sortie MSSQL</target>
       </trans-unit>
     </body>
   </file>

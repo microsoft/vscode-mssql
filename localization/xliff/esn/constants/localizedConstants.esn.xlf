@@ -168,7 +168,7 @@
       </trans-unit>
       <trans-unit id="azureLogChannelName">
         <source xml:lang="en">Azure Logs</source>
-        <target state="new">Azure Logs</target>
+        <target state="translated">Registros de Azure</target>
       </trans-unit>
       <trans-unit id="encryptPrompt">
         <source xml:lang="en">Encrypt</source>

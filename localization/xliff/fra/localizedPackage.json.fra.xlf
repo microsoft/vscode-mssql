@@ -402,6 +402,10 @@
         <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
         <target state="translated">[Facultatif] Niveau de journalisation des services de back-end. Azure Data Studio génère un nom de fichier à chaque démarrage et, si le fichier existe déjà, ajoute les entrées de journal à ce fichier. Pour nettoyer les anciens fichiers journaux, consultez les paramètres logRetentionMinutes et logFilesRemovalLimit. Le niveau de suivi par défaut correspond à une faible journalisation. Si vous changez le niveau de détail, vous pouvez obtenir une journalisation massive nécessitant de l'espace disque pour les journaux. Le niveau Erreur inclut le niveau Critique, le niveau Avertissement inclut le niveau Erreur, le niveau Informations inclut le niveau Avertissement et le niveau Détail inclut le niveau Informations</target>
       </trans-unit>
+      <trans-unit id="mssql.piiLogging">
+        <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
+        <target state="new">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</target>
+      </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
         <target state="translated">Nombre de minutes de conservation des fichiers journaux pour les services de back-end. La durée par défaut est 1 semaine.</target>
@@ -536,7 +540,7 @@
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
-        <target state="new">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</target>
+        <target state="translated">Délai d’expiration en secondes pour le développement d’un nœud dans l’Explorateur d’objets. La valeur par défaut est 45 secondes.</target>
       </trans-unit>
     </body>
   </file>
