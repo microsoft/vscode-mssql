@@ -184,6 +184,9 @@
       <Item ItemId=";azureLogChannelName" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Logs]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 로그]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
