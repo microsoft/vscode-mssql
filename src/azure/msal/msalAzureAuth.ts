@@ -18,6 +18,7 @@ import * as Constants from '../constants';
 import * as azureUtils from '../utils';
 import { HttpClient } from './httpClient';
 
+// tslint:disable:no-null-keyword
 export abstract class MsalAzureAuth {
 	protected readonly loginEndpointUrl: string;
 	public readonly commonTenant: ITenant;
@@ -69,12 +70,12 @@ export abstract class MsalAzureAuth {
 					canceled: false
 				};
 			}
-			const token: Token = {
+			const token: IToken = {
 				token: result.response.accessToken,
 				key: result.response.account.homeAccountId,
 				tokenType: result.response.tokenType
 			};
-			const tokenClaims = <TokenClaims>result.response.idTokenClaims;
+			const tokenClaims = <ITokenClaims>result.response.idTokenClaims;
 			const account = await this.hydrateAccount(token, tokenClaims);
 			loginComplete?.resolve();
 			return account;
@@ -97,13 +98,13 @@ export abstract class MsalAzureAuth {
 		}
 	}
 
-	public async hydrateAccount(token: Token | AccessToken, tokenClaims: TokenClaims): Promise<IAccount> {
+	public async hydrateAccount(token: IToken | IAccessToken, tokenClaims: ITokenClaims): Promise<IAccount> {
 		const tenants = await this.getTenants(token.token);
 		let account = this.createAccount(tokenClaims, token.key, tenants);
 		return account;
 	}
 
-	protected abstract login(tenant: ITenant): Promise<{ response: AuthenticationResult | undefined, authComplete: IDeferred<void, Error> }>;
+	protected abstract login(tenant: ITenant): Promise<{ response: AuthenticationResult | null, authComplete: IDeferred<void, Error> }>;
 
 	/**
 	 * Gets the access token for the correct account and scope from the token cache, if the correct token doesn't exist in the token cache
@@ -112,14 +113,14 @@ export abstract class MsalAzureAuth {
 	 * @param azureResource
 	 * @returns The authentication result, including the access token
 	 */
-	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | undefined> {
-		let accountInfo: AccountInfo | undefined = await this.getAccountFromMsalCache(account.key.id);
+	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | null> {
+		let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(account.key.id);
 		// Resource endpoint must end with '/' to form a valid scope for MSAL token request.
 		const endpoint = settings.endpoint.endsWith('/') ? settings.endpoint : settings.endpoint + '/';
 
 		if (!account) {
 			this.logger.error('Error: Account not received.');
-			return undefined;
+			return null;
 		}
 
 		if (!tenantId) {
@@ -140,7 +141,7 @@ export abstract class MsalAzureAuth {
 		// forceRefresh needs to be set true here in order to fetch the correct token, due to this issue
 		// https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3687
 		const tokenRequest: SilentFlowRequest = {
-			account: accountInfo,
+			account: accountInfo!,
 			authority: authority,
 			scopes: newScope,
 			forceRefresh: true
@@ -160,7 +161,7 @@ export abstract class MsalAzureAuth {
 				this.logger.error(e.message);
 			}
 			this.logger.error('Failed to silently acquire token, not InteractionRequiredAuthError');
-			return undefined;
+			return null;
 		}
 	}
 
@@ -179,11 +180,11 @@ export abstract class MsalAzureAuth {
 				return account;
 			}
 
-			const token: Token = {
-				key: tokenResult.account.homeAccountId,
+			const token: IToken = {
+				key: tokenResult.account!.homeAccountId,
 				token: tokenResult.accessToken,
 				tokenType: tokenResult.tokenType,
-				expiresOn: tokenResult.account.idTokenClaims.exp
+				expiresOn: tokenResult.account!.idTokenClaims!.exp
 			};
 
 			return await this.hydrateAccount(token, tokenClaims);
@@ -193,14 +194,14 @@ export abstract class MsalAzureAuth {
 		}
 	}
 
-	public async getAccountFromMsalCache(accountId: string): Promise<AccountInfo | undefined> {
+	public async getAccountFromMsalCache(accountId: string): Promise<AccountInfo | null> {
 		const cache = this.clientApplication.getTokenCache();
 		if (!cache) {
 			this.logger.error('Error: Could not fetch token cache.');
-			return undefined;
+			return null;
 		}
 
-		let account: AccountInfo | undefined = undefined;
+		let account: AccountInfo | null;
 		// if the accountId is a home ID, it will include a '.' character
 		if (accountId.includes('.')) {
 			account = await cache.getAccountByHomeId(accountId);
@@ -222,7 +223,7 @@ export abstract class MsalAzureAuth {
 				}
 			});
 			const data = tenantResponse.body;
-			const tenants: ITenant[] = data.value.map((tenantInfo: TenantResponse) => {
+			const tenants: ITenant[] = data.value.map((tenantInfo: ITenantResponse) => {
 				if (tenantInfo.displayName) {
 					tenantList.push(tenantInfo.displayName);
 				} else {
@@ -252,14 +253,14 @@ export abstract class MsalAzureAuth {
 	}
 
 	//#region interaction handling
-	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource): Promise<AuthenticationResult | undefined> {
+	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource): Promise<AuthenticationResult | null> {
 		const shouldOpen = await this.askUserForInteraction(tenant, settings);
 		if (shouldOpen) {
 			const result = await this.login(tenant);
 			result?.authComplete?.resolve();
 			return result?.response;
 		}
-		return undefined;
+		return null;
 	}
 
 	/**
@@ -328,7 +329,7 @@ export abstract class MsalAzureAuth {
 
 	//#region data modeling
 
-	public createAccount(tokenClaims: TokenClaims, key: string, tenants: ITenant[]): IAccount {
+	public createAccount(tokenClaims: ITokenClaims, key: string, tenants: ITenant[]): IAccount {
 		this.logger.verbose(`Token Claims acccount: ${tokenClaims.name}, TID: ${tokenClaims.tid}`);
 		tenants.forEach((tenant) => {
 			this.logger.verbose(`Tenant ID: ${tenant.id}, Tenant Name: ${tenant.displayName}`);
@@ -408,7 +409,7 @@ export abstract class MsalAzureAuth {
 	//#endregion
 
 	//#region inconsequential
-	protected getTokenClaims(accessToken: string): TokenClaims {
+	protected getTokenClaims(accessToken: string): ITokenClaims {
 		try {
 			const split = accessToken.split('.');
 			return JSON.parse(Buffer.from(split[1], 'base64').toString('utf8'));
@@ -427,14 +428,15 @@ export abstract class MsalAzureAuth {
 	public async clearCredentials(account: IAccount): Promise<void> {
 		try {
 			const tokenCache = this.clientApplication.getTokenCache();
-			let accountInfo: AccountInfo | undefined = await this.getAccountFromMsalCache(account.key.id);
-			await tokenCache.removeAccount(accountInfo);
+			let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(account.key.id);
+			await tokenCache.removeAccount(accountInfo!);
 		} catch (ex) {
 			// We need not prompt user for error if token could not be removed from cache.
 			this.logger.error('Error when removing token from cache: ', ex);
 		}
 	}
 
+	// tslint:disable:no-empty
 	public async autoOAuthCancelled(): Promise<void> { }
 
 	//#endregion
@@ -442,39 +444,39 @@ export abstract class MsalAzureAuth {
 
 //#region models
 
-export interface AccountKey {
+export interface IAccountKey {
 	/**
 	 * Account Key - uniquely identifies an account
 	 */
-	key: string
+	key: string;
 }
 
-export interface AccessToken extends AccountKey {
+export interface IAccessToken extends IAccountKey {
 	/**
 	 * Access Token
 	 */
 	token: string;
 }
 
-export interface RefreshToken extends AccountKey {
+export interface IRefreshToken extends IAccountKey {
 	/**
 	 * Refresh Token
 	 */
 	token: string;
 }
 
-export interface TenantResponse { // https://docs.microsoft.com/en-us/rest/api/resources/tenants/list
-	id: string
-	tenantId: string
-	displayName?: string
-	tenantCategory?: string
+export interface ITenantResponse { // https://docs.microsoft.com/en-us/rest/api/resources/tenants/list
+	id: string;
+	tenantId: string;
+	displayName?: string;
+	tenantCategory?: string;
 }
 
-export interface MultiTenantTokenResponse {
-	[tenantId: string]: Token | undefined;
+export interface IMultiTenantTokenResponse {
+	[tenantId: string]: IToken | undefined;
 }
 
-export interface Token extends AccountKey {
+export interface IToken extends IAccountKey {
 	/**
 	 * Access token
 	 */
@@ -491,7 +493,7 @@ export interface Token extends AccountKey {
 	tokenType: string;
 }
 
-export interface TokenClaims { // https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens
+export interface ITokenClaims { // https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens
 	/**
 	 * Identifies the intended recipient of the token. In id_tokens, the audience
 	 * is your app's Application ID, assigned to your app in the Azure portal.
@@ -523,7 +525,7 @@ export interface TokenClaims { // https://docs.microsoft.com/en-us/azure/active-
 	 * 'live.com' or an STS URI containing the Microsoft account tenant
 	 * 9188040d-6c67-4c5b-b112-36a304b66dad.
 	 */
-	idp: string,
+	idp: string;
 	/**
 	 * The 'nbf' (not before) claim identifies the time before which the JWT MUST NOT be accepted for processing.
 	 */
@@ -631,35 +633,35 @@ export interface TokenClaims { // https://docs.microsoft.com/en-us/azure/active-
 	ver: string;
 }
 
-export type OAuthTokenResponse = { accessToken: AccessToken, refreshToken: RefreshToken | undefined, tokenClaims: TokenClaims, expiresOn: string };
+export type OAuthTokenResponse = { accessToken: IAccessToken, refreshToken: IRefreshToken | undefined, tokenClaims: ITokenClaims, expiresOn: string };
 
-export interface TokenPostData {
+export interface ITokenPostData {
 	grant_type: 'refresh_token' | 'authorization_code' | 'urn:ietf:params:oauth:grant-type:device_code';
 	client_id: string;
 	resource: string;
 }
 
-export interface RefreshTokenPostData extends TokenPostData {
+export interface IRefreshTokenPostData extends ITokenPostData {
 	grant_type: 'refresh_token';
 	refresh_token: string;
 	client_id: string;
-	tenant: string
+	tenant: string;
 }
 
-export interface AuthorizationCodePostData extends TokenPostData {
+export interface IAuthorizationCodePostData extends ITokenPostData {
 	grant_type: 'authorization_code';
 	code: string;
 	code_verifier: string;
 	redirect_uri: string;
 }
 
-export interface DeviceCodeStartPostData extends Omit<TokenPostData, 'grant_type'> {
+export interface IDeviceCodeStartPostData extends Omit<ITokenPostData, 'grant_type'> {
 
 }
 
-export interface DeviceCodeCheckPostData extends Omit<TokenPostData, 'resource'> {
-	grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-	tenant: string,
+export interface IDeviceCodeCheckPostData extends Omit<ITokenPostData, 'resource'> {
+	grant_type: 'urn:ietf:params:oauth:grant-type:device_code';
+	tenant: string;
 	code: string;
 }
 //#endregion

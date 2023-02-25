@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import * as Interfaces from './interfaces';
 import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
+import * as Interfaces from './interfaces';
 import * as Utils from './utils';
-import { IConnectionInfo, ServerInfo } from 'vscode-mssql';
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -200,7 +200,7 @@ export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: 
  * @param {Interfaces.IConnectionCredentials} connCreds connection
  * @returns {string} tooltip
  */
-export function getTooltip(connCreds: IConnectionInfo, serverInfo?: ServerInfo): string {
+export function getTooltip(connCreds: IConnectionInfo, serverInfo?: IServerInfo): string {
 	let tooltip: string =
 		connCreds.connectionString ? 'Connection string: ' + connCreds.connectionString + '\r\n' :
 			('Server name: ' + connCreds.server + '\r\n' +

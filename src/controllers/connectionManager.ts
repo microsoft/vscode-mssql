@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { NotificationHandler, RequestType } from 'vscode-languageclient';
-import { ConnectionDetails, IConnectionInfo, ServerInfo } from 'vscode-mssql';
+import { ConnectionDetails, IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import { AccountService } from '../azure/accountService';
 import { AccountStore } from '../azure/accountStore';
 import { AdalAzureController } from '../azure/adal/adalAzureController';
@@ -55,7 +55,7 @@ export class ConnectionInfo {
 	/**
 	 * Information about the SQL Server instance.
 	 */
-	public serverInfo: ServerInfo;
+	public serverInfo: IServerInfo;
 
 	/**
 	 * Whether the connection is in the process of connecting.
@@ -86,7 +86,7 @@ export default class ConnectionManager {
 	private _statusView: StatusView;
 	private _connections: { [fileUri: string]: ConnectionInfo };
 	private _connectionCredentialsToServerInfoMap:
-		Map<IConnectionInfo, ServerInfo>;
+		Map<IConnectionInfo, IServerInfo>;
 	private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
 	private _failedUriToFirewallIpMap: Map<string, string>;
 	private _failedUriToSSLMap: Map<string, string>;
@@ -104,7 +104,7 @@ export default class ConnectionManager {
 		private _accountStore?: AccountStore) {
 		this._statusView = statusView;
 		this._connections = {};
-		this._connectionCredentialsToServerInfoMap = new Map<IConnectionInfo, ServerInfo>();
+		this._connectionCredentialsToServerInfoMap = new Map<IConnectionInfo, IServerInfo>();
 		this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
 
 		if (!this.client) {
@@ -716,7 +716,7 @@ export default class ConnectionManager {
 	 * Get the server info for a connection
 	 * @param connectionCreds
 	 */
-	public getServerInfo(connectionCredentials: IConnectionInfo): ServerInfo {
+	public getServerInfo(connectionCredentials: IConnectionInfo): IServerInfo {
 		if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
 			return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
 		}

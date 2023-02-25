@@ -9,16 +9,6 @@ import { CredentialStore } from '../../credentialstore/credentialstore';
 import { FileEncryptionHelper } from './fileEncryptionHelper';
 import { StorageService } from './storageService';
 
-function getSystemKeytar(): Keytar | undefined {
-	try {
-		return require('keytar');
-	} catch (err) {
-		console.warn(err);
-	}
-
-	return undefined;
-}
-
 export type MultipleAccountsResponse = { account: string, password: string }[];
 
 // allow-any-unicode-next-line
@@ -72,47 +62,25 @@ export class SimpleTokenCache implements CachingProvider {
 	constructor(
 		private serviceName: string,
 		private readonly userStoragePath: string,
-		private readonly forceFileStorage: boolean = false,
-		private readonly credentialStore: CredentialStore,
+		private readonly credentialStore: CredentialStore
 	) { }
 
+	// tslint:disable:no-empty
 	async clear(): Promise<void> { }
 
 	async init(): Promise<void> {
 		this.serviceName = this.serviceName.replace(/-/g, '_');
-		let keytar: Keytar | undefined;
-		if (this.forceFileStorage === false) {
-			keytar = getSystemKeytar();
-			// Add new method to keytar
-			if (keytar) {
-				keytar.getPasswords = async (service: string): Promise<MultipleAccountsResponse> => {
-					const [serviceName, accountPrefix] = service.split(separator);
-					if (serviceName === undefined || accountPrefix === undefined) {
-						throw new Error('Service did not have separator: ' + service);
-					}
-					const results = await keytar!.findCredentials!(serviceName);
-					return results.filter(({ account }) => {
-						return account.startsWith(accountPrefix);
-					});
-				};
-			}
-		} else {
-			let filePath = join(this.userStoragePath, this.serviceName);
-			const fileName = parse(filePath).base;
-			const fileEncryptionHelper: FileEncryptionHelper = new FileEncryptionHelper(this.credentialStore, fileName);
-			this.db = new StorageService(filePath, fileEncryptionHelper.fileOpener, fileEncryptionHelper.fileSaver);
-			await this.db.initialize();
-			keytar = await getFileKeytar(this.db);
-		}
 
-		this.keytar = keytar;
+		let filePath = join(this.userStoragePath, this.serviceName);
+		const fileName = parse(filePath).base;
+		const fileEncryptionHelper: FileEncryptionHelper = new FileEncryptionHelper(this.credentialStore, fileName);
+		this.db = new StorageService(filePath, fileEncryptionHelper.fileOpener, fileEncryptionHelper.fileSaver);
+		await this.db.initialize();
+
+		this.keytar = await getFileKeytar(this.db);
 	}
 
 	async set(id: string, key: string): Promise<void> {
-		if (!this.forceFileStorage && key.length > 2500) { // Windows limitation
-			throw new Error('Key length is longer than 2500 chars');
-		}
-
 		if (id.includes(separator)) {
 			throw new Error('Separator included in ID');
 		}

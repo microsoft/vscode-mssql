@@ -54,7 +54,7 @@ export class MsalCachePluginProvider {
 				lockFile.unlockSync(lockFilePath);
 				this._lockTaken = false;
 			}
-		}
+		};
 
 		const afterCacheAccess = async (cacheContext: TokenCacheContext): Promise<void> => {
 			if (cacheContext.cacheHasChanged) {
@@ -80,7 +80,7 @@ export class MsalCachePluginProvider {
 		// Ref https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3332
 		return {
 			beforeCacheAccess,
-			afterCacheAccess,
+			afterCacheAccess
 		};
 	}
 
@@ -111,6 +111,8 @@ export class MsalCachePluginProvider {
 				}
 				retryAttempt++;
 				this._logger.verbose(`MsalCachePlugin: Failed to acquire lock on cache file. Retrying in ${retryWait} ms.`);
+
+				// tslint:disable:no-empty
 				setTimeout(() => { }, retryWait);
 			}
 		}

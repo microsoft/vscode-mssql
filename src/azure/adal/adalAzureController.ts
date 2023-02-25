@@ -183,7 +183,7 @@ export class AdalAzureController extends AzureController {
 			let storagePath = await this.findOrMakeStoragePath();
 			let credentialStore = new CredentialStore(this.context);
 			// ADAL Cache Service
-			this.cacheProvider = new SimpleTokenCache(Constants.adalCacheFileName, storagePath!, true, credentialStore);
+			this.cacheProvider = new SimpleTokenCache(Constants.adalCacheFileName, storagePath!, credentialStore);
 			await this.cacheProvider.init();
 			this.storageService = this.cacheProvider.db;
 			// MSAL Cache Provider

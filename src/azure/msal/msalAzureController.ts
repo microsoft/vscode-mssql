@@ -3,7 +3,7 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ILoggerCallback, LogLevel as MsalLogLevel } from "@azure/msal-common";
+import { ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
 import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
 import { AzureAuthType, IAADResource, IAccount, IToken } from '../../models/contracts/azure';
@@ -39,22 +39,23 @@ export class MsalAzureController extends AzureController {
 			} else {
 				this.logger.pii(message);
 			}
-		}
+		};
 	}
 
+	// tslint:disable:no-empty
 	public init(): void { }
 
 	public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
 		let azureAuth = await this.getAzureAuthInstance(authType);
-		let response = await azureAuth.startLogin();
+		let response = await azureAuth!.startLogin();
 		return response ? response as IAccount : undefined;
 	}
 
-	private async getAzureAuthInstance(authType: AzureAuthType): Promise<MsalAzureAuth> {
+	private async getAzureAuthInstance(authType: AzureAuthType): Promise<MsalAzureAuth | undefined> {
 		if (!this._authMappings.has(authType)) {
 			await this.handleAuthMapping();
 		}
-		return this._authMappings.get(authType);
+		return this._authMappings!.get(authType);
 	}
 
 	public async getAccountSecurityToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IToken | undefined> {
@@ -72,7 +73,7 @@ export class MsalAzureController extends AzureController {
 					token: result.accessToken,
 					tokenType: result.tokenType,
 					expiresOn: result.account.idTokenClaims.exp
-				}
+				};
 				return token;
 			}
 		} else {
@@ -85,16 +86,16 @@ export class MsalAzureController extends AzureController {
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
 		settings: IAADResource): Promise<IToken | undefined> {
 		try {
-			let token: IToken;
-			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-			let newAccount = await azureAuth.refreshAccessToken(account, tenantId, settings);
-			if (newAccount.isStale === true) {
+			let token: IToken | undefined;
+			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig()!);
+			let newAccount = await azureAuth!.refreshAccessToken(account, tenantId!, settings);
+			if (newAccount!.isStale === true) {
 				return undefined;
 			}
-			await accountStore.addAccount(newAccount);
+			await accountStore.addAccount(newAccount!);
 
 			token = await this.getAccountSecurityToken(
-				account, tenantId, settings
+				account, tenantId!, settings
 			);
 			return token;
 		} catch (ex) {
@@ -104,13 +105,13 @@ export class MsalAzureController extends AzureController {
 
 	public async removeAccount(account: IAccount): Promise<void> {
 		let azureAuth = await this.getAzureAuthInstance(account.properties.azureAuthType);
-		await azureAuth.clearCredentials(account);
+		await azureAuth!.clearCredentials(account);
 	}
 
 	public async handleAuthMapping(): Promise<void> {
 		if (!this.clientApplication) {
 			let storagePath = await this.findOrMakeStoragePath();
-			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath, this.logger);
+			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this.logger);
 			const msalConfiguration: Configuration = {
 				auth: {
 					clientId: this._providerSettings.clientId,

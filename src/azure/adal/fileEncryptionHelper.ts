@@ -8,7 +8,7 @@ import { CredentialStore } from '../../credentialstore/credentialstore';
 export class FileEncryptionHelper {
 	constructor(
 		private _credentialStore: CredentialStore,
-		private _fileName: string,
+		private _fileName: string
 	) { }
 
 	private _ivBuffer: Buffer | undefined;
@@ -38,7 +38,7 @@ export class FileEncryptionHelper {
 		}
 		const cipherIv = crypto.createCipheriv('aes-256-gcm', this._keyBuffer!, this._ivBuffer!);
 		return `${cipherIv.update(content, 'utf8', 'hex')}${cipherIv.final('hex')}%${cipherIv.getAuthTag().toString('hex')}`;
-	};
+	}
 
 	fileOpener = async (content: string): Promise<string> => {
 		if (!this._keyBuffer || !this._ivBuffer) {
@@ -51,6 +51,5 @@ export class FileEncryptionHelper {
 		}
 		decipherIv.setAuthTag(Buffer.from(split[1], 'hex'));
 		return `${decipherIv.update(split[0], 'hex', 'utf8')}${decipherIv.final('utf8')}`;
-	};
-
+	}
 }

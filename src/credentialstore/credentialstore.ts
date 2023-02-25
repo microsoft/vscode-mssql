@@ -24,9 +24,6 @@ export class CredentialStore implements ICredentialStore {
 			this._client = SqlToolsServerClient.instance;
 		}
 		this._secretStorage = this._context.secrets;
-		this._secretStorage.onDidChange(event => {
-			this._client?.logger.verbose(`Credential Store: Secret updated for key: ${event.key}`);
-		});
 	}
 
 	/**
