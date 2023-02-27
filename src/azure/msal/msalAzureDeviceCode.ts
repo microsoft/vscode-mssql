@@ -38,17 +38,17 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
 		};
 
 		const authResult = await this.clientApplication.acquireTokenByDeviceCode(deviceCodeRequest);
-		await this.closeOnceComplete(authCompletePromise).catch(this.logger.error);
+		this.logger.pii(`Authentication completed for account: ${authResult?.account!.name}, tenant: ${authResult?.tenantId}`);
+		this.closeOnceComplete(authCompletePromise).catch(this.logger.error);
 
 		return {
-			response: authResult,
+			response: authResult!,
 			authComplete: authCompleteDeferred!
 		};
 	}
 
 	private async closeOnceComplete(promise: Promise<void>): Promise<void> {
 		await promise;
-		this.closeDeviceCodeScreen();
 	}
 
 	public async displayDeviceCodeScreen(msg: string, userCode: string, verificationUrl: string): Promise<void> {
@@ -61,10 +61,6 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
 			console.log(userCode);
 			console.log(verificationUrl);
 		}
-		return;
-	}
-
-	public closeDeviceCodeScreen(): void {
 		return;
 	}
 }

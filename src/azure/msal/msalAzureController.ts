@@ -114,8 +114,7 @@ export class MsalAzureController extends AzureController {
 			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this.logger);
 			const msalConfiguration: Configuration = {
 				auth: {
-					clientId: this._providerSettings.clientId,
-					authority: 'https://login.windows.net/common'
+					clientId: this._providerSettings.clientId
 				},
 				system: {
 					loggerOptions: {

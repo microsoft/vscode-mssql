@@ -787,14 +787,14 @@ export default class ConnectionManager {
 				if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
 					let account = this.accountStore.getAccount(connectionCreds.accountId);
 					let profile = new ConnectionProfile(connectionCreds);
-					let azureAccountToken = await this.azureController.refreshAccessToken(account,
-						this.accountStore, profile.tenantId, providerSettings.resources.databaseResource);
+					let azureAccountToken = await this.azureController.refreshAccessToken(account!,
+						this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
 					if (!azureAccountToken) {
 						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
 						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
 						if (refreshResult === LocalizedConstants.refreshTokenLabel) {
 							await this.azureController.populateAccountProperties(
-								profile, this.accountStore, providerSettings.resources.databaseResource);
+								profile, this.accountStore, providerSettings.resources.databaseResource!);
 
 						} else {
 							throw new Error(LocalizedConstants.cannotConnect);
@@ -844,7 +844,7 @@ export default class ConnectionManager {
 				connectParams.connection = connectionDetails;
 
 				// send connection request message to service host
-				this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
+				this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise!);
 				try {
 					const result = await this.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
 					if (!result) {
@@ -886,7 +886,7 @@ export default class ConnectionManager {
 	 */
 	public onManageProfiles(): Promise<boolean> {
 		// Show quick pick to create, edit, or remove profiles
-		return this._connectionUI.promptToManageProfiles();
+		return this.connectionUI.promptToManageProfiles();
 	}
 
 	public async onCreateProfile(): Promise<boolean> {
@@ -977,26 +977,44 @@ export default class ConnectionManager {
 		return;
 	}
 
+	public async addAccount(): Promise<void> {
+		let account = await this.connectionUI.addNewAccount();
+		if (account) {
+			this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.accountAddedSuccessfully, account.displayInfo.displayName));
+		} else {
+			this.vscodeWrapper.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
+		}
+	}
+
 	public async removeAccount(prompter: IPrompter): Promise<void> {
 		// list options for accounts to remove
 		let questions: IQuestion[] = [];
 		let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
 
-		questions.push(
-			{
-				type: QuestionTypes.expand,
-				name: 'account',
-				message: LocalizedConstants.azureChooseAccount,
-				choices: azureAccountChoices
-			}
-		);
+		if (azureAccountChoices.length > 0) {
+			questions.push(
+				{
+					type: QuestionTypes.expand,
+					name: 'account',
+					message: LocalizedConstants.azureChooseAccount,
+					choices: azureAccountChoices
+				}
+			);
 
-		return prompter.prompt<IAccount>(questions, true).then(async answers => {
-			if (answers.account) {
-				this._accountStore.removeAccount(answers.account.key.id);
-				this.azureController.removeAccount(answers.account);
-			}
-		});
+			return prompter.prompt<IAccount>(questions, true).then(async answers => {
+				if (answers.account) {
+					try {
+						this._accountStore.removeAccount(answers.account.key.id);
+						this.azureController.removeAccount(answers.account);
+						this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
+					} catch (e) {
+						this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.accountRemovalFailed, e.message));
+					}
+				}
+			});
+		} else {
+			this.vscodeWrapper.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
+		}
 	}
 }
 

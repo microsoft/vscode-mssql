@@ -191,6 +191,21 @@
         <trans-unit id="azureAddAccount">
             <source xml:lang="en">Add an Account...</source>
         </trans-unit>
+        <trans-unit id="accountAddedSuccessfully">
+            <source xml:lang="en">Azure account {0} successfully added.</source>
+        </trans-unit>
+        <trans-unit id="accountCouldNotBeAdded">
+            <source xml:lang="en">New Azure account could not be added.</source>
+        </trans-unit>
+        <trans-unit id="accountRemovedSuccessfully">
+            <source xml:lang="en">Selected Azure Account removed successfully.</source>
+        </trans-unit>
+        <trans-unit id="accountRemovalFailed">
+            <source xml:lang="en">An error occurred while removing user account: {0}</source>
+        </trans-unit>
+        <trans-unit id="noAzureAccountForRemoval">
+            <source xml:land="en">No Azure Account can be found for removal.</source>
+        </trans-unit>
         <trans-unit id="cannotConnect">
             <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
         </trans-unit>

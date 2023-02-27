@@ -160,15 +160,15 @@ export abstract class MsalAzureAuth {
 			} else if (e.name === 'ClientAuthError') {
 				this.logger.error(e.message);
 			}
-			this.logger.error('Failed to silently acquire token, not InteractionRequiredAuthError');
-			return null;
+			this.logger.error(`Failed to silently acquire token, not InteractionRequiredAuthError: ${e.message}`);
+			throw e;
 		}
 	}
 
 	public async refreshAccessToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IAccount | undefined> {
 		try {
 			const tenant = account.properties.tenants.find(t => t.id === tenantId) ?? account.properties.owningTenant;
-			const tokenResult = await this.getToken(account, tenant.id, this.providerSettings.resources.windowsManagementResource);
+			const tokenResult = await this.getToken(account, tenant.id, settings);
 			if (!tokenResult) {
 				account.isStale = true;
 				return account;

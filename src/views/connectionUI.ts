@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IConnectionInfo } from 'vscode-mssql';
+import { IAccount, IConnectionInfo } from 'vscode-mssql';
 import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import * as constants from '../constants/constants';
@@ -530,7 +530,7 @@ export class ConnectionUI {
 					providerSettings.resources.azureManagementResource);
 			}
 			let account = this._accountStore.getAccount(profile.accountId);
-			this.connectionManager.accountService.setAccount(account);
+			this.connectionManager.accountService.setAccount(account!);
 
 		}
 		let success = await this.createFirewallRule(profile.server, ipAddress);
@@ -669,6 +669,10 @@ export class ConnectionUI {
 					this._prompter,
 					this._connectionStore);
 			});
+	}
+
+	public async addNewAccount(): Promise<IAccount> {
+		return this.connectionManager.azureController.addAccount(this._accountStore);
 	}
 
 	// Prompts the user to pick a profile for removal, then removes from the global saved state

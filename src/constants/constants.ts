@@ -64,6 +64,7 @@ export const cmdAzureSignIn = 'azure-account.login';
 export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
 export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
+export const cmdAadAddAccount = 'mssql.addAadAccount';
 export const piiLogging = 'piiLogging';
 export const mssqlPiiLogging = 'mssql.piiLogging';
 export const azureAuthLibrary = 'mssql.azureAuthenticationLibrary';

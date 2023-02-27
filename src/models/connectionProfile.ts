@@ -71,7 +71,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 		azureAccountChoices.unshift({ name: LocalizedConstants.azureAddAccount, value: 'addAccount' });
 		let tenantChoices: INameValueChoice[] = [];
 
-
 		let questions: IQuestion[] = await ConnectionCredentials.getRequiredCredentialValuesQuestions(profile, true,
 			false, connectionStore, defaultProfileValues);
 

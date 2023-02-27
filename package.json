@@ -539,6 +539,11 @@
         "category": "MS SQL"
       },
       {
+        "command": "mssql.addAadAccount",
+        "title": "%mssql.addAadAccount%",
+        "category": "MS SQL"
+      },
+      {
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
         "category": "MS SQL"

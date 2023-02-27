@@ -25,7 +25,7 @@ export class AzureDeviceCode extends AzureAuth {
     protected async login(tenant: Tenant, resource: AADResource): Promise<LoginResponse> {
         let authCompleteDeferred: Deferred<void>;
         let authCompletePromise = new Promise<void>((resolve, reject) => authCompleteDeferred = { resolve, reject });
-        const uri = `${this.loginEndpointUrl}/${this.commonTenant.id}/oauth2/devicecode`;
+        const uri = `${this.loginEndpointUrl}/${tenant.id}/oauth2/devicecode`;
 
         const postData: DeviceCodeStartPostData = {
             client_id: this.clientId,

@@ -59,7 +59,7 @@ export class SimpleTokenCache implements CachingProvider {
 
 	constructor(
 		private serviceName: string,
-		private readonly userStoragePath: string,
+		private readonly userStoragePath: string
 	) { }
 
 	// tslint:disable:no-empty
