@@ -60,7 +60,7 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
 function getHttpConfiguration(): vscode.WorkspaceConfiguration {
 	return vscode.workspace.getConfiguration(Constants.httpConfigSectionName);
 }
-export function getAzureActiveDirectoryConfig(): AzureAuthType | undefined {
+export function getAzureActiveDirectoryConfig(): AzureAuthType {
 	let config = getConfiguration();
 	if (config) {
 		const val: string | undefined = config.get(configAzureAD);

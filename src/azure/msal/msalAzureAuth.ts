@@ -38,7 +38,7 @@ export abstract class MsalAzureAuth {
 		protected readonly vscodeWrapper: VscodeWrapper,
 		protected readonly logger: Logger
 	) {
-		this.loginEndpointUrl = this.providerSettings.loginEndpoint ?? 'https://login.microsoftonline.com';
+		this.loginEndpointUrl = this.providerSettings.loginEndpoint ?? 'https://login.microsoftonline.com/';
 		this.commonTenant = {
 			id: 'common',
 			displayName: 'common'

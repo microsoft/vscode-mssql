@@ -11,7 +11,6 @@ import { Subscription } from '@azure/arm-subscriptions';
 import { AzureAuth, AzureCodeGrant, AzureDeviceCode, CachingProvider } from '@microsoft/ads-adal-library';
 import { IAzureAccountSession } from 'vscode-mssql';
 import providerSettings from '../../azure/providerSettings';
-import { CredentialStore } from '../../credentialstore/credentialstore';
 import { ConnectionProfile } from '../../models/connectionProfile';
 import { AzureAuthType, IAADResource, IAccount, ITenant, IToken } from '../../models/contracts/azure';
 import { AccountStore } from '../accountStore';
@@ -50,7 +49,7 @@ export class AdalAzureController extends AzureController {
 
 	public async getAccountSecurityToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IToken | undefined> {
 		let token: IToken | undefined;
-		let azureAuth = await this.getAzureAuthInstance(account.properties.azureAuthType);
+		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 		tenantId = tenantId ? tenantId : azureAuth!.getHomeTenant(account).id;
 		token = await azureAuth!.getAccountSecurityToken(
 			account, tenantId, settings
@@ -62,7 +61,7 @@ export class AdalAzureController extends AzureController {
 		: Promise<IToken | undefined> {
 		try {
 			let token: IToken | undefined;
-			let azureAuth = await this.getAzureAuthInstance(account.properties.azureAuthType);
+			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 			let newAccount = await azureAuth!.refreshAccess(account);
 			if (newAccount.isStale === true) {
 				return undefined;
@@ -136,7 +135,7 @@ export class AdalAzureController extends AzureController {
 	public async refreshToken(account: IAccount, accountStore: AccountStore, settings: IAADResource, tenantId: string | undefined): Promise<IToken | undefined> {
 		try {
 			let token: IToken | undefined;
-			let azureAuth = await this.getAzureAuthInstance(account.properties.azureAuthType);
+			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 			let newAccount = await azureAuth!.refreshAccess(account);
 			if (newAccount.isStale === true) {
 				return undefined;
@@ -181,9 +180,8 @@ export class AdalAzureController extends AzureController {
 		if (!this._credentialStoreInitialized) {
 
 			let storagePath = await this.findOrMakeStoragePath();
-			let credentialStore = new CredentialStore(this.context);
 			// ADAL Cache Service
-			this.cacheProvider = new SimpleTokenCache(Constants.adalCacheFileName, storagePath!, credentialStore);
+			this.cacheProvider = new SimpleTokenCache(Constants.adalCacheFileName, storagePath!);
 			await this.cacheProvider.init();
 			this.storageService = this.cacheProvider.db;
 			// MSAL Cache Provider
@@ -221,7 +219,7 @@ export class AdalAzureController extends AzureController {
 	}
 
 	public async removeAccount(account: IAccount): Promise<void> {
-		let azureAuth = await this.getAzureAuthInstance(account.properties.azureAuthType);
+		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 		await azureAuth!.deleteAccountCache(account.key);
 		this.logger.verbose(`Account deleted from cache successfully: ${account.key.id}`);
 	}

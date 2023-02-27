@@ -896,7 +896,7 @@
             "MSAL"
           ],
           "enumDescriptions": [
-            "Azure Active Directory Authentication Library",
+            "(deprecated) Azure Active Directory Authentication Library",
             "Microsoft Authentication Library"
           ]
         },

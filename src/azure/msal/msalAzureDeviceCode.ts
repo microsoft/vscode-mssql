@@ -3,11 +3,11 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { AuthenticationResult, DeviceCodeRequest, PublicClientApplication } from '@azure/msal-node';
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../../constants/localizedConstants';
 import VscodeWrapper from '../../controllers/vscodeWrapper';
-import { AuthenticationResult, DeviceCodeRequest, PublicClientApplication } from '@azure/msal-node';
-import { ITenant, IProviderSettings, AzureAuthType } from '../../models/contracts/azure';
+import { AzureAuthType, IProviderSettings, ITenant } from '../../models/contracts/azure';
 import { IDeferred } from '../../models/interfaces';
 import { Logger } from '../../models/logger';
 import { MsalAzureAuth } from './msalAzureAuth';
@@ -36,8 +36,9 @@ export class MsalAzureDeviceCode extends MsalAzureAuth {
 				await this.displayDeviceCodeScreen(response.message, response.userCode, response.verificationUri);
 			}
 		};
+
 		const authResult = await this.clientApplication.acquireTokenByDeviceCode(deviceCodeRequest);
-		this.closeOnceComplete(authCompletePromise).catch(this.logger.error);
+		await this.closeOnceComplete(authCompletePromise).catch(this.logger.error);
 
 		return {
 			response: authResult,

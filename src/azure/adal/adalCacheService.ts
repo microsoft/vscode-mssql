@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { CachingProvider } from '@microsoft/ads-adal-library';
 import * as keytarType from 'keytar';
-import { join, parse } from 'path';
-import { CredentialStore } from '../../credentialstore/credentialstore';
-import { FileEncryptionHelper } from './fileEncryptionHelper';
+import { join } from 'path';
 import { StorageService } from './storageService';
 
 export type MultipleAccountsResponse = { account: string, password: string }[];
@@ -62,7 +60,6 @@ export class SimpleTokenCache implements CachingProvider {
 	constructor(
 		private serviceName: string,
 		private readonly userStoragePath: string,
-		private readonly credentialStore: CredentialStore
 	) { }
 
 	// tslint:disable:no-empty
@@ -72,9 +69,7 @@ export class SimpleTokenCache implements CachingProvider {
 		this.serviceName = this.serviceName.replace(/-/g, '_');
 
 		let filePath = join(this.userStoragePath, this.serviceName);
-		const fileName = parse(filePath).base;
-		const fileEncryptionHelper: FileEncryptionHelper = new FileEncryptionHelper(this.credentialStore, fileName);
-		this.db = new StorageService(filePath, fileEncryptionHelper.fileOpener, fileEncryptionHelper.fileSaver);
+		this.db = new StorageService(filePath);
 		await this.db.initialize();
 
 		this.keytar = await getFileKeytar(this.db);

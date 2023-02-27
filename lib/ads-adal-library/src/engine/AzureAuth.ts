@@ -2,13 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { ProviderSettings, SecureStorageProvider, Tenant, AADResource, LoginResponse, Deferred, AzureAccount, Logger, MessageDisplayer, ErrorLookup, CachingProvider, RefreshTokenPostData, AuthorizationCodePostData, TokenPostData, AccountKey, StringLookup, DeviceCodeStartPostData, DeviceCodeCheckPostData, AzureAuthType, AccountType, UserInteraction } from '../models';
-import { AzureAuthError } from '../errors/AzureAuthError';
-import { ErrorCodes }  from '../errors/errors';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AccessToken, Token, TokenClaims, RefreshToken, OAuthTokenResponse } from '../models/auth';
 import * as qs from 'qs';
 import * as url from 'url';
+import { AzureAuthError } from '../errors/AzureAuthError';
+import { ErrorCodes } from '../errors/errors';
+import { AADResource, AccountKey, AccountType, AuthorizationCodePostData, AzureAccount, AzureAuthType, CachingProvider, Deferred, DeviceCodeCheckPostData, DeviceCodeStartPostData, ErrorLookup, Logger, LoginResponse, MessageDisplayer, ProviderSettings, RefreshTokenPostData, SecureStorageProvider, StringLookup, Tenant, TokenPostData, UserInteraction } from '../models';
+import { AccessToken, OAuthTokenResponse, RefreshToken, Token, TokenClaims } from '../models/auth';
 
 export abstract class AzureAuth {
 	public static readonly ACCOUNT_VERSION = '2.0';
@@ -335,13 +335,13 @@ export abstract class AzureAuth {
 			throw new AzureAuthError(ErrorCodes.GetAccount, this.errorLookup.getSimpleError(ErrorCodes.GetAccount));
 		}
 
-		let accessTokenString: string;
-		let refreshTokenString: string;
+		let accessTokenString: string | undefined | null;
+		let refreshTokenString: string | undefined | null;
 		let expiresOn: string;
 		try {
 			accessTokenString = await this.cachingProvider.get(`${accountKey.id}_access_${resource.id}_${tenant.id}`);
 			refreshTokenString = await this.cachingProvider.get(`${accountKey.id}_refresh_${resource.id}_${tenant.id}`);
-			expiresOn = await this.cachingProvider.get(`${accountKey.id}_${tenant.id}_${resource.id}`);
+			expiresOn = await this.cachingProvider.get(`${accountKey.id}_${tenant.id}_${resource.id}`) ?? '';
 		} catch (ex) {
 			this.logger.error(ex);
 			// Error when getting your account from the cache
@@ -373,7 +373,7 @@ export abstract class AzureAuth {
 	public async deleteAccountCache(accountKey: AccountKey): Promise<void> {
 		const results = await this.cachingProvider.findCredentials(accountKey.id);
 
-		for (let { account } of results) {
+		for (let { account } of results!) {
 			await this.cachingProvider.remove(account);
 		}
 	}

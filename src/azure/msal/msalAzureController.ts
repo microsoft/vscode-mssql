@@ -59,7 +59,7 @@ export class MsalAzureController extends AzureController {
 	}
 
 	public async getAccountSecurityToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IToken | undefined> {
-		let azureAuth = await this.getAzureAuthInstance(account.properties.azureAuthType);
+		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 		if (azureAuth) {
 			this.logger.piiSantized(`Getting account security token for ${JSON.stringify(account?.key)} (tenant ${tenantId}). Auth Method = ${AzureAuthType[account?.properties.azureAuthType]}`, [], []);
 			tenantId = tenantId || account.properties.owningTenant.id;
@@ -87,7 +87,7 @@ export class MsalAzureController extends AzureController {
 		settings: IAADResource): Promise<IToken | undefined> {
 		try {
 			let token: IToken | undefined;
-			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig()!);
+			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 			let newAccount = await azureAuth!.refreshAccessToken(account, tenantId!, settings);
 			if (newAccount!.isStale === true) {
 				return undefined;
@@ -104,7 +104,7 @@ export class MsalAzureController extends AzureController {
 	}
 
 	public async removeAccount(account: IAccount): Promise<void> {
-		let azureAuth = await this.getAzureAuthInstance(account.properties.azureAuthType);
+		let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
 		await azureAuth!.clearCredentials(account);
 	}
 

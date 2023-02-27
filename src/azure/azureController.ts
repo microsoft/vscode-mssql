@@ -107,6 +107,7 @@ export abstract class AzureController {
 			await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
 			throw new Error(LocalizedConstants.msgAccountNotFound);
 		}
+		this.logger.verbose(`Account found, refreshing access token for tenant ${profile.tenantId}`);
 		let azureAccountToken = await this.refreshAccessToken(account, accountStore, profile.tenantId, settings);
 		if (!azureAccountToken) {
 			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
