@@ -362,7 +362,7 @@ export default class SqlToolsServiceClient {
 	}
 
 	private generateResourceServiceServerOptions(executablePath: string): ServerOptions {
-		let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles(this._logPath, 'resourceprovider.log', executablePath);
+		let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles(executablePath, this._logPath, 'resourceprovider.log');
 		return { command: executablePath, args: launchArgs, transport: TransportKind.stdio };
 	}
 
@@ -395,13 +395,16 @@ export default class SqlToolsServiceClient {
 		let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 		if (config) {
 			// Populate common args
-			serverArgs = serverArgs.concat(Utils.getCommonLaunchArgsAndCleanupOldLogFiles(this._logPath, 'sqltools.log', servicePath));
+			serverArgs = serverArgs.concat(Utils.getCommonLaunchArgsAndCleanupOldLogFiles(servicePath, this._logPath, 'sqltools.log'));
 
 			// Enable diagnostic logging in the service if it is configured
 			let logDebugInfo = config[Constants.configLogDebugInfo];
 			if (logDebugInfo) {
 				serverArgs.push('--enable-logging');
 			}
+
+			// Send application name to determine MSAL cache location
+			serverArgs.push('--application-name', 'code');
 
 			// Enable SQL Auth Provider registration for Azure MFA Authentication
 			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
@@ -418,7 +421,6 @@ export default class SqlToolsServiceClient {
 				serverArgs.push(locale);
 			}
 		}
-
 
 		// run the service host using dotnet.exe from the path
 		let serverOptions: ServerOptions = { command: serverCommand, args: serverArgs, transport: TransportKind.stdio };

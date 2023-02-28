@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // Collection of Non-localizable Constants
-export const vscodeAppName = 'Code';
+export const vscodeAppName = 'code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';

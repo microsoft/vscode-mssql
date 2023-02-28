@@ -413,19 +413,17 @@ export function removeOldLogFiles(logPath: string, prefix: string): JSON {
 	return findRemoveSync(logPath, { age: { seconds: getConfigLogRetentionSeconds() }, limit: getConfigLogFilesRemovalLimit() });
 }
 
-export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileName: string, executablePath: string): string[] {
+export function getCommonLaunchArgsAndCleanupOldLogFiles(executablePath: string, logPath: string, fileName: string): string[] {
 	let launchArgs = [];
-	launchArgs.push('--application-name');
-	launchArgs.push(Constants.vscodeAppName);
 	launchArgs.push('--log-file');
 	let logFile = path.join(logPath, fileName);
 	launchArgs.push(logFile);
 
 	console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
-	console.log(`This process (ui Extenstion Host) is pid: ${process.pid}`);
 	// Delete old log files
 	let deletedLogFiles = removeOldLogFiles(logPath, fileName);
 	console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
+	console.log(`This process (ui Extenstion Host) for ${path.basename(executablePath)} is pid: ${process.pid}`);
 	launchArgs.push('--tracing-level');
 	launchArgs.push(getConfigTracingLevel());
 	if (getConfigPiiLogging()) {

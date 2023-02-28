@@ -216,7 +216,7 @@
             <source xml:lang="en">The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.</source>
         </trans-unit>
         <trans-unit id="mssql.enableSqlAuthenticationProvider">
-            <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library.</source>
+            <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         </trans-unit>
         <trans-unit id="mssql.shortcuts">
             <source xml:lang="en">Shortcuts related to the results window</source>
