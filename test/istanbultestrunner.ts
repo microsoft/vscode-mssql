@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import * as paths from 'path';
 import * as fs from 'fs';
-import Mocha from 'mocha';
+import * as Mocha from 'mocha';
 import * as istanbul from 'istanbul';
 import * as glob from 'glob';
 import * as remapIstanbul from 'remap-istanbul';
