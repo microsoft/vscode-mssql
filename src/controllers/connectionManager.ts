@@ -782,26 +782,40 @@ export default class ConnectionManager {
 			title: LocalizedConstants.connectProgressNoticationTitle,
 			cancellable: false
 		}, async (_progress, _token) => {
-			// Check if the azure account token is present before sending connect request
+			// Check if the azure account token is present before sending connect request (only with SQL Auth Provider is not enabled.)
 			if (connectionCreds.authenticationType === Constants.azureMfa) {
 				if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
-					let account = this.accountStore.getAccount(connectionCreds.accountId);
-					let profile = new ConnectionProfile(connectionCreds);
-					let azureAccountToken = await this.azureController.refreshAccessToken(account!,
-						this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
-					if (!azureAccountToken) {
-						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
-						if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-							await this.azureController.populateAccountProperties(
-								profile, this.accountStore, providerSettings.resources.databaseResource!);
+					let account: IAccount;
+					let profile: ConnectionProfile;
+					if (connectionCreds.accountId) {
+						account = this.accountStore.getAccount(connectionCreds.accountId);
+						profile = new ConnectionProfile(connectionCreds);
+					} else {
+						throw new Error(LocalizedConstants.cannotConnect);
+					}
+					if (!this.azureController.isSqlAuthProviderEnabled()) {
+						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
+							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
+						if (!azureAccountToken) {
+							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+							let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
+							if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+								await this.azureController.populateAccountProperties(
+									profile, this.accountStore, providerSettings.resources.databaseResource!);
 
+							} else {
+								throw new Error(LocalizedConstants.cannotConnect);
+							}
 						} else {
-							throw new Error(LocalizedConstants.cannotConnect);
+							connectionCreds.azureAccountToken = azureAccountToken.token;
+							connectionCreds.expiresOn = azureAccountToken.expiresOn;
 						}
 					} else {
-						connectionCreds.azureAccountToken = azureAccountToken.token;
-						connectionCreds.expiresOn = azureAccountToken.expiresOn;
+						// If SQL Auth Provider is enabled, set username on profile.
+						connectionCreds.user = account.displayInfo.email;
+						connectionCreds.email = account.displayInfo.email;
+						profile.user = account.displayInfo.email;
+						profile.email = account.displayInfo.email;
 					}
 				}
 			}

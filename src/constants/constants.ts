@@ -68,6 +68,7 @@ export const cmdAadAddAccount = 'mssql.addAadAccount';
 export const piiLogging = 'piiLogging';
 export const mssqlPiiLogging = 'mssql.piiLogging';
 export const azureAuthLibrary = 'mssql.azureAuthenticationLibrary';
+export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
@@ -113,8 +114,8 @@ export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 export const configAzureAccount = 'azureAccount';
-export const adalCacheFileName = 'azureTokenCache_azure_publicCloud';
-export const msalCacheFileName = 'azureTokenCacheMsal_azure_publicCloud';
+export const adalCacheFileName = 'azureTokenCache-azure_publicCloud';
+export const msalCacheFileName = 'azureTokenCacheMsal-azure_publicCloud';
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';

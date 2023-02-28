@@ -41,6 +41,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 			this.expiresOn = connectionCredentials.expiresOn;
 			this.database = connectionCredentials.database;
 			this.email = connectionCredentials.email;
+			this.user = connectionCredentials.email;
 			this.password = connectionCredentials.password;
 			this.server = connectionCredentials.server;
 		}
@@ -93,6 +94,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 					accountAnswer = value;
 					if (value !== 'addAccount') {
 						let account: IAccount = value;
+						profile.accountId = account?.key.id;
 						tenantChoices.push(...account?.properties?.tenants.map(t => ({ name: t.displayName, value: t })));
 						if (tenantChoices.length === 1) {
 							profile.tenantId = tenantChoices[0].value.id;
@@ -124,7 +126,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 			});
 
 		return prompter.prompt(questions, true).then(async answers => {
-			if (answers.authenticationType === 'AzureMFA') {
+			if (answers?.authenticationType === 'AzureMFA') {
 				if (answers.AAD === 'addAccount') {
 					profile = await azureController.populateAccountProperties(profile, accountStore, providerSettings.resources.databaseResource);
 				} else {

@@ -907,6 +907,11 @@
             "Microsoft Authentication Library"
           ]
         },
+        "mssql.enableSqlAuthenticationProvider": {
+          "type": "boolean",
+          "description": "%mssql.enableSqlAuthenticationProvider%",
+          "default": true
+        },
         "mssql.format.alignColumnDefinitionsInColumns": {
           "type": "boolean",
           "description": "%mssql.format.alignColumnDefinitionsInColumns%",

@@ -167,8 +167,7 @@ export abstract class MsalAzureAuth {
 
 	public async refreshAccessToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IAccount | undefined> {
 		try {
-			const tenant = account.properties.tenants.find(t => t.id === tenantId) ?? account.properties.owningTenant;
-			const tokenResult = await this.getToken(account, tenant.id, settings);
+			const tokenResult = await this.getToken(account, tenantId, settings);
 			if (!tokenResult) {
 				account.isStale = true;
 				return account;
@@ -223,6 +222,10 @@ export abstract class MsalAzureAuth {
 				}
 			});
 			const data = tenantResponse.body;
+			if (data.error) {
+				this.logger.error(`Error fetching tenants :${data.error.code} - ${data.error.message}`);
+				throw new Error(`${data.error.code} - ${data.error.message}`);
+			}
 			const tenants: ITenant[] = data.value.map((tenantInfo: ITenantResponse) => {
 				if (tenantInfo.displayName) {
 					tenantList.push(tenantInfo.displayName);
@@ -248,7 +251,7 @@ export abstract class MsalAzureAuth {
 			return tenants;
 		} catch (ex) {
 			this.logger.error(`Error fetching tenants :${ex}`);
-			throw new Error('Error retrieving tenant information');
+			throw ex;
 		}
 	}
 

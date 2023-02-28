@@ -415,6 +415,8 @@ export function removeOldLogFiles(logPath: string, prefix: string): JSON {
 
 export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileName: string, executablePath: string): string[] {
 	let launchArgs = [];
+	launchArgs.push('--application-name');
+	launchArgs.push(Constants.vscodeAppName);
 	launchArgs.push('--log-file');
 	let logFile = path.join(logPath, fileName);
 	launchArgs.push(logFile);

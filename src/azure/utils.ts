@@ -84,6 +84,17 @@ export function getAzureAuthLibraryConfig(): AuthLibrary {
 	return AuthLibrary.MSAL; // default to MSAL
 }
 
+export function getEnableSqlAuthenticationProviderConfig(): boolean {
+	const config = getConfiguration();
+	if (config) {
+		const val: boolean | undefined = config.get(Constants.sqlAuthProviderSection);
+		if (val !== undefined) {
+			return val;
+		}
+	}
+	return true; // default setting
+}
+
 export function getProxyEnabledHttpClient(): HttpClient {
 	const proxy = <string>getHttpConfiguration().get(configProxy);
 	const strictSSL = getHttpConfiguration().get(configProxyStrictSSL, true);

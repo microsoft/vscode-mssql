@@ -28,6 +28,7 @@ export abstract class AzureController {
 	protected _vscodeWrapper: VscodeWrapper;
 	protected _credentialStoreInitialized = false;
 	protected logger: Logger;
+	protected _isSqlAuthProviderEnabled: boolean = false;
 
 	constructor(
 		protected context: vscode.ExtensionContext,
@@ -56,6 +57,8 @@ export abstract class AzureController {
 
 	public abstract login(authType: AzureAuthType): Promise<IAccount | undefined>;
 
+	public abstract populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: IAADResource): Promise<ConnectionProfile>;
+
 	public abstract getAccountSecurityToken(account: IAccount, tenantId: string | undefined, settings: IAADResource): Promise<IToken | undefined>;
 
 	public abstract refreshAccessToken(account: IAccount, accountStore: AccountStore,
@@ -65,6 +68,10 @@ export abstract class AzureController {
 
 	public abstract handleAuthMapping(): void;
 
+	public isSqlAuthProviderEnabled(): boolean {
+		return this._authLibrary === AuthLibrary.MSAL && this._isSqlAuthProviderEnabled;
+	}
+
 	public async addAccount(accountStore: AccountStore): Promise<IAccount | undefined> {
 		let config = azureUtils.getAzureActiveDirectoryConfig();
 		let account = await this.login(config!);
@@ -73,58 +80,34 @@ export abstract class AzureController {
 		return account;
 	}
 
-	/**
-	 * Gets the token for given account and updates the connection profile with token information needed for AAD authentication
-	 */
-	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: IAADResource): Promise<ConnectionProfile> {
-		let account = await this.addAccount(accountStore);
-
-		if (!profile.tenantId) {
-			await this.promptForTenantChoice(account!, profile);
-		}
-
-		const token = await this.getAccountSecurityToken(
-			account!, profile.tenantId, settings
-		);
-
-		if (!token) {
-			let errorMessage = LocalizedConstants.msgGetTokenFail;
-			this.logger.error(errorMessage);
-			this._vscodeWrapper.showErrorMessage(errorMessage);
-		} else {
-			profile.azureAccountToken = token.token;
-			profile.expiresOn = token.expiresOn;
-			profile.email = account!.displayInfo.email;
-			profile.accountId = account!.key.id;
-		}
-
-		return profile;
-	}
-
 	public async refreshTokenWrapper(profile, accountStore, accountAnswer, settings: IAADResource): Promise<ConnectionProfile | undefined> {
 		let account = accountStore.getAccount(accountAnswer.key.id);
 		if (!account) {
 			await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
 			throw new Error(LocalizedConstants.msgAccountNotFound);
 		}
-		this.logger.verbose(`Account found, refreshing access token for tenant ${profile.tenantId}`);
-		let azureAccountToken = await this.refreshAccessToken(account, accountStore, profile.tenantId, settings);
-		if (!azureAccountToken) {
-			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-			return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
-				if (result === LocalizedConstants.refreshTokenLabel) {
-					let refreshedProfile = await this.populateAccountProperties(profile, accountStore, settings);
-					return refreshedProfile;
-				} else {
-					return undefined;
-				}
-			});
-		}
+		if (this._authLibrary === AuthLibrary.MSAL && !this._isSqlAuthProviderEnabled) {
+			this.logger.verbose(`Account found, refreshing access token for tenant ${profile.tenantId}`);
+			let azureAccountToken = await this.refreshAccessToken(account, accountStore, profile.tenantId, settings);
+			if (!azureAccountToken) {
+				let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+				return this._vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
+					if (result === LocalizedConstants.refreshTokenLabel) {
+						let refreshedProfile = await this.populateAccountProperties(profile, accountStore, settings);
+						return refreshedProfile;
+					} else {
+						return undefined;
+					}
+				});
+			}
 
-		profile.azureAccountToken = azureAccountToken.token;
-		profile.expiresOn = azureAccountToken.expiresOn;
-		profile.email = account.displayInfo.email;
-		profile.accountId = account.key.id;
+			profile.azureAccountToken = azureAccountToken.token;
+			profile.expiresOn = azureAccountToken.expiresOn;
+			profile.email = account.displayInfo.email;
+			profile.accountId = account.key.id;
+		} else {
+			this.logger.verbose('Account found and SQL Authentication Provider is enabled, access token will not be refreshed by extension.');
+		}
 		return profile;
 	}
 

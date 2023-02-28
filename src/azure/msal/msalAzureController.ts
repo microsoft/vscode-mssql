@@ -6,10 +6,12 @@
 import { ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
 import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
+import * as LocalizedConstants from '../../constants/localizedConstants';
+import { ConnectionProfile } from '../../models/connectionProfile';
 import { AzureAuthType, IAADResource, IAccount, IToken } from '../../models/contracts/azure';
 import { AccountStore } from '../accountStore';
 import { AzureController } from '../azureController';
-import { getAzureActiveDirectoryConfig } from '../utils';
+import { getAzureActiveDirectoryConfig, getEnableSqlAuthenticationProviderConfig } from '../utils';
 import { HttpClient } from './httpClient';
 import { MsalAzureAuth } from './msalAzureAuth';
 import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
@@ -42,8 +44,12 @@ export class MsalAzureController extends AzureController {
 		};
 	}
 
-	// tslint:disable:no-empty
-	public init(): void { }
+	public init(): void {
+		// Since this setting is only applicable to MSAL, we can enable it safely only for MSAL Controller
+		if (getEnableSqlAuthenticationProviderConfig()) {
+			this._isSqlAuthProviderEnabled = true;
+		}
+	}
 
 	public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
 		let azureAuth = await this.getAzureAuthInstance(authType);
@@ -86,21 +92,53 @@ export class MsalAzureController extends AzureController {
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
 		settings: IAADResource): Promise<IToken | undefined> {
 		try {
-			let token: IToken | undefined;
 			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-			let newAccount = await azureAuth!.refreshAccessToken(account, tenantId!, settings);
+			let newAccount = await azureAuth!.refreshAccessToken(account, 'organizations',
+				this._providerSettings.resources.windowsManagementResource);
+
 			if (newAccount!.isStale === true) {
 				return undefined;
 			}
-			await accountStore.addAccount(newAccount!);
 
-			token = await this.getAccountSecurityToken(
+			await accountStore.addAccount(newAccount!);
+			return await this.getAccountSecurityToken(
 				account, tenantId!, settings
 			);
-			return token;
 		} catch (ex) {
 			this._vscodeWrapper.showErrorMessage(ex);
 		}
+	}
+
+	/**
+	 * Gets the token for given account and updates the connection profile with token information needed for AAD authentication
+	 */
+	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: IAADResource): Promise<ConnectionProfile> {
+		let account = await this.addAccount(accountStore);
+		profile.email = account!.displayInfo.email;
+		profile.accountId = account!.key.id;
+
+		// Skip fetching access token for profile if Sql Authentication Provider is enabled.
+		if (!this.isSqlAuthProviderEnabled()) {
+			if (!profile.tenantId) {
+				await this.promptForTenantChoice(account!, profile);
+			}
+
+			const token = await this.getAccountSecurityToken(
+				account!, profile.tenantId, settings
+			);
+
+			if (!token) {
+				let errorMessage = LocalizedConstants.msgGetTokenFail;
+				this.logger.error(errorMessage);
+				this._vscodeWrapper.showErrorMessage(errorMessage);
+			} else {
+				profile.azureAccountToken = token.token;
+				profile.expiresOn = token.expiresOn;
+			}
+		} else {
+			this.logger.verbose('SQL Authentication Provider is enabled, access token will not be acquired by extension.');
+		}
+		return profile;
 	}
 
 	public async removeAccount(account: IAccount): Promise<void> {
@@ -114,7 +152,8 @@ export class MsalAzureController extends AzureController {
 			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this.logger);
 			const msalConfiguration: Configuration = {
 				auth: {
-					clientId: this._providerSettings.clientId
+					clientId: this._providerSettings.clientId,
+					authority: 'https://login.windows.net/common'
 				},
 				system: {
 					loggerOptions: {

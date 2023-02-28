@@ -83,6 +83,8 @@ export class AdalAzureController extends AzureController {
 	 */
 	public async populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: IAADResource): Promise<ConnectionProfile> {
 		let account = await this.addAccount(accountStore);
+		profile.email = account!.displayInfo.email;
+		profile.accountId = account!.key.id;
 
 		if (!profile.tenantId) {
 			await this.promptForTenantChoice(account!, profile);
@@ -99,8 +101,6 @@ export class AdalAzureController extends AzureController {
 		} else {
 			profile.azureAccountToken = token.token;
 			profile.expiresOn = token.expiresOn;
-			profile.email = account!.displayInfo.email;
-			profile.accountId = account!.key.id;
 		}
 
 		return profile;

@@ -1212,7 +1212,10 @@ export default class MainController implements vscode.Disposable {
 			if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
 				this.updatePiiLoggingLevel();
 			}
-			if (e.affectsConfiguration(Constants.azureAuthLibrary)) {
+
+			// Prompt to reload VS Code when below settings are updated.
+			if (e.affectsConfiguration(Constants.azureAuthLibrary)
+				|| e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
 				await this.displayReloadMessage();
 			}
 		}

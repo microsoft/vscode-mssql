@@ -27,6 +27,8 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
+import { getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { AuthLibrary } from '../models/contracts/azure';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
 
@@ -389,14 +391,23 @@ export default class SqlToolsServiceClient {
 			serverArgs = [servicePath];
 			serverCommand = 'dotnet';
 		}
-
 		// Get the extenion's configuration
 		let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 		if (config) {
+			// Populate common args
+			serverArgs = serverArgs.concat(Utils.getCommonLaunchArgsAndCleanupOldLogFiles(this._logPath, 'sqltools.log', servicePath));
+
 			// Enable diagnostic logging in the service if it is configured
 			let logDebugInfo = config[Constants.configLogDebugInfo];
 			if (logDebugInfo) {
 				serverArgs.push('--enable-logging');
+			}
+
+			// Enable SQL Auth Provider registration for Azure MFA Authentication
+			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
+			const azureAuthLibrary = getAzureAuthLibraryConfig();
+			if (azureAuthLibrary === AuthLibrary.MSAL && enableSqlAuthenticationProvider) {
+				serverArgs.push('--enable-sql-authentication-provider');
 			}
 
 			// Send Locale for sqltoolsservice localization

@@ -459,7 +459,10 @@ export class ObjectExplorerService {
 					let azureController = this._connectionManager.azureController;
 					let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
 					let profile = new ConnectionProfile(connectionCredentials);
-					if (!connectionCredentials.azureAccountToken) {
+					if (azureController.isSqlAuthProviderEnabled()) {
+						this._client.logger.verbose('SQL Authentication provider is enabled for Azure MFA connections, skipping token acquiry in extension.');
+						connectionCredentials.user = account.displayInfo.email;
+					} else if (!connectionCredentials.azureAccountToken) {
 						let azureAccountToken = await azureController.refreshAccessToken(
 							account, this._connectionManager.accountStore, connectionCredentials.tenantId, providerSettings.resources.databaseResource);
 						if (!azureAccountToken) {
