@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="mssql.piiLogging">
         <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
-        <target state="new">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</target>
+        <target state="translated">是否要將個人識別資訊 (PII) 記錄在 Azure 記錄輸出通道與輸出通道記錄檔中。</target>
       </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
