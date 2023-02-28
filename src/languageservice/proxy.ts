@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { HttpProxyAgent } from 'http-proxy-agent';
+import { HttpProxyAgent, HttpProxyAgentOptions } from 'http-proxy-agent';
 import { HttpsProxyAgent, HttpsProxyAgentOptions } from 'https-proxy-agent';
 import { parse as parseUrl, Url } from 'url';
 
@@ -26,15 +26,18 @@ export function isBoolean(obj: any): obj is boolean {
  */
 export function getProxyAgent(requestURL: Url, proxy?: string, strictSSL?: boolean): HttpsProxyAgent | HttpProxyAgent {
 	const proxyURL = proxy || getSystemProxyURL(requestURL);
-	const proxyEndpoint = parseUrl(proxyURL!);
+	if (!proxyURL) {
+		return undefined;
+	}
+	const proxyEndpoint = parseUrl(proxyURL);
 	const opts = this.getProxyAgentOptions(requestURL, proxy, strictSSL);
-	return proxyEndpoint.protocol === 'https:' ? new HttpsProxyAgent(opts) : new HttpProxyAgent(opts);
+	return proxyEndpoint.protocol === 'https:' ? new HttpsProxyAgent(opts as HttpsProxyAgentOptions) : new HttpProxyAgent(opts as HttpProxyAgentOptions);
 }
 
 /*
  * Returns the proxy agent using the proxy url in the parameters or the system proxy. Returns null if no proxy found
  */
-export function getProxyAgentOptions(requestURL: Url, proxy?: string, strictSSL?: boolean): HttpsProxyAgentOptions | undefined {
+export function getProxyAgentOptions(requestURL: Url, proxy?: string, strictSSL?: boolean): HttpsProxyAgentOptions | HttpProxyAgentOptions {
 	const proxyURL = proxy || getSystemProxyURL(requestURL);
 
 	if (!proxyURL) {
@@ -47,7 +50,7 @@ export function getProxyAgentOptions(requestURL: Url, proxy?: string, strictSSL?
 		return undefined;
 	}
 
-	const opts: HttpsProxyAgentOptions = {
+	const opts: HttpsProxyAgentOptions | HttpProxyAgentOptions = {
 		host: proxyEndpoint.hostname,
 		port: Number(proxyEndpoint.port),
 		auth: proxyEndpoint.auth,

@@ -7,6 +7,7 @@ import { ResourceManagementClient } from '@azure/arm-resources';
 import { SqlManagementClient } from '@azure/arm-sql';
 import { SubscriptionClient } from '@azure/arm-subscriptions';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
+import { HttpsProxyAgentOptions } from 'https-proxy-agent';
 import { parse } from 'url';
 import * as vscode from 'vscode';
 import { getProxyAgentOptions } from '../languageservice/proxy';
@@ -89,12 +90,14 @@ export function getProxyEnabledHttpClient(): HttpClient {
 	const authorization = getHttpConfiguration().get(configProxyAuthorization);
 
 	const url = parse(proxy);
-	const agentOptions = getProxyAgentOptions(url, proxy, strictSSL);
+	let agentOptions = getProxyAgentOptions(url, proxy, strictSSL);
 
-	if (authorization) {
-		agentOptions!.headers = Object.assign(agentOptions!.headers || {}, {
+	if (authorization && url.protocol === 'https:') {
+		let httpsAgentOptions = agentOptions as HttpsProxyAgentOptions;
+		httpsAgentOptions!.headers = Object.assign(httpsAgentOptions!.headers || {}, {
 			'Proxy-Authorization': authorization
 		});
+		agentOptions = httpsAgentOptions;
 	}
 
 	return new HttpClient(proxy, agentOptions);

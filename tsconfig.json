@@ -11,6 +11,8 @@
         ],
         "sourceMap": true,
         "allowUnusedLabels": false,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "rootDir": ".",
