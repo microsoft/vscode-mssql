@@ -32,6 +32,7 @@ import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest'
 import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
 import { DacFxService } from '../services/dacFxService';
+import { SqlProjectsService } from '../services/sqlProjectsService';
 import { IConnectionInfo } from 'vscode-mssql';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
@@ -63,6 +64,7 @@ export default class MainController implements vscode.Disposable {
 	public sqlTasksService: SqlTasksService;
 	public dacFxService: DacFxService;
 	public schemaCompareService: SchemaCompareService;
+	public sqlProjectsService: SqlProjectsService;
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
 
