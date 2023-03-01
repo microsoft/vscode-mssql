@@ -266,10 +266,9 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 * @param name Name of the SQLCMD variable
 	 * @param defaultValue Default value of the SQLCMD variable
-	 * @param value Value of the SQLCMD variable, with or without the $()
 	 */
-	public async addSqlCmdVariable(projectUri: string, name: string, defaultValue: string, value: string): Promise<mssql.ResultStatus> {
-		const params: mssql.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue, value: value };
+	public async addSqlCmdVariable(projectUri: string, name: string, defaultValue: string): Promise<mssql.ResultStatus> {
+		const params: mssql.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue };
 		return this._client.sendRequest(contracts.AddSqlCmdVariableRequest.type, params);
 	}
 
@@ -288,10 +287,9 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 * @param name Name of the SQLCMD variable
 	 * @param defaultValue Default value of the SQLCMD variable
-	 * @param value Value of the SQLCMD variable, with or without the $()
 	 */
-	public async updateSqlCmdVariable(projectUri: string, name: string, defaultValue: string, value: string): Promise<mssql.ResultStatus> {
-		const params: mssql.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue, value: value };
+	public async updateSqlCmdVariable(projectUri: string, name: string, defaultValue: string): Promise<mssql.ResultStatus> {
+		const params: mssql.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue };
 		return this._client.sendRequest(contracts.UpdateSqlCmdVariableRequest.type, params);
 	}
 
