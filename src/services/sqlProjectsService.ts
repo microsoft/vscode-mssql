@@ -5,7 +5,6 @@
 
 import * as mssql from 'vscode-mssql';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
-import { RequestType } from 'vscode-languageclient';
 import * as contracts from '../models/contracts/sqlProjects/sqlProjectsContracts';
 
 export class SqlProjectsService implements mssql.ISqlProjectsService {
