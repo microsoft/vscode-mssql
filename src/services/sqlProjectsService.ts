@@ -20,8 +20,21 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * If this is set, DatabaseVariable must also be set.
 	 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
 	 */
-	public async addDacpacReference(projectUri: string, dacpacPath: string, suppressMissingDependencies: boolean, databaseVariable?: string, serverVariable?: string, databaseLiteral?: string): Promise<mssql.ResultStatus> {
-		const params: contracts.AddDacpacReferenceParams = { projectUri: projectUri, dacpacPath: dacpacPath, suppressMissingDependencies: suppressMissingDependencies, databaseVariable: databaseVariable, serverVariable: serverVariable, databaseLiteral: databaseLiteral };
+	public async addDacpacReference(
+		projectUri: string,
+		dacpacPath: string,
+		suppressMissingDependencies: boolean,
+		databaseVariable?: string,
+		serverVariable?: string,
+		databaseLiteral?: string): Promise<mssql.ResultStatus> {
+		const params: mssql.AddDacpacReferenceParams = {
+			projectUri: projectUri,
+			dacpacPath: dacpacPath,
+			suppressMissingDependencies: suppressMissingDependencies,
+			databaseVariable: databaseVariable,
+			serverVariable: serverVariable,
+			databaseLiteral: databaseLiteral
+		};
 		return this._client.sendRequest(contracts.AddDacpacReferenceRequest.type, params);
 	}
 
@@ -36,8 +49,23 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * If this is set, DatabaseVariable must also be set.
 	 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
 	 */
-	public async addSqlProjectReference(projectUri: string, projectPath: string, projectGuid: string, suppressMissingDependencies: boolean, databaseVariable?: string, serverVariable?: string, databaseLiteral?: string): Promise<mssql.ResultStatus> {
-		const params: contracts.AddSqlProjectReferenceParams = { projectUri: projectUri, projectPath: projectPath, projectGuid: projectGuid, suppressMissingDependencies: suppressMissingDependencies, databaseVariable: databaseVariable, serverVariable: serverVariable, databaseLiteral: databaseLiteral };
+	public async addSqlProjectReference(
+		projectUri: string,
+		projectPath: string,
+		projectGuid: string,
+		suppressMissingDependencies: boolean,
+		databaseVariable?: string,
+		serverVariable?: string,
+		databaseLiteral?: string): Promise<mssql.ResultStatus> {
+		const params: mssql.AddSqlProjectReferenceParams = {
+			projectUri: projectUri,
+			projectPath: projectPath,
+			projectGuid: projectGuid,
+			suppressMissingDependencies: suppressMissingDependencies,
+			databaseVariable: databaseVariable,
+			serverVariable: serverVariable,
+			databaseLiteral: databaseLiteral
+		};
 		return this._client.sendRequest(contracts.AddSqlProjectReferenceRequest.type, params);
 	}
 
@@ -48,8 +76,17 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param suppressMissingDependencies Whether to suppress missing dependencies
 	 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
 	 */
-	public async addSystemDatabaseReference(projectUri: string, systemDatabase: mssql.SystemDatabase, suppressMissingDependencies: boolean, databaseLiteral?: string): Promise<mssql.ResultStatus> {
-		const params: contracts.AddSystemDatabaseReferenceParams = { projectUri: projectUri, systemDatabase: systemDatabase, suppressMissingDependencies: suppressMissingDependencies, databaseLiteral: databaseLiteral };
+	public async addSystemDatabaseReference(
+		projectUri: string,
+		systemDatabase: mssql.SystemDatabase,
+		suppressMissingDependencies: boolean,
+		databaseLiteral?: string): Promise<mssql.ResultStatus> {
+		const params: mssql.AddSystemDatabaseReferenceParams = {
+			projectUri: projectUri,
+			systemDatabase: systemDatabase,
+			suppressMissingDependencies: suppressMissingDependencies,
+			databaseLiteral: databaseLiteral
+		};
 		return this._client.sendRequest(contracts.AddSystemDatabaseReferenceRequest.type, params);
 	}
 
@@ -59,7 +96,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async deleteDatabaseReference(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.DeleteDatabaseReferenceRequest.type, params);
 	}
 
@@ -69,7 +106,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the folder, typically relative to the .sqlproj file
 	 */
 	public async addFolder(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.FolderParams = { projectUri: projectUri, path: path };
+		const params: mssql.FolderParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.AddFolderRequest.type, params);
 	}
 
@@ -79,7 +116,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the folder, typically relative to the .sqlproj file
 	 */
 	public async deleteFolder(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.FolderParams = { projectUri: projectUri, path: path };
+		const params: mssql.FolderParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.DeleteFolderRequest.type, params);
 	}
 
@@ -89,7 +126,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async addPostDeploymentScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.AddPostDeploymentScriptRequest.type, params);
 	}
 
@@ -99,7 +136,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async addPreDeploymentScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.AddPreDeploymentScriptRequest.type, params);
 	}
 
@@ -109,7 +146,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async deletePostDeploymentScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.DeletePostDeploymentScriptRequest.type, params);
 	}
 
@@ -119,7 +156,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async deletePreDeploymentScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.DeletePreDeploymentScriptRequest.type, params);
 	}
 
@@ -129,7 +166,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async excludePostDeploymentScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.ExcludePostDeploymentScriptRequest.type, params);
 	}
 
@@ -139,7 +176,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async excludePreDeploymentScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.ExcludePreDeploymentScriptRequest.type, params);
 	}
 
@@ -150,7 +187,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async movePostDeploymentScript(projectUri: string, destinationPath: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.MoveItemParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
+		const params: mssql.MoveItemParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
 		return this._client.sendRequest(contracts.MovePostDeploymentScriptRequest.type, params);
 	}
 
@@ -161,7 +198,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async movePreDeploymentScript(projectUri: string, destinationPath: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.MoveItemParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
+		const params: mssql.MoveItemParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
 		return this._client.sendRequest(contracts.MovePreDeploymentScriptRequest.type, params);
 	}
 
@@ -170,7 +207,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async closeProject(projectUri: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.CloseSqlProjectRequest.type, params);
 	}
 
@@ -183,8 +220,17 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * Case sensitive.
 	 * @param buildSdkVersion Version of the Microsoft.Build.Sql SDK for the project, if overriding the default
 	 */
-	public async createProject(projectUri: string, sqlProjectType: mssql.ProjectType, databaseSchemaProvider?: string, buildSdkVersion?: string): Promise<mssql.ResultStatus> {
-		const params: contracts.CreateSqlProjectParams = { projectUri: projectUri, sqlProjectType: sqlProjectType, databaseSchemaProvider: databaseSchemaProvider, buildSdkVersion: buildSdkVersion };
+	public async createProject(
+		projectUri: string,
+		sqlProjectType: mssql.ProjectType,
+		databaseSchemaProvider?: string,
+		buildSdkVersion?: string): Promise<mssql.ResultStatus> {
+		const params: mssql.CreateSqlProjectParams = {
+			projectUri: projectUri,
+			sqlProjectType: sqlProjectType,
+			databaseSchemaProvider: databaseSchemaProvider,
+			buildSdkVersion: buildSdkVersion
+		};
 		return this._client.sendRequest(contracts.CreateSqlProjectRequest.type, params);
 	}
 
@@ -193,7 +239,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async getCrossPlatformCompatibility(projectUri: string): Promise<mssql.GetCrossPlatformCompatibilityResult> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetCrossPlatformCompatibilityRequest.type, params);
 	}
 
@@ -202,7 +248,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async openProject(projectUri: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.OpenSqlProjectRequest.type, params);
 	}
 
@@ -211,7 +257,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async updateProjectForCrossPlatform(projectUri: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.UpdateProjectForCrossPlatformRequest.type, params);
 	}
 
@@ -223,7 +269,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param value Value of the SQLCMD variable, with or without the $()
 	 */
 	public async addSqlCmdVariable(projectUri: string, name: string, defaultValue: string, value: string): Promise<mssql.ResultStatus> {
-		const params: contracts.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue, value: value };
+		const params: mssql.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue, value: value };
 		return this._client.sendRequest(contracts.AddSqlCmdVariableRequest.type, params);
 	}
 
@@ -233,7 +279,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param name Name of the SQLCMD variable to be deleted
 	 */
 	public async deleteSqlCmdVariable(projectUri: string, name?: string): Promise<mssql.ResultStatus> {
-		const params: contracts.DeleteSqlCmdVariableParams = { projectUri: projectUri, name: name };
+		const params: mssql.DeleteSqlCmdVariableParams = { projectUri: projectUri, name: name };
 		return this._client.sendRequest(contracts.DeleteSqlCmdVariableRequest.type, params);
 	}
 
@@ -245,7 +291,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param value Value of the SQLCMD variable, with or without the $()
 	 */
 	public async updateSqlCmdVariable(projectUri: string, name: string, defaultValue: string, value: string): Promise<mssql.ResultStatus> {
-		const params: contracts.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue, value: value };
+		const params: mssql.AddSqlCmdVariableParams = { projectUri: projectUri, name: name, defaultValue: defaultValue, value: value };
 		return this._client.sendRequest(contracts.UpdateSqlCmdVariableRequest.type, params);
 	}
 
@@ -255,7 +301,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async addSqlObjectScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.AddSqlObjectScriptRequest.type, params);
 	}
 
@@ -265,7 +311,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async deleteSqlObjectScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.DeleteSqlObjectScriptRequest.type, params);
 	}
 
@@ -275,7 +321,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async excludeSqlObjectScript(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.ExcludeSqlObjectScriptRequest.type, params);
 	}
 
@@ -286,7 +332,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
 	 */
 	public async moveSqlObjectScript(projectUri: string, destinationPath: string, path: string): Promise<mssql.ResultStatus> {
-		const params: contracts.MoveItemParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
+		const params: mssql.MoveItemParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
 		return this._client.sendRequest(contracts.MoveSqlObjectScriptRequest.type, params);
 	}
 
@@ -295,7 +341,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async getDatabaseReferences(projectUri: string): Promise<mssql.GetDatabaseReferencesResult> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetDatabaseReferencesRequest.type, params);
 	}
 
@@ -304,7 +350,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async getFolders(projectUri: string): Promise<mssql.GetFoldersResult> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetFoldersRequest.type, params);
 	}
 
@@ -313,7 +359,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async getPostDeploymentScripts(projectUri: string): Promise<mssql.GetScriptsResult> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetPostDeploymentScriptsRequest.type, params);
 	}
 
@@ -322,7 +368,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async getPreDeploymentScripts(projectUri: string): Promise<mssql.GetScriptsResult> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetPreDeploymentScriptsRequest.type, params);
 	}
 
@@ -331,7 +377,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async getSqlCmdVariables(projectUri: string): Promise<mssql.GetSqlCmdVariablesResult> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetSqlCmdVariablesRequest.type, params);
 	}
 
@@ -340,7 +386,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 */
 	public async getSqlObjectScripts(projectUri: string): Promise<mssql.GetScriptsResult> {
-		const params: contracts.SqlProjectParams = { projectUri: projectUri };
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetSqlObjectScriptsRequest.type, params);
 	}
 }

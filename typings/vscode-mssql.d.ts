@@ -681,54 +681,6 @@ declare module 'vscode-mssql' {
 		getSqlObjectScripts(projectUri: string): Promise<GetScriptsResult>;
 	}
 
-	export interface GetCrossPlatformCompatibilityResult extends ResultStatus {
-		/**
-		 * Whether the project is cross-platform compatible
-		 */
-		isCrossPlatformCompatible: boolean;
-	}
-
-	export interface GetDatabaseReferencesResult extends ResultStatus {
-		/**
-		 * Array of system database references contained in the project
-		 */
-		systemDatabaseReferences: SystemDatabaseReference[];
-		/**
-		 * Array of dacpac references contained in the project
-		 */
-		dacpacReferences: DacpacReference[];
-		/**
-		 * Array of SQL project references contained in the project
-		 */
-		sqlProjectReferences: SqlProjectReference[];
-	}
-
-	export interface GetFoldersResult extends ResultStatus {
-		/**
-		 * Array of folders contained in the project
-		 */
-		folders: string[];
-	}
-
-	export interface GetSqlCmdVariablesResult extends ResultStatus {
-		/**
-		 * Array of SQLCMD variables contained in the project
-		 */
-		sqlCmdVariables: SqlCmdVariable[];
-	}
-
-	export interface GetScriptsResult extends ResultStatus {
-		/**
-		 * Array of scripts contained in the project
-		 */
-		scripts: string[];
-	}
-
-	export const enum ProjectType {
-		SdkStyle = 0,
-		LegacyStyle = 1
-	}
-
 	/**
 	 * Represents a tenant information for an account.
 	 */
@@ -1027,12 +979,137 @@ declare module 'vscode-mssql' {
 	//#region Parameters
 
 	export interface SqlProjectParams {
+		/**
+		 * Absolute path of the project, including .sqlproj
+		 */
 		projectUri: string;
+	}
+
+	export interface SqlProjectScriptParams extends SqlProjectParams {
+		/**
+		 * Path of the script, including .sql, relative to the .sqlproj
+		 */
+		path: string;
+	}
+
+	export interface AddDacpacReferenceParams extends AddUserDatabaseReferenceParams {
+		/**
+		 * Path to the .dacpac file
+		 */
+		dacpacPath: string;
+	}
+
+	export interface AddDatabaseReferenceParams extends SqlProjectParams {
+		/**
+		 * Whether to suppress missing dependencies
+		 */
+		suppressMissingDependencies: boolean;
+		/**
+		 * Literal name used to reference another database in the same server, if not using SQLCMD variables
+		 */
+		databaseLiteral?: string;
+	}
+
+	export interface AddSqlProjectReferenceParams extends AddUserDatabaseReferenceParams {
+		/**
+		 * Path to the referenced .sqlproj file
+		 */
+		projectPath: string;
+		/**
+		 * GUID for the referenced SQL project
+		 */
+		projectGuid: string;
+	}
+
+	export interface AddSystemDatabaseReferenceParams extends AddDatabaseReferenceParams {
+		/**
+		 * Type of system database
+		 */
+		systemDatabase: SystemDatabase;
+	}
+
+	export interface AddUserDatabaseReferenceParams extends AddDatabaseReferenceParams {
+		/**
+		 * SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
+		 */
+		databaseVariable?: string;
+		/**
+		 * SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
+		 * If this is set, DatabaseVariable must also be set.
+		 */
+		serverVariable?: string;
+	}
+
+	export interface DeleteDatabaseReferenceParams extends SqlProjectParams {
+		/**
+		 * Name of the reference to be deleted.  Name of the System DB, path of the sqlproj, or path of the dacpac
+		 */
+		name: string;
+	}
+
+	export interface FolderParams extends SqlProjectParams {
+		/**
+		 * Path of the folder, typically relative to the .sqlproj file
+		 */
+		path: string;
+	}
+
+	export interface CreateSqlProjectParams extends SqlProjectParams {
+		/**
+		 * Type of SQL Project: SDK-style or Legacy
+		 */
+		sqlProjectType: ProjectType;
+		/**
+		 * Database schema provider for the project, in the format
+		 * "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider".
+		 * Case sensitive.
+		 */
+		databaseSchemaProvider?: string;
+		/**
+		 * Version of the Microsoft.Build.Sql SDK for the project, if overriding the default
+		 */
+		buildSdkVersion?: string;
+	}
+
+	export interface AddSqlCmdVariableParams extends SqlProjectParams {
+		/**
+		 * Name of the SQLCMD variable
+		 */
+		name: string;
+		/**
+		 * Default value of the SQLCMD variable
+		 */
+		defaultValue: string;
+		/**
+		 * Value of the SQLCMD variable, with or without the $()
+		 */
+		value: string;
+	}
+
+	export interface DeleteSqlCmdVariableParams extends SqlProjectParams {
+		/**
+		 * Name of the SQLCMD variable to be deleted
+		 */
+		name?: string;
+	}
+
+	export interface MoveItemParams extends SqlProjectScriptParams {
+		/**
+		 * Destination path of the file or folder, relative to the .sqlproj
+		 */
+		destinationPath: string;
 	}
 
 	//#endregion
 
 	//#region Results
+
+	export interface GetCrossPlatformCompatibilityResult extends ResultStatus {
+		/**
+		 * Whether the project is cross-platform compatible
+		 */
+		isCrossPlatformCompatible: boolean;
+	}
 
 	export interface GetDatabaseReferencesResult extends ResultStatus {
 		systemDatabaseReferences: SystemDatabaseReference[];
@@ -1040,9 +1117,55 @@ declare module 'vscode-mssql' {
 		dacpacReferences: DacpacReference[];
 	}
 
+	export interface GetDatabaseReferencesResult extends ResultStatus {
+		/**
+		 * Array of system database references contained in the project
+		 */
+		systemDatabaseReferences: SystemDatabaseReference[];
+		/**
+		 * Array of dacpac references contained in the project
+		 */
+		dacpacReferences: DacpacReference[];
+		/**
+		 * Array of SQL project references contained in the project
+		 */
+		sqlProjectReferences: SqlProjectReference[];
+	}
+
+	export interface GetFoldersResult extends ResultStatus {
+		/**
+		 * Array of folders contained in the project
+		 */
+		folders: string[];
+	}
+
+	export interface GetSqlCmdVariablesResult extends ResultStatus {
+		/**
+		 * Array of SQLCMD variables contained in the project
+		 */
+		sqlCmdVariables: SqlCmdVariable[];
+	}
+
+	export interface GetScriptsResult extends ResultStatus {
+		/**
+		 * Array of scripts contained in the project
+		 */
+		scripts: string[];
+	}
+
 	//#endregion
 
 	//#region Types
+
+	export const enum ProjectType {
+		SdkStyle = 0,
+		LegacyStyle = 1
+	}
+
+	export const enum SystemDatabase {
+		Master = 0,
+		MSDB = 1
+	}
 
 	export interface DatabaseReference {
 		suppressMissingDependencies: boolean;
@@ -1065,11 +1188,6 @@ declare module 'vscode-mssql' {
 
 	export interface DacpacReference extends UserDatabaseReference {
 		dacpacPath: string;
-	}
-
-	export const enum SystemDatabase {
-		Master = 0,
-		MSDB = 1
 	}
 
 	export interface SqlCmdVariable {
