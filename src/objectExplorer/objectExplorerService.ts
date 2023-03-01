@@ -115,7 +115,7 @@ export class ObjectExplorerService {
 				if (self._treeNodeToChildrenMap.has(node)) {
 					self._treeNodeToChildrenMap.delete(node);
 				}
-				return promise.resolve(node);
+				return promise?.resolve(node);
 			} else {
 				// create session failure
 				if (self._currentNode?.connectionInfo?.password) {
@@ -461,7 +461,8 @@ export class ObjectExplorerService {
 					let profile = new ConnectionProfile(connectionCredentials);
 					if (azureController.isSqlAuthProviderEnabled()) {
 						this._client.logger.verbose('SQL Authentication provider is enabled for Azure MFA connections, skipping token acquiry in extension.');
-						connectionCredentials.user = account.displayInfo.email;
+						connectionCredentials.user = account.displayInfo.displayName;
+						connectionCredentials.email = account.displayInfo.email;
 					} else if (!connectionCredentials.azureAccountToken) {
 						let azureAccountToken = await azureController.refreshAccessToken(
 							account, this._connectionManager.accountStore, connectionCredentials.tenantId, providerSettings.resources.databaseResource);

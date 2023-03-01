@@ -793,6 +793,11 @@ export default class ConnectionManager {
 					} else {
 						throw new Error(LocalizedConstants.cannotConnect);
 					}
+					// Always set username
+					connectionCreds.user = account.displayInfo.displayName;
+					connectionCreds.email = account.displayInfo.email;
+					profile.user = account.displayInfo.displayName;
+					profile.email = account.displayInfo.email;
 					if (!this.azureController.isSqlAuthProviderEnabled()) {
 						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
 							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
@@ -810,12 +815,6 @@ export default class ConnectionManager {
 							connectionCreds.azureAccountToken = azureAccountToken.token;
 							connectionCreds.expiresOn = azureAccountToken.expiresOn;
 						}
-					} else {
-						// If SQL Auth Provider is enabled, set username on profile.
-						connectionCreds.user = account.displayInfo.email;
-						connectionCreds.email = account.displayInfo.email;
-						profile.user = account.displayInfo.email;
-						profile.email = account.displayInfo.email;
 					}
 				}
 			}
@@ -1016,7 +1015,7 @@ export default class ConnectionManager {
 			);
 
 			return prompter.prompt<IAccount>(questions, true).then(async answers => {
-				if (answers.account) {
+				if (answers?.account) {
 					try {
 						this._accountStore.removeAccount(answers.account.key.id);
 						this.azureController.removeAccount(answers.account);

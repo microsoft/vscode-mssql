@@ -44,6 +44,7 @@ export abstract class AzureController {
 		let _channel = this._vscodeWrapper.createOutputChannel(LocalizedConstants.azureLogChannelName);
 		this.logger = new Logger(text => _channel.append(text), logLevel, pii);
 
+		this._authLibrary = azureUtils.getAzureAuthLibraryConfig();
 		this._providerSettings = providerSettings;
 		vscode.workspace.onDidChangeConfiguration((changeEvent) => {
 			const impactsProvider = changeEvent.affectsConfiguration(AzureConstants.accountsAzureAuthSection);
