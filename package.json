@@ -252,13 +252,13 @@
           "command": "mssql.objectExplorer.enableGroupBySchema",
           "when": "view == objectExplorer && !config.mssql.objectExplorer.groupBySchema",
           "title": "%mssql.objectExplorer.enableGroupBySchema%",
-          "group": "secondary"
+          "group": "navigation"
         },
         {
           "command": "mssql.objectExplorer.disableGroupBySchema",
           "when": "view == objectExplorer && config.mssql.objectExplorer.groupBySchema",
           "title": "%mssql.objectExplorer.disableGroupBySchema%",
-          "group": "secondary"
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -454,12 +454,20 @@
       {
         "command": "mssql.objectExplorer.enableGroupBySchema",
         "title": "%mssql.objectExplorer.enableGroupBySchema%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/groupBySchemaEnabled_inverse.svg",
+          "light": "media/groupBySchemaEnabled.svg"
+        }
       },
       {
         "command": "mssql.objectExplorer.disableGroupBySchema",
         "title": "%mssql.objectExplorer.disableGroupBySchema%",
-        "category": "MS SQL"
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/groupBySchemaDisabled_inverse.svg",
+          "light": "media/groupBySchemaDisabled.svg"
+        }
       },
       {
         "command": "mssql.objectExplorerNewQuery",
