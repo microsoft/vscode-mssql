@@ -31,6 +31,7 @@ import { ScriptingService } from '../scripting/scriptingService';
 import { AzureAccountService } from '../services/azureAccountService';
 import { AzureResourceService } from '../services/azureResourceService';
 import { DacFxService } from '../services/dacFxService';
+import { SqlProjectsService } from '../services/sqlProjectsService';
 import { SchemaCompareService } from '../services/schemaCompareService';
 import { SqlTasksService } from '../services/sqlTasksService';
 import StatusView from '../views/statusView';
@@ -63,6 +64,7 @@ export default class MainController implements vscode.Disposable {
 	public sqlTasksService: SqlTasksService;
 	public dacFxService: DacFxService;
 	public schemaCompareService: SchemaCompareService;
+	public sqlProjectsService: SqlProjectsService;
 	public azureAccountService: AzureAccountService;
 	public azureResourceService: AzureResourceService;
 
