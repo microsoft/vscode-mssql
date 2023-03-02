@@ -595,9 +595,8 @@ declare module 'vscode-mssql' {
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 * @param name Name of the SQLCMD variable
 		 * @param defaultValue Default value of the SQLCMD variable
-		 * @param value Value of the SQLCMD variable, with or without the $()
 		 */
-		addSqlCmdVariable(projectUri: string, name: string, defaultValue: string, value: string): Promise<ResultStatus>;
+		addSqlCmdVariable(projectUri: string, name: string, defaultValue: string): Promise<ResultStatus>;
 
 		/**
 		 * Delete a SQLCMD variable from a project
@@ -611,9 +610,8 @@ declare module 'vscode-mssql' {
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 * @param name Name of the SQLCMD variable
 		 * @param defaultValue Default value of the SQLCMD variable
-		 * @param value Value of the SQLCMD variable, with or without the $()
 		 */
-		updateSqlCmdVariable(projectUri: string, name: string, defaultValue: string, value: string): Promise<ResultStatus>;
+		updateSqlCmdVariable(projectUri: string, name: string, defaultValue: string): Promise<ResultStatus>;
 
 		/**
 		 * Add a SQL object script to a project
@@ -1080,10 +1078,6 @@ declare module 'vscode-mssql' {
 		 * Default value of the SQLCMD variable
 		 */
 		defaultValue: string;
-		/**
-		 * Value of the SQLCMD variable, with or without the $()
-		 */
-		value: string;
 	}
 
 	export interface DeleteSqlCmdVariableParams extends SqlProjectParams {
