@@ -262,6 +262,34 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	}
 
 	/**
+	 * Get the cross-platform compatibility status for a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 */
+	public async getProjectProperties(projectUri: string): Promise<mssql.GetProjectPropertiesResult> {
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
+		return this._client.sendRequest(contracts.GetProjectPropertiesRequest.type, params);
+	}
+	/**
+	 * Set the DatabaseSource property of a .sqlproj file
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param databaseSource Source of the database schema, used in telemetry
+	 */
+	public async setDatabaseSource(projectUri: string, databaseSource: string): Promise<mssql.ResultStatus> {
+		const params: mssql.SetDatabaseSourceParams = { projectUri: projectUri, databaseSource: databaseSource };
+		return this._client.sendRequest(contracts.SetDatabaseSourceRequest.type, params);
+	}
+
+	/**
+	 * Set the DatabaseSchemaProvider property of a SQL project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param databaseSchemaProvider New DatabaseSchemaProvider value, in the form "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider"
+	 */
+	public async setDatabaseSchemaProvider(projectUri: string, databaseSchemaProvider: string): Promise<mssql.ResultStatus> {
+		const params: mssql.SetDatabaseSchemaProviderParams = { projectUri: projectUri, databaseSchemaProvider: databaseSchemaProvider };
+		return this._client.sendRequest(contracts.SetDatabaseSchemaProviderRequest.type, params);
+	}
+
+	/**
 	 * Add a SQLCMD variable to a project
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 * @param name Name of the SQLCMD variable

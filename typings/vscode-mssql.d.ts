@@ -1187,6 +1187,20 @@ declare module 'vscode-mssql' {
 		destinationPath: string;
 	}
 
+	export interface SetDatabaseSourceParams extends SqlProjectParams {
+		/**
+		 * Source of the database schema, used in telemetry
+		 */
+		databaseSource: string;
+	}
+
+	export interface SetDatabaseSchemaProviderParams extends SqlProjectParams {
+		/**
+		 * New DatabaseSchemaProvider value, in the form "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider"
+		 */
+		databaseSchemaProvider: string;
+	}
+
 	//#endregion
 
 	//#region Results
@@ -1198,10 +1212,55 @@ declare module 'vscode-mssql' {
 		isCrossPlatformCompatible: boolean;
 	}
 
+	export interface GetProjectPropertiesResult extends ResultStatus {
+		/**
+		 * GUID for the SQL project
+		 */
+		projectGuid: string;
+		/**
+		 * Build configuration, defaulted to Debug if not specified
+		 */
+		configuration: string;
+		/**
+		 * Build platform, defaulted to AnyCPU if not specified
+		 */
+		platform: string;
+		/**
+		 * Output path for build, defaulted to "bin/Debug" if not specified.
+			 May be absolute or relative.
+		 */
+		outputPath: string;
+		/**
+		 * Default collation for the project, defaulted to SQL_Latin1_General_CP1_CI_AS if not specified
+		 */
+		defaultCollation: string;
+		/**
+		 * Source of the database schema, used in telemetry
+		 */
+		databaseSource?: string;
+		/**
+		 * Style of the .sqlproj file - SdkStyle or LegacyStyle
+		 */
+		projectStyle: ProjectType;
+		/**
+		 * Database Schema Provider, in the format "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider"
+		 */
+		databaseSchemaProvider: string
+	}
+
 	export interface GetDatabaseReferencesResult extends ResultStatus {
+		/**
+		 * Array of system database references contained in the project
+		 */
 		systemDatabaseReferences: SystemDatabaseReference[];
-		sqlProjectReferences: SqlProjectReference[];
+		/**
+		 * Array of dacpac references contained in the project
+		 */
 		dacpacReferences: DacpacReference[];
+		/**
+		 * Array of SQL project references contained in the project
+		 */
+		sqlProjectReferences: SqlProjectReference[];
 	}
 
 	export interface GetDatabaseReferencesResult extends ResultStatus {
