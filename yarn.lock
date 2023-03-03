@@ -205,10 +205,10 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@microsoft/ads-adal-library@1.0.16":
-  version "1.0.16"
-  resolved "https://registry.yarnpkg.com/@microsoft/ads-adal-library/-/ads-adal-library-1.0.16.tgz#50c88bb7c2aacab15582a8b11a109f77f97ea263"
-  integrity sha512-51Z7JjTAKaTpjQnPygpq63aSRX0emzoeZfY2TWQaN9LIGJ8RTFTjlhcvGXK3YNt/QbUYY79SekLacUsvtjrzEQ==
+"@microsoft/ads-adal-library@1.0.17":
+  version "1.0.17"
+  resolved "https://registry.yarnpkg.com/@microsoft/ads-adal-library/-/ads-adal-library-1.0.17.tgz#7e22a519d1a2794b9ef760325320ffbc36527b2e"
+  integrity sha512-qcbpzFavlP7Cf6+xwuATDcAYmTR+OdHzYXVhgyWEXBWBobqm5+F+zKrzzTmmEkQFyTaS3H/cmcE1aaRBz2NqGg==
   dependencies:
     axios "^0.27.2"
     qs "^6.9.7"
