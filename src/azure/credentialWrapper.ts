@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as coreAuth from '@azure/core-auth';
-import * as mssql from 'vscode-mssql';
+import { IToken } from '../models/contracts/azure';
 
 /**
  * TokenCredential wrapper to only return the given token.
@@ -14,7 +14,7 @@ import * as mssql from 'vscode-mssql';
  */
 export class TokenCredentialWrapper implements coreAuth.TokenCredential {
 
-	constructor(private _token: mssql.Token) {
+	constructor(private _token: IToken) {
 	}
 
 	public getToken(_: string | string[], __?: coreAuth.GetTokenOptions): Promise<coreAuth.AccessToken | null> {

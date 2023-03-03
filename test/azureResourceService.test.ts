@@ -5,13 +5,15 @@
 
 import * as assert from 'assert';
 import * as TypeMoq from 'typemoq';
-import { IAccount, IAzureAccountSession } from 'vscode-mssql';
+import { AzureAuthType, IAccount } from '../src/models/contracts/azure';
 import { SubscriptionClient, Subscription, Subscriptions, Location } from '@azure/arm-subscriptions';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
 import { ResourceGroup, ResourceGroups, ResourceManagementClient } from '@azure/arm-resources';
 import { AzureResourceController } from '../src/azure/azureResourceController';
 import { AzureAccountService } from '../src/services/azureAccountService';
 import { TokenCredentialWrapper } from '../src/azure/credentialWrapper';
+import allSettings from '../src/azure/providerSettings';
+import { IAzureAccountSession } from 'vscode-mssql';
 
 export interface ITestContext {
 	azureAccountService: TypeMoq.IMock<AzureAccountService>;
@@ -31,7 +33,14 @@ export function createContext(): ITestContext {
 			tenants: [{
 				id: '',
 				displayName: ''
-			}]
+			}],
+			azureAuthType: AzureAuthType.AuthCodeGrant,
+			isMsAccount: false,
+			owningTenant: {
+				id: '',
+				displayName: ''
+			},
+			providerSettings: allSettings
 		},
 		isStale: false,
 		isSignedIn: true

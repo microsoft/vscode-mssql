@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzureAuthType } from '@microsoft/ads-adal-library';
 import * as vscode from 'vscode';
 import { AccountStore } from '../azure/accountStore';
 import * as Constants from '../constants/constants';
 import * as vscodeMssql from 'vscode-mssql';
+import { AzureAuthType } from './contracts/azure';
 
 // interfaces
 export enum ContentType {
@@ -465,3 +465,8 @@ export interface ISubscriptionPolicies {
  * @enum {string}
  */
 export type SpendingLimit = 'On' | 'Off' | 'CurrentPeriodOff';
+
+export interface IDeferred<T, E extends Error = Error> {
+	resolve: (result: T | Promise<T>) => void;
+	reject: (reason: E) => void;
+}

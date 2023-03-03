@@ -4,17 +4,22 @@
  * ------------------------------------------------------------------------------------------ */
 interface KVProvider {
     set(key: string, value: string): Promise<void>;
-    get(key: string): Promise<string>;
+    get(key: string): Promise<string | undefined | null>;
     clear(): Promise<void>;
     remove(key: string): Promise<boolean>;
 }
-
 // used for token storage
 export interface SecureStorageProvider extends KVProvider {
 
 }
 
 // used for various caching
+
 export interface CachingProvider extends KVProvider {
-    findCredentials(key: string): Promise<{ account: string; password: string; }[]>;
+    findCredentials(key: string): Promise<{
+        account: string;
+        password: string;
+    }[] | undefined>;
 }
+export { };
+

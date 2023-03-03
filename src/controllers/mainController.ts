@@ -4,41 +4,41 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as events from 'events';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
+import { IConnectionInfo } from 'vscode-mssql';
+import { AzureResourceController } from '../azure/azureResourceController';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import * as Utils from '../models/utils';
-import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
-import { RebuildIntelliSenseNotification, CompletionExtensionParams, CompletionExtLoadRequest } from '../models/contracts/languageService';
-import StatusView from '../views/statusView';
-import ConnectionManager from './connectionManager';
-import * as ConnInfo from '../models/connectionInfo';
 import SqlToolsServerClient from '../languageservice/serviceclient';
-import { IPrompter } from '../prompts/question';
-import CodeAdapter from '../prompts/adapter';
-import VscodeWrapper from './vscodeWrapper';
-import UntitledSqlDocumentService from './untitledSqlDocumentService';
-import { ISelectionData, IConnectionProfile } from './../models/interfaces';
-import * as path from 'path';
-import * as fs from 'fs';
-import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
-import { ScriptingService } from '../scripting/scriptingService';
-import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
-import { Deferred } from '../protocol';
-import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
-import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
+import * as ConnInfo from '../models/connectionInfo';
+import { CompletionExtensionParams, CompletionExtLoadRequest, RebuildIntelliSenseNotification } from '../models/contracts/languageService';
 import { ScriptOperation } from '../models/contracts/scripting/scriptingRequest';
-import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
+import { SqlOutputContentProvider } from '../models/sqlOutputContentProvider';
+import * as Utils from '../models/utils';
+import { AccountSignInTreeNode } from '../objectExplorer/accountSignInTreeNode';
+import { ConnectTreeNode } from '../objectExplorer/connectTreeNode';
+import { ObjectExplorerProvider } from '../objectExplorer/objectExplorerProvider';
+import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
+import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
+import CodeAdapter from '../prompts/adapter';
+import { IPrompter } from '../prompts/question';
+import { Deferred } from '../protocol';
 import { QueryHistoryNode } from '../queryHistory/queryHistoryNode';
-import { DacFxService } from '../services/dacFxService';
-import { SqlProjectsService } from '../services/sqlProjectsService';
-import { IConnectionInfo } from 'vscode-mssql';
-import { SchemaCompareService } from '../services/schemaCompareService';
-import { SqlTasksService } from '../services/sqlTasksService';
+import { QueryHistoryProvider } from '../queryHistory/queryHistoryProvider';
+import { ScriptingService } from '../scripting/scriptingService';
 import { AzureAccountService } from '../services/azureAccountService';
 import { AzureResourceService } from '../services/azureResourceService';
-import { AzureResourceController } from '../azure/azureResourceController';
+import { DacFxService } from '../services/dacFxService';
+import { SqlProjectsService } from '../services/sqlProjectsService';
+import { SchemaCompareService } from '../services/schemaCompareService';
+import { SqlTasksService } from '../services/sqlTasksService';
+import StatusView from '../views/statusView';
+import { IConnectionProfile, ISelectionData } from './../models/interfaces';
+import ConnectionManager from './connectionManager';
+import UntitledSqlDocumentService from './untitledSqlDocumentService';
+import VscodeWrapper from './vscodeWrapper';
 
 /**
  * The main controller class that initializes the extension
@@ -52,10 +52,10 @@ export default class MainController implements vscode.Disposable {
 	private _prompter: IPrompter;
 	private _vscodeWrapper: VscodeWrapper;
 	private _initialized: boolean = false;
-	private _lastSavedUri: string;
-	private _lastSavedTimer: Utils.Timer;
-	private _lastOpenedUri: string;
-	private _lastOpenedTimer: Utils.Timer;
+	private _lastSavedUri: string | undefined;
+	private _lastSavedTimer: Utils.Timer | undefined;
+	private _lastOpenedUri: string | undefined;
+	private _lastOpenedTimer: Utils.Timer | undefined;
 	private _untitledSqlDocumentService: UntitledSqlDocumentService;
 	private _objectExplorerProvider: ObjectExplorerProvider;
 	private _queryHistoryProvider: QueryHistoryProvider;
@@ -72,7 +72,9 @@ export default class MainController implements vscode.Disposable {
 	 * The main controller constructor
 	 * @constructor
 	 */
-	constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager, vscodeWrapper?: VscodeWrapper) {
+	constructor(context: vscode.ExtensionContext,
+		connectionManager?: ConnectionManager,
+		vscodeWrapper?: VscodeWrapper) {
 		this._context = context;
 		if (connectionManager) {
 			this._connectionMgr = connectionManager;
@@ -151,6 +153,8 @@ export default class MainController implements vscode.Disposable {
 			this._event.on(Constants.cmdToggleSqlCmd, async () => { await this.onToggleSqlCmd(); });
 			this.registerCommand(Constants.cmdAadRemoveAccount);
 			this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
+			this.registerCommand(Constants.cmdAadAddAccount);
+			this._event.on(Constants.cmdAadAddAccount, () => this.addAddAccount());
 
 			this.initializeObjectExplorer();
 
@@ -180,8 +184,8 @@ export default class MainController implements vscode.Disposable {
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 			const azureResourceController = new AzureResourceController();
-			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this.connectionManager.accountStore);
-			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this.connectionManager.accountStore);
+			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
+			this.azureResourceService = new AzureResourceService(this._connectionMgr.azureController, azureResourceController, this._connectionMgr.accountStore);
 
 			// Add handlers for VS Code generated commands
 			this._vscodeWrapper.onDidCloseTextDocument(async (params) => await this.onDidCloseTextDocument(params));
@@ -1196,7 +1200,7 @@ export default class MainController implements vscode.Disposable {
 						this._objectExplorerProvider.refreshNode(n);
 					} catch (e) {
 						errorFoundWhileRefreshing = true;
-						Utils.logToOutputChannel(e.toString());
+						this._connectionMgr.client.logger.error(e);
 					}
 				});
 				if (errorFoundWhileRefreshing) {
@@ -1210,6 +1214,12 @@ export default class MainController implements vscode.Disposable {
 			if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
 				this.updatePiiLoggingLevel();
 			}
+
+			// Prompt to reload VS Code when below settings are updated.
+			if (e.affectsConfiguration(Constants.azureAuthLibrary)
+				|| e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
+				await this.displayReloadMessage();
+			}
 		}
 	}
 
@@ -1221,7 +1231,26 @@ export default class MainController implements vscode.Disposable {
 		SqlToolsServerClient.instance.logger.piiLogging = piiLogging;
 	}
 
+	/**
+	 * Display notification with button to reload
+	 * return true if button clicked
+	 * return false if button not clicked
+	 */
+	private async displayReloadMessage(): Promise<boolean> {
+		const result = await vscode.window.showInformationMessage(LocalizedConstants.reloadPrompt, LocalizedConstants.reloadChoice);
+		if (result === LocalizedConstants.reloadChoice) {
+			await vscode.commands.executeCommand('workbench.action.reloadWindow');
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public removeAadAccount(prompter: IPrompter): void {
 		this.connectionManager.removeAccount(prompter);
+	}
+
+	public addAddAccount(): void {
+		this.connectionManager.addAccount();
 	}
 }

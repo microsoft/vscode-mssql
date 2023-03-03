@@ -36,23 +36,7 @@
     "multi-root ready"
   ],
   "activationEvents": [
-    "onView:objectExplorer",
-    "onLanguage:sql",
-    "onCommand:mssql.connect",
-    "onCommand:mssql.runQuery",
-    "onCommand:mssql.runCurrentStatement",
-    "onCommand:mssql.disconnect",
-    "onCommand:mssql.manageProfiles",
-    "onCommand:mssql.chooseDatabase",
-    "onCommand:mssql.cancelQuery",
-    "onCommand:mssql.showGettingStarted",
-    "onCommand:mssql.newQuery",
-    "onCommand:mssql.rebuildIntelliSenseCache",
-    "onCommand:mssql.addObjectExplorer",
-    "onCommand:mssql.objectExplorerNewQuery",
-    "onCommand:mssql.toggleSqlCmd",
-    "onCommand:mssql.loadCompletionExtension",
-    "onCommand:mssql.removeAadAccount"
+    "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -81,8 +65,10 @@
     "@types/jquery": "^3.3.31",
     "@types/jqueryui": "^1.12.7",
     "@types/keytar": "^4.4.2",
+    "@types/lockfile": "^1.0.2",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^14.14.16",
+    "@types/node": "^14.17.0",
+    "@types/node-fetch": "^2.6.1",
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
@@ -127,7 +113,11 @@
     "@azure/arm-resources": "^5.0.0",
     "@azure/arm-sql": "^9.0.0",
     "@azure/arm-subscriptions": "^5.0.0",
+    "@azure/msal-common": "^10.0.0",
+    "@azure/msal-node": "^1.15.0",
     "@microsoft/ads-adal-library": "1.0.16",
+    "http-proxy-agent": "5.0.0",
+    "https-proxy-agent": "5.0.0",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
     "ejs": "^3.1.7",
@@ -135,12 +125,14 @@
     "figures": "^1.4.0",
     "find-remove": "1.2.1",
     "getmac": "1.2.1",
-    "http-proxy-agent": "^2.1.0",
-    "https-proxy-agent": "^2.2.1",
     "jquery": "^3.4.1",
+    "lockfile": "1.0.4",
+    "msal": "^1.4.17",
+    "node-fetch": "^2.6.1",
     "opener": "1.4.2",
     "plist": "^3.0.5",
     "pretty-data": "^0.40.0",
+    "qs": "^6.9.1",
     "rangy": "^1.3.0",
     "reflect-metadata": "0.1.12",
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
@@ -557,6 +549,11 @@
         "category": "MS SQL"
       },
       {
+        "command": "mssql.addAadAccount",
+        "title": "%mssql.addAadAccount%",
+        "category": "MS SQL"
+      },
+      {
         "command": "mssql.removeAadAccount",
         "title": "%mssql.removeAadAccount%",
         "category": "MS SQL"
@@ -904,6 +901,24 @@
             "end"
           ],
           "scope": "resource"
+        },
+        "mssql.azureAuthenticationLibrary": {
+          "type": "string",
+          "description": "%mssql.azureAuthenticationLibrary%",
+          "default": "MSAL",
+          "enum": [
+            "ADAL",
+            "MSAL"
+          ],
+          "enumDescriptions": [
+            "(deprecated) Azure Active Directory Authentication Library",
+            "Microsoft Authentication Library"
+          ]
+        },
+        "mssql.enableSqlAuthenticationProvider": {
+          "type": "boolean",
+          "description": "%mssql.enableSqlAuthenticationProvider%",
+          "default": true
         },
         "mssql.format.alignColumnDefinitionsInColumns": {
           "type": "boolean",

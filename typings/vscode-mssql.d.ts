@@ -3,6 +3,7 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+
 declare module 'vscode-mssql' {
 
 	import * as vscode from 'vscode';
@@ -125,13 +126,13 @@ declare module 'vscode-mssql' {
 		 * @param connectionInfo connection info of the connection
 		 * @returns server information
 		 */
-		getServerInfo(connectionInfo: IConnectionInfo): ServerInfo
+		getServerInfo(connectionInfo: IConnectionInfo): IServerInfo
 	}
 
 	/**
 	 * Information about a SQL Server instance.
 	 */
-	export interface ServerInfo {
+	export interface IServerInfo {
 		/**
 		 * The major version of the SQL Server instance.
 		 */
@@ -439,6 +440,14 @@ declare module 'vscode-mssql' {
 	}
 
 	/**
+	 * Error that connect method throws if connection fails because of a fire wall rule error.
+	 */
+	export interface IFireWallRuleError extends Error {
+		connectionUri: string;
+	}
+
+	//////////////////// Azure Types ////////////////////
+	/**
 	 * Interface for working with .sqlproj files
 	 */
 	export interface ISqlProjectsService {
@@ -682,18 +691,11 @@ declare module 'vscode-mssql' {
 	/**
 	 * Represents a tenant information for an account.
 	 */
-	export interface Tenant {
+	export interface ITenant {
 		id: string;
 		displayName: string;
 		userId?: string;
 		tenantCategory?: string;
-	}
-
-	/**
-	 * Error that connect method throws if connection fails because of a fire wall rule error.
-	 */
-	export interface IFireWallRuleError extends Error {
-		connectionUri: string;
 	}
 
 	/**
@@ -714,6 +716,15 @@ declare module 'vscode-mssql' {
 		accountVersion?: any;
 	}
 
+	export enum AuthLibrary {
+		ADAL = 'ADAL',
+		MSAL = 'MSAL'
+	}
+
+	export enum AzureAuthType {
+		AuthCodeGrant = 0,
+		DeviceCode = 1
+	}
 
 	export enum AccountType {
 		Microsoft = 'microsoft',
@@ -758,7 +769,7 @@ declare module 'vscode-mssql' {
 		/**
 		 * Custom properties stored with the account
 		 */
-		properties: any;
+		properties: IAzureAccountProperties;
 		/**
 		 * Indicates if the account needs refreshing
 		 */
@@ -769,20 +780,62 @@ declare module 'vscode-mssql' {
 		isSignedIn?: boolean;
 	}
 
-	export interface IAzureAccountSession {
-		subscription: azure.subscription.Subscription,
-		tenantId: string,
-		account: IAccount,
-		token: Token
+	export interface IAzureAccountProperties {
+		/**
+		 * Auth type of azure used to authenticate this account.
+		 */
+		azureAuthType: AzureAuthType;
+
+		providerSettings: IProviderSettings;
+		/**
+		 * Whether or not the account is a Microsoft account
+		 */
+		isMsAccount: boolean;
+		/**
+		 * Represents the tenant that the user would be signing in to. For work and school accounts, the GUID is the immutable tenant ID of the organization that the user is signing in to.
+		 * For sign-ins to the personal Microsoft account tenant (services like Xbox, Teams for Life, or Outlook), the value is 9188040d-6c67-4c5b-b112-36a304b66dad.
+		 */
+		owningTenant: ITenant;
+		/**
+		 * A list of tenants (aka directories) that the account belongs to
+		 */
+		tenants: ITenant[];
 	}
 
-	export interface TokenKey {
+	export interface IProviderSettings {
+		scopes: string[];
+		displayName: string;
+		id: string;
+		clientId: string;
+		loginEndpoint: string;
+		portalEndpoint: string;
+		redirectUri: string;
+		resources: IProviderResources;
+	}
+
+	export interface IProviderResources {
+		windowsManagementResource: IAADResource;
+		azureManagementResource: IAADResource;
+		graphResource?: IAADResource;
+		databaseResource?: IAADResource;
+		ossRdbmsResource?: IAADResource;
+		azureKeyVaultResource?: IAADResource;
+		azureDevopsResource?: IAADResource;
+	}
+
+	export interface IAADResource {
+		id: string;
+		resource: string;
+		endpoint: string;
+	}
+
+	export interface ITokenKey {
 		/**
 		 * Account Key - uniquely identifies an account
 		 */
 		key: string;
 	}
-	export interface AccessToken extends TokenKey {
+	export interface IAccessToken extends ITokenKey {
 		/**
 		 * Access Token
 		 */
@@ -792,11 +845,51 @@ declare module 'vscode-mssql' {
 		 */
 		expiresOn?: number;
 	}
-	export interface Token extends AccessToken {
+
+	export interface IToken extends IAccessToken {
 		/**
 		 * TokenType
 		 */
 		tokenType: string;
+	}
+
+	export interface IRefreshToken extends ITokenKey {
+		/**
+		 * Refresh Token
+		 */
+		token: string;
+	}
+
+	export interface ITokenClaims {
+		aud: string;
+		iss: string;
+		iat: number;
+		idp: string;
+		nbf: number;
+		exp: number;
+		home_oid?: string;
+		c_hash: string;
+		at_hash: string;
+		aio: string;
+		preferred_username: string;
+		email: string;
+		name: string;
+		nonce: string;
+		oid?: string;
+		roles: string[];
+		rh: string;
+		sub: string;
+		tid: string;
+		unique_name: string;
+		uti: string;
+		ver: string;
+	}
+
+	export interface IAzureAccountSession {
+		subscription: azure.subscription.Subscription,
+		tenantId: string,
+		account: IAccount,
+		token: IToken | undefined
 	}
 
 	export interface IAzureAccountService {
@@ -813,7 +906,7 @@ declare module 'vscode-mssql' {
 		/**
 		 * Returns an access token for given user and tenant
 		 */
-		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Promise<Token>;
+		getAccountSecurityToken(account: IAccount, tenantId: string | undefined): Promise<IToken>;
 
 		/**
 		 * Returns Azure subscriptions with tenant and token for each given account

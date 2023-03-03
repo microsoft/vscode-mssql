@@ -115,7 +115,7 @@ export class ObjectExplorerService {
 				if (self._treeNodeToChildrenMap.has(node)) {
 					self._treeNodeToChildrenMap.delete(node);
 				}
-				return promise.resolve(node);
+				return promise?.resolve(node);
 			} else {
 				// create session failure
 				if (self._currentNode?.connectionInfo?.password) {
@@ -459,9 +459,13 @@ export class ObjectExplorerService {
 					let azureController = this._connectionManager.azureController;
 					let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
 					let profile = new ConnectionProfile(connectionCredentials);
-					if (!connectionCredentials.azureAccountToken) {
-						let azureAccountToken = await azureController.refreshToken(
-							account, this._connectionManager.accountStore, providerSettings.resources.databaseResource, connectionCredentials.tenantId);
+					if (azureController.isSqlAuthProviderEnabled()) {
+						this._client.logger.verbose('SQL Authentication provider is enabled for Azure MFA connections, skipping token acquiry in extension.');
+						connectionCredentials.user = account.displayInfo.displayName;
+						connectionCredentials.email = account.displayInfo.email;
+					} else if (!connectionCredentials.azureAccountToken) {
+						let azureAccountToken = await azureController.refreshAccessToken(
+							account, this._connectionManager.accountStore, connectionCredentials.tenantId, providerSettings.resources.databaseResource);
 						if (!azureAccountToken) {
 							this._client.logger.verbose('Access token could not be refreshed for connection profile.');
 							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;

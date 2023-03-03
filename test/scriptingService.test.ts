@@ -3,14 +3,14 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import { assert } from 'chai';
 import * as TypeMoq from 'typemoq';
+import { IServerInfo, MetadataType, ObjectMetadata } from 'vscode-mssql';
 import ConnectionManager from '../src/controllers/connectionManager';
 import SqlToolsServiceClient from '../src/languageservice/serviceclient';
-import { ScriptingService } from '../src/scripting/scriptingService';
-import { ScriptingRequest, IScriptingObject, IScriptingResult, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
+import { IScriptingObject, IScriptingResult, ScriptingRequest, ScriptOperation } from '../src/models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../src/objectExplorer/treeNodeInfo';
-import { assert } from 'chai';
-import { MetadataType, ObjectMetadata, ServerInfo } from 'vscode-mssql';
+import { ScriptingService } from '../src/scripting/scriptingService';
 import { TestExtensionContext } from './stubs';
 
 suite('Scripting Service Tests', () => {
@@ -30,7 +30,7 @@ suite('Scripting Service Tests', () => {
 		client.setup(c => c.sendRequest(ScriptingRequest.type, TypeMoq.It.isAny())).returns(() => Promise.resolve(mockScriptResult));
 		connectionManager.object.client = client.object;
 		connectionManager.setup(c => c.getServerInfo(TypeMoq.It.isAny())).returns(() => {
-			const serverInfo: ServerInfo = {
+			const serverInfo: IServerInfo = {
 				engineEditionId: 2,
 				serverMajorVersion: 1,
 				isCloud: true,

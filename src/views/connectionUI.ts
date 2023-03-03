@@ -4,22 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import * as constants from '../constants/constants';
-import * as LocalizedConstants from '../constants/localizedConstants';
-import { ConnectionCredentials } from '../models/connectionCredentials';
-import ConnectionManager from '../controllers/connectionManager';
-import { ConnectionStore } from '../models/connectionStore';
-import { ConnectionProfile } from '../models/connectionProfile';
-import { IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType } from '../models/interfaces';
-import { INameValueChoice, IQuestion, IPrompter, QuestionTypes } from '../prompts/question';
-import { Timer } from '../models/utils';
-import * as Utils from '../models/utils';
-import VscodeWrapper from '../controllers/vscodeWrapper';
-import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
-import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
+import { IAccount, IConnectionInfo } from 'vscode-mssql';
 import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
-import { IConnectionInfo } from 'vscode-mssql';
+import * as constants from '../constants/constants';
+import * as LocalizedConstants from '../constants/localizedConstants';
+import ConnectionManager from '../controllers/connectionManager';
+import VscodeWrapper from '../controllers/vscodeWrapper';
+import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionProfile } from '../models/connectionProfile';
+import { ConnectionStore } from '../models/connectionStore';
+import { IFirewallIpAddressRange } from '../models/contracts/firewall/firewallRequest';
+import { CredentialsQuickPickItemType, IConnectionCredentialsQuickPickItem, IConnectionProfile } from '../models/interfaces';
+import * as Utils from '../models/utils';
+import { Timer } from '../models/utils';
+import { ObjectExplorerUtils } from '../objectExplorer/objectExplorerUtils';
+import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { CancelError } from '../utils/utils';
 
 /**
@@ -444,7 +444,7 @@ export class ConnectionUI {
 	 * @param validate whether the profile should be connected to and validated before saving
 	 * @returns undefined if profile creation failed
 	 */
-	public async createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile> {
+	public async createAndSaveProfile(validate: boolean = true): Promise<IConnectionProfile | undefined> {
 		let profile = await this.promptForCreateProfile();
 		if (profile) {
 			let savedProfile = validate ?
@@ -463,7 +463,7 @@ export class ConnectionUI {
 	/**
 	 * Validate a connection profile by connecting to it, and save it if we are successful.
 	 */
-	public async validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+	public async validateAndSaveProfile(profile: IConnectionProfile): Promise<IConnectionProfile | undefined> {
 		let uri = this.vscodeWrapper.activeTextEditorUri;
 		if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
 			uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
@@ -530,7 +530,7 @@ export class ConnectionUI {
 					providerSettings.resources.azureManagementResource);
 			}
 			let account = this._accountStore.getAccount(profile.accountId);
-			this.connectionManager.accountService.setAccount(account);
+			this.connectionManager.accountService.setAccount(account!);
 
 		}
 		let success = await this.createFirewallRule(profile.server, ipAddress);
@@ -669,6 +669,10 @@ export class ConnectionUI {
 					this._prompter,
 					this._connectionStore);
 			});
+	}
+
+	public async addNewAccount(): Promise<IAccount> {
+		return this.connectionManager.azureController.addAccount(this._accountStore);
 	}
 
 	// Prompts the user to pick a profile for removal, then removes from the global saved state

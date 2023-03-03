@@ -10,21 +10,21 @@ import { OutputChannel } from 'vscode';
 import { IPrompter } from '../src/prompts/question';
 import SqlToolsServiceClient from './../src/languageservice/serviceclient';
 
+import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
+import * as Constants from '../src/constants/constants';
+import * as LocalizedConstants from '../src/constants/localizedConstants';
 import ConnectionManager from '../src/controllers/connectionManager';
-import { AuthenticationTypes } from '../src/models/interfaces';
+import MainController from '../src/controllers/mainController';
+import VscodeWrapper from '../src/controllers/vscodeWrapper';
+import { ConnectionStore } from '../src/models/connectionStore';
 import * as ConnectionContracts from '../src/models/contracts/connection';
 import * as LanguageServiceContracts from '../src/models/contracts/languageService';
-import MainController from '../src/controllers/mainController';
 import * as Interfaces from '../src/models/interfaces';
-import { ConnectionStore } from '../src/models/connectionStore';
-import StatusView from '../src/views/statusView';
+import { AuthenticationTypes } from '../src/models/interfaces';
 import * as Utils from '../src/models/utils';
-import { TestExtensionContext, TestPrompter } from './stubs';
-import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import * as LocalizedConstants from '../src/constants/localizedConstants';
 import { ConnectionUI } from '../src/views/connectionUI';
-import * as Constants from '../src/constants/constants';
-import { IConnectionInfo, ServerInfo } from 'vscode-mssql';
+import StatusView from '../src/views/statusView';
+import { TestExtensionContext, TestPrompter } from './stubs';
 
 function createTestConnectionResult(ownerUri?: string): ConnectionContracts.ConnectionCompleteParams {
 	let result = new ConnectionContracts.ConnectionCompleteParams();
@@ -573,7 +573,7 @@ suite('Per File Connection Tests', () => {
 		let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
 		let actualDbName = undefined;
 		statusViewMock.setup(x => x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-			.callback((fileUri, creds: IConnectionInfo, server: ServerInfo) => {
+			.callback((fileUri, creds: IConnectionInfo, server: IServerInfo) => {
 				actualDbName = creds.database;
 			});
 
@@ -604,7 +604,7 @@ suite('Per File Connection Tests', () => {
 			databaseName: dbName,
 			userName: connectionCreds.user
 		};
-		const serverInfo: ServerInfo = {
+		const serverInfo: IServerInfo = {
 			engineEditionId: 0,
 			serverMajorVersion: 0,
 			isCloud: false,

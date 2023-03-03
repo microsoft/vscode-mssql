@@ -3,9 +3,9 @@
  *  Licensed under the Source EULA. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Location } from '@azure/arm-subscriptions';
 import { ResourceGroup } from '@azure/arm-resources';
 import { Server } from '@azure/arm-sql';
+import { Location } from '@azure/arm-subscriptions';
 import * as mssql from 'vscode-mssql';
 import * as azureUtils from './utils';
 
@@ -23,7 +23,7 @@ export class AzureResourceController {
 	 * @returns List of locations
 	 */
 	public async getLocations(session: mssql.IAzureAccountSession): Promise<Location[]> {
-		const subClient = this._subscriptionClientFactory(session.token);
+		const subClient = this._subscriptionClientFactory(session.token!);
 		if (session.subscription?.subscriptionId) {
 			const locationsPages = await subClient.subscriptions.listLocations(session.subscription.subscriptionId);
 			let locations = await azureUtils.getAllValues(locationsPages, (v) => v);
@@ -46,7 +46,7 @@ export class AzureResourceController {
 		resourceGroupName: string,
 		serverName: string,
 		parameters: Server,
-		token: mssql.Token): Promise<string | undefined> {
+		token: mssql.IToken): Promise<string | undefined> {
 		if (subscriptionId && resourceGroupName) {
 			const sqlClient = this._sqlManagementClientFactory(token, subscriptionId);
 			if (sqlClient) {
@@ -66,7 +66,7 @@ export class AzureResourceController {
 	 */
 	public async getResourceGroups(session: mssql.IAzureAccountSession): Promise<ResourceGroup[]> {
 		if (session.subscription?.subscriptionId) {
-			const resourceGroupClient = this._resourceManagementClientFactory(session.token, session.subscription.subscriptionId);
+			const resourceGroupClient = this._resourceManagementClientFactory(session.token!, session.subscription.subscriptionId);
 			const newGroupsPages = await resourceGroupClient.resourceGroups.list();
 			let groups = await azureUtils.getAllValues(newGroupsPages, (v) => v);
 			return groups.sort((a, b) => (a.name || '').localeCompare(b.name || ''));

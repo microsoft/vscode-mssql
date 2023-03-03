@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IAccount } from 'vscode-mssql';
+import { IAccount } from '../models/contracts/azure';
 import * as Constants from '../constants/constants';
 import { Logger } from '../models/logger';
 
@@ -21,20 +21,17 @@ export class AccountStore {
 	}
 
 	public getAccount(key: string): IAccount | undefined {
-		let account: IAccount;
+		let account: IAccount | undefined;
 		let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
 		if (!configValues) {
 			throw new Error('No Azure accounts stored');
 		}
 		for (let value of configValues) {
-			if (value.key.id === key) {
+			// Compare account IDs considering multi-tenant account ID format with MSAL.
+			if (value.key.id === key || value.key.id.startsWith(key) || key.startsWith(value.key.id)) {
 				account = value;
 				break;
 			}
-		}
-		if (!account) {
-			// Throw error message saying the account was not found
-			return undefined;
 		}
 		return account;
 	}

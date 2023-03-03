@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as ConnInfo from '../models/connectionInfo';
 import * as ConnectionContracts from '../models/contracts/connection';
 import * as Utils from '../models/utils';
-import VscodeWrapper from '../controllers/vscodeWrapper';
-import { IConnectionInfo, ServerInfo } from 'vscode-mssql';
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -156,7 +156,7 @@ export default class StatusView implements vscode.Disposable {
 		this.showProgress(fileUri, LocalizedConstants.connectingLabel, bar.statusConnection);
 	}
 
-	public connectSuccess(fileUri: string, connCreds: IConnectionInfo, serverInfo: ServerInfo): void {
+	public connectSuccess(fileUri: string, connCreds: IConnectionInfo, serverInfo: IServerInfo): void {
 		let bar = this.getStatusBar(fileUri);
 		bar.statusConnection.command = Constants.cmdChooseDatabase;
 		bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);

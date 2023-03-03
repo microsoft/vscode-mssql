@@ -5,12 +5,12 @@
 
 import * as vscode from 'vscode';
 
+import { TextDocumentShowOptions } from 'vscode';
 import { AzureLoginStatus } from '../models/interfaces';
 import * as Constants from './../constants/constants';
 
 export import TextEditor = vscode.TextEditor;
 export import ConfigurationTarget = vscode.ConfigurationTarget;
-import { TextDocumentShowOptions } from 'vscode';
 
 export default class VscodeWrapper {
 
@@ -32,7 +32,7 @@ export default class VscodeWrapper {
 	 * Get the current active text editor
 	 */
 	public get activeTextEditor(): vscode.TextEditor {
-		return vscode.window.activeTextEditor;
+		return vscode.window.activeTextEditor!;
 	}
 
 	/**
@@ -40,7 +40,7 @@ export default class VscodeWrapper {
 	 * has changed. *Note* that the event also fires when the active editor changes
 	 * to `undefined`.
 	 */
-	public get onDidChangeActiveTextEditor(): vscode.Event<vscode.TextEditor> {
+	public get onDidChangeActiveTextEditor(): vscode.Event<vscode.TextEditor | undefined> {
 		return vscode.window.onDidChangeActiveTextEditor;
 	}
 
@@ -61,7 +61,7 @@ export default class VscodeWrapper {
 	/**
 	 * Get the URI string for the current active text editor
 	 */
-	public get activeTextEditorUri(): string {
+	public get activeTextEditorUri(): string | undefined {
 		if (typeof vscode.window.activeTextEditor !== 'undefined' &&
 			typeof vscode.window.activeTextEditor.document !== 'undefined') {
 			return vscode.window.activeTextEditor.document.uri.toString(true);
@@ -91,7 +91,7 @@ export default class VscodeWrapper {
 	 * the command handler function doesn't return anything.
 	 * @see vscode.commands.executeCommand
 	 */
-	public executeCommand<T>(command: string, ...rest: any[]): Thenable<T> {
+	public executeCommand<T>(command: string, ...rest: any[]): Thenable<T | undefined> {
 		return vscode.commands.executeCommand<T>(command, ...rest);
 	}
 
@@ -226,21 +226,21 @@ export default class VscodeWrapper {
 	/**
 	 * Formats and shows a vscode error message
 	 */
-	public showErrorMessage(msg: string, ...items: string[]): Thenable<string> {
+	public showErrorMessage(msg: string, ...items: string[]): Thenable<string | undefined> {
 		return vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg, ...items);
 	}
 
 	/**
 	 * Shows an input box with given options
 	 */
-	public showInputBox(options?: vscode.InputBoxOptions): Thenable<string> {
+	public showInputBox(options?: vscode.InputBoxOptions): Thenable<string | undefined> {
 		return vscode.window.showInputBox(options);
 	}
 
 	/**
 	 * Formats and shows a vscode information message
 	 */
-	public showInformationMessage(msg: string, ...items: string[]): Thenable<string> {
+	public showInformationMessage(msg: string, ...items: string[]): Thenable<string | undefined> {
 		return vscode.window.showInformationMessage(Constants.extensionName + ': ' + msg, ...items);
 	}
 
@@ -259,7 +259,7 @@ export default class VscodeWrapper {
 	 * @param options Configures the behavior of the selection list.
 	 * @return A promise that resolves to the selected item or undefined.
 	 */
-	public showQuickPick<T extends vscode.QuickPickItem>(items: T[] | Thenable<T[]>, options?: vscode.QuickPickOptions): Thenable<T> {
+	public showQuickPick<T extends vscode.QuickPickItem>(items: T[] | Thenable<T[]>, options?: vscode.QuickPickOptions): Thenable<T | undefined> {
 		return vscode.window.showQuickPick<T>(items, options);
 	}
 
@@ -269,7 +269,7 @@ export default class VscodeWrapper {
 	 * @param options Configures the behavior of the save dialog
 	 * @return A promise that resolves to the selected resource or `undefined`.
 	 */
-	public showSaveDialog(options: vscode.SaveDialogOptions): Thenable<vscode.Uri> {
+	public showSaveDialog(options: vscode.SaveDialogOptions): Thenable<vscode.Uri | undefined> {
 		return vscode.window.showSaveDialog(options);
 	}
 
@@ -291,7 +291,7 @@ export default class VscodeWrapper {
 	/**
 	 * Formats and shows a vscode warning message
 	 */
-	public showWarningMessage(msg: string): Thenable<string> {
+	public showWarningMessage(msg: string): Thenable<string | undefined> {
 		return vscode.window.showWarningMessage(Constants.extensionName + ': ' + msg);
 	}
 
@@ -397,7 +397,7 @@ export default class VscodeWrapper {
 	 * but not active
 	 */
 	public get azureAccountExtensionActive(): boolean {
-		return this.azureAccountExtension && this.azureAccountExtension.isActive;
+		return this.azureAccountExtension !== undefined && this.azureAccountExtension.isActive;
 	}
 
 	/**
@@ -405,6 +405,6 @@ export default class VscodeWrapper {
 	 */
 	public get isAccountSignedIn(): boolean {
 		return this.azureAccountExtensionActive &&
-			this.azureAccountExtension.exports.status === AzureLoginStatus.LoggedIn;
+			this.azureAccountExtension!.exports.status === AzureLoginStatus.LoggedIn;
 	}
 }

@@ -2,13 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { promises as fs, constants as fsConstants } from 'fs';
-import { SecureStorageProvider } from '@microsoft/ads-adal-library';
 
-export type ReadWriteHook = (contents: string) => Promise<string>;
-const noOpHook: ReadWriteHook = async (contents): Promise<string> => {
-	return contents;
-};
+import { SecureStorageProvider } from '@microsoft/ads-adal-library';
+import { constants as fsConstants, promises as fs } from 'fs';
 
 export class AlreadyInitializedError extends Error {
 }
@@ -18,33 +14,11 @@ export class StorageService implements SecureStorageProvider {
 	private db: { [key: string]: string };
 	private isSaving = false;
 	private isDirty = false;
-	private isInitialized = false;
 	private saveInterval: NodeJS.Timer;
 
 	constructor(
-		private readonly dbPath: string,
-		private readHook: ReadWriteHook = noOpHook,
-		private writeHook: ReadWriteHook = noOpHook
+		private readonly dbPath: string
 	) {
-	}
-
-	/**
-	 * Sets a new read hook. Throws AlreadyInitializedError if the database has already started.
-	 * @param hook
-	 */
-	public setReadHook(hook: ReadWriteHook): void {
-		if (this.isInitialized) {
-			throw new AlreadyInitializedError();
-		}
-		this.readHook = hook;
-	}
-
-	/**
-	 * Sets a new write hook.
-	 * @param hook
-	 */
-	public setWriteHook(hook: ReadWriteHook): void {
-		this.writeHook = hook;
 	}
 
 	public async set(key: string, value: string): Promise<void> {
@@ -89,13 +63,11 @@ export class StorageService implements SecureStorageProvider {
 	}
 
 	public async initialize(): Promise<void> {
-		this.isInitialized = true;
 		this.setupSaveTask();
 		let fileContents: string;
 		try {
 			await fs.access(this.dbPath, fsConstants.R_OK);
-			fileContents = await fs.readFile(this.dbPath, { encoding: 'utf8' });
-			fileContents = await this.readHook(fileContents);
+			fileContents = await fs.readFile(this.dbPath, { encoding: 'utf-8' });
 		} catch (ex) {
 			console.log(`file db does not exist ${ex}`);
 			await this.createFile();
@@ -132,10 +104,7 @@ export class StorageService implements SecureStorageProvider {
 
 			this.isSaving = true;
 			let contents = JSON.stringify(this.db);
-			contents = await this.writeHook(contents);
-
-			await fs.writeFile(this.dbPath, contents, { encoding: 'utf8' });
-
+			await fs.writeFile(this.dbPath, contents, { encoding: 'utf-8' });
 			this.isDirty = false;
 		} catch (ex) {
 			console.log(`File saving is erroring! ${ex}`);
@@ -143,7 +112,6 @@ export class StorageService implements SecureStorageProvider {
 			this.isSaving = false;
 		}
 	}
-
 
 	private async waitForFileSave(): Promise<void> {
 		const cleanupCrew: NodeJS.Timer[] = [];

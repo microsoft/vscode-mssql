@@ -10,7 +10,6 @@ export interface AzureAccount {
     properties: AzureAccountProperties;
     isStale: boolean;
     isSignedIn?: boolean;
-    delete?: boolean;
 }
 
 export interface AccountKey {
@@ -56,6 +55,7 @@ interface AzureAccountProperties {
      */
     isMsAccount: boolean;
 
+    owningTenant: Tenant;
     /**
      * A list of tenants (aka directories) that the account belongs to
      */

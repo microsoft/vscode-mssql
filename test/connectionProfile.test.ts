@@ -3,23 +3,24 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as vscode from 'vscode';
+import * as assert from 'assert';
 import * as TypeMoq from 'typemoq';
-import { IConnectionProfile, AuthenticationTypes } from '../src/models/interfaces';
-import { ConnectionCredentials } from '../src/models/connectionCredentials';
-import { ConnectionProfile } from '../src/models/connectionProfile';
-import { IQuestion, IPrompter, INameValueChoice } from '../src/prompts/question';
-import { TestPrompter } from './stubs';
-import { ConnectionUI } from '../src/views/connectionUI';
-import { ConnectionStore } from '../src/models/connectionStore';
+import * as vscode from 'vscode';
+import { IConnectionInfo } from 'vscode-mssql';
+import { AccountStore } from '../src/azure/accountStore';
+import { AzureController } from '../src/azure/azureController';
+import { MsalAzureController } from '../src/azure/msal/msalAzureController';
+import * as LocalizedConstants from '../src/constants/localizedConstants';
 import ConnectionManager from '../src/controllers/connectionManager';
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
-import * as LocalizedConstants from '../src/constants/localizedConstants';
-import * as assert from 'assert';
-import { AccountStore } from '../src/azure/accountStore';
-import { IConnectionInfo } from 'vscode-mssql';
-import { AzureController } from '../src/azure/azureController';
+import { ConnectionCredentials } from '../src/models/connectionCredentials';
+import { ConnectionProfile } from '../src/models/connectionProfile';
+import { ConnectionStore } from '../src/models/connectionStore';
+import { AuthenticationTypes, IConnectionProfile } from '../src/models/interfaces';
 import { Logger } from '../src/models/logger';
+import { INameValueChoice, IPrompter, IQuestion } from '../src/prompts/question';
+import { ConnectionUI } from '../src/views/connectionUI';
+import { TestPrompter } from './stubs';
 
 function createTestCredentials(): IConnectionInfo {
 	const creds: IConnectionInfo = {
@@ -78,7 +79,7 @@ suite('Connection Profile tests', () => {
 		mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
 		mockLogger = TypeMoq.Mock.ofType<Logger>();
 		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
-		mockAzureController = new AzureController(mockContext.object, mockPrompter.object, mockLogger.object);
+		mockAzureController = new MsalAzureController(mockContext.object, mockPrompter.object);
 		mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
 	});
 

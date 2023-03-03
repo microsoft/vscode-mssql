@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ProviderSettings } from '@microsoft/ads-adal-library';
+import { IProviderSettings } from '../models/contracts/azure';
 
-
-const publicAzureSettings: ProviderSettings = {
+const publicAzureSettings: IProviderSettings = {
 	displayName: 'publicCloudDisplayName',
 	id: 'azure_publicCloud',
 	clientId: 'a69788c6-1d43-44ed-9ca3-b83e194da255',
@@ -22,34 +21,18 @@ const publicAzureSettings: ProviderSettings = {
 		azureManagementResource: {
 			id: 'arm',
 			resource: 'AzureResourceManagement',
-			endpoint: 'https://management.azure.com'
+			endpoint: 'https://management.azure.com/'
 		},
-		// graphResource: {
-		//     id: '',
-		//     resource: '',
-		//     endpoint: ''
-		// },
 		databaseResource: {
 			id: 'sql',
 			resource: 'Sql',
 			endpoint: 'https://database.windows.net/'
 		}
-		// ossRdbmsResource: {
-		//     id: '',
-		//     resource: '',
-		//     endpoint: ''
-		// },
-		// azureKeyVaultResource: {
-		//     id: '',
-		//     resource: '',
-		//     endpoint: ''
-		// },
-		// azureDevopsResource: {
-		//     id: '',
-		//     resource: '',
-		//     endpoint: ''
-		// }
-	}
+	},
+	scopes: [
+		'openid', 'email', 'profile', 'offline_access',
+		'https://management.azure.com/user_impersonation'
+	]
 };
 
 const allSettings = publicAzureSettings;

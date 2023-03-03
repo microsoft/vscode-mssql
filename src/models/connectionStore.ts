@@ -17,6 +17,7 @@ import { IConnectionConfig } from '../connectionconfig/iconnectionconfig';
 import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { IConnectionInfo } from 'vscode-mssql';
+import { Logger } from './logger';
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -28,6 +29,7 @@ export class ConnectionStore {
 
 	constructor(
 		private _context: vscode.ExtensionContext,
+		private _logger: Logger,
 		private _credentialStore?: ICredentialStore,
 		private _connectionConfig?: IConnectionConfig,
 		private _vscodeWrapper?: VscodeWrapper) {
@@ -288,7 +290,7 @@ export class ConnectionStore {
 				await this._credentialStore.deleteCredential(credentialId);
 			} catch (err) {
 				deleteCredentialSuccess = false;
-				Utils.logToOutputChannel(Utils.formatString(LocalizedConstants.deleteCredentialError, credentialId, err));
+				this._logger.log(LocalizedConstants.deleteCredentialError, credentialId, err);
 			}
 		}
 		// Update the MRU list to be empty

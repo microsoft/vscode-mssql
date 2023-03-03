@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from 'vscode-languageclient';
-import { ConnectionDetails, ServerInfo } from 'vscode-mssql';
+import { ConnectionDetails, IServerInfo } from 'vscode-mssql';
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
@@ -71,7 +71,7 @@ export class ConnectionCompleteParams {
 	/**
 	 * Information about the connected server.
 	 */
-	public serverInfo: ServerInfo;
+	public serverInfo: IServerInfo;
 
 	/**
 	 * information about the actual connection established

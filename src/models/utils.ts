@@ -13,7 +13,7 @@ import * as Constants from '../constants/constants';
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from './interfaces';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import * as fs from 'fs';
-import { AzureAuthType } from '@microsoft/ads-adal-library';
+import { AzureAuthType } from './contracts/azure';
 import { IConnectionInfo } from 'vscode-mssql';
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
@@ -25,8 +25,6 @@ const configTracingLevel = 'tracingLevel';
 const configPiiLogging = 'piiLogging';
 const configLogRetentionMinutes = 'logRetentionMinutes';
 const configLogFilesRemovalLimit = 'logFilesRemovalLimit';
-
-const outputChannel = vscode.window.createOutputChannel(Constants.outputChannelName);
 
 // INTERFACES /////////////////////////////////////////////////////////////////////////////////////
 
@@ -111,21 +109,6 @@ export function getActiveTextEditorUri(): string {
 	return '';
 }
 
-// Helper to log messages to "MSSQL" output channel
-export function logToOutputChannel(msg: any): void {
-	if (msg instanceof Array) {
-		msg.forEach(element => {
-			outputChannel.appendLine(element.toString());
-		});
-	} else {
-		outputChannel.appendLine(msg.toString());
-	}
-}
-
-export function openOutputChannel(): void {
-	outputChannel.show();
-}
-
 // Helper to log debug messages
 export function logDebug(msg: any): void {
 	let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
@@ -150,15 +133,6 @@ export function showWarnMsg(msg: string): void {
 // Helper to show an error message
 export function showErrorMsg(msg: string): void {
 	vscode.window.showErrorMessage(Constants.extensionName + ': ' + msg);
-}
-
-// Helper to show an error message with an option to open the output channel
-export function showOutputChannelErrorMsg(msg: string): void {
-	vscode.window.showErrorMessage(msg, LocalizedConstants.showOutputChannelActionButtonText).then((result) => {
-		if (result === LocalizedConstants.showOutputChannelActionButtonText) {
-			openOutputChannel();
-		}
-	});
 }
 
 export function isEmpty(str: any): boolean {
@@ -439,17 +413,17 @@ export function removeOldLogFiles(logPath: string, prefix: string): JSON {
 	return findRemoveSync(logPath, { age: { seconds: getConfigLogRetentionSeconds() }, limit: getConfigLogFilesRemovalLimit() });
 }
 
-export function getCommonLaunchArgsAndCleanupOldLogFiles(logPath: string, fileName: string, executablePath: string): string[] {
+export function getCommonLaunchArgsAndCleanupOldLogFiles(executablePath: string, logPath: string, fileName: string): string[] {
 	let launchArgs = [];
 	launchArgs.push('--log-file');
 	let logFile = path.join(logPath, fileName);
 	launchArgs.push(logFile);
 
 	console.log(`logFile for ${path.basename(executablePath)} is ${logFile}`);
-	console.log(`This process (ui Extenstion Host) is pid: ${process.pid}`);
 	// Delete old log files
 	let deletedLogFiles = removeOldLogFiles(logPath, fileName);
 	console.log(`Old log files deletion report: ${JSON.stringify(deletedLogFiles)}`);
+	console.log(`This process (ui Extenstion Host) for ${path.basename(executablePath)} is pid: ${process.pid}`);
 	launchArgs.push('--tracing-level');
 	launchArgs.push(getConfigTracingLevel());
 	if (getConfigPiiLogging()) {

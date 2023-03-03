@@ -4,31 +4,34 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { ConnectionCredentials } from '../models/connectionCredentials';
+import { NotificationHandler, RequestType } from 'vscode-languageclient';
+import { ConnectionDetails, IConnectionInfo, IServerInfo } from 'vscode-mssql';
+import { AccountService } from '../azure/accountService';
+import { AccountStore } from '../azure/accountStore';
+import { AdalAzureController } from '../azure/adal/adalAzureController';
+import { AzureController } from '../azure/azureController';
+import { MsalAzureController } from '../azure/msal/msalAzureController';
+import providerSettings from '../azure/providerSettings';
+import { getAzureAuthLibraryConfig } from '../azure/utils';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import * as ConnectionContracts from '../models/contracts/connection';
-import * as LanguageServiceContracts from '../models/contracts/languageService';
-import * as Utils from '../models/utils';
+import { FirewallService } from '../firewall/firewallService';
+import SqlToolsServerClient from '../languageservice/serviceclient';
+import { ConnectionCredentials } from '../models/connectionCredentials';
+import { ConnectionProfile } from '../models/connectionProfile';
 import { ConnectionStore } from '../models/connectionStore';
+import { AuthLibrary, IAccount } from '../models/contracts/azure';
+import * as ConnectionContracts from '../models/contracts/connection';
+import { ConnectionSummary } from '../models/contracts/connection';
+import * as LanguageServiceContracts from '../models/contracts/languageService';
+import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
+import { PlatformInformation, Runtime } from '../models/platform';
+import * as Utils from '../models/utils';
+import { IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
+import { Deferred } from '../protocol';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
-import SqlToolsServerClient from '../languageservice/serviceclient';
-import { IPrompter } from '../prompts/question';
 import VscodeWrapper from './vscodeWrapper';
-import { NotificationHandler, RequestType } from 'vscode-languageclient';
-import { Runtime, PlatformInformation } from '../models/platform';
-import { Deferred } from '../protocol';
-import { AccountService } from '../azure/accountService';
-import { FirewallService } from '../firewall/firewallService';
-import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
-import { ConnectionSummary } from '../models/contracts/connection';
-import { AccountStore } from '../azure/accountStore';
-import { ConnectionProfile } from '../models/connectionProfile';
-import { QuestionTypes, IQuestion } from '../prompts/question';
-import { AzureController } from '../azure/azureController';
-import { ConnectionDetails, IConnectionInfo, IAccount, ServerInfo } from 'vscode-mssql';
-import providerSettings from '../azure/providerSettings';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -52,7 +55,7 @@ export class ConnectionInfo {
 	/**
 	 * Information about the SQL Server instance.
 	 */
-	public serverInfo: ServerInfo;
+	public serverInfo: IServerInfo;
 
 	/**
 	 * Whether the connection is in the process of connecting.
@@ -70,7 +73,7 @@ export class ConnectionInfo {
 	public errorMessage: string;
 
 	public get loginFailed(): boolean {
-		return this.errorNumber && this.errorNumber === Constants.errorLoginFailed;
+		return this.errorNumber !== undefined && this.errorNumber === Constants.errorLoginFailed;
 	}
 }
 
@@ -83,7 +86,7 @@ export default class ConnectionManager {
 	private _statusView: StatusView;
 	private _connections: { [fileUri: string]: ConnectionInfo };
 	private _connectionCredentialsToServerInfoMap:
-		Map<IConnectionInfo, ServerInfo>;
+		Map<IConnectionInfo, IServerInfo>;
 	private _uriToConnectionPromiseMap: Map<string, Deferred<boolean>>;
 	private _failedUriToFirewallIpMap: Map<string, string>;
 	private _failedUriToSSLMap: Map<string, string>;
@@ -101,7 +104,7 @@ export default class ConnectionManager {
 		private _accountStore?: AccountStore) {
 		this._statusView = statusView;
 		this._connections = {};
-		this._connectionCredentialsToServerInfoMap = new Map<IConnectionInfo, ServerInfo>();
+		this._connectionCredentialsToServerInfoMap = new Map<IConnectionInfo, IServerInfo>();
 		this._uriToConnectionPromiseMap = new Map<string, Deferred<boolean>>();
 
 		if (!this.client) {
@@ -112,7 +115,7 @@ export default class ConnectionManager {
 		}
 
 		if (!this._connectionStore) {
-			this._connectionStore = new ConnectionStore(context);
+			this._connectionStore = new ConnectionStore(context, this.client?.logger);
 		}
 
 		if (!this._accountStore) {
@@ -124,7 +127,13 @@ export default class ConnectionManager {
 		}
 
 		if (!this.azureController) {
-			this.azureController = new AzureController(context, prompter);
+			const authLibrary = getAzureAuthLibraryConfig();
+			if (authLibrary === AuthLibrary.ADAL) {
+				this.azureController = new AdalAzureController(context, prompter);
+			} else {
+				this.azureController = new MsalAzureController(context, prompter);
+			}
+
 			this.azureController.init();
 		}
 
@@ -145,7 +154,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get vscodeWrapper(): VscodeWrapper {
-		return this._vscodeWrapper;
+		return this._vscodeWrapper!;
 	}
 
 	/**
@@ -159,7 +168,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get client(): SqlToolsServerClient {
-		return this._client;
+		return this._client!;
 	}
 
 	/**
@@ -173,7 +182,7 @@ export default class ConnectionManager {
 	 * Get the connection view.
 	 */
 	public get connectionUI(): ConnectionUI {
-		return this._connectionUI;
+		return this._connectionUI!;
 	}
 
 	/**
@@ -194,7 +203,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get connectionStore(): ConnectionStore {
-		return this._connectionStore;
+		return this._connectionStore!;
 	}
 
 	/**
@@ -208,7 +217,7 @@ export default class ConnectionManager {
 	 * Exposed for testing purposes
 	 */
 	public get accountStore(): AccountStore {
-		return this._accountStore;
+		return this._accountStore!;
 	}
 
 	/**
@@ -707,7 +716,7 @@ export default class ConnectionManager {
 	 * Get the server info for a connection
 	 * @param connectionCreds
 	 */
-	public getServerInfo(connectionCredentials: IConnectionInfo): ServerInfo {
+	public getServerInfo(connectionCredentials: IConnectionInfo): IServerInfo {
 		if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
 			return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
 		}
@@ -773,25 +782,39 @@ export default class ConnectionManager {
 			title: LocalizedConstants.connectProgressNoticationTitle,
 			cancellable: false
 		}, async (_progress, _token) => {
-			// Check if the azure account token is present before sending connect request
+			// Check if the azure account token is present before sending connect request (only with SQL Auth Provider is not enabled.)
 			if (connectionCreds.authenticationType === Constants.azureMfa) {
 				if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
-					let account = this.accountStore.getAccount(connectionCreds.accountId);
-					let profile = new ConnectionProfile(connectionCreds);
-					let azureAccountToken = await this.azureController.refreshToken(account, this.accountStore, providerSettings.resources.databaseResource, profile.tenantId);
-					if (!azureAccountToken) {
-						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
-						if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-							await this.azureController.populateAccountProperties(
-								profile, this.accountStore, providerSettings.resources.databaseResource);
-
-						} else {
-							throw new Error(LocalizedConstants.cannotConnect);
-						}
+					let account: IAccount;
+					let profile: ConnectionProfile;
+					if (connectionCreds.accountId) {
+						account = this.accountStore.getAccount(connectionCreds.accountId);
+						profile = new ConnectionProfile(connectionCreds);
 					} else {
-						connectionCreds.azureAccountToken = azureAccountToken.token;
-						connectionCreds.expiresOn = azureAccountToken.expiresOn;
+						throw new Error(LocalizedConstants.cannotConnect);
+					}
+					// Always set username
+					connectionCreds.user = account.displayInfo.displayName;
+					connectionCreds.email = account.displayInfo.email;
+					profile.user = account.displayInfo.displayName;
+					profile.email = account.displayInfo.email;
+					if (!this.azureController.isSqlAuthProviderEnabled()) {
+						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
+							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
+						if (!azureAccountToken) {
+							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+							let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
+							if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+								await this.azureController.populateAccountProperties(
+									profile, this.accountStore, providerSettings.resources.databaseResource!);
+
+							} else {
+								throw new Error(LocalizedConstants.cannotConnect);
+							}
+						} else {
+							connectionCreds.azureAccountToken = azureAccountToken.token;
+							connectionCreds.expiresOn = azureAccountToken.expiresOn;
+						}
 					}
 				}
 			}
@@ -834,7 +857,7 @@ export default class ConnectionManager {
 				connectParams.connection = connectionDetails;
 
 				// send connection request message to service host
-				this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise);
+				this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise!);
 				try {
 					const result = await this.client.sendRequest(ConnectionContracts.ConnectionRequest.type, connectParams);
 					if (!result) {
@@ -876,7 +899,7 @@ export default class ConnectionManager {
 	 */
 	public onManageProfiles(): Promise<boolean> {
 		// Show quick pick to create, edit, or remove profiles
-		return this._connectionUI.promptToManageProfiles();
+		return this.connectionUI.promptToManageProfiles();
 	}
 
 	public async onCreateProfile(): Promise<boolean> {
@@ -967,26 +990,44 @@ export default class ConnectionManager {
 		return;
 	}
 
+	public async addAccount(): Promise<void> {
+		let account = await this.connectionUI.addNewAccount();
+		if (account) {
+			this.vscodeWrapper.showInformationMessage(Utils.formatString(LocalizedConstants.accountAddedSuccessfully, account.displayInfo.displayName));
+		} else {
+			this.vscodeWrapper.showErrorMessage(LocalizedConstants.accountCouldNotBeAdded);
+		}
+	}
+
 	public async removeAccount(prompter: IPrompter): Promise<void> {
 		// list options for accounts to remove
 		let questions: IQuestion[] = [];
 		let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
 
-		questions.push(
-			{
-				type: QuestionTypes.expand,
-				name: 'account',
-				message: LocalizedConstants.azureChooseAccount,
-				choices: azureAccountChoices
-			}
-		);
+		if (azureAccountChoices.length > 0) {
+			questions.push(
+				{
+					type: QuestionTypes.expand,
+					name: 'account',
+					message: LocalizedConstants.azureChooseAccount,
+					choices: azureAccountChoices
+				}
+			);
 
-		return prompter.prompt<IAccount>(questions, true).then(async answers => {
-			if (answers.account) {
-				this._accountStore.removeAccount(answers.account.key.id);
-				this.azureController.removeToken(answers.account);
-			}
-		});
+			return prompter.prompt<IAccount>(questions, true).then(async answers => {
+				if (answers?.account) {
+					try {
+						this._accountStore.removeAccount(answers.account.key.id);
+						this.azureController.removeAccount(answers.account);
+						this.vscodeWrapper.showInformationMessage(LocalizedConstants.accountRemovedSuccessfully);
+					} catch (e) {
+						this.vscodeWrapper.showErrorMessage(Utils.formatString(LocalizedConstants.accountRemovalFailed, e.message));
+					}
+				}
+			});
+		} else {
+			this.vscodeWrapper.showInformationMessage(LocalizedConstants.noAzureAccountForRemoval);
+		}
 	}
 }
 

@@ -27,6 +27,8 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
+import { getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { AuthLibrary } from '../models/contracts/azure';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
 
@@ -154,9 +156,10 @@ export default class SqlToolsServiceClient {
 	public static get instance(): SqlToolsServiceClient {
 		if (this._instance === undefined) {
 			let config = new ExtConfig();
+			let vscodeWrapper = new VscodeWrapper();
 			let logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
 			let pii = Utils.getConfigPiiLogging();
-			_channel = vscode.window.createOutputChannel(Constants.serviceInitializingOutputChannelName);
+			_channel = vscodeWrapper.createOutputChannel(Constants.serviceInitializingOutputChannelName);
 			let logger = new Logger(text => _channel.append(text), logLevel, pii);
 			let serverStatusView = new ServerStatusView();
 			let httpClient = new HttpClient();
@@ -164,7 +167,6 @@ export default class SqlToolsServiceClient {
 			let downloadProvider = new ServiceDownloadProvider(config, logger, serverStatusView, httpClient,
 				decompressProvider);
 			let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
-			let vscodeWrapper = new VscodeWrapper();
 			let statusView = new StatusView(vscodeWrapper);
 			this._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView, vscodeWrapper);
 		}
@@ -360,7 +362,7 @@ export default class SqlToolsServiceClient {
 	}
 
 	private generateResourceServiceServerOptions(executablePath: string): ServerOptions {
-		let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles(this._logPath, 'resourceprovider.log', executablePath);
+		let launchArgs = Utils.getCommonLaunchArgsAndCleanupOldLogFiles(executablePath, this._logPath, 'resourceprovider.log');
 		return { command: executablePath, args: launchArgs, transport: TransportKind.stdio };
 	}
 
@@ -389,14 +391,26 @@ export default class SqlToolsServiceClient {
 			serverArgs = [servicePath];
 			serverCommand = 'dotnet';
 		}
-
 		// Get the extenion's configuration
 		let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 		if (config) {
+			// Populate common args
+			serverArgs = serverArgs.concat(Utils.getCommonLaunchArgsAndCleanupOldLogFiles(servicePath, this._logPath, 'sqltools.log'));
+
 			// Enable diagnostic logging in the service if it is configured
 			let logDebugInfo = config[Constants.configLogDebugInfo];
 			if (logDebugInfo) {
 				serverArgs.push('--enable-logging');
+			}
+
+			// Send application name to determine MSAL cache location
+			serverArgs.push('--application-name', 'code');
+
+			// Enable SQL Auth Provider registration for Azure MFA Authentication
+			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
+			const azureAuthLibrary = getAzureAuthLibraryConfig();
+			if (azureAuthLibrary === AuthLibrary.MSAL && enableSqlAuthenticationProvider) {
+				serverArgs.push('--enable-sql-authentication-provider');
 			}
 
 			// Send Locale for sqltoolsservice localization
@@ -407,7 +421,6 @@ export default class SqlToolsServiceClient {
 				serverArgs.push(locale);
 			}
 		}
-
 
 		// run the service host using dotnet.exe from the path
 		let serverOptions: ServerOptions = { command: serverCommand, args: serverArgs, transport: TransportKind.stdio };

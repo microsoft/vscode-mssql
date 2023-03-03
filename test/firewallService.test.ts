@@ -14,8 +14,9 @@ import {
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
-import { Tenant, Token } from '@microsoft/ads-adal-library';
-import { IAccount } from 'vscode-mssql';
+import {  } from '@microsoft/ads-adal-library';
+import { AzureAuthType, IAccount, ITenant, IToken, IAzureAccountProperties } from '../src/models/contracts/azure';
+import allSettings from '../src/azure/providerSettings';
 
 
 suite('Firewall Service Tests', () => {
@@ -78,12 +79,19 @@ suite('Firewall Service Tests', () => {
 		let server = 'test_server';
 		let startIpAddress = '1.2.3.1';
 		let endIpAddress = '1.2.3.255';
-		let mockTenants: Tenant = {
+		let mockTenants: ITenant = {
 			id: '1',
 			displayName: undefined
 		};
-		let properties = {
-			tenants: [mockTenants]
+		let properties: IAzureAccountProperties = {
+			tenants: [mockTenants],
+			azureAuthType: AzureAuthType.AuthCodeGrant,
+			isMsAccount: false,
+			owningTenant: {
+				id: '1',
+				displayName: undefined
+			},
+			providerSettings: allSettings
 		};
 		let mockAccount: IAccount = {
 			properties: properties,
@@ -91,7 +99,7 @@ suite('Firewall Service Tests', () => {
 			displayInfo: undefined,
 			isStale: undefined
 		};
-		let mockToken: Token = {
+		let mockToken: IToken = {
 			key: '',
 			tokenType: '',
 			token: '',
