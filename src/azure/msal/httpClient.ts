@@ -83,6 +83,7 @@ const networkRequestViaProxy = <T>(
 	}
 
 	if (timeout) {
+		// tslint:disable-next-line no-string-based-set-timeout
 		tunnelRequestOptions.timeout = timeout;
 	}
 
