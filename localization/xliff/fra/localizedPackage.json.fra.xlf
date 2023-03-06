@@ -126,6 +126,10 @@
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">Copier le nom de l’objet</target>
       </trans-unit>
+      <trans-unit id="mssql.addAadAccount">
+        <source xml:lang="en">Add Azure Account</source>
+        <target state="translated">Ajouter un compte Azure</target>
+      </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Azure Account</source>
         <target state="translated">Supprimer le compte Azure</target>
@@ -277,6 +281,14 @@
       <trans-unit id="mssql.connection.emptyPasswordInput">
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
         <target state="translated">[Facultatif] Indique si ce profil a un mot de passe vide défini explicitement</target>
+      </trans-unit>
+      <trans-unit id="mssql.azureAuthenticationLibrary">
+        <source xml:lang="en">The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">Bibliothèque utilisée pour le flux d'authentification Azure Active Directory Domain Services. Veuillez redémarrer Visual Studio Code après avoir modifié cette option.</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableSqlAuthenticationProvider">
+        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">Active l'utilisation du fournisseur d'authentification Sql pour le mode d'authentification « Active Directory Domain Services Interactive » lorsque l'utilisateur sélectionne l'authentification « AzureMFA ». Cela permet l'intégration du point de terminaison des ressources côté serveur lors de la récupération des jetons d'accès. Cette option est uniquement prise en charge pour la bibliothèque d'authentification Azure « MSAL ». Veuillez redémarrer Visual Studio Code après avoir modifié cette option.</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>

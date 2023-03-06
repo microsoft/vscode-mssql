@@ -170,6 +170,46 @@
         <source xml:lang="en">Azure Logs</source>
         <target state="translated">Azure ログ</target>
       </trans-unit>
+      <trans-unit id="azureConsentDialogOpen">
+        <source xml:lang="en">Open</source>
+        <target state="translated">オープン</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogCancel">
+        <source xml:lang="en">Cancel</source>
+        <target state="translated">キャンセル</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogIgnore">
+        <source xml:lang="en">Ignore Tenant</source>
+        <target state="translated">テナントの無視</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogBody">
+        <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
+        <target state="translated">テナント '{0} ({1})' では、{2} リソースにアクセスするために、もう一度再認証する必要があります。[開く] をクリックして、認証プロセスを開始してください。</target>
+      </trans-unit>
+      <trans-unit id="azureMicrosoftCorpAccount">
+        <source xml:lang="en">Microsoft Corp</source>
+        <target state="translated">Microsoft Corp</target>
+      </trans-unit>
+      <trans-unit id="azureMicrosoftAccount">
+        <source xml:lang="en">Microsoft Account</source>
+        <target state="translated">Microsoft アカウント</target>
+      </trans-unit>
+      <trans-unit id="azureNoMicrosoftResource">
+        <source xml:lang="en">Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
+        <target state="translated">プロバイダー '{0}' には、Microsoft リソース エンドポイントが定義されていません。</target>
+      </trans-unit>
+      <trans-unit id="azureServerCouldNotStart">
+        <source xml:lang="en">Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.</source>
+        <target state="translated">サーバーを起動できませんでした。これは、システムのアクセス許可エラーまたは互換性がない可能性があります。設定からデバイス コード認証を有効にすることができます。</target>
+      </trans-unit>
+      <trans-unit id="azureAuthNonceError">
+        <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
+        <target state="translated">nonce の不一致のため、認証に失敗しました。 Azure Data Studio を閉じてから、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="azureAuthStateError">
+        <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
+        <target state="translated">状態の不一致のため、認証に失敗しました。 ADS を終了してから、もう一度お試しください。</target>
+      </trans-unit>
       <trans-unit id="encryptPrompt">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">暗号化</target>
@@ -213,6 +253,26 @@
       <trans-unit id="azureAddAccount">
         <source xml:lang="en">Add an Account...</source>
         <target state="translated">アカウントの追加...</target>
+      </trans-unit>
+      <trans-unit id="accountAddedSuccessfully">
+        <source xml:lang="en">Azure account {0} successfully added.</source>
+        <target state="translated">Azure アカウント {0} が正常に追加されました。</target>
+      </trans-unit>
+      <trans-unit id="accountCouldNotBeAdded">
+        <source xml:lang="en">New Azure account could not be added.</source>
+        <target state="translated">新しい Azure アカウントを追加できませんでした。</target>
+      </trans-unit>
+      <trans-unit id="accountRemovedSuccessfully">
+        <source xml:lang="en">Selected Azure Account removed successfully.</source>
+        <target state="translated">選択した Azure アカウントが正常に削除されました。</target>
+      </trans-unit>
+      <trans-unit id="accountRemovalFailed">
+        <source xml:lang="en">An error occurred while removing user account: {0}</source>
+        <target state="translated">ユーザー アカウントの削除中にエラーが発生しました: {0}</target>
+      </trans-unit>
+      <trans-unit id="noAzureAccountForRemoval">
+        <source xml:land="en">No Azure Account can be found for removal.</source>
+        <target state="translated">削除する Azure アカウントが見つかりません。</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -411,8 +471,8 @@
         <target state="translated">ファイアウォール規則が正常に追加されました。プロファイルの作成を再試行しますか? </target>
       </trans-unit>
       <trans-unit id="msgAccountRefreshFailed">
-        <source xml:lang="en">Credential Error: Account credentials have expired. Please re-authenticate.</source>
-        <target state="translated">資格情報エラー: アカウントの資格情報の有効期限が切れています。再認証してください。</target>
+        <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
+        <target state="translated">資格情報エラー: アカウント資格情報の更新中にエラーが発生しました。再認証してください。</target>
       </trans-unit>
       <trans-unit id="msgPromptProfileUpdateFailed">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
@@ -793,6 +853,14 @@
       <trans-unit id="showOutputChannelActionButtonText">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">MSSQL 出力の表示</target>
+      </trans-unit>
+      <trans-unit id="reloadPrompt">
+        <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
+        <target state="translated">認証ライブラリが変更されました。Visual Studio Code を再読み込みしてください。</target>
+      </trans-unit>
+      <trans-unit id="reloadChoice">
+        <source xml:lang="en">Reload Visual Studio Code</source>
+        <target state="translated">Visual Studio Code の再読み込み</target>
       </trans-unit>
     </body>
   </file>
