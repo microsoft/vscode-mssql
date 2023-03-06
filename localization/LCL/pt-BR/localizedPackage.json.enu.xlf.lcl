@@ -37,6 +37,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.addAadAccount" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add Azure Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Adicionar conta do Azure]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.addObjectExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Connection]]></Val>
@@ -60,6 +69,15 @@
           <Val><![CDATA[Prompts users to sign in using their browser.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Solicita que os usuários entrem usando o navegador.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.azureAuthenticationLibrary" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[A biblioteca usada para o fluxo de autenticação do Azure Active Directory. Reinicie o Visual Studio Code após alterar esta opção.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -522,6 +540,15 @@
           <Val><![CDATA[Should Query History feature be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Deve Histórico de Consultas recurso deve ser habilitado]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";mssql.enableSqlAuthenticationProvider" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Habilita o uso do Provedor de Autenticação Sql para o modo de autenticação 'Active Directory Interactive' quando o usuário seleciona a autenticação 'AzureMFA'. Isso permite a integração de ponto de extremidade de recurso do lado do servidor ao buscar tokens de acesso. Esta opção só tem suporte para a Biblioteca de Autenticação do Azure 'MSAL'. Reinicie o Visual Studio Code após alterar esta opção.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

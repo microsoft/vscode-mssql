@@ -94,24 +94,36 @@
       <Item ItemId=";accountAddedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure account {0} successfully added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[L'account Azure {0} è stato aggiunto.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountCouldNotBeAdded" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Azure account could not be added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato possibile aggiungere un nuovo account Azure.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovalFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while removing user account: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Errore durante la rimozione dell'account utente: {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selected Azure Account removed successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[L'account Azure selezionato è stato rimosso.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -254,7 +266,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Open]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aprire]]></Val>
+            <Val><![CDATA[Apri]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -901,8 +913,8 @@
       <Item ItemId=";msgAccountRefreshFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Errore di credenziali: le credenziali dell'account sono scadute. Eseguire di nuovo l'autenticazione.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Errore delle credenziali: si è verificato un errore durante il tentativo di aggiornare le credenziali dell'account. Ripeti l'autenticazione.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Credential Error: Account credentials have expired. Please re-authenticate.]]></Val>
@@ -1555,6 +1567,9 @@
       <Item ItemId=";noAzureAccountForRemoval" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Azure Account can be found for removal.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato trovato alcun account Azure per la rimozione.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1687,12 +1702,18 @@
       <Item ItemId=";reloadChoice" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reload Visual Studio Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ricarica Visual Studio Code]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";reloadPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication Library has changed, please reload Visual Studio Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La libreria di autenticazione è stata modificata. Ricarica Visual Studio Code.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

@@ -94,24 +94,36 @@
       <Item ItemId=";accountAddedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure account {0} successfully added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Compte Azure {0} ajouté avec succès.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountCouldNotBeAdded" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Azure account could not be added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le nouveau compte Azure n'a pas pu être ajouté.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovalFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while removing user account: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Une erreur s'est produite lors de la suppression du compte utilisateur : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selected Azure Account removed successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le compte Azure sélectionné a été supprimé avec succès.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -245,7 +257,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Ignore Tenant]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ignorer le locataire]]></Val>
+            <Val><![CDATA[Ignorer le Locataire]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -901,8 +913,8 @@
       <Item ItemId=";msgAccountRefreshFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Erreur d'informations d'identification : les informations d'identification du compte ont expiré. Réauthentifiez-vous.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur d'informations d'identification : une erreur s'est produite lors de la tentative d'actualisation des informations d'identification du compte. Veuillez vous ré-authentifier.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Credential Error: Account credentials have expired. Please re-authenticate.]]></Val>
@@ -1555,6 +1567,9 @@
       <Item ItemId=";noAzureAccountForRemoval" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Azure Account can be found for removal.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucun compte Azure ne peut être trouvé pour la suppression.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1687,12 +1702,18 @@
       <Item ItemId=";reloadChoice" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reload Visual Studio Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Recharger le code Visual Studio]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";reloadPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication Library has changed, please reload Visual Studio Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La bibliothèque d'authentification a changé, veuillez recharger Visual Studio Code.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

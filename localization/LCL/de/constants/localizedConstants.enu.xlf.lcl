@@ -94,24 +94,36 @@
       <Item ItemId=";accountAddedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure account {0} successfully added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Das Azure-Konto {0} wurde erfolgreich hinzugefügt.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountCouldNotBeAdded" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Azure account could not be added.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Das neue Azure-Konto konnte nicht hinzugefügt werden.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovalFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while removing user account: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Beim Entfernen des Benutzerkontos ist ein Fehler aufgetreten: {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";accountRemovedSuccessfully" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selected Azure Account removed successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Das ausgewählte Azure-Konto wurde erfolgreich entfernt.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -281,7 +293,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Corp]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Microsoft Corp]]></Val>
+            <Val><![CDATA[Microsoft Corp.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -901,8 +913,8 @@
       <Item ItemId=";msgAccountRefreshFailed" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Anmeldeinformationsfehler: Die Anmeldeinformationen für das Konto sind abgelaufen. Bitte authentifizieren Sie erneut.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Anmeldeinformationsfehler: Beim Aktualisieren der Kontoanmeldeinformationen ist ein Fehler aufgetreten. Bitte authentifizieren Sie sich erneut.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Credential Error: Account credentials have expired. Please re-authenticate.]]></Val>
@@ -1555,6 +1567,9 @@
       <Item ItemId=";noAzureAccountForRemoval" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No Azure Account can be found for removal.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Es wurde kein Azure-Konto zum Entfernen gefunden.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1687,12 +1702,18 @@
       <Item ItemId=";reloadChoice" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reload Visual Studio Code]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visual Studio Code erneut laden]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";reloadPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication Library has changed, please reload Visual Studio Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Authentifizierungsbibliothek wurde geändert. Bitte laden Sie Visual Studio Code erneut.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
