@@ -66,6 +66,12 @@ suite('Platform Tests', () => {
 		expect(platformInfo.runtimeId).to.equal(Runtime.Windows_86.toString());
 	});
 
+	test('Compute correct RID for Windows ARM 64-bit', () => {
+		const platformInfo = new PlatformInformation('win32', 'arm64');
+
+		expect(platformInfo.runtimeId).to.equal(Runtime.Windows_ARM64.toString());
+	});
+
 	test('Compute no RID for Windows with bad architecture', () => {
 		const platformInfo = new PlatformInformation('win32', 'bad');
 
@@ -81,7 +87,7 @@ suite('Platform Tests', () => {
 	test('Compute correct RID for MacOS ARM', () => {
 		const platformInfo = new PlatformInformation('darwin', 'arm64');
 
-		expect(platformInfo.runtimeId).to.equal(Runtime.OSX_10_11_64.toString());
+		expect(platformInfo.runtimeId).to.equal(Runtime.OSX_ARM64.toString());
 	});
 
 	test('Compute no RID for OSX with 32-bit architecture', () => {
