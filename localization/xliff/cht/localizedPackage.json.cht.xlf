@@ -126,6 +126,10 @@
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">複製物件名稱</target>
       </trans-unit>
+      <trans-unit id="mssql.addAadAccount">
+        <source xml:lang="en">Add Azure Account</source>
+        <target state="translated">新增 Azure 帳戶</target>
+      </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Azure Account</source>
         <target state="translated">移除 Azure 帳戶</target>
@@ -277,6 +281,14 @@
       <trans-unit id="mssql.connection.emptyPasswordInput">
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
         <target state="translated">[選用] 指示此設定檔是否明確地設定了空密碼</target>
+      </trans-unit>
+      <trans-unit id="mssql.azureAuthenticationLibrary">
+        <source xml:lang="en">The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">用於 Azure Active Directory 驗證流程的程式庫。請在變更此選項後將 Visual Studio Code 重新啟動。</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableSqlAuthenticationProvider">
+        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">當使用者選取 'AzureMFA' 驗證，則針對 'Active Directory Interactive' 驗證模式啟用使用 SQL 驗證提供者。這會在擷取存取權杖時啟用伺服器端資源端點整合。此選項僅支援 'MSAL' Azure 驗證程式庫。請在變更此選項後重新啟動 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>

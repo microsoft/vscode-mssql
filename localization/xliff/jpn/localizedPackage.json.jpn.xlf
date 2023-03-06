@@ -126,6 +126,10 @@
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">オブジェクト名のコピー</target>
       </trans-unit>
+      <trans-unit id="mssql.addAadAccount">
+        <source xml:lang="en">Add Azure Account</source>
+        <target state="translated">Azure アカウントを追加する</target>
+      </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Azure Account</source>
         <target state="translated">Azure アカウントの削除</target>
@@ -277,6 +281,14 @@
       <trans-unit id="mssql.connection.emptyPasswordInput">
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
         <target state="translated">[省略可能] このプロファイルが、明示的に設定された空のパスワードを持つかどうかを示します</target>
+      </trans-unit>
+      <trans-unit id="mssql.azureAuthenticationLibrary">
+        <source xml:lang="en">The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">Azure Active Directory 認証フローに使用されるライブラリ。このオプションを変更した後、Visual Studio Code を再起動してください。</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableSqlAuthenticationProvider">
+        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">ユーザーが 'AzureMFA' 認証を選択したときに、'Active Directory Interactive' 認証モードで SQL 認証プロバイダーを使用できるようにします。これにより、アクセス トークンをフェッチするときに、サーバー側のリソース エンドポイントの統合が可能になります。 このオプションは、'MSAL' Azure 認証ライブラリでのみサポートされています。このオプションを変更した後、Visual Studio Code を再起動してください。</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>

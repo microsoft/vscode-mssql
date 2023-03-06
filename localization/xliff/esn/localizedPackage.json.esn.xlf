@@ -126,6 +126,10 @@
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">Copiar nombre de objeto</target>
       </trans-unit>
+      <trans-unit id="mssql.addAadAccount">
+        <source xml:lang="en">Add Azure Account</source>
+        <target state="translated">Agregar cuenta de Azure</target>
+      </trans-unit>
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Azure Account</source>
         <target state="translated">Quitar cuenta de Azure</target>
@@ -277,6 +281,14 @@
       <trans-unit id="mssql.connection.emptyPasswordInput">
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
         <target state="translated">[Opcional] Indica si este perfil tiene una contraseña vacía establecida explícitamente.</target>
+      </trans-unit>
+      <trans-unit id="mssql.azureAuthenticationLibrary">
+        <source xml:lang="en">The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">Biblioteca usada para el flujo de autenticación de Azure Active Directory. Reinicie Visual Studio Code después de cambiar esta opción.</target>
+      </trans-unit>
+      <trans-unit id="mssql.enableSqlAuthenticationProvider">
+        <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+        <target state="translated">Habilita el uso del proveedor de autenticación de SQL para el modo de autenticación "Active Directory interactivo" cuando el usuario selecciona la autenticación "AzureMFA". Esto habilita la integración del punto de conexión de recursos del lado servidor al capturar tokens de acceso. Esta opción solo se admite para la biblioteca de autenticación de Azure "MSAL". Reinicie Visual Studio Code después de cambiar esta opción.</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>

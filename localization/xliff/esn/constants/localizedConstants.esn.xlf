@@ -170,6 +170,46 @@
         <source xml:lang="en">Azure Logs</source>
         <target state="translated">Registros de Azure</target>
       </trans-unit>
+      <trans-unit id="azureConsentDialogOpen">
+        <source xml:lang="en">Open</source>
+        <target state="translated">Abierto</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogCancel">
+        <source xml:lang="en">Cancel</source>
+        <target state="translated">Cancelar</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogIgnore">
+        <source xml:lang="en">Ignore Tenant</source>
+        <target state="translated">Omitir inquilino</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogBody">
+        <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
+        <target state="translated">El inquilino "{0} ({1})" requiere que vuelva a autenticarse para acceder a {2} recursos. Presione Abrir para iniciar el proceso de autenticación.</target>
+      </trans-unit>
+      <trans-unit id="azureMicrosoftCorpAccount">
+        <source xml:lang="en">Microsoft Corp</source>
+        <target state="translated">Microsoft Corp</target>
+      </trans-unit>
+      <trans-unit id="azureMicrosoftAccount">
+        <source xml:lang="en">Microsoft Account</source>
+        <target state="translated">Cuenta Microsoft</target>
+      </trans-unit>
+      <trans-unit id="azureNoMicrosoftResource">
+        <source xml:lang="en">Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
+        <target state="translated">El proveedor “{0}” no tiene definido un punto de conexión de recursos de Microsoft.</target>
+      </trans-unit>
+      <trans-unit id="azureServerCouldNotStart">
+        <source xml:lang="en">Server could not start. This could be a permissions error or an incompatibility on your system. You can try enabling device code authentication from settings.</source>
+        <target state="translated">No se puede iniciar el servidor. Puede tratarse de un error de permisos o una incompatibilidad en el sistema. Puede intentar habilitar la autenticación del dispositivo mediante código en la configuración.</target>
+      </trans-unit>
+      <trans-unit id="azureAuthNonceError">
+        <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
+        <target state="translated">Error de autenticación debido a una discrepancia de nonce. Cierre Azure Data Studio y vuelva a intentarlo.</target>
+      </trans-unit>
+      <trans-unit id="azureAuthStateError">
+        <source xml:lang="en">Authentication failed due to a state mismatch, please close ADS and try again.</source>
+        <target state="translated">Error de autenticación debido a una discrepancia de estados. Cierre ADS y vuelva a intentarlo.</target>
+      </trans-unit>
       <trans-unit id="encryptPrompt">
         <source xml:lang="en">Encrypt</source>
         <target state="translated">Cifrar</target>
@@ -213,6 +253,26 @@
       <trans-unit id="azureAddAccount">
         <source xml:lang="en">Add an Account...</source>
         <target state="translated">Agregar una cuenta...</target>
+      </trans-unit>
+      <trans-unit id="accountAddedSuccessfully">
+        <source xml:lang="en">Azure account {0} successfully added.</source>
+        <target state="translated">La cuenta de Azure {0} se ha agregado correctamente.</target>
+      </trans-unit>
+      <trans-unit id="accountCouldNotBeAdded">
+        <source xml:lang="en">New Azure account could not be added.</source>
+        <target state="translated">No se pudo agregar la nueva cuenta de Azure.</target>
+      </trans-unit>
+      <trans-unit id="accountRemovedSuccessfully">
+        <source xml:lang="en">Selected Azure Account removed successfully.</source>
+        <target state="translated">La cuenta de Azure seleccionada se ha quitado correctamente.</target>
+      </trans-unit>
+      <trans-unit id="accountRemovalFailed">
+        <source xml:lang="en">An error occurred while removing user account: {0}</source>
+        <target state="translated">Error al quitar la cuenta de usuario: {0}</target>
+      </trans-unit>
+      <trans-unit id="noAzureAccountForRemoval">
+        <source xml:land="en">No Azure Account can be found for removal.</source>
+        <target state="translated">No se encuentra ninguna cuenta de Azure para su eliminación.</target>
       </trans-unit>
       <trans-unit id="cannotConnect">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -411,8 +471,8 @@
         <target state="translated">La regla de firewall se ha agregado correctamente. ¿Quiere reintentar la creación del perfil? </target>
       </trans-unit>
       <trans-unit id="msgAccountRefreshFailed">
-        <source xml:lang="en">Credential Error: Account credentials have expired. Please re-authenticate.</source>
-        <target state="translated">Error de credencial: las credenciales de la cuenta han expirado. Vuelva a autenticarse.</target>
+        <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
+        <target state="translated">Error de credencial: error al intentar actualizar las credenciales de la cuenta. Vuelva a autenticarse.</target>
       </trans-unit>
       <trans-unit id="msgPromptProfileUpdateFailed">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
@@ -793,6 +853,14 @@
       <trans-unit id="showOutputChannelActionButtonText">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">Mostrar salida de MSSQL</target>
+      </trans-unit>
+      <trans-unit id="reloadPrompt">
+        <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
+        <target state="translated">La biblioteca de autenticación ha cambiado. Vuelva a cargar Visual Studio Code.</target>
+      </trans-unit>
+      <trans-unit id="reloadChoice">
+        <source xml:lang="en">Reload Visual Studio Code</source>
+        <target state="translated">Volver a cargar Visual Studio Code</target>
       </trans-unit>
     </body>
   </file>
