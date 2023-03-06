@@ -17,7 +17,7 @@ export enum Runtime {
 	Windows_64 = 'Windows_64',
 	Windows_ARM64 = 'Windows_ARM64',
 	OSX_10_11_64 = 'OSX_10_11_64',
-	OSX_ARM64 = "OSX_ARM64",
+	OSX_ARM64 = 'OSX_ARM64',
 	CentOS_7 = 'CentOS_7',
 	Debian_8 = 'Debian_8',
 	Fedora_23 = 'Fedora_23',
