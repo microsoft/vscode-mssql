@@ -20,18 +20,6 @@
                 "_id": "build",
                 "isDefault": false
             }
-        },
-        {
-            "label": "cover:enable",
-            "type": "gulp",
-            "task": "cover:disable",
-            "problemMatcher": []
-        },
-        {
-            "label": "cover:disable",
-            "type": "gulp",
-            "task": "cover:disable",
-            "problemMatcher": []
         }
     ]
 }
