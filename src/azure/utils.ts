@@ -92,7 +92,7 @@ export function getEnableSqlAuthenticationProviderConfig(): boolean {
 			return val;
 		}
 	}
-	return true; // default setting
+	return false; // default setting
 }
 
 export function getProxyEnabledHttpClient(): HttpClient {
