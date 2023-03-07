@@ -83,7 +83,6 @@ const networkRequestViaProxy = <T>(
 	}
 
 	if (timeout) {
-		// tslint:disable-next-line no-string-based-set-timeout
 		tunnelRequestOptions.timeout = timeout;
 	}
 
@@ -127,6 +126,7 @@ const networkRequestViaProxy = <T>(
 				reject(new Error(`Error connecting to proxy. Http status code: ${response.statusCode}. Http status message: ${response?.statusMessage || 'Unknown'}`));
 			}
 			if (tunnelRequestOptions.timeout) {
+				// tslint:disable-next-line no-string-based-set-timeout
 				socket.setTimeout(tunnelRequestOptions.timeout);
 				socket.on('timeout', () => {
 					request.destroy();
