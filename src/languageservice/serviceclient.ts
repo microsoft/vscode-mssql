@@ -10,7 +10,6 @@ import {
 	ErrorAction, CloseAction
 } from 'vscode-languageclient';
 import * as path from 'path';
-import * as os from 'os';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
 import { VersionRequest } from '../models/contracts';
@@ -28,7 +27,7 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
-import { getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { getAppDataPath, getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
 import { AuthLibrary } from '../models/contracts/azure';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
@@ -385,19 +384,6 @@ export default class SqlToolsServiceClient {
 		};
 	}
 
-	// This is a temporary workaround to use the same path format as used by Azure Core extension in ADS.
-	// Since SqlToolsService is shared, the cache location is determined the same way here.
-	// TODO: The function comes from \src\paths.js of VSCode and needs to be updated in future to respect all paths.
-	private getAppDataPath() {
-		let platform = process.platform;
-		switch (platform) {
-			case Constants.Platform.Windows: return process.env['APPDATA'] || path.join(process.env['USERPROFILE']!, 'AppData', 'Roaming');
-			case Constants.Platform.Mac: return path.join(os.homedir(), 'Library', 'Application Support');
-			case Constants.Platform.Linux: return process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
-			default: throw new Error('Platform not supported');
-		}
-	}
-
 	private createServiceLayerServerOptions(servicePath: string): ServerOptions {
 		let serverArgs = [];
 		let serverCommand: string = servicePath;
@@ -419,7 +405,7 @@ export default class SqlToolsServiceClient {
 
 			// Send application name and path to determine MSAL cache location
 			serverArgs.push('--application-name', 'code');
-			serverArgs.push('--application-path', this.getAppDataPath());
+			serverArgs.push('--application-path', getAppDataPath());
 
 			// Enable SQL Auth Provider registration for Azure MFA Authentication
 			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
