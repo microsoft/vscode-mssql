@@ -405,7 +405,7 @@ export default class SqlToolsServiceClient {
 
 			// Send application name and path to determine MSAL cache location
 			serverArgs.push('--application-name', 'code');
-			serverArgs.push('--application-path', getAppDataPath());
+			serverArgs.push('--data-path', getAppDataPath());
 
 			// Enable SQL Auth Provider registration for Azure MFA Authentication
 			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
