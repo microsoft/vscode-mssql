@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
@@ -222,17 +221,7 @@ export abstract class AzureController {
 		return storagePath;
 	}
 
-	private getAppDataPath(): string {
-		let platform = process.platform;
-		switch (platform) {
-			case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE']!, 'AppData', 'Roaming');
-			case 'darwin': return path.join(os.homedir(), 'Library', 'Application Support');
-			case 'linux': return process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
-			default: throw new Error('Platform not supported');
-		}
-	}
-
 	private getDefaultOutputLocation(): string {
-		return path.join(this.getAppDataPath(), AzureConstants.serviceName);
+		return path.join(azureUtils.getAppDataPath(), AzureConstants.serviceName);
 	}
 }
