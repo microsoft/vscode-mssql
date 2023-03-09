@@ -8,7 +8,7 @@ import { SqlManagementClient } from '@azure/arm-sql';
 import { SubscriptionClient } from '@azure/arm-subscriptions';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
 import { HttpsProxyAgentOptions } from 'https-proxy-agent';
-import path from 'path';
+import * as path from 'path';
 import * as os from 'os';
 import { parse } from 'url';
 import * as vscode from 'vscode';
