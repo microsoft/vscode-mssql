@@ -8,6 +8,8 @@ import { SqlManagementClient } from '@azure/arm-sql';
 import { SubscriptionClient } from '@azure/arm-subscriptions';
 import { PagedAsyncIterableIterator } from '@azure/core-paging';
 import { HttpsProxyAgentOptions } from 'https-proxy-agent';
+import * as path from 'path';
+import * as os from 'os';
 import { parse } from 'url';
 import * as vscode from 'vscode';
 import { getProxyAgentOptions } from '../languageservice/proxy';
@@ -112,4 +114,14 @@ export function getProxyEnabledHttpClient(): HttpClient {
 	}
 
 	return new HttpClient(proxy, agentOptions);
+}
+
+export function getAppDataPath(): string {
+	let platform = process.platform;
+	switch (platform) {
+		case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE']!, 'AppData', 'Roaming');
+		case 'darwin': return path.join(os.homedir(), 'Library', 'Application Support');
+		case 'linux': return process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
+		default: throw new Error('Platform not supported');
+	}
 }
