@@ -85,7 +85,6 @@
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.0",
     "gulp-istanbul-report": "0.0.1",
-    "gulp-json-editor": "^2.2.1",
     "gulp-rename": "^1.2.2",
     "gulp-shell": "^0.7.0",
     "gulp-sourcemaps": "^1.6.0",
