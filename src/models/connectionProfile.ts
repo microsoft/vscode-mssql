@@ -109,6 +109,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				message: LocalizedConstants.azureChooseTenant,
 				choices: tenantChoices,
 				default: defaultProfileValues ? defaultProfileValues.tenantId : undefined,
+				// Need not prompt for tenant question when 'Sql Authentication Provider' is enabled,
+				// since tenant information is received from Server with authority URI in the Login flow.
 				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1 && !getEnableSqlAuthenticationProviderConfig(),
 				onAnswered: (value: ITenant) => {
 					profile.tenantId = value.id;
