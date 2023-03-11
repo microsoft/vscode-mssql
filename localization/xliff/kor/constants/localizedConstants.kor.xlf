@@ -10,14 +10,6 @@
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">Visual Studio Code용 mssql 릴리스 정보를 보시겠습니까?</target>
       </trans-unit>
-      <trans-unit id="encryptionChangePromptDescription">
-        <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
-        <target state="translated">이제 VS Code용 mssql 확장에서 모든 SQL Server 연결에 대해 기본적으로 암호화를 사용합니다. 이로 인해 특정 암호화 관련 연결 속성이 변경되지 않는 한 기존 연결이 더 이상 작동하지 않을 수 있습니다. 아래 링크에서 자세한 내용을 검토하는 것이 좋습니다.</target>
-      </trans-unit>
-      <trans-unit id="moreInformation">
-        <source xml:lang="en">More information</source>
-        <target state="translated">추가 정보</target>
-      </trans-unit>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
         <target state="translated">문서 "{0}"에 대한 쿼리 실행을 시작함</target>
