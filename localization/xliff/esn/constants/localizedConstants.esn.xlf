@@ -10,14 +10,6 @@
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">¿Desea ver mssql para Visual Studio Code notas de la versión?</target>
       </trans-unit>
-      <trans-unit id="encryptionChangePromptDescription">
-        <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
-        <target state="translated">La extensión mssql para VS Code ahora tiene habilitado el cifrado de forma predeterminada para todas las conexiones de SQL Server. Esto puede provocar que las conexiones existentes dejen de funcionar a menos que se cambien determinadas propiedades de conexión relacionadas con el cifrado. Le recomendamos que visite el vínculo siguiente para obtener más información.</target>
-      </trans-unit>
-      <trans-unit id="moreInformation">
-        <source xml:lang="en">More information</source>
-        <target state="translated">Más información</target>
-      </trans-unit>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
         <target state="translated">Se inició la ejecución de la consulta para el documento "{0}".</target>
