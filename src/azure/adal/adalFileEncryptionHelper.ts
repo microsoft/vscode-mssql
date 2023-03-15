@@ -2,33 +2,39 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as crypto from 'crypto';
-import { CredentialStore } from '../../credentialstore/credentialstore';
 
-export class FileEncryptionHelper {
-	constructor(
-		private _credentialStore: CredentialStore,
-		private _fileName: string
-	) { }
+import * as crypto from 'crypto';
+import { ICredentialStore } from '../../credentialstore/icredentialstore';
+import { AuthLibrary } from '../../models/contracts/azure';
+import { Logger } from '../../models/logger';
+import { FileEncryptionHelper } from '../fileEncryptionHelper';
+
+/**
+ * Designed to work with MSAL.NET cache using the same 'aes-256-cbc' algorithm.
+ * Key and IV are shared through credential store.
+ */
+export class ADALFileEncryptionHelper extends FileEncryptionHelper {
+	constructor(_credentialStore: ICredentialStore,
+		_logger: Logger,
+		_fileName: string) {
+		super(_credentialStore, _logger, _fileName);
+		this._authLibrary = AuthLibrary.ADAL;
+	}
 
 	private _ivBuffer: Buffer | undefined;
 	private _keyBuffer: Buffer | undefined;
 
 	async init(): Promise<void> {
-		const iv = await this._credentialStore.readCredential(`${this._fileName}-iv`);
-		const key = await this._credentialStore.readCredential(`${this._fileName}-key`);
-		if (!iv?.password || !key?.password) {
+		const iv = await this.readEncryptionKey(`${this._fileName}-iv`);
+		const key = await this.readEncryptionKey(`${this._fileName}-key`);
+		if (!iv || !key) {
 			this._ivBuffer = crypto.randomBytes(16);
 			this._keyBuffer = crypto.randomBytes(32);
-			try {
-				await this._credentialStore.saveCredential(`${this._fileName}-iv`, this._ivBuffer.toString('hex'));
-				await this._credentialStore.saveCredential(`${this._fileName}-key`, this._keyBuffer.toString('hex'));
-			} catch (ex) {
-				console.log(ex);
-			}
+			await this.saveEncryptionKey(`${this._fileName}-iv`, this._ivBuffer.toString('hex'));
+			await this.saveEncryptionKey(`${this._fileName}-key`, this._keyBuffer.toString('hex'));
 		} else {
-			this._ivBuffer = Buffer.from(iv.password, 'hex');
-			this._keyBuffer = Buffer.from(key.password, 'hex');
+			this._ivBuffer = Buffer.from(iv, 'hex');
+			this._keyBuffer = Buffer.from(key, 'hex');
 		}
 	}
 

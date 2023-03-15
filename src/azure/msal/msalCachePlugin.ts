@@ -8,20 +8,26 @@ import { promises as fsPromises } from 'fs';
 
 import * as lockFile from 'lockfile';
 import * as path from 'path';
+import { ICredentialStore } from '../../credentialstore/icredentialstore';
 import { Logger } from '../../models/logger';
+import { FileEncryptionHelper } from '../fileEncryptionHelper';
+import { MSALFileEncryptionHelper } from './msalFileEncryptionHelper';
 
 export class MsalCachePluginProvider {
 	constructor(
 		private readonly _serviceName: string,
 		private readonly _msalFilePath: string,
-		private readonly _logger: Logger
+		private readonly _logger: Logger,
+		private readonly _credentialStore: ICredentialStore
 	) {
 		this._msalFilePath = path.join(this._msalFilePath, this._serviceName);
 		this._serviceName = this._serviceName.replace(/-/, '_');
+		this._fileEncryptionHelper = new MSALFileEncryptionHelper(this._credentialStore, this._logger, this._serviceName);
 		this._logger.verbose(`MsalCachePluginProvider: Using cache path ${_msalFilePath} and serviceName ${_serviceName}`);
 	}
 
 	private _lockTaken: boolean = false;
+	private _fileEncryptionHelper: FileEncryptionHelper;
 
 	private getLockfilePath(): string {
 		return this._msalFilePath + '.lockfile';
@@ -33,8 +39,9 @@ export class MsalCachePluginProvider {
 			await this.waitAndLock(lockFilePath);
 			try {
 				const cache = await fsPromises.readFile(this._msalFilePath, { encoding: 'utf8' });
+				const decryptedCache = await this._fileEncryptionHelper.fileOpener(cache);
 				try {
-					cacheContext.tokenCache.deserialize(cache);
+					cacheContext.tokenCache.deserialize(decryptedCache);
 				} catch (e) {
 					// Handle deserialization error in cache file in case file gets corrupted.
 					// Clearing cache here will ensure account is marked stale so re-authentication can be triggered.
@@ -60,8 +67,9 @@ export class MsalCachePluginProvider {
 			if (cacheContext.cacheHasChanged) {
 				await this.waitAndLock(lockFilePath);
 				try {
-					const data = cacheContext.tokenCache.serialize();
-					await fsPromises.writeFile(this._msalFilePath, data, { encoding: 'utf8' });
+					const cache = cacheContext.tokenCache.serialize();
+					const encryptedCache = await this._fileEncryptionHelper.fileSaver(cache);
+					await fsPromises.writeFile(this._msalFilePath, encryptedCache, { encoding: 'utf8' });
 					this._logger.verbose(`MsalCachePlugin: Token written to cache successfully.`);
 				} catch (e) {
 					this._logger.error(`MsalCachePlugin: Failed to write to cache file. ${e}`);
