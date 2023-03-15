@@ -10,15 +10,15 @@ import { ObjectExplorerUtils } from './objectExplorerUtils';
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
 
-    constructor() {
-        super(LocalizedConstants.msgAddConnection, vscode.TreeItemCollapsibleState.None);
-        this.command = {
-            title: LocalizedConstants.msgAddConnection,
-            command: Constants.cmdAddObjectExplorer
-        };
-        this.iconPath = {
-            light: path.join(ObjectExplorerUtils.rootPath, 'add.svg'),
-            dark: path.join(ObjectExplorerUtils.rootPath, 'add_inverse.svg')
-        };
-    }
+	constructor() {
+		super(LocalizedConstants.msgAddConnection, vscode.TreeItemCollapsibleState.None);
+		this.command = {
+			title: LocalizedConstants.msgAddConnection,
+			command: Constants.cmdAddObjectExplorer
+		};
+		this.iconPath = {
+			light: path.join(ObjectExplorerUtils.rootPath, 'add.svg'),
+			dark: path.join(ObjectExplorerUtils.rootPath, 'add_inverse.svg')
+		};
+	}
 }

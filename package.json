@@ -1,7 +1,7 @@
 {
   "name": "mssql",
   "displayName": "SQL Server (mssql)",
-  "version": "1.12.0",
+  "version": "1.19.0",
   "description": "Develop Microsoft SQL Server, Azure SQL Database and SQL Data Warehouse everywhere",
   "publisher": "ms-mssql",
   "preview": false,
@@ -36,23 +36,7 @@
     "multi-root ready"
   ],
   "activationEvents": [
-    "onView:objectExplorer",
-    "onLanguage:sql",
-    "onCommand:mssql.connect",
-    "onCommand:mssql.runQuery",
-    "onCommand:mssql.runCurrentStatement",
-    "onCommand:mssql.disconnect",
-    "onCommand:mssql.manageProfiles",
-    "onCommand:mssql.chooseDatabase",
-    "onCommand:mssql.cancelQuery",
-    "onCommand:mssql.showGettingStarted",
-    "onCommand:mssql.newQuery",
-    "onCommand:mssql.rebuildIntelliSenseCache",
-    "onCommand:mssql.addObjectExplorer",
-    "onCommand:mssql.objectExplorerNewQuery",
-    "onCommand:mssql.toggleSqlCmd",
-    "onCommand:mssql.loadCompletionExtension",
-    "onCommand:mssql.removeAadAccount"
+    "onCommand:mssql.loadCompletionExtension"
   ],
   "main": "./out/src/extension",
   "extensionDependencies": [
@@ -60,8 +44,14 @@
   ],
   "extensionPack": [
     "ms-mssql.data-workspace-vscode",
-    "ms-mssql.sql-database-projects-vscode"
+    "ms-mssql.sql-database-projects-vscode",
+    "ms-mssql.sql-bindings-vscode"
   ],
+  "scripts": {
+    "build": "gulp build",
+    "compile": "gulp ext:compile",
+    "watch": "gulp watch"
+  },
   "devDependencies": {
     "@angular/common": "~2.1.2",
     "@angular/compiler": "~2.1.2",
@@ -75,12 +65,18 @@
     "@types/jquery": "^3.3.31",
     "@types/jqueryui": "^1.12.7",
     "@types/keytar": "^4.4.2",
+    "@types/lockfile": "^1.0.2",
     "@types/mocha": "^5.2.7",
+    "@types/node": "^14.17.0",
+    "@types/node-fetch": "^2.6.1",
+    "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
     "@types/vscode": "1.57.0",
+    "@vscode/test-electron": "^2.1.5",
+    "@xmldom/xmldom": "0.8.4",
     "angular-in-memory-web-api": "0.1.13",
-    "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.2.2-patch1",
+    "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.6",
     "assert": "^1.4.1",
     "chai": "^3.5.0",
     "coveralls": "^3.0.2",
@@ -89,7 +85,6 @@
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.0",
     "gulp-istanbul-report": "0.0.1",
-    "gulp-json-editor": "^2.2.1",
     "gulp-rename": "^1.2.2",
     "gulp-shell": "^0.7.0",
     "gulp-sourcemaps": "^1.6.0",
@@ -98,9 +93,10 @@
     "gulp-uglify": "^2.0.0",
     "istanbul": "^0.4.5",
     "pm-mocha-jenkins-reporter": "^0.2.6",
-    "remap-istanbul": "^0.6.4",
+    "remap-istanbul": "0.9.6",
     "rxjs": "5.0.0-beta.12",
-    "slickgrid": "github:kburtram/SlickGrid#2.3.23-2",
+    "sinon": "^14.0.0",
+    "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.39",
     "systemjs": "0.19.40",
     "systemjs-builder": "^0.15.32",
     "systemjs-plugin-json": "^0.2.0",
@@ -109,29 +105,33 @@
     "typemoq": "^1.7.0",
     "typescript": "^3.5.3",
     "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
-    "vsce": "^1.58.0",
     "vscode-nls-dev": "2.0.1",
-    "vscode-test": "^1.0.0",
-    "xmldom": "^0.6.0",
     "yargs": "https://registry.npmjs.org/yargs/-/yargs-3.32.0.tgz"
   },
   "dependencies": {
-    "@types/node": "^14.14.16",
-    "@microsoft/ads-adal-library": "1.0.13",
+    "@azure/arm-resources": "^5.0.0",
+    "@azure/arm-sql": "^9.0.0",
+    "@azure/arm-subscriptions": "^5.0.0",
+    "@azure/msal-common": "^10.0.0",
+    "@azure/msal-node": "^1.15.0",
+    "@microsoft/ads-adal-library": "1.0.17",
+    "http-proxy-agent": "5.0.0",
+    "https-proxy-agent": "5.0.0",
     "core-js": "^2.4.1",
     "decompress-zip": "^0.2.2",
-    "ejs": "^3.1.6",
+    "ejs": "^3.1.7",
     "error-ex": "^1.3.0",
     "figures": "^1.4.0",
     "find-remove": "1.2.1",
-    "fs-extra-promise": "^0.3.1",
     "getmac": "1.2.1",
-    "http-proxy-agent": "^2.1.0",
-    "https-proxy-agent": "^2.2.1",
     "jquery": "^3.4.1",
+    "lockfile": "1.0.4",
+    "msal": "^1.4.17",
+    "node-fetch": "^2.6.1",
     "opener": "1.4.2",
     "plist": "^3.0.6",
     "pretty-data": "^0.40.0",
+    "qs": "^6.9.1",
     "rangy": "^1.3.0",
     "reflect-metadata": "0.1.12",
     "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
@@ -238,6 +238,18 @@
           "when": "view == queryHistory",
           "title": "%mssql.clearAllQueryHistory%",
           "group": "secondary"
+        },
+        {
+          "command": "mssql.objectExplorer.enableGroupBySchema",
+          "when": "view == objectExplorer && !config.mssql.objectExplorer.groupBySchema",
+          "title": "%mssql.objectExplorer.enableGroupBySchema%",
+          "group": "navigation"
+        },
+        {
+          "command": "mssql.objectExplorer.disableGroupBySchema",
+          "when": "view == objectExplorer && config.mssql.objectExplorer.groupBySchema",
+          "title": "%mssql.objectExplorer.disableGroupBySchema%",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -431,6 +443,24 @@
         "icon": "$(add)"
       },
       {
+        "command": "mssql.objectExplorer.enableGroupBySchema",
+        "title": "%mssql.objectExplorer.enableGroupBySchema%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/groupBySchemaEnabled_inverse.svg",
+          "light": "media/groupBySchemaEnabled.svg"
+        }
+      },
+      {
+        "command": "mssql.objectExplorer.disableGroupBySchema",
+        "title": "%mssql.objectExplorer.disableGroupBySchema%",
+        "category": "MS SQL",
+        "icon": {
+          "dark": "media/groupBySchemaDisabled_inverse.svg",
+          "light": "media/groupBySchemaDisabled.svg"
+        }
+      },
+      {
         "command": "mssql.objectExplorerNewQuery",
         "title": "%mssql.objectExplorerNewQuery%",
         "category": "MS SQL"
@@ -515,6 +545,11 @@
       {
         "command": "mssql.copyObjectName",
         "title": "%mssql.copyObjectName%",
+        "category": "MS SQL"
+      },
+      {
+        "command": "mssql.addAadAccount",
+        "title": "%mssql.addAadAccount%",
         "category": "MS SQL"
       },
       {
@@ -615,7 +650,8 @@
                 "default": "SqlLogin",
                 "enum": [
                   "Integrated",
-                  "SqlLogin"
+                  "SqlLogin",
+                  "AzureMFA"
                 ],
                 "description": "%mssql.connection.authenticationType%"
               },
@@ -625,14 +661,19 @@
                 "description": "%mssql.connection.port%"
               },
               "encrypt": {
-                "type": "boolean",
-                "default": false,
+                "type": "string",
+                "default": "Mandatory",
                 "description": "%mssql.connection.encrypt%"
               },
               "trustServerCertificate": {
                 "type": "boolean",
                 "default": false,
                 "description": "%mssql.connection.trustServerCertificate%"
+              },
+              "hostNameInCertificate": {
+                "type": "string",
+                "default": "",
+                "description": "%mssql.connection.hostNameInCertificate"
               },
               "persistSecurityInfo": {
                 "type": "boolean",
@@ -643,6 +684,11 @@
                 "type": "number",
                 "default": 15,
                 "description": "%mssql.connection.connectTimeout%"
+              },
+              "commandTimeout": {
+                "type": "number",
+                "default": 30,
+                "description": "%mssql.connection.commandTimeout%"
               },
               "connectRetryCount": {
                 "type": "number",
@@ -773,7 +819,8 @@
             "event.selectAll": "ctrl+A",
             "event.saveAsJSON": "",
             "event.saveAsCSV": "",
-            "event.saveAsExcel": ""
+            "event.saveAsExcel": "",
+            "event.changeColumnWidth": "ctrl+alt+S"
           },
           "scope": "resource"
         },
@@ -853,6 +900,24 @@
             "end"
           ],
           "scope": "resource"
+        },
+        "mssql.azureAuthenticationLibrary": {
+          "type": "string",
+          "description": "%mssql.azureAuthenticationLibrary%",
+          "default": "MSAL",
+          "enum": [
+            "ADAL",
+            "MSAL"
+          ],
+          "enumDescriptions": [
+            "(deprecated) Azure Active Directory Authentication Library",
+            "Microsoft Authentication Library"
+          ]
+        },
+        "mssql.enableSqlAuthenticationProvider": {
+          "type": "boolean",
+          "description": "%mssql.enableSqlAuthenticationProvider%",
+          "default": true
         },
         "mssql.format.alignColumnDefinitionsInColumns": {
           "type": "boolean",
@@ -978,6 +1043,11 @@
             "Information",
             "Verbose"
           ]
+        },
+        "mssql.piiLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "%mssql.piiLogging%"
         },
         "mssql.logRetentionMinutes": {
           "type": "number",
@@ -1116,6 +1186,17 @@
           "type": "boolean",
           "description": "%mssql.ignorePlatformWarning%",
           "default": false
+        },
+        "mssql.objectExplorer.groupBySchema": {
+          "type": "boolean",
+          "description": "%mssql.objectExplorer.groupBySchema%",
+          "default": false
+        },
+        "mssql.objectExplorer.expandTimeout": {
+          "type": "number",
+          "default": 45,
+          "minimum": 1,
+          "description": "%mssql.objectExplorer.expandTimeout%"
         }
       }
     }

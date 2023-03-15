@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // Collection of Non-localizable Constants
+export const vscodeAppName = 'code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
@@ -45,7 +46,11 @@ export const cmdRefreshObjectExplorerNode = 'mssql.refreshObjectExplorerNode';
 export const cmdDisconnectObjectExplorerNode = 'mssql.disconnectObjectExplorerNode';
 export const cmdObjectExplorerNodeSignIn = 'mssql.objectExplorerNodeSignIn';
 export const cmdConnectObjectExplorerNode = 'mssql.connectObjectExplorerNode';
+export const cmdConnectObjectExplorerProfile = 'mssql.connectObjectExplorerProfile';
 export const cmdOpenObjectExplorerCommand = 'workbench.view.extension.objectExplorer';
+export const cmdObjectExplorerGroupBySchemaFlagName = 'mssql.objectExplorer.groupBySchema';
+export const cmdObjectExplorerEnableGroupBySchemaCommand = 'mssql.objectExplorer.enableGroupBySchema';
+export const cmdObjectExplorerDisableGroupBySchemaCommand = 'mssql.objectExplorer.disableGroupBySchema';
 export const cmdScriptSelect = 'mssql.scriptSelect';
 export const cmdScriptCreate = 'mssql.scriptCreate';
 export const cmdScriptDelete = 'mssql.scriptDelete';
@@ -59,9 +64,15 @@ export const cmdAzureSignIn = 'azure-account.login';
 export const cmdAzureSignInWithDeviceCode = 'azure-account.loginWithDeviceCode';
 export const cmdAzureSignInToCloud = 'azure-account.loginToCloud';
 export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
+export const cmdAadAddAccount = 'mssql.addAadAccount';
+export const piiLogging = 'piiLogging';
+export const mssqlPiiLogging = 'mssql.piiLogging';
+export const azureAuthLibrary = 'mssql.azureAuthenticationLibrary';
+export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
+export const defaultCommandTimeout = 30;
 export const azureDatabase = 'Azure';
 export const azureMfa = 'AzureMFA';
 export const defaultPortNumber = 1433;
@@ -71,6 +82,7 @@ export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
+export const errorSSLCertificateValidationFailed = -2146893019;
 export const maxDisplayedStatusTextLength = 50;
 export const outputContentTypeRoot = 'root';
 export const outputContentTypeMessages = 'messages';
@@ -94,6 +106,7 @@ export const timeToWaitForLanguageModeChange = 10000.0;
 export const macOpenSslHelpLink = 'https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration';
 export const gettingStartedGuideLink = 'https://aka.ms/mssql-getting-started';
 export const changelogLink = 'https://aka.ms/vscode-mssql-changes';
+export const encryptionBlogLink = 'https://aka.ms/vscodemssql-connection';
 export const integratedAuthHelpLink = 'https://aka.ms/vscode-mssql-integratedauth';
 export const sqlToolsServiceCrashLink = 'https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues';
 export const azureAccountExtensionId = 'ms-vscode.azure-account';
@@ -101,6 +114,8 @@ export const databaseString = 'Database';
 export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 export const configAzureAccount = 'azureAccount';
+export const adalCacheFileName = 'azureTokenCache-azure_publicCloud';
+export const msalCacheFileName = 'azureTokenCacheMsal-azure_publicCloud';
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';
@@ -151,3 +166,9 @@ export const tenantDisplayName = 'Microsoft';
 export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
 export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
 export const unixResourceClientPath = 'SqlToolsResourceProviderService';
+
+export enum Platform {
+	Windows = 'win32',
+	Mac = 'darwin',
+	Linux = 'linux'
+}

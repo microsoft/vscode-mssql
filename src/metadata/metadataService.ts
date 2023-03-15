@@ -10,19 +10,19 @@ import { ObjectMetadata } from 'vscode-mssql';
 
 export class MetadataService {
 
-    private _client: SqlToolsServiceClient;
+	private _client: SqlToolsServiceClient;
 
-    constructor(
-        private _connectionManager: ConnectionManager
-    ) {
-        this._client = this._connectionManager.client;
-    }
+	constructor(
+		private _connectionManager: ConnectionManager
+	) {
+		this._client = this._connectionManager.client;
+	}
 
-    public async getMetadata(uri: string): Promise<ObjectMetadata[]> {
-        let metadataParams: MetadataQueryParams = {
-            ownerUri: uri
-        };
-        let result = await this._client.sendRequest(MetadataQueryRequest.type, metadataParams);
-        return result.metadata;
-    }
+	public async getMetadata(uri: string): Promise<ObjectMetadata[]> {
+		let metadataParams: MetadataQueryParams = {
+			ownerUri: uri
+		};
+		let result = await this._client.sendRequest(MetadataQueryRequest.type, metadataParams);
+		return result.metadata;
+	}
 }

@@ -1,10 +1,84 @@
 # Change Log
 
+## Version 1.17.0
+* Release date: January 25, 2023
+* Release status: GA
+
+### What's new in 1.17.0
+* BREAKING CHANGE - Connection Encryption is now Enabled by Default - https://github.com/microsoft/vscode-mssql/pull/17484
+	- Moving to Microsoft.Data.SqlClient 5.0.1 dependency with STS Update
+	- By default, saved connection profiles will connect with encryption and only accept trusted server certificates. This is a breaking change for some connections and some saved connection profiles may require updates to connect.
+	- See https://aka.ms/vscodemssql-connection for more information. 
+* Introduced [HostNameInCertificate](https://learn.microsoft.com/dotnet/api/microsoft.data.sqlclient.sqlconnectionstringbuilder.hostnameincertificate#microsoft-data-sqlclient-sqlconnectionstringbuilder-hostnameincertificate) Connection Property.
+* Exposed getServerInfo API to allow Target Platform to be set automatically when creating SQL Projects from database 
+	- https://github.com/microsoft/azuredatastudio/issues/20363 
+	- https://github.com/microsoft/azuredatastudio/issues/20576
+* Accessibility Fixes
+	- Fixed Screen Reader not reading status of "loading query" - https://github.com/microsoft/vscode-mssql/issues/17451
+	- Fixed Screen Reader to announce messages table in a clearer manner - https://github.com/microsoft/vscode-mssql/issues/17450
+	- Fixed issue where Results Table was not minimizable with keyboard - https://github.com/microsoft/vscode-mssql/issues/17452
+
+### SQL Grammar Fixes & Updates
+* Fix function syntax highlighting including non-function keywords https://github.com/microsoft/vscode-mssql/pull/17462
+* Match "other" keywords last - https://github.com/microsoft/vscode-mssql/pull/17464
+* Syntax Update (Mostly from SQL 2022) - https://github.com/microsoft/vscode-mssql/pull/17465
+* Add SELECT ALL and FULL/NATURAL JOIN syntax to grammar - https://github.com/microsoft/vscode-mssql/pull/17508
+	- Special thank you to https://github.com/hanohrs for their help with this!
+
+## Version 1.16.0
+* Release date: August 24, 2022
+* Release status: GA
+
+### What's new in 1.16.0
+* Added support for creating Azure Functions with SQL Bindings from Views in the Object Explorer
+* Fixed issues with Integrated authentication in Unix environments https://github.com/microsoft/vscode-mssql/issues/17333
+
+## Version 1.15.0
+* Release date: June 15, 2022
+* Release status: GA
+
+### What's new in 1.15.0
+* Add support for dependent extensions
+* [Fixed issues](https://github.com/microsoft/vscode-mssql/milestone/22?closed=1)
+
+## Version 1.14.2
+* Release date: May 20, 2022
+* Release status: GA
+
+### What's new in 1.14.2
+* Adds extension APIs for managing Azure resources
+
+## Version 1.14.1
+* Release date: April 22, 2022
+* Release status: GA
+
+### What's new in 1.14.1
+* Fix regression in Object Explorer that causes timeouts expanding the Tables folder. https://github.com/microsoft/azuredatastudio/issues/19166
+
+## Version 1.14.0
+* Release date: April 20, 2022
+* Release status: GA
+
+### What's new in 1.14.0
+* All SQL bindings functionality released in 1.13 moved to SQL bindings extension in extension pack
+* Fixed connection string generated for SQL bindings on connection to `<default>` database. https://github.com/microsoft/vscode-mssql/issues/17267
+* Fixed error with heirarchyID data type in results pane. https://github.com/microsoft/sqltoolsservice/pull/1450
+
+## Version 1.13.0
+* Release date: February 24, 2022
+* Release status: GA
+
+### What's new in 1.13.0
+* Adds context menu item for object explorer table nodes to create an Azure Function with SQL binding for that table
+* Updated SqlParser to fix some intellisense issues
+* Fixed decimal datatype handling https://github.com/microsoft/azuredatastudio/issues/275
+* Fixed BatchParser execution error caused by missing resource files https://github.com/microsoft/vscode-mssql/issues/17221
+
 ## Version 1.12.0
 * Release date: December 15, 2021
 * Release status: GA
 
-## What's new in 1.20.0
+### What's new in 1.12.0
 * Fix AAD token refresh bugs
 * Fix Azure SQL DB connectivity bug
 * Add support for SELECT * column expansion
@@ -14,14 +88,14 @@
 * Release date: November 17, 2021
 * Release status: GA
 
-## What's new in 1.11.1
+### What's new in 1.11.1
 * Hotfix for credential keychain prompt on VS Code startup https://github.com/microsoft/vscode-mssql/issues/17064
 
 ## Version 1.11.0
 * Release date: October 27, 2021
 * Release status: GA
 
-## What's new in 1.11.0
+### What's new in 1.11.0
 * SQL Project and Workspace preview extension pack
 * Support Apple M1 with Rosetta2 enabled
 * Fixed bugs in Azure Active Directory authentication
@@ -33,14 +107,14 @@
 * Release date: January 20, 2021
 * Release status: GA
 
-## What's new in 1.10.1
+### What's new in 1.10.1
 * Fixed bug in AAD support causing Integrated Auth connections to fail
 
 ## Version 1.10.0
 * Release date: December 10, 2020
 * Release status: GA
 
-## What's new in 1.10.0
+### What's new in 1.10.0
 * Azure Active Directory authentication support
 * Accessibility improvements
 * Fixes in SQL syntax colorization with comments
@@ -57,7 +131,7 @@
 * Release date: March 5, 2020
 * Release status: GA
 
-## What's new in 1.9.0
+### What's new in 1.9.0
 * Added new Query History feature
 * Added Run Query and Cancel Query buttons on the editor
 * Added rows affected count to status bar
@@ -77,7 +151,7 @@
 * Release date: December 16, 2019
 * Release status: GA
 
-## What's new in 1.8.0
+### What's new in 1.8.0
 * Added support for scripting context menu actions on the Object Explorer
 * Added support for adding a new firewall rule to a server
 * Added differentiation between database connections and server connections
@@ -93,14 +167,14 @@ We would like to thank all our users who raised issues.
 * Release date: November 11, 2019
 * Release status: GA
 
-## What's new in 1.7.1
+### What's new in 1.7.1
 * Fix missing row count and dropped Object Explorer connections bugs
 
 ## Version 1.7.0
 * Release date: October 17, 2019
 * Release status: GA
 
-## What's new in 1.7.0
+### What's new in 1.7.0
 * Announcing IntelliCode support
 * SQL Server Connections viewlet
 * Added support for SQLCMD Mode
@@ -118,7 +192,7 @@ We would like to thank all our users who raised issues.
 * Release date: April 22, 2019
 * Release status: GA
 
-## What's new in 1.6.0
+### What's new in 1.6.0
 * Extension install no longer requires reloading VS Code
 * Update Query Results Webview API calls for compatibility with VS Code May release
 * Fix "Save as CSV" exception
@@ -130,7 +204,7 @@ We would like to thank all our users who raised issues.
 * Release date: March 22, 2019
 * Release status: GA
 
-## What's new in 1.5.0
+### What's new in 1.5.0
 
 * Update vscode-languageclient to fix issue [#1194 Refresh Intellisence cache option don't work](https://github.com/Microsoft/vscode-mssql/issues/1194)
 * Import CSV export options such as setting delimiter, line separator, encoding and include headers
@@ -155,7 +229,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Release date: June 28, 2018
 * Release status: GA
 
-## What's new in 1.4.0
+### What's new in 1.4.0
 * Updated to .NET Core 2.1 to address [issues where some Mac users encountered connection errors](https://github.com/Microsoft/vscode-mssql/issues/1090)
 * Added support for Deepin Linux
 * Updated query results display to use VS Code's new webview API
@@ -173,7 +247,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Release date: April 10, 2018
 * Release status: GA
 
-## What's new in this version
+### What's new in this version
 * Fixed issue [#1036](https://github.com/Microsoft/vscode-mssql/issues/1036) where copy/pasting Unicode text can fail on Mac depending on the active locale environment variable
 * Fixed issue [#1066](https://github.com/Microsoft/vscode-mssql/issues/1066) RAND() function using GO N produces the same result
 * Syntax highlighting more closely matches SSMS for local variables, global system varaibles, unicode string literals, bracketed identifiers, and built in functions
@@ -189,7 +263,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Release date: December 11, 2017
 * Release status: GA
 
-## What's new in this version
+### What's new in this version
 * Fixed an issue where peek definition and go to definition failed for stored procedures.
 * Improved performance for peek definition and go to definition.
 * Added support for `GO N` syntax.
@@ -205,7 +279,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Release date: November 8, 2017
 * Release status: GA
 
-## What's new in this version
+### What's new in this version
 * Support for multi-root workspaces in preparation for the feature's release in Visual Studio Code. When running with multi-root workspaces, users will be able to set many configuration options at the folder level, including connection configurations.
 * Exporting results as CSV, JSON, or Excel files now shows the operating system's save-as dialog instead of using text-based dialogs to name the saved file.
 * Fixed issue [#998](https://github.com/Microsoft/vscode-mssql/issues/998) Intellisense against Azure SQL DBs very inconsistent.
@@ -216,7 +290,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Release status: GA
 
 
-## What's new in this version
+### What's new in this version
 * Support for macOS High Sierra.
 * VSCode-Insiders users will see their connections are now read from and saved to the Insiders settings file instead of the regular Visual Studio Code location. Fixes [#242](https://github.com/Microsoft/vscode-mssql/issues/242).
 * Saving connections no longer affects comments in the settings file [#959](https://github.com/Microsoft/vscode-mssql/issues/959).
@@ -237,7 +311,7 @@ If you see a string untranslated in your language, you can make an impact and he
 * Release date: July 18, 2017
 * Release status: GA
 
-## What's new in this version
+### What's new in this version
 * Preview support for Integrated Authentication (aka Windows Authentication) on Mac and Linux. To use this you need to create a Kerberos ticket on your Mac or Linux machine - [see this guide](https://aka.ms/vscode-mssql-integratedauth) for the simple process. Once this is set up, you can say goodbye to SQL passwords when connecting to your servers!
   * This feature is in preview in .Net Core 2.0. The [corefx repository](https://github.com/dotnet/corefx) tracks issues related to SqlClient and we recommend issues setting up Kerberos tickets be raised there.
   * macOS "El Capitan" and older versions will not support this feature or any other features requiring a new SqlToolsService version. To benefit from Integrated Authentication, "Execute Current Statement" and other new features we recommend updating to the latest OS version.
@@ -260,7 +334,7 @@ If you see a string untranslated in your language, you can make an impact and he
 * Release date: May 2, 2017
 * Release status: GA
 
-## What's new in this version
+### What's new in this version
 * We are please to announce the official GA of the MSSQL extension! This release focuses on stability, localization support, and top customer feedback issues
 * The MSSQL extension is now localized. Use the `Configure Language` command in VSCode to change to your language of choice. Restart the application and the MSSQL extension will now support your language for all commands and messages.
 * Community-added support for `Save as Excel`, which supports saving to .xlsx format and opening this in the default application for .xlsx files on your machine.
@@ -280,7 +354,7 @@ We would like to thank all our users who raised issues, and in particular the fo
 * Release date: March 1, 2017
 * Release status: Public Preview
 
-## What's new in this version
+### What's new in this version
 * T-SQL formatting support is now included. This is a highly requested feature, and this release includes a basic parser
 with configuration options for some of the most common T-SQL formatting styles.
   * To format a .sql file, right-click and choose `Format Document`.
@@ -303,14 +377,14 @@ schema changes
 * Release date: February 2, 2017
 * Release status: Public Preview
 
-## What's new in this version
+### What's new in this version
 * HotFix for issue [#669] "Results Panel not Refreshing Automatically". This issue impacts users on VSCode 1.9.0 or greater.
 
 ## Version 0.2.0
 * Release date: December, 2016
 * Release status: Public Preview
 
-## What's new in this version
+### What's new in this version
 * Peek Definition and Go To Definition support for Tables, Views and Stored Procedures. For a query such as `select * from dbo.Person` you can right-click on `dbo.Person` and see it as a `CREATE TABLE` script.
 * Support for additional operating systems including Linux Mint and Elementary OS. See [Operating Systems] for the list of supported OSes.
 * Output window now shows status of SQL tools service installation to make it easier to track install-time issues.
@@ -323,7 +397,7 @@ The extension supports result set-level updates with per-row updates coming in a
 * Release date: Nov 16, 2016
 * Release status: Public Preview
 
-## What's new in this version
+### What's new in this version
 
 The SQL Tools team is excited to announce that the first public preview release of **mssql** for Visual Studio Code is available in the Visual Studio Code Marketplace. Try it and provide your feedback or report any issue to [GitHub Issue Tracker].
 

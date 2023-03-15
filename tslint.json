@@ -3,7 +3,6 @@
   "rules": {
     "align": [
       true,
-      "parameters",
       "statements"
     ],
     "ban": false,
@@ -22,7 +21,7 @@
     ],
     "indent": [
       true,
-      "spaces"
+      "tabs"
     ],
     "interface-name": true,
     "jsdoc-format": true,

@@ -3,97 +3,102 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {Runtime, PlatformInformation} from '../models/platform';
-import Config from  '../configurations/config';
+import { Runtime, PlatformInformation } from '../models/platform';
+import Config from '../configurations/config';
 import ServiceDownloadProvider from './serviceDownloadProvider';
 import DecompressProvider from './decompressProvider';
 import HttpClient from './httpClient';
 import ServerProvider from './server';
-import {IStatusView} from './interfaces';
-import {ILogger} from '../models/interfaces';
+import { IStatusView } from './interfaces';
+import { ILogger } from '../models/interfaces';
 
 export class StubStatusView implements IStatusView {
-    installingService(): void {
-        console.log('...');
-    }
-    serviceInstalled(): void {
-        console.log('Service installed');
-    }
-    serviceInstallationFailed(): void {
-        console.log('Service installation failed');
-    }
-    updateServiceDownloadingProgress(downloadPercentage: number): void {
-        if (downloadPercentage === 100) {
-             process.stdout.write('100%');
-        }
-    }
+
+	constructor(private _log: (msg: string) => void) { }
+
+	installingService(): void {
+		this._log('...');
+	}
+	serviceInstalled(): void {
+		this._log('Service installed');
+	}
+	serviceInstallationFailed(): void {
+		this._log('Service installation failed');
+	}
+	updateServiceDownloadingProgress(downloadPercentage: number): void {
+		if (downloadPercentage === 100) {
+			this._log('100%');
+		}
+	}
 }
 
 export class StubLogger implements ILogger {
-    logDebug(message: string): void {
-        console.log(message);
-    }
+	constructor(private _log: (msg: string) => void) { }
 
-    increaseIndent(): void {
-        console.log('increaseIndent');
-    }
+	logDebug(message: string): void {
+		this._log(message);
+	}
 
-    decreaseIndent(): void {
-        console.log('decreaseIndent');
-    }
+	increaseIndent(): void {
+		// no-op
+	}
 
-    append(message?: string): void {
-        process.stdout.write(message);
-    }
-    appendLine(message?: string): void {
-        console.log(message);
-    }
+	decreaseIndent(): void {
+		// no-op
+	}
+
+	append(message?: string): void {
+		this._log(message);
+	}
+	appendLine(message?: string): void {
+		this._log(message);
+	}
 }
 
 const config = new Config();
-const logger = new StubLogger();
-const statusView = new StubStatusView();
+const logger = new StubLogger(console.log);
+const statusView = new StubStatusView(console.log);
 const httpClient = new HttpClient();
 const decompressProvider = new DecompressProvider();
 let downloadProvider = new ServiceDownloadProvider(config, logger, statusView, httpClient, decompressProvider);
-let serverProvider = new  ServerProvider(downloadProvider, config, statusView);
+let serverProvider = new ServerProvider(downloadProvider, config, statusView);
 
 /*
 * Installs the service for the given platform if it's not already installed.
 */
 export function installService(runtime: Runtime): Promise<String> {
-    if (runtime === undefined) {
-        return PlatformInformation.getCurrent().then( platformInfo => {
-            if (platformInfo.isValidRuntime) {
-                return serverProvider.getOrDownloadServer(platformInfo.runtimeId);
-            } else {
-                throw new Error('unsupported runtime');
-            }
-        });
-    } else {
-        return serverProvider.getOrDownloadServer(runtime);
-    }
+	if (runtime === undefined) {
+		return PlatformInformation.getCurrent().then(platformInfo => {
+			if (platformInfo.isValidRuntime) {
+				return serverProvider.getOrDownloadServer(platformInfo.runtimeId);
+			} else {
+				throw new Error('unsupported runtime');
+			}
+		});
+	} else {
+		return serverProvider.getOrDownloadServer(runtime);
+	}
 }
 
 /*
 * Returns the install folder path for given platform.
 */
 export function getServiceInstallDirectory(runtime: Runtime): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        if (runtime === undefined) {
-            PlatformInformation.getCurrent().then( platformInfo => {
-                if (platformInfo.isValidRuntime) {
-                    resolve(downloadProvider.getInstallDirectory(platformInfo.runtimeId));
-                } else {
-                    reject('unsupported runtime');
-                }
-            }).catch( error => {
-                reject(error);
-            });
-        } else {
-            resolve(downloadProvider.getInstallDirectory(runtime));
-        }
-    });
+	return new Promise<string>((resolve, reject) => {
+		if (runtime === undefined) {
+			PlatformInformation.getCurrent().then(platformInfo => {
+				if (platformInfo.isValidRuntime) {
+					resolve(downloadProvider.getOrMakeInstallDirectory(platformInfo.runtimeId));
+				} else {
+					reject('unsupported runtime');
+				}
+			}).catch(error => {
+				reject(error);
+			});
+		} else {
+			resolve(downloadProvider.getOrMakeInstallDirectory(runtime));
+		}
+	});
 
 }
 
@@ -101,9 +106,9 @@ export function getServiceInstallDirectory(runtime: Runtime): Promise<string> {
 * Returns the path to the root folder of service install location.
 */
 export function getServiceInstallDirectoryRoot(): string {
-    let directoryPath: string = downloadProvider.getInstallDirectoryRoot();
-    directoryPath = directoryPath.replace('\\{#version#}\\{#platform#}', '');
-    directoryPath = directoryPath.replace('/{#version#}/{#platform#}', '');
-    return directoryPath;
+	let directoryPath: string = downloadProvider.getInstallDirectoryRoot();
+	directoryPath = directoryPath.replace('\\{#version#}\\{#platform#}', '');
+	directoryPath = directoryPath.replace('/{#version#}/{#platform#}', '');
+	return directoryPath;
 }
 

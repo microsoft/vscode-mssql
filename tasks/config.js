@@ -9,20 +9,20 @@ var htmloutroot = path.resolve(outRoot, 'src/views/htmlcontent');
 var localization = path.resolve(projectRoot, 'localization');
 
 var config = {
-    paths: {
-        project: {
-            root: projectRoot,
-            localization: localization,
-            out: outRoot
-        },
-        extension: {
-            root: srcRoot
-        },
-        html: {
-            root: htmlcontentRoot,
-            out: htmloutroot
-        }
-    }
+	paths: {
+		project: {
+			root: projectRoot,
+			localization: localization,
+			out: outRoot
+		},
+		extension: {
+			root: srcRoot
+		},
+		html: {
+			root: htmlcontentRoot,
+			out: htmloutroot
+		}
+	}
 };
 
 module.exports = config;
