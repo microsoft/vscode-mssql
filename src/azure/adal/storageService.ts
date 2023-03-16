@@ -4,21 +4,47 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SecureStorageProvider } from '@microsoft/ads-adal-library';
-import { constants as fsConstants, promises as fs } from 'fs';
+import { promises as fs, constants as fsConstants } from 'fs';
+import { Logger } from '../../models/logger';
 
-export class AlreadyInitializedError extends Error {
-}
+export type ReadWriteHook = (contents: string) => Promise<string>;
+const noOpHook: ReadWriteHook = async (contents): Promise<string> => {
+	return contents;
+};
+
+export class AlreadyInitializedError extends Error { }
 
 export class StorageService implements SecureStorageProvider {
-
-	private db: { [key: string]: string };
-	private isSaving = false;
+	private db: { [key: string]: string } = {};
 	private isDirty = false;
-	private saveInterval: NodeJS.Timer;
+	private isSaving = false;
+	private isInitialized = false;
+	private saveInterval: NodeJS.Timer | undefined;
 
 	constructor(
-		private readonly dbPath: string
-	) {
+		private readonly dbPath: string,
+		private readonly _logger: Logger,
+		private readHook: ReadWriteHook = noOpHook,
+		private writeHook: ReadWriteHook = noOpHook
+	) { }
+
+	/**
+	 * Sets a new read hook. Throws AlreadyInitializedError if the database has already started.
+	 * @param hook
+	 */
+	public setReadHook(hook: ReadWriteHook): void {
+		if (this.isInitialized) {
+			throw new AlreadyInitializedError();
+		}
+		this.readHook = hook;
+	}
+
+	/**
+	 * Sets a new write hook.
+	 * @param hook
+	 */
+	public setWriteHook(hook: ReadWriteHook): void {
+		this.writeHook = hook;
 	}
 
 	public async set(key: string, value: string): Promise<void> {
@@ -63,13 +89,15 @@ export class StorageService implements SecureStorageProvider {
 	}
 
 	public async initialize(): Promise<void> {
-		this.setupSaveTask();
+		this.isInitialized = true;
+		this.saveInterval = setInterval(() => this.save(), 20 * 1000);
 		let fileContents: string;
 		try {
 			await fs.access(this.dbPath, fsConstants.R_OK);
-			fileContents = await fs.readFile(this.dbPath, { encoding: 'utf-8' });
+			fileContents = await fs.readFile(this.dbPath, { encoding: 'utf8' });
+			fileContents = await this.readHook(fileContents);
 		} catch (ex) {
-			console.log(`file db does not exist ${ex}`);
+			this._logger.error(`Error occurred when initializing File Database from file system cache, ADAL cache will be reset: ${ex}`);
 			await this.createFile();
 			this.db = {};
 			this.isDirty = true;
@@ -79,22 +107,23 @@ export class StorageService implements SecureStorageProvider {
 		try {
 			this.db = JSON.parse(fileContents);
 		} catch (ex) {
-			console.log(`DB was corrupted, resetting it ${ex}`);
+			this._logger.error(`Error occurred when reading file database contents as JSON, ADAL cache will be reset: ${ex}`);
 			await this.createFile();
 			this.db = {};
 		}
 	}
 
-	private setupSaveTask(): NodeJS.Timer {
-		return setInterval(() => this.save(), 20 * 1000);
-	}
-
 	public async shutdown(): Promise<void> {
 		await this.waitForFileSave();
-		clearInterval((this.saveInterval));
+		if (this.saveInterval) {
+			clearInterval(this.saveInterval);
+		}
 		await this.save();
 	}
 
+	/**
+	 * This doesn't need to be called as a timer will automatically call it.
+	 */
 	public async save(): Promise<void> {
 		try {
 			await this.waitForFileSave();
@@ -104,10 +133,13 @@ export class StorageService implements SecureStorageProvider {
 
 			this.isSaving = true;
 			let contents = JSON.stringify(this.db);
-			await fs.writeFile(this.dbPath, contents, { encoding: 'utf-8' });
+			contents = await this.writeHook(contents);
+
+			await fs.writeFile(this.dbPath, contents, { encoding: 'utf8' });
+
 			this.isDirty = false;
 		} catch (ex) {
-			console.log(`File saving is erroring! ${ex}`);
+			this._logger.error(`Error occurred while saving cache contents to file storage, this may cause issues with ADAL cache persistence: ${ex}`);
 		} finally {
 			this.isSaving = false;
 		}
@@ -149,6 +181,7 @@ export class StorageService implements SecureStorageProvider {
 			}
 		}
 	}
+
 	private async createFile(): Promise<void> {
 		return fs.writeFile(this.dbPath, '', { encoding: 'utf8' });
 	}
