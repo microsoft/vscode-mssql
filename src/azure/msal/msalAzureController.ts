@@ -68,7 +68,7 @@ export class MsalAzureController extends AzureController {
 	/**
 	 * Clears old cache file that is no longer needed on system.
 	 */
-	private async clearOldCacheIfExists() {
+	private async clearOldCacheIfExists(): Promise<void> {
 		let filePath = path.join(await this.findOrMakeStoragePath(), oldMsalCacheFileName);
 		try {
 			await fsPromises.access(filePath);

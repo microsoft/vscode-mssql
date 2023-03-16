@@ -193,7 +193,7 @@ export abstract class MsalAzureAuth {
 		}
 	}
 
-	public async loadTokenCache() {
+	public async loadTokenCache(): Promise<void> {
 		let tokenCache = this.clientApplication.getTokenCache();
 		tokenCache.getAllAccounts();
 	}
