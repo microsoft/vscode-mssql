@@ -7,8 +7,9 @@ import * as keytarType from 'keytar';
 import { join } from 'path';
 import VscodeWrapper from '../../controllers/vscodeWrapper';
 import { ICredentialStore } from '../../credentialstore/icredentialstore';
+import { AuthLibrary } from '../../models/contracts/azure';
 import { Logger } from '../../models/logger';
-import { ADALFileEncryptionHelper } from './adalFileEncryptionHelper';
+import { FileEncryptionHelper } from '../fileEncryptionHelper';
 import { StorageService } from './storageService';
 
 export type MultipleAccountsResponse = { account: string, password: string }[];
@@ -47,7 +48,6 @@ async function getFileKeytar(db: StorageService): Promise<Keytar | undefined> {
 	return fileKeytar;
 }
 
-
 export type Keytar = {
 	getPassword: typeof keytarType['getPassword'];
 	setPassword: typeof keytarType['setPassword'];
@@ -75,7 +75,7 @@ export class SimpleTokenCache implements CachingProvider {
 		this._serviceName = this._serviceName.replace(/-/g, '_');
 
 		let filePath = join(this._userStoragePath, this._serviceName);
-		let fileEncryptionHelper = new ADALFileEncryptionHelper(this._credentialStore, this._vscodeWrapper, this._logger, this._serviceName);
+		let fileEncryptionHelper = new FileEncryptionHelper(AuthLibrary.ADAL, this._credentialStore, this._vscodeWrapper, this._logger, this._serviceName);
 		this.db = new StorageService(filePath, this._logger, fileEncryptionHelper.fileOpener, fileEncryptionHelper.fileSaver);
 		await this.db.initialize();
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as os from 'os';
+import * as crypto from 'crypto';
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
@@ -10,27 +11,80 @@ import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { AuthLibrary } from '../models/contracts/azure';
 import { Logger } from '../models/logger';
 
-export abstract class FileEncryptionHelper {
+export class FileEncryptionHelper {
 	constructor(
+		private readonly _authLibrary: AuthLibrary,
 		private readonly _credentialStore: ICredentialStore,
 		private readonly _vscodeWrapper: VscodeWrapper,
 		protected readonly _logger: Logger,
 		protected readonly _fileName: string
-	) { }
+	) {
+		this._algorithm = this._authLibrary === AuthLibrary.MSAL ? 'aes-256-cbc' : 'aes-256-gcm';
+		this._bufferEncoding = this._authLibrary === AuthLibrary.MSAL ? 'base64' : 'hex';
+	}
 
-	protected _authLibrary!: AuthLibrary;
+	private _algorithm: string;
+	private _bufferEncoding: BufferEncoding;
+	private _ivBuffer: Buffer | undefined;
+	private _keyBuffer: Buffer | undefined;
 
-	public abstract fileOpener(content: string): Promise<string>;
+	public async init(): Promise<void> {
 
-	public abstract fileSaver(content: string): Promise<string>;
+		const ivCredId = `${this._fileName}-iv`;
+		const keyCredId = `${this._fileName}-key`;
 
-	public abstract init(): Promise<void>;
+		const iv = await this.readEncryptionKey(ivCredId);
+		const key = await this.readEncryptionKey(keyCredId);
 
-	protected async readEncryptionKey(credentialId: string): Promise<string | undefined> {
+		if (!iv || !key) {
+			this._ivBuffer = crypto.randomBytes(16);
+			this._keyBuffer = crypto.randomBytes(32);
+
+			if (!await this.saveEncryptionKey(ivCredId, this._ivBuffer.toString(this._bufferEncoding))
+				|| !await this.saveEncryptionKey(keyCredId, this._keyBuffer.toString(this._bufferEncoding))) {
+				this._logger.error(`Encryption keys could not be saved in credential store, this will cause access token persistence issues.`);
+				await this.showCredSaveErrorOnWindows();
+			}
+		} else {
+			this._ivBuffer = Buffer.from(iv, this._bufferEncoding);
+			this._keyBuffer = Buffer.from(key, this._bufferEncoding);
+		}
+	}
+
+	fileSaver = async (content: string): Promise<string> => {
+		if (!this._keyBuffer || !this._ivBuffer) {
+			await this.init();
+		}
+		const cipherIv = crypto.createCipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
+		let cipherText = `${cipherIv.update(content, 'utf8', this._bufferEncoding)}${cipherIv.final('hex')}`;
+		if (this._authLibrary === AuthLibrary.ADAL) {
+			cipherText += `%${(cipherIv as crypto.CipherGCM).getAuthTag().toString(this._bufferEncoding)}`
+		}
+		return cipherText;
+	}
+
+	fileOpener = async (content: string): Promise<string> => {
+		if (!this._keyBuffer || !this._ivBuffer) {
+			await this.init();
+		}
+		let plaintext = content;
+		const decipherIv = crypto.createDecipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
+		if (this._authLibrary === AuthLibrary.ADAL) {
+			const split = content.split('%');
+			if (split.length !== 2) {
+				throw new Error('File didn\'t contain the auth tag.');
+			}
+			(decipherIv as crypto.DecipherGCM).setAuthTag(Buffer.from(split[1], this._bufferEncoding));
+			plaintext = split[0];
+		}
+		return `${decipherIv.update(plaintext, this._bufferEncoding, 'utf8')}${decipherIv.final('utf8')}`;
+	}
+
+	private async readEncryptionKey(credentialId: string): Promise<string | undefined> {
 		return (await this._credentialStore.readCredential(credentialId))?.password;
 	}
 
-	protected async saveEncryptionKey(credentialId: string, password: string): Promise<boolean> {
+	private async saveEncryptionKey(credentialId: string, password: string): Promise<boolean> {
 		let status: boolean = false;
 		try {
 			await this._credentialStore.saveCredential(credentialId, password)
@@ -52,7 +106,7 @@ export abstract class FileEncryptionHelper {
 		return status;
 	}
 
-	protected async showCredSaveErrorOnWindows(): Promise<void> {
+	private async showCredSaveErrorOnWindows(): Promise<void> {
 		if (os.platform() === 'win32') {
 			await this._vscodeWrapper.showWarningMessageAdvanced(LocalizedConstants.msgAzureCredStoreSaveFailedError, undefined,
 				[LocalizedConstants.reloadChoice, LocalizedConstants.cancel])
