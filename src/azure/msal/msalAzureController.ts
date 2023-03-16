@@ -17,6 +17,9 @@ import { MsalAzureAuth } from './msalAzureAuth';
 import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
 import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
 import { MsalCachePluginProvider } from './msalCachePlugin';
+import { promises as fsPromises } from 'fs';
+import * as path from 'path';
+import { oldMsalCacheFileName } from '../constants';
 
 export class MsalAzureController extends AzureController {
 	private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
@@ -48,6 +51,33 @@ export class MsalAzureController extends AzureController {
 		// Since this setting is only applicable to MSAL, we can enable it safely only for MSAL Controller
 		if (getEnableSqlAuthenticationProviderConfig()) {
 			this._isSqlAuthProviderEnabled = true;
+		}
+	}
+
+	public async loadTokenCache(): Promise<void> {
+		let authType = getAzureActiveDirectoryConfig();
+		if (!this._authMappings.has(authType)) {
+			await this.handleAuthMapping();
+		}
+
+		let azureAuth = await this.getAzureAuthInstance(authType!);
+		await this.clearOldCacheIfExists();
+		azureAuth.loadTokenCache();
+	}
+
+	/**
+	 * Clears old cache file that is no longer needed on system.
+	 */
+	private async clearOldCacheIfExists(): Promise<void> {
+		let filePath = path.join(await this.findOrMakeStoragePath(), oldMsalCacheFileName);
+		try {
+			await fsPromises.access(filePath);
+			await fsPromises.rm(filePath);
+			this.logger.verbose(`Old cache file removed successfully.`);
+		} catch (e) {
+			if (e.code !== 'ENOENT') {
+				this.logger.verbose(`Error occurred while removing old cache file: ${e}`);
+			} // else file doesn't exist.
 		}
 	}
 
@@ -150,7 +180,7 @@ export class MsalAzureController extends AzureController {
 	public async handleAuthMapping(): Promise<void> {
 		if (!this.clientApplication) {
 			let storagePath = await this.findOrMakeStoragePath();
-			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this.logger);
+			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this._vscodeWrapper, this.logger, this._credentialStore);
 			const msalConfiguration: Configuration = {
 				auth: {
 					clientId: this._providerSettings.clientId,

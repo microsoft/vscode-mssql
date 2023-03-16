@@ -20,6 +20,7 @@ import { AuthLibrary, AzureAuthType, IAADResource, IAccount, IProviderSettings, 
 import { Logger, LogLevel } from '../models/logger';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { AccountStore } from './accountStore';
+import { ICredentialStore } from '../credentialstore/icredentialstore';
 
 export abstract class AzureController {
 	protected _providerSettings: IProviderSettings;
@@ -32,6 +33,7 @@ export abstract class AzureController {
 	constructor(
 		protected context: vscode.ExtensionContext,
 		protected prompter: IPrompter,
+		protected _credentialStore: ICredentialStore,
 		protected _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		if (!this._vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
@@ -54,6 +56,8 @@ export abstract class AzureController {
 	}
 
 	public abstract init(): void;
+
+	public abstract loadTokenCache(): Promise<void>;
 
 	public abstract login(authType: AzureAuthType): Promise<IAccount | undefined>;
 

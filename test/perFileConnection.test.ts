@@ -102,7 +102,7 @@ function createTestConnectionManager(
 		connectionStore = connectionStoreMock.object;
 	}
 
-	return new ConnectionManager(TestExtensionContext.object, statusView, prompterMock.object, serviceClient, wrapper, connectionStore, connectionUI);
+	return new ConnectionManager(TestExtensionContext.object, statusView, prompterMock.object, serviceClient, wrapper, connectionStore, undefined, connectionUI);
 }
 
 function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResult {

@@ -267,9 +267,14 @@ export default class MainController implements vscode.Disposable {
 			this.onDidOpenTextDocument(activeTextEditor.document);
 		}
 		await this.sanitizeConnectionProfiles();
+		await this.loadTokenCache();
 		Utils.logDebug('activated.');
 		this._initialized = true;
 		return true;
+	}
+
+	private async loadTokenCache(): Promise<void> {
+		await this._connectionMgr.azureController.loadTokenCache();
 	}
 
 	/**

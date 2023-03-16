@@ -45,6 +45,8 @@ export const accountsAzureCloudSection = accountsSection + '.' + azureSection + 
 
 export const azureTenantConfigSection = azureSection + '.' + tenantSection + '.' + configSection;
 
+export const oldMsalCacheFileName = 'azureTokenCacheMsal-azure_publicCloud';
+
 /** MSAL Account version */
 export const accountVersion = '2.0';
 
