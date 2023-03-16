@@ -10,6 +10,7 @@ import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { AuthLibrary } from '../models/contracts/azure';
 import { Logger } from '../models/logger';
+import { azureAccountProviderCredentials } from './constants';
 
 export class FileEncryptionHelper {
 	constructor(
@@ -82,21 +83,32 @@ export class FileEncryptionHelper {
 		return `${decipherIv.update(encryptedText, this._binaryEncoding, 'utf8')}${decipherIv.final('utf8')}`;
 	}
 
+	/**
+	 * Creates credential Id similar to ADS to prevent creating multiple credentials
+	 * and this will also be read by STS in same pattern.
+	 * @param credentialId Credential Id
+	 * @returns Prefix credential Id.
+	 */
+	private getPrefixedCredentialId(credentialId: string): string {
+		return `${azureAccountProviderCredentials}|${credentialId}`;
+	}
+
 	private async readEncryptionKey(credentialId: string): Promise<string | undefined> {
-		return (await this._credentialStore.readCredential(credentialId))?.password;
+		return (await this._credentialStore.readCredential(this.getPrefixedCredentialId(credentialId)))?.password;
 	}
 
 	private async saveEncryptionKey(credentialId: string, password: string): Promise<boolean> {
 		let status: boolean = false;
+		let prefixedCredentialId = this.getPrefixedCredentialId(credentialId);
 		try {
-			await this._credentialStore.saveCredential(credentialId, password)
+			await this._credentialStore.saveCredential(prefixedCredentialId, password)
 				.then((result) => {
 					status = result;
 					if (result) {
-						this._logger.info(`FileEncryptionHelper: Successfully saved encryption key ${credentialId} for ${this._authLibrary} persistent cache encryption in system credential store.`);
+						this._logger.info(`FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for ${this._authLibrary} persistent cache encryption in system credential store.`);
 					}
 				}, (e => {
-					throw Error(`FileEncryptionHelper: Could not save encryption key: ${credentialId}: ${e}`);
+					throw Error(`FileEncryptionHelper: Could not save encryption key: ${prefixedCredentialId}: ${e}`);
 				}));
 		} catch (ex) {
 			if (os.platform() === 'win32') {
