@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as crypto from 'crypto';
+import VscodeWrapper from '../../controllers/vscodeWrapper';
 import { ICredentialStore } from '../../credentialstore/icredentialstore';
 import { AuthLibrary } from '../../models/contracts/azure';
 import { Logger } from '../../models/logger';
@@ -15,9 +16,10 @@ import { FileEncryptionHelper } from '../fileEncryptionHelper';
  */
 export class MSALFileEncryptionHelper extends FileEncryptionHelper {
 	constructor(_credentialStore: ICredentialStore,
+		_vscodeWrapper: VscodeWrapper,
 		_logger: Logger,
 		_fileName: string) {
-		super(_credentialStore, _logger, _fileName);
+		super(_credentialStore, _vscodeWrapper, _logger, _fileName);
 		this._authLibrary = AuthLibrary.MSAL;
 	}
 
@@ -25,13 +27,21 @@ export class MSALFileEncryptionHelper extends FileEncryptionHelper {
 	private _keyBuffer: Buffer | undefined;
 
 	async init(): Promise<void> {
-		const iv = await this.readEncryptionKey(`${this._fileName}-iv`);
-		const key = await this.readEncryptionKey(`${this._fileName}-key`);
+		const ivCredId = `${this._fileName}-iv`;
+		const keyCredId = `${this._fileName}-key`;
+
+		const iv = await this.readEncryptionKey(ivCredId);
+		const key = await this.readEncryptionKey(keyCredId);
+
 		if (!iv || !key) {
 			this._ivBuffer = crypto.randomBytes(16);
 			this._keyBuffer = crypto.randomBytes(32);
-			await this.saveEncryptionKey(`${this._fileName}-iv`, this._ivBuffer.toString('utf16le'));
-			await this.saveEncryptionKey(`${this._fileName}-key`, this._keyBuffer.toString('utf16le'));
+
+			if (!await this.saveEncryptionKey(ivCredId, this._ivBuffer.toString('utf16le'))
+				|| !await this.saveEncryptionKey(keyCredId, this._keyBuffer.toString('utf16le'))) {
+				this._logger.error(`Encryption keys could not be saved in credential store, this will cause access token persistence issues.`);
+				await this.showCredSaveErrorOnWindows();
+			}
 		} else {
 			this._ivBuffer = Buffer.from(iv, 'utf16le');
 			this._keyBuffer = Buffer.from(key, 'utf16le');

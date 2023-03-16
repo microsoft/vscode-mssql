@@ -8,6 +8,7 @@ import { promises as fsPromises } from 'fs';
 
 import * as lockFile from 'lockfile';
 import * as path from 'path';
+import VscodeWrapper from '../../controllers/vscodeWrapper';
 import { ICredentialStore } from '../../credentialstore/icredentialstore';
 import { Logger } from '../../models/logger';
 import { FileEncryptionHelper } from '../fileEncryptionHelper';
@@ -17,12 +18,13 @@ export class MsalCachePluginProvider {
 	constructor(
 		private readonly _serviceName: string,
 		private readonly _msalFilePath: string,
+		private readonly _vscodeWrapper: VscodeWrapper,
 		private readonly _logger: Logger,
 		private readonly _credentialStore: ICredentialStore
 	) {
 		this._msalFilePath = path.join(this._msalFilePath, this._serviceName);
 		this._serviceName = this._serviceName.replace(/-/, '_');
-		this._fileEncryptionHelper = new MSALFileEncryptionHelper(this._credentialStore, this._logger, this._serviceName);
+		this._fileEncryptionHelper = new MSALFileEncryptionHelper(this._credentialStore, this._vscodeWrapper, this._logger, this._serviceName);
 		this._logger.verbose(`MsalCachePluginProvider: Using cache path ${_msalFilePath} and serviceName ${_serviceName}`);
 	}
 

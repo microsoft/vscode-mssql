@@ -150,7 +150,7 @@ export class MsalAzureController extends AzureController {
 	public async handleAuthMapping(): Promise<void> {
 		if (!this.clientApplication) {
 			let storagePath = await this.findOrMakeStoragePath();
-			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this.logger, this._credentialStore);
+			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this._vscodeWrapper, this.logger, this._credentialStore);
 			const msalConfiguration: Configuration = {
 				auth: {
 					clientId: this._providerSettings.clientId,
