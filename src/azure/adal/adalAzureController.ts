@@ -41,6 +41,13 @@ export class AdalAzureController extends AzureController {
 		this.azureMessageDisplayer = new AzureMessageDisplayer();
 	}
 
+	public async loadTokenCache(): Promise<void> {
+		let authType = getAzureActiveDirectoryConfig();
+		if (!this._authMappings.has(authType)) {
+			await this.handleAuthMapping();
+		}
+	}
+
 	public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
 		let azureAuth = await this.getAzureAuthInstance(authType);
 		let response = await azureAuth!.startLogin();

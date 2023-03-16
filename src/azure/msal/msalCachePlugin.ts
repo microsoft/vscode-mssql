@@ -56,8 +56,8 @@ export class MsalCachePluginProvider {
 					// File doesn't exist, log and continue
 					this._logger.verbose(`MsalCachePlugin: Cache file not found on disk: ${e.code}`);
 				} else {
-					this._logger.error(`MsalCachePlugin: Failed to read from cache file: ${e}`);
-					throw e;
+					this._logger.error(`MsalCachePlugin: Failed to read from cache file, file contents will be cleared : ${e}`);
+					await fsPromises.writeFile(this._msalFilePath, '', { encoding: 'utf8' });
 				}
 			} finally {
 				lockFile.unlockSync(lockFilePath);
