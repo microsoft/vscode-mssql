@@ -9,20 +9,15 @@ import { MetadataQueryParams, MetadataQueryRequest } from '../models/contracts/m
 import { ObjectMetadata } from 'vscode-mssql';
 
 export class MetadataService {
-
 	private _client: SqlToolsServiceClient;
 
-	constructor(
-		private _connectionManager: ConnectionManager
-	) {
+	constructor(private _connectionManager: ConnectionManager) {
 		this._client = this._connectionManager.client;
 	}
 
 	public async getMetadata(uri: string): Promise<ObjectMetadata[]> {
-		let metadataParams: MetadataQueryParams = {
-			ownerUri: uri
-		};
-		let result = await this._client.sendRequest(MetadataQueryRequest.type, metadataParams);
-		return result.metadata;
+		const metadataParams: MetadataQueryParams = { ownerUri: uri };
+		const { metadata } = await this._client.sendRequest(MetadataQueryRequest.type, metadataParams);
+		return metadata;
 	}
 }
