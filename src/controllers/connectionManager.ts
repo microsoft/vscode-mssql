@@ -12,7 +12,7 @@ import { AdalAzureController } from '../azure/adal/adalAzureController';
 import { AzureController } from '../azure/azureController';
 import { MsalAzureController } from '../azure/msal/msalAzureController';
 import providerSettings from '../azure/providerSettings';
-import { getAzureAuthLibraryConfig } from '../azure/utils';
+import { getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { CredentialStore } from '../credentialstore/credentialstore';
@@ -116,8 +116,10 @@ export default class ConnectionManager {
 			this.vscodeWrapper = new VscodeWrapper();
 		}
 
+		const isEnabledSqlAuthProvider = getEnableSqlAuthenticationProviderConfig();
+
 		if (!this._credentialStore) {
-			this._credentialStore = new CredentialStore(context);
+			this._credentialStore = new CredentialStore(context, this.client, isEnabledSqlAuthProvider);
 		}
 
 		if (!this._connectionStore) {

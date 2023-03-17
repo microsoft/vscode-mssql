@@ -3,6 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
+import { azureAccountProviderCredentials } from '../constants/constants';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import * as Contracts from '../models/contracts';
 import * as Utils from '../models/utils';
@@ -18,7 +19,8 @@ export class CredentialStore implements ICredentialStore {
 
 	constructor(
 		private _context: vscode.ExtensionContext,
-		private _client?: SqlToolsServerClient
+		private _client: SqlToolsServerClient,
+		private _isEnabledSqlAuthProvider: boolean
 	) {
 		if (!this._client) {
 			this._client = SqlToolsServerClient.instance;
@@ -34,7 +36,7 @@ export class CredentialStore implements ICredentialStore {
 	public async readCredential(credentialId: string): Promise<Contracts.Credential> {
 		let cred: Contracts.Credential = new Contracts.Credential();
 		cred.credentialId = credentialId;
-		if (Utils.isLinux) {
+		if (this.shouldUseSecretStorageOnLinux(credentialId)) {
 			cred.password = await this._secretStorage.get(credentialId);
 			return cred;
 		}
@@ -45,10 +47,7 @@ export class CredentialStore implements ICredentialStore {
 		let cred: Contracts.Credential = new Contracts.Credential();
 		cred.credentialId = credentialId;
 		cred.password = password;
-		/* This is only done for linux because this is going to be
-		* the default credential system for linux in a future release
-		*/
-		if (Utils.isLinux) {
+		if (this.shouldUseSecretStorageOnLinux(credentialId)) {
 			await this._secretStorage.store(credentialId, password);
 		}
 		const success = await this._client!.sendRequest(Contracts.SaveCredentialRequest.type, cred);
@@ -58,10 +57,18 @@ export class CredentialStore implements ICredentialStore {
 	public async deleteCredential(credentialId: string): Promise<boolean> {
 		let cred: Contracts.Credential = new Contracts.Credential();
 		cred.credentialId = credentialId;
-		if (Utils.isLinux) {
+		if (this.shouldUseSecretStorageOnLinux(credentialId)) {
 			await this._secretStorage.delete(credentialId);
 		}
 		const success = await this._client!.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
 		return success;
+	}
+
+	/**
+	 * Use Secret storage on Linux for storing secrets except encryption keys for Azure token cache,
+	 * as they're also required in backend SqlToolsServiceLayer to be fetched and used for accessing MSAL cache.
+	 */
+	private shouldUseSecretStorageOnLinux(credentialId: string): boolean {
+		return Utils.isLinux && !this._isEnabledSqlAuthProvider && !credentialId.startsWith(azureAccountProviderCredentials);
 	}
 }
