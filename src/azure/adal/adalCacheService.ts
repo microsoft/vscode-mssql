@@ -5,6 +5,11 @@
 import { CachingProvider } from '@microsoft/ads-adal-library';
 import * as keytarType from 'keytar';
 import { join } from 'path';
+import VscodeWrapper from '../../controllers/vscodeWrapper';
+import { ICredentialStore } from '../../credentialstore/icredentialstore';
+import { AuthLibrary } from '../../models/contracts/azure';
+import { Logger } from '../../models/logger';
+import { FileEncryptionHelper } from '../fileEncryptionHelper';
 import { StorageService } from './storageService';
 
 export type MultipleAccountsResponse = { account: string, password: string }[];
@@ -23,8 +28,7 @@ async function getFileKeytar(db: StorageService): Promise<Keytar | undefined> {
 		},
 
 		async deletePassword(service: string, account: string): Promise<boolean> {
-			await db.remove(`${service}${separator}${account}`);
-			return true;
+			return await db.remove(`${service}${separator}${account}`);
 		},
 
 		async getPasswords(service: string): Promise<MultipleAccountsResponse> {
@@ -44,7 +48,6 @@ async function getFileKeytar(db: StorageService): Promise<Keytar | undefined> {
 	return fileKeytar;
 }
 
-
 export type Keytar = {
 	getPassword: typeof keytarType['getPassword'];
 	setPassword: typeof keytarType['setPassword'];
@@ -58,18 +61,22 @@ export class SimpleTokenCache implements CachingProvider {
 	public db: StorageService;
 
 	constructor(
-		private serviceName: string,
-		private readonly userStoragePath: string
+		private _serviceName: string,
+		private readonly _credentialStore: ICredentialStore,
+		private readonly _vscodeWrapper: VscodeWrapper,
+		private readonly _logger: Logger,
+		private readonly _userStoragePath: string
 	) { }
 
 	// tslint:disable:no-empty
 	async clear(): Promise<void> { }
 
 	async init(): Promise<void> {
-		this.serviceName = this.serviceName.replace(/-/g, '_');
+		this._serviceName = this._serviceName.replace(/-/g, '_');
 
-		let filePath = join(this.userStoragePath, this.serviceName);
-		this.db = new StorageService(filePath);
+		let filePath = join(this._userStoragePath, this._serviceName);
+		let fileEncryptionHelper = new FileEncryptionHelper(AuthLibrary.ADAL, this._credentialStore, this._vscodeWrapper, this._logger, this._serviceName);
+		this.db = new StorageService(filePath, this._logger, fileEncryptionHelper.fileOpener, fileEncryptionHelper.fileSaver);
 		await this.db.initialize();
 
 		this.keytar = await getFileKeytar(this.db);
@@ -82,7 +89,7 @@ export class SimpleTokenCache implements CachingProvider {
 
 		try {
 			const keytar = this.getKeytar();
-			return await keytar.setPassword(this.serviceName, id, key);
+			return await keytar.setPassword(this._serviceName, id, key);
 		} catch (ex) {
 			console.warn(`Adding key failed: ${ex}`);
 		}
@@ -91,7 +98,7 @@ export class SimpleTokenCache implements CachingProvider {
 	async get(id: string): Promise<string | undefined> {
 		try {
 			const keytar = this.getKeytar();
-			const result = await keytar.getPassword(this.serviceName, id);
+			const result = await keytar.getPassword(this._serviceName, id);
 
 			if (result === null) {
 				return undefined;
@@ -107,7 +114,7 @@ export class SimpleTokenCache implements CachingProvider {
 	async remove(id: string): Promise<boolean> {
 		try {
 			const keytar = this.getKeytar();
-			return await keytar.deletePassword(this.serviceName, id);
+			return await keytar.deletePassword(this._serviceName, id);
 		} catch (ex) {
 			console.warn(`Clearing key failed: ${ex}`);
 			return false;
@@ -117,7 +124,7 @@ export class SimpleTokenCache implements CachingProvider {
 	async findCredentials(prefix: string): Promise<{ account: string, password: string }[]> {
 		try {
 			const keytar = this.getKeytar();
-			return await keytar.getPasswords(`${this.serviceName}${separator}${prefix}`);
+			return await keytar.getPasswords(`${this._serviceName}${separator}${prefix}`);
 		} catch (ex) {
 			console.warn(`Finding credentials failed: ${ex}`);
 			return [];
