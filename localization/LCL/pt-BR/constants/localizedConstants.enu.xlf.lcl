@@ -694,15 +694,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";encryptionChangePromptDescription" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[A extensão mssql para VS Code agora tem a criptografia habilitada por padrão para todas as conexões do SQL Server. Isso pode fazer com que suas conexões existentes não funcionem mais, a menos que certas propriedades de conexão relacionadas à Criptografia sejam alteradas. Recomendamos que você visite o link abaixo para obter mais informações.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";endIpAddressPrompt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[End IP]]></Val>
@@ -892,15 +883,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";moreInformation" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[More information]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Mais informações]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";msgAccountNotFound" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Account not found]]></Val>
@@ -936,6 +918,15 @@
           <Val><![CDATA[Add Connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Adicionar conexão]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";msgAzureCredStoreSaveFailedError" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[As chaves para cache de token não puderam ser salvas no armazenamento de credenciais, isso pode causar problemas de persistência de token de acesso do Azure e instabilidades de conexão. É provável que o SqlTools tenha atingido o limite de armazenamento de credenciais no Windows, limpe pelo menos 2 credenciais que comecem com "Microsoft.SqlTools|" no Gerenciador de Credenciais do Windows e recarregue.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
