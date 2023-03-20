@@ -546,6 +546,10 @@
         <source xml:lang="en">Error when refreshing token</source>
         <target state="translated">토큰을 새로 고치는 동안 오류 발생</target>
       </trans-unit>
+      <trans-unit id="msgAzureCredStoreSaveFailedError">
+        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target state="translated">토큰 캐시에 대한 키를 자격 증명 저장소에 저장할 수 없습니다. 이로 인해 Azure 액세스 토큰 지속성 문제가 발생할 수 있으며 연결이 불안정해질 수 있습니다. SqlTools가 Windows의 자격 증명 저장 한도에 도달한 것 같습니다. Windows 자격 증명 관리자 "Microsoft.SqlTools|"로 시작하는 자격 증명을 2개 이상 지우고 다시 로드하세요.</target>
+      </trans-unit>
       <trans-unit id="msgRefreshConnection">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <target state="translated">{1} URI와의 ${0} 연결을 새로 고치지 못했습니다. 잘못된 연결이 발생했습니다.</target>

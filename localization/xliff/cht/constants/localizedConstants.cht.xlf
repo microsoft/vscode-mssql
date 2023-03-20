@@ -546,6 +546,10 @@
         <source xml:lang="en">Error when refreshing token</source>
         <target state="translated">重新整理組織權杖時發生錯誤</target>
       </trans-unit>
+      <trans-unit id="msgAzureCredStoreSaveFailedError">
+        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target state="translated">權杖快取的金鑰無法儲存在認證存放區中，這可能會導致 Azure 存取權杖持續性問題和連線不穩定。SqlTools 可能已達到 Windows 的認證儲存限制，請清除 Windows 認證管理員中以 「Microsoft.SqlTools|」 開始的至少 2 個認證，然後重新載入。</target>
+      </trans-unit>
       <trans-unit id="msgRefreshConnection">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <target state="translated">無法重新整理 URI 為 {1} 的連線 ${0}，連線結果無效。</target>

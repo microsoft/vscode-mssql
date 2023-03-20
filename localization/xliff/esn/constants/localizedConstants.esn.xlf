@@ -546,6 +546,10 @@
         <source xml:lang="en">Error when refreshing token</source>
         <target state="translated">Error al actualizar el token</target>
       </trans-unit>
+      <trans-unit id="msgAzureCredStoreSaveFailedError">
+        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target state="translated">No se pudieron guardar las claves para la memoria caché de tokens en el almacén de credenciales. Esto puede provocar problemas de persistencia de tokens de acceso de Azure e inestabilidades de conexión. Es probable que SqlTools haya alcanzado el límite de almacenamiento de credenciales en Windows. Borre al menos 2 credenciales que empiecen con "Microsoft.SqlTools|" en el Administrador de credenciales de Windows y vuelva a cargar.</target>
+      </trans-unit>
       <trans-unit id="msgRefreshConnection">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <target state="translated">No se pudo actualizar la conexión ${0} con uri {1}, resultado de conexión no válido.</target>
