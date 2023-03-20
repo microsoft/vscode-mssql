@@ -546,6 +546,10 @@
         <source xml:lang="en">Error when refreshing token</source>
         <target state="translated">刷新令牌时出错</target>
       </trans-unit>
+      <trans-unit id="msgAzureCredStoreSaveFailedError">
+        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target state="translated">无法在凭据存储中保存令牌缓存的密钥，这可能会导致 Azure 访问令牌持久性问题和连接不稳定。SqlTools 可能已达到 Windows 上的凭据存储限制，请清除至少 2 个以 Windows 凭据管理器中的“Microsoft.SqlTools|”开头的凭据，然后重新加载。</target>
+      </trans-unit>
       <trans-unit id="msgRefreshConnection">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <target state="translated">无法刷新 URI 为 {1} 的连接 ${0}，无效的连接结果。</target>
