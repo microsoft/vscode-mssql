@@ -1,5 +1,19 @@
 # Change Log
 
+## Version 1.18.0
+* Release date: March 22, 2023
+* Release status: GA
+
+### What's new in 1.18.0
+* Upgraded AAD Azure account management to support MSAL authentication.
+* Added native MacOS and Windows arm64 support - https://github.com/microsoft/vscode-mssql/issues/17614
+* Added "Group by Schema" to Object Explorer - https://github.com/microsoft/vscode-mssql/pull/17543
+* Add Object Explorer connection timeout setting - https://github.com/microsoft/vscode-mssql/pull/17548
+* Accessibility Fixes
+	- Screen Reader is not reading the full information related to the database name - https://github.com/microsoft/vscode-mssql/issues/17204
+	- After pressing tab key from "More actions" keyboard focus is going to bottom status bar instead of going to the "messages" dropdown - https://github.com/microsoft/vscode-mssql/issues/17192
+  - Message window does not expand and collapse with the help of keyboard and shortcut key - https://github.com/microsoft/vscode-mssql/issues/1687
+
 ## Version 1.17.0
 * Release date: January 25, 2023
 * Release status: GA
@@ -8,10 +22,10 @@
 * BREAKING CHANGE - Connection Encryption is now Enabled by Default - https://github.com/microsoft/vscode-mssql/pull/17484
 	- Moving to Microsoft.Data.SqlClient 5.0.1 dependency with STS Update
 	- By default, saved connection profiles will connect with encryption and only accept trusted server certificates. This is a breaking change for some connections and some saved connection profiles may require updates to connect.
-	- See https://aka.ms/vscodemssql-connection for more information. 
+	- See https://aka.ms/vscodemssql-connection for more information.
 * Introduced [HostNameInCertificate](https://learn.microsoft.com/dotnet/api/microsoft.data.sqlclient.sqlconnectionstringbuilder.hostnameincertificate#microsoft-data-sqlclient-sqlconnectionstringbuilder-hostnameincertificate) Connection Property.
-* Exposed getServerInfo API to allow Target Platform to be set automatically when creating SQL Projects from database 
-	- https://github.com/microsoft/azuredatastudio/issues/20363 
+* Exposed getServerInfo API to allow Target Platform to be set automatically when creating SQL Projects from database
+	- https://github.com/microsoft/azuredatastudio/issues/20363
 	- https://github.com/microsoft/azuredatastudio/issues/20576
 * Accessibility Fixes
 	- Fixed Screen Reader not reading status of "loading query" - https://github.com/microsoft/vscode-mssql/issues/17451
