@@ -9,8 +9,11 @@ import * as LocalizedConstants from '../constants/localizedConstants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
 import { AuthLibrary } from '../models/contracts/azure';
+import { DidChangeEncryptionIVKeyParams, EncryptionKeysChangedNotification } from '../models/contracts/connection';
 import { Logger } from '../models/logger';
+import SqlToolsServerClient from '../languageservice/serviceclient';
 import { azureAccountProviderCredentials } from './constants';
+import { getEnableSqlAuthenticationProviderConfig } from './utils';
 
 export class FileEncryptionHelper {
 	constructor(
@@ -51,6 +54,14 @@ export class FileEncryptionHelper {
 		} else {
 			this._ivBuffer = Buffer.from(iv, this._bufferEncoding);
 			this._keyBuffer = Buffer.from(key, this._bufferEncoding);
+		}
+
+		if (this._authLibrary === AuthLibrary.MSAL && getEnableSqlAuthenticationProviderConfig()) {
+			SqlToolsServerClient.instance.sendNotification(EncryptionKeysChangedNotification.type,
+				<DidChangeEncryptionIVKeyParams>{
+					iv: this._ivBuffer.toString(this._bufferEncoding),
+					key: this._keyBuffer.toString(this._bufferEncoding)
+				});
 		}
 	}
 
