@@ -25,7 +25,8 @@ export enum Runtime {
 	SLES_12_2 = 'SLES_12_2',
 	RHEL_7 = 'RHEL_7',
 	Ubuntu_14 = 'Ubuntu_14',
-	Ubuntu_16 = 'Ubuntu_16'
+	Ubuntu_16 = 'Ubuntu_16',
+	Linux_ARM64 = 'Linux_ARM64'
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
@@ -326,6 +327,8 @@ export class PlatformInformation {
 					if (runtimeId !== Runtime.UnknownRuntime) {
 						return runtimeId;
 					}
+				} else if (architecture === 'aarch64') {
+					return Runtime.Linux_ARM64;
 				}
 
 				// If we got here, this is not a Linux distro or architecture that we currently support.

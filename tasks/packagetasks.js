@@ -61,7 +61,7 @@ gulp.task('package:offline', () => {
 	packages.push({ rid: 'win-x86', runtime: Runtime.Windows_86 });
 	packages.push({ rid: 'win-arm64', runtime: Runtime.Windows_ARM64 });
 	packages.push({ rid: 'osx.10.11-x64', runtime: Runtime.OSX_10_11_64 });
-	packages.push({ rid: 'osx.arm64', runtime: Runtime.OSX_ARM64 });
+	packages.push({ rid: 'osx-arm64', runtime: Runtime.OSX_ARM64 });
 	packages.push({ rid: 'centos.7-x64', runtime: Runtime.CentOS_7 });
 	packages.push({ rid: 'debian.8-x64', runtime: Runtime.Debian_8 });
 	packages.push({ rid: 'fedora.23-x64', runtime: Runtime.Fedora_23 });
@@ -69,6 +69,7 @@ gulp.task('package:offline', () => {
 	packages.push({ rid: 'rhel.7.2-x64', runtime: Runtime.RHEL_7 });
 	packages.push({ rid: 'ubuntu.14.04-x64', runtime: Runtime.Ubuntu_14 });
 	packages.push({ rid: 'ubuntu.16.04-x64', runtime: Runtime.Ubuntu_16 });
+	packages.push({ rid: 'linux-arm64', runtime: Runtime.Linux_ARM64 });
 	var promise = Promise.resolve();
 	cleanServiceInstallFolder().then(() => {
 		packages.forEach(data => {
