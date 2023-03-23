@@ -401,9 +401,6 @@
         <trans-unit id="mssql.authCodeGrant.description">
             <source xml:lang="en">Prompts users to sign in using their browser.</source>
         </trans-unit>
-         <trans-unit id="mssql.authLibrary.deprecated">
-            <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.</source>
-        </trans-unit>
         <trans-unit id="mssql.deviceCode.description">
             <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         </trans-unit>
