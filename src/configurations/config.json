@@ -15,7 +15,8 @@
       "SLES_12_2": "rhel-x64-net7.0.tar.gz",
       "RHEL_7": "rhel-x64-net7.0.tar.gz",
       "Ubuntu_14": "rhel-x64-net7.0.tar.gz",
-      "Ubuntu_16": "rhel-x64-net7.0.tar.gz"
+      "Ubuntu_16": "rhel-x64-net7.0.tar.gz",
+      "Linux_ARM64": "linux-arm64-net7.0.tar.gz"
     },
     "installDir": "../sqltoolsservice/{#version#}/{#platform#}",
     "executableFiles": [
