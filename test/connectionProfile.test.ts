@@ -79,7 +79,7 @@ suite('Connection Profile tests', () => {
 		mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
 		mockLogger = TypeMoq.Mock.ofType<Logger>();
 		mockContext.setup(c => c.globalState).returns(() => globalstate.object);
-		mockAzureController = new MsalAzureController(mockContext.object, mockPrompter.object);
+		mockAzureController = new MsalAzureController(mockContext.object, mockPrompter.object, undefined);
 		mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
 	});
 

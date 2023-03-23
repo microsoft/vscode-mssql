@@ -15,7 +15,9 @@ export enum Runtime {
 	UnknownRuntime = 'Unknown',
 	Windows_86 = 'Windows_86',
 	Windows_64 = 'Windows_64',
+	Windows_ARM64 = 'Windows_ARM64',
 	OSX_10_11_64 = 'OSX_10_11_64',
+	OSX_ARM64 = 'OSX_ARM64',
 	CentOS_7 = 'CentOS_7',
 	Debian_8 = 'Debian_8',
 	Fedora_23 = 'Fedora_23',
@@ -23,15 +25,18 @@ export enum Runtime {
 	SLES_12_2 = 'SLES_12_2',
 	RHEL_7 = 'RHEL_7',
 	Ubuntu_14 = 'Ubuntu_14',
-	Ubuntu_16 = 'Ubuntu_16'
+	Ubuntu_16 = 'Ubuntu_16',
+	Linux_ARM64 = 'Linux_ARM64'
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
 	switch (runtime) {
 		case Runtime.Windows_64:
 		case Runtime.Windows_86:
+		case Runtime.Windows_ARM64:
 			return 'Windows';
 		case Runtime.OSX_10_11_64:
+		case Runtime.OSX_ARM64:
 			return 'OSX';
 		case Runtime.CentOS_7:
 			return 'CentOS';
@@ -49,6 +54,8 @@ export function getRuntimeDisplayName(runtime: Runtime): string {
 			return 'Ubuntu14';
 		case Runtime.Ubuntu_16:
 			return 'Ubuntu16';
+		case Runtime.Linux_ARM64:
+			return 'Linux';
 		default:
 			return 'Unknown';
 	}
@@ -232,7 +239,9 @@ export class PlatformInformation {
 
 	private static getWindowsArchitecture(): Promise<string> {
 		return new Promise<string>((resolve, reject) => {
-			if (process.env.PROCESSOR_ARCHITECTURE === 'x86' && process.env.PROCESSOR_ARCHITEW6432 === undefined) {
+			if (process.env.PROCESSOR_ARCHITECTURE === 'ARM64') {
+				resolve('arm64');
+			} else if (process.env.PROCESSOR_ARCHITECTURE === 'x86' && process.env.PROCESSOR_ARCHITEW6432 === undefined) {
 				resolve('x86');
 			} else {
 				resolve('x86_64');
@@ -282,6 +291,7 @@ export class PlatformInformation {
 				switch (architecture) {
 					case 'x86': return Runtime.Windows_86;
 					case 'x86_64': return Runtime.Windows_64;
+					case 'arm64': return Runtime.Windows_ARM64;
 					default:
 				}
 
@@ -291,7 +301,7 @@ export class PlatformInformation {
 				switch (architecture) {
 					// Note: We return the El Capitan RID for Sierra
 					case 'x86_64': return Runtime.OSX_10_11_64;
-					case 'arm64': return Runtime.OSX_10_11_64;
+					case 'arm64': return Runtime.OSX_ARM64;
 					default:
 				}
 
@@ -319,6 +329,8 @@ export class PlatformInformation {
 					if (runtimeId !== Runtime.UnknownRuntime) {
 						return runtimeId;
 					}
+				} else if (architecture === 'aarch64') {
+					return Runtime.Linux_ARM64;
 				}
 
 				// If we got here, this is not a Linux distro or architecture that we currently support.

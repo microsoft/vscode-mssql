@@ -193,6 +193,11 @@ export abstract class MsalAzureAuth {
 		}
 	}
 
+	public async loadTokenCache(): Promise<void> {
+		let tokenCache = this.clientApplication.getTokenCache();
+		tokenCache.getAllAccounts();
+	}
+
 	public async getAccountFromMsalCache(accountId: string): Promise<AccountInfo | null> {
 		const cache = this.clientApplication.getTokenCache();
 		if (!cache) {
@@ -349,8 +354,8 @@ export abstract class MsalAzureAuth {
 			accountIssuer = Constants.AccountIssuer.Msft;
 		}
 
-		const name = tokenClaims.name ?? tokenClaims.email ?? tokenClaims.unique_name ?? tokenClaims.preferred_username;
-		const email = tokenClaims.email ?? tokenClaims.unique_name ?? tokenClaims.preferred_username;
+		const name = tokenClaims.name ?? tokenClaims.preferred_username ?? tokenClaims.email ?? tokenClaims.unique_name;
+		const email = tokenClaims.preferred_username ?? tokenClaims.email ?? tokenClaims.unique_name;
 
 		let owningTenant: ITenant = this.commonTenant; // default to common tenant
 

@@ -1,5 +1,5 @@
 {
-    "enabled": false,
+    "enabled": true,
     "relativeSourcePath": "../src",
     "relativeCoverageDir": "../../coverage",
     "ignorePatterns": ["**/node_modules/**", "**/libs/**", "**/lib/**", "**/htmlcontent/**/*.js", "**/*.bundle.js"],

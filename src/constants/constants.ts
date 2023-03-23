@@ -115,7 +115,8 @@ export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 export const configAzureAccount = 'azureAccount';
 export const adalCacheFileName = 'azureTokenCache-azure_publicCloud';
-export const msalCacheFileName = 'azureTokenCacheMsal-azure_publicCloud';
+export const azureAccountProviderCredentials = 'azureAccountProviderCredentials';
+export const msalCacheFileName = 'accessTokenCache';
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';
@@ -166,3 +167,9 @@ export const tenantDisplayName = 'Microsoft';
 export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
 export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
 export const unixResourceClientPath = 'SqlToolsResourceProviderService';
+
+export enum Platform {
+	Windows = 'win32',
+	Mac = 'darwin',
+	Linux = 'linux'
+}

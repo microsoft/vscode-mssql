@@ -33,7 +33,7 @@ testRunner.configure(
 	},
 	// Coverage configuration options
 	{
-		coverConfig: '../coverconfig.json'
+		coverConfig: '../../coverconfig.json'
 	});
 
 module.exports = testRunner;

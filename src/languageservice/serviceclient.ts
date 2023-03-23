@@ -27,7 +27,7 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
-import { getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { getAppDataPath, getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
 import { AuthLibrary } from '../models/contracts/azure';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
@@ -403,8 +403,9 @@ export default class SqlToolsServiceClient {
 				serverArgs.push('--enable-logging');
 			}
 
-			// Send application name to determine MSAL cache location
+			// Send application name and path to determine MSAL cache location
 			serverArgs.push('--application-name', 'code');
+			serverArgs.push('--data-path', getAppDataPath());
 
 			// Enable SQL Auth Provider registration for Azure MFA Authentication
 			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();

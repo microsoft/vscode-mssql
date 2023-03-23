@@ -12,7 +12,6 @@ import ValidationException from '../utils/validationException';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { IConnectionProfile, IConnectionCredentialsQuickPickItem, CredentialsQuickPickItemType, AuthenticationTypes } from '../models/interfaces';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
-import { CredentialStore } from '../credentialstore/credentialstore';
 import { IConnectionConfig } from '../connectionconfig/iconnectionconfig';
 import { ConnectionConfig } from '../connectionconfig/connectionconfig';
 import VscodeWrapper from '../controllers/vscodeWrapper';
@@ -30,12 +29,9 @@ export class ConnectionStore {
 	constructor(
 		private _context: vscode.ExtensionContext,
 		private _logger: Logger,
-		private _credentialStore?: ICredentialStore,
+		private _credentialStore: ICredentialStore,
 		private _connectionConfig?: IConnectionConfig,
 		private _vscodeWrapper?: VscodeWrapper) {
-		if (!this._credentialStore) {
-			this._credentialStore = new CredentialStore(this._context);
-		}
 		if (!this.vscodeWrapper) {
 			this.vscodeWrapper = new VscodeWrapper();
 		}

@@ -15,6 +15,7 @@ import providerSettings from '../azure/providerSettings';
 import { getAzureAuthLibraryConfig } from '../azure/utils';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import { CredentialStore } from '../credentialstore/credentialstore';
 import { FirewallService } from '../firewall/firewallService';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { ConnectionCredentials } from '../models/connectionCredentials';
@@ -100,6 +101,7 @@ export default class ConnectionManager {
 		private _client?: SqlToolsServerClient,
 		private _vscodeWrapper?: VscodeWrapper,
 		private _connectionStore?: ConnectionStore,
+		private _credentialStore?: CredentialStore,
 		private _connectionUI?: ConnectionUI,
 		private _accountStore?: AccountStore) {
 		this._statusView = statusView;
@@ -114,8 +116,12 @@ export default class ConnectionManager {
 			this.vscodeWrapper = new VscodeWrapper();
 		}
 
+		if (!this._credentialStore) {
+			this._credentialStore = new CredentialStore(context);
+		}
+
 		if (!this._connectionStore) {
-			this._connectionStore = new ConnectionStore(context, this.client?.logger);
+			this._connectionStore = new ConnectionStore(context, this.client?.logger, this._credentialStore);
 		}
 
 		if (!this._accountStore) {
@@ -129,9 +135,9 @@ export default class ConnectionManager {
 		if (!this.azureController) {
 			const authLibrary = getAzureAuthLibraryConfig();
 			if (authLibrary === AuthLibrary.ADAL) {
-				this.azureController = new AdalAzureController(context, prompter);
+				this.azureController = new AdalAzureController(context, prompter, this._credentialStore);
 			} else {
-				this.azureController = new MsalAzureController(context, prompter);
+				this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
 			}
 
 			this.azureController.init();

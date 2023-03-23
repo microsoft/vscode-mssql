@@ -14,6 +14,7 @@ import { AzureController } from '../azure/azureController';
 import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import { AzureAuthType, IAccount, ITenant } from './contracts/azure';
+import { getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -107,7 +108,10 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				name: LocalizedConstants.tenant,
 				message: LocalizedConstants.azureChooseTenant,
 				choices: tenantChoices,
-				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
+				default: defaultProfileValues ? defaultProfileValues.tenantId : undefined,
+				// Need not prompt for tenant question when 'Sql Authentication Provider' is enabled,
+				// since tenant information is received from Server with authority URI in the Login flow.
+				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1 && !getEnableSqlAuthenticationProviderConfig(),
 				onAnswered: (value: ITenant) => {
 					profile.tenantId = value.id;
 				}
