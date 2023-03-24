@@ -644,6 +644,9 @@
         <trans-unit id="reloadChoice">
             <source xml:lang="en">Reload Visual Studio Code</source>
         </trans-unit>
+         <trans-unit id="deprecatedMessage">
+            <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.</source>
+        </trans-unit>
     </body>
   </file>
 </xliff>
