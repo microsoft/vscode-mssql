@@ -595,6 +595,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Warnung: ADAL ist veraltet und wird voraussichtlich in einer zukünftigen Version entfernt werden. Bitte verwenden Sie stattdessen MSAL.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";disconnectConfirmationMsg" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to disconnect?]]></Val>
