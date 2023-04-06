@@ -346,7 +346,10 @@ export default class SqlToolsServiceClient {
 			documentSelector: ['sql'],
 			diagnosticCollectionName: 'mssql',
 			synchronize: {
-				configurationSection: 'mssql'
+				configurationSection: [
+					Constants.extensionConfigSectionName,
+					Constants.telemetryConfigSectionName
+				]
 			},
 			errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
 		};
