@@ -432,11 +432,12 @@ declare module 'vscode-mssql' {
 		importBacpac(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<DacFxResult>;
 		extractDacpac(databaseName: string, packageFilePath: string, applicationName: string, applicationVersion: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<DacFxResult>;
 		createProjectFromDatabase(databaseName: string, targetFilePath: string, applicationName: string, applicationVersion: string, ownerUri: string, extractTarget: ExtractTarget, taskExecutionMode: TaskExecutionMode, includePermissions?: boolean): Thenable<DacFxResult>;
-		deployDacpac(packageFilePath: string, databaseName: string, upgradeExisting: boolean, ownerUri: string, taskExecutionMode: TaskExecutionMode, sqlCommandVariableValues?: Record<string, string>, deploymentOptions?: DeploymentOptions): Thenable<DacFxResult>;
-		generateDeployScript(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode, sqlCommandVariableValues?: Record<string, string>, deploymentOptions?: DeploymentOptions): Thenable<DacFxResult>;
+		deployDacpac(packageFilePath: string, databaseName: string, upgradeExisting: boolean, ownerUri: string, taskExecutionMode: TaskExecutionMode, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: DeploymentOptions): Thenable<DacFxResult>;
+		generateDeployScript(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: DeploymentOptions): Thenable<DacFxResult>;
 		generateDeployPlan(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: TaskExecutionMode): Thenable<GenerateDeployPlanResult>;
 		getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
+		savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: DeploymentOptions): Thenable<ResultStatus>;
 	}
 
 	/**
@@ -665,37 +666,37 @@ declare module 'vscode-mssql' {
 		moveSqlObjectScript(projectUri: string, destinationPath: string, path: string): Promise<ResultStatus>;
 
 		/**
-		 * getDatabaseReferences
+		 * Get all the database references in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getDatabaseReferences(projectUri: string): Promise<GetDatabaseReferencesResult>;
 
 		/**
-		 * getFolders
+		 * Get all the folders in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getFolders(projectUri: string): Promise<GetFoldersResult>;
 
 		/**
-		 * getPostDeploymentScripts
+		 * Get all the post-deployment scripts in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getPostDeploymentScripts(projectUri: string): Promise<GetScriptsResult>;
 
 		/**
-		 * getPreDeploymentScripts
+		 * Get all the pre-deployment scripts in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getPreDeploymentScripts(projectUri: string): Promise<GetScriptsResult>;
 
 		/**
-		 * getSqlCmdVariables
+		 * Get all the SQLCMD variables in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getSqlCmdVariables(projectUri: string): Promise<GetSqlCmdVariablesResult>;
 
 		/**
-		 * getSqlObjectScripts
+		 * Get all the SQL object scripts in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getSqlObjectScripts(projectUri: string): Promise<GetScriptsResult>;
@@ -1041,7 +1042,7 @@ declare module 'vscode-mssql' {
 		packageFilePath: string;
 		databaseName: string;
 		upgradeExisting: boolean;
-		sqlCommandVariableValues?: Record<string, string>;
+		sqlCommandVariableValues?: Map<string, string>;
 		deploymentOptions?: DeploymentOptions;
 		ownerUri: string;
 		taskExecutionMode: TaskExecutionMode;
@@ -1050,7 +1051,7 @@ declare module 'vscode-mssql' {
 	export interface GenerateDeployScriptParams {
 		packageFilePath: string;
 		databaseName: string;
-		sqlCommandVariableValues?: Record<string, string>;
+		sqlCommandVariableValues?: Map<string, string>;
 		deploymentOptions?: DeploymentOptions;
 		ownerUri: string;
 		taskExecutionMode: TaskExecutionMode;
@@ -1076,6 +1077,14 @@ declare module 'vscode-mssql' {
 
 	export interface SchemaCompareOptionsResult extends ResultStatus {
 		defaultDeploymentOptions: DeploymentOptions;
+	}
+
+	export interface SavePublishProfileParams {
+		profilePath: string;
+		databaseName: string;
+		connectionString: string;
+		sqlCommandVariableValues?: Map<string, string>;
+		deploymentOptions?: DeploymentOptions;
 	}
 
 	//#region ISqlProjectsService
@@ -1348,7 +1357,7 @@ declare module 'vscode-mssql' {
 	}
 
 	interface UserDatabaseReference extends DatabaseReference {
-		databaseVariable: SqlCmdVariable;
+		databaseVariable?: SqlCmdVariable;
 		serverVariable?: SqlCmdVariable;
 	}
 
