@@ -117,7 +117,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 			databaseVariable: databaseVariable,
 			serverVariable: serverVariable,
 			databaseLiteral: databaseLiteral
-		}
+		};
 
 		return this._client.sendRequest(contracts.AddNugetPackageReferenceRequest.type, params);
 	}
