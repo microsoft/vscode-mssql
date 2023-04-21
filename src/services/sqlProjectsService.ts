@@ -98,7 +98,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param suppressMissingDependencies Whether to suppress missing dependencies
 	 * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
 	 * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
-		 If this is set, DatabaseVariable must also be set.
+	 * If this is set, DatabaseVariable must also be set.
 	 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
 	 */
 	public async addNugetPackageReference(
