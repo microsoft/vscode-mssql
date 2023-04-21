@@ -1083,7 +1083,7 @@ declare module 'vscode-mssql' {
 		profilePath: string;
 		databaseName: string;
 		connectionString: string;
-		sqlCommandVariableValues?: Record<string, string>;
+		sqlCommandVariableValues?: Map<string, string>;
 		deploymentOptions?: DeploymentOptions;
 	}
 
