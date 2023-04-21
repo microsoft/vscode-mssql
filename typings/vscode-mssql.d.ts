@@ -614,6 +614,26 @@ declare module 'vscode-mssql' {
 		updateProjectForCrossPlatform(projectUri: string): Promise<ResultStatus>;
 
 		/**
+		 * Set the DatabaseSource property of a .sqlproj file
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param databaseSource Source of the database schema, used in telemetry
+		 */
+		setDatabaseSource(projectUri: string, databaseSource: string): Promise<ResultStatus>;
+
+		/**
+		 * Set the DatabaseSchemaProvider property of a SQL project
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param databaseSchemaProvider New DatabaseSchemaProvider value, in the form "Microsoft.Data.Tools.Schema.Sql.SqlXYZDatabaseSchemaProvider"
+		 */
+		setDatabaseSchemaProvider(projectUri: string, databaseSchemaProvider: string): Promise<ResultStatus>;
+
+		/**
+		 * Get the cross-platform compatibility status for a project
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 */
+		getProjectProperties(projectUri: string): Promise<GetProjectPropertiesResult>;
+
+		/**
 		 * Add a SQLCMD variable to a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 * @param name Name of the SQLCMD variable
@@ -1299,21 +1319,6 @@ declare module 'vscode-mssql' {
 		 * Array of NuGet package references contained in the project
 		 */
 		nugetPackageReferences: NugetPackageReference[];
-	}
-
-	export interface GetDatabaseReferencesResult extends ResultStatus {
-		/**
-		 * Array of system database references contained in the project
-		 */
-		systemDatabaseReferences: SystemDatabaseReference[];
-		/**
-		 * Array of dacpac references contained in the project
-		 */
-		dacpacReferences: DacpacReference[];
-		/**
-		 * Array of SQL project references contained in the project
-		 */
-		sqlProjectReferences: SqlProjectReference[];
 	}
 
 	export interface GetFoldersResult extends ResultStatus {
