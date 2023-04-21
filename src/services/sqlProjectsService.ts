@@ -91,6 +91,38 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	}
 
 	/**
+	 * Add a nuget package database reference to a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param packageName Name of the referenced nuget package
+	 * @param packageVersion Version of the referenced nuget package
+	 * @param suppressMissingDependencies Whether to suppress missing dependencies
+	 * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
+	 * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
+	 * If this is set, DatabaseVariable must also be set.
+	 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
+	 */
+	public async addNugetPackageReference(
+		projectUri: string,
+		packageName: string,
+		packageVersion: string,
+		suppressMissingDependencies: boolean,
+		databaseVariable?: string,
+		serverVariable?: string,
+		databaseLiteral?: string): Promise<mssql.ResultStatus> {
+		const params: mssql.AddNugetPackageReferenceParams = {
+			projectUri: projectUri,
+			packageName: packageName,
+			packageVersion: packageVersion,
+			suppressMissingDependencies: suppressMissingDependencies,
+			databaseVariable: databaseVariable,
+			serverVariable: serverVariable,
+			databaseLiteral: databaseLiteral
+		};
+
+		return this._client.sendRequest(contracts.AddNugetPackageReferenceRequest.type, params);
+	}
+
+	/**
 	 * Delete a database reference from a project
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
