@@ -183,6 +183,10 @@ export namespace AddSystemDatabaseReferenceRequest {
 	export const type = new RequestType<mssql.AddSystemDatabaseReferenceParams, mssql.ResultStatus, void, void>('sqlprojects/addSystemDatabaseReference');
 }
 
+export namespace AddNugetPackageReferenceRequest {
+	export const type = new RequestType<mssql.AddNugetPackageReferenceParams, mssql.ResultStatus, void, void>('sqlprojects/addNugetPackageReference');
+}
+
 export namespace DeleteDatabaseReferenceRequest {
 	export const type = new RequestType<mssql.SqlProjectScriptParams, mssql.ResultStatus, void, void>('sqlprojects/deleteDatabaseReference');
 }

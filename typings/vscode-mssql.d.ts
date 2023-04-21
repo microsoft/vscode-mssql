@@ -1132,6 +1132,18 @@ declare module 'vscode-mssql' {
 		systemDatabase: SystemDatabase;
 	}
 
+	export interface AddNugetPackageReferenceParams extends AddUserDatabaseReferenceParams {
+		/**
+		 * NuGet package name
+		 */
+		packageName: string;
+
+		/**
+		 * NuGet package version
+		 */
+		packageVersion: string;
+	}
+
 	export interface AddUserDatabaseReferenceParams extends AddDatabaseReferenceParams {
 		/**
 		 * SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
