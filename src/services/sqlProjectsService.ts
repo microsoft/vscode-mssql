@@ -449,10 +449,10 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	}
 
 	/**
- * Exclude a folder and its contents from a project
- * @param projectUri Absolute path of the project, including .sqlproj
- * @param path Path of the folder, typically relative to the .sqlproj file
- */
+	 * Exclude a folder and its contents from a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param path Path of the folder, typically relative to the .sqlproj file
+	 */
 	public async excludeFolder(projectUri: string, path: string): Promise<mssql.ResultStatus> {
 		const params: mssql.FolderParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.ExcludeFolderRequest.type, params);
