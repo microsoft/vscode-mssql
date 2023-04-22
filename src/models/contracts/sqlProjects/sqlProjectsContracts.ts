@@ -77,6 +77,14 @@ export namespace GetFoldersRequest {
 	export const type = new RequestType<mssql.SqlProjectParams, mssql.GetFoldersResult, void, void>('sqlProjects/getFolders');
 }
 
+export namespace ExcludeFolderRequest {
+	export const type = new RequestType<mssql.FolderParams, mssql.ResultStatus, void, void>('sqlProjects/excludeFolder');
+}
+
+export namespace MoveFolderRequest {
+	export const type = new RequestType<mssql.MoveFolderParams, mssql.ResultStatus, void, void>('sqlProjects/moveFolder');
+}
+
 //#endregion
 
 //#region Pre/Post-deployment script functions

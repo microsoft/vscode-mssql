@@ -447,4 +447,25 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetSqlObjectScriptsRequest.type, params);
 	}
+
+	/**
+ * Exclude a folder and its contents from a project
+ * @param projectUri Absolute path of the project, including .sqlproj
+ * @param path Path of the folder, typically relative to the .sqlproj file
+ */
+	public async excludeFolder(projectUri: string, path: string): Promise<mssql.ResultStatus> {
+		const params: mssql.FolderParams = { projectUri: projectUri, path: path };
+		return this._client.sendRequest(contracts.ExcludeFolderRequest.type, params);
+	}
+
+	/**
+	 * Move a folder and its contents within a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param destinationPath Path of the folder, typically relative to the .sqlproj file
+	 * @param path Path of the folder, typically relative to the .sqlproj file
+	 */
+	public async moveFolder(projectUri: string, destinationPath: string, path: string): Promise<mssql.ResultStatus> {
+		const params: mssql.MoveFolderParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
+		return this._client.sendRequest(contracts.MoveFolderRequest.type, params);
+	}
 }
