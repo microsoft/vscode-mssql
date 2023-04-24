@@ -87,7 +87,7 @@ export class DacFxService implements mssql.IDacFxService {
 		upgradeExisting: boolean,
 		ownerUri: string,
 		taskExecutionMode: mssql.TaskExecutionMode,
-		sqlCommandVariableValues?: Record<string, string>,
+		sqlCommandVariableValues?: Map<string, string>,
 		deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.DacFxResult> {
 		const params: mssql.DeployParams = {
 			packageFilePath: packageFilePath,
@@ -106,7 +106,7 @@ export class DacFxService implements mssql.IDacFxService {
 		targetDatabaseName: string,
 		ownerUri: string,
 		taskExecutionMode: mssql.TaskExecutionMode,
-		sqlCommandVariableValues?: Record<string, string>,
+		sqlCommandVariableValues?: Map<string, string>,
 		deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.DacFxResult> {
 		const params: mssql.GenerateDeployScriptParams = {
 			packageFilePath: packageFilePath,
@@ -144,5 +144,9 @@ export class DacFxService implements mssql.IDacFxService {
 			createStreamingJobTsql: createStreamingJobTsql
 		};
 		return this._client.sendRequest(dacFxContracts.ValidateStreamingJobRequest.type, params);
+	}
+
+	savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.ResultStatus> {
+		throw new Error('Method not implemented.');
 	}
 }
