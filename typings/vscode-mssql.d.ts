@@ -720,6 +720,41 @@ declare module 'vscode-mssql' {
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getSqlObjectScripts(projectUri: string): Promise<GetScriptsResult>;
+
+		/**
+		 * Add a none script to a project
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+		 */
+		addNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
+
+		/**
+		 * Delete a none script from a project
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+		 */
+		deleteNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
+
+		/**
+		 * Exclude a none script from a project
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+		 */
+		excludeNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
+
+		/**
+		 * getNoneScripts
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 */
+		getNoneItems(projectUri: string): Promise<GetScriptsResult>;
+
+		/**
+		 * Move a none script in a project
+		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
+		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+		 */
+		moveNoneItem(projectUri: string, destinationPath: string, path: string): Promise<ResultStatus>;
 	}
 
 	/**
