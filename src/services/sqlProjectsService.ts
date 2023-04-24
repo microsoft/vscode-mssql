@@ -453,7 +453,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
 	 */
-	 public async addNoneItem(projectUri: string, path: string): Promise<mssql.ResultStatus> {
+	public async addNoneItem(projectUri: string, path: string): Promise<mssql.ResultStatus> {
 		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
 		return this._client.sendRequest(contracts.AddNoneItemRequest.type, params);
 	}
