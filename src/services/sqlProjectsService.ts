@@ -461,11 +461,11 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	/**
 	 * Move a folder and its contents within a project
 	 * @param projectUri Absolute path of the project, including .sqlproj
-	 * @param destinationPath Path of the folder, typically relative to the .sqlproj file
-	 * @param path Path of the folder, typically relative to the .sqlproj file
+	 * @param sourcePath Source path of the folder, typically relative to the .sqlproj file
+	 * @param destinationPath Destination path of the folder, typically relative to the .sqlproj file
 	 */
-	public async moveFolder(projectUri: string, destinationPath: string, path: string): Promise<mssql.ResultStatus> {
-		const params: mssql.MoveFolderParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
+	public async moveFolder(projectUri: string, sourcePath: string, destinationPath: string): Promise<mssql.ResultStatus> {
+		const params: mssql.MoveFolderParams = { projectUri: projectUri, path: sourcePath, destinationPath: destinationPath };
 		return this._client.sendRequest(contracts.MoveFolderRequest.type, params);
 	}
 
