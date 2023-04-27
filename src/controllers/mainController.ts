@@ -154,7 +154,7 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdAadRemoveAccount);
 			this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 			this.registerCommand(Constants.cmdAadAddAccount);
-			this._event.on(Constants.cmdAadAddAccount, () => this.addAddAccount());
+			this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
 
 			this.initializeObjectExplorer();
 
@@ -1241,7 +1241,7 @@ export default class MainController implements vscode.Disposable {
 		this.connectionManager.removeAccount(prompter);
 	}
 
-	public addAddAccount(): void {
+	public addAadAccount(): void {
 		this.connectionManager.addAccount();
 	}
 }

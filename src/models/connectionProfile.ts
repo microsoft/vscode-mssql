@@ -82,7 +82,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				type: QuestionTypes.confirm,
 				name: LocalizedConstants.msgSavePassword,
 				message: LocalizedConstants.msgSavePassword,
-				shouldPrompt: (answers) => !profile.connectionString && ConnectionCredentials.isPasswordBasedCredential(profile),
+				shouldPrompt: () => !profile.connectionString && ConnectionCredentials.isPasswordBasedCredential(profile),
 				onAnswered: (value) => profile.savePassword = value
 			},
 			{
@@ -90,15 +90,30 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				name: LocalizedConstants.aad,
 				message: LocalizedConstants.azureChooseAccount,
 				choices: azureAccountChoices,
-				shouldPrompt: (answers) => profile.isAzureActiveDirectory(),
-				onAnswered: (value) => {
+				shouldPrompt: () => profile.isAzureActiveDirectory(),
+				onAnswered: async (value) => {
 					accountAnswer = value;
 					if (value !== 'addAccount') {
-						let account: IAccount = value;
+						let account = value;
 						profile.accountId = account?.key.id;
-						tenantChoices.push(...account?.properties?.tenants.map(t => ({ name: t.displayName, value: t })));
+						tenantChoices.push(...account?.properties?.tenants!.map(t => ({ name: t.displayName, value: t })));
 						if (tenantChoices.length === 1) {
 							profile.tenantId = tenantChoices[0].value.id;
+						}
+						try {
+							profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer, providerSettings.resources.databaseResource);
+						} catch (error) {
+							console.log(`Refreshing tokens failed: ${error}`);
+						}
+					} else {
+						try {
+							profile = await azureController.populateAccountProperties(profile, accountStore, providerSettings.resources.databaseResource);
+							if (profile) {
+								vscode.window.showInformationMessage(utils.formatString(LocalizedConstants.accountAddedSuccessfully, profile.email));
+							}
+						} catch (e) {
+							console.error(`Could not add account: ${e}`);
+							vscode.window.showErrorMessage(e);
 						}
 					}
 				}
@@ -111,7 +126,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 				default: defaultProfileValues ? defaultProfileValues.tenantId : undefined,
 				// Need not prompt for tenant question when 'Sql Authentication Provider' is enabled,
 				// since tenant information is received from Server with authority URI in the Login flow.
-				shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1 && !getEnableSqlAuthenticationProviderConfig(),
+				shouldPrompt: () => profile.isAzureActiveDirectory() && tenantChoices.length > 1 && !getEnableSqlAuthenticationProviderConfig(),
 				onAnswered: (value: ITenant) => {
 					profile.tenantId = value.id;
 				}
@@ -130,17 +145,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 			});
 
 		return prompter.prompt(questions, true).then(async answers => {
-			if (answers?.authenticationType === 'AzureMFA') {
-				if (answers.AAD === 'addAccount') {
-					profile = await azureController.populateAccountProperties(profile, accountStore, providerSettings.resources.databaseResource);
-				} else {
-					try {
-						profile = await azureController.refreshTokenWrapper(profile, accountStore, accountAnswer, providerSettings.resources.databaseResource);
-					} catch (error) {
-						console.log(`Refreshing tokens failed: ${error}`);
-					}
-				}
-			}
 			if (answers && profile.isValidProfile()) {
 				return profile;
 			}

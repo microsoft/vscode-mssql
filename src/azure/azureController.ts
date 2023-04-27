@@ -68,6 +68,8 @@ export abstract class AzureController {
 	public abstract refreshAccessToken(account: IAccount, accountStore: AccountStore,
 		tenantId: string | undefined, settings: IAADResource): Promise<IToken | undefined>;
 
+	public abstract isAccountInCache(account: IAccount): Promise<boolean>;
+
 	public abstract removeAccount(account: IAccount): Promise<void>;
 
 	public abstract handleAuthMapping(): void;

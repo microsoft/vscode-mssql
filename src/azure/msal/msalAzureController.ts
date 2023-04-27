@@ -87,6 +87,14 @@ export class MsalAzureController extends AzureController {
 		return response ? response as IAccount : undefined;
 	}
 
+	public async isAccountInCache(account: IAccount): Promise<boolean> {
+		let authType = getAzureActiveDirectoryConfig();
+		let azureAuth = await this.getAzureAuthInstance(authType!);
+		await this.clearOldCacheIfExists();
+		let accountInfo = await azureAuth.getAccountFromMsalCache(account.key.id);
+		return accountInfo !== undefined;
+	}
+
 	private async getAzureAuthInstance(authType: AzureAuthType): Promise<MsalAzureAuth | undefined> {
 		if (!this._authMappings.has(authType)) {
 			await this.handleAuthMapping();
@@ -113,9 +121,14 @@ export class MsalAzureController extends AzureController {
 				return token;
 			}
 		} else {
-			account.isStale = true;
-			this.logger.error(`_getAccountSecurityToken: Authentication method not found for account ${account.displayInfo.displayName}`);
-			throw Error('Failed to get authentication method, please remove and re-add the account');
+			if (account) {
+				account.isStale = true;
+				this.logger.error(`_getAccountSecurityToken: Authentication method not found for account ${account.displayInfo.displayName}`);
+				throw Error(LocalizedConstants.msgAuthTypeNotFound);
+			} else {
+				this.logger.error(`_getAccountSecurityToken: Authentication method not found as account not available.`);
+				throw Error(LocalizedConstants.msgAccountNotFound);
+			}
 		}
 	}
 
