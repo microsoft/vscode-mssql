@@ -95,11 +95,11 @@ export default class CodeAdapter implements IPrompter {
 				// }
 
 				if (!question.shouldPrompt || question.shouldPrompt(answers) === true) {
-					return prompt.render().then(result => {
+					return prompt.render().then(async result => {
 						answers[question.name] = result;
 
 						if (question.onAnswered) {
-							question.onAnswered(result);
+							await question.onAnswered(result);
 						}
 						return answers;
 					});

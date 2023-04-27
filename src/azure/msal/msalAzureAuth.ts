@@ -166,30 +166,35 @@ export abstract class MsalAzureAuth {
 	}
 
 	public async refreshAccessToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IAccount | undefined> {
-		try {
-			const tokenResult = await this.getToken(account, tenantId, settings);
-			if (!tokenResult) {
+		if (account) {
+			try {
+				const tokenResult = await this.getToken(account, tenantId, settings);
+				if (!tokenResult) {
+					account.isStale = true;
+					return account;
+				}
+
+				const tokenClaims = this.getTokenClaims(tokenResult.accessToken);
+				if (!tokenClaims) {
+					account.isStale = true;
+					return account;
+				}
+
+				const token: IToken = {
+					key: tokenResult.account!.homeAccountId,
+					token: tokenResult.accessToken,
+					tokenType: tokenResult.tokenType,
+					expiresOn: tokenResult.account!.idTokenClaims!.exp
+				};
+
+				return await this.hydrateAccount(token, tokenClaims);
+			} catch (ex) {
 				account.isStale = true;
-				return account;
+				throw ex;
 			}
-
-			const tokenClaims = this.getTokenClaims(tokenResult.accessToken);
-			if (!tokenClaims) {
-				account.isStale = true;
-				return account;
-			}
-
-			const token: IToken = {
-				key: tokenResult.account!.homeAccountId,
-				token: tokenResult.accessToken,
-				tokenType: tokenResult.tokenType,
-				expiresOn: tokenResult.account!.idTokenClaims!.exp
-			};
-
-			return await this.hydrateAccount(token, tokenClaims);
-		} catch (ex) {
-			account.isStale = true;
-			throw ex;
+		} else {
+			this.logger.error(`refreshAccessToken: Account not received for refreshing access token.`);
+			throw Error(LocalizedConstants.msgAccountNotFound);
 		}
 	}
 

@@ -615,27 +615,26 @@ export class ConnectionUI {
 	}
 
 	private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
-		return this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
-			LocalizedConstants.createFirewallRuleLabel).then(async (result) => {
-				if (result === LocalizedConstants.createFirewallRuleLabel) {
-					const firewallService = this.connectionManager.firewallService;
-					let ipRange = await this.promptForIpAddress(ipAddress);
-					if (ipRange) {
-						let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
-						if (firewallResult.result) {
-							this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
-							return true;
-						} else {
-							Utils.showErrorMsg(firewallResult.errorMessage);
-							return false;
-						}
-					} else {
-						return false;
-					}
+		let result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
+			LocalizedConstants.createFirewallRuleLabel);
+		if (result === LocalizedConstants.createFirewallRuleLabel) {
+			const firewallService = this.connectionManager.firewallService;
+			let ipRange = await this.promptForIpAddress(ipAddress);
+			if (ipRange) {
+				let firewallResult = await firewallService.createFirewallRule(serverName, ipRange.startIpAddress, ipRange.endIpAddress);
+				if (firewallResult.result) {
+					this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptFirewallRuleCreated);
+					return true;
 				} else {
+					Utils.showErrorMsg(firewallResult.errorMessage);
 					return false;
 				}
-			});
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 
 	private promptForRetryConnectWithDifferentCredentials(): PromiseLike<boolean> {
@@ -672,7 +671,7 @@ export class ConnectionUI {
 	}
 
 	public async addNewAccount(): Promise<IAccount> {
-		return this.connectionManager.azureController.addAccount(this._accountStore);
+		return await this.connectionManager.azureController.addAccount(this._accountStore);
 	}
 
 	// Prompts the user to pick a profile for removal, then removes from the global saved state

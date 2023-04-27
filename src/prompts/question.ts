@@ -29,7 +29,7 @@ export interface IQuestion {
 	// Optional pre-prompt function. Takes in set of answers so far, and returns true if prompt should occur
 	shouldPrompt?: (answers: { [id: string]: any }) => boolean;
 	// Optional action to take on the question being answered
-	onAnswered?: (value: any) => void;
+	onAnswered?: (value: any) => void | Promise<void>;
 	// Optional set of options to support matching choices.
 	matchOptions?: vscode.QuickPickOptions;
 }

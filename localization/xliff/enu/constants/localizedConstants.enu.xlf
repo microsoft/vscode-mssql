@@ -359,6 +359,9 @@
         <trans-unit id="msgPromptFirewallRuleCreated">
             <source xml:lang="en">Firewall rule successfully created.</source>
         </trans-unit>
+        <trans-unit id="msgAuthTypeNotFound">
+            <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
+        </trans-unit>
         <trans-unit id="msgAccountNotFound">
             <source xml:lang="en">Account not found</source>
         </trans-unit>

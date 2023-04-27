@@ -25,7 +25,6 @@ import { AzureUserInteraction } from './azureUserInteraction';
 import { StorageService } from './storageService';
 
 export class AdalAzureController extends AzureController {
-
 	private _authMappings = new Map<AzureAuthType, AzureAuth>();
 	private cacheProvider: SimpleTokenCache;
 	private storageService: StorageService;
@@ -52,6 +51,10 @@ export class AdalAzureController extends AzureController {
 		let azureAuth = await this.getAzureAuthInstance(authType);
 		let response = await azureAuth!.startLogin();
 		return response ? response as IAccount : undefined;
+	}
+
+	public isAccountInCache(account: IAccount): Promise<boolean> {
+		throw new Error('Method not implemented.');
 	}
 
 	public async getAccountSecurityToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IToken | undefined> {
