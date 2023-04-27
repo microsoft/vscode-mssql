@@ -580,18 +580,18 @@ declare module 'vscode-mssql' {
 		/**
 		 * Move a post-deployment script in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
 		 * @param path Path of the script, including .sql, relative to the .sqlproj
+		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
 		 */
-		movePostDeploymentScript(projectUri: string, destinationPath: string, path: string): Promise<ResultStatus>;
+		movePostDeploymentScript(projectUri: string, path: string, destinationPath: string): Promise<ResultStatus>;
 
 		/**
 		 * Move a pre-deployment script in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
 		 * @param path Path of the script, including .sql, relative to the .sqlproj
+		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
 		 */
-		movePreDeploymentScript(projectUri: string, destinationPath: string, path: string): Promise<ResultStatus>;
+		movePreDeploymentScript(projectUri: string, path: string, destinationPath: string): Promise<ResultStatus>;
 
 		/**
 		 * Close a SQL project
@@ -695,10 +695,10 @@ declare module 'vscode-mssql' {
 		/**
 		 * Move a SQL object script in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
 		 * @param path Path of the script, including .sql, relative to the .sqlproj
+		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
 		 */
-		moveSqlObjectScript(projectUri: string, destinationPath: string, path: string): Promise<ResultStatus>;
+		moveSqlObjectScript(projectUri: string, path: string, destinationPath: string): Promise<ResultStatus>;
 
 		/**
 		 * Get all the database references in a project
@@ -737,39 +737,39 @@ declare module 'vscode-mssql' {
 		getSqlObjectScripts(projectUri: string): Promise<GetScriptsResult>;
 
 		/**
-		 * Add a none script to a project
+		 * Add a None item to a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+		 * @param path Path of the item, including extension, relative to the .sqlproj
 		 */
 		addNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
 
 		/**
-		 * Delete a none script from a project
+		 * Delete a None item from a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+		 * @param path Path of the item, including extension, relative to the .sqlproj
 		 */
 		deleteNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
 
 		/**
-		 * Exclude a none script from a project
+		 * Exclude a None item from a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
-		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+		 * @param path Path of the item, including extension, relative to the .sqlproj
 		 */
 		excludeNoneItem(projectUri: string, path: string): Promise<ResultStatus>;
 
 		/**
-		 * getNoneScripts
+		 * Get all the None items in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 */
 		getNoneItems(projectUri: string): Promise<GetScriptsResult>;
 
 		/**
-		 * Move a none script in a project
+		 * Move a None item in a project
 		 * @param projectUri Absolute path of the project, including .sqlproj
+		 * @param path Path of the item, including extension, relative to the .sqlproj
 		 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
-		 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
 		 */
-		moveNoneItem(projectUri: string, destinationPath: string, path: string): Promise<ResultStatus>;
+		moveNoneItem(projectUri: string, path: string, destinationPath: string): Promise<ResultStatus>;
 	}
 
 	/**
