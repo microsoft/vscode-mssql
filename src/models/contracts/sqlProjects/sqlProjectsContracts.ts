@@ -77,6 +77,14 @@ export namespace GetFoldersRequest {
 	export const type = new RequestType<mssql.SqlProjectParams, mssql.GetFoldersResult, void, void>('sqlProjects/getFolders');
 }
 
+export namespace ExcludeFolderRequest {
+	export const type = new RequestType<mssql.FolderParams, mssql.ResultStatus, void, void>('sqlProjects/excludeFolder');
+}
+
+export namespace MoveFolderRequest {
+	export const type = new RequestType<mssql.MoveFolderParams, mssql.ResultStatus, void, void>('sqlProjects/moveFolder');
+}
+
 //#endregion
 
 //#region Pre/Post-deployment script functions
@@ -181,6 +189,10 @@ export namespace AddSqlProjectReferenceRequest {
 
 export namespace AddSystemDatabaseReferenceRequest {
 	export const type = new RequestType<mssql.AddSystemDatabaseReferenceParams, mssql.ResultStatus, void, void>('sqlprojects/addSystemDatabaseReference');
+}
+
+export namespace AddNugetPackageReferenceRequest {
+	export const type = new RequestType<mssql.AddNugetPackageReferenceParams, mssql.ResultStatus, void, void>('sqlprojects/addNugetPackageReference');
 }
 
 export namespace DeleteDatabaseReferenceRequest {

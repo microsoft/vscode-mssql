@@ -91,6 +91,38 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	}
 
 	/**
+	 * Add a nuget package database reference to a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param packageName Name of the referenced nuget package
+	 * @param packageVersion Version of the referenced nuget package
+	 * @param suppressMissingDependencies Whether to suppress missing dependencies
+	 * @param databaseVariable SQLCMD variable name for specifying the other database this reference is to, if different from that of the current project
+	 * @param serverVariable SQLCMD variable name for specifying the other server this reference is to, if different from that of the current project.
+	 * If this is set, DatabaseVariable must also be set.
+	 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
+	 */
+	public async addNugetPackageReference(
+		projectUri: string,
+		packageName: string,
+		packageVersion: string,
+		suppressMissingDependencies: boolean,
+		databaseVariable?: string,
+		serverVariable?: string,
+		databaseLiteral?: string): Promise<mssql.ResultStatus> {
+		const params: mssql.AddNugetPackageReferenceParams = {
+			projectUri: projectUri,
+			packageName: packageName,
+			packageVersion: packageVersion,
+			suppressMissingDependencies: suppressMissingDependencies,
+			databaseVariable: databaseVariable,
+			serverVariable: serverVariable,
+			databaseLiteral: databaseLiteral
+		};
+
+		return this._client.sendRequest(contracts.AddNugetPackageReferenceRequest.type, params);
+	}
+
+	/**
 	 * Delete a database reference from a project
 	 * @param projectUri Absolute path of the project, including .sqlproj
 	 * @param path Path of the script, including .sql, relative to the .sqlproj
@@ -414,5 +446,76 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	public async getSqlObjectScripts(projectUri: string): Promise<mssql.GetScriptsResult> {
 		const params: mssql.SqlProjectParams = { projectUri: projectUri };
 		return this._client.sendRequest(contracts.GetSqlObjectScriptsRequest.type, params);
+	}
+
+	/**
+	 * Exclude a folder and its contents from a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param path Path of the folder, typically relative to the .sqlproj file
+	 */
+	public async excludeFolder(projectUri: string, path: string): Promise<mssql.ResultStatus> {
+		const params: mssql.FolderParams = { projectUri: projectUri, path: path };
+		return this._client.sendRequest(contracts.ExcludeFolderRequest.type, params);
+	}
+
+	/**
+	 * Move a folder and its contents within a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param sourcePath Source path of the folder, typically relative to the .sqlproj file
+	 * @param destinationPath Destination path of the folder, typically relative to the .sqlproj file
+	 */
+	public async moveFolder(projectUri: string, sourcePath: string, destinationPath: string): Promise<mssql.ResultStatus> {
+		const params: mssql.MoveFolderParams = { projectUri: projectUri, path: sourcePath, destinationPath: destinationPath };
+		return this._client.sendRequest(contracts.MoveFolderRequest.type, params);
+	}
+
+	/**
+	 * Add a none script to a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+	 */
+	public async addNoneItem(projectUri: string, path: string): Promise<mssql.ResultStatus> {
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		return this._client.sendRequest(contracts.AddNoneItemRequest.type, params);
+	}
+
+	/**
+	 * Delete a none script from a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+	 */
+	public async deleteNoneItem(projectUri: string, path: string): Promise<mssql.ResultStatus> {
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		return this._client.sendRequest(contracts.DeleteNoneItemRequest.type, params);
+	}
+
+	/**
+	 * Exclude a none script from a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+	 */
+	public async excludeNoneItem(projectUri: string, path: string): Promise<mssql.ResultStatus> {
+		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+		return this._client.sendRequest(contracts.ExcludeNoneItemRequest.type, params);
+	}
+
+	/**
+	 * getNoneScripts
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 */
+	public async getNoneItems(projectUri: string): Promise<mssql.GetScriptsResult> {
+		const params: mssql.SqlProjectParams = { projectUri: projectUri };
+		return this._client.sendRequest(contracts.GetNoneItemsRequest.type, params);
+	}
+
+	/**
+	 * Move a none script in a project
+	 * @param projectUri Absolute path of the project, including .sqlproj
+	 * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
+	 * @param path Path of the script, including .sql and .publish.xml, relative to the .sqlproj
+	 */
+	public async moveNoneItem(projectUri: string, destinationPath: string, path: string): Promise<mssql.ResultStatus> {
+		const params: mssql.MoveItemParams = { projectUri: projectUri, destinationPath: destinationPath, path: path };
+		return this._client.sendRequest(contracts.MoveNoneItemRequest.type, params);
 	}
 }

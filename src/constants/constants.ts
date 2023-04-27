@@ -8,6 +8,7 @@ export const vscodeAppName = 'code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
+export const telemetryConfigSectionName = 'telemetry';
 export const mssqlProviderName = 'MSSQL';
 export const noneProviderName = 'None';
 export const objectExplorerId = 'objectExplorer';
