@@ -12,7 +12,6 @@ import {
 import * as path from 'path';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
-import { VersionRequest } from '../models/contracts';
 import { Logger, LogLevel } from '../models/logger';
 import * as Constants from '../constants/constants';
 import ServerProvider from './server';
@@ -357,7 +356,6 @@ export default class SqlToolsServiceClient {
 		// cache the client instance for later use
 		let client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
 		client.onReady().then(() => {
-			this.checkServiceCompatibility();
 			client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
 		});
 
@@ -478,21 +476,5 @@ export default class SqlToolsServiceClient {
 		if (this._client !== undefined) {
 			return this.client.onNotification(type, handler);
 		}
-	}
-
-	public checkServiceCompatibility(): Promise<boolean> {
-		return new Promise<boolean>((resolve, reject) => {
-			this._client.sendRequest(VersionRequest.type, undefined).then((result) => {
-				Utils.logDebug('sqlserverclient version: ' + result);
-
-				if (result === undefined || !result.startsWith(Constants.serviceCompatibleVersion)) {
-					Utils.showErrorMsg(Constants.serviceNotCompatibleError);
-					Utils.logDebug(Constants.serviceNotCompatibleError);
-					resolve(false);
-				} else {
-					resolve(true);
-				}
-			});
-		});
 	}
 }
