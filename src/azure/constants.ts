@@ -67,10 +67,21 @@ export const AADSTS50173 = 'AADSTS50173';
  * We have the user sign in again when this error occurs.
  */
 export const AADSTS50020 = 'AADSTS50020';
-
+/**
+ * Error thrown from STS - indicates user account not found in MSAL cache.
+ * We request user to sign in again.
+ */
 export const mdsUserAccountNotFound = `User account '{0}' not found in MSAL cache, please add linked account or refresh account credentials.`;
-
+/**
+ * Error thrown from STS - indicates user account info not received from connection profile.
+ * This is possible when account info is not available when populating user's preferred name in connection profile.
+ * We request user to sign in again, to refresh their account credentials.
+ */
 export const mdsUserAccountNotReceived = 'User account not received.';
+/**
+ * This error is thrown by MSAL when user account is not received in silent authentication request.
+ * Thrown by TS layer, indicates user account hint not provided. We request user to reauthenticate when this error occurs.
+ */
 export const NoAccountInSilentRequestError = 'no_account_in_silent_request';
 
 /** MSAL Account version */
