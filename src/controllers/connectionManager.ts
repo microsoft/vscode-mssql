@@ -799,26 +799,30 @@ export default class ConnectionManager {
 					} else {
 						throw new Error(LocalizedConstants.cannotConnect);
 					}
-					// Always set username
-					connectionCreds.user = account.displayInfo.displayName;
-					connectionCreds.email = account.displayInfo.email;
-					profile.user = account.displayInfo.displayName;
-					profile.email = account.displayInfo.email;
-					let azureAccountToken = await this.azureController.refreshAccessToken(account!,
-						this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
-					if (!azureAccountToken) {
-						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
-						if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-							await this.azureController.populateAccountProperties(
-								profile, this.accountStore, providerSettings.resources.databaseResource!);
+					if (account) {
+						// Always set username
+						connectionCreds.user = account.displayInfo.displayName;
+						connectionCreds.email = account.displayInfo.email;
+						profile.user = account.displayInfo.displayName;
+						profile.email = account.displayInfo.email;
+						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
+							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
+						if (!azureAccountToken) {
+							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+							let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
+							if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+								await this.azureController.populateAccountProperties(
+									profile, this.accountStore, providerSettings.resources.databaseResource!);
 
+							} else {
+								throw new Error(LocalizedConstants.cannotConnect);
+							}
 						} else {
-							throw new Error(LocalizedConstants.cannotConnect);
+							connectionCreds.azureAccountToken = azureAccountToken.token;
+							connectionCreds.expiresOn = azureAccountToken.expiresOn;
 						}
 					} else {
-						connectionCreds.azureAccountToken = azureAccountToken.token;
-						connectionCreds.expiresOn = azureAccountToken.expiresOn;
+						throw new Error(LocalizedConstants.msgAccountNotFound);
 					}
 				}
 			}

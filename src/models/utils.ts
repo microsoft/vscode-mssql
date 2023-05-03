@@ -231,6 +231,10 @@ export function isSameProfile(currentProfile: IConnectionProfile, expectedProfil
 	} else if (currentProfile.connectionString || expectedProfile.connectionString) {
 		// If either profile uses connection strings, compare them directly
 		return currentProfile.connectionString === expectedProfile.connectionString;
+	} else if (currentProfile.authenticationType === Constants.azureMfa && expectedProfile.authenticationType === Constants.azureMfa) {
+		return expectedProfile.server === currentProfile.server
+			&& isSameDatabase(expectedProfile.database, currentProfile.database)
+			&& isSameAccountKey(expectedProfile.accountId, currentProfile.accountId);
 	}
 	return expectedProfile.server === currentProfile.server
 		&& isSameDatabase(expectedProfile.database, currentProfile.database)
@@ -249,14 +253,20 @@ export function isSameProfile(currentProfile: IConnectionProfile, expectedProfil
  */
 export function isSameConnection(conn: IConnectionInfo, expectedConn: IConnectionInfo): boolean {
 	return (conn.connectionString || expectedConn.connectionString) ? conn.connectionString === expectedConn.connectionString :
-		expectedConn.server === conn.server
-		&& isSameDatabase(expectedConn.database, conn.database)
-		&& isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
-		&& (conn.authenticationType === Constants.sqlAuthentication ?
-			conn.user === expectedConn.user :
-			isEmpty(conn.user) === isEmpty(expectedConn.user))
-		&& (<IConnectionProfile>conn).savePassword ===
-		(<IConnectionProfile>expectedConn).savePassword;
+		// Azure MFA connections
+		((expectedConn.authenticationType === Constants.azureMfa && conn.authenticationType === Constants.azureMfa)
+			? expectedConn.server === conn.server
+			&& isSameDatabase(expectedConn.database, conn.database)
+			&& isSameAccountKey(expectedConn.accountId, conn.accountId)
+			// Not Azure MFA connections
+			: expectedConn.server === conn.server
+			&& isSameDatabase(expectedConn.database, conn.database)
+			&& isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
+			&& (conn.authenticationType === Constants.sqlAuthentication ?
+				conn.user === expectedConn.user :
+				isEmpty(conn.user) === isEmpty(expectedConn.user))
+			&& (<IConnectionProfile>conn).savePassword ===
+			(<IConnectionProfile>expectedConn).savePassword);
 }
 
 /**

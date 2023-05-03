@@ -135,29 +135,16 @@ export class ObjectExplorerService {
 				if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
 					self._connectionManager.showInstructionTextAsWarning(self._currentNode.connectionInfo,
 						async updatedProfile => {
-							self.currentNode.connectionInfo = updatedProfile;
-							self.updateNode(self._currentNode);
-							let fileUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-							if (await self._connectionManager.connectionStore.saveProfile(updatedProfile as IConnectionProfile)) {
-								const res = await self._connectionManager.connect(fileUri, updatedProfile);
-								if (await self._connectionManager.handleConnectionResult(res, fileUri, updatedProfile)) {
-									self.refreshNode(self._currentNode);
-								}
-							} else {
-								self._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
-							}
+							self.reconnectProfile(self._currentNode, updatedProfile);
 						});
-				} else if (self.currentNode.connectionInfo.authenticationType === Constants.azureMfa
-					&& self.needsAccountRefresh(result, self.currentNode.connectionInfo.user)) {
-					let profile = self.currentNode.connectionInfo;
+				} else if (self._currentNode.connectionInfo.authenticationType === Constants.azureMfa
+					&& self.needsAccountRefresh(result, self._currentNode.connectionInfo.user)) {
+					let profile = self._currentNode.connectionInfo;
 					let account = this._connectionManager.accountStore.getAccount(profile.accountId);
 					await this.refreshAccount(account, profile);
-
-					let fileUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
-					const res = await self._connectionManager.connect(fileUri, profile);
-					if (await self._connectionManager.handleConnectionResult(res, fileUri, profile)) {
-						self.refreshNode(self._currentNode);
-					}
+					// Do not await when performing reconnect to allow
+					// OE node to expand after connection is established.
+					this.reconnectProfile(self._currentNode, profile);
 				} else {
 					self._connectionManager.vscodeWrapper.showErrorMessage(error);
 				}
@@ -182,8 +169,22 @@ export class ObjectExplorerService {
 		return handler;
 	}
 
+	private async reconnectProfile(node: TreeNodeInfo, profile: IConnectionInfo): Promise<void> {
+		node.connectionInfo = profile;
+		this.updateNode(node);
+		let fileUri = ObjectExplorerUtils.getNodeUri(node);
+		if (await this._connectionManager.connectionStore.saveProfile(profile as IConnectionProfile)) {
+			const res = await this._connectionManager.connect(fileUri, profile);
+			if (await this._connectionManager.handleConnectionResult(res, fileUri, profile)) {
+				this.refreshNode(node);
+			}
+		} else {
+			this._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
+		}
+	}
+
 	private needsAccountRefresh(result: SessionCreatedParameters, username: string): boolean {
-		let email = username.includes(' - ') ? username.substring(username.indexOf('-') + 2) : username;
+		let email = username?.includes(' - ') ? username.substring(username.indexOf('-') + 2) : username;
 		return result.errorMessage.includes(AzureConstants.AADSTS70043)
 			|| result.errorMessage.includes(AzureConstants.AADSTS50173)
 			|| result.errorMessage.includes(AzureConstants.AADSTS50020)
@@ -481,9 +482,13 @@ export class ObjectExplorerService {
 					let azureController = this._connectionManager.azureController;
 					let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
 					let needsRefresh: boolean = false;
-					if (azureController.isSqlAuthProviderEnabled()) {
+					if (!account) {
+						needsRefresh = true;
+					} else if (azureController.isSqlAuthProviderEnabled()) {
 						connectionCredentials.user = account.displayInfo.displayName;
 						connectionCredentials.email = account.displayInfo.email;
+						// Update profile after updating user/email
+						await this._connectionManager.connectionUI.saveProfile(connectionCredentials as IConnectionProfile);
 						if (!azureController.isAccountInCache(account)) {
 							needsRefresh = true;
 						}
