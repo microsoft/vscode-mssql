@@ -146,7 +146,14 @@ export class DacFxService implements mssql.IDacFxService {
 		return this._client.sendRequest(dacFxContracts.ValidateStreamingJobRequest.type, params);
 	}
 
-	savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.ResultStatus> {
-		throw new Error('Method not implemented.');
+	public savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.ResultStatus> {
+		const params: mssql.SavePublishProfileParams = {
+			profilePath: profilePath,
+			databaseName: databaseName,
+			connectionString: connectionString,
+			sqlCommandVariableValues: sqlCommandVariableValues,
+			deploymentOptions: deploymentOptions
+		};
+		return this._client.sendRequest(dacFxContracts.SavePublishProfileRequest.type, params);
 	}
 }
