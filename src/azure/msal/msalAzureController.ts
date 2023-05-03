@@ -149,7 +149,7 @@ export class MsalAzureController extends AzureController {
 				account, tenantId ?? account.properties.owningTenant.id, settings
 			);
 		} catch (ex) {
-			if (ex instanceof ClientAuthError && ex.errorCode === AzureConstants.NoAccountInSilentRequestError) {
+			if (ex instanceof ClientAuthError && ex.errorCode === AzureConstants.noAccountInSilentRequestError) {
 				try {
 					// Account needs re-authentication
 					newAccount = await this.login(account.properties.azureAuthType);

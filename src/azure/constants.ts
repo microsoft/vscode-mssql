@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ITenant } from "../models/contracts/azure";
+import { ITenant } from '../models/contracts/azure';
 
 export const serviceName = 'Code';
 
@@ -82,7 +82,7 @@ export const mdsUserAccountNotReceived = 'User account not received.';
  * This error is thrown by MSAL when user account is not received in silent authentication request.
  * Thrown by TS layer, indicates user account hint not provided. We request user to reauthenticate when this error occurs.
  */
-export const NoAccountInSilentRequestError = 'no_account_in_silent_request';
+export const noAccountInSilentRequestError = 'no_account_in_silent_request';
 
 /** MSAL Account version */
 export const accountVersion = '2.0';

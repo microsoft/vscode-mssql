@@ -510,7 +510,7 @@ export class ObjectExplorerService {
 		}
 	}
 
-	private async refreshAccount(account: IAccount, connectionCredentials: ConnectionCredentials) {
+	private async refreshAccount(account: IAccount, connectionCredentials: ConnectionCredentials): Promise<void> {
 		let azureController = this._connectionManager.azureController;
 		let profile = new ConnectionProfile(connectionCredentials);
 		let azureAccountToken = await azureController.refreshAccessToken(
