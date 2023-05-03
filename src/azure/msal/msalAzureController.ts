@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
+import { ClientAuthError, ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
 import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
 import * as LocalizedConstants from '../../constants/localizedConstants';
@@ -19,7 +19,7 @@ import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
 import { MsalCachePluginProvider } from './msalCachePlugin';
 import { promises as fsPromises } from 'fs';
 import * as path from 'path';
-import { oldMsalCacheFileName } from '../constants';
+import * as AzureConstants from '../constants';
 
 export class MsalAzureController extends AzureController {
 	private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
@@ -69,7 +69,7 @@ export class MsalAzureController extends AzureController {
 	 * Clears old cache file that is no longer needed on system.
 	 */
 	private async clearOldCacheIfExists(): Promise<void> {
-		let filePath = path.join(await this.findOrMakeStoragePath(), oldMsalCacheFileName);
+		let filePath = path.join(await this.findOrMakeStoragePath(), AzureConstants.oldMsalCacheFileName);
 		try {
 			await fsPromises.access(filePath);
 			await fsPromises.rm(filePath);
@@ -134,9 +134,10 @@ export class MsalAzureController extends AzureController {
 
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
 		settings: IAADResource): Promise<IToken | undefined> {
+		let newAccount: IAccount;
 		try {
 			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-			let newAccount = await azureAuth!.refreshAccessToken(account, 'organizations',
+			newAccount = await azureAuth!.refreshAccessToken(account, AzureConstants.organizationTenant.id,
 				this._providerSettings.resources.windowsManagementResource);
 
 			if (newAccount!.isStale === true) {
@@ -145,10 +146,26 @@ export class MsalAzureController extends AzureController {
 
 			await accountStore.addAccount(newAccount!);
 			return await this.getAccountSecurityToken(
-				account, tenantId!, settings
+				account, tenantId ?? account.properties.owningTenant.id, settings
 			);
 		} catch (ex) {
-			this._vscodeWrapper.showErrorMessage(ex);
+			if (ex instanceof ClientAuthError && ex.errorCode === AzureConstants.noAccountInSilentRequestError) {
+				try {
+					// Account needs re-authentication
+					newAccount = await this.login(account.properties.azureAuthType);
+					if (newAccount!.isStale === true) {
+						return undefined;
+					}
+					await accountStore.addAccount(newAccount!);
+					return await this.getAccountSecurityToken(
+						account, tenantId ?? account.properties.owningTenant.id, settings
+					);
+				} catch (ex) {
+					this._vscodeWrapper.showErrorMessage(ex);
+				}
+			} else {
+				this._vscodeWrapper.showErrorMessage(ex);
+			}
 		}
 	}
 

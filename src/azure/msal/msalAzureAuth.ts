@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Resource } from '@azure/arm-resources';
-import { AccountInfo, AuthenticationResult, InteractionRequiredAuthError, PublicClientApplication, SilentFlowRequest } from '@azure/msal-node';
+import { AccountInfo, AuthError, AuthenticationResult, InteractionRequiredAuthError, PublicClientApplication, SilentFlowRequest } from '@azure/msal-node';
 import * as url from 'url';
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../../constants/localizedConstants';
@@ -21,8 +21,6 @@ import { HttpClient } from './httpClient';
 // tslint:disable:no-null-keyword
 export abstract class MsalAzureAuth {
 	protected readonly loginEndpointUrl: string;
-	public readonly commonTenant: ITenant;
-	public readonly organizationTenant: ITenant;
 	protected readonly redirectUri: string;
 	protected readonly scopes: string[];
 	protected readonly scopesString: string;
@@ -39,14 +37,6 @@ export abstract class MsalAzureAuth {
 		protected readonly logger: Logger
 	) {
 		this.loginEndpointUrl = this.providerSettings.loginEndpoint ?? 'https://login.microsoftonline.com/';
-		this.commonTenant = {
-			id: 'common',
-			displayName: 'common'
-		};
-		this.organizationTenant = {
-			id: 'organizations',
-			displayName: 'organizations'
-		};
 		// Use localhost for MSAL instead of this.providerSettings.redirectUri (kept as-is for ADAL only);
 		this.redirectUri = 'http://localhost';
 		this.clientId = this.providerSettings.clientId;
@@ -62,7 +52,7 @@ export abstract class MsalAzureAuth {
 			if (!this.providerSettings.resources.windowsManagementResource) {
 				throw new Error(Utils.formatString(LocalizedConstants.azureNoMicrosoftResource, this.providerSettings.displayName));
 			}
-			const result = await this.login(this.organizationTenant);
+			const result = await this.login(Constants.organizationTenant);
 			loginComplete = result.authComplete;
 			if (!result?.response || !result.response?.account) {
 				this.logger.error(`Authentication failed: ${loginComplete}`);
@@ -150,7 +140,7 @@ export abstract class MsalAzureAuth {
 			return await this.clientApplication.acquireTokenSilent(tokenRequest);
 		} catch (e) {
 			this.logger.error('Failed to acquireTokenSilent', e);
-			if (e instanceof InteractionRequiredAuthError) {
+			if (e instanceof AuthError && this.accountNeedsRefresh(e)) {
 				// build refresh token request
 				const tenant: ITenant = {
 					id: tenantId,
@@ -158,11 +148,24 @@ export abstract class MsalAzureAuth {
 				};
 				return this.handleInteractionRequired(tenant, settings);
 			} else if (e.name === 'ClientAuthError') {
-				this.logger.error(e.message);
+				this.logger.verbose('[ClientAuthError] Failed to silently acquire token');
 			}
+
 			this.logger.error(`Failed to silently acquire token, not InteractionRequiredAuthError: ${e.message}`);
 			throw e;
 		}
+	}
+
+	/**
+	 * Determines whether the account needs to be refreshed based on received error instance
+	 * and STS error codes from errorMessage.
+	 * @param error AuthError instance
+	 */
+	private accountNeedsRefresh(error: AuthError): boolean {
+		return error instanceof InteractionRequiredAuthError
+			|| error.errorMessage.includes(Constants.AADSTS70043)
+			|| error.errorMessage.includes(Constants.AADSTS50020)
+			|| error.errorMessage.includes(Constants.AADSTS50173);
 	}
 
 	public async refreshAccessToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IAccount | undefined> {
@@ -329,7 +332,9 @@ export abstract class MsalAzureAuth {
 			}
 
 		};
-		const messageBody = Utils.formatString(LocalizedConstants.azureConsentDialogBody, tenant.displayName, tenant.id, settings.id);
+		const messageBody = (tenant.id === Constants.organizationTenant.id)
+			? Utils.formatString(LocalizedConstants.azureConsentDialogBody, tenant.displayName, tenant.id, settings.id)
+			: Utils.formatString(LocalizedConstants.azureConsentDialogBodyAccount, settings.id);
 		const result = await vscode.window.showInformationMessage(messageBody, { modal: true }, openItem, closeItem, dontAskAgainItem);
 
 		if (result?.action) {
@@ -362,7 +367,7 @@ export abstract class MsalAzureAuth {
 		const name = tokenClaims.name ?? tokenClaims.preferred_username ?? tokenClaims.email ?? tokenClaims.unique_name;
 		const email = tokenClaims.preferred_username ?? tokenClaims.email ?? tokenClaims.unique_name;
 
-		let owningTenant: ITenant = this.commonTenant; // default to common tenant
+		let owningTenant: ITenant = Constants.commonTenant; // default to common tenant
 
 		// Read more about tid > https://learn.microsoft.com/azure/active-directory/develop/id-tokens
 		if (tokenClaims.tid) {

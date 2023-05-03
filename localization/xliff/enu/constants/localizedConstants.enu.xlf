@@ -134,6 +134,9 @@
         <trans-unit id="azureConsentDialogBody">
             <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
         </trans-unit>
+        <trans-unit id="azureConsentDialogBodyAccount">
+            <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
+        </trans-unit>
         <trans-unit id="azureMicrosoftCorpAccount">
             <source xml:lang="en">Microsoft Corp</source>
         </trans-unit>
