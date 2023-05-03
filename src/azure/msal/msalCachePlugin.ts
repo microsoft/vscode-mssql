@@ -123,7 +123,7 @@ export class MsalCachePluginProvider {
 				this._logger.verbose(`MsalCachePlugin: Failed to acquire lock on cache file. Retrying in ${retryWait} ms.`);
 
 				// tslint:disable:no-empty
-				setTimeout(() => { }, retryWait);
+				await new Promise(resolve => setTimeout(resolve, retryWait));
 			}
 		}
 	}

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ITenant } from "../models/contracts/azure";
+
 export const serviceName = 'Code';
 
 export const httpConfigSectionName = 'http';
@@ -47,6 +49,30 @@ export const azureTenantConfigSection = azureSection + '.' + tenantSection + '.'
 
 export const oldMsalCacheFileName = 'azureTokenCacheMsal-azure_publicCloud';
 
+/////// MSAL ERROR CODES, ref: https://learn.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes
+/**
+ * The refresh token has expired or is invalid due to sign-in frequency checks by conditional access.
+ * The token was issued on {issueDate} and the maximum allowed lifetime for this request is {time}.
+ */
+export const AADSTS70043 = 'AADSTS70043';
+/**
+ * FreshTokenNeeded - The provided grant has expired due to it being revoked, and a fresh auth token is needed.
+ * Either an admin or a user revoked the tokens for this user, causing subsequent token refreshes to fail and
+ * require reauthentication. Have the user sign in again.
+ */
+export const AADSTS50173 = 'AADSTS50173';
+/**
+ * User account 'user@domain.com' from identity provider {IdentityProviderURL} does not exist in tenant {ResourceTenantName}.
+ * This error occurs when account is authenticated without a tenant id, which happens when tenant Id is not available in connection profile.
+ * We have the user sign in again when this error occurs.
+ */
+export const AADSTS50020 = 'AADSTS50020';
+
+export const mdsUserAccountNotFound = `User account '{0}' not found in MSAL cache, please add linked account or refresh account credentials.`;
+
+export const mdsUserAccountNotReceived = 'User account not received.';
+export const NoAccountInSilentRequestError = 'no_account_in_silent_request';
+
 /** MSAL Account version */
 export const accountVersion = '2.0';
 
@@ -59,6 +85,15 @@ export const s256CodeChallengeMethod = 'S256';
 
 export const selectAccount = 'select_account';
 
+export const commonTenant: ITenant = {
+	id: 'common',
+	displayName: 'common'
+};
+
+export const organizationTenant: ITenant = {
+	id: 'organizations',
+	displayName: 'organizations'
+};
 /**
  * Account issuer as received from access token
  */

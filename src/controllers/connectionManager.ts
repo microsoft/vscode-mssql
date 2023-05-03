@@ -804,23 +804,21 @@ export default class ConnectionManager {
 					connectionCreds.email = account.displayInfo.email;
 					profile.user = account.displayInfo.displayName;
 					profile.email = account.displayInfo.email;
-					if (!this.azureController.isSqlAuthProviderEnabled()) {
-						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
-							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
-						if (!azureAccountToken) {
-							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-							let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
-							if (refreshResult === LocalizedConstants.refreshTokenLabel) {
-								await this.azureController.populateAccountProperties(
-									profile, this.accountStore, providerSettings.resources.databaseResource!);
+					let azureAccountToken = await this.azureController.refreshAccessToken(account!,
+						this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
+					if (!azureAccountToken) {
+						let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+						let refreshResult = await this.vscodeWrapper.showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel);
+						if (refreshResult === LocalizedConstants.refreshTokenLabel) {
+							await this.azureController.populateAccountProperties(
+								profile, this.accountStore, providerSettings.resources.databaseResource!);
 
-							} else {
-								throw new Error(LocalizedConstants.cannotConnect);
-							}
 						} else {
-							connectionCreds.azureAccountToken = azureAccountToken.token;
-							connectionCreds.expiresOn = azureAccountToken.expiresOn;
+							throw new Error(LocalizedConstants.cannotConnect);
 						}
+					} else {
+						connectionCreds.azureAccountToken = azureAccountToken.token;
+						connectionCreds.expiresOn = azureAccountToken.expiresOn;
 					}
 				}
 			}

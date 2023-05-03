@@ -26,6 +26,8 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
+import { IAccount } from '../models/contracts/azure';
+import * as AzureConstants from '../azure/constants';
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
 	node = node.parentNode;
@@ -145,6 +147,17 @@ export class ObjectExplorerService {
 								self._connectionManager.vscodeWrapper.showErrorMessage(LocalizedConstants.msgPromptProfileUpdateFailed);
 							}
 						});
+				} else if (self.currentNode.connectionInfo.authenticationType === Constants.azureMfa
+					&& self.needsAccountRefresh(result, self.currentNode.connectionInfo.user)) {
+					let profile = self.currentNode.connectionInfo;
+					let account = this._connectionManager.accountStore.getAccount(profile.accountId);
+					await this.refreshAccount(account, profile);
+
+					let fileUri = ObjectExplorerUtils.getNodeUri(self._currentNode);
+					const res = await self._connectionManager.connect(fileUri, profile);
+					if (await self._connectionManager.handleConnectionResult(res, fileUri, profile)) {
+						self.refreshNode(self._currentNode);
+					}
 				} else {
 					self._connectionManager.vscodeWrapper.showErrorMessage(error);
 				}
@@ -167,6 +180,15 @@ export class ObjectExplorerService {
 			}
 		};
 		return handler;
+	}
+
+	private needsAccountRefresh(result: SessionCreatedParameters, username: string): boolean {
+		let email = username.includes(' - ') ? username.substring(username.indexOf('-') + 2) : username;
+		return result.errorMessage.includes(AzureConstants.AADSTS70043)
+			|| result.errorMessage.includes(AzureConstants.AADSTS50173)
+			|| result.errorMessage.includes(AzureConstants.AADSTS50020)
+			|| result.errorMessage.includes(AzureConstants.mdsUserAccountNotReceived)
+			|| result.errorMessage.includes(Utils.formatString(AzureConstants.mdsUserAccountNotFound, email));
 	}
 
 	private getParentFromExpandParams(params: ExpandParams): TreeNodeInfo | undefined {
@@ -458,10 +480,8 @@ export class ObjectExplorerService {
 				} else if (connectionCredentials.authenticationType === Constants.azureMfa) {
 					let azureController = this._connectionManager.azureController;
 					let account = this._connectionManager.accountStore.getAccount(connectionCredentials.accountId);
-					let profile = new ConnectionProfile(connectionCredentials);
 					let needsRefresh: boolean = false;
 					if (azureController.isSqlAuthProviderEnabled()) {
-						this._client.logger.verbose('SQL Authentication provider is enabled for Azure MFA connections, skipping token acquiry in extension.');
 						connectionCredentials.user = account.displayInfo.displayName;
 						connectionCredentials.email = account.displayInfo.email;
 						if (!azureController.isAccountInCache(account)) {
@@ -469,27 +489,7 @@ export class ObjectExplorerService {
 						}
 					}
 					if (!connectionCredentials.azureAccountToken && (!azureController.isSqlAuthProviderEnabled() || needsRefresh)) {
-						let azureAccountToken = await azureController.refreshAccessToken(
-							account, this._connectionManager.accountStore, connectionCredentials.tenantId, providerSettings.resources.databaseResource);
-						if (!azureAccountToken) {
-							this._client.logger.verbose('Access token could not be refreshed for connection profile.');
-							let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-							await this._connectionManager.vscodeWrapper.showErrorMessage(
-								errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
-									if (result === LocalizedConstants.refreshTokenLabel) {
-										let updatedProfile = await azureController.populateAccountProperties(
-											profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
-										connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
-										connectionCredentials.expiresOn = updatedProfile.expiresOn;
-									} else {
-										this._client.logger.error('Credentials not refreshed by user.');
-										return undefined;
-									}
-								});
-						} else {
-							connectionCredentials.azureAccountToken = azureAccountToken.token;
-							connectionCredentials.expiresOn = azureAccountToken.expiresOn;
-						}
+						this.refreshAccount(account, connectionCredentials);
 					}
 				}
 			}
@@ -510,6 +510,31 @@ export class ObjectExplorerService {
 		}
 	}
 
+	private async refreshAccount(account: IAccount, connectionCredentials: ConnectionCredentials) {
+		let azureController = this._connectionManager.azureController;
+		let profile = new ConnectionProfile(connectionCredentials);
+		let azureAccountToken = await azureController.refreshAccessToken(
+			account, this._connectionManager.accountStore, connectionCredentials.tenantId, providerSettings.resources.databaseResource);
+		if (!azureAccountToken) {
+			this._client.logger.verbose('Access token could not be refreshed for connection profile.');
+			let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+			await this._connectionManager.vscodeWrapper.showErrorMessage(
+				errorMessage, LocalizedConstants.refreshTokenLabel).then(async result => {
+					if (result === LocalizedConstants.refreshTokenLabel) {
+						let updatedProfile = await azureController.populateAccountProperties(
+							profile, this._connectionManager.accountStore, providerSettings.resources.databaseResource);
+						connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
+						connectionCredentials.expiresOn = updatedProfile.expiresOn;
+					} else {
+						this._client.logger.error('Credentials not refreshed by user.');
+						return undefined;
+					}
+				});
+		} else {
+			connectionCredentials.azureAccountToken = azureAccountToken.token;
+			connectionCredentials.expiresOn = azureAccountToken.expiresOn;
+		}
+	}
 	public getConnectionCredentials(sessionId: string): IConnectionInfo {
 		if (this._sessionIdToConnectionCredentialsMap.has(sessionId)) {
 			return this._sessionIdToConnectionCredentialsMap.get(sessionId);
