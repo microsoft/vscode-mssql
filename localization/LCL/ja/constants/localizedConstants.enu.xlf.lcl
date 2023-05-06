@@ -244,6 +244,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";azureConsentDialogBodyAccount" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} リソースにアクセスするには、アカウントに再認証が必要です。[開く]5D; を押して認証プロセスを開始します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";azureConsentDialogCancel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cancel]]></Val>

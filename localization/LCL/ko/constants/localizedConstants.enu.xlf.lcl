@@ -244,6 +244,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";azureConsentDialogBodyAccount" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} 리소스에 액세스하려면 계정을 다시 인증해야 합니다. 열기를 눌러 인증 프로세스를 시작하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";azureConsentDialogCancel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cancel]]></Val>
