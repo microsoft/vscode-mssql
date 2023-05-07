@@ -125,10 +125,10 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 	/**
 	 * Delete a database reference from a project
 	 * @param projectUri Absolute path of the project, including .sqlproj
-	 * @param path Path of the script, including .sql, relative to the .sqlproj
+	 * @param name Name of the reference to be deleted. Name of the System DB, path of the sqlproj, or path of the dacpac
 	 */
-	public async deleteDatabaseReference(projectUri: string, path: string): Promise<mssql.ResultStatus> {
-		const params: mssql.SqlProjectScriptParams = { projectUri: projectUri, path: path };
+	public async deleteDatabaseReference(projectUri: string, name: string): Promise<mssql.ResultStatus> {
+		const params: mssql.DeleteDatabaseReferenceParams = { projectUri: projectUri, name: name };
 		return this._client.sendRequest(contracts.DeleteDatabaseReferenceRequest.type, params);
 	}
 

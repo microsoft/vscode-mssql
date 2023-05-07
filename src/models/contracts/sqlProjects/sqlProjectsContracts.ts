@@ -196,7 +196,7 @@ export namespace AddNugetPackageReferenceRequest {
 }
 
 export namespace DeleteDatabaseReferenceRequest {
-	export const type = new RequestType<mssql.SqlProjectScriptParams, mssql.ResultStatus, void, void>('sqlprojects/deleteDatabaseReference');
+	export const type = new RequestType<mssql.DeleteDatabaseReferenceParams, mssql.ResultStatus, void, void>('sqlprojects/deleteDatabaseReference');
 }
 
 export namespace GetDatabaseReferencesRequest {
