@@ -41,6 +41,9 @@
         <trans-unit id="msgConnectionError2">
             <source xml:lang="en">Failed to connect: {0}</source>
         </trans-unit>
+        <trans-unit id="serverNameMissing">
+            <source xml:lang="en">Server name not received.</source>
+        </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
             <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
         </trans-unit>
