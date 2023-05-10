@@ -54,6 +54,10 @@
         <source xml:lang="en">Failed to connect: {0}</source>
         <target state="translated">연결 실패: {0}</target>
       </trans-unit>
+      <trans-unit id="serverNameMissing">
+        <source xml:lang="en">Server name not received.</source>
+        <target state="new">Server name not received.</target>
+      </trans-unit>
       <trans-unit id="msgConnectionErrorPasswordExpired">
         <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
         <target state="translated">오류 {0}: {1} 다른 사용자로 로그인한 다음, ALTER LOGIN을 사용하여 암호를 변경하세요.</target>
@@ -177,6 +181,10 @@
       <trans-unit id="azureConsentDialogBody">
         <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
         <target state="translated">'{0}({1})' 테넌트에서는 {2} 리소스에 액세스하려면 다시 재인증해야 합니다. [열기]를 눌러 인증 프로세스를 시작합니다.</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogBodyAccount">
+        <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
+        <target state="translated">{0} 리소스에 액세스하려면 계정을 다시 인증해야 합니다. 열기를 눌러 인증 프로세스를 시작하세요.</target>
       </trans-unit>
       <trans-unit id="azureMicrosoftCorpAccount">
         <source xml:lang="en">Microsoft Corp</source>
@@ -477,6 +485,10 @@
       <trans-unit id="msgPromptFirewallRuleCreated">
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">방화벽 규칙을 만들었습니다.</target>
+      </trans-unit>
+      <trans-unit id="msgAuthTypeNotFound">
+        <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
+        <target state="translated">인증 방법을 가져오지 못했습니다. 계정을 제거하고 다시 추가하세요.</target>
       </trans-unit>
       <trans-unit id="msgAccountNotFound">
         <source xml:lang="en">Account not found</source>

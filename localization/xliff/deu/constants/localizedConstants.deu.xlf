@@ -54,6 +54,10 @@
         <source xml:lang="en">Failed to connect: {0}</source>
         <target state="translated">Fehler bei der Verbindungsherstellung: {0}</target>
       </trans-unit>
+      <trans-unit id="serverNameMissing">
+        <source xml:lang="en">Server name not received.</source>
+        <target state="new">Server name not received.</target>
+      </trans-unit>
       <trans-unit id="msgConnectionErrorPasswordExpired">
         <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
         <target state="translated">Fehler "{0}": {1}. Melden Sie sich als ein anderer Benutzer an, und ändern Sie das Kennwort mit ALTER LOGIN.</target>
@@ -177,6 +181,10 @@
       <trans-unit id="azureConsentDialogBody">
         <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
         <target state="translated">Für Ihren Mandanten "{0} ({1})" müssen Sie sich erneut authentifizieren, um auf {2}-Ressourcen zuzugreifen. Klicken Sie auf "Öffnen", um den Authentifizierungsvorgang zu starten.</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogBodyAccount">
+        <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
+        <target state="translated">Ihr Konto muss erneut authentifiziert werden, um auf {0} Ressourcen zugreifen zu können. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.</target>
       </trans-unit>
       <trans-unit id="azureMicrosoftCorpAccount">
         <source xml:lang="en">Microsoft Corp</source>
@@ -477,6 +485,10 @@
       <trans-unit id="msgPromptFirewallRuleCreated">
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">Die Firewallregel wurde erfolgreich erstellt.</target>
+      </trans-unit>
+      <trans-unit id="msgAuthTypeNotFound">
+        <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
+        <target state="translated">Fehler beim Abrufen der Authentifizierungsmethode. Entfernen Sie das Konto, und fügen Sie es erneut hinzu.</target>
       </trans-unit>
       <trans-unit id="msgAccountNotFound">
         <source xml:lang="en">Account not found</source>
