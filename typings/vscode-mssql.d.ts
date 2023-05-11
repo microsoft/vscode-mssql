@@ -1112,7 +1112,7 @@ declare module 'vscode-mssql' {
 		packageFilePath: string;
 		databaseName: string;
 		upgradeExisting: boolean;
-		sqlCommandVariableValues?: Map<string, string>;
+		sqlCommandVariableValues?: Record<string, string>;
 		deploymentOptions?: DeploymentOptions;
 		ownerUri: string;
 		taskExecutionMode: TaskExecutionMode;
@@ -1121,7 +1121,7 @@ declare module 'vscode-mssql' {
 	export interface GenerateDeployScriptParams {
 		packageFilePath: string;
 		databaseName: string;
-		sqlCommandVariableValues?: Map<string, string>;
+		sqlCommandVariableValues?: Record<string, string>;
 		deploymentOptions?: DeploymentOptions;
 		ownerUri: string;
 		taskExecutionMode: TaskExecutionMode;
@@ -1153,7 +1153,7 @@ declare module 'vscode-mssql' {
 		profilePath: string;
 		databaseName: string;
 		connectionString: string;
-		sqlCommandVariableValues?: Map<string, string>;
+		sqlCommandVariableValues?: Record<string, string>;
 		deploymentOptions?: DeploymentOptions;
 	}
 
