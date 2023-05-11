@@ -93,7 +93,7 @@ export class DacFxService implements mssql.IDacFxService {
 			packageFilePath: packageFilePath,
 			databaseName: targetDatabaseName,
 			upgradeExisting: upgradeExisting,
-			sqlCommandVariableValues: sqlCommandVariableValues,
+			sqlCommandVariableValues: Object.fromEntries(sqlCommandVariableValues),
 			deploymentOptions: deploymentOptions,
 			ownerUri: ownerUri,
 			taskExecutionMode: taskExecutionMode
@@ -111,7 +111,7 @@ export class DacFxService implements mssql.IDacFxService {
 		const params: mssql.GenerateDeployScriptParams = {
 			packageFilePath: packageFilePath,
 			databaseName: targetDatabaseName,
-			sqlCommandVariableValues: sqlCommandVariableValues,
+			sqlCommandVariableValues: Object.fromEntries(sqlCommandVariableValues),
 			deploymentOptions: deploymentOptions,
 			ownerUri: ownerUri,
 			taskExecutionMode: taskExecutionMode
@@ -151,7 +151,7 @@ export class DacFxService implements mssql.IDacFxService {
 			profilePath: profilePath,
 			databaseName: databaseName,
 			connectionString: connectionString,
-			sqlCommandVariableValues: sqlCommandVariableValues,
+			sqlCommandVariableValues: Object.fromEntries(sqlCommandVariableValues),
 			deploymentOptions: deploymentOptions
 		};
 		return this._client.sendRequest(dacFxContracts.SavePublishProfileRequest.type, params);
