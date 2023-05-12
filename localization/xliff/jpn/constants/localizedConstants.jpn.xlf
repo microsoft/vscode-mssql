@@ -56,7 +56,7 @@
       </trans-unit>
       <trans-unit id="serverNameMissing">
         <source xml:lang="en">Server name not received.</source>
-        <target state="new">Server name not received.</target>
+        <target state="translated">サーバー名を受信しませんでした。</target>
       </trans-unit>
       <trans-unit id="msgConnectionErrorPasswordExpired">
         <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
