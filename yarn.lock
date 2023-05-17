@@ -418,9 +418,9 @@ angular-in-memory-web-api@0.1.13:
   resolved "https://registry.yarnpkg.com/angular-in-memory-web-api/-/angular-in-memory-web-api-0.1.13.tgz#24a8abafe8ec647f98ee3269be0832d307ab240f"
   integrity sha1-JKirr+jsZH+Y7jJpvggy0werJA8=
 
-"angular2-slickgrid@github:microsoft/angular2-slickgrid#1.4.6":
-  version "1.4.6"
-  resolved "https://codeload.github.com/microsoft/angular2-slickgrid/tar.gz/09579fdc90b1ec469578ec1040d1515585ce2a11"
+"angular2-slickgrid@github:microsoft/angular2-slickgrid#1.4.7":
+  version "1.4.7"
+  resolved "https://codeload.github.com/microsoft/angular2-slickgrid/tar.gz/a5f04fb51ae78015a210fab723be0761240cedb4"
 
 ansi-colors@4.1.1:
   version "4.1.1"
@@ -4866,9 +4866,9 @@ slash@^1.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
   integrity sha1-xB8vbDn8FtHNF61LXYlhFK5HDVU=
 
-"slickgrid@github:Microsoft/SlickGrid.ADS#2.3.39":
-  version "2.3.39"
-  resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/4ead9291ec4aab107767940ab0a6eac1455e0627"
+"slickgrid@github:Microsoft/SlickGrid.ADS#2.3.43":
+  version "2.3.43"
+  resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/877ada4c52320a851bb9f7b54eed10831423c144"
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
