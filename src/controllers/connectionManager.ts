@@ -788,7 +788,7 @@ export default class ConnectionManager {
 			title: LocalizedConstants.connectProgressNoticationTitle,
 			cancellable: false
 		}, async (_progress, _token) => {
-			if (!connectionCreds.server) {
+			if (!connectionCreds.server && !connectionCreds.connectionString) {
 				throw new Error(LocalizedConstants.serverNameMissing);
 			}
 			// Check if the azure account token is present before sending connect request (only with SQL Auth Provider is not enabled.)
