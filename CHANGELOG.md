@@ -1,5 +1,18 @@
 # Change Log
 
+## Version 1.19.0
+* Release date: May 24, 2023
+* Release status: GA
+### What's new in 1.19.0
+* Added support for Linux ARM64 runtime - https://github.com/microsoft/vscode-mssql/pull/17639
+* Use preferred username instead of email for Azure accounts - https://github.com/microsoft/vscode-mssql/pull/17606
+* Removed prompt to select tenant when SQL Auth Provider is enabled - https://github.com/microsoft/vscode-mssql/pull/17611
+* Updated msal-node npm package to v1.16.0 - https://github.com/microsoft/vscode-mssql/pull/17605
+* Bug Fixes
+  - Added validation for servername before attempting connection https://github.com/microsoft/vscode-mssql/pull/17680
+  - Fixed an issue when selecting "Add Azure Account" during profile creation prompts for profile name first https://github.com/microsoft/vscode-mssql/pull/17664
+  - Fixed a bug where SQLCMD variables weren't getting JSONified https://github.com/microsoft/vscode-mssql/pull/17683
+
 ## Version 1.18.0
 * Release date: March 22, 2023
 * Release status: GA
