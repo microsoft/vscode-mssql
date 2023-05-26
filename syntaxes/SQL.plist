@@ -675,20 +675,32 @@
 					</array>
 				</dict>
 				<dict>
-					<key>begin</key>
-					<string>/\*</string>
-					<key>captures</key>
-					<dict>
-						<key>0</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.comment.sql</string>
-						</dict>
-					</dict>
-					<key>end</key>
-					<string>\*/</string>
+					<key>include</key>
+					<string>#comment-block</string>
+				</dict>
+			</array>
+		</dict>
+		<key>comment-block</key>
+		<dict>
+			<key>begin</key>
+			<string>/\*</string>
+			<key>captures</key>
+			<dict>
+				<key>0</key>
+				<dict>
 					<key>name</key>
-					<string>comment.block.c</string>
+					<string>punctuation.definition.comment.sql</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>\*/</string>
+			<key>name</key>
+			<string>comment.block</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#comment-block</string>
 				</dict>
 			</array>
 		</dict>
