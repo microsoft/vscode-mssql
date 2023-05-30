@@ -168,14 +168,12 @@
     --color-cell-bg-grid-selected: rgb(38, 79, 120);
   }
 
-  .vscode-dark a,
-  .vscode-high-contrast a {
-    color: #FF6000;
-  }
-
-  .vscode-dark a:hover,
-  .vscode-high-contrast a:hover{
-    color: #ff8033;
+  .collapsible:focus,
+  a:focus {
+    outline-color: var(--vscode-focusBorder);
+    outline-style: solid;
+    outline-width: 1px;
+    outline-offset: -1px;
   }
 
   /* grid styling */

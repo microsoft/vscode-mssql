@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
+import { ClientAuthError, ILoggerCallback, LogLevel as MsalLogLevel } from '@azure/msal-common';
 import { Configuration, PublicClientApplication } from '@azure/msal-node';
 import * as Constants from '../../constants/constants';
 import * as LocalizedConstants from '../../constants/localizedConstants';
@@ -17,6 +17,9 @@ import { MsalAzureAuth } from './msalAzureAuth';
 import { MsalAzureCodeGrant } from './msalAzureCodeGrant';
 import { MsalAzureDeviceCode } from './msalAzureDeviceCode';
 import { MsalCachePluginProvider } from './msalCachePlugin';
+import { promises as fsPromises } from 'fs';
+import * as path from 'path';
+import * as AzureConstants from '../constants';
 
 export class MsalAzureController extends AzureController {
 	private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
@@ -51,10 +54,45 @@ export class MsalAzureController extends AzureController {
 		}
 	}
 
+	public async loadTokenCache(): Promise<void> {
+		let authType = getAzureActiveDirectoryConfig();
+		if (!this._authMappings.has(authType)) {
+			await this.handleAuthMapping();
+		}
+
+		let azureAuth = await this.getAzureAuthInstance(authType!);
+		await this.clearOldCacheIfExists();
+		azureAuth.loadTokenCache();
+	}
+
+	/**
+	 * Clears old cache file that is no longer needed on system.
+	 */
+	private async clearOldCacheIfExists(): Promise<void> {
+		let filePath = path.join(await this.findOrMakeStoragePath(), AzureConstants.oldMsalCacheFileName);
+		try {
+			await fsPromises.access(filePath);
+			await fsPromises.rm(filePath);
+			this.logger.verbose(`Old cache file removed successfully.`);
+		} catch (e) {
+			if (e.code !== 'ENOENT') {
+				this.logger.verbose(`Error occurred while removing old cache file: ${e}`);
+			} // else file doesn't exist.
+		}
+	}
+
 	public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
 		let azureAuth = await this.getAzureAuthInstance(authType);
 		let response = await azureAuth!.startLogin();
 		return response ? response as IAccount : undefined;
+	}
+
+	public async isAccountInCache(account: IAccount): Promise<boolean> {
+		let authType = getAzureActiveDirectoryConfig();
+		let azureAuth = await this.getAzureAuthInstance(authType!);
+		await this.clearOldCacheIfExists();
+		let accountInfo = await azureAuth.getAccountFromMsalCache(account.key.id);
+		return accountInfo !== undefined;
 	}
 
 	private async getAzureAuthInstance(authType: AzureAuthType): Promise<MsalAzureAuth | undefined> {
@@ -83,17 +121,23 @@ export class MsalAzureController extends AzureController {
 				return token;
 			}
 		} else {
-			account.isStale = true;
-			this.logger.error(`_getAccountSecurityToken: Authentication method not found for account ${account.displayInfo.displayName}`);
-			throw Error('Failed to get authentication method, please remove and re-add the account');
+			if (account) {
+				account.isStale = true;
+				this.logger.error(`_getAccountSecurityToken: Authentication method not found for account ${account.displayInfo.displayName}`);
+				throw Error(LocalizedConstants.msgAuthTypeNotFound);
+			} else {
+				this.logger.error(`_getAccountSecurityToken: Authentication method not found as account not available.`);
+				throw Error(LocalizedConstants.msgAccountNotFound);
+			}
 		}
 	}
 
 	public async refreshAccessToken(account: IAccount, accountStore: AccountStore, tenantId: string | undefined,
 		settings: IAADResource): Promise<IToken | undefined> {
+		let newAccount: IAccount;
 		try {
 			let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-			let newAccount = await azureAuth!.refreshAccessToken(account, 'organizations',
+			newAccount = await azureAuth!.refreshAccessToken(account, AzureConstants.organizationTenant.id,
 				this._providerSettings.resources.windowsManagementResource);
 
 			if (newAccount!.isStale === true) {
@@ -102,10 +146,26 @@ export class MsalAzureController extends AzureController {
 
 			await accountStore.addAccount(newAccount!);
 			return await this.getAccountSecurityToken(
-				account, tenantId!, settings
+				account, tenantId ?? account.properties.owningTenant.id, settings
 			);
 		} catch (ex) {
-			this._vscodeWrapper.showErrorMessage(ex);
+			if (ex instanceof ClientAuthError && ex.errorCode === AzureConstants.noAccountInSilentRequestError) {
+				try {
+					// Account needs re-authentication
+					newAccount = await this.login(account.properties.azureAuthType);
+					if (newAccount!.isStale === true) {
+						return undefined;
+					}
+					await accountStore.addAccount(newAccount!);
+					return await this.getAccountSecurityToken(
+						account, tenantId ?? account.properties.owningTenant.id, settings
+					);
+				} catch (ex) {
+					this._vscodeWrapper.showErrorMessage(ex);
+				}
+			} else {
+				this._vscodeWrapper.showErrorMessage(ex);
+			}
 		}
 	}
 
@@ -150,7 +210,7 @@ export class MsalAzureController extends AzureController {
 	public async handleAuthMapping(): Promise<void> {
 		if (!this.clientApplication) {
 			let storagePath = await this.findOrMakeStoragePath();
-			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this.logger);
+			this._cachePluginProvider = new MsalCachePluginProvider(Constants.msalCacheFileName, storagePath!, this._vscodeWrapper, this.logger, this._credentialStore);
 			const msalConfiguration: Configuration = {
 				auth: {
 					clientId: this._providerSettings.clientId,

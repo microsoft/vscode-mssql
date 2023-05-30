@@ -15,6 +15,7 @@ import providerSettings from '../azure/providerSettings';
 import { getAzureAuthLibraryConfig } from '../azure/utils';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
+import { CredentialStore } from '../credentialstore/credentialstore';
 import { FirewallService } from '../firewall/firewallService';
 import SqlToolsServerClient from '../languageservice/serviceclient';
 import { ConnectionCredentials } from '../models/connectionCredentials';
@@ -100,6 +101,7 @@ export default class ConnectionManager {
 		private _client?: SqlToolsServerClient,
 		private _vscodeWrapper?: VscodeWrapper,
 		private _connectionStore?: ConnectionStore,
+		private _credentialStore?: CredentialStore,
 		private _connectionUI?: ConnectionUI,
 		private _accountStore?: AccountStore) {
 		this._statusView = statusView;
@@ -114,8 +116,12 @@ export default class ConnectionManager {
 			this.vscodeWrapper = new VscodeWrapper();
 		}
 
+		if (!this._credentialStore) {
+			this._credentialStore = new CredentialStore(context);
+		}
+
 		if (!this._connectionStore) {
-			this._connectionStore = new ConnectionStore(context, this.client?.logger);
+			this._connectionStore = new ConnectionStore(context, this.client?.logger, this._credentialStore);
 		}
 
 		if (!this._accountStore) {
@@ -129,9 +135,9 @@ export default class ConnectionManager {
 		if (!this.azureController) {
 			const authLibrary = getAzureAuthLibraryConfig();
 			if (authLibrary === AuthLibrary.ADAL) {
-				this.azureController = new AdalAzureController(context, prompter);
+				this.azureController = new AdalAzureController(context, prompter, this._credentialStore);
 			} else {
-				this.azureController = new MsalAzureController(context, prompter);
+				this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
 			}
 
 			this.azureController.init();
@@ -782,6 +788,9 @@ export default class ConnectionManager {
 			title: LocalizedConstants.connectProgressNoticationTitle,
 			cancellable: false
 		}, async (_progress, _token) => {
+			if (!connectionCreds.server && !connectionCreds.connectionString) {
+				throw new Error(LocalizedConstants.serverNameMissing);
+			}
 			// Check if the azure account token is present before sending connect request (only with SQL Auth Provider is not enabled.)
 			if (connectionCreds.authenticationType === Constants.azureMfa) {
 				if (AzureController.isTokenInValid(connectionCreds.azureAccountToken, connectionCreds.expiresOn)) {
@@ -793,12 +802,12 @@ export default class ConnectionManager {
 					} else {
 						throw new Error(LocalizedConstants.cannotConnect);
 					}
-					// Always set username
-					connectionCreds.user = account.displayInfo.displayName;
-					connectionCreds.email = account.displayInfo.email;
-					profile.user = account.displayInfo.displayName;
-					profile.email = account.displayInfo.email;
-					if (!this.azureController.isSqlAuthProviderEnabled()) {
+					if (account) {
+						// Always set username
+						connectionCreds.user = account.displayInfo.displayName;
+						connectionCreds.email = account.displayInfo.email;
+						profile.user = account.displayInfo.displayName;
+						profile.email = account.displayInfo.email;
 						let azureAccountToken = await this.azureController.refreshAccessToken(account!,
 							this.accountStore, profile.tenantId, providerSettings.resources.databaseResource!);
 						if (!azureAccountToken) {
@@ -815,6 +824,8 @@ export default class ConnectionManager {
 							connectionCreds.azureAccountToken = azureAccountToken.token;
 							connectionCreds.expiresOn = azureAccountToken.expiresOn;
 						}
+					} else {
+						throw new Error(LocalizedConstants.msgAccountNotFound);
 					}
 				}
 			}

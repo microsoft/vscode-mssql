@@ -10,14 +10,6 @@
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">MSSQL für Visual Studio Code-Versionshinweise anzeigen?</target>
       </trans-unit>
-      <trans-unit id="encryptionChangePromptDescription">
-        <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
-        <target state="translated">Für die MSSQL-Verbindung für VS Code ist jetzt die Verschlüsselung für alle SQL Server-Verbindungen standardmäßig aktiviert. Dies kann dazu führen, dass Ihre vorhandenen Verbindungen nicht mehr funktionieren, es sei denn, bestimmte Verbindungseigenschaften im Zusammenhang mit der Verschlüsselung werden geändert. Wir empfehlen Ihnen, den folgenden Link für weitere Informationen zu besuchen.</target>
-      </trans-unit>
-      <trans-unit id="moreInformation">
-        <source xml:lang="en">More information</source>
-        <target state="translated">Weitere Informationen</target>
-      </trans-unit>
       <trans-unit id="msgStartedExecute">
         <source xml:lang="en">Started query execution for document "{0}"</source>
         <target state="translated">Die Abfrageausführung für Dokument "{0}" wurde gestartet.</target>
@@ -61,6 +53,10 @@
       <trans-unit id="msgConnectionError2">
         <source xml:lang="en">Failed to connect: {0}</source>
         <target state="translated">Fehler bei der Verbindungsherstellung: {0}</target>
+      </trans-unit>
+      <trans-unit id="serverNameMissing">
+        <source xml:lang="en">Server name not received.</source>
+        <target state="translated">Der Servername wurde nicht empfangen.</target>
       </trans-unit>
       <trans-unit id="msgConnectionErrorPasswordExpired">
         <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
@@ -185,6 +181,10 @@
       <trans-unit id="azureConsentDialogBody">
         <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
         <target state="translated">Für Ihren Mandanten "{0} ({1})" müssen Sie sich erneut authentifizieren, um auf {2}-Ressourcen zuzugreifen. Klicken Sie auf "Öffnen", um den Authentifizierungsvorgang zu starten.</target>
+      </trans-unit>
+      <trans-unit id="azureConsentDialogBodyAccount">
+        <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
+        <target state="translated">Ihr Konto muss erneut authentifiziert werden, um auf {0} Ressourcen zugreifen zu können. Drücken Sie "Öffnen", um den Authentifizierungsprozess zu starten.</target>
       </trans-unit>
       <trans-unit id="azureMicrosoftCorpAccount">
         <source xml:lang="en">Microsoft Corp</source>
@@ -486,6 +486,10 @@
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">Die Firewallregel wurde erfolgreich erstellt.</target>
       </trans-unit>
+      <trans-unit id="msgAuthTypeNotFound">
+        <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
+        <target state="translated">Fehler beim Abrufen der Authentifizierungsmethode. Entfernen Sie das Konto, und fügen Sie es erneut hinzu.</target>
+      </trans-unit>
       <trans-unit id="msgAccountNotFound">
         <source xml:lang="en">Account not found</source>
         <target state="translated">Konto nicht gefunden.</target>
@@ -553,6 +557,10 @@
       <trans-unit id="msgRefreshTokenError">
         <source xml:lang="en">Error when refreshing token</source>
         <target state="translated">Fehler beim Aktualisieren des Tokens</target>
+      </trans-unit>
+      <trans-unit id="msgAzureCredStoreSaveFailedError">
+        <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
+        <target state="translated">Die Schlüssel für den Tokencache konnten nicht im Anmeldeinformationsspeicher gespeichert werden. Dies kann zu Problemen bei der Persistenz des Azure-Zugriffstokens und zu Verbindungsinstabilitäten führen. Wahrscheinlich hat SqlTools das Speicherlimit für Anmeldeinformationen unter Windows erreicht. Löschen Sie in der Windows-Anmeldeinformationsverwaltung mindestens 2 Anmeldeinformationen, die mit „Microsoft.SqlTools|“ beginnen, und wiederholen Sie den Ladevorgang.</target>
       </trans-unit>
       <trans-unit id="msgRefreshConnection">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -861,6 +869,10 @@
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Visual Studio Code erneut laden</target>
+      </trans-unit>
+      <trans-unit id="deprecatedMessage">
+        <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.</source>
+        <target state="translated">Warnung: ADAL ist veraltet und wird voraussichtlich in einer zukünftigen Version entfernt werden. Bitte verwenden Sie stattdessen MSAL.</target>
       </trans-unit>
     </body>
   </file>

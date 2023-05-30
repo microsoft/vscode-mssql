@@ -8,6 +8,7 @@ export const vscodeAppName = 'code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
+export const telemetryConfigSectionName = 'telemetry';
 export const mssqlProviderName = 'MSSQL';
 export const noneProviderName = 'None';
 export const objectExplorerId = 'objectExplorer';
@@ -67,7 +68,8 @@ export const cmdAadRemoveAccount = 'mssql.removeAadAccount';
 export const cmdAadAddAccount = 'mssql.addAadAccount';
 export const piiLogging = 'piiLogging';
 export const mssqlPiiLogging = 'mssql.piiLogging';
-export const azureAuthLibrary = 'mssql.azureAuthenticationLibrary';
+export const mssqlAzureAuthLibrary = 'mssql.azureAuthenticationLibrary';
+export const azureAuthLibrary = 'azureAuthenticationLibrary';
 export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
@@ -99,7 +101,6 @@ export const outputContentTypeShowWarning = 'showWarning';
 export const outputServiceLocalhost = 'http://localhost:';
 export const msgContentProviderSqlOutputHtml = 'dist/html/sqlOutput.ejs';
 export const contentProviderMinFile = 'dist/js/app.min.js';
-export const serviceCompatibleVersion = '1.0.0';
 export const untitledSaveTimeThreshold = 10.0;
 export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
@@ -115,7 +116,8 @@ export const localizedTexts = 'localizedTexts';
 export const ipAddressRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 export const configAzureAccount = 'azureAccount';
 export const adalCacheFileName = 'azureTokenCache-azure_publicCloud';
-export const msalCacheFileName = 'azureTokenCacheMsal-azure_publicCloud';
+export const azureAccountProviderCredentials = 'azureAccountProviderCredentials';
+export const msalCacheFileName = 'accessTokenCache';
 
 // Configuration Constants
 export const copyIncludeHeaders = 'copyIncludeHeaders';
@@ -158,7 +160,6 @@ export const invalidServiceFilePath = 'Invalid file path for Sql Tools Service';
 export const sqlToolsServiceName = 'SQLToolsService';
 export const resourceServiceName = 'AzureResourceProvider';
 export const resourceProviderId = 'azurePublicCloud';
-export const serviceNotCompatibleError = 'Client is not compatible with the service layer';
 export const sqlToolsServiceConfigKey = 'service';
 export const v1SqlToolsServiceConfigKey = 'v1Service';
 export const scriptSelectText = 'SELECT TOP (1000) * FROM ';
@@ -166,3 +167,9 @@ export const tenantDisplayName = 'Microsoft';
 export const firewallErrorMessage = 'To enable access, use the Windows Azure Management Portal or run sp_set_firewall_rule on the master database to create a firewall rule for this IP address or address range.';
 export const windowsResourceClientPath = 'SqlToolsResourceProviderService.exe';
 export const unixResourceClientPath = 'SqlToolsResourceProviderService';
+
+export enum Platform {
+	Windows = 'win32',
+	Mac = 'darwin',
+	Linux = 'linux'
+}

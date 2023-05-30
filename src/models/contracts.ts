@@ -5,19 +5,6 @@
 
 import { RequestType } from 'vscode-languageclient';
 
-// --------------------------------- < Version Request > -------------------------------------------------
-
-// Version request message callback declaration
-export namespace VersionRequest {
-	export const type = new RequestType<void, VersionResult, void, void>('version');
-}
-
-// Version response format
-export type VersionResult = string;
-
-// ------------------------------- </ Version Request > --------------------------------------------------
-
-
 // --------------------------------- < Read Credential Request > -------------------------------------------------
 
 // Read Credential request message callback declaration

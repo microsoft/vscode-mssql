@@ -37,3 +37,7 @@ export namespace GetOptionsFromProfileRequest {
 export namespace ValidateStreamingJobRequest {
 	export const type = new RequestType<mssql.ValidateStreamingJobParams, mssql.ValidateStreamingJobResult, void, void>('dacfx/validateStreamingJob');
 }
+
+export namespace SavePublishProfileRequest {
+	export const type = new RequestType<mssql.SavePublishProfileParams, mssql.ResultStatus, void, void>('dacfx/savePublishProfile');
+}

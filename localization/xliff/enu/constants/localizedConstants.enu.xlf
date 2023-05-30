@@ -8,12 +8,6 @@
         <trans-unit id="releaseNotesPromptDescription">
             <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         </trans-unit>
-        <trans-unit id="encryptionChangePromptDescription">
-            <source xml:lang="en">mssql extension for VS Code now has encryption enabled by default for all SQL Server connections. This may result in your existing connections no longer working unless certain Encryption related connection properties are changed. We recommend you visit the link below for more information.</source>
-         </trans-unit>
-        <trans-unit id="moreInformation">
-            <source xml:lang="en">More information</source>
-        </trans-unit>
         <trans-unit id="msgStartedExecute">
             <source xml:lang="en">Started query execution for document "{0}"</source>
         </trans-unit>
@@ -46,6 +40,9 @@
         </trans-unit>
         <trans-unit id="msgConnectionError2">
             <source xml:lang="en">Failed to connect: {0}</source>
+        </trans-unit>
+        <trans-unit id="serverNameMissing">
+            <source xml:lang="en">Server name not received.</source>
         </trans-unit>
         <trans-unit id="msgConnectionErrorPasswordExpired">
             <source xml:lang="en">Error {0}: {1} Please login as a different user and change the password using ALTER LOGIN.</source>
@@ -139,6 +136,9 @@
         </trans-unit>
         <trans-unit id="azureConsentDialogBody">
             <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
+        </trans-unit>
+        <trans-unit id="azureConsentDialogBodyAccount">
+            <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
         </trans-unit>
         <trans-unit id="azureMicrosoftCorpAccount">
             <source xml:lang="en">Microsoft Corp</source>
@@ -365,6 +365,9 @@
         <trans-unit id="msgPromptFirewallRuleCreated">
             <source xml:lang="en">Firewall rule successfully created.</source>
         </trans-unit>
+        <trans-unit id="msgAuthTypeNotFound">
+            <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
+        </trans-unit>
         <trans-unit id="msgAccountNotFound">
             <source xml:lang="en">Account not found</source>
         </trans-unit>
@@ -415,6 +418,9 @@
         </trans-unit>
         <trans-unit id="msgRefreshTokenError">
             <source xml:lang="en">Error when refreshing token</source>
+        </trans-unit>
+        <trans-unit id="msgAzureCredStoreSaveFailedError">
+            <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Azure access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
         </trans-unit>
         <trans-unit id="msgRefreshConnection">
             <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -646,6 +652,9 @@
         </trans-unit>
         <trans-unit id="reloadChoice">
             <source xml:lang="en">Reload Visual Studio Code</source>
+        </trans-unit>
+         <trans-unit id="deprecatedMessage">
+            <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.</source>
         </trans-unit>
     </body>
   </file>

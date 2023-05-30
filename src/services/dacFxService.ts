@@ -87,13 +87,13 @@ export class DacFxService implements mssql.IDacFxService {
 		upgradeExisting: boolean,
 		ownerUri: string,
 		taskExecutionMode: mssql.TaskExecutionMode,
-		sqlCommandVariableValues?: Record<string, string>,
+		sqlCommandVariableValues?: Map<string, string>,
 		deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.DacFxResult> {
 		const params: mssql.DeployParams = {
 			packageFilePath: packageFilePath,
 			databaseName: targetDatabaseName,
 			upgradeExisting: upgradeExisting,
-			sqlCommandVariableValues: sqlCommandVariableValues,
+			sqlCommandVariableValues: sqlCommandVariableValues ? Object.fromEntries(sqlCommandVariableValues) : undefined,
 			deploymentOptions: deploymentOptions,
 			ownerUri: ownerUri,
 			taskExecutionMode: taskExecutionMode
@@ -106,12 +106,12 @@ export class DacFxService implements mssql.IDacFxService {
 		targetDatabaseName: string,
 		ownerUri: string,
 		taskExecutionMode: mssql.TaskExecutionMode,
-		sqlCommandVariableValues?: Record<string, string>,
+		sqlCommandVariableValues?: Map<string, string>,
 		deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.DacFxResult> {
 		const params: mssql.GenerateDeployScriptParams = {
 			packageFilePath: packageFilePath,
 			databaseName: targetDatabaseName,
-			sqlCommandVariableValues: sqlCommandVariableValues,
+			sqlCommandVariableValues: sqlCommandVariableValues ? Object.fromEntries(sqlCommandVariableValues) : undefined,
 			deploymentOptions: deploymentOptions,
 			ownerUri: ownerUri,
 			taskExecutionMode: taskExecutionMode
@@ -144,5 +144,16 @@ export class DacFxService implements mssql.IDacFxService {
 			createStreamingJobTsql: createStreamingJobTsql
 		};
 		return this._client.sendRequest(dacFxContracts.ValidateStreamingJobRequest.type, params);
+	}
+
+	public savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: mssql.DeploymentOptions): Thenable<mssql.ResultStatus> {
+		const params: mssql.SavePublishProfileParams = {
+			profilePath: profilePath,
+			databaseName: databaseName,
+			connectionString: connectionString,
+			sqlCommandVariableValues: sqlCommandVariableValues ? Object.fromEntries(sqlCommandVariableValues) : undefined,
+			deploymentOptions: deploymentOptions
+		};
+		return this._client.sendRequest(dacFxContracts.SavePublishProfileRequest.type, params);
 	}
 }

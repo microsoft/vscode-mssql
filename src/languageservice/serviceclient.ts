@@ -12,7 +12,6 @@ import {
 import * as path from 'path';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import * as Utils from '../models/utils';
-import { VersionRequest } from '../models/contracts';
 import { Logger, LogLevel } from '../models/logger';
 import * as Constants from '../constants/constants';
 import ServerProvider from './server';
@@ -27,7 +26,7 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
-import { getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { getAppDataPath, getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
 import { AuthLibrary } from '../models/contracts/azure';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
@@ -346,7 +345,10 @@ export default class SqlToolsServiceClient {
 			documentSelector: ['sql'],
 			diagnosticCollectionName: 'mssql',
 			synchronize: {
-				configurationSection: 'mssql'
+				configurationSection: [
+					Constants.extensionConfigSectionName,
+					Constants.telemetryConfigSectionName
+				]
 			},
 			errorHandler: new LanguageClientErrorHandler(this._vscodeWrapper)
 		};
@@ -354,7 +356,6 @@ export default class SqlToolsServiceClient {
 		// cache the client instance for later use
 		let client = new LanguageClient(Constants.sqlToolsServiceName, serverOptions, clientOptions);
 		client.onReady().then(() => {
-			this.checkServiceCompatibility();
 			client.onNotification(LanguageServiceContracts.StatusChangedNotification.type, this.handleLanguageServiceStatusNotification());
 		});
 
@@ -403,8 +404,9 @@ export default class SqlToolsServiceClient {
 				serverArgs.push('--enable-logging');
 			}
 
-			// Send application name to determine MSAL cache location
+			// Send application name and path to determine MSAL cache location
 			serverArgs.push('--application-name', 'code');
+			serverArgs.push('--data-path', getAppDataPath());
 
 			// Enable SQL Auth Provider registration for Azure MFA Authentication
 			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
@@ -474,21 +476,5 @@ export default class SqlToolsServiceClient {
 		if (this._client !== undefined) {
 			return this.client.onNotification(type, handler);
 		}
-	}
-
-	public checkServiceCompatibility(): Promise<boolean> {
-		return new Promise<boolean>((resolve, reject) => {
-			this._client.sendRequest(VersionRequest.type, undefined).then((result) => {
-				Utils.logDebug('sqlserverclient version: ' + result);
-
-				if (result === undefined || !result.startsWith(Constants.serviceCompatibleVersion)) {
-					Utils.showErrorMsg(Constants.serviceNotCompatibleError);
-					Utils.logDebug(Constants.serviceNotCompatibleError);
-					resolve(false);
-				} else {
-					resolve(true);
-				}
-			});
-		});
 	}
 }

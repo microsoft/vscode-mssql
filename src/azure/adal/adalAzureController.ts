@@ -25,7 +25,6 @@ import { AzureUserInteraction } from './azureUserInteraction';
 import { StorageService } from './storageService';
 
 export class AdalAzureController extends AzureController {
-
 	private _authMappings = new Map<AzureAuthType, AzureAuth>();
 	private cacheProvider: SimpleTokenCache;
 	private storageService: StorageService;
@@ -41,10 +40,21 @@ export class AdalAzureController extends AzureController {
 		this.azureMessageDisplayer = new AzureMessageDisplayer();
 	}
 
+	public async loadTokenCache(): Promise<void> {
+		let authType = getAzureActiveDirectoryConfig();
+		if (!this._authMappings.has(authType)) {
+			await this.handleAuthMapping();
+		}
+	}
+
 	public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
 		let azureAuth = await this.getAzureAuthInstance(authType);
 		let response = await azureAuth!.startLogin();
 		return response ? response as IAccount : undefined;
+	}
+
+	public isAccountInCache(account: IAccount): Promise<boolean> {
+		throw new Error('Method not implemented.');
 	}
 
 	public async getAccountSecurityToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<IToken | undefined> {
@@ -183,7 +193,7 @@ export class AdalAzureController extends AzureController {
 
 			let storagePath = await this.findOrMakeStoragePath();
 			// ADAL Cache Service
-			this.cacheProvider = new SimpleTokenCache(Constants.adalCacheFileName, storagePath!);
+			this.cacheProvider = new SimpleTokenCache(Constants.adalCacheFileName, this._credentialStore, this._vscodeWrapper, this.logger, storagePath!);
 			await this.cacheProvider.init();
 			this.storageService = this.cacheProvider.db;
 			// MSAL Cache Provider

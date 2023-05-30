@@ -1,5 +1,4 @@
 [![Build Status](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_apis/build/status/VSCode-MSSQL?branchName=main)](https://mssqltools.visualstudio.com/CrossPlatBuildScripts/_build/latest?definitionId=70&branchName=main)
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/microsoft/vscode-mssql.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/microsoft/vscode-mssql/context:javascript)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-blue.svg)](https://gitter.im/Microsoft/mssql)
 
 
@@ -26,7 +25,7 @@ See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, 
     * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instructions].
 * Open an existing file with a .sql file extension or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**. **mssql** commands and functionalities are enabled in the SQL language mode in Visual Studio Code editor.
 * Create a new connection profile using command palette by pressing **F1**, type **sqlman** to run **MS SQL: Manage Connection Profile** command. Select **Create**. See [manage connection profiles] for more information about how to create and edit connection profiles in your User Settings (settings.json) file.
-* Connect to a database by pressing **F1** and type **sqlcon** to run **MS SQL: Connnect** command, then select a connection profile. You can also use a shortcut (**ctrl+shift+c**).
+* Connect to a database by pressing **F1** and type **sqlcon** to run **MS SQL: Connect** command, then select a connection profile. You can also use a shortcut (**ctrl+shift+c**).
 * Write T-SQL script in the editor using IntelliSense and Snippets. Type **sql** in the editor to list T-SQL Snippets.
 * Execute T-SQL script or selection of statements in the script by pressing **F1** and type **sqlex** to run **MS SQL: Execute Query** command. You can also use a shortcut (**ctrl+shift+e**). See [customize shortcuts] to learn about change shortcut key bindings to **mssql** commands.
 * View the T-SQL script execution results and messages in result view.
@@ -98,10 +97,10 @@ See the [change log] for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
-Currently this extension supports the following operatings systems:
+Currently this extension supports the following operating systems:
 
-* Windows (64-bit only)
-* macOS
+* Windows (x64 | x86 | arm64)
+* macOS (x64 | arm64)
 * Ubuntu 14.04 / Linux Mint 17 / Linux Mint 18 / Elementary OS 0.3
 * Ubuntu 16.04 / Elementary OS 0.4
 * Debian 8.2
@@ -109,6 +108,7 @@ Currently this extension supports the following operatings systems:
 * Red Hat Enterprise Linux (RHEL)
 * Fedora 23
 * OpenSUSE 13.2
+* Linux arm64
 
 ## Offline Installation
 The extension will download and install a required SqlToolsService package during activation. For machines with no Internet access, you can still use the extension by choosing the

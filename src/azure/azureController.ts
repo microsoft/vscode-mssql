@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
@@ -21,6 +20,7 @@ import { AuthLibrary, AzureAuthType, IAADResource, IAccount, IProviderSettings, 
 import { Logger, LogLevel } from '../models/logger';
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from '../prompts/question';
 import { AccountStore } from './accountStore';
+import { ICredentialStore } from '../credentialstore/icredentialstore';
 
 export abstract class AzureController {
 	protected _providerSettings: IProviderSettings;
@@ -33,6 +33,7 @@ export abstract class AzureController {
 	constructor(
 		protected context: vscode.ExtensionContext,
 		protected prompter: IPrompter,
+		protected _credentialStore: ICredentialStore,
 		protected _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory) {
 		if (!this._vscodeWrapper) {
 			this._vscodeWrapper = new VscodeWrapper();
@@ -56,6 +57,8 @@ export abstract class AzureController {
 
 	public abstract init(): void;
 
+	public abstract loadTokenCache(): Promise<void>;
+
 	public abstract login(authType: AzureAuthType): Promise<IAccount | undefined>;
 
 	public abstract populateAccountProperties(profile: ConnectionProfile, accountStore: AccountStore, settings: IAADResource): Promise<ConnectionProfile>;
@@ -64,6 +67,8 @@ export abstract class AzureController {
 
 	public abstract refreshAccessToken(account: IAccount, accountStore: AccountStore,
 		tenantId: string | undefined, settings: IAADResource): Promise<IToken | undefined>;
+
+	public abstract isAccountInCache(account: IAccount): Promise<boolean>;
 
 	public abstract removeAccount(account: IAccount): Promise<void>;
 
@@ -222,17 +227,7 @@ export abstract class AzureController {
 		return storagePath;
 	}
 
-	private getAppDataPath(): string {
-		let platform = process.platform;
-		switch (platform) {
-			case 'win32': return process.env['APPDATA'] || path.join(process.env['USERPROFILE']!, 'AppData', 'Roaming');
-			case 'darwin': return path.join(os.homedir(), 'Library', 'Application Support');
-			case 'linux': return process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
-			default: throw new Error('Platform not supported');
-		}
-	}
-
 	private getDefaultOutputLocation(): string {
-		return path.join(this.getAppDataPath(), AzureConstants.serviceName);
+		return path.join(azureUtils.getAppDataPath(), AzureConstants.serviceName);
 	}
 }

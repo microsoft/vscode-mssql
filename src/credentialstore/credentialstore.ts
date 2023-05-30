@@ -34,8 +34,11 @@ export class CredentialStore implements ICredentialStore {
 	public async readCredential(credentialId: string): Promise<Contracts.Credential> {
 		let cred: Contracts.Credential = new Contracts.Credential();
 		cred.credentialId = credentialId;
-		const returnedCred = await this._client!.sendRequest(Contracts.ReadCredentialRequest.type, cred);
-		return returnedCred;
+		if (Utils.isLinux) {
+			cred.password = await this._secretStorage.get(credentialId);
+			return cred;
+		}
+		return await this._client!.sendRequest(Contracts.ReadCredentialRequest.type, cred);
 	}
 
 	public async saveCredential(credentialId: string, password: any): Promise<boolean> {

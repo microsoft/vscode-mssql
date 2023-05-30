@@ -155,7 +155,7 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdAadRemoveAccount);
 			this._event.on(Constants.cmdAadRemoveAccount, () => this.removeAadAccount(this._prompter));
 			this.registerCommand(Constants.cmdAadAddAccount);
-			this._event.on(Constants.cmdAadAddAccount, () => this.addAddAccount());
+			this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
 
 			this.initializeObjectExplorer();
 
@@ -183,6 +183,7 @@ export default class MainController implements vscode.Disposable {
 
 			this.sqlTasksService = new SqlTasksService(SqlToolsServerClient.instance, this._untitledSqlDocumentService);
 			this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
+			this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
 			this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
 			const azureResourceController = new AzureResourceController();
 			this.azureAccountService = new AzureAccountService(this._connectionMgr.azureController, this._connectionMgr.accountStore);
@@ -280,9 +281,14 @@ export default class MainController implements vscode.Disposable {
 			this.onDidOpenTextDocument(activeTextEditor.document);
 		}
 		await this.sanitizeConnectionProfiles();
+		await this.loadTokenCache();
 		Utils.logDebug('activated.');
 		this._initialized = true;
 		return true;
+	}
+
+	private async loadTokenCache(): Promise<void> {
+		await this._connectionMgr.azureController.loadTokenCache();
 	}
 
 	/**
@@ -918,7 +924,7 @@ export default class MainController implements vscode.Disposable {
 	}
 
 	/**
-	 * Prompts the user to view release notes and blog post for changes made to the encryption connection property, if this is a new extension install
+	 * Prompts the user to view release notes, if this is a new extension install
 	 */
 	private async showFirstLaunchPrompts(): Promise<void> {
 		let self = this;
@@ -933,18 +939,7 @@ export default class MainController implements vscode.Disposable {
 					}
 				});
 
-
-			// ask the user to view encryption changes document
-			let confirmTextEncrypt = LocalizedConstants.moreInformation;
-			let promiseEncryption = this._vscodeWrapper.showInformationMessage(
-				LocalizedConstants.encryptionChangePromptDescription, confirmTextEncrypt)
-				.then(async (result) => {
-					if (result === confirmTextEncrypt) {
-						await self.launchEncryptionBlogPage();
-					}
-				});
-
-			await Promise.all([promiseReleaseNotes, promiseEncryption]);
+			await Promise.all([promiseReleaseNotes]);
 		}
 	}
 
@@ -953,13 +948,6 @@ export default class MainController implements vscode.Disposable {
 	 */
 	private async launchReleaseNotesPage(): Promise<void> {
 		await vscode.env.openExternal(vscode.Uri.parse(Constants.changelogLink));
-	}
-
-	/**
-	 * Shows the release notes page in the preview browser
-	 */
-	private async launchEncryptionBlogPage(): Promise<void> {
-		await vscode.env.openExternal(vscode.Uri.parse(Constants.encryptionBlogLink));
 	}
 
 	/**
@@ -1245,8 +1233,11 @@ export default class MainController implements vscode.Disposable {
 			}
 
 			// Prompt to reload VS Code when below settings are updated.
-			if (e.affectsConfiguration(Constants.azureAuthLibrary)
+			if (e.affectsConfiguration(Constants.mssqlAzureAuthLibrary)
 				|| e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
+				if ((vscode.workspace.getConfiguration(Constants.extensionName).get(Constants.azureAuthLibrary) === 'ADAL')) {
+					void vscode.window.showInformationMessage(LocalizedConstants.deprecatedMessage);
+				}
 				await this.displayReloadMessage();
 			}
 		}
@@ -1279,7 +1270,7 @@ export default class MainController implements vscode.Disposable {
 		this.connectionManager.removeAccount(prompter);
 	}
 
-	public addAddAccount(): void {
+	public addAadAccount(): void {
 		this.connectionManager.addAccount();
 	}
 }
