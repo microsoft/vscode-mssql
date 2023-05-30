@@ -26,6 +26,7 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
+import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
 	node = node.parentNode;
@@ -541,6 +542,16 @@ export class ObjectExplorerService {
 		}
 		this._nodePathToNodeLabelMap.delete(node.nodePath);
 		this.cleanNodeChildren(node);
+		if(isDisconnect)
+		sendTelemetryEvent(
+			TelemetryViews.ObjectExplorer,
+			isDisconnect? TelemetryActions.RemoveConnection: TelemetryActions.Disconnect,
+			{
+				nodeType: node.nodeType,
+			},
+			{},
+			this._connectionManager.getServerInfo(node.connectionInfo)
+		);
 	}
 
 	public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
@@ -562,6 +573,15 @@ export class ObjectExplorerService {
 		if (response) {
 			this._treeNodeToChildrenMap.delete(node);
 		}
+
+		sendTelemetryEvent(
+			TelemetryViews.ObjectExplorer,
+			TelemetryActions.Refresh,
+			{
+				nodeType: node.nodeType,
+			},
+			{},
+			this._connectionManager.getServerInfo(node.connectionInfo));
 		return this._objectExplorerProvider.refresh(node);
 	}
 

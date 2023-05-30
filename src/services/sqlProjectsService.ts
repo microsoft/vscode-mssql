@@ -6,6 +6,7 @@
 import * as mssql from 'vscode-mssql';
 import SqlToolsServiceClient from '../languageservice/serviceclient';
 import * as contracts from '../models/contracts/sqlProjects/sqlProjectsContracts';
+import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
 
 export class SqlProjectsService implements mssql.ISqlProjectsService {
 	constructor(private _client: SqlToolsServiceClient) { }
@@ -231,6 +232,16 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 			databaseSchemaProvider: databaseSchemaProvider,
 			buildSdkVersion: buildSdkVersion
 		};
+
+		sendTelemetryEvent(
+			TelemetryViews.SqlProjects,
+			TelemetryActions.CreateProject,
+			{
+				sqlProjectType: sqlProjectType.toString(),
+				buildSdkVersion: buildSdkVersion
+			},{
+
+			});
 		return this._client.sendRequest(contracts.CreateSqlProjectRequest.type, params);
 	}
 

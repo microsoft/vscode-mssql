@@ -39,6 +39,7 @@ import { IConnectionProfile, ISelectionData } from './../models/interfaces';
 import ConnectionManager from './connectionManager';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
+import { sendTelemetryEvent, TelemetryActions, TelemetryViews } from '../telemetry';
 
 /**
  * The main controller class that initializes the extension
@@ -214,7 +215,9 @@ export default class MainController implements vscode.Disposable {
 				await promise;
 			}
 		}
-		const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
+
+		const telemetrySessionId = Utils.generateGuid();
+		const selectStatement = await this._scriptingService.script(node, nodeUri, operation, telemetrySessionId);
 		const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
 		let uri = editor.document.uri.toString(true);
 		let scriptingObject = this._scriptingService.getObjectFromNode(node);
@@ -229,6 +232,16 @@ export default class MainController implements vscode.Disposable {
 			await this._outputContentProvider.runQuery(this._statusview, uri, undefined, title, queryPromise);
 			await queryPromise;
 			await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+			sendTelemetryEvent(
+				TelemetryViews.QueryEditor,
+				TelemetryActions.RunQuery,
+				{
+					sessionId: telemetrySessionId
+				},
+				{
+				},
+				this.connectionManager.getServerInfo(connectionCreds)
+			)
 		}
 	}
 
@@ -984,6 +997,15 @@ export default class MainController implements vscode.Disposable {
 				await this.connectionManager.connect(uri, connectionCreds);
 				this._statusview.sqlCmdModeChanged(uri, false);
 				await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+				sendTelemetryEvent(
+					TelemetryViews.ObjectExplorer,
+					TelemetryActions.NewQuery,
+					{
+						nodeType: node.nodeType,
+					},
+					{},
+					this._connectionMgr.getServerInfo(node.connectionInfo)
+				);
 				return true;
 			} else {
 				// new query command
@@ -994,6 +1016,13 @@ export default class MainController implements vscode.Disposable {
 					await this.createObjectExplorerSession(credentials);
 				}
 				this._statusview.sqlCmdModeChanged(uri, false);
+				sendTelemetryEvent(
+					TelemetryViews.CommandPallet,
+					TelemetryActions.NewQuery,
+					{},
+					{},
+					this._connectionMgr.getServerInfo(credentials)
+				)
 				return true;
 			}
 		}
