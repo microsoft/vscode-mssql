@@ -811,6 +811,10 @@ export default class MainController implements vscode.Disposable {
 			// create new connection
 			if (!self.connectionManager.isConnected(uri)) {
 				await self.onNewConnection();
+				sendTelemetryEvent(TelemetryViews.QueryEditor,
+					TelemetryActions.CreateConnection,
+					{},
+					{});
 			}
 			// check if current connection is still valid / active - if not, refresh azure account token
 			await self._connectionMgr.refreshAzureAccountToken(uri);

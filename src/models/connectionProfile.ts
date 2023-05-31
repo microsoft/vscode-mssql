@@ -15,6 +15,7 @@ import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import { AzureAuthType, IAccount, ITenant } from './contracts/azure';
 import { getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -146,6 +147,15 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
 		return prompter.prompt(questions, true).then(async answers => {
 			if (answers && profile.isValidProfile()) {
+				sendTelemetryEvent(
+					TelemetryViews.ConnectionPrompt,
+					TelemetryActions.ConnectionCreated,
+					{
+						authenticationType: profile.authenticationType,
+						passwordSaved: profile.savePassword ? 'true' : 'false',
+					},
+					{}
+				);
 				return profile;
 			}
 			// returning undefined to indicate failure to create the profile

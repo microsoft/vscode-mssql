@@ -33,6 +33,7 @@ import { Deferred } from '../protocol';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './vscodeWrapper';
+import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -859,6 +860,15 @@ export default class ConnectionManager {
 					} else {
 						resolve(connectResult);
 					}
+					sendTelemetryEvent(
+						TelemetryViews.ConnectionPrompt,
+						error ? TelemetryActions.ConnectionFailed : TelemetryActions.ConnectionCreated,
+						{
+							type: connectionInfo.credentials.authenticationType,
+						},
+						{},
+						this.getServerInfo(connectionInfo.credentials)
+					);
 				});
 
 				// package connection details for request message

@@ -20,6 +20,7 @@ export enum TelemetryViews {
 	SqlProjects = 'SqlProjects',
 	QueryEditor = 'QueryEditor',
 	ResultsGrid = 'ResultsGrid',
+	ConnectionPrompt = 'ConnectionPrompt'
 }
 
 export enum TelemetryActions {
@@ -31,7 +32,10 @@ export enum TelemetryActions {
 	NewQuery = 'NewQuery',
 	RunQuery = 'RunQuery',
 	QueryExecutionCompleted = 'QueryExecutionCompleted',
-	ResultPaneAction = 'ResultPaneAction'
+	ResultPaneAction = 'ResultPaneAction',
+	CreateConnection = 'CreateConnection',
+	ConnectionCreated = 'ConnectionCreated',
+	ConnectionFailed = 'ConnectionFailed',
 }
 
 export const TelemetryReporter = new AdsTelemetryReporter<TelemetryViews, TelemetryActions>(packageInfo.name, packageInfo.version, packageInfo.aiKey);

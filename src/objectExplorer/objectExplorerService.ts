@@ -446,6 +446,13 @@ export class ObjectExplorerService {
 		if (!connectionCredentials) {
 			const connectionUI = this._connectionManager.connectionUI;
 			connectionCredentials = await connectionUI.createAndSaveProfile();
+			sendTelemetryEvent(
+				TelemetryViews.ObjectExplorer,
+				TelemetryActions.CreateConnection,
+				{},
+				{},
+				this._connectionManager.getServerInfo(connectionCredentials)
+			);
 		}
 		if (connectionCredentials) {
 			// connection string based credential
@@ -577,10 +584,9 @@ export class ObjectExplorerService {
 		}
 		this._nodePathToNodeLabelMap.delete(node.nodePath);
 		this.cleanNodeChildren(node);
-		if(isDisconnect)
 		sendTelemetryEvent(
 			TelemetryViews.ObjectExplorer,
-			isDisconnect? TelemetryActions.RemoveConnection: TelemetryActions.Disconnect,
+			isDisconnect ? TelemetryActions.RemoveConnection : TelemetryActions.Disconnect,
 			{
 				nodeType: node.nodeType,
 			},
