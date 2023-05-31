@@ -599,7 +599,7 @@ export class ObjectExplorerService {
 			TelemetryViews.ObjectExplorer,
 			isDisconnect ? TelemetryActions.RemoveConnection : TelemetryActions.Disconnect,
 			{
-				nodeType: node.nodeType,
+				nodeType: node.nodeType
 			},
 			{},
 			this._connectionManager.getServerInfo(node.connectionInfo)
@@ -630,7 +630,7 @@ export class ObjectExplorerService {
 			TelemetryViews.ObjectExplorer,
 			TelemetryActions.Refresh,
 			{
-				nodeType: node.nodeType,
+				nodeType: node.nodeType
 			},
 			{},
 			this._connectionManager.getServerInfo(node.connectionInfo));

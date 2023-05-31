@@ -253,7 +253,7 @@ export default class QueryRunner {
 			TelemetryViews.QueryEditor,
 			TelemetryActions.QueryExecutionCompleted,
 			{
-				hasError: hasError.toString(),
+				hasError: hasError.toString()
 			},
 			{
 				batchCount: result.batchSummaries.length,
@@ -264,7 +264,7 @@ export default class QueryRunner {
 				}, 0),
 				totalExecutionTime: this._totalElapsedMilliseconds
 			}
-		)
+		);
 	}
 
 	public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {

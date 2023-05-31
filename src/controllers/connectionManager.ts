@@ -864,7 +864,7 @@ export default class ConnectionManager {
 						TelemetryViews.ConnectionPrompt,
 						error ? TelemetryActions.ConnectionFailed : TelemetryActions.ConnectionCreated,
 						{
-							type: connectionInfo.credentials.authenticationType,
+							type: connectionInfo.credentials.authenticationType
 						},
 						{},
 						this.getServerInfo(connectionInfo.credentials)

@@ -36,11 +36,10 @@ export enum TelemetryActions {
 	CreateConnection = 'CreateConnection',
 	ConnectionCreated = 'ConnectionCreated',
 	ConnectionFailed = 'ConnectionFailed',
-	ExpandNode = 'ExpandNode',
+	ExpandNode = 'ExpandNode'
 }
 
-export const TelemetryReporter = new AdsTelemetryReporter<TelemetryViews, TelemetryActions>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
-
+export const telemetryReporter = new AdsTelemetryReporter<TelemetryViews, TelemetryActions>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
 export function sendTelemetryEvent(
 	telemetryView: TelemetryViews,
 	telemetryAction: TelemetryActions,
@@ -50,19 +49,19 @@ export function sendTelemetryEvent(
 	if (serverInfo) {
 		fillServerInfo(additionalProps, serverInfo);
 	}
-	TelemetryReporter.createActionEvent(telemetryView, telemetryAction)
+	telemetryReporter.createActionEvent(telemetryView, telemetryAction)
 		.withAdditionalProperties(additionalProps)
 		.withAdditionalMeasurements(additionalMeasurements)
 		.send();
 }
 
-export const SimpleTelemetryReporter = new AdsTelemetryReporter<string, string>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+export const simpleTelemetryReporter = new AdsTelemetryReporter<string, string>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
 export function sendSimpleTelemetryEvent(
 	telemetryView: string,
 	telemetryAction: string,
 	additionalProps: { [key: string]: string },
 	additionalMeasurements: { [key: string]: number }): void {
-	SimpleTelemetryReporter.createActionEvent(telemetryView, telemetryAction)
+	simpleTelemetryReporter.createActionEvent(telemetryView, telemetryAction)
 		.withAdditionalProperties(additionalProps)
 		.withAdditionalMeasurements(additionalMeasurements)
 		.send();

@@ -242,7 +242,7 @@ export default class MainController implements vscode.Disposable {
 				{
 				},
 				this.connectionManager.getServerInfo(connectionCreds)
-			)
+			);
 		}
 	}
 
@@ -993,7 +993,7 @@ export default class MainController implements vscode.Disposable {
 					TelemetryViews.ObjectExplorer,
 					TelemetryActions.NewQuery,
 					{
-						nodeType: node.nodeType,
+						nodeType: node.nodeType
 					},
 					{},
 					this._connectionMgr.getServerInfo(node.connectionInfo)
@@ -1014,7 +1014,7 @@ export default class MainController implements vscode.Disposable {
 					{},
 					{},
 					this._connectionMgr.getServerInfo(credentials)
-				)
+				);
 				return true;
 			}
 		}

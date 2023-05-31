@@ -152,7 +152,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 					TelemetryActions.ConnectionCreated,
 					{
 						authenticationType: profile.authenticationType,
-						passwordSaved: profile.savePassword ? 'true' : 'false',
+						passwordSaved: profile.savePassword ? 'true' : 'false'
 					},
 					{}
 				);
