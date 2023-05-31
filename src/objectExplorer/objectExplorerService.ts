@@ -29,6 +29,7 @@ import { IConnectionInfo } from 'vscode-mssql';
 import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
 import { IAccount } from '../models/contracts/azure';
 import * as AzureConstants from '../azure/constants';
+import { result } from 'underscore';
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
 	node = node.parentNode;
@@ -226,6 +227,17 @@ export class ObjectExplorerService {
 						return;
 					}
 				}
+				sendTelemetryEvent(
+					TelemetryViews.ObjectExplorer,
+					TelemetryActions.ExpandNode,
+					{
+						nodeType: parentNode.nodeType,
+						isErrored : result.errorMessage
+					},
+					{
+						nodeCount: result?.nodes ? result.nodes.length : 0
+					}
+				);
 			}
 		};
 		return handler;

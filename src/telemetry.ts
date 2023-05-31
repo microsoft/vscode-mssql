@@ -36,6 +36,7 @@ export enum TelemetryActions {
 	CreateConnection = 'CreateConnection',
 	ConnectionCreated = 'ConnectionCreated',
 	ConnectionFailed = 'ConnectionFailed',
+	ExpandNode = 'ExpandNode',
 }
 
 export const TelemetryReporter = new AdsTelemetryReporter<TelemetryViews, TelemetryActions>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
