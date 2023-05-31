@@ -22,6 +22,7 @@ export interface IServerProxy extends Disposable {
 	getLocalizedTexts(): Promise<{ [key: string]: any }>;
 	sendReadyEvent(uri: string): Promise<boolean>;
 	getNewColumnWidth(current: number): Promise<number | undefined>;
+	sendSimpleTelemetryEvent(view: string, action: string, properties?: { [key: string]: string }, measurement?: {[key: string]: number}): void;
 }
 
 export interface IMessageProtocol {

@@ -7,7 +7,7 @@ import { IServerInfo } from 'vscode-mssql';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8'));
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 let packageInfo = {
 	name: packageJson.name,
 	version: packageJson.version,
@@ -46,6 +46,18 @@ export function sendTelemetryEvent(
 		fillServerInfo(additionalProps, serverInfo);
 	}
 	TelemetryReporter.createActionEvent(telemetryView, telemetryAction)
+		.withAdditionalProperties(additionalProps)
+		.withAdditionalMeasurements(additionalMeasurements)
+		.send();
+}
+
+export const SimpleTelemetryReporter = new AdsTelemetryReporter<string, string>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+export function sendSimpleTelemetryEvent(
+	telemetryView: string,
+	telemetryAction: string,
+	additionalProps: { [key: string]: string },
+	additionalMeasurements: { [key: string]: number }): void {
+	SimpleTelemetryReporter.createActionEvent(telemetryView, telemetryAction)
 		.withAdditionalProperties(additionalProps)
 		.withAdditionalMeasurements(additionalMeasurements)
 		.send();

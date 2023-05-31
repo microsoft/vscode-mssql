@@ -213,6 +213,13 @@
     axios "^0.27.2"
     qs "^6.9.7"
 
+"@microsoft/ads-extension-telemetry@^1.0.17":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@microsoft/ads-extension-telemetry/-/ads-extension-telemetry-1.4.0.tgz#73b156f399c810b58949e83021da9071335a29a0"
+  integrity sha512-uiPD12Jeu3/CGPCQctyZKE+2FLwn+/iXLoLn80EoJ0MTnonHo1AREvbtR1y6JpOjh8hJXBdh6LjCxs15giIESg==
+  dependencies:
+    "@vscode/extension-telemetry" "0.6.1"
+
 "@opentelemetry/api@^1.0.1":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.0.4.tgz#a167e46c10d05a07ab299fc518793b0cff8f6924"
@@ -351,6 +358,11 @@
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
+
+"@vscode/extension-telemetry@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@vscode/extension-telemetry/-/extension-telemetry-0.6.1.tgz#f8d1f7145baf932b75077c48107edff48501fc14"
+  integrity sha512-Y4Oc8yGURGVF4WhCZcu+EVy+MAIeQDLDVeDlLn59H0C1w+7xr8dL2ZtDBioy+Hog1Edrd6zOwr3Na7xe1iC/UA==
 
 "@vscode/test-electron@^2.1.5":
   version "2.2.0"

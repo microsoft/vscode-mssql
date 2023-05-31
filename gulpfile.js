@@ -221,6 +221,11 @@ gulp.task('ext:copy-config', () => {
 		.pipe(gulp.dest(config.paths.project.root + '/out/src'));
 });
 
+gulp.task('ext:copy-package', () => {
+	return gulp.src(config.paths.project.root + '/package.json')
+		.pipe(gulp.dest(config.paths.project.root + '/out/src'));
+});
+
 gulp.task('ext:copy-js', () => {
 	return gulp.src([
 		config.paths.project.root + '/src/**/*.js',
@@ -229,7 +234,7 @@ gulp.task('ext:copy-js', () => {
 });
 
 // Copy the files which aren't used in compilation
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
+gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-package', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
 
 gulp.task('ext:localization', gulp.series('ext:localization:generate-eng-package.nls', 'ext:localization:xliff-to-ts', 'ext:localization:xliff-to-json', 'ext:localization:xliff-to-package.nls'));
 

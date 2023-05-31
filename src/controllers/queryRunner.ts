@@ -261,7 +261,8 @@ export default class QueryRunner {
 					return totalCount + batch.resultSetSummaries.reduce((rowCount, resultSet) => {
 						return rowCount + resultSet.rowCount;
 					}, 0);
-				}, 0)
+				}, 0),
+				totalExecutionTime: this._totalElapsedMilliseconds
 			}
 		)
 	}

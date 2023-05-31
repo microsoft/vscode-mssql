@@ -85,6 +85,10 @@ export class DataService implements OnDestroy {
 		this._proxy.saveResults(batchIndex, resultSetNumber, format, selection);
 	}
 
+	sendSimpleTelemetryEvent(view: string, action: string, properties?: { [key: string]: string }, measurement?: {[key: string]: number} ): void {
+		this._proxy.sendSimpleTelemetryEvent(view, action, properties, measurement);
+	}
+
 	/**
 	 * send ready event to server to show that
 	 * the angular app has loaded
