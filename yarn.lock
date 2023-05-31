@@ -213,10 +213,10 @@
     axios "^0.27.2"
     qs "^6.9.7"
 
-"@microsoft/ads-extension-telemetry@^1.0.17":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@microsoft/ads-extension-telemetry/-/ads-extension-telemetry-1.4.0.tgz#73b156f399c810b58949e83021da9071335a29a0"
-  integrity sha512-uiPD12Jeu3/CGPCQctyZKE+2FLwn+/iXLoLn80EoJ0MTnonHo1AREvbtR1y6JpOjh8hJXBdh6LjCxs15giIESg==
+"@microsoft/ads-extension-telemetry@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/ads-extension-telemetry/-/ads-extension-telemetry-3.0.1.tgz#82d4288f8ad96920512ab4edf87d009412e683bb"
+  integrity sha512-OsHLKvz4DEZg9THkI+Jk4aINgYv4X3qgbqnVAqY8f9zsWTiR+o4vt/F5w0w3kwpbU3ppRHa03yFTBEjYyGSg1g==
   dependencies:
     "@vscode/extension-telemetry" "0.6.1"
 

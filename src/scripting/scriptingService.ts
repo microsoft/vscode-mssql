@@ -7,7 +7,8 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, IScriptingParams, ScriptOperation, IScriptingObject, IScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
+import { TelemetryActions, TelemetryViews, sendActionEvent } from '../telemetry';
+import { IConnectionProfile } from '../models/interfaces';
 
 export class ScriptingService {
 
@@ -111,7 +112,7 @@ export class ScriptingService {
 	public async script(node: TreeNodeInfo, uri: string, operation: ScriptOperation, telemetrySessionId?: string): Promise<string> {
 		let scriptingParams = this.createScriptingParams(node, uri, operation);
 		const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
-		sendTelemetryEvent(
+		sendActionEvent(
 			TelemetryViews.ObjectExplorer,
 			TelemetryActions.Scripting,
 			{
@@ -119,6 +120,7 @@ export class ScriptingService {
 				operation: scriptingParams.scriptOptions.scriptCreateDrop
 			},
 			{},
+			node.connectionInfo as IConnectionProfile,
 			this._connectionManager.getServerInfo(node.connectionInfo));
 		return result.script;
 	}

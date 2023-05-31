@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 import AdsTelemetryReporter, { TelemetryEventMeasures, TelemetryEventProperties } from '@microsoft/ads-extension-telemetry';
 import { IServerInfo } from 'vscode-mssql';
-import * as fs from 'fs';
-import * as path from 'path';
+import { IConnectionProfile } from './models/interfaces';
+import * as vscode from 'vscode';
 
-const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+const packageJson = vscode.extensions.getExtension('ms-mssql.mssql').packageJSON;
+
 let packageInfo = {
 	name: packageJson.name,
 	version: packageJson.version,
@@ -39,42 +40,24 @@ export enum TelemetryActions {
 	ExpandNode = 'ExpandNode'
 }
 
-export const telemetryReporter = new AdsTelemetryReporter<TelemetryViews, TelemetryActions>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
-export function sendTelemetryEvent(
-	telemetryView: TelemetryViews,
-	telemetryAction: TelemetryActions,
-	additionalProps: TelemetryEventProperties,
-	additionalMeasurements: TelemetryEventMeasures,
+const telemetryReporter = new AdsTelemetryReporter<TelemetryViews | string, TelemetryActions | string>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+export function sendActionEvent(
+	telemetryView: TelemetryViews | string,
+	telemetryAction: TelemetryActions | string,
+	additionalProps: TelemetryEventProperties | { [key: string]: string },
+	additionalMeasurements: TelemetryEventMeasures | {[key: string]: number},
+	connectionInfo?: IConnectionProfile,
 	serverInfo?: IServerInfo): void {
-	if (serverInfo) {
-		fillServerInfo(additionalProps, serverInfo);
+
+	let actionEvent = telemetryReporter.createActionEvent(telemetryView, telemetryAction)
+	.withAdditionalProperties(additionalProps)
+	.withAdditionalMeasurements(additionalMeasurements);
+
+	if(connectionInfo){
+		actionEvent = actionEvent.withConnectionInfo(connectionInfo);
 	}
-	telemetryReporter.createActionEvent(telemetryView, telemetryAction)
-		.withAdditionalProperties(additionalProps)
-		.withAdditionalMeasurements(additionalMeasurements)
-		.send();
-}
-
-export const simpleTelemetryReporter = new AdsTelemetryReporter<string, string>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
-export function sendSimpleTelemetryEvent(
-	telemetryView: string,
-	telemetryAction: string,
-	additionalProps: { [key: string]: string },
-	additionalMeasurements: { [key: string]: number }): void {
-	simpleTelemetryReporter.createActionEvent(telemetryView, telemetryAction)
-		.withAdditionalProperties(additionalProps)
-		.withAdditionalMeasurements(additionalMeasurements)
-		.send();
-}
-
-/**
- * Collects server information from ServerInfo to put into a
- * property bag
- */
-export function fillServerInfo(telemetryInfo: { [key: string]: string }, serverInfo: IServerInfo): void {
-	telemetryInfo['serverEdition'] = serverInfo?.serverEdition;
-	telemetryInfo['serverLevel'] = serverInfo?.serverLevel;
-	telemetryInfo['serverMajorVersion'] = serverInfo?.serverMajorVersion?.toString() || '';
-	telemetryInfo['serverMinorVersion'] = serverInfo?.serverMinorVersion?.toString() || '';
-	telemetryInfo['isCloud'] = serverInfo?.isCloud.toString();
+	if (serverInfo) {
+		actionEvent = actionEvent.withServerInfo(serverInfo);
+	}
+	actionEvent.send();
 }

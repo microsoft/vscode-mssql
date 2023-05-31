@@ -26,7 +26,7 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
-import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
+import { TelemetryActions, TelemetryViews, sendActionEvent } from '../telemetry';
 import { IAccount } from '../models/contracts/azure';
 import * as AzureConstants from '../azure/constants';
 
@@ -226,7 +226,7 @@ export class ObjectExplorerService {
 						return;
 					}
 				}
-				sendTelemetryEvent(
+				sendActionEvent(
 					TelemetryViews.ObjectExplorer,
 					TelemetryActions.ExpandNode,
 					{
@@ -457,11 +457,12 @@ export class ObjectExplorerService {
 		if (!connectionCredentials) {
 			const connectionUI = this._connectionManager.connectionUI;
 			connectionCredentials = await connectionUI.createAndSaveProfile();
-			sendTelemetryEvent(
+			sendActionEvent(
 				TelemetryViews.ObjectExplorer,
 				TelemetryActions.CreateConnection,
 				{},
 				{},
+				connectionCredentials as IConnectionProfile,
 				this._connectionManager.getServerInfo(connectionCredentials)
 			);
 		}
@@ -595,13 +596,14 @@ export class ObjectExplorerService {
 		}
 		this._nodePathToNodeLabelMap.delete(node.nodePath);
 		this.cleanNodeChildren(node);
-		sendTelemetryEvent(
+		sendActionEvent(
 			TelemetryViews.ObjectExplorer,
 			isDisconnect ? TelemetryActions.RemoveConnection : TelemetryActions.Disconnect,
 			{
 				nodeType: node.nodeType
 			},
 			{},
+			node.connectionInfo as IConnectionProfile,
 			this._connectionManager.getServerInfo(node.connectionInfo)
 		);
 	}
@@ -626,13 +628,14 @@ export class ObjectExplorerService {
 			this._treeNodeToChildrenMap.delete(node);
 		}
 
-		sendTelemetryEvent(
+		sendActionEvent(
 			TelemetryViews.ObjectExplorer,
 			TelemetryActions.Refresh,
 			{
 				nodeType: node.nodeType
 			},
 			{},
+			new ConnectionProfile(node.connectionInfo),
 			this._connectionManager.getServerInfo(node.connectionInfo));
 		return this._objectExplorerProvider.refresh(node);
 	}
