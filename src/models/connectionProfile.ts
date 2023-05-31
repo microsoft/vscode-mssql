@@ -153,8 +153,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 					{
 						authenticationType: profile.authenticationType,
 						passwordSaved: profile.savePassword ? 'true' : 'false'
-					},
-					{}
+					}
 				);
 				return profile;
 			}

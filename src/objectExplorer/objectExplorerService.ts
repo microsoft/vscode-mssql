@@ -460,8 +460,8 @@ export class ObjectExplorerService {
 			sendActionEvent(
 				TelemetryViews.ObjectExplorer,
 				TelemetryActions.CreateConnection,
-				{},
-				{},
+				undefined,
+				undefined,
 				connectionCredentials as IConnectionProfile,
 				this._connectionManager.getServerInfo(connectionCredentials)
 			);
@@ -602,7 +602,7 @@ export class ObjectExplorerService {
 			{
 				nodeType: node.nodeType
 			},
-			{},
+			undefined,
 			node.connectionInfo as IConnectionProfile,
 			this._connectionManager.getServerInfo(node.connectionInfo)
 		);
@@ -634,7 +634,7 @@ export class ObjectExplorerService {
 			{
 				nodeType: node.nodeType
 			},
-			{},
+			undefined,
 			new ConnectionProfile(node.connectionInfo),
 			this._connectionManager.getServerInfo(node.connectionInfo));
 		return this._objectExplorerProvider.refresh(node);

@@ -271,8 +271,7 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
 			{
 				sqlProjectType: sqlProjectType.toString(),
 				buildSdkVersion: buildSdkVersion
-			},
-			{});
+			});
 		return this._client.sendRequest(contracts.CreateSqlProjectRequest.type, params);
 	}
 

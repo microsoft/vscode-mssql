@@ -866,7 +866,7 @@ export default class ConnectionManager {
 						{
 							authenticationType: connectionInfo.credentials.authenticationType
 						},
-						{},
+						undefined,
 						connectionInfo.credentials as IConnectionProfile,
 						this.getServerInfo(connectionInfo.credentials)
 					);

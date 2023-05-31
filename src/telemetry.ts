@@ -44,8 +44,8 @@ const telemetryReporter = new AdsTelemetryReporter<TelemetryViews | string, Tele
 export function sendActionEvent(
 	telemetryView: TelemetryViews | string,
 	telemetryAction: TelemetryActions | string,
-	additionalProps: TelemetryEventProperties | { [key: string]: string },
-	additionalMeasurements: TelemetryEventMeasures | {[key: string]: number},
+	additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
+	additionalMeasurements: TelemetryEventMeasures | {[key: string]: number} = {},
 	connectionInfo?: IConnectionProfile,
 	serverInfo?: IServerInfo): void {
 

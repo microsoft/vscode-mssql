@@ -109,19 +109,9 @@ export class ScriptingService {
 	}
 
 
-	public async script(node: TreeNodeInfo, uri: string, operation: ScriptOperation, telemetrySessionId?: string): Promise<string> {
+	public async script(node: TreeNodeInfo, uri: string, operation: ScriptOperation): Promise<string> {
 		let scriptingParams = this.createScriptingParams(node, uri, operation);
 		const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
-		sendActionEvent(
-			TelemetryViews.ObjectExplorer,
-			TelemetryActions.Scripting,
-			{
-				objectType: node.nodeType,
-				operation: scriptingParams.scriptOptions.scriptCreateDrop
-			},
-			{},
-			node.connectionInfo as IConnectionProfile,
-			this._connectionManager.getServerInfo(node.connectionInfo));
 		return result.script;
 	}
 }
