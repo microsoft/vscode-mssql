@@ -231,7 +231,7 @@ export class ObjectExplorerService {
 					TelemetryActions.ExpandNode,
 					{
 						nodeType: parentNode.nodeType,
-						isErrored : result.errorMessage
+						isErrored : (!!result.errorMessage).toString()
 					},
 					{
 						nodeCount: result?.nodes.length ?? 0
