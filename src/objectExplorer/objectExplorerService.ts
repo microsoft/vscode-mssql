@@ -29,7 +29,6 @@ import { IConnectionInfo } from 'vscode-mssql';
 import { TelemetryActions, TelemetryViews, sendTelemetryEvent } from '../telemetry';
 import { IAccount } from '../models/contracts/azure';
 import * as AzureConstants from '../azure/constants';
-import { result } from 'underscore';
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
 	node = node.parentNode;
