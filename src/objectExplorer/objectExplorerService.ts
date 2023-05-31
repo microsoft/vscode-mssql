@@ -234,7 +234,7 @@ export class ObjectExplorerService {
 						isErrored : result.errorMessage
 					},
 					{
-						nodeCount: result?.nodes ? result.nodes.length : 0
+						nodeCount: result?.nodes.length ?? 0
 					}
 				);
 			}
