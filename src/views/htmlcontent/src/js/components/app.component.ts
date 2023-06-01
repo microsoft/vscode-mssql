@@ -38,7 +38,7 @@ export interface IGridDataSet {
 	minHeight: number | string;
 }
 
-const TelemetryViewName = 'ResutlsGrid';
+const TelemetryViewName = 'ResultsGrid';
 
 // tslint:disable:max-line-length
 const template = `
