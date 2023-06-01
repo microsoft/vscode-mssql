@@ -15,7 +15,8 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "rootDir": ".",
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "skipLibCheck": true, // This check is added as typescript compiler finds conflicting definitions in azdata and vscode library
     },
     "exclude": [
         "node_modules"

@@ -266,7 +266,6 @@ export default class MainController implements vscode.Disposable {
 			TelemetryViews.QueryEditor,
 			TelemetryActions.RunQuery,
 			{
-				sessionId: telemetrySessionId,
 				isScriptExecuted: executeScript.toString(),
 				objectType: node.nodeType,
 				operation: scriptType

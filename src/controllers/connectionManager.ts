@@ -863,12 +863,10 @@ export default class ConnectionManager {
 					sendActionEvent(
 						TelemetryViews.ConnectionPrompt,
 						error ? TelemetryActions.ConnectionFailed : TelemetryActions.ConnectionCreated,
-						{
-							authenticationType: connectionInfo.credentials.authenticationType
-						},
+						undefined,
 						undefined,
 						connectionInfo.credentials as IConnectionProfile,
-						this.getServerInfo(connectionInfo.credentials)
+						connectionInfo.serverInfo
 					);
 				});
 

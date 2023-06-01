@@ -7,8 +7,6 @@ import SqlToolsServiceClient from '../languageservice/serviceclient';
 import ConnectionManager from '../controllers/connectionManager';
 import { ScriptingRequest, IScriptingParams, ScriptOperation, IScriptingObject, IScriptOptions } from '../models/contracts/scripting/scriptingRequest';
 import { TreeNodeInfo } from '../objectExplorer/treeNodeInfo';
-import { TelemetryActions, TelemetryViews, sendActionEvent } from '../telemetry';
-import { IConnectionProfile } from '../models/interfaces';
 
 export class ScriptingService {
 

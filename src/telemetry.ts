@@ -54,10 +54,10 @@ export function sendActionEvent(
 	.withAdditionalMeasurements(additionalMeasurements);
 
 	if(connectionInfo){
-		actionEvent = actionEvent.withConnectionInfo(connectionInfo);
+		actionEvent = actionEvent.withConnectionInfo(<any>connectionInfo);
 	}
 	if (serverInfo) {
-		actionEvent = actionEvent.withServerInfo(serverInfo);
+		actionEvent = actionEvent.withServerInfo(<any>serverInfo);
 	}
 	actionEvent.send();
 }

@@ -21,7 +21,7 @@ export let elapsedTimeLabel = 'Total execution time: {0}';
 /** Warning message for save icons */
 export let msgCannotSaveMultipleSelections = 'Save results command cannot be used with multiple selections.';
 
-export let loadLocalizedConstant = (key: string, value: string) => {
+export function loadLocalizedConstant(key: string, value: string): void {
 	// Update the value of the property with the name equal to key in this file
 	this[key] = value;
 };
