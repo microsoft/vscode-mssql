@@ -33,7 +33,7 @@ import { Deferred } from '../protocol';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './vscodeWrapper';
-import { TelemetryActions, TelemetryViews, sendActionEvent } from '../telemetry';
+import { TelemetryActions, TelemetryViews, sendActionEvent, sendErrorEvent } from '../telemetry';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -857,17 +857,30 @@ export default class ConnectionManager {
 				connectionInfo.connectHandler = ((connectResult, error) => {
 					if (error) {
 						reject(error);
+						// TODO: add scrubbed error details to telemetry
+						sendErrorEvent(
+							TelemetryViews.ConnectionPrompt,
+							TelemetryActions.ConnectionFailed,
+							undefined,
+							false,
+							undefined,
+							undefined,
+							undefined,
+							undefined,
+							connectionInfo.credentials as IConnectionProfile,
+							connectionInfo.serverInfo
+						)
 					} else {
 						resolve(connectResult);
+						sendActionEvent(
+							TelemetryViews.ConnectionPrompt,
+							TelemetryActions.ConnectionCreated,
+							undefined,
+							undefined,
+							connectionInfo.credentials as IConnectionProfile,
+							connectionInfo.serverInfo
+						);
 					}
-					sendActionEvent(
-						TelemetryViews.ConnectionPrompt,
-						error ? TelemetryActions.ConnectionFailed : TelemetryActions.ConnectionCreated,
-						undefined,
-						undefined,
-						connectionInfo.credentials as IConnectionProfile,
-						connectionInfo.serverInfo
-					);
 				});
 
 				// package connection details for request message
