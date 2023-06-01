@@ -25,7 +25,7 @@ export enum TelemetryViews {
 }
 
 export enum TelemetryActions {
-	Scripting = 'Scripting',
+	GenerateScript = 'GenerateScript',
 	Refresh = 'Refresh',
 	CreateProject = 'CreateProject',
 	RemoveConnection = 'RemoveConnection',
@@ -33,7 +33,7 @@ export enum TelemetryActions {
 	NewQuery = 'NewQuery',
 	RunQuery = 'RunQuery',
 	QueryExecutionCompleted = 'QueryExecutionCompleted',
-	ResultPaneAction = 'ResultPaneAction',
+	RunResultPaneAction = 'RunResultPaneAction',
 	CreateConnection = 'CreateConnection',
 	ConnectionCreated = 'ConnectionCreated',
 	ConnectionFailed = 'ConnectionFailed',
