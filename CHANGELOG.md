@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.19.1
+* Release date: June 5, 2023
+* Release status: GA
+### What's new in 1.19.1
+* Performance improvement in Query Editor language service by enabling connection pooling (https://github.com/microsoft/azuredatastudio/issues/22970)
+* Fixed an issue where hyphenated user accounts failed to login to Azure SQL Server (https://github.com/microsoft/azuredatastudio/issues/23210)
+
 ## Version 1.19.0
 * Release date: May 24, 2023
 * Release status: GA
