@@ -263,7 +263,7 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-2.0.0.tgz#f544a148d3ab35801c1f633a7441fd87c2e484bf"
   integrity sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==
 
-"@types/azdata@1.44.0":
+"@types/azdata@^1.44.0":
   version "1.44.0"
   resolved "https://registry.yarnpkg.com/@types/azdata/-/azdata-1.44.0.tgz#c6bb4baacd1b0f74b46742bffd61ae40e922989d"
   integrity sha512-AbZnAUybkG+Vqk96PNMcv8ypzN9zqsk1k85v2Gyl5xwUrLkEgGmHnrnK6p70PM3OFaABCYU+t/4fMnnK1JY1YA==
@@ -356,15 +356,10 @@
   resolved "https://registry.yarnpkg.com/@types/underscore/-/underscore-1.8.3.tgz#d3cb512dd3dde32b2bbba4be0ca68bd3dad4a1f5"
   integrity sha512-DP70788BXjp9+CKArXOUlNkZaXa+rHonDpbqH3/74ez16dLL5z2/bMT37etbln5J+H9M07NbRUyduDIoTM2tnw==
 
-"@types/vscode@*":
+"@types/vscode@*", "@types/vscode@^1.78.1":
   version "1.78.1"
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.78.1.tgz#027dba038c9e4c3f8e83570e1494aab679030485"
   integrity sha512-wEA+54axejHu7DhcUfnFBan1IqFD1gBDxAFz8LoX06NbNDMRJv/T6OGthOs52yZccasKfN588EyffHWABkR0fg==
-
-"@types/vscode@1.57.0":
-  version "1.57.0"
-  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.57.0.tgz#cc648e0573b92f725cd1baf2621f8da9f8bc689f"
-  integrity sha512-FeznBFtIDCWRluojTsi9c3LLcCHOXP5etQfBK42+ixo1CoEAchkw39tuui9zomjZuKfUVL33KZUDIwHZ/xvOkQ==
 
 "@ungap/promise-all-settled@1.1.2":
   version "1.1.2"
@@ -5450,10 +5445,10 @@ tslib@^2.2.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.0.tgz#803b8cdab3e12ba581a4ca41c8839bbb0dacb09e"
   integrity sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==
 
-tslint-microsoft-contrib@^5.2.0:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/tslint-microsoft-contrib/-/tslint-microsoft-contrib-5.2.1.tgz#a6286839f800e2591d041ea2800c77487844ad81"
-  integrity sha512-PDYjvpo0gN9IfMULwKk0KpVOPMhU6cNoT9VwCOLeDl/QS8v8W2yspRpFFuUS7/c5EIH/n8ApMi8TxJAz1tfFUA==
+tslint-microsoft-contrib@^6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/tslint-microsoft-contrib/-/tslint-microsoft-contrib-6.2.0.tgz#8aa0f40584d066d05e6a5e7988da5163b85f2ad4"
+  integrity sha512-6tfi/2tHqV/3CL77pULBcK+foty11Rr0idRDxKnteTaKm6gWF9qmaCNU17HVssOuwlYNyOmd9Jsmjd+1t3a3qw==
   dependencies:
     tsutils "^2.27.2 <2.29.0"
 
@@ -5555,15 +5550,15 @@ typemoq@^1.7.0:
     lodash "^4.16.4"
     postinstall-build "^2.1.3"
 
-typescript@4.8.0-dev.20220719:
-  version "4.8.0-dev.20220719"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.0-dev.20220719.tgz#5481fe69ef18473d0da5ed23512d5754a2f998ef"
-  integrity sha512-IAZp6IDszN9iZi7R5LOqR5j0Ffy737RVQF7IefH1hNtFE+HiTjfsEYtWD2M0X/2feOCESZEKaa+GmuOVFuFhUQ==
-
 typescript@^2.0.3:
   version "2.9.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
   integrity sha512-Gr4p6nFNaoufRIY4NMdpQRNmgxVIGMs4Fcu/ujdYk3nAZqk7supzBE9idmvfZIlH/Cuj//dvi+019qEue9lV0w==
+
+typescript@^5.0.4:
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.0.4.tgz#b217fd20119bd61a94d4011274e0ab369058da3b"
+  integrity sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==
 
 uglify-js@^3.1.4:
   version "3.14.1"

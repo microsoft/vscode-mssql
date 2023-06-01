@@ -7,7 +7,7 @@ import { INetworkModule, NetworkRequestOptions, NetworkResponse } from '@azure/m
 import * as http from 'http';
 import * as https from 'https';
 import { constants, HttpMethod, HttpStatus, ProxyStatus } from '../constants';
-import { NetworkUtils } from './NetworkUtils';
+import { NetworkUtils } from './networkUtils';
 
 /**
  * This class implements the API for network requests.
