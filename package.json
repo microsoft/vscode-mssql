@@ -72,7 +72,7 @@
     "@types/sinon": "^10.0.12",
     "@types/tmp": "0.0.28",
     "@types/underscore": "1.8.3",
-    "@types/vscode": "^1.78.1",
+    "@types/vscode": "^1.47.0",
     "@types/azdata": "^1.44.0",
     "@vscode/test-electron": "^2.1.5",
     "@xmldom/xmldom": "0.8.4",
