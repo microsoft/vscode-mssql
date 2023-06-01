@@ -869,7 +869,7 @@ export default class ConnectionManager {
 							undefined,
 							connectionInfo.credentials as IConnectionProfile,
 							connectionInfo.serverInfo
-						)
+						);
 					} else {
 						resolve(connectResult);
 						sendActionEvent(

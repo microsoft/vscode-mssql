@@ -42,7 +42,6 @@ export enum TelemetryActions {
 
 const telemetryReporter = new AdsTelemetryReporter<TelemetryViews | string, TelemetryActions | string>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
 
-
 /**
  * Sends a telemetry event to the telemetry reporter
  * @param telemetryView View in which the event occurred

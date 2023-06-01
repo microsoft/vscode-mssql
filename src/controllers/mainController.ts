@@ -236,7 +236,7 @@ export default class MainController implements vscode.Disposable {
 		}
 
 		let scriptType;
-		switch(operation) {
+		switch (operation) {
 			case ScriptOperation.Select:
 				scriptType = 'Select';
 				break;
