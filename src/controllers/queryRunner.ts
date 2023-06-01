@@ -252,9 +252,7 @@ export default class QueryRunner {
 		sendActionEvent(
 			TelemetryViews.QueryEditor,
 			TelemetryActions.QueryExecutionCompleted,
-			{
-				hasError: hasError.toString()
-			},
+			undefined,
 			{
 				batchCount: result.batchSummaries.length,
 				rowCount: result.batchSummaries.reduce((totalCount, batch) => {
