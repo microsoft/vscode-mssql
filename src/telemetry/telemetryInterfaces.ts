@@ -9,7 +9,7 @@ export enum TelemetryViews {
 	SqlProjects = 'SqlProjects',
 	QueryEditor = 'QueryEditor',
 	ResultsGrid = 'ResultsGrid',
-	ConnectionPrompt = 'ConnectionPrompt',
+	ConnectionPrompt = 'ConnectionPrompt'
 }
 
 export enum TelemetryActions {
