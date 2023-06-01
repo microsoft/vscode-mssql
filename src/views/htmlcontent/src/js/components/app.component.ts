@@ -22,6 +22,7 @@ import * as Utils from './../utils';
 
 /** enableProdMode */
 import { enableProdMode } from '@angular/core';
+import { TelemetryActions, TelemetryViews } from '../../../../../telemetry/telemetryInterfaces';
 enableProdMode();
 
 // text selection helper library
@@ -37,8 +38,6 @@ export interface IGridDataSet {
 	maxHeight: number | string;
 	minHeight: number | string;
 }
-
-const TelemetryViewName = 'ResultsGrid';
 
 // tslint:disable:max-line-length
 const template = `
@@ -268,9 +267,9 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			},
 			functionality: (batchId, resultId, index) => {
 				this.magnify(index);
-				this.dataService.sendSimpleTelemetryEvent(
-					TelemetryViewName,
-					'ResultPaneAction',
+				this.dataService.sendActionEvent(
+					TelemetryViews.ResultsGrid,
+					TelemetryActions.ResultPaneAction,
 					{
 						action: this.renderedDataSets.length === 1 ? 'exitFullScreen' : 'extendFullScreen'
 					},
@@ -620,13 +619,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			default:
 				break;
 		}
-		this.dataService.sendSimpleTelemetryEvent(TelemetryViewName, 'ResultPaneAction', {
-			'action': event.type,
-			'source': event.source,
-			'selectionPresent': (event.selection && event.selection.length > 0) ? 'true' : 'false',
-		}, {
-			selectionLength: event.selection ? event.selection.length : 0,
-		});
+		this.dataService.sendActionEvent(
+			TelemetryViews.ResultsGrid,
+			TelemetryActions.ResultPaneAction,
+			{
+				'action': event.type,
+				'source': event.source,
+				'selectionPresent': (event.selection && event.selection.length > 0) ? 'true' : 'false',
+			},
+			{
+				selectionLength: event.selection ? event.selection.length : 0,
+			});
 	}
 
 	openContextMenu(event: MouseEvent, batchId, resultId, index): void {

@@ -31,7 +31,8 @@ import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from './../models/utils';
 import * as os from 'os';
 import { Deferred } from '../protocol';
-import { TelemetryActions, TelemetryViews, sendActionEvent } from '../telemetry';
+import { sendActionEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 export interface IResultSet {
 	columns: string[];

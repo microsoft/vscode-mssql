@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 import AdsTelemetryReporter, { TelemetryEventMeasures, TelemetryEventProperties } from '@microsoft/ads-extension-telemetry';
 import { IServerInfo } from 'vscode-mssql';
-import { IConnectionProfile } from './models/interfaces';
+import { IConnectionProfile } from '../models/interfaces';
 import * as vscode from 'vscode';
+import { TelemetryActions, TelemetryViews } from './telemetryInterfaces';
 
 const packageJson = vscode.extensions.getExtension('ms-mssql.mssql').packageJSON;
 
@@ -14,31 +15,6 @@ let packageInfo = {
 	version: packageJson.version,
 	aiKey: packageJson.aiKey
 };
-
-export enum TelemetryViews {
-	ObjectExplorer = 'ObjectExplorer',
-	CommandPallet = 'CommandPallet',
-	SqlProjects = 'SqlProjects',
-	QueryEditor = 'QueryEditor',
-	ResultsGrid = 'ResultsGrid',
-	ConnectionPrompt = 'ConnectionPrompt'
-}
-
-export enum TelemetryActions {
-	GenerateScript = 'GenerateScript',
-	Refresh = 'Refresh',
-	CreateProject = 'CreateProject',
-	RemoveConnection = 'RemoveConnection',
-	Disconnect = 'Disconnect',
-	NewQuery = 'NewQuery',
-	RunQuery = 'RunQuery',
-	QueryExecutionCompleted = 'QueryExecutionCompleted',
-	RunResultPaneAction = 'RunResultPaneAction',
-	CreateConnection = 'CreateConnection',
-	ConnectionCreated = 'ConnectionCreated',
-	ConnectionFailed = 'ConnectionFailed',
-	ExpandNode = 'ExpandNode'
-}
 
 const telemetryReporter = new AdsTelemetryReporter<TelemetryViews | string, TelemetryActions | string>(packageInfo.name, packageInfo.version, packageInfo.aiKey);
 
@@ -52,8 +28,8 @@ const telemetryReporter = new AdsTelemetryReporter<TelemetryViews | string, Tele
  * @param serverInfo serverInfo for the event
  */
 export function sendActionEvent(
-	telemetryView: TelemetryViews | string,
-	telemetryAction: TelemetryActions | string,
+	telemetryView: TelemetryViews,
+	telemetryAction: TelemetryActions,
 	additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
 	additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
 	connectionInfo?: IConnectionProfile,
@@ -87,8 +63,8 @@ export function sendActionEvent(
  * @param serverInfo serverInfo for the error
  */
 export function sendErrorEvent(
-	telemetryView: TelemetryViews | string,
-	telemetryAction: TelemetryActions | string,
+	telemetryView: TelemetryViews,
+	telemetryAction: TelemetryActions,
 	error: Error,
 	includeErrorMessage: boolean = false,
 	errorCode?: string,

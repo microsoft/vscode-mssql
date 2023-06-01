@@ -33,7 +33,8 @@ import { Deferred } from '../protocol';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './vscodeWrapper';
-import { TelemetryActions, TelemetryViews, sendActionEvent, sendErrorEvent } from '../telemetry';
+import { sendActionEvent, sendErrorEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -860,12 +861,14 @@ export default class ConnectionManager {
 						// TODO: add scrubbed error details to telemetry
 						sendErrorEvent(
 							TelemetryViews.ConnectionPrompt,
-							TelemetryActions.ConnectionFailed,
+							TelemetryActions.CreateConnectionResult,
 							undefined,
 							false,
 							undefined,
 							undefined,
-							undefined,
+							{
+								'containsError': 'true'
+							},
 							undefined,
 							connectionInfo.credentials as IConnectionProfile,
 							connectionInfo.serverInfo
@@ -874,7 +877,7 @@ export default class ConnectionManager {
 						resolve(connectResult);
 						sendActionEvent(
 							TelemetryViews.ConnectionPrompt,
-							TelemetryActions.ConnectionCreated,
+							TelemetryActions.CreateConnectionResult,
 							undefined,
 							undefined,
 							connectionInfo.credentials as IConnectionProfile,

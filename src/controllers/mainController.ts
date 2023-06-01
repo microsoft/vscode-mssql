@@ -39,7 +39,8 @@ import { IConnectionProfile, ISelectionData } from './../models/interfaces';
 import ConnectionManager from './connectionManager';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
-import { sendActionEvent, TelemetryActions, TelemetryViews } from '../telemetry';
+import { sendActionEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 /**
  * The main controller class that initializes the extension

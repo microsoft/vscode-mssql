@@ -16,7 +16,8 @@ import { ISelectionData, ISlickRange } from './interfaces';
 import { WebviewPanelController } from '../controllers/webviewController';
 import { IServerProxy, Deferred } from '../protocol';
 import { ResultSetSubset } from './contracts/queryExecute';
-import { sendActionEvent } from '../telemetry';
+import { sendActionEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 // tslint:disable-next-line:no-require-imports
 const pd = require('pretty-data').pd;
 
@@ -181,7 +182,7 @@ export class SqlOutputContentProvider {
 				});
 				return val === undefined ? undefined : parseInt(val, 10);
 			},
-			sendSimpleTelemetryEvent: (view: string, action: string, properties?: { [key: string]: string }, measurement?: {[key: string]: number}) => {
+			sendActionEvent: (view: TelemetryViews, action: TelemetryActions, properties?: { [key: string]: string }, measurement?: {[key: string]: number}) => {
 				sendActionEvent(view, action, properties, measurement);
 			}
 		};

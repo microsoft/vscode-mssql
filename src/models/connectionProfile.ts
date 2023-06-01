@@ -15,7 +15,8 @@ import { AccountStore } from '../azure/accountStore';
 import providerSettings from '../azure/providerSettings';
 import { AzureAuthType, IAccount, ITenant } from './contracts/azure';
 import { getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
-import { TelemetryActions, TelemetryViews, sendActionEvent } from '../telemetry';
+import { sendActionEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -149,7 +150,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 			if (answers && profile.isValidProfile()) {
 				sendActionEvent(
 					TelemetryViews.ConnectionPrompt,
-					TelemetryActions.ConnectionCreated,
+					TelemetryActions.CreateConnectionResult,
 					{
 						authenticationType: profile.authenticationType,
 						passwordSaved: profile.savePassword ? 'true' : 'false'
