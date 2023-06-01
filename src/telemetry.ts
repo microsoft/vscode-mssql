@@ -64,10 +64,10 @@ export function sendActionEvent(
 		.withAdditionalMeasurements(additionalMeasurements);
 
 	if (connectionInfo) {
-		actionEvent = actionEvent.withConnectionInfo(<any>connectionInfo);
+		actionEvent = actionEvent.withConnectionInfo({ ...connectionInfo, providerName: 'MSSQL' });
 	}
 	if (serverInfo) {
-		actionEvent = actionEvent.withServerInfo(<any>serverInfo);
+		actionEvent = actionEvent.withServerInfo(serverInfo);
 	}
 	actionEvent.send();
 }
