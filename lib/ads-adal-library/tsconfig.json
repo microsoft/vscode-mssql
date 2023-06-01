@@ -9,8 +9,7 @@
 	  "noImplicitAny": true,
 	  "moduleResolution": "node",
 	  "strict": true,
-	  "declaration": true,
-	  "skipLibCheck": true, // This check is added as typescript compiler finds conflicting definitions in azdata and vscode library
+	  "declaration": true
 	},
 	"include": [
 	  "src/**/*.ts"

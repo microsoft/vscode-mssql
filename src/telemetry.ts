@@ -64,10 +64,10 @@ export function sendActionEvent(
 		.withAdditionalMeasurements(additionalMeasurements);
 
 	if (connectionInfo) {
-		actionEvent = actionEvent.withConnectionInfo(<any>connectionInfo);
+		actionEvent = actionEvent.withConnectionInfo(connectionInfo);
 	}
 	if (serverInfo) {
-		actionEvent = actionEvent.withServerInfo(<any>serverInfo);
+		actionEvent = actionEvent.withServerInfo(serverInfo);
 	}
 	actionEvent.send();
 }
@@ -106,10 +106,10 @@ export function sendErrorEvent(
 		errorType).withAdditionalProperties(additionalProps).withAdditionalMeasurements(additionalMeasurements);
 
 	if (connectionInfo) {
-		errorEvent = errorEvent.withConnectionInfo(<any>connectionInfo);
+		errorEvent = errorEvent.withConnectionInfo(connectionInfo);
 	}
 	if (serverInfo) {
-		errorEvent = errorEvent.withServerInfo(<any>serverInfo);
+		errorEvent = errorEvent.withServerInfo(serverInfo);
 	}
 	errorEvent.send();
 }
