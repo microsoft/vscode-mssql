@@ -102,7 +102,7 @@ export function sendErrorEvent(
 		telemetryView,
 		telemetryAction,
 		error,
-		false,
+		includeErrorMessage,
 		errorCode,
 		errorType).withAdditionalProperties(additionalProps).withAdditionalMeasurements(additionalMeasurements);
 
