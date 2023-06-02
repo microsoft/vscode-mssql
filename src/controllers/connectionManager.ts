@@ -510,7 +510,7 @@ export default class ConnectionManager {
 			TelemetryActions.CreateConnectionResult,
 			new Error (result.errorMessage),
 			false,
-			result.errorNumber.toString(),
+			result.errorNumber?.toString(),
 			undefined,
 			{
 				'containsError': 'true'
