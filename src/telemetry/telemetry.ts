@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import AdsTelemetryReporter, { TelemetryEventMeasures, TelemetryEventProperties } from '@microsoft/ads-extension-telemetry';
-import { IServerInfo } from 'vscode-mssql';
+import * as vscodeMssql from 'vscode-mssql';
 import { IConnectionProfile } from '../models/interfaces';
 import * as vscode from 'vscode';
 import { TelemetryActions, TelemetryViews } from './telemetryInterfaces';
 
-const packageJson = vscode.extensions.getExtension('ms-mssql.mssql').packageJSON;
+const packageJson = vscode.extensions.getExtension(vscodeMssql.extension.name).packageJSON;
 
 let packageInfo = {
 	name: packageJson.name,
@@ -33,7 +33,7 @@ export function sendActionEvent(
 	additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
 	additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
 	connectionInfo?: IConnectionProfile,
-	serverInfo?: IServerInfo): void {
+	serverInfo?: vscodeMssql.IServerInfo): void {
 
 	let actionEvent = telemetryReporter.createActionEvent(telemetryView, telemetryAction)
 		.withAdditionalProperties(additionalProps)
@@ -72,7 +72,7 @@ export function sendErrorEvent(
 	additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
 	additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
 	connectionInfo?: IConnectionProfile,
-	serverInfo?: IServerInfo): void {
+	serverInfo?: vscodeMssql.IServerInfo): void {
 	let errorEvent = telemetryReporter.createErrorEvent2(
 		telemetryView,
 		telemetryAction,
