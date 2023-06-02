@@ -505,7 +505,6 @@ export default class ConnectionManager {
 				connection.credentials.server,
 				result.errorMessage ? result.errorMessage : result.messages)
 		);
-		result.errorNumber
 		sendErrorEvent(
 			TelemetryViews.ConnectionPrompt,
 			TelemetryActions.CreateConnectionResult,
