@@ -442,6 +442,14 @@ export default class ConnectionManager {
 		this._vscodeWrapper.logToOutputChannel(
 			Utils.formatString(LocalizedConstants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
 		);
+		sendActionEvent(
+			TelemetryViews.ConnectionPrompt,
+			TelemetryActions.CreateConnectionResult,
+			undefined,
+			undefined,
+			newCredentials as IConnectionProfile,
+			result.serverInfo
+		);
 	}
 
 	private async handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): Promise<void> {
@@ -496,6 +504,21 @@ export default class ConnectionManager {
 				LocalizedConstants.msgConnectionFailed,
 				connection.credentials.server,
 				result.errorMessage ? result.errorMessage : result.messages)
+		);
+		result.errorNumber
+		sendErrorEvent(
+			TelemetryViews.ConnectionPrompt,
+			TelemetryActions.CreateConnectionResult,
+			new Error (result.errorMessage),
+			false,
+			result.errorNumber.toString(),
+			undefined,
+			{
+				'containsError': 'true'
+			},
+			undefined,
+			connection.credentials as IConnectionProfile,
+			result.serverInfo
 		);
 	}
 
@@ -858,31 +881,8 @@ export default class ConnectionManager {
 				connectionInfo.connectHandler = ((connectResult, error) => {
 					if (error) {
 						reject(error);
-						// TODO: add scrubbed error details to telemetry
-						sendErrorEvent(
-							TelemetryViews.ConnectionPrompt,
-							TelemetryActions.CreateConnectionResult,
-							undefined,
-							false,
-							undefined,
-							undefined,
-							{
-								'containsError': 'true'
-							},
-							undefined,
-							connectionInfo.credentials as IConnectionProfile,
-							connectionInfo.serverInfo
-						);
 					} else {
 						resolve(connectResult);
-						sendActionEvent(
-							TelemetryViews.ConnectionPrompt,
-							TelemetryActions.CreateConnectionResult,
-							undefined,
-							undefined,
-							connectionInfo.credentials as IConnectionProfile,
-							connectionInfo.serverInfo
-						);
 					}
 				});
 
