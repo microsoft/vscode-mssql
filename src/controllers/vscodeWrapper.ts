@@ -312,7 +312,7 @@ export default class VscodeWrapper {
 	/**
 	 * Returns a array of the text editors currently visible in the window
 	 */
-	public get visibleEditors(): vscode.TextEditor[] {
+	public get visibleEditors(): readonly vscode.TextEditor[] {
 		return vscode.window.visibleTextEditors;
 	}
 

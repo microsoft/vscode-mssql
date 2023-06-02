@@ -26,8 +26,10 @@ import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import providerSettings from '../azure/providerSettings';
 import { IConnectionInfo } from 'vscode-mssql';
+import { sendActionEvent } from '../telemetry/telemetry';
 import { IAccount } from '../models/contracts/azure';
 import * as AzureConstants from '../azure/constants';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
 	node = node.parentNode;
@@ -225,6 +227,17 @@ export class ObjectExplorerService {
 						return;
 					}
 				}
+				sendActionEvent(
+					TelemetryViews.ObjectExplorer,
+					TelemetryActions.ExpandNode,
+					{
+						nodeType: parentNode.nodeType,
+						isErrored : (!!result.errorMessage).toString()
+					},
+					{
+						nodeCount: result?.nodes.length ?? 0
+					}
+				);
 			}
 		};
 		return handler;
@@ -445,6 +458,14 @@ export class ObjectExplorerService {
 		if (!connectionCredentials) {
 			const connectionUI = this._connectionManager.connectionUI;
 			connectionCredentials = await connectionUI.createAndSaveProfile();
+			sendActionEvent(
+				TelemetryViews.ObjectExplorer,
+				TelemetryActions.CreateConnection,
+				undefined,
+				undefined,
+				connectionCredentials as IConnectionProfile,
+				this._connectionManager.getServerInfo(connectionCredentials)
+			);
 		}
 		if (connectionCredentials) {
 			// connection string based credential
@@ -576,6 +597,16 @@ export class ObjectExplorerService {
 		}
 		this._nodePathToNodeLabelMap.delete(node.nodePath);
 		this.cleanNodeChildren(node);
+		sendActionEvent(
+			TelemetryViews.ObjectExplorer,
+			isDisconnect ? TelemetryActions.RemoveConnection : TelemetryActions.Disconnect,
+			{
+				nodeType: node.nodeType
+			},
+			undefined,
+			node.connectionInfo as IConnectionProfile,
+			this._connectionManager.getServerInfo(node.connectionInfo)
+		);
 	}
 
 	public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
@@ -597,6 +628,16 @@ export class ObjectExplorerService {
 		if (response) {
 			this._treeNodeToChildrenMap.delete(node);
 		}
+
+		sendActionEvent(
+			TelemetryViews.ObjectExplorer,
+			TelemetryActions.Refresh,
+			{
+				nodeType: node.nodeType
+			},
+			undefined,
+			node.connectionInfo as IConnectionProfile,
+			this._connectionManager.getServerInfo(node.connectionInfo));
 		return this._objectExplorerProvider.refresh(node);
 	}
 

@@ -33,6 +33,8 @@ import { Deferred } from '../protocol';
 import { ConnectionUI } from '../views/connectionUI';
 import StatusView from '../views/statusView';
 import VscodeWrapper from './vscodeWrapper';
+import { sendActionEvent, sendErrorEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -440,6 +442,14 @@ export default class ConnectionManager {
 		this._vscodeWrapper.logToOutputChannel(
 			Utils.formatString(LocalizedConstants.msgConnectedServerInfo, connection.credentials.server, fileUri, JSON.stringify(connection.serverInfo))
 		);
+		sendActionEvent(
+			TelemetryViews.ConnectionPrompt,
+			TelemetryActions.CreateConnectionResult,
+			undefined,
+			undefined,
+			newCredentials as IConnectionProfile,
+			result.serverInfo
+		);
 	}
 
 	private async handleConnectionErrors(fileUri: string, connection: ConnectionInfo, result: ConnectionContracts.ConnectionCompleteParams): Promise<void> {
@@ -494,6 +504,20 @@ export default class ConnectionManager {
 				LocalizedConstants.msgConnectionFailed,
 				connection.credentials.server,
 				result.errorMessage ? result.errorMessage : result.messages)
+		);
+		sendErrorEvent(
+			TelemetryViews.ConnectionPrompt,
+			TelemetryActions.CreateConnectionResult,
+			new Error (result.errorMessage),
+			false,
+			result.errorNumber?.toString(),
+			undefined,
+			{
+				'containsError': 'true'
+			},
+			undefined,
+			connection.credentials as IConnectionProfile,
+			result.serverInfo
 		);
 	}
 

@@ -8,6 +8,7 @@ import { ISlickRange } from 'angular2-slickgrid';
 import { QueryEvent, ResultSetSubset, ISelectionData } from './../../../../../models/interfaces';
 import * as Constants from './../constants';
 import { createProxy, IMessageProtocol, IServerProxy } from '../../../../../protocol';
+import { TelemetryActions, TelemetryViews } from '../../../../../telemetry/telemetryInterfaces';
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void; };
 
@@ -83,6 +84,15 @@ export class DataService implements OnDestroy {
 	 */
 	sendSaveRequest(batchIndex: number, resultSetNumber: number, format: string, selection: ISlickRange[]): void {
 		this._proxy.saveResults(batchIndex, resultSetNumber, format, selection);
+	}
+
+	sendActionEvent(
+		telemetryView: TelemetryViews,
+		telemetryAction: TelemetryActions,
+		additionalProps: { [key: string]: string },
+		additionalMeasurements: { [key: string]: number }
+		): void {
+		this._proxy.sendActionEvent(telemetryView, telemetryAction, additionalProps, additionalMeasurements);
 	}
 
 	/**

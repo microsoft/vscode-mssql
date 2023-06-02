@@ -5,6 +5,7 @@
 
 import { Event, Disposable } from 'vscode';
 import { ISlickRange, IResultsConfig, ResultSetSubset, ISelectionData } from './models/interfaces';
+import { TelemetryActions, TelemetryViews } from './telemetry/telemetryInterfaces';
 
 export interface IWebviewProxy extends Disposable {
 	sendEvent(type: string, arg: any): void;
@@ -22,6 +23,7 @@ export interface IServerProxy extends Disposable {
 	getLocalizedTexts(): Promise<{ [key: string]: any }>;
 	sendReadyEvent(uri: string): Promise<boolean>;
 	getNewColumnWidth(current: number): Promise<number | undefined>;
+	sendActionEvent(view: TelemetryViews, action: TelemetryActions, properties?: { [key: string]: string }, measurement?: {[key: string]: number}): void;
 }
 
 export interface IMessageProtocol {

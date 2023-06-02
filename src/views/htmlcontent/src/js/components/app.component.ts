@@ -14,7 +14,7 @@ import {
 } from '../../../../../models/interfaces';
 import { DataService } from './../services/data.service';
 import { ShortcutService } from './../services/shortcuts.service';
-import { ContextMenu } from './contextmenu.component';
+import { ContextMenu, IContextMenuClickEventArgs } from './contextmenu.component';
 import { MessagesContextMenu } from './messagescontextmenu.component';
 
 import * as Constants from './../constants';
@@ -22,6 +22,7 @@ import * as Utils from './../utils';
 
 /** enableProdMode */
 import { enableProdMode } from '@angular/core';
+import { TelemetryActions, TelemetryViews } from '../../../../../telemetry/telemetryInterfaces';
 enableProdMode();
 
 // text selection helper library
@@ -266,6 +267,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			},
 			functionality: (batchId, resultId, index) => {
 				this.magnify(index);
+				this.dataService.sendActionEvent(
+					TelemetryViews.ResultsGrid,
+					TelemetryActions.ResultPaneAction,
+					{
+						action: this.renderedDataSets.length === 1 ? 'exitFullScreen' : 'extendFullScreen'
+					},
+					{}
+				);
 			}
 		},
 		{
@@ -276,7 +285,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
 				let selection = this.slickgrids.toArray()[index].getSelectedRanges();
 				selection = this.tryCombineSelectionsForResults(selection);
 				if (selection.length <= 1) {
-					this.handleContextClick({ type: 'savecsv', batchId: batchId, resultId: resultId, index: index, selection: selection });
+					this.handleContextClick({
+						type: 'savecsv',
+						batchId: batchId,
+						resultId: resultId,
+						index: index,
+						selection: selection,
+						source: 'gridIcons'
+					});
 				} else {
 					this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
 				}
@@ -290,7 +306,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
 				let selection = this.slickgrids.toArray()[index].getSelectedRanges();
 				selection = this.tryCombineSelectionsForResults(selection);
 				if (selection.length <= 1) {
-					this.handleContextClick({ type: 'savejson', batchId: batchId, resultId: resultId, index: index, selection: selection });
+					this.handleContextClick({
+						type: 'savejson',
+						batchId: batchId,
+						resultId: resultId,
+						index: index,
+						selection: selection,
+						source: 'gridIcons'
+					});
 				} else {
 					this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
 				}
@@ -304,7 +327,14 @@ export class AppComponent implements OnInit, AfterViewChecked {
 				let selection = this.slickgrids.toArray()[index].getSelectedRanges();
 				selection = this.tryCombineSelectionsForResults(selection);
 				if (selection.length <= 1) {
-					this.handleContextClick({ type: 'saveexcel', batchId: batchId, resultId: resultId, index: index, selection: selection });
+					this.handleContextClick({
+						type: 'saveexcel',
+						batchId: batchId,
+						resultId: resultId,
+						index: index,
+						selection: selection,
+						source: 'gridIcons'
+					});
 				} else {
 					this.dataService.showWarning(Constants.msgCannotSaveMultipleSelections);
 				}
@@ -562,7 +592,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	/**
 	 * Send save result set request to service
 	 */
-	handleContextClick(event: { type: string, batchId: number, resultId: number, index: number, selection: ISlickRange[] }): void {
+	handleContextClick(event: IContextMenuClickEventArgs): void {
 		switch (event.type) {
 			case 'savecsv':
 				this.dataService.sendSaveRequest(event.batchId, event.resultId, 'csv', event.selection);
@@ -589,6 +619,17 @@ export class AppComponent implements OnInit, AfterViewChecked {
 			default:
 				break;
 		}
+		this.dataService.sendActionEvent(
+			TelemetryViews.ResultsGrid,
+			TelemetryActions.ResultPaneAction,
+			{
+				'action': event.type,
+				'source': event.source,
+				'selectionPresent': (event.selection && event.selection.length > 0) ? 'true' : 'false',
+			},
+			{
+				selectionLength: event.selection ? event.selection.length : 0,
+			});
 	}
 
 	openContextMenu(event: MouseEvent, batchId, resultId, index): void {

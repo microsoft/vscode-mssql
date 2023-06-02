@@ -31,6 +31,8 @@ import * as LocalizedConstants from '../constants/localizedConstants';
 import * as Utils from './../models/utils';
 import * as os from 'os';
 import { Deferred } from '../protocol';
+import { sendActionEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 export interface IResultSet {
 	columns: string[];
@@ -248,6 +250,20 @@ export default class QueryRunner {
 		let hasError = this._batchSets.some(batch => batch.hasError === true);
 		this.removeRunningQuery();
 		this.eventEmitter.emit('complete', Utils.parseNumAsTimeString(this._totalElapsedMilliseconds), hasError);
+		sendActionEvent(
+			TelemetryViews.QueryEditor,
+			TelemetryActions.QueryExecutionCompleted,
+			undefined,
+			{
+				batchCount: result.batchSummaries.length,
+				rowCount: result.batchSummaries.reduce((totalCount, batch) => {
+					return totalCount + batch.resultSetSummaries.reduce((rowCount, resultSet) => {
+						return rowCount + resultSet.rowCount;
+					}, 0);
+				}, 0),
+				totalExecutionTime: this._totalElapsedMilliseconds
+			}
+		);
 	}
 
 	public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {

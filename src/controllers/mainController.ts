@@ -39,6 +39,8 @@ import { IConnectionProfile, ISelectionData } from './../models/interfaces';
 import ConnectionManager from './connectionManager';
 import UntitledSqlDocumentService from './untitledSqlDocumentService';
 import VscodeWrapper from './vscodeWrapper';
+import { sendActionEvent } from '../telemetry/telemetry';
+import { TelemetryActions, TelemetryViews } from '../telemetry/telemetryInterfaces';
 
 /**
  * The main controller class that initializes the extension
@@ -215,6 +217,7 @@ export default class MainController implements vscode.Disposable {
 				await promise;
 			}
 		}
+
 		const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
 		const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
 		let uri = editor.document.uri.toString(true);
@@ -230,7 +233,48 @@ export default class MainController implements vscode.Disposable {
 			await this._outputContentProvider.runQuery(this._statusview, uri, undefined, title, queryPromise);
 			await queryPromise;
 			await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+
 		}
+
+		let scriptType;
+		switch (operation) {
+			case ScriptOperation.Select:
+				scriptType = 'Select';
+				break;
+			case ScriptOperation.Create:
+				scriptType = 'Create';
+				break;
+			case ScriptOperation.Insert:
+				scriptType = 'Insert';
+				break;
+			case ScriptOperation.Update:
+				scriptType = 'Update';
+				break;
+			case ScriptOperation.Delete:
+				scriptType = 'Delete';
+				break;
+			case ScriptOperation.Execute:
+				scriptType = 'Execute';
+				break;
+			case ScriptOperation.Alter:
+				scriptType = 'Alter';
+				break;
+			default:
+				scriptType = 'Unknown';
+				break;
+		}
+		sendActionEvent(
+			TelemetryViews.QueryEditor,
+			TelemetryActions.RunQuery,
+			{
+				isScriptExecuted: executeScript.toString(),
+				objectType: node.nodeType,
+				operation: scriptType
+			},
+			undefined,
+			connectionCreds as IConnectionProfile,
+			this.connectionManager.getServerInfo(connectionCreds)
+		);
 	}
 
 	/**
@@ -798,6 +842,8 @@ export default class MainController implements vscode.Disposable {
 			// create new connection
 			if (!self.connectionManager.isConnected(uri)) {
 				await self.onNewConnection();
+				sendActionEvent(TelemetryViews.QueryEditor,
+					TelemetryActions.CreateConnection);
 			}
 			// check if current connection is still valid / active - if not, refresh azure account token
 			await self._connectionMgr.refreshAzureAccountToken(uri);
@@ -972,6 +1018,16 @@ export default class MainController implements vscode.Disposable {
 				await this.connectionManager.connect(uri, connectionCreds);
 				this._statusview.sqlCmdModeChanged(uri, false);
 				await this.connectionManager.connectionStore.removeRecentlyUsed(<IConnectionProfile>connectionCreds);
+				sendActionEvent(
+					TelemetryViews.ObjectExplorer,
+					TelemetryActions.NewQuery,
+					{
+						nodeType: node.nodeType
+					},
+					undefined,
+					node.connectionInfo as IConnectionProfile,
+					this._connectionMgr.getServerInfo(node.connectionInfo)
+				);
 				return true;
 			} else {
 				// new query command
@@ -982,6 +1038,14 @@ export default class MainController implements vscode.Disposable {
 					await this.createObjectExplorerSession(credentials);
 				}
 				this._statusview.sqlCmdModeChanged(uri, false);
+				sendActionEvent(
+					TelemetryViews.CommandPallet,
+					TelemetryActions.NewQuery,
+					undefined,
+					undefined,
+					credentials as IConnectionProfile,
+					this._connectionMgr.getServerInfo(credentials)
+				);
 				return true;
 			}
 		}
