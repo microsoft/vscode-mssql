@@ -635,6 +635,16 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	openContextMenu(event: MouseEvent, batchId, resultId, index): void {
 		let selection: ISlickRange[] = this.slickgrids.toArray()[index].getSelectedRanges();
 		selection = this.tryCombineSelectionsForResults(selection);
+
+		let grid = this.slickgrids.toArray()[index]._grid;
+		let contextMenuCell = grid.getCellFromEvent(event);
+		if (contextMenuCell || grid.canCellBeActive(contextMenuCell.row, contextMenuCell.cell)) {
+			if (selection.length === 0 || !(selection[0].fromRow <= contextMenuCell.row && selection[0].toRow >= contextMenuCell.row && selection[0].fromCell <= contextMenuCell.cell && selection[0].toCell >= contextMenuCell.cell)) {
+				selection = [new Slick.Range(contextMenuCell.row, contextMenuCell.cell - 1, contextMenuCell.row, contextMenuCell.cell - 1)];
+                grid.setActiveCell(contextMenuCell.row, contextMenuCell.cell)
+			}
+		}
+
 		this.contextMenu.show(event.clientX, event.clientY, batchId, resultId, index, selection);
 		event.preventDefault();
 		event.stopPropagation();
