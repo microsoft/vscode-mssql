@@ -641,7 +641,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 		if (contextMenuCell || grid.canCellBeActive(contextMenuCell.row, contextMenuCell.cell)) {
 			if (selection.length === 0 || !this.isContextMenuCellWIthinSelection(selection, contextMenuCell)) {
 				selection = [new Slick.Range(contextMenuCell.row, contextMenuCell.cell - 1, contextMenuCell.row, contextMenuCell.cell - 1)];
-                grid.setActiveCell(contextMenuCell.row, contextMenuCell.cell)
+				grid.setActiveCell(contextMenuCell.row, contextMenuCell.cell);
 			}
 		}
 
@@ -650,7 +650,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
 		event.stopPropagation();
 	}
 
-	private isContextMenuCellWIthinSelection(selections: ISlickRange[], contextMenuCell: {row: number, cell: number}): boolean {
+	private isContextMenuCellWIthinSelection(selections: ISlickRange[], contextMenuCell: { row: number, cell: number }): boolean {
 		for (const selection of selections) {
 			if (selection.fromRow <= contextMenuCell.row && selection.toRow >= contextMenuCell.row && selection.fromCell <= contextMenuCell.cell - 1 && selection.toCell >= contextMenuCell.cell - 1) {
 				return true;
