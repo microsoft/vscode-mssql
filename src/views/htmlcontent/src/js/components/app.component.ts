@@ -635,9 +635,29 @@ export class AppComponent implements OnInit, AfterViewChecked {
 	openContextMenu(event: MouseEvent, batchId, resultId, index): void {
 		let selection: ISlickRange[] = this.slickgrids.toArray()[index].getSelectedRanges();
 		selection = this.tryCombineSelectionsForResults(selection);
+
+		let grid = this.slickgrids.toArray()[index]._grid;
+		let contextMenuCell = grid.getCellFromEvent(event);
+		if (contextMenuCell || grid.canCellBeActive(contextMenuCell.row, contextMenuCell.cell)) {
+			if (selection.length === 0 || !this.isContextMenuCellWIthinSelection(selection, contextMenuCell)) {
+				selection = [new Slick.Range(contextMenuCell.row, contextMenuCell.cell - 1, contextMenuCell.row, contextMenuCell.cell - 1)];
+				grid.setActiveCell(contextMenuCell.row, contextMenuCell.cell);
+			}
+		}
+
 		this.contextMenu.show(event.clientX, event.clientY, batchId, resultId, index, selection);
 		event.preventDefault();
 		event.stopPropagation();
+	}
+
+	private isContextMenuCellWIthinSelection(selections: ISlickRange[], contextMenuCell: { row: number, cell: number }): boolean {
+		for (const selection of selections) {
+			if (selection.fromRow <= contextMenuCell.row && selection.toRow >= contextMenuCell.row && selection.fromCell <= contextMenuCell.cell - 1 && selection.toCell >= contextMenuCell.cell - 1) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private tryCombineSelectionsForResults(selections: ISlickRange[]): ISlickRange[] {
