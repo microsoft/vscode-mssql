@@ -482,9 +482,10 @@ declare module 'vscode-mssql' {
 		 * @param projectUri Absolute path of the project, including .sqlproj
 		 * @param systemDatabase Type of system database
 		 * @param suppressMissingDependencies Whether to suppress missing dependencies
+		 * @param referenceType Type of reference - ArtifactReference or PackageReference
 		 * @param databaseLiteral Literal name used to reference another database in the same server, if not using SQLCMD variables
 		 */
-		addSystemDatabaseReference(projectUri: string, systemDatabase: SystemDatabase, suppressMissingDependencies: boolean, databaseLiteral?: string): Promise<ResultStatus>;
+		addSystemDatabaseReference(projectUri: string, systemDatabase: SystemDatabase, suppressMissingDependencies: boolean, referenceType: SystemDbReferenceType, databaseLiteral?: string): Promise<ResultStatus>;
 
 		/**
 		 * Add a nuget package database reference to a project
@@ -1209,6 +1210,11 @@ declare module 'vscode-mssql' {
 		 * Type of system database
 		 */
 		systemDatabase: SystemDatabase;
+
+		/**
+	 * Type of reference - ArtifactReference or PackageReference
+	 */
+		referenceType: SystemDbReferenceType;
 	}
 
 	export interface AddNugetPackageReferenceParams extends AddUserDatabaseReferenceParams {
@@ -1411,6 +1417,11 @@ declare module 'vscode-mssql' {
 	export const enum SystemDatabase {
 		Master = 0,
 		MSDB = 1
+	}
+
+	export const enum SystemDbReferenceType {
+		ArtifactReference = 0,
+		PackageReference = 1
 	}
 
 	export interface DatabaseReference {
