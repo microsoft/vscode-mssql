@@ -606,10 +606,13 @@
       </Item>
       <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
+          <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[警告: ADAL は非推奨となり、今後のリリースで削除される予定です。代わりに MSAL を使用してください。]]></Val>
+            <Val><![CDATA[警告: ADAL は非推奨となり、次のリリースで削除される予定です。代わりに MSAL をお使いください。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -636,6 +639,15 @@
           <Val><![CDATA[Disconnect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[切断]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dismiss" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Dismiss]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[無視]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1875,6 +1887,15 @@
           <Val><![CDATA[Succeeded with warning]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[警告付きで成功]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";switchToMsal" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Switch to MSAL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MSAL に切り替える]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
