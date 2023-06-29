@@ -607,8 +607,8 @@
       <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Avertissement : ADAL a été déprécié et est planifié pour être supprimé dans une prochaine version. Utilisez MSAL à la place.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Avertissement : Bibliothèque d’authentification Active Directory (ADAL) a été déprécié et est planifié pour être supprimé dans la version suivante. Utilisez MSAL à la place.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
@@ -1894,6 +1894,9 @@
       <Item ItemId=";switchToMsal" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to MSAL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Basculer vers MSAL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

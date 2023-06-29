@@ -607,8 +607,8 @@
       <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[警告: ADAL 已被取代，並排定在未來的版本中移除。請改用 MSAL。]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[警告: ADAL 已被取代，並排定在下一個版本中移除。請改用 MSAL。]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
@@ -1894,6 +1894,9 @@
       <Item ItemId=";switchToMsal" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to MSAL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[切換到 MSAL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
