@@ -871,8 +871,16 @@
         <target state="translated">Visual Studio Code 다시 로드</target>
       </trans-unit>
       <trans-unit id="deprecatedMessage">
-        <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.</source>
-        <target state="translated">경고: ADAL은 더 이상 사용되지 않으며 향후 릴리스에서 제거될 예정입니다. 대신 MSAL을 사용하세요.</target>
+        <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
+        <target state="new">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</target>
+      </trans-unit>
+      <trans-unit id="switchToMsal">
+        <source xml:lang="en">Switch to MSAL</source>
+        <target state="new">Switch to MSAL</target>
+      </trans-unit>
+      <trans-unit id="dismiss">
+        <source xml:lang="en">Dismiss</source>
+        <target state="translated">해제</target>
       </trans-unit>
     </body>
   </file>
