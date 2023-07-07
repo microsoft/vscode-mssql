@@ -71,6 +71,7 @@ export const mssqlPiiLogging = 'mssql.piiLogging';
 export const mssqlAzureAuthLibrary = 'mssql.azureAuthenticationLibrary';
 export const azureAuthLibrary = 'azureAuthenticationLibrary';
 export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';
+export const enableConnectionPooling = 'mssql.enableConnectionPooling';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;

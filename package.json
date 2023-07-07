@@ -921,6 +921,11 @@
           "description": "%mssql.enableSqlAuthenticationProvider%",
           "default": true
         },
+        "mssql.enableConnectionPooling": {
+          "type": "boolean",
+          "description": "%mssql.enableConnectionPooling%",
+          "default": false
+        },
         "mssql.format.alignColumnDefinitionsInColumns": {
           "type": "boolean",
           "description": "%mssql.format.alignColumnDefinitionsInColumns%",

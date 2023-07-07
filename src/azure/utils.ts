@@ -97,6 +97,17 @@ export function getEnableSqlAuthenticationProviderConfig(): boolean {
 	return true; // default setting
 }
 
+export function getEnableConnectionPoolingConfig(): boolean {
+	const config = getConfiguration();
+	if (config) {
+		const val: boolean | undefined = config.get(Constants.enableConnectionPoolingSection);
+		if (val !== undefined) {
+			return val;
+		}
+	}
+	return false; // default setting
+}
+
 export function getProxyEnabledHttpClient(): HttpClient {
 	const proxy = <string>getHttpConfiguration().get(configProxy);
 	const strictSSL = getHttpConfiguration().get(configProxyStrictSSL, true);
