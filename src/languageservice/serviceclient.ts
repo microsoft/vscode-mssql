@@ -416,7 +416,7 @@ export default class SqlToolsServiceClient {
 			}
 
 			// Enable Connection pooling to improve connection performance
-			const enableConnectionPooling = getEnableConnectionPoolingConfig()
+			const enableConnectionPooling = getEnableConnectionPoolingConfig();
 			if (enableConnectionPooling) {
 				serverArgs.push('--enable-connection-pooling');
 			}
