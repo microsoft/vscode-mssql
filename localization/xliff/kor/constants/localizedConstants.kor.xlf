@@ -872,11 +872,11 @@
       </trans-unit>
       <trans-unit id="deprecatedMessage">
         <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="new">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</target>
+        <target state="translated">경고: Active Directory 인증 라이브러ㄹ리는 더 이상 사용되지 않으며 다음 릴리스에서 제거될 예정입니다. 대신 MSAL을 사용하세요.</target>
       </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>
-        <target state="new">Switch to MSAL</target>
+        <target state="translated">MSAL로 전환</target>
       </trans-unit>
       <trans-unit id="dismiss">
         <source xml:lang="en">Dismiss</source>

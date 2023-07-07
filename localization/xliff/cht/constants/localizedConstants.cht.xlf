@@ -872,11 +872,11 @@
       </trans-unit>
       <trans-unit id="deprecatedMessage">
         <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="new">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</target>
+        <target state="translated">警告: ADAL 已被取代，並排定在下一個版本中移除。請改用 MSAL。</target>
       </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>
-        <target state="new">Switch to MSAL</target>
+        <target state="translated">切換到 MSAL</target>
       </trans-unit>
       <trans-unit id="dismiss">
         <source xml:lang="en">Dismiss</source>

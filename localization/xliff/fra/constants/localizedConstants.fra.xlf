@@ -872,11 +872,11 @@
       </trans-unit>
       <trans-unit id="deprecatedMessage">
         <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="new">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</target>
+        <target state="translated">Avertissement : Bibliothèque d’authentification Active Directory (ADAL) a été déprécié et est planifié pour être supprimé dans la version suivante. Utilisez MSAL à la place.</target>
       </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>
-        <target state="new">Switch to MSAL</target>
+        <target state="translated">Basculer vers MSAL</target>
       </trans-unit>
       <trans-unit id="dismiss">
         <source xml:lang="en">Dismiss</source>
