@@ -26,7 +26,7 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
-import { getAppDataPath, getAzureAuthLibraryConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { getAppDataPath, getAzureAuthLibraryConfig, getEnableConnectionPoolingConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
 import { AuthLibrary } from '../models/contracts/azure';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
@@ -413,6 +413,12 @@ export default class SqlToolsServiceClient {
 			const azureAuthLibrary = getAzureAuthLibraryConfig();
 			if (azureAuthLibrary === AuthLibrary.MSAL && enableSqlAuthenticationProvider) {
 				serverArgs.push('--enable-sql-authentication-provider');
+			}
+
+			// Enable Connection pooling to improve connection performance
+			const enableConnectionPooling = getEnableConnectionPoolingConfig();
+			if (enableConnectionPooling) {
+				serverArgs.push('--enable-connection-pooling');
 			}
 
 			// Send Locale for sqltoolsservice localization

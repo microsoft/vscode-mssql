@@ -71,6 +71,7 @@
 "mssql.connection.emptyPasswordInput":"[Optional] Indicates whether this profile has an empty password explicitly set",
 "mssql.azureAuthenticationLibrary":"The library used for the Azure Active Directory authentication flow. Please restart Visual Studio Code after changing this option.",
 "mssql.enableSqlAuthenticationProvider":"Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.",
+"mssql.enableConnectionPooling":"Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.",
 "mssql.shortcuts":"Shortcuts related to the results window",
 "mssql.messagesDefaultOpen":"True for the messages pane to be open by default; false for closed",
 "mssql.resultsFontFamily":"Set the font family for the results grid; set to blank to use the editor font",

@@ -1273,7 +1273,12 @@ export default class MainController implements vscode.Disposable {
 				if ((vscode.workspace.getConfiguration(Constants.extensionName).get(Constants.azureAuthLibrary) === 'ADAL')) {
 					void vscode.window.showInformationMessage(LocalizedConstants.deprecatedMessage);
 				}
-				await this.displayReloadMessage();
+				await this.displayReloadMessage(LocalizedConstants.reloadPrompt);
+			}
+
+			// Prompt to reload VS Code when below settings are updated.
+			if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
 			}
 		}
 	}
@@ -1291,8 +1296,8 @@ export default class MainController implements vscode.Disposable {
 	 * return true if button clicked
 	 * return false if button not clicked
 	 */
-	private async displayReloadMessage(): Promise<boolean> {
-		const result = await vscode.window.showInformationMessage(LocalizedConstants.reloadPrompt, LocalizedConstants.reloadChoice);
+	private async displayReloadMessage(reloadPrompt: string): Promise<boolean> {
+		const result = await vscode.window.showInformationMessage(reloadPrompt, LocalizedConstants.reloadChoice);
 		if (result === LocalizedConstants.reloadChoice) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
 			return true;
