@@ -866,6 +866,10 @@
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">인증 라이브러리가 변경되었습니다. Visual Studio Code를 다시 로드하세요.</target>
       </trans-unit>
+      <trans-unit id="reloadPromptGeneric">
+        <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
+        <target state="translated">이 설정을 사용하려면 Visual Studio Code를 다시 시작해야 합니다. Visual Studio Code를 다시 로드하세요.</target>
+      </trans-unit>
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Visual Studio Code 다시 로드</target>

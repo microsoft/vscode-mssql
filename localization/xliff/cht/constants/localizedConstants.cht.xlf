@@ -866,6 +866,10 @@
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">驗證程式庫已變更，請重新載入 Visual Studio Code。</target>
       </trans-unit>
+      <trans-unit id="reloadPromptGeneric">
+        <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
+        <target state="translated">此設定需要重新啟動 Visual Studio Code，請重新載入 Visual Studio Code。</target>
+      </trans-unit>
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">重新載入 Visual Studio Code</target>
