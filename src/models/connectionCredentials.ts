@@ -252,14 +252,16 @@ export class ConnectionCredentials implements IConnectionInfo {
 						}
 					}
 				},
-				default: async defaultProfileValues => {
-					if (defaultProfileValues.connectionString) {
-						if ((defaultProfileValues as IConnectionProfile).savePassword) {
+				default: async (value) => {
+					if (value.connectionString) {
+						if ((value as IConnectionProfile).savePassword) {
 							// look up connection string
-							let connectionString = await connectionStore.lookupPassword(defaultProfileValues, true);
-							defaultProfileValues.connectionString = connectionString;
+							let connectionString = await connectionStore.lookupPassword(value, true);
+							value.connectionString = connectionString;
 						}
-					} else return await connectionStore.lookupPassword(defaultProfileValues);
+					} else {
+						return await connectionStore.lookupPassword(value);
+					}
 				}
 			}
 		];
