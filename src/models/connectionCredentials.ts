@@ -252,7 +252,15 @@ export class ConnectionCredentials implements IConnectionInfo {
 						}
 					}
 				},
-				default: defaultProfileValues ? await connectionStore.lookupPassword(defaultProfileValues) : undefined
+				default: async defaultProfileValues => {
+					if (defaultProfileValues.connectionString) {
+						if ((defaultProfileValues as IConnectionProfile).savePassword) {
+							// look up connection string
+							let connectionString = await connectionStore.lookupPassword(defaultProfileValues, true);
+							defaultProfileValues.connectionString = connectionString;
+						}
+					} else return await connectionStore.lookupPassword(defaultProfileValues);
+				}
 			}
 		];
 		return questions;
@@ -298,8 +306,8 @@ export class ConnectionCredentials implements IConnectionInfo {
 
 	public static isPasswordBasedConnectionString(connectionString: string): boolean {
 		const connString = connectionString.toLowerCase();
-		return connString.includes('user') &&
-			connString.includes('password') &&
+		return (connString.includes('user') || connString.includes('uid') || connString.includes('userid')) &&
+			(connString.includes('password') || connString.includes('pwd')) &&
 			!connString.includes('Integrated Security');
 	}
 
