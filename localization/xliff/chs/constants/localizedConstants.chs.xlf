@@ -868,7 +868,7 @@
       </trans-unit>
       <trans-unit id="reloadPromptGeneric">
         <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
-        <target state="new">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</target>
+        <target state="translated">此设置需要重新启动 Visual Studio Code，请重新加载 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
