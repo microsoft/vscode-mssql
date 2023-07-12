@@ -292,7 +292,7 @@
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.</source>
-        <target state="new">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.</target>
+        <target state="translated">启用连接池以提高整体连接性能。默认情况下禁用此设置。更改值时，需要重新启动 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>
