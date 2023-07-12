@@ -72,7 +72,7 @@ export class ConnectionStore {
 	 * @returns {string} formatted string with server, DB and username
 	 */
 	public static formatCredentialId(server: string, database?: string, user?: string, itemType?: string, isConnectionString?: boolean): string {
-		if (Utils.isEmpty(server)) {
+		if (Utils.isEmpty(server) && !isConnectionString) {
 			throw new ValidationException('Missing Server Name, which is required');
 		}
 		let cred: string[] = [ConnectionStore.CRED_PREFIX];
@@ -116,7 +116,7 @@ export class ConnectionStore {
 	 * @returns {Promise<IConnectionCredentialsQuickPickItem[]>}
 	 */
 	public getPickListItems(): IConnectionCredentialsQuickPickItem[] {
-		let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(true);
+		let pickListItems: IConnectionCredentialsQuickPickItem[] = this.loadAllConnections(false);
 		pickListItems.push(<IConnectionCredentialsQuickPickItem>{
 			label: `$(add) ${LocalizedConstants.CreateProfileFromConnectionsListLabel}`,
 			connectionCreds: undefined,
