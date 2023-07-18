@@ -6,7 +6,7 @@
 import { IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
-import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
+import { EncryptOptions } from '../models/interfaces';
 import * as Interfaces from './interfaces';
 import * as Utils from './utils';
 
@@ -137,25 +137,14 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  */
 export function getConnectionDisplayString(creds: IConnectionInfo): string {
 	// Update the connection text
-	let text: string;
-	if (creds.connectionString) {
-		// If a connection string is present, try to display the profile name
-		if ((<IConnectionProfile>creds).profileName) {
-			text = (<IConnectionProfile>creds).profileName;
-			text = appendIfNotEmpty(text, creds.connectionString);
-		} else {
-			text = creds.connectionString;
-		}
+	let text: string = creds.server;
+	if (creds.database !== '') {
+		text = appendIfNotEmpty(text, creds.database);
 	} else {
-		text = creds.server;
-		if (creds.database !== '') {
-			text = appendIfNotEmpty(text, creds.database);
-		} else {
-			text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
-		}
-		let user: string = getUserNameOrDomainLogin(creds);
-		text = appendIfNotEmpty(text, user);
+		text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
 	}
+	let user: string = getUserNameOrDomainLogin(creds);
+	text = appendIfNotEmpty(text, user);
 
 	// Limit the maximum length of displayed text
 	if (text.length > Constants.maxDisplayedStatusTextLength) {

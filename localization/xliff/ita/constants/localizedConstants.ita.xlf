@@ -866,17 +866,21 @@
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">La libreria di autenticazione è stata modificata. Ricarica Visual Studio Code.</target>
       </trans-unit>
+      <trans-unit id="reloadPromptGeneric">
+        <source xml:lang="en">This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.</source>
+        <target state="translated">Questa impostazione richiede il riavvio di Visual Studio Code. Ricaricare Visual Studio Code.</target>
+      </trans-unit>
       <trans-unit id="reloadChoice">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Ricarica Visual Studio Code</target>
       </trans-unit>
       <trans-unit id="deprecatedMessage">
         <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="new">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</target>
+        <target state="translated">Avviso: ADAL è stato deprecato e sarà rimosso nella prossima versione. In alternativa, usare MSAL.</target>
       </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>
-        <target state="new">Switch to MSAL</target>
+        <target state="translated">Passa a MSAL</target>
       </trans-unit>
       <trans-unit id="dismiss">
         <source xml:lang="en">Dismiss</source>

@@ -607,8 +607,8 @@
       <Item ItemId=";deprecatedMessage" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Avviso: ADAL è stato deprecato e sarà rimosso in una versione futura. In alternativa, usare MSAL.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Avviso: ADAL è stato deprecato e sarà rimosso nella prossima versione. In alternativa, usare MSAL.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL instead.]]></Val>
@@ -1747,6 +1747,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";reloadPromptGeneric" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This setting requires Visual Studio Code to be relaunched, please reload Visual Studio Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Questa impostazione richiede il riavvio di Visual Studio Code. Ricaricare Visual Studio Code.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";restoreLabel" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Restore]]></Val>
@@ -1894,6 +1903,9 @@
       <Item ItemId=";switchToMsal" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switch to MSAL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Passa a MSAL]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

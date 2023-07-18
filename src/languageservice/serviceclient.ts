@@ -26,7 +26,8 @@ import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { IConfig } from '../languageservice/interfaces';
 import { exists } from '../utils/utils';
 import { env } from 'process';
-import { getAppDataPath, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { getAppDataPath, getEnableConnectionPoolingConfig, getEnableSqlAuthenticationProviderConfig } from '../azure/utils';
+import { serviceName } from '../azure/constants';
 
 const STS_OVERRIDE_ENV_VAR = 'MSSQL_SQLTOOLSSERVICE';
 
@@ -404,13 +405,19 @@ export default class SqlToolsServiceClient {
 			}
 
 			// Send application name and path to determine MSAL cache location
-			serverArgs.push('--application-name', 'code');
+			serverArgs.push('--application-name', serviceName);
 			serverArgs.push('--data-path', getAppDataPath());
 
 			// Enable SQL Auth Provider registration for Azure MFA Authentication
 			const enableSqlAuthenticationProvider = getEnableSqlAuthenticationProviderConfig();
 			if (enableSqlAuthenticationProvider) {
 				serverArgs.push('--enable-sql-authentication-provider');
+			}
+
+			// Enable Connection pooling to improve connection performance
+			const enableConnectionPooling = getEnableConnectionPoolingConfig();
+			if (enableConnectionPooling) {
+				serverArgs.push('--enable-connection-pooling');
 			}
 
 			// Send Locale for sqltoolsservice localization

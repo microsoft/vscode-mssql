@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 // Collection of Non-localizable Constants
-export const vscodeAppName = 'code';
 export const languageId = 'sql';
 export const extensionName = 'mssql';
 export const extensionConfigSectionName = 'mssql';
@@ -71,6 +70,7 @@ export const mssqlPiiLogging = 'mssql.piiLogging';
 export const mssqlAzureAuthLibrary = 'mssql.azureAuthenticationLibrary';
 export const azureAuthLibrary = 'azureAuthenticationLibrary';
 export const enableSqlAuthenticationProvider = 'mssql.enableSqlAuthenticationProvider';
+export const enableConnectionPooling = 'mssql.enableConnectionPooling';
 export const sqlDbPrefix = '.database.windows.net';
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;

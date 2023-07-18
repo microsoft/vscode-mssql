@@ -290,6 +290,10 @@
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Active Directory Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Azure Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         <target state="translated">ユーザーが 'AzureMFA' 認証を選択したときに、'Active Directory Interactive' 認証モードで SQL 認証プロバイダーを使用できるようにします。これにより、アクセス トークンをフェッチするときに、サーバー側のリソース エンドポイントの統合が可能になります。 このオプションは、'MSAL' Azure 認証ライブラリでのみサポートされています。このオプションを変更した後、Visual Studio Code を再起動してください。</target>
       </trans-unit>
+      <trans-unit id="mssql.enableConnectionPooling">
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.</source>
+        <target state="translated">接続プールを有効にして、全体的な接続パフォーマンスを向上させます。この設定は既定では無効になっています。値が変更されたときに、Visual Studio Code を再起動する必要があります。</target>
+      </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>
         <target state="translated">結果ウィンドウに関連するショートカット</target>

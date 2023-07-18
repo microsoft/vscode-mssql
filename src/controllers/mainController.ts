@@ -1269,7 +1269,12 @@ export default class MainController implements vscode.Disposable {
 
 			// Prompt to reload VS Code when below settings are updated.
 			if (e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
-				await this.displayReloadMessage();
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+			}
+
+			// Prompt to reload VS Code when below settings are updated.
+			if (e.affectsConfiguration(Constants.enableConnectionPooling)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
 			}
 		}
 	}
@@ -1287,8 +1292,8 @@ export default class MainController implements vscode.Disposable {
 	 * return true if button clicked
 	 * return false if button not clicked
 	 */
-	private async displayReloadMessage(): Promise<boolean> {
-		const result = await vscode.window.showInformationMessage(LocalizedConstants.reloadPrompt, LocalizedConstants.reloadChoice);
+	private async displayReloadMessage(reloadPrompt: string): Promise<boolean> {
+		const result = await vscode.window.showInformationMessage(reloadPrompt, LocalizedConstants.reloadChoice);
 		if (result === LocalizedConstants.reloadChoice) {
 			await vscode.commands.executeCommand('workbench.action.reloadWindow');
 			return true;
