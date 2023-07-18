@@ -8,11 +8,9 @@ import { NotificationHandler, RequestType } from 'vscode-languageclient';
 import { ConnectionDetails, IConnectionInfo, IServerInfo } from 'vscode-mssql';
 import { AccountService } from '../azure/accountService';
 import { AccountStore } from '../azure/accountStore';
-import { AdalAzureController } from '../azure/adal/adalAzureController';
 import { AzureController } from '../azure/azureController';
 import { MsalAzureController } from '../azure/msal/msalAzureController';
 import providerSettings from '../azure/providerSettings';
-import { getAzureAuthLibraryConfig } from '../azure/utils';
 import * as Constants from '../constants/constants';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import { CredentialStore } from '../credentialstore/credentialstore';
@@ -21,7 +19,7 @@ import SqlToolsServerClient from '../languageservice/serviceclient';
 import { ConnectionCredentials } from '../models/connectionCredentials';
 import { ConnectionProfile } from '../models/connectionProfile';
 import { ConnectionStore } from '../models/connectionStore';
-import { AuthLibrary, IAccount } from '../models/contracts/azure';
+import { IAccount } from '../models/contracts/azure';
 import * as ConnectionContracts from '../models/contracts/connection';
 import { ConnectionSummary } from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
@@ -135,12 +133,8 @@ export default class ConnectionManager {
 		}
 
 		if (!this.azureController) {
-			const authLibrary = getAzureAuthLibraryConfig();
-			if (authLibrary === AuthLibrary.ADAL) {
-				this.azureController = new AdalAzureController(context, prompter, this._credentialStore);
-			} else {
-				this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
-			}
+			this.azureController = new MsalAzureController(context, prompter, this._credentialStore);
+
 
 			this.azureController.init();
 		}
