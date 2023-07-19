@@ -112,32 +112,6 @@ steps:
       Contents: "*.vsix"
       TargetFolder: "$(Build.ArtifactStagingDirectory)"
 
-  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-    displayName: Install ads-adal-library dependencies
-    inputs:
-      projectDirectory: $(Build.SourcesDirectory)/lib/ads-adal-library
-      arguments: --frozen-lockfile
-
-  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
-    displayName: Build ads-adal-library
-    inputs:
-      projectDirectory: $(Build.SourcesDirectory)/lib/ads-adal-library
-      arguments: build
-
-  - task: Npm@1
-    displayName: Package ads-adal-library
-    inputs:
-      command: custom
-      customCommand: pack
-      workingDir: $(Build.SourcesDirectory)/lib/ads-adal-library
-
-  - task: CopyFiles@2
-    displayName: "Copy ads-adal-library package to artifacts directory"
-    inputs:
-      SourceFolder: $(Build.SourcesDirectory)/lib/ads-adal-library
-      Contents: "*.tgz"
-      TargetFolder: $(Build.ArtifactStagingDirectory)
-
   - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
     displayName: 'SBOM Generation Task'
     inputs:
