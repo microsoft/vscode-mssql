@@ -17,7 +17,6 @@ import SqlToolsServerClient from './languageservice/serviceclient';
 import { ConnectionProfile } from './models/connectionProfile';
 import { FirewallRuleError } from './languageservice/interfaces';
 import { RequestType } from 'vscode-languageclient';
-import { AuthLibrary } from './models/contracts/azure';
 
 let controller: MainController = undefined;
 
@@ -35,13 +34,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
 	// Exposed for testing purposes
 	vscode.commands.registerCommand('mssql.getControllerForTests', () => controller);
-	if (config.get('azureAuthenticationLibrary') === 'ADAL') {
-		vscode.window.showWarningMessage(LocalizedConstants.deprecatedMessage, LocalizedConstants.switchToMsal, LocalizedConstants.dismiss).then(async (value) => {
-			if (value === LocalizedConstants.switchToMsal) {
-				await config.update(Constants.azureAuthLibrary, AuthLibrary.MSAL, vscode.ConfigurationTarget.Global);
-			}
-		});
-	}
 	await controller.activate();
 	return {
 		sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,

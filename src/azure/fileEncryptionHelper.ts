@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import * as LocalizedConstants from '../constants/localizedConstants';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 import { ICredentialStore } from '../credentialstore/icredentialstore';
-import { AuthLibrary } from '../models/contracts/azure';
 import { DidChangeEncryptionIVKeyParams, EncryptionKeysChangedNotification } from '../models/contracts/connection';
 import { Logger } from '../models/logger';
 import SqlToolsServerClient from '../languageservice/serviceclient';
@@ -17,15 +16,14 @@ import { getEnableSqlAuthenticationProviderConfig } from './utils';
 
 export class FileEncryptionHelper {
 	constructor(
-		private readonly _authLibrary: AuthLibrary,
 		private readonly _credentialStore: ICredentialStore,
 		private readonly _vscodeWrapper: VscodeWrapper,
 		protected readonly _logger: Logger,
 		protected readonly _fileName: string
 	) {
-		this._algorithm = this._authLibrary === AuthLibrary.MSAL ? 'aes-256-cbc' : 'aes-256-gcm';
-		this._bufferEncoding = this._authLibrary === AuthLibrary.MSAL ? 'utf16le' : 'hex';
-		this._binaryEncoding = this._authLibrary === AuthLibrary.MSAL ? 'base64' : 'hex';
+		this._algorithm = 'aes-256-cbc';
+		this._bufferEncoding = 'utf16le';
+		this._binaryEncoding = 'base64';
 	}
 
 	private _algorithm: string;
@@ -56,7 +54,7 @@ export class FileEncryptionHelper {
 			this._keyBuffer = Buffer.from(key, this._bufferEncoding);
 		}
 
-		if (this._authLibrary === AuthLibrary.MSAL && getEnableSqlAuthenticationProviderConfig()) {
+		if (getEnableSqlAuthenticationProviderConfig()) {
 			SqlToolsServerClient.instance.sendNotification(EncryptionKeysChangedNotification.type,
 				<DidChangeEncryptionIVKeyParams>{
 					iv: this._ivBuffer.toString(this._bufferEncoding),
@@ -71,9 +69,6 @@ export class FileEncryptionHelper {
 		}
 		const cipherIv = crypto.createCipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
 		let cipherText = `${cipherIv.update(content, 'utf8', this._binaryEncoding)}${cipherIv.final(this._binaryEncoding)}`;
-		if (this._authLibrary === AuthLibrary.ADAL) {
-			cipherText += `%${(cipherIv as crypto.CipherGCM).getAuthTag().toString(this._binaryEncoding)}`;
-		}
 		return cipherText;
 	}
 
@@ -83,14 +78,6 @@ export class FileEncryptionHelper {
 		}
 		let encryptedText = content;
 		const decipherIv = crypto.createDecipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
-		if (this._authLibrary === AuthLibrary.ADAL) {
-			const split = content.split('%');
-			if (split.length !== 2) {
-				throw new Error('File didn\'t contain the auth tag.');
-			}
-			(decipherIv as crypto.DecipherGCM).setAuthTag(Buffer.from(split[1], this._binaryEncoding));
-			encryptedText = split[0];
-		}
 		return `${decipherIv.update(encryptedText, this._binaryEncoding, 'utf8')}${decipherIv.final('utf8')}`;
 	}
 
@@ -116,7 +103,7 @@ export class FileEncryptionHelper {
 				.then((result) => {
 					status = result;
 					if (result) {
-						this._logger.info(`FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for ${this._authLibrary} persistent cache encryption in system credential store.`);
+						this._logger.info(`FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for persistent cache encryption in system credential store.`);
 					}
 				}, (e => {
 					throw Error(`FileEncryptionHelper: Could not save encryption key: ${prefixedCredentialId}: ${e}`);

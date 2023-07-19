@@ -10,7 +10,6 @@ import * as lockFile from 'lockfile';
 import * as path from 'path';
 import VscodeWrapper from '../../controllers/vscodeWrapper';
 import { ICredentialStore } from '../../credentialstore/icredentialstore';
-import { AuthLibrary } from '../../models/contracts/azure';
 import { Logger } from '../../models/logger';
 import { FileEncryptionHelper } from '../fileEncryptionHelper';
 
@@ -24,7 +23,7 @@ export class MsalCachePluginProvider {
 	) {
 		this._msalFilePath = path.join(this._msalFilePath, this._serviceName);
 		this._serviceName = this._serviceName.replace(/-/, '_');
-		this._fileEncryptionHelper = new FileEncryptionHelper(AuthLibrary.MSAL, this._credentialStore, this._vscodeWrapper, this._logger, this._serviceName);
+		this._fileEncryptionHelper = new FileEncryptionHelper(this._credentialStore, this._vscodeWrapper, this._logger, this._serviceName);
 		this._logger.verbose(`MsalCachePluginProvider: Using cache path ${_msalFilePath} and serviceName ${_serviceName}`);
 	}
 

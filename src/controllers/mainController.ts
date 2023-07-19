@@ -1268,12 +1268,8 @@ export default class MainController implements vscode.Disposable {
 			}
 
 			// Prompt to reload VS Code when below settings are updated.
-			if (e.affectsConfiguration(Constants.mssqlAzureAuthLibrary)
-				|| e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
-				if ((vscode.workspace.getConfiguration(Constants.extensionName).get(Constants.azureAuthLibrary) === 'ADAL')) {
-					void vscode.window.showInformationMessage(LocalizedConstants.deprecatedMessage);
-				}
-				await this.displayReloadMessage(LocalizedConstants.reloadPrompt);
+			if (e.affectsConfiguration(Constants.enableSqlAuthenticationProvider)) {
+				await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
 			}
 
 			// Prompt to reload VS Code when below settings are updated.

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 import * as os from 'os';
 import { ILogger } from './interfaces';
-import { Logger as AzureLogger } from '@microsoft/ads-adal-library';
 import * as Utils from './utils';
 
 export enum LogLevel {
@@ -21,7 +20,7 @@ export enum LogLevel {
 /*
 * Logger class handles logging messages using the Util functions.
 */
-export class Logger implements ILogger, AzureLogger {
+export class Logger implements ILogger {
 	private _writer: (message: string) => void;
 	private _piiLogging: boolean = false;
 	private _prefix: string;

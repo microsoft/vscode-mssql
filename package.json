@@ -115,7 +115,6 @@
     "@azure/arm-subscriptions": "^5.0.0",
     "@azure/msal-common": "^11.0.0",
     "@azure/msal-node": "^1.16.0",
-    "@microsoft/ads-adal-library": "1.0.17",
     "@microsoft/ads-extension-telemetry": "^3.0.2",
     "http-proxy-agent": "5.0.0",
     "https-proxy-agent": "5.0.0",
@@ -901,20 +900,6 @@
             "end"
           ],
           "scope": "resource"
-        },
-        "mssql.azureAuthenticationLibrary": {
-          "type": "string",
-          "description": "%mssql.azureAuthenticationLibrary%",
-          "default": "MSAL",
-          "enum": [
-            "ADAL",
-            "MSAL"
-          ],
-          "enumDescriptions": [
-            "(deprecated) Azure Active Directory Authentication Library",
-            "Microsoft Authentication Library"
-          ],
-          "deprecationMessage": "Warning: ADAL has been deprecated, and is scheduled to be removed in a future release. Please use MSAL (default option) instead."
         },
         "mssql.enableSqlAuthenticationProvider": {
           "type": "boolean",

@@ -205,14 +205,6 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@microsoft/ads-adal-library@1.0.17":
-  version "1.0.17"
-  resolved "https://registry.yarnpkg.com/@microsoft/ads-adal-library/-/ads-adal-library-1.0.17.tgz#7e22a519d1a2794b9ef760325320ffbc36527b2e"
-  integrity sha512-qcbpzFavlP7Cf6+xwuATDcAYmTR+OdHzYXVhgyWEXBWBobqm5+F+zKrzzTmmEkQFyTaS3H/cmcE1aaRBz2NqGg==
-  dependencies:
-    axios "^0.27.2"
-    qs "^6.9.7"
-
 "@microsoft/ads-extension-telemetry@^3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@microsoft/ads-extension-telemetry/-/ads-extension-telemetry-3.0.2.tgz#edcbebbf5ab8ea183a7198ea8056a51f8ac76653"
@@ -738,14 +730,6 @@ aws4@^1.8.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
-
-axios@^0.27.2:
-  version "0.27.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.27.2.tgz#207658cc8621606e586c85db4b41a750e756d972"
-  integrity sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==
-  dependencies:
-    follow-redirects "^1.14.9"
-    form-data "^4.0.0"
 
 babel-code-frame@^6.26.0:
   version "6.26.0"
@@ -2182,11 +2166,6 @@ fmerge@1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/fmerge/-/fmerge-1.2.0.tgz#36e99d2ae255e3ee1af666b4df780553671cf692"
   integrity sha1-NumdKuJV4+4a9ma033gFU2cc9pI=
-
-follow-redirects@^1.14.9:
-  version "1.15.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.0.tgz#06441868281c86d0dda4ad8bdaead2d02dca89d4"
-  integrity sha512-aExlJShTV4qOUOL7yF1U5tvLCB0xQuudbf6toyYA0E/acBNw71mvjFTnLaRp50aQaYocMR0a/RMMBIHeZnGyjQ==
 
 for-in@^1.0.1, for-in@^1.0.2:
   version "1.0.2"
@@ -4418,7 +4397,7 @@ q@^1.1.2:
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
   integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
 
-qs@^6.9.1, qs@^6.9.7:
+qs@^6.9.1:
   version "6.11.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.0.tgz#fd0d963446f7a65e1367e01abd85429453f0c37a"
   integrity sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==

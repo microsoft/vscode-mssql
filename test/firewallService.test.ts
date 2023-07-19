@@ -14,7 +14,6 @@ import {
 import VscodeWrapper from '../src/controllers/vscodeWrapper';
 import { assert } from 'chai';
 import { IAzureSession, IAzureResourceFilter } from '../src/models/interfaces';
-import {  } from '@microsoft/ads-adal-library';
 import { AzureAuthType, IAccount, ITenant, IToken, IAzureAccountProperties } from '../src/models/contracts/azure';
 import allSettings from '../src/azure/providerSettings';
 
