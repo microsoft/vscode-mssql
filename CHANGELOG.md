@@ -1,5 +1,17 @@
 # Change Log
 
+## Version 1.20.0
+* Release date: July 26, 2023
+* Release status: GA
+### What's new in 1.20.0
+* Added new setting to support enabling connection pooling for performance improvement -  https://github.com/microsoft/vscode-mssql/pull/17733
+* Bug Fixes:
+  - Fixed issue where creating connection with connection string would fail -  https://github.com/microsoft/vscode-mssql/pull/17737
+  - Fixed issue where Copy actions wouldn't work on Data Grid cells -  https://github.com/microsoft/vscode-mssql/pull/17722
+  - Added missing DB Create syntax keyword colorization -  https://github.com/microsoft/vscode-mssql/pull/17732
+  - Improved connection description when selecting connection from quick pick -  https://github.com/microsoft/vscode-mssql/pull/17737
+  - Fixed authentication issue where user account could not be found in MSAL Cache in Linux - https://github.com/microsoft/vscode-mssql/pull/17747
+
 ## Version 1.19.1
 * Release date: June 5, 2023
 * Release status: GA
