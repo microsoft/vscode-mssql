@@ -874,10 +874,6 @@
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Перезагрузить Visual Studio Code</target>
       </trans-unit>
-      <trans-unit id="deprecatedMessage">
-        <source xml:lang="en">Warning: ADAL has been deprecated, and is scheduled to be removed in the next release. Please use MSAL instead.</source>
-        <target state="translated">Предупреждение. ADAL не рекомендуется и будет удален в следующем выпуске. Вместо этого используйте MSAL.</target>
-      </trans-unit>
       <trans-unit id="switchToMsal">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">Переключиться на MSAL</target>
