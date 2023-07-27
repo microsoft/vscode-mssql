@@ -30,7 +30,7 @@ export function getProxyAgent(requestURL: Url, proxy?: string, strictSSL?: boole
 		return undefined;
 	}
 	const proxyEndpoint = parseUrl(proxyURL);
-	const opts = this.getProxyAgentOptions(requestURL, proxy, strictSSL);
+	const opts = getProxyAgentOptions(requestURL, proxy, strictSSL);
 	return proxyEndpoint.protocol === 'https:' ? new HttpsProxyAgent(opts as HttpsProxyAgentOptions) : new HttpProxyAgent(opts as HttpProxyAgentOptions);
 }
 
