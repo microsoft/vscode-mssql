@@ -11,7 +11,7 @@ import { TelemetryActions, TelemetryViews } from './telemetryInterfaces';
 const packageJson = vscode.extensions.getExtension(vscodeMssql.extension.name).packageJSON;
 
 let packageInfo = {
-	name: packageJson.name,
+	name: 'vscode-mssql', // Differentiate this from the mssql extension in ADS
 	version: packageJson.version,
 	aiKey: packageJson.aiKey
 };
