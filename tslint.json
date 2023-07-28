@@ -13,11 +13,20 @@
     ],
     "curly": true,
     "eofline": true,
+    "file-name-casing": [
+      true,
+      {
+        ".tsx": "pascal-case",
+        ".ts": "camel-case"
+      }
+    ],
     "forin": true,
+    "function-constructor": true,
     "function-name": [
-        true, {
+      true,
+      {
         "static-method-regex": "^[a-z][\\w\\d]+$"
-        }
+      }
     ],
     "indent": [
       true,
@@ -48,6 +57,7 @@
     "no-empty": true,
     "no-inferrable-types": false,
     "no-internal-module": true,
+    "no-misused-new": true,
     "no-invalid-this": true,
     "no-null-keyword": true,
     "no-require-imports": true,
@@ -74,6 +84,7 @@
     ],
     "radix": true,
     "semicolon": true,
+    "static-this": true,
     "switch-default": true,
     "trailing-comma": [
       true,
