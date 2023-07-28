@@ -50,8 +50,6 @@ function createWorkspaceConfiguration(items: { [key: string]: any }, workspaceIt
 			};
 		},
 		update(section: string, value: any, global?: boolean): Thenable<void> {
-			items[section] = value;
-
 			global = global === undefined ? true : global;
 			if (!global) {
 				if (workspaceItems === undefined) {
