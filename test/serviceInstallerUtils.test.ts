@@ -11,11 +11,13 @@ suite('Stub Status View tests', function (): void {
 	let stubStatusView: StubStatusView;
 	let logStub: sinon.SinonSpy;
 
+	// tslint:disable-next-line no-invalid-this Mocha injects the Suite as the this context
 	this.beforeAll(function (): void {
 		logStub = sinon.stub();
 		stubStatusView = new StubStatusView(logStub);
 	});
 
+	// tslint:disable-next-line no-invalid-this Mocha injects the Suite as the this context
 	this.afterAll(function (): void {
 		sinon.restore();
 	});
@@ -46,11 +48,13 @@ suite('Stub Logger tests', function (): void {
 	let stubLogger: StubLogger;
 	let logStub: sinon.SinonSpy;
 
+	// tslint:disable-next-line no-invalid-this Mocha injects the Suite as the this context
 	this.beforeEach(function (): void {
 		logStub = sinon.stub();
 		stubLogger = new StubLogger(logStub);
 	});
 
+	// tslint:disable-next-line no-invalid-this Mocha injects the Suite as the this context
 	this.afterEach(function (): void {
 		sinon.restore();
 	});
