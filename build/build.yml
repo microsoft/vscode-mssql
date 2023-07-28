@@ -121,11 +121,6 @@ steps:
   - task: PublishBuildArtifacts@1
     displayName: "Publish Artifact: drop"
 
-  - task: gulp@0
-    displayName: "gulp ext:install-service"
-    inputs:
-      targets: "ext:install-service"
-
   - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
     displayName: "Component Detection"
     inputs:
