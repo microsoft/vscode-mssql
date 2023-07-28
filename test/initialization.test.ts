@@ -19,6 +19,7 @@ function ensureExtensionIsActive(): Promise<any> {
 function waitForExtensionToBeActive(resolve): void {
 	if (typeof (vscode.extensions.getExtension('ms-mssql.mssql')) === 'undefined' ||
 		!vscode.extensions.getExtension('ms-mssql.mssql').isActive) {
+		// tslint:disable-next-line no-invalid-this Bind to the mocha context so it resolves properly
 		setTimeout(waitForExtensionToBeActive.bind(this, resolve), 50);
 	} else {
 		resolve();
