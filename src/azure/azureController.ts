@@ -162,7 +162,7 @@ export abstract class AzureController {
 	 * @param token expiry
 	 */
 	public static isTokenInValid(token: string, expiresOn?: number): boolean {
-		return (!token || this.isTokenExpired(expiresOn));
+		return (!token || AzureController.isTokenExpired(expiresOn));
 	}
 
 	/**

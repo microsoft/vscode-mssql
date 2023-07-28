@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 import Prompt from './prompt';
-import EscapeException from '../utils/EscapeException';
+import EscapeException from '../utils/escapeException';
 import { INameValueChoice } from './question';
 import VscodeWrapper from '../controllers/vscodeWrapper';
 

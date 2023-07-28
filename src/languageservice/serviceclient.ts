@@ -153,7 +153,7 @@ export default class SqlToolsServiceClient {
 
 	// gets or creates the singleton SQL Tools service client instance
 	public static get instance(): SqlToolsServiceClient {
-		if (this._instance === undefined) {
+		if (SqlToolsServiceClient._instance === undefined) {
 			let config = new ExtConfig();
 			let vscodeWrapper = new VscodeWrapper();
 			let logLevel: LogLevel = LogLevel[Utils.getConfigTracingLevel() as keyof typeof LogLevel];
@@ -167,9 +167,9 @@ export default class SqlToolsServiceClient {
 				decompressProvider);
 			let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
 			let statusView = new StatusView(vscodeWrapper);
-			this._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView, vscodeWrapper);
+			SqlToolsServiceClient._instance = new SqlToolsServiceClient(config, serviceProvider, logger, statusView, vscodeWrapper);
 		}
-		return this._instance;
+		return SqlToolsServiceClient._instance;
 	}
 
 	// initialize the SQL Tools Service Client instance by launching
