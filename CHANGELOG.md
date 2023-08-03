@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.20.1
+* Release date: August 7, 2023
+* Release status: GA
+### What's new in 1.20.1
+* Fixed an issue with downloading of SQL Tools Service Component in proxy enabled environment (https://github.com/microsoft/vscode-mssql/issues/17755)
+
 ## Version 1.20.0
 * Release date: July 26, 2023
 * Release status: GA
