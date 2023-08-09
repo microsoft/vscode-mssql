@@ -175,7 +175,7 @@ suite('SqlOutputProvider Tests using mocks', () => {
 		// Setup the function to call base and run it
 		mockContentProvider.object.runQuery(statusView.object, uri, querySelection, title);
 
-		// Ensure all side effects occured as intended
+		// Ensure all side effects occurred as intended
 		assert.equal(mockMap.get(uri).queryRunner.isExecutingQuery, true);
 		mockContentProvider.object.runQuery(statusView.object, uri, querySelection, title);
 		assert.equal(mockMap.get(uri).queryRunner.isExecutingQuery, true);
