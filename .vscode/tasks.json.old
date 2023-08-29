@@ -1,0 +1,35 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "0.1.0",
+    "command": "gulp",
+    "isShellCommand": true,
+    "args": [
+        "--no-color"
+    ],
+    "tasks": [
+        {
+            "taskName": "build",
+            "args": [],
+            "isBuildCommand": true,
+            "isWatching": false,
+            "problemMatcher": [
+                "$lessCompile",
+                "$tsc",
+                "$jshint"
+            ]
+        },
+        {
+            "taskName": "cover:enable",
+            "args": [],
+            "isBuildCommand": false,
+            "isWatching": false
+        },
+        {
+            "taskName": "cover:disable",
+            "args": [],
+            "isBuildCommand": false,
+            "isWatching": false
+        }
+    ]
+}

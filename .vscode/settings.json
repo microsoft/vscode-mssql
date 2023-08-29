@@ -20,5 +20,11 @@
 	],
 	"yaml.schemas": {
 		"https://raw.githubusercontent.com/microsoft/azure-pipelines-vscode/master/service-schema.json": "build/**/*.yml"
-	},
+    },
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "main"
+    ],
+    "i18n-ally.localesPaths": [
+        "../../../../../Users/precha/โปรเจคเขียนโปรแกรม/vscode-mssql"
+    ],
 }
