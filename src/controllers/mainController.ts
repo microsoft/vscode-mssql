@@ -134,9 +134,11 @@ export default class MainController implements vscode.Disposable {
 			this.registerCommand(Constants.cmdRunQuery);
 			this._event.on(Constants.cmdRunQuery, () => { this.onRunQuery(); });
 			this.registerCommand(Constants.cmdManageConnectionProfiles);
-			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
-			this.registerCommand(Constants.cmdRunCurrentStatement);
 			this._event.on(Constants.cmdManageConnectionProfiles, async () => { await this.onManageProfiles(); });
+			this.registerCommand(Constants.cmdClearPooledConnections);
+			this._event.on(Constants.cmdClearPooledConnections, async () => { await this.onClearPooledConnections(); });
+			this.registerCommand(Constants.cmdRunCurrentStatement);
+			this._event.on(Constants.cmdRunCurrentStatement, () => { this.onRunCurrentStatement(); });
 			this.registerCommand(Constants.cmdChooseDatabase);
 			this._event.on(Constants.cmdChooseDatabase, () => { this.runAndLogErrors(this.onChooseDatabase()); });
 			this.registerCommand(Constants.cmdChooseLanguageFlavor);
@@ -701,6 +703,16 @@ export default class MainController implements vscode.Disposable {
 	public async onManageProfiles(): Promise<void> {
 		if (this.canRunCommand()) {
 			await this._connectionMgr.onManageProfiles();
+			return;
+		}
+	}
+
+	/**
+	 * Clears all pooled connections not in active use.
+	 */
+	public async onClearPooledConnections(): Promise<void> {
+		if (this.canRunCommand()) {
+			await this._connectionMgr.onClearPooledConnections();
 			return;
 		}
 	}

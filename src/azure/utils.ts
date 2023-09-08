@@ -13,7 +13,7 @@ import * as os from 'os';
 import { parse } from 'url';
 import * as vscode from 'vscode';
 import { getProxyAgentOptions } from '../languageservice/proxy';
-import {AzureAuthType, IToken } from '../models/contracts/azure';
+import { AzureAuthType, IToken } from '../models/contracts/azure';
 import * as Constants from './constants';
 import { TokenCredentialWrapper } from './credentialWrapper';
 import { HttpClient } from './msal/httpClient';
@@ -93,7 +93,7 @@ export function getEnableConnectionPoolingConfig(): boolean {
 			return val;
 		}
 	}
-	return false; // default setting
+	return true; // default setting
 }
 
 export function getProxyEnabledHttpClient(): HttpClient {

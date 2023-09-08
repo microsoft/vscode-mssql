@@ -21,7 +21,7 @@ import { ConnectionProfile } from '../models/connectionProfile';
 import { ConnectionStore } from '../models/connectionStore';
 import { IAccount } from '../models/contracts/azure';
 import * as ConnectionContracts from '../models/contracts/connection';
-import { ConnectionSummary } from '../models/contracts/connection';
+import { ClearPooledConnectionsRequest, ConnectionSummary } from '../models/contracts/connection';
 import * as LanguageServiceContracts from '../models/contracts/languageService';
 import { EncryptOptions, IConnectionProfile } from '../models/interfaces';
 import { PlatformInformation, Runtime } from '../models/platform';
@@ -502,7 +502,7 @@ export default class ConnectionManager {
 		sendErrorEvent(
 			TelemetryViews.ConnectionPrompt,
 			TelemetryActions.CreateConnectionResult,
-			new Error (result.errorMessage),
+			new Error(result.errorMessage),
 			false,
 			result.errorNumber?.toString(),
 			undefined,
@@ -929,6 +929,10 @@ export default class ConnectionManager {
 	public onManageProfiles(): Promise<boolean> {
 		// Show quick pick to create, edit, or remove profiles
 		return this.connectionUI.promptToManageProfiles();
+	}
+
+	public async onClearPooledConnections(): Promise<void> {
+		return await this._client.sendRequest(ClearPooledConnectionsRequest.type, {});
 	}
 
 	public async onCreateProfile(): Promise<boolean> {
