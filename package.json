@@ -668,6 +668,11 @@
               "encrypt": {
                 "type": "string",
                 "default": "Mandatory",
+                "enum": [
+                  "Mandatory",
+                  "Strict",
+                  "Optional"
+                ],
                 "description": "%mssql.connection.encrypt%"
               },
               "trustServerCertificate": {
