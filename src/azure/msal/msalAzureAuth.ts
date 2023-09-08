@@ -37,6 +37,7 @@ export abstract class MsalAzureAuth {
 		protected readonly logger: Logger
 	) {
 		this.loginEndpointUrl = this.providerSettings.loginEndpoint ?? 'https://login.microsoftonline.com/';
+		this.redirectUri = 'http://localhost';
 		this.clientId = this.providerSettings.clientId;
 		this.scopes = [...this.providerSettings.scopes];
 		this.scopesString = this.scopes.join(' ');
