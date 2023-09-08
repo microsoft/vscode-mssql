@@ -32,7 +32,7 @@
 			"outFiles": [
 				"${workspaceRoot}/out/src/**/*.js"
 			],
-			"preLaunchTask": "build",
+			// "preLaunchTask": "build",
 			"env": {
 				// Uncomment this to use a specified version of STS, see
 				// https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
