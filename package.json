@@ -957,12 +957,6 @@
           "default": false,
           "scope": "window"
         },
-        "mssql.query.displayBitAsNumber": {
-          "type": "boolean",
-          "default": true,
-          "description": "%mssql.query.displayBitAsNumber%",
-          "scope": "window"
-        },
         "mssql.intelliSense.enableIntelliSense": {
           "type": "boolean",
           "default": true,
@@ -999,12 +993,6 @@
           "description": "%mssql.persistQueryResultTabs%",
           "scope": "window"
         },
-        "mssql.queryHistoryLimit": {
-          "type": "number",
-          "default": 20,
-          "description": "%mssql.queryHistoryLimit%",
-          "scope": "window"
-        },
         "mssql.enableQueryHistoryCapture": {
           "type": "boolean",
           "default": true,
@@ -1016,11 +1004,6 @@
           "default": true,
           "description": "%mssql.enableQueryHistoryFeature%",
           "scope": "window"
-        },
-        "mssql.query.maxXmlCharsToStore": {
-          "type": "number",
-          "default": 2097152,
-          "description": "%mssql.query.maxXmlCharsToStore%"
         },
         "mssql.tracingLevel": {
           "type": "string",
@@ -1050,6 +1033,28 @@
           "type": "number",
           "default": 100,
           "description": "%mssql.logFilesRemovalLimit%"
+        },
+        "mssql.query.displayBitAsNumber": {
+          "type": "boolean",
+          "default": true,
+          "description": "%mssql.query.displayBitAsNumber%",
+          "scope": "window"
+        },
+        "mssql.query.maxCharsToStore": {
+          "type": "number",
+          "default": 65535,
+          "description": "%mssql.query.maxCharsToStore%"
+        },
+        "mssql.query.maxXmlCharsToStore": {
+          "type": "number",
+          "default": 2097152,
+          "description": "%mssql.query.maxXmlCharsToStore%"
+        },
+        "mssql.queryHistoryLimit": {
+          "type": "number",
+          "default": 20,
+          "description": "%mssql.queryHistoryLimit%",
+          "scope": "window"
         },
         "mssql.query.rowCount": {
           "type": "number",
