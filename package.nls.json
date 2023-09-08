@@ -43,7 +43,7 @@
 "mssql.connection.password":"[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.",
 "mssql.connection.authenticationType":"[Optional] Specify the SQL Server authentication type.",
 "mssql.connection.port":"[Optional] Specify the port number to connect to.",
-"mssql.connection.encrypt":"[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.",
+"mssql.connection.encrypt":"[Optional] When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.",
 "mssql.connection.trustServerCertificate":"[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.",
 "mssql.connection.hostNameInCertificate":"[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.",
 "mssql.connection.persistSecurityInfo":"[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.",

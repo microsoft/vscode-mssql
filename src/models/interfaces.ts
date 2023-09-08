@@ -41,7 +41,8 @@ export enum AuthenticationTypes {
 
 export enum EncryptOptions {
 	Optional = 'Optional',
-	Mandatory = 'Mandatory'
+	Mandatory = 'Mandatory',
+	Strict = 'Strict'
 }
 
 export const contentTypes = [

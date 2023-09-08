@@ -77,6 +77,7 @@ export const defaultCommandTimeout = 30;
 export const azureDatabase = 'Azure';
 export const azureMfa = 'AzureMFA';
 export const defaultPortNumber = 1433;
+export const integratedauth = 'Integrated';
 export const sqlAuthentication = 'SqlLogin';
 export const defaultDatabase = 'master';
 export const errorPasswordExpired = 18487;

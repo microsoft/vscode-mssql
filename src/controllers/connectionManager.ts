@@ -583,7 +583,7 @@ export default class ConnectionManager {
 			// deleted if the settings file is manually changed
 			(credentials as IConnectionProfile).savePassword = true;
 		} else {
-			credentials.authenticationType = 'Integrated';
+			credentials.authenticationType = Constants.integratedauth;
 		}
 
 		return credentials;
