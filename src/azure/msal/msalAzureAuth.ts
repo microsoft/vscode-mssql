@@ -103,7 +103,18 @@ export abstract class MsalAzureAuth {
 	 * @returns The authentication result, including the access token
 	 */
 	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | null> {
-		let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(account.key.id);
+		let accountInfo: AccountInfo | null
+		try {
+			accountInfo = await this.getAccountFromMsalCache(account.key.id);
+		} catch (e) {
+			this.logger.error('Error: Could not fetch account from MSAL cache, re-authentication needed.');
+			// build refresh token request
+			const tenant: ITenant = {
+				id: tenantId,
+				displayName: ''
+			};
+			return this.handleInteractionRequired(tenant, settings);
+		}
 		// Resource endpoint must end with '/' to form a valid scope for MSAL token request.
 		const endpoint = settings.endpoint.endsWith('/') ? settings.endpoint : settings.endpoint + '/';
 
@@ -218,6 +229,9 @@ export abstract class MsalAzureAuth {
 			account = await cache.getAccountByHomeId(accountId);
 		} else {
 			account = await cache.getAccountByLocalId(accountId);
+		}
+		if (!account) {
+			throw new Error('Error: Could not find account from MSAL Cache.')
 		}
 		return account;
 	}
