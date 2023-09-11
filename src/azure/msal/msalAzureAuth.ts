@@ -103,7 +103,7 @@ export abstract class MsalAzureAuth {
 	 * @returns The authentication result, including the access token
 	 */
 	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | null> {
-		let accountInfo: AccountInfo | null
+		let accountInfo: AccountInfo | null;
 		try {
 			accountInfo = await this.getAccountFromMsalCache(account.key.id);
 		} catch (e) {
@@ -231,7 +231,7 @@ export abstract class MsalAzureAuth {
 			account = await cache.getAccountByLocalId(accountId);
 		}
 		if (!account) {
-			throw new Error('Error: Could not find account from MSAL Cache.')
+			throw new Error('Error: Could not find account from MSAL Cache.');
 		}
 		return account;
 	}
