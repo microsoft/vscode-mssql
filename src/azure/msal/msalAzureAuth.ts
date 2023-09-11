@@ -113,7 +113,7 @@ export abstract class MsalAzureAuth {
 				id: tenantId,
 				displayName: ''
 			};
-			return this.handleInteractionRequired(tenant, settings);
+			return this.handleInteractionRequired(tenant, settings, false);
 		}
 		// Resource endpoint must end with '/' to form a valid scope for MSAL token request.
 		const endpoint = settings.endpoint.endsWith('/') ? settings.endpoint : settings.endpoint + '/';
@@ -282,13 +282,21 @@ export abstract class MsalAzureAuth {
 	}
 
 	//#region interaction handling
-	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource): Promise<AuthenticationResult | null> {
-		const shouldOpen = await this.askUserForInteraction(tenant, settings);
-		if (shouldOpen) {
+	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource, promptUser: boolean = true): Promise<AuthenticationResult | null> {
+		let shouldOpen: boolean;
+		if (promptUser) {
+			shouldOpen = await this.askUserForInteraction(tenant, settings);
+			if (shouldOpen) {
+				const result = await this.login(tenant);
+				result?.authComplete?.resolve();
+				return result?.response;
+			}
+		} else {
 			const result = await this.login(tenant);
 			result?.authComplete?.resolve();
 			return result?.response;
 		}
+
 		return null;
 	}
 
