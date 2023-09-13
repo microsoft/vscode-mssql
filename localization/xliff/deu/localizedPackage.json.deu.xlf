@@ -98,6 +98,10 @@
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">Verbindungsprofile verwalten</target>
       </trans-unit>
+      <trans-unit id="mssql.clearPooledConnections">
+        <source xml:lang="en">Clear Pooled Connections</source>
+        <target state="translated">Gepoolte Verbindungen löschen</target>
+      </trans-unit>
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Datenbank verwenden</target>
@@ -175,8 +179,8 @@
         <target state="translated">[Optional] Gibt den Port an, mit dem Sie eine Verbindung herstellen möchten.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
-        <source xml:lang="en">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</source>
-        <target state="translated">[Optional] Bei Festlegung auf „Obligatorisch“ verwendet SQL Server die SSL-Verschlüsselung für alle zwischen dem Client und Server gesendeten Daten, sofern auf dem Server ein Zertifikat installiert ist. Legen Sie für eine Azure SQL-Datenbank-Verbindung den Wert auf „Obligatorisch“ fest.</target>
+        <source xml:lang="en">[Optional] When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.</source>
+        <target state="translated">[Optional] Bei "Obligatorisch" oder "Strict" verwendet SQL Server SSL-Verschlüsselung für alle Daten, die zwischen Client und Server gesendet werden, wenn auf dem Server ein Zertifikat installiert ist. Bei Festlegung auf "Strict" verwendet SQL Server TDS 8.0 für die gesamte Datenübertragung zwischen Client und Server. "Strict" wird ab SQL Server 2022 unterstützt.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
@@ -291,8 +295,8 @@
         <target state="translated">Ermöglicht die Verwendung des Sql-Authentifizierungsanbieters für den Authentifizierungsmodus „Active Directory Interactive“, wenn der Benutzer die Authentifizierung „AzureMFA“ auswählt. Dies ermöglicht die serverseitige Ressourcenendpunktintegration beim Abrufen von Zugriffstokens. Diese Option wird nur für die „MSAL“ Azure Authentication Library unterstützt. Bitte starten Sie Visual Studio Code neu, nachdem Sie diese Option geändert haben.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.</source>
-        <target state="translated">Aktiviert das Verbindungspooling, um die Konnektivitätsleistung insgesamt zu verbessern. Diese Einstellung ist standardmäßig deaktiviert. Visual Studio Code muss neu gestartet werden, wenn der Wert geändert wird.</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
+        <target state="translated">Ermöglicht Verbindungspooling, um die Gesamtkonnektivitätsleistung zu verbessern. Diese Einstellung ist standardmäßig aktiviert. Visual Studio Code muss neu gestartet werden, wenn der Wert geändert wird. Führen Sie den folgenden Befehl aus, um gepoolte Verbindungen zu löschen: 'MS SQL: Gepoolte Verbindungen löschen'</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>
@@ -411,8 +415,12 @@
         <target state="translated">Erstellen einer Azure-Funktion mit SQL-Bindung</target>
       </trans-unit>
       <trans-unit id="mssql.query.maxXmlCharsToStore">
-        <source xml:lang="en">Number of XML characters to store after running a query</source>
-        <target state="translated">Anzahl von XML-Zeichen, die nach dem Ausführen einer Abfrage gespeichert werden sollen</target>
+        <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
+        <target state="translated">Die maximale Anzahl von Zeichen, die nach dem Ausführen einer Abfrage für jeden Wert in XML-Spalten gespeichert werden sollen. Standardwert: 2.097.152. Gültiger Wertebereich: 1 bis 2.147.483.647.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxCharsToStore">
+        <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
+        <target state="translated">Die maximale Anzahl von Zeichen/Bytes, die nach dem Ausführen einer Abfrage für jeden Wert in Zeichenspalten/binären Spalten gespeichert werden sollen. Standardwert: 65.535. Gültiger Wertebereich: 1 bis 2.147.483.647.</target>
       </trans-unit>
       <trans-unit id="mssql.tracingLevel">
         <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>

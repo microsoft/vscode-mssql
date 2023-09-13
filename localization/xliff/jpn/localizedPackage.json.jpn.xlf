@@ -98,6 +98,10 @@
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">接続プロファイルの管理</target>
       </trans-unit>
+      <trans-unit id="mssql.clearPooledConnections">
+        <source xml:lang="en">Clear Pooled Connections</source>
+        <target state="translated">プールされた接続のクリア</target>
+      </trans-unit>
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">データベースの使用</target>
@@ -175,8 +179,8 @@
         <target state="translated">[省略可能] 接続するポート番号を指定します。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
-        <source xml:lang="en">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</source>
-        <target state="translated">[オプション] '必須' に設定すると、サーバーに証明書がインストールされている場合、SQL Server はクライアントとサーバーの間で送信されるデータに SSL 暗号化を使用します。Azure SQL Database 接続に '必須' を設定します。</target>
+        <source xml:lang="en">[Optional] When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.</source>
+        <target state="translated">[オプション] 'Mandatory' または 'Strict' の場合、サーバーに証明書がインストールされていれば、クライアントとサーバーの間で送信されるすべてのデータに SQL Server が SSL 暗号化を使用します。'Strict' に設定されている場合、クライアントとサーバー間のすべてのデータ転送に SQL Server が TDS 8.0 を使用します。'Strict' は、SQL Server 2022 以降でサポートされています。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
@@ -291,8 +295,8 @@
         <target state="translated">ユーザーが 'AzureMFA' 認証を選択したときに、'Active Directory Interactive' 認証モードで SQL 認証プロバイダーを使用できるようにします。これにより、アクセス トークンをフェッチするときに、サーバー側のリソース エンドポイントの統合が可能になります。 このオプションは、'MSAL' Azure 認証ライブラリでのみサポートされています。このオプションを変更した後、Visual Studio Code を再起動してください。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.</source>
-        <target state="translated">接続プールを有効にして、全体的な接続パフォーマンスを向上させます。この設定は既定では無効になっています。値が変更されたときに、Visual Studio Code を再起動する必要があります。</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
+        <target state="translated">接続プールを有効にして、全体的な接続パフォーマンスを向上させます。この設定は既定で有効になっています。値が変更された場合は Visual Studio Code を再起動する必要があります。プールされた接続をクリアするには、次のコマンドを実行します: 'MS SQL: プールされた接続のクリア'</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>
@@ -411,8 +415,12 @@
         <target state="translated">SQL バインドを使用して Azure 関数を作成する</target>
       </trans-unit>
       <trans-unit id="mssql.query.maxXmlCharsToStore">
-        <source xml:lang="en">Number of XML characters to store after running a query</source>
-        <target state="translated">クエリの実行後に格納する XML 文字の数</target>
+        <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
+        <target state="translated">クエリの実行後に XML 列の各値に格納する最大文字数。既定値: 2,097,152。有効な値の範囲: 1 から 2,147,483,647。</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxCharsToStore">
+        <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
+        <target state="translated">クエリの実行後に、文字/バイナリ列の各値に格納する最大文字数/バイト数。既定値: 65,535。有効な値の範囲: 1 から 2,147,483,647。</target>
       </trans-unit>
       <trans-unit id="mssql.tracingLevel">
         <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>

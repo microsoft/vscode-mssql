@@ -98,6 +98,10 @@
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">Управление профилями подключения</target>
       </trans-unit>
+      <trans-unit id="mssql.clearPooledConnections">
+        <source xml:lang="en">Clear Pooled Connections</source>
+        <target state="translated">Очистить подключения в пулах</target>
+      </trans-unit>
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Использовать базу данных</target>
@@ -175,8 +179,8 @@
         <target state="translated">[Необязательно] Укажите номер порта для подключения.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.encrypt">
-        <source xml:lang="en">[Optional] When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.</source>
-        <target state="translated">[Необязательно] Если установлено значение «Обязательно», SQL Server использует шифрование SSL для данных, пересылаемых между клиентом и сервером, если на сервере установлен сертификат. Установите «Обязательно» для подключения к базе данных SQL Azure.</target>
+        <source xml:lang="en">[Optional] When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.</source>
+        <target state="translated">[Необязательно] Если задано значение "Mandatory" или "Strict", SQL Server использует SSL-шифрование для всех данных, отправляемых между клиентом и сервером, если на сервере установлен сертификат. Если установлено значение "Strict", SQL Server использует TDS 8.0 для передачи всех данных между клиентом и сервером. Значение "Strict" поддерживается в SQL Server 2022 и более поздних версиях.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.trustServerCertificate">
         <source xml:lang="en">[Optional] When set to 'true', the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set 'false' for Azure SQL Database connection.</source>
@@ -291,8 +295,8 @@
         <target state="translated">Разрешает использование поставщика проверки подлинности SQL для режима проверки подлинности "Active Directory Interactive", когда пользователь выбирает проверку подлинности "AzureMFA". Это разрешает интеграцию конечной точки ресурсов на стороне сервера при получении маркеров доступа. Этот параметр поддерживается только для библиотеки проверки подлинности Azure "MSAL". Перезапустите Visual Studio Code после изменения этого параметра.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.</source>
-        <target state="translated">Позволяет использовать пулы подключений для повышения общей производительности подключения. Этот параметр отключен по умолчанию. При изменении этого параметр требуется перезапустить Visual Studio Code.</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
+        <target state="translated">Разрешает пулы подключений для повышения общей производительности подключения. Этот параметр включен по умолчанию. Visual Studio Code необходимо перезапустить при изменении значения. Чтобы очистить подключения в пулах, выполните команду "MS SQL: Clear Pooled Connections"</target>
       </trans-unit>
       <trans-unit id="mssql.shortcuts">
         <source xml:lang="en">Shortcuts related to the results window</source>
@@ -411,8 +415,12 @@
         <target state="translated">Создание Функций Azure с привязкой SQL</target>
       </trans-unit>
       <trans-unit id="mssql.query.maxXmlCharsToStore">
-        <source xml:lang="en">Number of XML characters to store after running a query</source>
-        <target state="translated">Число XML-символов для хранения после выполнения запроса</target>
+        <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
+        <target state="translated">Максимальное сохраняемое количество символов для каждого значения в столбцах XML после выполнения запроса. Значение по умолчанию: 2 097 152. Допустимый диапазон значений: от 1 до 2 147 483 647.</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.maxCharsToStore">
+        <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
+        <target state="translated">Максимальное сохраняемое количество символов/байт для каждого значения в символьных/двоичных столбцах после выполнения запроса. Значение по умолчанию: 65 535. Допустимый диапазон значений: от 1 до 2 147 483 647.</target>
       </trans-unit>
       <trans-unit id="mssql.tracingLevel">
         <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
