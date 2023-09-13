@@ -127,6 +127,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.clearPooledConnections" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Clear Pooled Connections]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[풀된 연결 지우기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.commandPaletteQueryHistory" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Query History in Command Palette]]></Val>
@@ -258,12 +267,12 @@
       </Item>
       <Item ItemId=";mssql.connection.encrypt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.]]></Val>
+          <Val><![CDATA[[Optional]5D; When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[선택 사항]5D; '필수'로 설정하면 서버에 인증서가 설치되어 있을 때 SQL Server에서 클라이언트와 서버 간에 전송된 데이터에 SSL 암호화를 사용합니다. Azure SQL Database 연결에 대해서는 '필수'로 설정하세요.]]></Val>
+            <Val><![CDATA[[선택적]5D; 'Mandatory' 또는 'Strict'로 설정하면 SQL Server는 인증서가 설치된 경우 클라이언트와 서버 간의 모든 데이터 전송에 SSL 암호화를 사용합니다. 'Strict'로 설정하면 SQL Server는 클라이언트와 서버 간의 모든 데이터 전송에 TDS 8.0을 사용합니다. 'Strict'는 SQL Server 2022 이상에서 지원됩니다.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[[Optional]5D; When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.]]></Val>
+            <Val><![CDATA[[Optional]5D; When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -528,10 +537,13 @@
       </Item>
       <Item ItemId=";mssql.enableConnectionPooling" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.]]></Val>
+          <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[연결 풀링을 사용하여 전체 연결 성능을 향상시킵니다. 이 설정은 기본적으로 비활성화되어 있습니다. 값을 변경하면 Visual Studio Code를 다시 시작해야 합니다.]]></Val>
+            <Val><![CDATA[연결 풀링을 사용하여 전반적인 연결 성능을 향상시킵니다. 이 설정은 기본적으로 사용하도록 설정되어 있습니다. 값이 변경되면 Visual Studio Code를 다시 시작해야 합니다. 풀된 연결을 지우려면 'MS SQL: 풀된 연결 지우기' 명령을 실행하세요.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -922,12 +934,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.query.maxCharsToStore" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[쿼리를 실행한 후 문자/이진 열의 각 값에 대해 저장할 최대 문자/바이트 수입니다. 기본값: 65,535. 유효한 값 범위: 1 ~007E; 2,147,483,647.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.query.maxXmlCharsToStore" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Number of XML characters to store after running a query]]></Val>
+          <Val><![CDATA[Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[쿼리를 실행한 후 저장할 XML 문자 수]]></Val>
+            <Val><![CDATA[쿼리를 실행한 후 XML 열의 각 값에 대해 저장할 최대 문자 수입니다. 기본값: 2,097,152. 유효한 값 범위: 1 ~007E; 2,147,483,647.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Number of XML characters to store after running a query]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

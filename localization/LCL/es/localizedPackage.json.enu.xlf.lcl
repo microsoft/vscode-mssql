@@ -127,6 +127,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.clearPooledConnections" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Clear Pooled Connections]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Borrar conexiones agrupadas]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.commandPaletteQueryHistory" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Query History in Command Palette]]></Val>
@@ -258,12 +267,12 @@
       </Item>
       <Item ItemId=";mssql.connection.encrypt" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.]]></Val>
+          <Val><![CDATA[[Optional]5D; When 'Mandatory' or 'Strict', SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to 'Strict', SQL Server uses TDS 8.0 for all data transfer between the client and server. 'Strict' is supported on SQL Server 2022 onwards.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Opcional]5D; Si se establece en "Mandatory", SQL Server usa el cifrado SSL para los datos que se envían entre el cliente y el servidor, si este último tiene un certificado instalado. Establézcalo en "Mandatory" para la conexión con Azure SQL Database.]]></Val>
+            <Val><![CDATA[[Opcional]5D; Cuando es "Mandatory" o "Strict", SQL Server usa cifrado SSL para todos los datos enviados entre el cliente y el servidor si el servidor tiene un certificado instalado. Cuando se establece en "Strict", SQL Server usa TDS 8.0 para toda la transferencia de datos entre el cliente y el servidor. El cifrado "Strict" se admite en SQL Server 2022 y posteriores.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[[Optional]5D; When set to 'true', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'true' for Azure SQL Database connection.]]></Val>
+            <Val><![CDATA[[Optional]5D; When set to 'Mandatory', SQL Server uses SSL encryption for data sent between the client and the server if the server has a certificate installed. Set 'Mandatory' for Azure SQL Database connection.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
@@ -528,10 +537,13 @@
       </Item>
       <Item ItemId=";mssql.enableConnectionPooling" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.]]></Val>
+          <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Habilita la agrupación de conexiones para mejorar el rendimiento general de la conectividad. Esta configuración está deshabilitada de manera predeterminada. Es necesario volver a iniciar Visual Studio Code cuando se cambia el valor.]]></Val>
+            <Val><![CDATA[Habilita la agrupación de conexiones para mejorar el rendimiento general de la conectividad. Esta configuración está habilitada de forma predeterminada. Visual Studio Code debe volver a iniciarse cuando se cambie el valor. Para borrar las conexiones agrupadas, ejecute el comando: "MS SQL: Borrar conexiones agrupadas"]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -922,12 +934,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";mssql.query.maxCharsToStore" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Número máximo de caracteres/bytes que se almacenarán para cada valor en columnas de caracteres o binarios después de ejecutar una consulta. Valor predeterminado: 65 535. Intervalo de valores válido: de 1 a 2 147 483 647.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";mssql.query.maxXmlCharsToStore" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Number of XML characters to store after running a query]]></Val>
+          <Val><![CDATA[Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Número de caracteres XML que se almacenarán después de ejecutar una consulta.]]></Val>
+            <Val><![CDATA[Número máximo de caracteres que se almacenarán para cada valor en columnas XML después de ejecutar una consulta. Valor predeterminado: 2 097 152. Intervalo de valores válido: de 1 a 2 147 483 647.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Number of XML characters to store after running a query]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
