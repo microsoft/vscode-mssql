@@ -210,10 +210,12 @@ export function getEncryptionMode(encryption: string | boolean | undefined): Enc
 	if (encryption !== undefined) {
 		let encrypt = encryption.toString().toLowerCase();
 		switch (encrypt) {
-			case 'true' || EncryptOptions.Mandatory.toLowerCase():
+			case 'true':
+			case EncryptOptions.Mandatory.toLowerCase():
 				encryptionMode = EncryptOptions.Mandatory;
 				break;
-			case 'false' || EncryptOptions.Optional.toLowerCase():
+			case 'false':
+			case EncryptOptions.Optional.toLowerCase():
 				encryptionMode = EncryptOptions.Optional;
 				break;
 			case EncryptOptions.Strict.toLowerCase():
