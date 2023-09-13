@@ -103,7 +103,18 @@ export abstract class MsalAzureAuth {
 	 * @returns The authentication result, including the access token
 	 */
 	public async getToken(account: IAccount, tenantId: string, settings: IAADResource): Promise<AuthenticationResult | null> {
-		let accountInfo: AccountInfo | null = await this.getAccountFromMsalCache(account.key.id);
+		let accountInfo: AccountInfo | null;
+		try {
+			accountInfo = await this.getAccountFromMsalCache(account.key.id);
+		} catch (e) {
+			this.logger.error('Error: Could not fetch account from MSAL cache, re-authentication needed.');
+			// build refresh token request
+			const tenant: ITenant = {
+				id: tenantId,
+				displayName: ''
+			};
+			return this.handleInteractionRequired(tenant, settings, false);
+		}
 		// Resource endpoint must end with '/' to form a valid scope for MSAL token request.
 		const endpoint = settings.endpoint.endsWith('/') ? settings.endpoint : settings.endpoint + '/';
 
@@ -219,6 +230,9 @@ export abstract class MsalAzureAuth {
 		} else {
 			account = await cache.getAccountByLocalId(accountId);
 		}
+		if (!account) {
+			throw new Error('Error: Could not find account from MSAL Cache.');
+		}
 		return account;
 	}
 
@@ -268,13 +282,21 @@ export abstract class MsalAzureAuth {
 	}
 
 	//#region interaction handling
-	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource): Promise<AuthenticationResult | null> {
-		const shouldOpen = await this.askUserForInteraction(tenant, settings);
-		if (shouldOpen) {
+	public async handleInteractionRequired(tenant: ITenant, settings: IAADResource, promptUser: boolean = true): Promise<AuthenticationResult | null> {
+		let shouldOpen: boolean;
+		if (promptUser) {
+			shouldOpen = await this.askUserForInteraction(tenant, settings);
+			if (shouldOpen) {
+				const result = await this.login(tenant);
+				result?.authComplete?.resolve();
+				return result?.response;
+			}
+		} else {
 			const result = await this.login(tenant);
 			result?.authComplete?.resolve();
 			return result?.response;
 		}
+
 		return null;
 	}
 
