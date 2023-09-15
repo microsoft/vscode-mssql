@@ -105,6 +105,7 @@ suite('Firewall Service Tests', () => {
 		accountService.setup(v => v.refreshToken(mockAccount, mockTenants[0].id)).returns(() => Promise.resolve(mockToken));
 		accountService.object.setAccount(mockAccount);
 		let result = await firewallService.object.createFirewallRule({
+			account: mockAccount,
 			firewallRuleName: 'Test Rule',
 			startIpAddress: startIpAddress,
 			endIpAddress: endIpAddress,

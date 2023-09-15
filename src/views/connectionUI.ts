@@ -685,7 +685,8 @@ export class ConnectionUI {
 	}
 
 	private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
-		let result = await this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn,
+		let result = await this._vscodeWrapper.showInformationMessage(
+			Utils.formatString(LocalizedConstants.msgPromptRetryFirewallRuleSignedIn, ipAddress, serverName),
 			LocalizedConstants.createFirewallRuleLabel);
 		if (result === LocalizedConstants.createFirewallRuleLabel) {
 			const firewallService = this.connectionManager.firewallService;
